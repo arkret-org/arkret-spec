@@ -97,6 +97,10 @@
     },
     "resolve_outcome": {
       "type": "object",
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.profile.create",
+        "ak.profile.update"
+      ],
       "description": "Closed outcome. Every requested actor_id appears exactly once across profiles and failures, so a caller cannot distinguish an omitted actor from a withheld one.",
       "required": [
         "profiles"

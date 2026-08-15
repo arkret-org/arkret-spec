@@ -1084,7 +1084,7 @@
     {
       "vector_id": "ak.vector.encoding.canonical_event_tie_break.v1",
       "kind": "canonical_event_tie_break",
-      "description": "Single protocol-wide winner rule for both concurrent candidate sets and logical-slot equivocation candidate sets. The comparison key is the decoded digest octets of canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id), bytewise greatest, with the canonical suite id as secondary key only when the octets are identical.",
+      "description": "Producer-biased canonical presentation and serialization order. Decoded digest octets sort ascending, with canonical suite id as secondary key only when octets are identical. The order never selects a semantic winner or removes a candidate.",
       "digest_preimage": {
         "source": "envelope_without_proofs_unsigned_actor_kind_event_id",
         "removed_top_level_fields": [
@@ -1096,8 +1096,9 @@
         "forbidden_legacy_preimage": "envelope_without_proofs_unsigned"
       },
       "comparison": {
-        "primary_key": "decoded_digest_octets_unsigned_lexicographic_greatest",
-        "secondary_key": "canonical_suite_id_utf8_bytewise_greatest_only_when_octets_equal",
+        "primary_key": "decoded_digest_octets_unsigned_lexicographic_ascending",
+        "secondary_key": "canonical_suite_id_utf8_bytewise_ascending_only_when_octets_equal",
+        "semantic_winner_allowed": false,
         "forbidden_keys": [
           "event_id",
           "hlc",
@@ -1109,9 +1110,23 @@
           "op.value_domain_field"
         ]
       },
+      "producer_bias": {
+        "beat_known_random_digest_expected_attempts": 2,
+        "reach_top_2_to_minus_k_expected_attempts": "2^k",
+        "semantic_winner_allowed": false,
+        "prohibited_consumers": [
+          "authorization",
+          "admission",
+          "finality",
+          "state_root_membership",
+          "relation_active_edge",
+          "account_status",
+          "ordered_log_entry_membership"
+        ]
+      },
       "cases": [
         {
-          "name": "concurrent_candidates_max_digest_wins",
+          "name": "concurrent_candidates_are_sorted_without_a_winner",
           "candidates": [
             {
               "label": "a",
@@ -1122,10 +1137,14 @@
               "event_digest": "sha256:f000000000000000000000000000000000000000000000000000000000000000"
             }
           ],
-          "expected_winner": "b"
+          "expected_order": [
+            "a",
+            "b"
+          ],
+          "expected_winner": null
         },
         {
-          "name": "slot_equivocation_max_digest_wins_regardless_of_causal_edges",
+          "name": "same_actor_seq_siblings_are_all_retained",
           "candidates": [
             {
               "label": "a",
@@ -1139,8 +1158,16 @@
               "event_digest": "sha256:0200000000000000000000000000000000000000000000000000000000000000"
             }
           ],
-          "expected_winner": "b",
-          "expected_loser_diagnostic": "equivocation"
+          "expected_order": [
+            "a",
+            "b"
+          ],
+          "expected_joined_labels": [
+            "a",
+            "b"
+          ],
+          "expected_winner": null,
+          "expected_diagnostic": "actor_seq_siblings"
         },
         {
           "name": "cross_suite_prefix_order_opposes_decoded_octet_order",
@@ -1155,8 +1182,14 @@
               "event_digest": "sha256:0100000000000000000000000000000000000000000000000000000000000000"
             }
           ],
-          "expected_winner": "a",
-          "expected_wrong_winner_if_wire_string_compared": "b"
+          "expected_order": [
+            "b",
+            "a"
+          ],
+          "expected_wrong_order_if_wire_string_compared": [
+            "a",
+            "b"
+          ]
         },
         {
           "name": "identical_octets_different_suite_uses_suite_secondary_key",
@@ -1170,23 +1203,28 @@
               "event_digest": "sha256:aa00000000000000000000000000000000000000000000000000000000000000"
             }
           ],
-          "expected_winner": "b"
+          "expected_order": [
+            "a",
+            "b"
+          ]
         },
         {
-          "name": "byte_identical_effect_op_is_idempotent",
+          "name": "exact_event_replay_is_idempotent",
           "candidates": [
             {
               "label": "a",
               "issuer_seq": 0,
+              "event_digest": "sha256:aa00000000000000000000000000000000000000000000000000000000000000",
               "effect_op_canonical_bytes": "{\"issuer_seq\":0,\"kind\":\"append\",\"value\":\"x\"}"
             },
             {
               "label": "b",
               "issuer_seq": 0,
+              "event_digest": "sha256:aa00000000000000000000000000000000000000000000000000000000000000",
               "effect_op_canonical_bytes": "{\"issuer_seq\":0,\"kind\":\"append\",\"value\":\"x\"}"
             }
           ],
-          "expected": "duplicate_single_entry_no_equivocation_diagnostic"
+          "expected": "exact_replay_single_entry_no_sibling_diagnostic"
         },
         {
           "name": "proofs_or_reducer_stamps_only_difference_is_not_collision",
@@ -1281,6 +1319,136 @@
           "reason": "reducer_projection_failed",
           "note": "The third segment MUST be the registry cell_writes[] index; v1 has no producer-written effect array."
         }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.cell_subject_uri.v1",
+      "kind": "uri_cell_subject",
+      "source_descriptor": {
+        "event_kind": "ak.mimi.room_binding",
+        "cell_family": "ak.component.mimi.room_binding.v1",
+        "field": "payload.mimi_room_uri",
+        "subject_kind": "uri"
+      },
+      "positive_cases": [
+        {
+          "name": "room_uri",
+          "input": "mimi://mimi.example.com/rooms/01JSMIMI",
+          "expected_subject": "mimi%3A%2F%2Fmimi.example.com%2Frooms%2F01JSMIMI",
+          "expected_cell_ref": "ak:cell:ak.component.mimi.room_binding.v1:mimi%3A%2F%2Fmimi.example.com%2Frooms%2F01JSMIMI"
+        },
+        {
+          "name": "escaped_separator_in_segment",
+          "input": "mimi://mimi.example.com/rooms/a%2Fb",
+          "expected_subject": "mimi%3A%2F%2Fmimi.example.com%2Frooms%2Fa%252Fb",
+          "expected_cell_ref": "ak:cell:ak.component.mimi.room_binding.v1:mimi%3A%2F%2Fmimi.example.com%2Frooms%2Fa%252Fb",
+          "must_differ_from": "unescaped_separator_as_two_segments"
+        },
+        {
+          "name": "unescaped_separator_as_two_segments",
+          "input": "mimi://mimi.example.com/rooms/a/b",
+          "expected_subject": "mimi%3A%2F%2Fmimi.example.com%2Frooms%2Fa%2Fb",
+          "expected_cell_ref": "ak:cell:ak.component.mimi.room_binding.v1:mimi%3A%2F%2Fmimi.example.com%2Frooms%2Fa%2Fb"
+        },
+        {
+          "name": "non_default_port",
+          "input": "mimi://mimi.example.com:8443/rooms/01JSMIMI",
+          "expected_subject": "mimi%3A%2F%2Fmimi.example.com%3A8443%2Frooms%2F01JSMIMI",
+          "expected_cell_ref": "ak:cell:ak.component.mimi.room_binding.v1:mimi%3A%2F%2Fmimi.example.com%3A8443%2Frooms%2F01JSMIMI"
+        },
+        {
+          "name": "unreserved_octets_stay_verbatim",
+          "input": "mimi://mimi.example.com/rooms/a-b_c.d~e",
+          "expected_subject": "mimi%3A%2F%2Fmimi.example.com%2Frooms%2Fa-b_c.d~e",
+          "expected_cell_ref": "ak:cell:ak.component.mimi.room_binding.v1:mimi%3A%2F%2Fmimi.example.com%2Frooms%2Fa-b_c.d~e"
+        }
+      ],
+      "negative_cases": [
+        {
+          "name": "uppercase_host",
+          "input": "mimi://MIMI.example.com/rooms/r",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "no_path_segment",
+          "input": "mimi://mimi.example.com",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "trailing_slash",
+          "input": "mimi://mimi.example.com/rooms/",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "empty_segment",
+          "input": "mimi://mimi.example.com//rooms",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "query_present",
+          "input": "mimi://mimi.example.com/rooms/r?x=1",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "fragment_present",
+          "input": "mimi://mimi.example.com/rooms/r#f",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "userinfo_present",
+          "input": "mimi://user@mimi.example.com/rooms/r",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "leading_zero_port",
+          "input": "mimi://mimi.example.com:0443/rooms/r",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "default_port_written",
+          "input": "mimi://mimi.example.com:443/rooms/r",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "port_out_of_range",
+          "input": "mimi://mimi.example.com:70000/rooms/r",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "dot_segment",
+          "input": "mimi://mimi.example.com/rooms/./r",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "dot_dot_segment",
+          "input": "mimi://mimi.example.com/rooms/../r",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "lowercase_percent_hex",
+          "input": "mimi://mimi.example.com/rooms/a%2fb",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "percent_encoded_unreserved",
+          "input": "mimi://mimi.example.com/rooms/%41",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "hyphen_edged_host_label",
+          "input": "mimi://-bad.example/rooms/r",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "over_max_length",
+          "input": "mimi://mimi.example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expected_error": "schema_violation"
+        }
+      ],
+      "rules": [
+        "the registry cell_subject.kind selects the embedding rule; uri percent-encodes every octet outside ALPHA / DIGIT / - . _ ~ with upper-case hex, including : / and % itself",
+        "encoding % is what keeps the transform injective: a segment carrying %2F and a path carrying a real / are two different rooms and MUST NOT fold onto one cell",
+        "the transform addresses a cell and never normalizes one: a non-canonical mimi_room_uri MUST be rejected with schema_violation before any subject is derived"
       ]
     }
   ],

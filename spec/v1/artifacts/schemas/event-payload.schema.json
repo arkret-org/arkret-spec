@@ -353,9 +353,15 @@
         "expires_at": {
           "$ref": "#/$defs/nullable_timestamp"
         },
-        "supersedes_status_event_id": {
-          "$ref": "#/$defs/event_ref",
-          "description": "Event id of the ak.account.status event being superseded. Required by zh/identity/account-lifecycle.md §3 rule 2 when lowering severity (e.g. back to active after appeal). MUST NOT be used to downgrade erasure_pending (reason_code erasure_pending_is_terminal)."
+        "supersedes_status_event_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "description": "Canonical event-id-sorted exact set of every current blocking ak.account.status head being superseded. Required by account-lifecycle.md §3 rule 2 when lowering severity. Missing, extra, stale or unsorted entries fail closed; erasure_pending is terminal."
         },
         "admin_proof": {
           "$ref": "#/$defs/signature_material"
@@ -4412,7 +4418,7 @@
         "founding_unit_digest": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Digest of the accepted three Event atomic founding unit this binding endorses."
+          "description": "Digest of the accepted four Event atomic founding unit this binding endorses."
         },
         "authorization_basis": {
           "$ref": "#/$defs/direct_conversation_authorization_basis"
@@ -6442,9 +6448,8 @@
           "description": "Interop profile id, e.g. ak.profile.mimi_interop.v1."
         },
         "mimi_room_uri": {
-          "type": "string",
-          "pattern": "^mimi://[^\\s]+$",
-          "description": "MIMI room URI. Cell subject for ak.component.mimi.room_binding.v1."
+          "$ref": "./mimi-interop.schema.json#/$defs/mimi_room_uri",
+          "description": "Canonical MIMI room URI and the cell subject source for ak.component.mimi.room_binding.v1 (registry cell_subject.kind = uri). The closed canonical form and the full percent-encoding that turns it into a CellRef subject are defined in zh/extensions/mimi-interop.md section 4 and zh/conformance/encoding.md section 4; a non-canonical spelling MUST be rejected with schema_violation rather than normalized."
         },
         "binding_scope": {
           "type": "object",
@@ -10479,6 +10484,138 @@
         "reason": {
           "type": "string",
           "maxLength": 512
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_media_service_payload": {
+      "$comment": "Payload for ak.realm.media_service. The media descriptor lives under payload.value (a state_payload envelope), never flattened onto payload. This def is closed on purpose: the descriptor is the trust root for media token issuance (service_id, ice_config_endpoint and every foci[].token_endpoint per zh/crypto-media/media-service-binding.md section 2.1), and it was previously typed only as the open state_payload, which let a deployment carry provider-specific token issuer configuration inside a signed Realm policy cell while a spec-shaped consumer read nothing at all. Issuer configuration -- signing key ids, token audiences, TTLs, backend API credentials -- is deployment configuration of the service named by foci[].token_endpoint. It MUST NOT be carried here: putting it in the cell would make an issuer key rotation require a Realm policy Event holding ak.realm.media_service or ak.policy.manage capability, and would publish issuer internals to every Realm member. See zh/crypto-media/media-service-binding.md section 2.",
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "object",
+          "required": [
+            "service_id",
+            "foci"
+          ],
+          "properties": {
+            "service_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+              "description": "Media service principal. Every issued participant_binding.issuer_kid and service_signature.kid MUST project onto this DID (media-service-binding.md section 3)."
+            },
+            "modes": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "turn",
+                  "sfu",
+                  "mcu"
+                ]
+              }
+            },
+            "ice_config_endpoint": {
+              "type": "string",
+              "pattern": "^https://[^\\s]+$",
+              "description": "ICE / TURN credential endpoint. Part of the section 2.1 integrity binding."
+            },
+            "foci": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/media_service_focus"
+              },
+              "description": "Non-empty multi-focus list. A descriptor carrying a single flat sfu_endpoint, or no foci at all, MUST fail closed with media_service_foci_required; a server MUST NOT normalize or infer one in the realtime path."
+            },
+            "default_call_mode": {
+              "type": "string",
+              "enum": [
+                "p2p",
+                "sfu",
+                "mcu"
+              ]
+            },
+            "allowed_call_modes": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "p2p",
+                  "sfu",
+                  "mcu"
+                ]
+              }
+            },
+            "recording_supported": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "media_service_focus": {
+      "$comment": "One backend focus. focus_id and focus_kind identify it; token_endpoint and connect_url are what a client actually needs to join, so both are required rather than optional -- a focus a client cannot exchange a token at, or cannot connect to, is not a usable focus and must fail schema validation instead of failing at join time. See zh/crypto-media/media-service-binding.md section 2.",
+      "type": "object",
+      "required": [
+        "focus_id",
+        "focus_kind",
+        "token_endpoint",
+        "connect_url"
+      ],
+      "properties": {
+        "focus_id": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Stable focus id inside this Realm media service. It enters the signed canonical bytes and the session_focus election (call-state.md section 4.1)."
+        },
+        "focus_kind": {
+          "type": "string",
+          "enum": [
+            "livekit",
+            "mediasoup",
+            "janus",
+            "arkret_native",
+            "moq_relay"
+          ],
+          "description": "Backend binding id. It sits on the kind axis rather than being spelled `type`, because the value set is an Arkret-owned closed registry and classification-field-registry.json reserves the type axis for fields inherited verbatim from an external standard. Only livekit and arkret_native have a normative binding in v1; a client meeting an unknown or unsupported focus_kind MUST fail closed with unknown_focus_type rather than hand the token to an arbitrary SDK."
+        },
+        "region": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "token_endpoint": {
+          "type": "string",
+          "pattern": "^https://[^\\s]+$",
+          "description": "Token exchange endpoint (section 3). Shared abstraction across every backend; only backend_token differs. Part of the section 2.1 trust root, so a client MUST verify the exact cell value against the current accepted Seal view before anchoring it."
+        },
+        "connect_url": {
+          "type": "string",
+          "pattern": "^(https|wss)://[^\\s]+$",
+          "description": "Backend connection entry point; the concrete protocol is fixed by the type-specific binding appendix."
+        },
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "health_endpoint": {
+          "type": "string",
+          "pattern": "^https://[^\\s]+$",
+          "description": "Client pre-flight endpoint, usable only for ordering foci_preferred before a session_focus is committed. Once ak.component.call.focus.v1 carries a session_focus, a connect failure MUST surface as focus unavailable and MUST NOT silently switch focus."
+        },
+        "cascade_group": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Backend cluster this focus belongs to, for user-visible disclosure that a cross-region conference is cascaded inside the backend. The protocol does not standardize SFU-to-SFU cascading."
         }
       },
       "additionalProperties": false

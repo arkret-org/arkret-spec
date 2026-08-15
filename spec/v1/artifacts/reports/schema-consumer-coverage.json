@@ -49,7 +49,7 @@
       "outbound": 49,
       "prose": 107,
       "prose_only": 2,
-      "schema_reference": 111,
+      "schema_reference": 112,
       "startup_compile": 185,
       "vectors": 116
     },
@@ -2166,6 +2166,7 @@
       "consumers": {
         "outbound": "exact",
         "prose": "normative_text",
+        "schema_reference": "fragment",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },

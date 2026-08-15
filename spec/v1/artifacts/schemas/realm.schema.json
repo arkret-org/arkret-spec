@@ -170,14 +170,13 @@
           },
           "on_conflict": {
             "type": "string",
-            "description": "Conflict handling for mutually unreachable Relation candidates. deterministic_winner selects the candidate with the bytewise-greatest canonical event_digest per the single canonical tie-break rule (zh/conformance/encoding.md §4.2); it MUST NOT use HLC, actor id, event_id, local receive order, database id, or service insertion order.",
+            "description": "Conflict handling for mutually unreachable Relation candidates. require_review retains the complete bounded head set and projects no active winner until an explicit resolution covers every current head.",
             "enum": [
               "reject",
               "close_previous",
-              "deterministic_winner",
               "require_review"
             ],
-            "default": "deterministic_winner"
+            "default": "require_review"
           }
         },
         "additionalProperties": true

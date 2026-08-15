@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 198,
+  "audited_occurrence_count": 209,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -166,6 +166,17 @@
     },
     {
       "file": "contact-operations.schema.json",
+      "key": "contact_continuity_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "commitment"
+      ],
+      "reason": "Portable bilateral prefix checkpoint plus the exact bounded Contact tail required for non-skipping recontact verification."
+    },
+    {
+      "file": "contact-operations.schema.json",
       "key": "contact_introduction_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -189,6 +200,17 @@
     },
     {
       "file": "contact-operations.schema.json",
+      "key": "continuity_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "commitment"
+      ],
+      "reason": "Prepare-phase import of a mutually signed checkpoint and bounded uncompressed tail; it is verified before any Contact state read or write."
+    },
+    {
+      "file": "contact-operations.schema.json",
       "key": "introduction_evidence",
       "occurrences": 2,
       "disposition": "polymorphic_container",
@@ -201,7 +223,7 @@
     {
       "file": "contract-registry.json",
       "key": "evidence_class",
-      "occurrences": 13,
+      "occurrences": 16,
       "disposition": "registry_contract",
       "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
     },
@@ -265,7 +287,7 @@
     {
       "file": "did-freshness-profile-registry.json",
       "key": "evidence_class",
-      "occurrences": 19,
+      "occurrences": 22,
       "disposition": "registry_contract",
       "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
     },
@@ -700,7 +722,7 @@
     {
       "file": "operation-registry.json",
       "key": "evidence_class",
-      "occurrences": 11,
+      "occurrences": 14,
       "disposition": "registry_contract",
       "reason": "Generated exact DID-authority call-site classification for registered operations."
     },

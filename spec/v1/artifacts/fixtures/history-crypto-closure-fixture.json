@@ -447,7 +447,7 @@
         {
           "name": "direct_conversation_founding_unit_appends_history_sharing_policy",
           "realm_profile": "ak.profile.direct_conversation_realm.v1",
-          "mutation": "append ak.realm.history_sharing_policy as a fourth Event of the founding unit",
+          "mutation": "append ak.realm.history_sharing_policy as a fifth Event of the founding unit",
           "expected": {
             "decision": "reject",
             "reason": "direct_conversation_founding_unit_invalid",

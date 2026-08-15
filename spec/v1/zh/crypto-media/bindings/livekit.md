@@ -15,7 +15,7 @@ sidebar:
 
 ## 1. 范围
 
-本附录定义 `ak.realm.media_service.foci[].type = "livekit"` 的 backend binding 细节。它 **不替代** [`../media-service-binding.md`](../media-service-binding.md) 与 [`../call-state.md`](../call-state.md)——参见 media-service-binding §2（multi-focus schema）、§3（token exchange 通用契约）、§5（focus selection）、§7（participant identity 校验）、§8.1（E2EE key injection 通用契约），及 call-state §4（ak.call.state 字段）。
+本附录定义 `ak.realm.media_service.foci[].focus_kind = "livekit"` 的 backend binding 细节。它 **不替代** [`../media-service-binding.md`](../media-service-binding.md) 与 [`../call-state.md`](../call-state.md)——参见 media-service-binding §2（multi-focus schema）、§3（token exchange 通用契约）、§5（focus selection）、§7（participant identity 校验）、§8.1（E2EE key injection 通用契约），及 call-state §4（ak.call.state 字段）。
 
 声明 `ak.profile.media_service_binding.livekit.v1` 的部署 MUST 同时声明上游 `ak.profile.media_service_binding.v1`。本 binding 在 v1 周期内为 **optional** sub-profile；core conformance 不强制实现 LiveKit binding。
 

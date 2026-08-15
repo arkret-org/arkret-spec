@@ -1,0 +1,69 @@
+{
+  "suite": "bilateral_continuity_checkpoint",
+  "version": "2026-08-15",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.contact.bilateral_continuity_checkpoint.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.contact.bilateral_continuity_checkpoint.v1"
+  ],
+  "machine_contracts": [
+    "schemas/contact-operations.schema.json#/$defs/bilateral_continuity_checkpoint",
+    "schemas/contact-operations.schema.json#/$defs/contact_continuity_evidence",
+    "registry/outward-disclosure-policy-registry.json"
+  ],
+  "cases": [
+    {
+      "name": "history_beyond_64_uses_checkpoint_and_bounded_tail",
+      "covered_prefix_count": 64,
+      "uncompressed_tail_count": 64,
+      "expected": "accepted_and_reaches_unique_root"
+    },
+    {
+      "name": "same_sequence_different_digest_is_fork",
+      "sequence": 7,
+      "checkpoint_digests": [
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "expected_error": "continuity_invalid",
+      "winner": null
+    },
+    {
+      "name": "rollback_or_missing_checkpoint_predecessor_is_invalid",
+      "expected_error": "continuity_invalid"
+    },
+    {
+      "name": "wrong_root_pair_accumulator_or_single_signature_is_invalid",
+      "expected_error": "continuity_invalid"
+    },
+    {
+      "name": "temporarily_missing_portable_material_is_unavailable",
+      "expected_error": "continuity_evidence_unavailable",
+      "retry_after_import": true
+    },
+    {
+      "name": "migrated_holder_imports_checkpoint_without_skipping_tail",
+      "expected": "accepted_only_after_exact_checkpoint_and_tail_validation"
+    },
+    {
+      "name": "new_lineage_does_not_inherit_old_audit_identity",
+      "claims_continuity": false,
+      "inherits_history": false,
+      "expected": "independent_root"
+    }
+  ],
+  "outward_equivalence": {
+    "continuity_evidence_unavailable": {
+      "http_status": 409,
+      "body_shape": "fixed",
+      "contact_state_detail": "omitted"
+    },
+    "continuity_invalid": {
+      "http_status": 409,
+      "body_shape": "fixed",
+      "contact_state_detail": "omitted"
+    }
+  }
+}

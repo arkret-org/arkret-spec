@@ -55,11 +55,12 @@ remove 与 reorder 同样是**往集合里加一条断言**，而不是 observed
 
 **为什么 remove 不用 `or_set_remove_observed`**：无 `match` 的形态会移除同 scope 下**全部**
 target 的 pin；带 `match` 的形态只移除**冻结前态**下存活的 add dot，与该 remove 并发的 add
-不在其中，于是并发 (add, remove) 会收敛为 add——而下一段的仲裁器要求这类并发候选按
-`event_digest` bytewise 最大值定胜负。两者结论不同，故 remove 必须是断言。
+不在其中，于是并发 (add, remove) 会静默收敛为 add；下一段要求这类互斥并发显式暴露而非任选一边，故 remove 必须是断言。
 
 **Roster 投影（默认视图）**：对每个 `target_ref`，取该 `(pin_scope, target_ref)` 下**因果最晚**
-的断言为 effective 断言；断言互不可达时按下一段的 `event_digest` bytewise 最大值裁定。
+的断言集；恰有一个 head 时它是 effective 断言。存在互不可达 heads 时，该 target 进入 `pin_conflict`，
+默认 roster 不投影 active pin，并向有权 reader 暴露完整 heads；后续断言必须在 causal basis 覆盖完整
+current head set 才能收敛。
 effective 断言来自 `ak.pin.remove` 时该 entry 不出现在 roster；来自 `ak.pin.add` 时 entry 为
 该 payload；来自 `ak.pin.reorder` 时 rank 取该 reorder 的 `rank`，`note` 与其余 entry 字段
 继承自同一 `(pin_scope, target_ref)` 下因果最晚的存活 `ak.pin.add` 断言——reorder
@@ -68,7 +69,7 @@ effective 断言来自 `ak.pin.remove` 时该 entry 不出现在 roster；来自
 该 or_set 的 join 仍是 dot 集合并，可交换、可结合、幂等且数学上永不产生 `⊥`；registry 登记的
 `bottom=expose` 按 §9.1.1 由本节这一领域规则定义暴露语义。审计视图保留全部断言。
 
-重排必须保持稳定：`rank` 按 ASCII bytewise lexicographic ascending 排序。`ak.pin.remove.expected_rank` 与 `ak.pin.reorder.expected_rank` 是可选 CAS 前置；存在时 MUST 与当前 materialized rank 逐字节相等，否则 `failed_precondition` 且不得修改 entry。相同 rank 冲突时，projection 使用 event causal order 作主裁——严格因果后继 supersede 前驱；对互不可达（并发）候选，MUST 使用与 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) / [`relation.md` §6](./relation.md) 一致的 `event_digest` bytewise **最大值** 作 deterministic tie-breaker（`event_digest` 是签名覆盖的 canonical Event digest，不得由 `event_id`、HLC、actor id 或接收顺序替代）。writer SHOULD 使用 rank rebalance 避免长期冲突。
+重排必须保持稳定：不同 target 按 `(rank, target_ref)` 的 ASCII bytewise lexicographic ascending 排序；相同 rank 不构成互斥冲突。`ak.pin.remove.expected_rank` 与 `ak.pin.reorder.expected_rank` 是可选 CAS 前置；存在时 MUST 与无冲突的 current materialized rank 逐字节相等，否则 `failed_precondition` 且不得修改 entry。单一 target 的互不可达 reorder/add/remove 按上一段进入 `pin_conflict`，不得用 digest、HLC、actor id 或接收顺序选边。writer SHOULD 使用 rank rebalance 避免长期 rank 碰撞。
 
 ## 5. Interactions
 

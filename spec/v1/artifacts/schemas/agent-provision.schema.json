@@ -4,6 +4,9 @@
   "title": "Arkret Agent Provision",
   "description": "Controller-authored payload that creates one native personal Agent provisioning fact and atomically projects its accountability and controller-scoped selector bindings. The containing Event proof is the only signature; this payload carries no nested proof.",
   "type": "object",
+  "x-arkret-pcr-outward-event-kinds": [
+    "ak.agent.provision"
+  ],
   "required": [
     "schema",
     "agent_id",

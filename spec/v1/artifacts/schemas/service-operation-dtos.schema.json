@@ -679,7 +679,7 @@
         },
         "backend_token": {
           "type": "string",
-          "description": "Opaque to Arkret protocol; type-specific (e.g. LiveKit JWT).",
+          "description": "Opaque to Arkret protocol; fixed by the backend binding named by backend_kind (e.g. a LiveKit JWT, or the arkret-native {kid, payload, sig, signature_algorithm} object).",
           "minLength": 1
         },
         "participant_identity": {
@@ -1283,13 +1283,13 @@
         },
         "event_ids": {
           "type": "array",
-          "minItems": 3,
-          "maxItems": 3,
+          "minItems": 4,
+          "maxItems": 4,
           "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/EventId"
           },
-          "description": "The three accepted Event IDs in the same wire order as the request. They are the exact preimage of receipt.founding_unit_digest."
+          "description": "The four accepted Event IDs in the same wire order as the request. They are the exact preimage of receipt.founding_unit_digest."
         },
         "receipt": {
           "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt"
@@ -1312,12 +1312,12 @@
         },
         "events": {
           "type": "array",
-          "minItems": 3,
-          "maxItems": 3,
+          "minItems": 4,
+          "maxItems": 4,
           "items": {
             "$ref": "#/$defs/EventFederationSubmission"
           },
-          "description": "The same three founder-signed Events in the same fixed wire order, byte-identical to what the source accepted."
+          "description": "The same four founder-signed Events in the same fixed wire order, byte-identical to what the source accepted."
         },
         "source_acceptance_receipt": {
           "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt"
@@ -1338,7 +1338,7 @@
     },
     "DirectConversationFoundingUnitSubmission": {
       "type": "object",
-      "description": "Caller-authored Direct Conversation founding unit submitted to the founder's current Principal Server. The founder authors all three Events itself: realm_id is retype(events[0] Event ID) and main_strand_id is retype(events[2] Event ID), so no party can allocate either coordinate before the canonical preimage exists. The service never allocates, replaces or renegotiates an ID; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or three Events atomically. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1.",
+      "description": "Caller-authored Direct Conversation founding unit submitted to the founder's current Principal Server. The founder authors all four Events itself: realm_id is retype(events[0] Event ID) and main_strand_id is retype(events[2] Event ID), so no party can allocate either coordinate before the canonical preimage exists. The service never allocates, replaces or renegotiates an ID; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1.",
       "required": [
         "unit_kind",
         "idempotency_key",
@@ -1356,12 +1356,12 @@
         },
         "events": {
           "type": "array",
-          "minItems": 3,
-          "maxItems": 3,
+          "minItems": 4,
+          "maxItems": 4,
           "items": {
             "$ref": "#/$defs/EventInitialSubmission"
           },
-          "description": "Exactly three founder-signed Events in fixed wire order: ak.realm.create with an omitted realm_id and a realm_genesis scope_ref, the peer participant's ak.member.state{join}, then ak.strand.create with an omitted strand_id. Reordering, a fourth Event, a missing member join and a missing Strand each reject the whole unit."
+          "description": "Exactly four founder-signed Events in fixed wire order: ak.realm.create with an omitted realm_id and a realm_genesis scope_ref, the peer participant's ak.member.state{join}, ak.strand.create with an omitted strand_id, then the founder's explicit ak.member.state{join} genesis write carrying head_eq null. Reordering, a fifth Event, either missing member join and a missing Strand each reject the whole unit."
         },
         "founding_authority_evidence": {
           "$ref": "#/$defs/DirectConversationFoundingAuthorityEvidence"
@@ -2186,6 +2186,9 @@
     },
     "EventsResolveOutcome": {
       "type": "object",
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.contact.requested"
+      ],
       "description": "ak.self.events.read.resolve result. `events[]`, optional `seals[]`, and `missing[]` plus optional `unauthorized[]` form a partition of the requested selectors.",
       "required": [
         "events",

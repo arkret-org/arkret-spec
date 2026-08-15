@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.6",
+  "version": "2026-08-16.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T10:32:27Z",
+  "generated_at": "2026-08-15T16:16:56Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -212,8 +212,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:05e908dd84399aed6a0baca2fec49c78e34d361f77f011ef8261efa6ff975cd0",
-      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. Ordinary Collaboration bootstrap uses the ordered machine-registry facet closure with an explicit final creator membership and no implicit creator membership. The mutually exclusive Direct Conversation branch is exactly create, explicit peer membership, and one basis-free main ak.strand.create; its fixed baseline and founder membership are reducer projections. Batch admission MUST reject both no-basis shapes anywhere else.",
+      "section_digest": "sha256:59f4dcd83c8f6f6684cb596e0159473b77f99afaeddfbf904de195a36d8dab42",
+      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. Ordinary Collaboration bootstrap uses the ordered machine-registry facet closure with an explicit final creator membership and no implicit creator membership. The mutually exclusive Direct Conversation branch is exactly create, explicit peer membership, one basis-free main ak.strand.create, then explicit founder membership with head_eq null. Batch admission MUST reject both no-basis shapes anywhere else.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1",
@@ -230,7 +230,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:455e7f7911bb3832f37f3a327c666b1b10a105b2c710f7c06dc9aa5b0cb6cc5a",
+      "section_digest": "sha256:5142d25603ed5e83730f6de068c03a90bc1e8e636a9c84f661dcd3bb0855dfb5",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -276,7 +276,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:34bd347af39f999fdc837251c1b4ccddcc365aac77391bb406c00a48577985ed",
+      "section_digest": "sha256:43649de89b07a228ddd9603f74fdd5fba7f8aa20e473687ffdb2fdf509c53e27",
       "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
       "testability_grade": "vector",
       "evidence_refs": [

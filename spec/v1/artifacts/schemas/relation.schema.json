@@ -157,25 +157,22 @@
     },
     "relation_conflict_diagnostic": {
       "type": "object",
-      "description": "Projection-only conflict diagnostic emitted for deterministic_winner losers and require_review output. reducer_input MUST be false; MUST NOT be treated as canonical event bytes or dedupe authority. See zh/models/relation.md §6.",
+      "description": "Projection-only require_review diagnostic containing the complete bounded concurrent head set. reducer_input MUST be false; MUST NOT be treated as canonical event bytes, a winner, or dedupe authority. See zh/models/relation.md §6.",
       "required": [
         "dedupe_key",
-        "winner",
-        "losers"
+        "heads"
       ],
       "properties": {
         "dedupe_key": {
           "type": "string",
           "description": "Canonical projection of the dedupe key under which these candidates collided."
         },
-        "winner": {
-          "$ref": "#/$defs/relation_conflict_candidate",
-          "description": "The deterministic winner (event_digest bytewise-greatest per the single canonical tie-break rule, zh/conformance/encoding.md §4.2), or omitted-equivalent for require_review where no canonical winner is projected."
-        },
-        "losers": {
+        "heads": {
           "type": "array",
-          "description": "Conflict losers retained for audit and explicit repair. Bounded by the conflict fanout limit (v1 public profile: 16 total candidates including the winner).",
-          "maxItems": 15,
+          "description": "Complete canonical concurrent head set, sorted by event_id for wire stability only. No member is a winner or loser.",
+          "minItems": 2,
+          "maxItems": 16,
+          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/relation_conflict_candidate"
           }
@@ -196,7 +193,7 @@
         },
         "event_digest": {
           "type": "string",
-          "description": "Canonical signed Event digest (<digest-suite>:<hex>), the bytewise tie-break key.",
+          "description": "Canonical signed Event digest (<digest-suite>:<hex>), retained as evidence and used only for stable presentation order; it does not select a winner.",
           "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
         "reason": {

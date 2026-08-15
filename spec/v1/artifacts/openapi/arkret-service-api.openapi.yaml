@@ -1373,6 +1373,7 @@ components:
               - mimi_e2ee_boundary_unmarked
               - mimi_payload_digest_mismatch
               - mimi_payload_invalid
+              - mimi_room_binding_event_invalid
               - mimi_reporter_resolution_required
               - franking_tampered
               - mls_keypackage_claim_request_expired
@@ -1380,6 +1381,8 @@ components:
               - unsupported_content_encoding
               - contact_scope_stale
               - contact_lineage_conflict
+              - continuity_evidence_unavailable
+              - continuity_invalid
               - membership_compensation_conflict
               - mls_generation_proposal_fanout_exceeded
             message:
@@ -4038,7 +4041,7 @@ paths:
         Ordinary Event publication plus the discriminated
         `direct_conversation_founding` branch, which is the only carrier for a
         Direct Conversation founding unit (zh/identity/contact-and-direct-conversation.md
-        §5.5). That branch carries exactly three founder-authored Events in fixed
+        §5.5). That branch carries exactly four founder-authored Events in fixed
         wire order, closed XOR founding authority evidence and an `idempotency_key`,
         and returns `DirectConversationFoundingAcceptanceOutcome` with the
         source-signed receipt. The service allocates no identifier: `realm_id`
@@ -4633,7 +4636,7 @@ paths:
         checks as initial submission. The request union also registers the
         discriminated `direct_conversation_founding` branch for the Direct
         Conversation founding exception (zh/sync/federation.md §4.0.4): it carries
-        exactly three ordered Events, the source founding acceptance receipt and
+        exactly four ordered Events, the source founding acceptance receipt and
         bounded dependencies, omits `service_binding_ref` because the Realm does
         not yet exist at the receiver, and reports a missing dependency as the
         top-level 409 below rather than a per-item partial.
@@ -6756,10 +6759,11 @@ paths:
       summary: Read authorized account-internal resolution audit evidence.
       description: |
         Returns the account's Principal Control Realm id, genesis Event and
-        receipt, current and bounded predecessor resolution Events, accepted Seal
-        and resolution cell proof. Authorization is a current holder session bound
-        to principal_authority, an accepted recovery session for it, or an explicit
-        recovery capability; a caller-declared intent is never authorization.
+        receipt, current and bounded predecessor resolution Events, and the accepted
+        Seal covering the current Event. Authorization is the current holder session
+        bound to the exact principal_authority. Recovery actors first complete the
+        existing recovery transaction and become the current holder; v1 has no second
+        audit authorization path. A caller-declared intent is never authorization.
         Unknown account, wrong authority pair, unauthorized caller and unknown
         history cursor share one anti-enumeration outcome and are externally
         indistinguishable. history_depth is the closed range 0..256 with default 0
@@ -7091,10 +7095,9 @@ paths:
         Returns the account's current resolution projection, bounded adapter
         method history evidence and the Principal Server projection attestation.
         It carries no Principal Control Realm id, genesis Event, genesis receipt,
-        resolution Event, accepted Seal or cell proof: that account-internal audit
-        and recovery material is served only by
-        ak.self.identity.read.resolution_audit under holder or recovery
-        authorization, so this surface has no history selector.
+        resolution Event or accepted Seal: that account-internal audit material
+        is served only by ak.self.identity.read.resolution_audit under exact
+        current-holder authorization, so this surface has no history selector.
         The response is discovery evidence, never an authorization result.
         A caller performing a sensitive operation MUST obtain a fresh response,
         verify the exact (principal_id, principal_server_id) account authority,

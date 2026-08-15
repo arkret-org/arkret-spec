@@ -1152,15 +1152,25 @@ def check_event_log_operations_carry_a_signed_event(lint: Lint) -> None:
     if not isinstance(operations, list):
         return
 
+    def authors_event(effect: Any) -> bool:
+        if not isinstance(effect, dict):
+            return False
+        if effect.get("kind") in EVENT_AUTHORING_DURABLE_EFFECT_KINDS:
+            return True
+        if effect.get("kind") == "branched":
+            return any(
+                authors_event(branch.get("effect"))
+                for branch in effect.get("effect_branches", [])
+                if isinstance(branch, dict)
+            )
+        return False
+
     unsigned: set[str] = set()
     for operation in operations:
         if not isinstance(operation, dict):
             continue
         effect = operation.get("durable_effect")
-        if (
-            not isinstance(effect, dict)
-            or effect.get("kind") not in EVENT_AUTHORING_DURABLE_EFFECT_KINDS
-        ):
+        if not authors_event(effect):
             continue
         operation_id = operation.get("operation_id")
         if not isinstance(operation_id, str):

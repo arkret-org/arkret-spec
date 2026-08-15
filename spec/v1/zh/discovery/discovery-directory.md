@@ -607,6 +607,10 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 
 任一步失败 MUST 拒绝并返回对应错误码；Directory MUST NOT 部分接受或"先索引后审核"。
 
+**DID authority call site（normative）**：第 2 步验证的是 service / organization 的**治理签名方**，不是 human principal 的操作，因此它落在 [`../identity/did-usage-and-verification.md` §5.4](../identity/did-usage-and-verification.md) 的 `ongoing_governance` evidence class 内，并已按该文 §4 结尾的硬约束登记为**真实调用点**：`ak.find.directory.command.announce`、`ak.find.directory.command.withdraw` 与 `ak.find.directory.command.takedown_appeal` 三条 operation 在 `contract-registry.json` 中携带 `did_authority`（`freshness_profile_id = ak.did_freshness.ongoing_governance.v1`），并在 `did-freshness-profile-registry.json` 的 `call_sites[]` 中逐字登记。announce admission 内为解析 principal server endpoint 而发起的 DID 解析属于该 operation 的组成部分，**MUST NOT** 另立 call site。
+
+未登记 `did_authority` 的 Directory operation **MUST NOT** 调用 authority resolver。因此全部 `ak.find.directory.read.*` 查询 / filter 面是**零网络**的：它们只消费已接受 binding，实现 MUST 在类型层把已接受 binding 存储与网络 resolver 隔离，使查询路径结构上无法发起解析。`DirectoryIssuer` 用途的 binding 由 ingest acceptance 镜像得到，**MUST NOT** 自行发起解析。
+
 ### 8.6 Freshness、TTL 与续约
 
 | 参数 | 默认 | 上限 | 说明 |

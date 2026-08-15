@@ -700,24 +700,33 @@ POST /_arkret/self/keys/claim
 
 服务端在处理 `keys/query` 时 MUST 先认证 requester，并且 MUST 仅在 requester 与被查询 `principal_id` 之间存在当前有效的授权关系时返回目录记录：至少同属一个 requester 可见且 requester 仍为 `join` 的 Realm，或存在当前 call/session/contact profile 明确定义的共享上下文。否则 MUST 使用与不存在不可区分的失败形态（省略该 `(principal_id, device_id)` 记录或写入 `failures` 的非枚举性失败），不得让任意已登录用户枚举其它 principal 的设备存在性 / 吊销状态。
 
-响应字段：`device_keys: object` required；`failures: object` optional。`device_keys` 的每个 `(principal_id, device_id)` 记录为 `query_device_record`：prekey bundle 收在 `algorithms`(算法名 → key_record)子字段下，并在**与 `algorithms` 同级**携带设备验签公钥目录字段 `device_signing_key` 与 `device_status`(见下方 §8.2)。schema 见 [`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json) 的 `$defs/query_device_record`。
+响应字段：`device_keys: object` required；`failures: array` optional；`device_generations: object` optional（principal → current identity-root generation fence，§8.2 第 3 条的输入）。`device_keys` 的每个 `(principal_id, device_id)` 记录为 `query_device_record`：prekey bundle 收在 `algorithms`(算法名 → key_record)子字段下，并在**与 `algorithms` 同级**携带设备验签公钥目录字段与 origin Principal Server 的 `device_projection_attestation`(见下方 §8.2)。schema 见 [`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json) 的 `$defs/query_device_record`。
 
 #### 8.2 设备验签公钥目录（normative）
 
-`keys/query` 的 device row 必须返回 `principal_id`、`device_id`、`device_signing_key`、`hpke_key`、`algorithms`、`device_authorize_event_id`、`authorized_generation_ref`、lifecycle status 以及可独立验证的 PCR authorization evidence。设备 row 不得回显 DID Document 的设备或 service authority。
+`keys/query` 是**跨 principal** 的关系门控面。它的 device row MUST 返回 `algorithms`、`device_signing_key`、`hpke_key`、`trust_algorithms`、`device_status`、`device_authorize_event_id`、`authorized_generation_ref` 与 `device_projection_attestation`；schema 的 `required` 与本句逐项一致。`principal_id` 与 `device_id` **由 `device_keys` 映射的键定位**，不是 row 字段，MUST NOT 作为冗余字段重复出现。设备 row 不得回显 DID Document 的设备或 service authority。
 
-receiver 必须验证：
+`device_projection_attestation` 是 **origin Principal Server 对 exact device projection 的签名断言**，覆盖 `(principal_id, principal_server_id, device_id, device_signing_key, hpke_key, device_authorize_event_id, authorized_generation_ref, device_status, attested_at, expires_at)`，proof context 为 `ak.device-projection-attestation-proof-v1`（见 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)）。它是本面唯一的验证载体：PCR genesis receipt、device authorization chain 与 accepted Seal **MUST NOT** 出现在本面，它们是 origin Principal Server 的内部账号治理材料，只经 `ak.self.identity.read.resolution_audit` 在 holder / recovery 授权下披露。
 
-1. `principal_genesis_receipt` 覆盖 root-signed PCR create 与 founding authorize；
-2. authorization chain 从该 founding state，经 accepted-device authorize 或 PCR-policy re-anchor，到目标 `device_authorize_event_id`；
-3. accepted Seal 覆盖链的当前 frontier，device 未 revoke/conflict，`authorized_generation_ref == current_device_generation_ref`；
-4. row 的 signing/HPKE key 与 authorize payload 逐字一致。
+receiver MUST 验证：
 
-缺失、stale 或冲突证据时不得返回可用于 E2EE/Signal 验签或 KeyPackage claim 的 active key。普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `full_id` 的 DID URL；receiver 取 bare `full_id` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
+1. attestation proof 的 controller 投影后**精确等于** `principal_server_id`，且该 key 在其当前已验证 method history 下具备 assertion 能力；`proof.created_at` 逐字等于 `attestation.attested_at`，当前时刻早于 `expires_at`；
+2. row 的 `device_signing_key`、`hpke_key`、`device_authorize_event_id`、`authorized_generation_ref`、`device_status` 与 attestation 中的同名字段**逐字一致**；
+3. `authorized_generation_ref` 等于同一响应 `device_generations` 中该 principal 的 `current_device_generation_ref`，且 `device_generation_status = active`；
+4. `device_status = active`。
+
+任一条不成立时 MUST NOT 把该 row 用于 E2EE / Signal 验签或 KeyPackage claim。反枚举失败形态不变：requester 与目标 principal 之间没有当前有效授权关系时，MUST 省略该 `(principal_id, device_id)` 记录或写入非枚举性 `failures`；revoked、fenced 或 conflicted 的设备同样按此处理，MUST NOT 降级成一条缺字段的 row。
+
+普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `full_id` 的 DID URL；receiver 取 bare `full_id` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
 
 #### 8.3 客户端独立验证（normative）
 
-客户端不能把服务端裸 `device_signing_key` 断言当作 Tier-2 信任。它必须从 identity-root anchored PCR genesis/re-anchor 开始重放 device authorization chain，并检查 generation fence、revocation 和 Seal coverage。验证只需要在 evidence/frontier 更新时完成；普通消息热路径可使用按 `(principal_id, device_id, authorized_generation_ref, seal_ref)` 缓存的 verified projection，不需要在线解析 DID。
+客户端不能把服务端裸 `device_signing_key` 断言当作 Tier-2 信任。Tier-2 信任只有两个来源：
+
+1. §8.2 的 origin Principal Server `device_projection_attestation`——它把「这就是该账号当前接受的设备投影」变成一条可独立验签的断言；
+2. 用户侧 `ak.key.verification.*` 带外验证。
+
+客户端 **MUST NOT** 被要求从 identity-root anchored PCR genesis 重放 device authorization chain：跨 principal 面按定义拿不到那份材料，要求重放会把账号内部治理日志变成对任意有关系第三方的外露面。验证只需要在 attestation 或 generation 更新时完成；普通消息热路径可使用按 `(principal_id, principal_server_id, device_id, authorized_generation_ref, attested_at)` 缓存的 verified projection，不需要在线解析 DID。缓存 MUST NOT 越过 `expires_at`。
 
 ## 9. MLS KeyPackage Claim API
 
@@ -808,7 +817,8 @@ verification method 的 DID controller MUST 等于 `requester`，并按 requeste
 
 `claim_nonce` MUST 是 22..128 字符无 padding base64url，携带至少 128 bits CSPRNG entropy，并与 `requester` 组成 self claim 的 protocol object identity。authority MUST 以 `(requester, claim_nonce)` 建唯一 ledger，在同一原子事务/线性化点写入 `payload_digest`、KeyPackage `published -> claimed` CAS（或 last-resort claim record）和 byte-exact terminal outcome：
 
-- 同一 identity、同一 `payload_digest` 的重试返回第一次的 byte-identical outcome（包括当时的 `available_count`），不得再次选包或推进状态；
+- 同一 identity、同一 `payload_digest` 的重试返回第一次的 byte-identical success outcome 或同一个固定
+  `claim_failed` envelope，不得再次选包或推进状态；
 - 同一 identity、不同 `payload_digest` 必须在 inventory lookup/CAS 前 fail closed，外部保持统一 `claim_failed`，内部审计 `duplicate_conflict`；
 - 首次收到时 request 已过期且 ledger 不存在，必须拒绝且不得创建 claim；已有 terminal ledger 的读取仍须当前有效、与 `requester`/device/service 绑定一致的 sender-constrained authentication，绝不能让 proof 历史有效性绕过当前 revoke/pause/deactivate；
 - terminal outcome 与 digest ledger MUST 至少保留到全部返回 claim 已进入 `consumed`/`revoked` terminal state，且不得早于 `request.expires_at + 24h`。清理完整 outcome 后仍必须保留到 request 已不可能重新通过 freshness gate 的 nonce tombstone；重放永远不能创建第二次 claim。
@@ -847,8 +857,8 @@ verification method 的 DID controller MUST 等于 `requester`，并按 requeste
 - Device / Key Server 在 claim 成功响应中返回的每条 claim MUST 包含 `keypackage_digest = canonical_digest(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(capabilities))`，并携带 claimed 设备的 trust binding。普通 device 携带该设备 accepted `ak.device.authorize` 的 `device_authorize_event_id`；Native Agent 携带当前 accepted `ak.agent.key.authorize` 的 `agent_key_authorize_event_id`。两者 MUST 精确二选一。`ak.mls.welcome` MUST 回填同一 KeyPackage hash 到顶层 `payload.keypackage_digest` 和 `payload.claim_ref.keypackage_digest`，回填同一 digest 到 `payload.claim_ref.capabilities_digest`，并把 claim record 的 trust binding 原样回填到 `payload.claim_ref`；Welcome 接收端在解密前必须比对这些值与本地 claim 记录，并确认该 trust binding 仍指向 claimed device/Agent 当前 accepted state，防止 group manager 或中间服务替换 KeyPackage、扩大能力集合或复用旧 authorization。
 - `payload.claim_envelope` 是 requester 对本次 Welcome 的独立签名 transcript，签名身份绑定 requester 而不是被 claim 的 endpoint。普通 principal requester MUST 携带 `requester_device_id` 与 `device_authorize_event_id`，并用该设备当前 accepted `ak.device.authorize.payload.device_public_key` 签名；Native Agent requester MUST 携带 `requester_agent_id + requester_agent_verification_method + requester_agent_key_authorize_event_id`，并用所声明的 active Agent key 签名，禁止携带或借用 `requester_device_id`。两者 MUST 精确二选一。服务端和接收端 MUST 校验 envelope 的 requester identity、closed endpoint、authorization ref、signature `kid` 与当前未撤销投影一致；不得把 recipient KeyPackage 的 authorization ref 当作 requester 签名身份使用。
 - 每个成功 Welcome 必须且只能携带 `self_claim_receipt` 或 `peer_claim_receipt`。self claim outcome 必返 authority-signed `self_keypackage_claim_receipt`：`operation_id=ak.self.keys.keypackages.command.claim`、`claim_request_id=request.claim_nonce`、`request_digest` 覆盖含 holder proof 的完整 exact request、`claims_digest` 覆盖 exact claims、`source_service_id=destination_service_id=current authority`。Native Agent `current_observation` 必须从所选 receipt 唯一派生并逐字相等：`operation_id=receipt.operation_id`（peer 为 `ak.peer.keys.keypackages.command.claim`）、`request_digest=receipt.request_digest`、`verifier_id=destination_service_id`、`audience=source_service_id`、`challenge=claim_request_id`（self 即 claim_nonce）。接收端不得用 evidence 内自报 observation 替代 receipt 导出的 expected context。
-- `claim` 失败响应 MUST 对不存在、不可见、无可用设备、policy denied、subset-rule 违反（§上条 `keypackage_capability_overreach`）、过期、`revocation_pending` 与已撤销状态做反枚举处理。所有 deployment profile 的对外错误码 MUST 合并为单一不透明 `claim_failed`；不得让 subset-rule、pending 或其它失败产生可区分响应，否则攻击者可借响应差异探测目标 KeyPackage 的 capability 指纹、设备生命周期或可用性。任何 profile 下都不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
-- 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。Device / Key Server 的 **self / owning-device 可见** upload、claim 或 maintenance query 响应 SHOULD 返回 `available_count`；peer claim / outcome-query MUST NOT 返回该字段。客户端发现可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
+- `claim` 失败响应 MUST 对不存在、不可见、无可用设备、policy denied、subset-rule 违反（§上条 `keypackage_capability_overreach`）、过期、`revocation_pending` 与已撤销状态做反枚举处理。所有 deployment profile 的对外错误码 MUST 合并为单一不透明 `claim_failed`；HTTP status、body shape/size class、target-sensitive headers 与量化后的 delay distribution 也必须按 `ak.outward_disclosure.target_private_claim.v1` 同形。不得返回逐 target `failures[]`、`available_count` 或可区分 error message。精确 reason 只进入受限 audit，普通日志与 metrics label 只记录 outward bucket。
+- 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。只有已认证 owner 的 upload 或 maintenance query 响应可按 `ak.outward_disclosure.owner_diagnostic.v1` 返回 `available_count`；self/peer claim 与 peer outcome-query 都不得返回该字段。客户端发现自有可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
 - claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转为 revoked / unusable 状态；服务不得把它自动放回 `published`，也不得接受迟到的 consume。设备需要重新发布新的 KeyPackage。
 - Device / Key Server MUST 维护过期扫描或等价触发：KeyPackage `expires_at`、claim `expires_at`、device revoke、principal control state 失效、capability revoke 或 Realm policy 变更任一发生时，后续 `query` / `claim` MUST NOT 返回该 KeyPackage；后台清理不得是唯一防线。扫描周期 SHOULD ≤ 60s，且每次 `claim` 路径必须先做同步 freshness 判定。
 - KeyPackage claim MUST 对 `(requester_service_id, target_principal_id)` 做限速，默认窗口为 60s 内最多 5 次 claim 尝试。超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope，不泄露目标存在性）；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。

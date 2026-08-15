@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标与范围
 
-本文件定义 Arkret 多人会议的 **transport-agnostic 媒体服务 backend 绑定**：媒体服务发现（`ak.realm.media_service` 的 multi-focus 描述符）、token / participant binding 兑换、focus 选举与 session 持久化、SFU 权限与 participant identity 交叉校验，以及媒体 E2EE 帧密钥注入与治理绑定。LiveKit / mediasoup / Janus / arkret_native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
+本文件定义 Arkret 多人会议的 **transport-agnostic 媒体服务 backend 绑定**：媒体服务发现（`ak.realm.media_service` 的 multi-focus 描述符）、token / participant binding 兑换、focus 选举与 session 持久化、SFU 权限与 participant identity 交叉校验，以及媒体 E2EE 帧密钥注入与治理绑定。LiveKit / mediasoup / Janus / arkret_native / MoQ-relay 都作为可替换 backend 通过 `foci[].focus_kind` 区分，具体 wire 见 [`bindings/<focus_kind>.md`](./bindings/) 附录。
 
 边界：
 
@@ -23,7 +23,7 @@ sidebar:
 
 ## 2. Realtime Media Server
 
-`ak.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / arkret_native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
+`ak.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / arkret_native / MoQ-relay 都作为可替换 backend 通过 `foci[].focus_kind` 区分，具体 wire 见 [`bindings/<focus_kind>.md`](./bindings/) 附录。
 
 ```json
 {
@@ -39,7 +39,7 @@ sidebar:
       "foci": [
         {
           "focus_id": "fra-1",
-          "type": "livekit",
+          "focus_kind": "livekit",
           "region": "eu-fra",
           "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
           "connect_url": "wss://livekit-fra.example.com",
@@ -48,7 +48,7 @@ sidebar:
         },
         {
           "focus_id": "us-east-1",
-          "type": "livekit",
+          "focus_kind": "livekit",
           "region": "us-east",
           "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
           "connect_url": "wss://livekit-use.example.com",
@@ -70,14 +70,16 @@ sidebar:
 字段语义（normative）：
 
 - `foci[].focus_id`：focus 在该 Realm media service 内的稳定 ID；进入签名 canonical bytes 与 `session_focus` 选举（见 [`call-state.md` §4.1](./call-state.md)）。
-- `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`arkret_native`、`moq_relay`（实验保留位，v1 周期内不提供 normative binding）。`moq_relay` 在激活前必须由独立 binding 精确钉定 `draft-ietf-moq-transport` revision、Arkret participant/session/track 到 MOQT namespace/track/object 的映射、relay authorization、SFrame / secure-object 绑定、resume 与错误语义；草案 revision 变化按新 binding profile release 处理，不得原地漂移。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
+- `foci[].focus_kind`：backend binding 标识。字段名用 `kind` 轴而不是 `type`：这是 Arkret 自有的封闭 registry，而 `type` 轴按 [`classification-field-registry.json`](../../artifacts/registry/classification-field-registry.json) 只留给逐字沿用外部标准的字段。v1 注册值：`livekit`、`mediasoup`、`janus`、`arkret_native`、`moq_relay`（实验保留位，v1 周期内不提供 normative binding）。`moq_relay` 在激活前必须由独立 binding 精确钉定 `draft-ietf-moq-transport` revision、Arkret participant/session/track 到 MOQT namespace/track/object 的映射、relay authorization、SFrame / secure-object 绑定、resume 与错误语义；草案 revision 变化按新 binding profile release 处理，不得原地漂移。客户端遇到未知或 unsupported `focus_kind` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
 - `foci[].token_endpoint`：token 兑换端点；所有 backend 共用同一抽象（见 §3），差异只在 `backend_token` 形态。
-- `foci[].connect_url`：backend 连接入口；具体协议由 type-specific 附录定义。
+- `foci[].connect_url`：backend 连接入口；具体协议由 backend binding 附录定义。
 - `foci[].capabilities[]`：该 focus 支持的能力子集，用于客户端能力协商。
 - `foci[].health_endpoint`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `ak.component.call.focus.v1` 已存在 `session_focus`，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
 - `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议；每个 backend 自行实现 mesh，正式 Arkret wire 只公开 `foci[].cascade_group` 与用户可见披露语义。
 
-`ak.realm.media_service` 是 `state_payload`，媒体描述符位于 `payload.value`；`payload.value.foci[]` MUST 非空。只提供单个 `sfu_endpoint`、把媒体描述符扁平放在 `payload` 下，或缺少 `payload.value.foci[]` MUST fail closed，返回 `schema_violation` 或 `failed_precondition`，原因码 `media_service_foci_required`；服务端不得在实时路径中自动补写、normalize 或推断 focus。
+`ak.realm.media_service` 的媒体描述符位于 `payload.value`；`payload.value.foci[]` MUST 非空。只提供单个 `sfu_endpoint`、把媒体描述符扁平放在 `payload` 下，或缺少 `payload.value.foci[]` MUST fail closed，返回 `schema_violation` 或 `failed_precondition`，原因码 `media_service_foci_required`；服务端不得在实时路径中自动补写、normalize 或推断 focus。
+
+**字段集合是封闭的（normative）**：`payload.value` 与 `foci[]` 的完整字段集以 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `$defs/realm_media_service_payload` 为权威机读真源，二者都 `additionalProperties: false`；`foci[].focus_id`、`focus_kind`、`token_endpoint` 与 `connect_url` 是 required。**token issuer 的部署配置 MUST NOT 出现在本 cell 中**——签名 key id、token audience、TTL 与 backend API 凭据都是 `foci[].token_endpoint` 所指服务自己的配置，把它们写进本 cell 会有两个后果：轮换一次 issuer key 就需要一条持有 `ak.realm.media_service` / `ak.policy.manage` capability 的 Realm policy Event，且 issuer 内部配置对全体 Realm 成员外露。客户端与 token issuer MUST 都按同一 schema 消费该 cell；任何一侧私自读写未登记字段，都会让另一侧对同一条已签名 cell 解析出不同结果，而这种错配不会被任何东西报错。
 
 修改该 state event 需要 `ak.realm.media_service` 或 `ak.policy.manage` capability。
 
@@ -116,9 +118,9 @@ Content-Type: application/json
 ```json
 {
   "focus_id": "fra-1",
-  "type": "livekit",
+  "backend_kind": "livekit",
   "connect_url": "wss://livekit-fra.example.com",
-  "backend_token": "<opaque to Arkret protocol — type-specific>",
+  "backend_token": "<opaque to Arkret protocol — backend-specific>",
   "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "participant_binding": {
     "scheme": "ak.media.participant_binding.v1",
@@ -193,13 +195,13 @@ v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 
 ## 4. SFU Service
 
-SFU 在 v1 通过 [§2](#2-realtime-media-server) 的 `foci[]` 声明，每个 focus 通过 `type` 选择具体 backend binding：
+SFU 在 v1 通过 [§2](#2-realtime-media-server) 的 `foci[]` 声明，每个 focus 通过 `focus_kind` 选择具体 backend binding：
 
-- `type="livekit"`：见 [`bindings/livekit.md`](./bindings/livekit.md)。
-- `type="arkret_native"`：见 [`bindings/arkret-native.md`](./bindings/arkret-native.md)（reference / conformance binding，不作为生产媒体后端）。
-- `type="mediasoup"` / `type="janus"` / `type="moq_relay"`：保留位，v1 周期内不提供 normative binding；客户端遇到 unsupported `type` MUST fail closed，错误码 `unknown_focus_type`。
+- `focus_kind="livekit"`：见 [`bindings/livekit.md`](./bindings/livekit.md)。
+- `focus_kind="arkret_native"`：见 [`bindings/arkret-native.md`](./bindings/arkret-native.md)（reference / conformance binding，不作为生产媒体后端）。
+- `focus_kind="mediasoup"` / `focus_kind="janus"` / `focus_kind="moq_relay"`：保留位，v1 周期内不提供 normative binding；客户端遇到 unsupported `focus_kind` MUST fail closed，错误码 `unknown_focus_type`。
 
-不论 backend 类型，client→backend 媒体协商前 MUST 先完成 [§3 Token Exchange](#3-token-exchange-normative)；具体 `backend_token` 形态、connect handshake、SDP 协商由 type-specific 附录定义。下面的 §5 / §6 / §7 是跨 backend 通用约束。
+不论 backend 类型，client→backend 媒体协商前 MUST 先完成 [§3 Token Exchange](#3-token-exchange-normative)；具体 `backend_token` 形态、connect handshake、SDP 协商由 backend binding 附录定义。下面的 §5 / §6 / §7 是跨 backend 通用约束。
 
 ## 5. Focus Selection 与 Session 持久化（normative）
 
@@ -277,7 +279,7 @@ Conformance vectors for the full media binding framework：
 - `ak.vector.media_binding.token_exchange_minimal.v1` — §3 token exchange 最小字段集 + TTL ≤ 600s。
 - `ak.vector.media_binding.token_issuer_unauthorised.v1` — issuer DID 不在 service_id 锚定列表时拒绝。
 - `ak.vector.media_binding.participant_binding_required.v1` — 缺失或签名无效的 `participant_binding` 必须拒绝。
-- `ak.vector.media_binding.unknown_type_fail_closed.v1` — §2 未知 `foci[].type` MUST fail closed。
+- `ak.vector.media_binding.unknown_type_fail_closed.v1` — §2 未知 `foci[].focus_kind` MUST fail closed。
 - `ak.vector.media_binding.participant_identity_unrecognised.v1` — §7 backend 通知的 participant 不在 `ak.component.call.roster.v1` effective OR-Set 时拒绝该流。
 - `ak.vector.media_binding.recording_artifact_via_arkret_blob.v1` — [`call-state.md` §5](./call-state.md) backend-generated recording 必须经 Arkret blob pipeline。
 - `ak.vector.media_binding.recording_exporter_label.v1` — backend-generated recording 必须使用 `"ak.rtc-recording-key/v1"` 与绑定 recording transcript 的 Context，不得复用 SFrame key label。

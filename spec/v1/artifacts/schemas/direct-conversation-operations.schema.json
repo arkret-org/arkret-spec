@@ -154,7 +154,7 @@
     },
     "direct_conversation_founding_input": {
       "type": "object",
-      "description": "Verbatim authoring material for the founding unit the caller is now entitled to author, carried only by the creation_required outcome. Member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies them across without any renaming map (service-http-binding.md 2.2.2 echo-container discipline). The caller still authors and signs all three Events itself; this container never carries Event bytes, coordinates or a receipt. Material that the service cannot assemble or verify yields temporarily_unavailable instead of a creation_required outcome without it.",
+      "description": "Verbatim authoring material for the founding unit the caller is now entitled to author, carried only by the creation_required outcome. Member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies them across without any renaming map (service-http-binding.md 2.2.2 echo-container discipline). The caller still authors and signs all four Events itself; this container never carries Event bytes, coordinates or a receipt. Material that the service cannot assemble or verify yields temporarily_unavailable instead of a creation_required outcome without it.",
       "required": [
         "founding_authority_evidence"
       ],
@@ -168,7 +168,7 @@
     },
     "direct_conversation_resolve_outcome": {
       "type": "object",
-      "description": "Closed tagged outcome of ak.self.direct_conversation.read.resolve. Evaluation order is fixed: temporarily_unavailable when the current basis or founder cannot be verified; then creation_blocked, creation_required or awaiting_founder while no Realm exists; then suspended for identity, materialization, terminal or gate conflicts; then provisional while no binding endorsement exists; found last.",
+      "description": "Closed tagged outcome of ak.self.direct_conversation.read.resolve. Evaluation order is fixed: temporarily_unavailable when the current basis or founder cannot be verified; then creation_blocked, creation_required or awaiting_founder while no Realm exists; then suspended for identity, materialization, terminal or gate conflicts; then provisional while no binding endorsement exists; found last. awaiting_founder never transfers authority by timeout, recovery policy, successor designation or permanent-unavailability inference; v1 defines no founder_unrecoverable state.",
       "required": [
         "state"
       ],

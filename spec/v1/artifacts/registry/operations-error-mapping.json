@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-15.2",
+  "version": "2026-08-16.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-15T03:42:00Z",
+  "generated_at": "2026-08-15T16:16:56Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -531,8 +531,10 @@
     {
       "operation_id": "ak.open.mimi.command.update_room",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/update",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "mimi_room_binding_event_invalid"
+      ],
+      "description": "Missing, unexpected, kind-inconsistent and binding-mismatched room_binding_event inputs share one pre-admission failure envelope; the exact reason is audit-only."
     },
     {
       "operation_id": "ak.open.mimi.exchange.request_key_material",
@@ -1405,7 +1407,9 @@
         "duplicate_conflict",
         "frontier_unavailable",
         "source_refs_unverifiable",
-        "contact_lineage_conflict"
+        "contact_lineage_conflict",
+        "continuity_evidence_unavailable",
+        "continuity_invalid"
       ],
       "description": "Two-phase holder-local Contact request acceptance stores one signed fact and its source receipt. Target resolution and delivery occur later through the receipted peer carrier, so an unresolved target does not reject prepare. It writes no Private Consent and conflicts on byte drift, slot reuse or an already-consumed request ref; frontier_unavailable is retry-safe while the holder PCR actor or accepted Seal frontier is unavailable."
     },
@@ -1733,9 +1737,9 @@
       "operation_id": "ak.self.keys.keypackages.command.claim",
       "http_alias": "POST /_arkret/self/keys/keypackages/claim",
       "operation_specific": [
-        "one_time_keys_exhausted",
-        "principal_unknown"
-      ]
+        "claim_failed"
+      ],
+      "description": "The authenticated requester may target another principal, so target absence, visibility, inventory, policy, capability, freshness and target-scoped abuse failures use the same target_private_claim disclosure policy and collapse to claim_failed."
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.consume",

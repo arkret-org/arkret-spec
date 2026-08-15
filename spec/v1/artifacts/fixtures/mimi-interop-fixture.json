@@ -9,6 +9,7 @@
   "covers_vectors": [
     "ak.vector.mimi.provider_directory_draft_pinning.v1",
     "ak.vector.mimi.room_binding_projection.v1",
+    "ak.vector.mimi.room_update_branched_effect.v1",
     "ak.vector.mimi.keypackage_claim_lifecycle.v1",
     "ak.vector.mimi.content_roundtrip.v1",
     "ak.vector.mimi.identifier_query_privacy.v1",
@@ -120,7 +121,48 @@
           "status": "accepted"
         }
       },
+      "expected_cell_ref": "ak:cell:ak.component.mimi.room_binding.v1:mimi%3A%2F%2Fmimi.example.com%2Frooms%2F01JSMIMI",
       "expected": "mimi_room_is_projection_not_canonical_truth"
+    },
+    {
+      "vector_id": "ak.vector.mimi.room_update_branched_effect.v1",
+      "name": "room_update_semantic_kind_selects_durable_effect",
+      "cases": [
+        {
+          "name": "binding_kind_requires_exact_caller_event",
+          "update_kind": "ak.mimi.room_binding",
+          "room_binding_event": "matching_caller_authored_event",
+          "expected": "ordinary_event_admission"
+        },
+        {
+          "name": "binding_kind_missing_event",
+          "update_kind": "ak.mimi.room_binding",
+          "expected_error": "mimi_room_binding_event_invalid"
+        },
+        {
+          "name": "binding_kind_mismatched_event",
+          "update_kind": "ak.mimi.room_binding",
+          "room_binding_event": "mismatched_caller_authored_event",
+          "expected_error": "mimi_room_binding_event_invalid"
+        },
+        {
+          "name": "receipt_only_kind_rejects_event",
+          "update_kind": "m.room.name",
+          "room_binding_event": "unexpected_caller_authored_event",
+          "expected_error": "mimi_room_binding_event_invalid"
+        },
+        {
+          "name": "receipt_only_kind_has_no_event_effect",
+          "update_kind": "m.room.name",
+          "expected": "receipt_only"
+        }
+      ],
+      "failure_equivalence": {
+        "http_status": 400,
+        "reason_code": "mimi_room_binding_event_invalid",
+        "body_shape": "identical",
+        "depends_on_room_or_binding_existence": false
+      }
     },
     {
       "vector_id": "ak.vector.mimi.keypackage_claim_lifecycle.v1",

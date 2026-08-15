@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-15.3",
+  "version": "2026-08-16.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-15T03:42:00Z",
+  "generated_at": "2026-08-15T16:17:42Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -6305,6 +6305,7 @@
           "granted_to_peer_scopes",
           "introduction_evidence",
           "previous_terminal_contact_round_id",
+          "continuity_evidence",
           "message",
           "reservation_handle",
           "signed_event",
@@ -6331,6 +6332,7 @@
               "granted_to_peer_scopes",
               "introduction_evidence",
               "previous_terminal_contact_round_id",
+              "continuity_evidence",
               "message"
             ],
             "closed": true
@@ -7441,8 +7443,7 @@
           "current_resolution_event",
           "predecessor_resolution_events",
           "history_complete",
-          "accepted_seal",
-          "resolution_cell_proof"
+          "accepted_seal"
         ],
         "properties": [
           "principal_id",
@@ -7454,7 +7455,6 @@
           "predecessor_resolution_events",
           "history_complete",
           "accepted_seal",
-          "resolution_cell_proof",
           "next_audit_cursor",
           "method_history_evidence"
         ],
@@ -7984,9 +7984,7 @@
         ],
         "properties": [
           "claims",
-          "claim_receipt",
-          "failures",
-          "available_count"
+          "claim_receipt"
         ],
         "closed": true
       }

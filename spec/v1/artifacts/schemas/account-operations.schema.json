@@ -1833,6 +1833,9 @@
     },
     "account_status_publication_request_body": {
       "type": "object",
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.account.status"
+      ],
       "required": [
         "authority_evidence",
         "publication"
@@ -1875,6 +1878,9 @@
     },
     "account_status_authoring_frontiers_outcome": {
       "type": "object",
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.account.status"
+      ],
       "description": "PCR-bound authoring coordinates for one authoritative account-status producer. actor_frontier supplies actor_seq and prev_refs; seal_frontier supplies the sole seal_basis leaf. Both frontiers MUST exactly match authority_evidence and are read-only observations, not authority grants.",
       "required": [
         "account_id",

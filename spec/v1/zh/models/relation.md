@@ -111,7 +111,7 @@ confidential_discussion_of
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Realm 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
 | `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Strand，`to_ref` MUST 是其 public seal Strand。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Strand 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Strand 回到 public seal，而 non-member 不能从 public seal 侧枚举该边。**实现 MUST NOT 在目标公开 Strand 写 target-side reverse relation**。 |
 
-未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，若 relation profile 未声明其它 `on_conflict` 值，reducer MUST 按 §6 的 `deterministic_winner` 规则选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
+未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，若 relation profile 未声明其它 `on_conflict` 值，reducer MUST 按 §6 的 `require_review` 暴露完整 heads，在显式 resolution 前不得选择 active winner。
 
 ## 4. 跨 Realm 引用
 
@@ -194,7 +194,7 @@ Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收�
 | `max_from_per_to` | no | `integer` | 每个 `to_ref` 的 active `from_ref` 上限。 |
 | `multi_edge` | no | `boolean` | 只有 true 时允许同一 tuple 多条 active edge。 |
 | `rank_field` | no | `string` | 有序关系的 rank 字段，默认 `rank`（顶层）。仅当 profile 把 rank 显式放在另一字段时声明；MUST NOT 指向 `fields.rank`，该路径在 v1 不合法。 |
-| `on_conflict` | no | `enum(reject, close_previous, deterministic_winner, require_review)` | 并发冲突处理；默认 `deterministic_winner`。该默认规则按 canonical `event_digest` 字典序选择 winner。 |
+| `on_conflict` | no | `enum(reject, close_previous, require_review)` | 并发冲突处理；默认 `require_review`。并发互斥 heads 全部保留，在显式后继 resolution 前不产生 active winner。 |
 
 ```json
 {
@@ -225,14 +225,13 @@ Relation conflict 的默认处理为：候选先通过格式、签名、授权�
 
 - `on_conflict="close_previous"` 只适用于因果上明确晚于旧 edge 的事件；并发互斥 edge 不得靠接收顺序关闭。
 - `on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 CBA query basis 提交修复 Event 或 Control Move。
-- `on_conflict="deterministic_winner"` 表示 reducer 对互不可达候选按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical tie-break(`event_digest` bytewise **最大值**)选出唯一 active winner；其它候选必须记录为 conflict loser 或 tombstone，并保留其 `event_id` / `event_digest` 以便审计和显式修复。`event_digest` 是签名覆盖的 canonical Event digest，不得由 HLC、actor id、`event_id` 或接收顺序替代。
-- `require_review` MUST 输出可投影的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。
+- `require_review` MUST 输出包含全部 heads 的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。后续 resolution Event / Control Move MUST 在 causal basis 中覆盖它要解决的完整 current head set；漏掉任一 current head 时仍保持 `require_review`。
 
-**conflict loser 集合上限（normative）**：同一去重 key 下并发候选（winner + losers）的总数 MUST 受上限约束，复用 sibling fork 上限——v1 无条件上限为 **16**（与 [`event-and-patch.md` §2.6](./event-and-patch.md) 的 `(actor_id, actor_seq, prev_frontier_digest)` sibling 上限同值同范式；数值真相源见 [`scalability-constraints.md` §2](../conformance/scalability-constraints.md)）。当同一去重 key 的并发候选数超过 16 时，reducer MUST 对该去重 key 的整组候选 `failed_precondition`（`reason=relation_conflict_fanout_exceeded`），MUST NOT 无界保留 loser 记录；归一只能由后续基于最新 CBA query basis 的修复 Event / Control Move 产生。`deterministic_winner` 在 ≤16 候选内按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 tie-break(`event_digest` bytewise 最大值)选 active winner，其余 loser 记录 MUST 保留 `event_id` / `event_digest` 用于审计与显式修复。
+**conflict head 集合上限（normative）**：同一去重 key 下并发候选总数 MUST 受上限约束，复用 sibling fork 上限——v1 无条件上限为 **16**（与 [`event-and-patch.md` §2.6](./event-and-patch.md) 的 `(actor_id, actor_seq, prev_frontier_digest)` sibling 上限同值同范式；数值真相源见 [`scalability-constraints.md` §2](../conformance/scalability-constraints.md)）。当同一去重 key 的并发候选数超过 16 时，reducer MUST 对该去重 key 的整组候选 `failed_precondition`（`reason=relation_conflict_fanout_exceeded`）；归一只能由后续基于最新 CBA query basis、覆盖完整 current head set 的修复 Event / Control Move 产生。上限以内全部 heads 都保留，不存在 winner/loser 分类。
 
 **与 over-fork sibling 上限的分层关系（normative 澄清）**：本 relation fanout 上限（按去重 key `(realm_id, relation_kind, from_ref, to_ref)` 计数）与 [`event-and-patch.md` §2.6](./event-and-patch.md) 的 actor_seq sibling 上限（按 `(actor_id, actor_seq, prev_frontier_digest)` 计数）是**两层正交的限流**，作用于不同分桶。二者都 MUST 作为**收敛后候选集的纯函数**求值——即对给定的已收敛候选集，触发与否只取决于集合本身，**不依赖到达顺序、分桶处理先后或本地接收时序**；因此任意观察到相同候选集的 receiver 计算出相同的 quarantine / reject 子集，两层限流的触发先后不产生跨 receiver 分歧。pre-convergence(尚未收齐全部并发候选)的瞬态拒绝是 fail-closed 安全的，补齐缺失候选后重判收敛到同一结果。
 
-`require_review` 与 loser 记录输出的 conflict 诊断对象使用 [`relation.schema.json`](../../artifacts/schemas/relation.schema.json) 的 `$defs/relation_conflict_diagnostic`（每条 loser 至少含 `event_id`、`event_digest`、`dedupe_key` 投影、`reason`）；conflict 诊断是 projection-only evidence，`reducer_input` MUST 为 `false`，MUST NOT 被当作 canonical event bytes 或 dedupe authority。
+`require_review` 输出的 conflict 诊断对象使用 [`relation.schema.json`](../../artifacts/schemas/relation.schema.json) 的 `$defs/relation_conflict_diagnostic`，并列出完整 head set；conflict 诊断是 projection-only evidence，`reducer_input` MUST 为 `false`，MUST NOT 被当作 canonical event bytes、winner 或 dedupe authority。
 
 ## 7. 常见关系（按对象）
 

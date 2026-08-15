@@ -201,11 +201,88 @@
         "$ref": "#/$defs/device_generation_state"
       }
     },
+    "device_projection_attestation_core": {
+      "type": "object",
+      "description": "Origin Principal Server assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the cross-principal keys/query surface: the row carries no PCR genesis receipt, no device authorization chain and no accepted Seal, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit under exact current-holder authorization. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
+      "required": [
+        "principal_id",
+        "principal_server_id",
+        "device_id",
+        "device_signing_key",
+        "hpke_key",
+        "device_authorize_event_id",
+        "authorized_generation_ref",
+        "device_status",
+        "attested_at",
+        "expires_at"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "principal_server_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "Origin Principal Server of the account. The proof controller MUST project exactly onto this value; an attestation that verifies under any other key is not evidence about this device."
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "device_signing_key": {
+          "$ref": "#/$defs/did_key"
+        },
+        "hpke_key": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "device_authorize_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "authorized_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref"
+        },
+        "device_status": {
+          "const": "active",
+          "description": "This surface attests usable devices only. A revoked, fenced or conflicted device is omitted from device_keys or reported through the non-enumerating failures shape, so the attested status is constant rather than a disclosure channel."
+        },
+        "attested_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "MUST be strictly earlier than expires_at and MUST equal proof.created_at."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Hard freshness bound. A consumer performing a security-sensitive action MUST refetch at or after this instant; a cache never extends it."
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_projection_attestation": {
+      "type": "object",
+      "description": "Complete origin-Principal-Server-signed device projection attestation. The detached proof signs the ak.device-projection-attestation-proof-v1 transcript; proof.created_at MUST equal attestation.attested_at.",
+      "required": [
+        "attestation",
+        "proof"
+      ],
+      "properties": {
+        "attestation": {
+          "$ref": "#/$defs/device_projection_attestation_core"
+        },
+        "proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
     "query_device_record": {
       "type": "object",
-      "description": "Per-(principal_id, device_id) entry in keys_query_outcome. The server compares authorized_generation_ref with the principal device_generations state and omits signing, HPKE, and prekey material when the generation is fenced or conflicted.",
+      "description": "Per-(principal_id, device_id) entry in keys_query_outcome. principal_id and device_id are the device_keys map keys, not row fields. Every returned row is complete and attested: the origin Principal Server signs the exact projection, so a relationship-gated third party can verify the row without ever seeing PCR material. A device whose generation is fenced or conflicted, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
       "required": [
-        "algorithms"
+        "algorithms",
+        "device_signing_key",
+        "hpke_key",
+        "trust_algorithms",
+        "device_status",
+        "device_authorize_event_id",
+        "authorized_generation_ref",
+        "device_projection_attestation"
       ],
       "properties": {
         "algorithms": {
@@ -226,7 +303,9 @@
           "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ak.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the §5.2 ak.device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
         },
         "device_status": {
-          "$ref": "#/$defs/device_status"
+          "$ref": "#/$defs/device_status",
+          "const": "active",
+          "description": "Only usable devices are returned on this surface, so the value is constant. A revoked, fenced or conflicted device is omitted or reported through failures rather than disclosed as a status."
         },
         "device_authorize_event_id": {
           "$ref": "#/$defs/event_id",
@@ -235,31 +314,12 @@
         "authorized_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
           "description": "Reducer-managed PCR-local monotonic generation that authorized this device. Producers cannot self-report it; it must equal current_device_generation_ref for the device to be usable and MUST NOT be represented as a DID versionId."
+        },
+        "device_projection_attestation": {
+          "$ref": "#/$defs/device_projection_attestation",
+          "description": "Origin-Principal-Server signature over this exact row. Every other field above MUST equal the corresponding attested field verbatim; a row whose attestation is missing, whose controller does not project onto principal_server_id, or which disagrees with the row in any covered field MUST NOT be used for E2EE, Signal verification or a KeyPackage claim."
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "required": [
-              "device_signing_key"
-            ]
-          },
-          "then": {
-            "required": [
-              "hpke_key",
-              "trust_algorithms",
-              "device_status",
-              "device_authorize_event_id",
-              "authorized_generation_ref"
-            ],
-            "properties": {
-              "device_status": {
-                "const": "active"
-              }
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "query_device_keys": {
@@ -539,6 +599,12 @@
     },
     "keys_query_outcome": {
       "type": "object",
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.device.authorize",
+        "ak.device.list_update",
+        "ak.device.reanchor",
+        "ak.device.revoke"
+      ],
       "required": [
         "device_keys"
       ],

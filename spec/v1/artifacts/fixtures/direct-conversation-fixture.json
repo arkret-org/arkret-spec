@@ -8,6 +8,7 @@
     "ak.vector.direct_conversation.realm_shape.v1",
     "ak.vector.direct_conversation.repair_dispatch.v1",
     "ak.vector.direct_conversation.founding_authoring_material.v1",
+    "ak.vector.direct_conversation.founder_loss_terminality.v1",
     "ak.vector.direct_conversation.founding_unit.v1",
     "ak.vector.direct_conversation.founding_admission.v1",
     "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
@@ -24,7 +25,7 @@
     "spec/v1/artifacts/schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
     "spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements"
   ],
-  "description": "Schema and semantic vectors for one stable Direct Conversation per pair: the caller-authored three-Event founding unit and its self/peer carrier branches, first-valid-unit slot admission across same-server, dual-server and multi-device concurrency, suspend/rejoin, MLS-generation separation, participant authority and root masking, plus the Contact list next_prepare_input successor cursor and the pending_incoming request_receipt that author the respond, reject, scope_update and tombstone prepare phases the same Contact lineage feeds, the sixteen-candidate active-generation fanout cap, and the server-verifiable narrowing of the resolver send blocker set.",
+  "description": "Schema and semantic vectors for one stable Direct Conversation per pair: the caller-authored four-Event founding unit with explicit peer and founder membership and its self/peer carrier branches, first-valid-unit slot admission across same-server, dual-server and multi-device concurrency, suspend/rejoin, MLS-generation separation, participant authority and root masking, plus the Contact list next_prepare_input successor cursor and the pending_incoming request_receipt that author the respond, reject, scope_update and tombstone prepare phases the same Contact lineage feeds, the sixteen-candidate active-generation fanout cap, and the server-verifiable narrowing of the resolver send blocker set.",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -586,7 +587,8 @@
         "event_ids": [
           "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
-          "ak:event:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS"
+          "ak:event:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+          "ak:event:AS_LTHQu5UtXbAIUOgUFzEY5nFJzI1cgPvxODB_NnHSR"
         ],
         "receipt": {
           "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
@@ -624,7 +626,8 @@
         "event_ids": [
           "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
-          "ak:event:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS"
+          "ak:event:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+          "ak:event:AS_LTHQu5UtXbAIUOgUFzEY5nFJzI1cgPvxODB_NnHSR"
         ],
         "receipt": {
           "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
@@ -862,7 +865,7 @@
         "state is creation_required and next_founding_input is present",
         "next_founding_input member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies founding_authority_evidence and origin Principal Server identity from the signed Events across with no renaming map",
         "exactly one founding_authority_evidence branch is returned for this pair, human for a peer Contact founding and controller_agent for an own-Agent founding",
-        "the container carries no Event bytes, no coordinates, no idempotency_key and no receipt: the founder still authors and signs all three Events",
+        "the container carries no Event bytes, no coordinates, no idempotency_key and no receipt: the founder still authors and signs all four Events",
         "a service that cannot assemble or verify the material returns temporarily_unavailable instead of a creation_required outcome without the container",
         "the submission re-verifies the material against the service's own current state and never trusts the echoed copy"
       ]
@@ -884,20 +887,58 @@
       ]
     },
     {
+      "name": "same_founder_authority_recovery_is_not_succession",
+      "vector_id": "ak.vector.direct_conversation.founder_loss_terminality.v1",
+      "precondition": "the derived founder temporarily lost all usable devices, then ordinary account/device recovery restored control of the exact same (principal_id, principal_server_id) before any Direct Conversation Realm was accepted",
+      "action": "resolve and submit the original pair's founding unit with current ordinary founder authority evidence",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "the resolver may return creation_required only after the same exact authority pair again satisfies the ordinary current proof",
+        "the author is still the original derived founder and no succession Event, recovery generation, successor slot or additional authority source exists",
+        "pair_key and founding slot identity are unchanged"
+      ]
+    },
+    {
+      "name": "founder_loss_never_transfers_the_same_pair_slot",
+      "vector_id": "ak.vector.direct_conversation.founder_loss_terminality.v1",
+      "precondition": "no accepted Direct Conversation Realm exists and the exact derived founder authority pair cannot currently be verified",
+      "action": "the non-founder attempts creation after a timeout, with a root Contact recovery policy, a third-party attestation, or an after-the-fact bilateral successor signature",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "direct_conversation_founding_unit_invalid",
+      "assertions": [
+        "zero Events, slots, receipts and coordinates are written",
+        "the non-founder resolver remains awaiting_founder regardless of elapsed time",
+        "the closed resolver union contains no founder_unrecoverable state and no local permanence inference becomes a consensus fact",
+        "the submission and Contact schemas contain no Direct Conversation founder successor, recovery authority or recovery generation field"
+      ]
+    },
+    {
+      "name": "different_stable_identity_creates_a_new_non_continuous_pair",
+      "vector_id": "ak.vector.direct_conversation.founder_loss_terminality.v1",
+      "precondition": "one person adopts a genuinely new stable principal identity and establishes a new Contact with the peer because the old founder identity is unrecoverable",
+      "action": "derive and create a Direct Conversation for the new stable participant pair",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "the new stable participant tuple naturally derives a different pair_key without salt, generation or a versioned successor coordinate",
+        "the new Contact and Direct Conversation do not inherit old history, MLS state, keys, audit identity, founding receipt or authority",
+        "a product may show the old local transcript read-only but must label the cryptographic lineage as distinct"
+      ]
+    },
+    {
       "name": "founding_coordinates_are_derived_from_unit_bytes",
-      "precondition": "founder authored the three-Event unit in fixed wire order",
+      "precondition": "founder authored the four-Event unit in fixed wire order, ending with its explicit head_eq-null membership join",
       "action": "submit the direct_conversation_founding branch of ak.self.events.command.submit",
       "semantic_outcome": "accept",
       "assertions": [
         "realm_id equals retype of the first Event ID and main_strand_id equals retype of the third Event ID",
-        "founding_unit_digest is recomputed from the three ordered Event IDs under the ak.direct-conversation.founding-unit.v1 domain",
+        "founding_unit_digest is recomputed from the four ordered Event IDs under the ak.direct-conversation.founding-unit.v1 domain",
         "two independent implementations derive the same coordinates, unit digest and receipt semantics",
         "acceptance fixes the caller-derived coordinates and allocates nothing"
       ]
     },
     {
       "name": "founding_unit_strand_uses_bootstrap_no_basis_shape",
-      "precondition": "the third Event of the founding unit is the Realm's main ak.strand.create and the Genesis Seal covers all three Events",
+      "precondition": "the third Event of the founding unit is the Realm's main ak.strand.create and the Genesis Seal covers all four Events",
       "action": "admit the unit",
       "semantic_outcome": "accept",
       "assertions": [
@@ -923,7 +964,7 @@
       "action": "both submit concurrently to the same Principal Server slot",
       "semantic_outcome": "accept",
       "assertions": [
-        "exactly one unit is accepted and three Events are written once",
+        "exactly one unit is accepted and four Events are written once",
         "the losing device receives direct_conversation_slot_already_committed with zero writes",
         "both devices then resolve to the same coordinates"
       ]

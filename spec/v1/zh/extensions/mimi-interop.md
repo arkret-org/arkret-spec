@@ -155,7 +155,28 @@ signature 合法但 directory JWS 无效（及反向）等负向量。
 
 ## 4. Room Binding
 
-允许被导出为 MIMI room 的 Arkret 对象 MUST 有写入 `ak.component.mimi.room_binding.v1` cell 的 Control Move registered projection。对应 Event kind 为 `ak.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`。
+允许被导出为 MIMI room 的 Arkret 对象 MUST 有写入 `ak.component.mimi.room_binding.v1` cell 的 Control Move registered projection。对应 Event kind 为 `ak.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`，registry 中的 `cell_subject.kind` 为 `uri`。
+
+**`mimi_room_uri` canonical wire form 与 cell subject 编码（normative）**：`mimi_room_uri` 既是 wire 字段又是 `state_root` leaf 的 preimage 与排序键，因此它 MUST 是**封闭 canonical 形态**；receiver MUST NOT 先归一化再接受，非 canonical 输入 MUST 以 `schema_violation` 拒绝。若 `mimi://Example.com/r/1` 与 `mimi://example.com/r/1` 各落一个 cell，同一 room 就能有两个「首个 accepted binding」，§4.2 的初始状态与 `revoked` 终态都能靠换写法绕过。
+
+canonical 形态（机读真源是 [`mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 的 `$defs/mimi_room_uri`）：
+
+- scheme 固定小写 `mimi://`；authority 只允许 `host[:port]`，MUST NOT 出现 userinfo；
+- host MUST 是小写 A-label（IDN MUST 已 punycode；MUST NOT 出现大写或 U-label），每个 label 以 ASCII 字母数字起止；
+- port 只在非默认端口时出现，MUST NOT 有前导零，且 MUST 在 `1..=65535` 内；默认端口 `443` MUST NOT 显式书写；
+- path MUST 至少一个非空 segment，MUST NOT 出现 `.` / `..` segment，MUST NOT 有尾随 `/`；
+- MUST NOT 携带 query 或 fragment；
+- percent-escape MUST 使用大写 hex，且 MUST NOT 编码 unreserved octet（RFC 3986 §6.2.2.2 的最小编码）；
+- 整串长度 MUST ≤ 512 octet。
+
+canonical CellRef subject 由该 canonical URI 的 exact UTF-8 bytes 按 [`../conformance/encoding.md` §4](../conformance/encoding.md) 的 `uri` subject kind **全量** percent 编码得到（`:` `/` `%` 一并编码，`%` → `%25`），例如：
+
+```text
+mimi://mimi.example.com/rooms/01JSMIMI
+→ ak:cell:ak.component.mimi.room_binding.v1:mimi%3A%2F%2Fmimi.example.com%2Frooms%2F01JSMIMI
+```
+
+实现 MUST NOT 改用 hash 化 subject、URI 片段截取，或在 payload 中另立一个 caller 分配的 room 标识符作为 subject——后者会给同一 room URI 制造第二个身份，使 §4 的 1:1 语义无法在 wire 上强制。canonical 形态与 subject 编码的正反例由 [`ak.vector.encoding.cell_subject_uri.v1`](../../artifacts/registry/vector-registry.json) 唯一闭合。
 
 `ak.mimi.room_binding` 的完整 payload 形态（含 `hub_provider`、`follower_providers`、`content_profile`、`policy_root`、`local_provider_role` 等全部字段）以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威机读真源；下文逐字段说明不替代该 schema。
 
@@ -260,13 +281,18 @@ MIMI facade 至少定义以下 canonical operation：
 | `ak.open.mimi.command.report_abuse` | `POST /_arkret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
 | `ak.open.mimi.command.proxy_download` | `POST /_arkret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
 
-`update_room` 中普通 MIMI room/MLS update 是 receipt-only facade operation，不产生 Arkret
-Event。若 decoded update 携带 `ak.mimi.room_binding` effect，请求 MUST 同时携带完整的
+`update_room` 以请求中的语义判别器 `update.kind` 选择封闭效果分支；`update.kind` MUST 与
+decoded opaque payload 内的 `kind` 逐字相同，二者不一致必须在读取 room/binding 私有状态前
+以 `mimi_room_binding_event_invalid` 拒绝。普通 MIMI room/MLS update 是 receipt-only facade
+operation，不产生 Arkret Event。若 `update.kind == "ak.mimi.room_binding"`，请求 MUST 同时携带完整的
 caller-authored、caller-signed `room_binding_event` (`EventInitialSubmission`)。facade MUST
 验证该 Event 的 exact payload 与 path room、目标 Realm/Strand、`mls_group_id` 及已认证的
 MIMI operation 一致，再将 exact bytes 送入 ordinary Event admission；MUST NOT 合成、
-重建、代签或 co-sign actor Event。binding effect 缺少该 Event 必须 fail closed；非 binding
-update MUST omit `room_binding_event`。
+重建、代签或 co-sign actor Event。binding 分支缺少该 Event、非 binding 分支携带该字段、外层与
+decoded kind 不一致或 Event 绑定不一致，MUST 对外合并为同一个
+`mimi_room_binding_event_invalid`（相同 HTTP status 与 body shape），精确原因只写内部 audit；conformance vector `ak.vector.mimi.room_update_branched_effect.v1` 同时锁定 binding 与 receipt-only 两个分支；该失败
+不得依赖 room 是否存在、是否已有 binding 或目标 Realm 私有状态。普通 Event admission 的标准失败码
+在 pre-admission 通过后按其已登记合同返回。非 binding update MUST omit `room_binding_event`。
 
 所有写入型 endpoint MUST 使用 HTTP Message Signatures 或等价 service proof，并绑定：
 

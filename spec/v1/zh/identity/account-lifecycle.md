@@ -132,7 +132,7 @@ PCR 的作用域是「某个 principal `did_core_id` 在**当前 Principal Serve
 
 账号的唯一外部 authority key 是 `(principal_id, principal_server_id)`。同一 `principal_id` 可在不同 Principal Server 上形成独立账号；同一 Principal Server 对同一 pair MUST 终身 create-once，并在注销或 hard erasure 后保留 uniqueness tombstone，禁止第二条 PCR lineage。device、recovery、session、resolution、KeyPackage、secret storage 与 account status 可按本地 PCR lineage 分区，但 PCR id、genesis receipt 与 frontier 不得进入 membership、grant、Contact、Event 或 cache/query 的外部 identity。业务换服务形成新 pair，不存在 cross-PCR link/merge。
 
-注册后的 resolution 变更 MUST 由该 PCR 中的 `ak.identity.resolution.update` 提交，不能直接覆写 profile 或账号表。Event 以 previous Event ref / previous history head 做 CAS，reducer 更新 `ak.component.identity.resolution.v1`；Profile 只公开其 current projection。需要审计的调用方 MAY 请求带 Seal/cell proof 的选择性历史 evidence。其他 Principal Server 不要求持久保存该用户的 resolution；敏感操作发生时必须重新取得最新 evidence 并独立验证，短 TTL cache 只能优化读取，不能成为授权依据。
+注册后的 resolution 变更 MUST 由该 PCR 中的 `ak.identity.resolution.update` 提交，不能直接覆写 profile 或账号表。Event 以 previous Event ref / previous history head 做 CAS，reducer 更新 `ak.component.identity.resolution.v1`；Profile 只公开其 current projection。current holder MAY 请求 Event、receipt 与 accepted Seal 组成的选择性历史 evidence，并用注册 reducer 重放 current projection，不另造 resolution 专用 proof。其他 Principal Server 不要求持久保存该用户的 resolution；敏感操作发生时必须重新取得最新 evidence 并独立验证，短 TTL cache 只能优化读取，不能成为授权依据。
 
 ### 2.1.3 SessionGrant 不确定结果与身份边界
 
@@ -202,12 +202,12 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
 | `active` | —（同态重放） | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `soft_logged_out` | ✓（§4，须 fresh identity control proof） | — | ✓ | ✓ | ✓ | ✓ |
 | `locked` | ✓ | ✓ | — | ✓ | ✓ | ✓ |
-| `suspended` | ✓（appeal 解除，须 `supersedes_status_event_id`） | ✓ | ✓ | — | ✓ | ✓ |
+| `suspended` | ✓（appeal 解除，须 `supersedes_status_event_ids` 覆盖完整 blocking head set） | ✓ | ✓ | — | ✓ | ✓ |
 | `deactivated` | ✗（见下"重激活"） | ✗ | ✗ | ✗ | — | ✓ |
 | `erasure_pending` | ✗ | ✗ | ✗ | ✗ | ✗ | —（terminal） |
 
-- **降低严格度**（任一 `to` 严格度低于 `from`，如 `suspended → active`、`locked → soft_logged_out`）的转换 MUST 满足规则 2（引用 `supersedes_status_event_id` 且在当前 Seal view 可见），否则按并发候选处理，不构成有效转换。
-  - **例外：`soft_logged_out → active` 自助恢复**（normative）：该转换由 §4 的 fresh identity control proof（设备 / principal 重新证明控制权）授权，**不要求** `supersedes_status_event_id`；该 fresh proof 即构成有效降严格度转换的充分凭据。其余降严格度转换（`suspended → active`、`locked → *` 等）仍按规则 2 要求 `supersedes_status_event_id`。
+- **降低严格度**（任一 `to` 严格度低于 `from`，如 `suspended → active`、`locked → soft_logged_out`）的转换 MUST 满足规则 2（`supersedes_status_event_ids` 精确覆盖当前所有不低于目标严格度的 blocking heads，且每项在当前 Seal view 可见），否则不构成有效恢复。
+  - `soft_logged_out → active` 自助恢复同样必须携带 `supersedes_status_event_ids` 并精确覆盖完整 current head set；§4 的 fresh identity control proof 只提供恢复授权，不替代 head-set resolution。所有降低严格度的路径因此使用同一机读形状，不设 payload 例外。
 - **`erasure_pending` 为 terminal**（规则 3）：其唯一出边为空，任何转出 MUST 拒绝 `erasure_pending_is_terminal`。
 - **`deactivated` 重激活**（normative）：v1 **不**允许同一 `account_id` 的 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout 对绑定到该 account 的 device、KeyPackage、session、push 与 to-device 资源不可逆；需要恢复访问的用户 MUST 创建新的 service account（新 `account_id`）并走完整 onboarding，可继续绑定同一 principal `did_core_id`，但不得复活旧 account 或旧资源。`deactivated` 的唯一合法出边是 `erasure_pending`。实现 MUST NOT 接受声称把该 `account_id` 的 `deactivated` 降级回较低严格度状态的 `ak.account.status` event（`account_status_transition_invalid`）。
 
@@ -291,12 +291,12 @@ PCR genesis unit 可按专用原子 admission 规则派生 genesis basis；既�
 
 Current account status projection 是 ordered_log 上的确定性派生值，而不是简单取本地最后到达的 event。cell family `ak.component.account.status.v1` 的 `cell_subject` 是 `account_id`；`principal_id` 是该 service account 的绑定主体，不是 lifecycle key。本节定义的 severity-order 仲裁是该 cell 上的 canonical projection。若同一 `account_id` 出现并发 `ak.account.status` head，client / server MUST 按以下规则选择当前状态；同一 principal 绑定的其它 `account_id` MUST 独立求值：
 
-`account_status_payload.expires_at` 仅是管理端与 UI 的复核 / 续期提示，不参与 reducer projection，也不会在到时自动解除 `locked` / `suspended` 或其它状态。解除或改变状态仍 MUST 提交新的 `ak.account.status`，并遵守下述 severity、`supersedes_status_event_id` 与 terminal 规则；receiver MUST NOT 根据本地墙钟合成状态事件。
+`account_status_payload.expires_at` 仅是管理端与 UI 的复核 / 续期提示，不参与 reducer projection，也不会在到时自动解除 `locked` / `suspended` 或其它状态。解除或改变状态仍 MUST 提交新的 `ak.account.status`，并遵守下述 severity、`supersedes_status_event_ids` 与 terminal 规则；receiver MUST NOT 根据本地墙钟合成状态事件。
 
-1. 严格度高者优先：`erasure_pending` > `deactivated` > `suspended` > `locked` > `soft_logged_out` > `active`。
-2. 降低严格度的状态（例如 appeal 后回到 `active`）MUST 在 payload 的 `supersedes_status_event_id` 字段（见 [`event-payload.schema.json#/$defs/account_status_payload`](../../artifacts/schemas/event-payload.schema.json)）引用被解除的 status event id，且该引用必须在当前 Seal view 可见；否则它只是并发候选，不能覆盖更严格状态。
-3. **`erasure_pending` 是 terminal 状态（normative，不可逆）**：一旦某 `account_id` 的 account status projection 进入 `erasure_pending`，它 MUST NOT 被任何 `supersedes_status_event_id` 引用降级回 `deactivated` / `suspended` / `locked` / `soft_logged_out` / `active` 中的任意一个。任何声称把 `erasure_pending` superseded 为较低严格度状态的 `ak.account.status` event MUST 被 reducer / projection 拒绝（`erasure_pending_is_terminal`），并保持 `erasure_pending` 为 current。理由：擦除流程一旦开始即对 blob bytes、account private state、受托 projection 执行不可逆的物理删除/最小化，把状态"恢复"为 active 会产生一个数据已被销毁却显示为正常的不一致账号。需要在擦除真正执行前撤销的，应在进入 `erasure_pending` 之前用较低严格度状态处理；进入 `erasure_pending` 之后只能继续完成擦除并发布 erasure receipt（§8）。`erasure_pending` 之上没有更严格状态，故规则 2 的"降低严格度"路径对它不适用。
-4. 同严格度并发时，先按 domain 语义主键 `effective_at` 取较晚者；`effective_at` 仍相等的并发 head，最终消歧 MUST 落到 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical tie-break（`event_digest` decoded bytes 最大值）。`event_id` 虽已无损携带 suite code 与完整 digest，但本规则仍直接按该节规定的 digest comparator 实现，不得改用 HLC、`created_at`、接收顺序或其它墙钟相关字段。被选中者为 projection current，其他 head 仍保留在 ordered_log conflict/audit view 中。
+1. reducer 先保留全部未被有效 supersede 的 concurrent heads。授权 gate 对该完整 head set 取 deny-dominant 严格度最大值：`erasure_pending` > `deactivated` > `suspended` > `locked` > `soft_logged_out` > `active`。这是状态值 projection，不是选择某条 Event 为 winner。
+2. 降低严格度的状态（例如 appeal 后回到 `active`）MUST 在 payload 的 `supersedes_status_event_ids` 字段（见 [`event-payload.schema.json#/$defs/account_status_payload`](../../artifacts/schemas/event-payload.schema.json)）按 event id canonical 升序、无重复地精确列出当前 Seal view 中所有严格度不低于目标的 blocking heads。缺失、额外、stale 或不可见项都使恢复 Event 以 `failed_precondition` 拒绝；不得部分解除后再靠 digest 选择 active。
+3. **`erasure_pending` 是 terminal 状态（normative，不可逆）**：一旦任一未被拒绝的 head 为 `erasure_pending`，任何把该 `account_id` 降级到其它状态的 Event MUST 被 reducer 拒绝（`erasure_pending_is_terminal`），无论其 supersedes set 如何声明。
+4. 同严格度并发 heads 对授权的结果天然相同，全部保留。普通读面返回 `current_status` 加完整 `current_status_event_ids[]`；`reason_code` / `reason` / `effective_at` 等逐 Event metadata 按 head 列表返回，不再选一条 canonical current Event。UI MAY 按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 排序展示，但必须明示 producer bias，且排序不得改变 gate 结果。
 
 **Deactivation 进度 flag（normative）**：`status` 是封闭 6 值枚举（不含下列 token）。`deactivation_partial`（§7.1）与 `deactivation_federation_incomplete`（§7 末）**不是** `status` 值，而是 `deactivated` 状态下叠加的**独立服务侧 flag**，表达 deactivation fanout 的完成进度：
 

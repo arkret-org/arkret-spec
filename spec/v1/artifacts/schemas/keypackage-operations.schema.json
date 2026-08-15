@@ -475,6 +475,7 @@
     },
     "keypackages_claim_outcome": {
       "type": "object",
+      "description": "Successful target-private KeyPackage claim result. Failure is never represented by per-target rows or inventory counts; every registered target-private failure is the single claim_failed ErrorEnvelope selected by the operation's outward disclosure policy.",
       "required": [
         "claims",
         "claim_receipt"
@@ -488,16 +489,6 @@
         },
         "claim_receipt": {
           "$ref": "#/$defs/self_keypackage_claim_receipt"
-        },
-        "failures": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/failure"
-          }
-        },
-        "available_count": {
-          "type": "integer",
-          "minimum": 0
         }
       },
       "additionalProperties": false
@@ -1164,6 +1155,9 @@
     },
     "peer_keypackages_claim_outcome": {
       "type": "object",
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.mls.keypackage"
+      ],
       "required": [
         "claim_request_id",
         "claims",

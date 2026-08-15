@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-14.1",
+  "version": "2026-08-16.1",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -8,6 +8,7 @@
     "An empty exposures[] means PCR-private. The gate rejects a private kind whose literal kind string is reachable inside any outward carrier schema fragment registered here.",
     "carrier declares what actually crosses the boundary: exact_event is the verbatim signed Event, derived_field is a projected value, receipt and seal are acceptance evidence over the Event, did_service_entry is a public DID Document service entry.",
     "authorization_policy_id and anti_enumeration_policy_id MUST reference a policy registered below. public is an explicit policy value; a missing authorization_policy_id is never read as public.",
+    "Every exposure resolves exactly one reusable outward disclosure policy through outward_disclosure_policy_mapping, unless it carries an explicit outward_disclosure_policy_id override. The referenced policy is defined in outward-disclosure-policy-registry.json.",
     "surface=operation requires an operation_id registered in operation-registry.json and a direction of request or response. surface=did_document carries no operation_id because a DID Document is published outside the operation registry."
   ],
   "carrier_kinds": {
@@ -21,10 +22,20 @@
     "operation": "A registered service operation in operation-registry.json.",
     "did_document": "A publicly resolvable DID Document, outside the operation registry."
   },
+  "outward_disclosure_policy_mapping": {
+    "public_authorization_policy_id": "ak.pcr_exposure_policy.public.v1",
+    "public_policy_id": "ak.outward_disclosure.public.v1",
+    "anti_enumeration_policy_ids": {
+      "ak.pcr_anti_enumeration.indistinguishable_not_found.v1": "ak.outward_disclosure.private_not_found.v1",
+      "ak.pcr_anti_enumeration.single_valued_failure.v1": "ak.outward_disclosure.private_single_failure.v1",
+      "ak.pcr_anti_enumeration.rate_limited_uniform_failure.v1": "ak.outward_disclosure.target_private_claim.v1"
+    },
+    "authenticated_default_policy_id": "ak.outward_disclosure.authenticated_exact.v1"
+  },
   "authorization_policies": [
     {
-      "policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
-      "description": "Current holder session bound to the target account authority pair, an accepted recovery session for it, or an explicit recovery capability. A caller-declared intent is never authorization."
+      "policy_id": "ak.pcr_exposure_policy.current_holder_authorized.v1",
+      "description": "Current holder session bound to the exact target account authority pair. A recovery actor first completes the existing recovery transaction and becomes current holder; caller-declared intent is never authorization."
     },
     {
       "policy_id": "ak.pcr_exposure_policy.shared_realm_membership.v1",
@@ -41,6 +52,10 @@
     {
       "policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1",
       "description": "Authenticated Account Authority or Principal Server service call carrying that operation's own authority evidence."
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.contact_pending_verified_mirror_target.v1",
+      "description": "Authenticated exact target holder with a pending_incoming Contact row and a CAS-persisted verified mirror whose Event bytes and source receipt bind the requested ak.contact.requested Event."
     },
     {
       "policy_id": "ak.pcr_exposure_policy.public.v1",
@@ -166,6 +181,19 @@
             "/$defs/peer_contact_submit_request/oneOf/0/properties/signed_event"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.events.read.resolve",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
+          "json_pointers": [
+            "/$defs/EventsResolveOutcome/properties/events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.contact_pending_verified_mirror_target.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1",
+          "outward_disclosure_policy_id": "ak.outward_disclosure.contact_pending_verified_mirror.v1"
         }
       ]
     },
@@ -290,7 +318,7 @@
             "/$defs/principal_resolution_audit_evidence/properties/current_resolution_event",
             "/$defs/principal_resolution_audit_evidence/properties/predecessor_resolution_events"
           ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_holder_authorized.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -388,7 +416,7 @@
           "json_pointers": [
             "/$defs/principal_resolution_audit_evidence/properties/principal_genesis_event"
           ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_holder_authorized.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         },
         {
@@ -400,7 +428,7 @@
           "json_pointers": [
             "/$defs/principal_resolution_audit_evidence/properties/principal_genesis_receipt"
           ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_holder_authorized.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         },
         {
@@ -412,7 +440,7 @@
           "json_pointers": [
             "/$defs/principal_resolution_audit_evidence/properties/principal_control_realm_id"
           ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_holder_authorized.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         },
         {
@@ -424,7 +452,7 @@
           "json_pointers": [
             "/$defs/principal_resolution_audit_evidence/properties/accepted_seal"
           ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_holder_authorized.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         },
         {

@@ -330,18 +330,16 @@
       ],
       "additionalProperties": true
     },
-    "ordered_log_conflict_diagnostic": {
+    "ordered_log_sibling_diagnostic": {
       "type": "object",
-      "description": "User-visible audit diagnostic for an ordered log issuer equivocation. The loser remains in canonical history but is excluded from timeline.events and the joined state leaf.",
+      "description": "User-visible diagnostic for multiple accepted ordered-log siblings at one actor_seq. Every listed sibling remains in timeline.events and the joined state leaf; none is a winner or loser.",
       "required": [
         "cell",
         "issuer",
         "issuer_seq",
         "reason",
-        "winner_event_id",
-        "winner_event_digest",
-        "loser_event_ids",
-        "loser_event_digests"
+        "event_ids",
+        "event_digests"
       ],
       "properties": {
         "cell": {
@@ -356,28 +354,22 @@
           "minimum": 0
         },
         "reason": {
-          "const": "issuer_equivocation"
+          "const": "actor_seq_siblings"
         },
-        "winner_event_id": {
-          "type": "string",
-          "pattern": "^ak:event:"
-        },
-        "winner_event_digest": {
-          "type": "string",
-          "pattern": "^[a-z0-9_]+:[0-9a-f]+$"
-        },
-        "loser_event_ids": {
+        "event_ids": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 2,
+          "maxItems": 64,
           "uniqueItems": true,
           "items": {
             "type": "string",
             "pattern": "^ak:event:"
           }
         },
-        "loser_event_digests": {
+        "event_digests": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 2,
+          "maxItems": 64,
           "uniqueItems": true,
           "items": {
             "type": "string",
@@ -411,12 +403,12 @@
           "type": "boolean",
           "description": "Fallback path of client-sync.md §5.2: when timeline.limited=true and the server does not return realm_sync_entry.state_at_window_start, it MUST set preview_only=true. Clients then render window-start events as preview only."
         },
-        "ordered_log_conflicts": {
+        "ordered_log_siblings": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/ordered_log_conflict_diagnostic"
+            "$ref": "#/$defs/ordered_log_sibling_diagnostic"
           },
-          "description": "Audit-visible ordered log equivocations affecting this timeline window. Clients MUST NOT render loser events as ordinary messages; they MAY expose these records in conflict/audit UI."
+          "description": "Accepted ordered-log sibling groups affecting this timeline window. Clients render every event normally and MAY group them in conflict/audit UI; no event may be hidden as a loser."
         }
       },
       "additionalProperties": true

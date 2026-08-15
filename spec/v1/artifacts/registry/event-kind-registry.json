@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-15.3",
+  "version": "2026-08-16.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-15T03:42:00Z",
+  "generated_at": "2026-08-15T16:17:42Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -97,6 +97,7 @@
     "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBA fields, reducer_input, or shared cell_contracts.",
     "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 and ak.component.realm.reducer_profile.v1 are canonically defined in zh/authz/event-auth-state-resolution.md; their genesis values come from ak.realm.create, and subsequent writes use ak.realm.notary and ak.realm.upgrade respectively.",
     "Lattice MUST be one of the fully specified core types: or_set, mv_register, cas_register, fsm, counter, ordered_log. A new lattice type cannot become active until its join, bottom, op schema, profile gate, and conformance vectors are all registered.",
+    "Every ordered_log append MUST project issuer_seq from envelope.actor_seq exactly. The coordinate is sparse within a cell; join retains every accepted Event sibling and digest order is serialization-only. A registry row MUST NOT declare a cell-local constant or payload counter, slot winner, prefix gap, or authorization effect for ordered_log.",
     "State convergence is defined by CBA: DataEvent writes are projected and locally accepted against seal_ref, Control Move writes are projected and finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
     "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST be listed in at least one action's target_event_kinds - admission has a single direction of truth and no per-event capability list. Enforced by lint_artifacts.py; no active durable reducer-input event may lack an admission source (fail-closed).",
     "A conditional admission MUST use only selectors defined by admission_predicate_contract. All non-otherwise predicates are evaluated independently; exactly one match selects its branch, zero matches selects the final otherwise branch, and multiple matches fail closed. otherwise is never evaluated as an ordinary predicate.",
@@ -219,7 +220,7 @@
               "envelope_field": "realm_id"
             },
             "issuer_seq": {
-              "const": 0
+              "envelope_field": "actor_seq"
             }
           }
         },
@@ -980,7 +981,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Media Service (TURN/SFU/MCU + ICE) binding",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_media_service_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
@@ -6324,7 +6325,7 @@
           "cell_family": "ak.component.mimi.room_binding.v1",
           "cell_subject": {
             "field": "payload.mimi_room_uri",
-            "kind": "mimi_uri"
+            "kind": "uri"
           },
           "lattice": "mv_register",
           "bottom": "expose",

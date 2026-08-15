@@ -1,0 +1,74 @@
+{
+  "suite": "pcr_outward_exposure",
+  "version": "2026-08-16",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.identity.pcr_outward_exposure.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.identity.public_resolution_minimization.v1",
+    "ak.vector.identity.pcr_outward_exposure_registry.v1"
+  ],
+  "machine_contracts": [
+    "schemas/identity-resolution.schema.json#/$defs/public_principal_resolution",
+    "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
+    "registry/pcr-exposure-registry.json",
+    "registry/outward-disclosure-policy-registry.json"
+  ],
+  "cases": [
+    {
+      "name": "public_resolution_returns_attested_projection_only",
+      "operation_id": "ak.open.identity.read.resolution",
+      "expected_required_fields": [
+        "principal_id",
+        "principal_server_id",
+        "resolution_projection",
+        "method_history_evidence",
+        "projection_attestation"
+      ],
+      "forbidden_fields": [
+        "principal_control_realm_id",
+        "principal_genesis_event",
+        "principal_genesis_receipt",
+        "current_resolution_event",
+        "predecessor_resolution_events",
+        "accepted_seal"
+      ]
+    },
+    {
+      "name": "actor_profile_shared_realm_success",
+      "operation_id": "ak.self.actor_profile.read.resolve",
+      "preconditions": [
+        "caller_is_effective_joined_member",
+        "target_is_effective_joined_member",
+        "realm_is_not_principal_control_realm"
+      ],
+      "expected_carriers": [
+        "actor_profile",
+        "profile_event",
+        "accepted_seal"
+      ]
+    },
+    {
+      "name": "actor_profile_unknown_unauthorized_and_wrong_selector_are_equivalent",
+      "internal_causes": [
+        "unknown_actor",
+        "profile_absent",
+        "target_not_joined",
+        "caller_not_joined",
+        "principal_control_realm_selector"
+      ],
+      "expected_reason": "profile_unavailable",
+      "http_status": 200,
+      "body_shape": "same_per_actor_failure"
+    },
+    {
+      "name": "private_pcr_kind_has_no_outward_annotation",
+      "expected": "release_gate_rejects_any_unregistered_carrier"
+    },
+    {
+      "name": "outward_annotation_requires_exact_registry_reverse_edge",
+      "expected": "release_gate_rejects_missing_or_unreachable_reverse_edge"
+    }
+  ]
+}

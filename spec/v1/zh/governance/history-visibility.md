@@ -87,7 +87,7 @@ Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `
 
 **例外二，Direct Conversation Realm**：DC 的 `history_visibility` 是 `joined` 而非 `restricted`，但本文 §6 条件 2 对**每一次** `ak.realm_key.share` 都无条件要求一份 effective `ak.realm.history_sharing_policy`，并不限于 `restricted` 可见性；DC 却在结构上永远拿不到这份 policy，理由有三条，且三条同时封死了创世与事后两条补救路径：
 
-1. [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md) 把 founding unit 封闭为恰好三条 Event（`ak.realm.create` → peer `ak.member.state{join}` → main `ak.strand.create`），出现第四条 Event MUST 以 `direct_conversation_founding_unit_invalid` 整组零写入拒绝，创世时塞不进 policy Event；
+1. [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md) 把 founding unit 封闭为恰好四条 Event（`ak.realm.create` → peer `ak.member.state{join}` → main `ak.strand.create` → founder `ak.member.state{join}`），出现第五条 Event MUST 以 `direct_conversation_founding_unit_invalid` 整组零写入拒绝，创世时塞不进 policy Event；
 2. `ak.authority.direct_conversation_bootstrap_participant.v1` 与 `ak.authority.direct_conversation_participant.v1` 的 `action_allowlist` 内没有任何能 author policy Event 的 action，binding 前后都无人有权发出它；
 3. [`../identity/contact-and-direct-conversation.md` §8.3](../identity/contact-and-direct-conversation.md) 禁止 `found` 后恢复 owner / admin authority，已建成的 DC 事后也补不上。
 

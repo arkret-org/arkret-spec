@@ -1,9 +1,48 @@
 {
-  "version": "2026-08-15.4",
+  "version": "2026-08-16.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-15T08:10:00Z",
+  "generated_at": "2026-08-15T16:16:56Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
+    {
+      "vector_id": "ak.vector.identity.public_resolution_minimization.v1",
+      "status": "active",
+      "domain": "identity",
+      "description": "The unauthenticated principal-resolution response contains only a service-attested current projection and method-history evidence; every PCR id, Event, receipt, Seal and history field is forbidden.",
+      "applies_to_fixtures": [
+        "pcr-outward-exposure-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/pcr-outward-exposure-fixture.json",
+        "spec/v1/zh/identity/identity-did.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.pcr_outward_exposure_registry.v1",
+      "status": "active",
+      "domain": "identity",
+      "description": "Every PCR outward carrier has an exact registered operation/direction/schema/pointer/policy reverse edge; private kinds have none, and shared-Realm Actor Profile resolution merges unknown, unauthorized and wrong-selector failures.",
+      "applies_to_fixtures": [
+        "pcr-outward-exposure-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/pcr-outward-exposure-fixture.json",
+        "spec/v1/zh/models/realm-and-space.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.contact.bilateral_continuity_checkpoint.v1",
+      "status": "active",
+      "domain": "contact",
+      "description": "A mutually signed, root-anchored bilateral checkpoint compacts an arbitrary Contact prefix while retaining a maximum 64-round explicit tail; fork, rollback, missing predecessor, wrong root/pair/accumulator and single-signature inputs fail closed, while missing material remains distinguishable from invalid material without disclosing Contact state.",
+      "applies_to_fixtures": [
+        "bilateral-continuity-checkpoint-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/bilateral-continuity-checkpoint-fixture.json",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
     {
       "vector_id": "ak.vector.identity.principal_server_admission.v1",
       "status": "active",
@@ -1917,6 +1956,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.direct_conversation.founder_loss_terminality.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "A lost Direct Conversation founder never transfers the existing pair slot: ordinary recovery of the exact same (principal_id, principal_server_id) resumes as the original founder, while timeout, root Contact recovery policy, third-party attestation and after-the-fact bilateral designation all write nothing. The non-founder remains awaiting_founder, the closed wire union has no founder_unrecoverable state, and only a genuinely different stable participant pair derives a new pair_key with no inherited history, MLS state, keys, audit identity or authority.",
+      "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
       "status": "active",
       "domain": "direct_conversation",
@@ -1936,7 +1988,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "Caller-authored first-valid founding unit: byte-exact founding_unit_digest KAT over the three ordered Event IDs, realm_id and main_strand_id retyped from the first and third Event IDs, closed self and peer carrier branch shapes, and rejection of server-allocated identifiers, reserved or materializing drafts, coordinator election, reordering, a fourth Event and a carried coordinate field.",
+      "description": "Caller-authored first-valid founding unit: byte-exact founding_unit_digest KAT over the four ordered Event IDs, realm_id and main_strand_id retyped from the first and third Event IDs, explicit founder membership with head_eq null, closed self and peer carrier branch shapes, and rejection of server-allocated identifiers, reserved or materializing drafts, coordinator election, reordering, a fifth Event and a carried coordinate field.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
@@ -2403,6 +2455,20 @@
       ],
       "description": "Canonical JSON object key ordering follows UTF-16 code units for supplementary-plane keys.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.cell_subject_uri.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "description": "Closed uri cell-subject encoding: every octet outside ALPHA / DIGIT / - . _ ~ becomes upper-case %HH, including : / and % itself, so an escaped separator and a real path separator address different cells; non-canonical mimi_room_uri spellings are rejected before any subject is derived.",
+      "source_refs": [
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/zh/extensions/mimi-interop.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },
@@ -3790,7 +3856,7 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cba_lattice.v1"
       ],
-      "description": "ordered_log issuer sub-chain seq gap yields contiguous_prefix plus pending_gap diagnostics; deterministic recompute after backfill. Equivocation winner selection belongs to ak.vector.lattice.ordered_log_join.v1.",
+      "description": "ordered_log uses sparse envelope actor_seq coordinates: per-cell gaps are normal, every accepted entry joins immediately, no pending-gap state exists, and recompute is arrival-order independent.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -3803,7 +3869,7 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cba_lattice.v1"
       ],
-      "description": "ordered_log per-issuer prefix from issuer_seq 0 and issuer equivocation convergence: byte-identical canonical projected write.op is idempotent, non-equivalent candidates for the same (cell, actor_id, issuer_seq) resolve to the greatest canonical event_digest compared as decoded octets, causal edges never change the winner, losers stay auditable, and digest collision fails closed.",
+      "description": "ordered_log grow-only Event-set convergence: issuer_seq equals sparse envelope actor_seq, exact Event replay is idempotent, every accepted same-actor_seq sibling enters joined value, decoded digest octets only stabilize serialization order, and Event identity collision fails closed before lattice join.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -4162,6 +4228,19 @@
         "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
         "spec/v1/zh/extensions/mimi-interop.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mimi.room_update_branched_effect.v1",
+      "status": "active",
+      "domain": "mimi",
+      "description": "The semantic /update/kind discriminator selects exactly one branch: ak.mimi.room_binding requires one matching caller-authored Event admitted unchanged, while every other kind is receipt-only and forbids that Event; all pre-admission branch errors share one outward bucket.",
+      "applies_to_fixtures": [
+        "mimi-interop-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+        "spec/v1/zh/extensions/mimi-interop.md"
       ]
     },
     {

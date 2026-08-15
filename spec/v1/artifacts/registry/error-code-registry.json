@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-15.1",
+  "version": "2026-08-16.1",
   "codes": [
     {
       "code": "json_invalid",
@@ -1671,6 +1671,12 @@
       "description": "The MIMI payload is invalid."
     },
     {
+      "code": "mimi_room_binding_event_invalid",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The caller-authored room binding Event is missing, unexpected, semantically inconsistent, or does not exactly bind the authenticated MIMI room update. These pre-admission causes deliberately share one outward envelope; the precise reason is audit-only."
+    },
+    {
       "code": "mimi_reporter_resolution_required",
       "http_status": 403,
       "scope": "endpoint",
@@ -1717,6 +1723,18 @@
       "http_status": 409,
       "scope": "endpoint",
       "description": "A Contact fact forks an issuer-local version, skips a version, references a non-current predecessor, reuses a consumed request ref, or attempts to revive a tombstoned generation. The conflicting fact is quarantined."
+    },
+    {
+      "code": "continuity_evidence_unavailable",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A required bilateral continuity checkpoint, predecessor checkpoint or uncompressed tail segment is not currently available. The operation writes nothing and may be retried only after importing or retrieving the exact portable evidence; no gap is inferred or skipped."
+    },
+    {
+      "code": "continuity_invalid",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "Bilateral continuity evidence has an invalid signature, root/participant mismatch, broken or trimmed edge, rollback, same-sequence fork, accumulator mismatch or one-sided checkpoint. The operation writes nothing and MUST NOT downgrade this result to evidence retrieval."
     },
     {
       "code": "membership_compensation_conflict",
@@ -2770,7 +2788,7 @@
         "service_call",
         "federation_transaction"
       ],
-      "description": "A Direct Conversation founding unit is not the closed caller-authored three-Event unit. Causes include a count other than three, wrong wire order, a missing peer ak.member.state{join} or ak.strand.create, a fourth Event, a mixed actor/pair/profile/Realm, prev_refs that do not chain the three Events, an envelope realm_id that is not retype(events[0] event_id), a main_strand_id that is not retype(events[2] event_id), a founding_unit_digest that does not match the recomputed value, or any request field asserting a service-allocated identifier, reservation handle or materialization draft. The whole unit is rejected with zero writes. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1."
+      "description": "A Direct Conversation founding unit is not the closed caller-authored four-Event unit. Causes include a count other than four, wrong wire order, a missing peer or founder ak.member.state{join}, a missing ak.strand.create, a fifth Event, a mixed actor/pair/profile/Realm, prev_refs that do not chain the four Events, a missing founder-member head_eq null genesis guard, an envelope realm_id that is not retype(events[0] event_id), a main_strand_id that is not retype(events[2] event_id), a founding_unit_digest that does not match the recomputed value, or any request field asserting a service-allocated identifier, reservation handle or materialization draft. The whole unit is rejected with zero writes. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1."
     },
     {
       "code": "direct_conversation_invite_forbidden",
@@ -2940,7 +2958,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A `ak.account.status` event attempted to supersede an `erasure_pending` status (via `supersedes_status_event_id`) down to a lower-severity status. `erasure_pending` is terminal: erasure physically destroys data, so reducers / projections MUST reject the downgrade and keep `erasure_pending` as the current status. See zh/identity/account-lifecycle.md §3."
+      "description": "A `ak.account.status` event attempted to supersede an `erasure_pending` status (via `supersedes_status_event_ids`) down to a lower-severity status. `erasure_pending` is terminal: erasure physically destroys data, so reducers / projections MUST reject the downgrade and keep `erasure_pending` as the current status. See zh/identity/account-lifecycle.md §3."
     },
     {
       "code": "erasure_receipt_authority_invalid",
@@ -4650,7 +4668,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "Sub-reason for param_invalid when ak.self.identity.read.resolution_audit receives an after_resolution_event_ref that is neither the genesis Event nor an accepted ak.identity.resolution.update in this account's current resolution lineage. The audit surface is already holder or recovery authorized, so a stale or foreign cursor is reported as an invalid parameter rather than folded into the anti-enumeration outcome. See zh/identity/identity-did.md §4.2."
+      "description": "Sub-reason for param_invalid when ak.self.identity.read.resolution_audit receives an after_resolution_event_ref that is neither the genesis Event nor an accepted ak.identity.resolution.update in this account's current resolution lineage. The audit surface is already exact-current-holder authorized, so a stale or foreign cursor is reported as an invalid parameter rather than folded into the anti-enumeration outcome. See zh/identity/identity-did.md §4.2."
     },
     {
       "code": "revocation_freshness_unknown",
@@ -5129,7 +5147,7 @@
         "service_call",
         "schema_validation"
       ],
-      "description": "A `ak.realm.media_service.foci[].type` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `arkret_native` / `moq_relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/media-service-binding.md §2."
+      "description": "A `ak.realm.media_service.foci[].focus_kind` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `arkret_native` / `moq_relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/media-service-binding.md §2."
     },
     {
       "code": "unknown_kind",

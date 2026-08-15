@@ -551,7 +551,6 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.realm.asset_privacy_policy", "state_payload"),
     ("ak.realm.discovery", "state_payload"),
     ("ak.realm.join_rule", "state_payload"),
-    ("ak.realm.media_service", "state_payload"),
     ("ak.realm.policy", "state_payload"),
     ("ak.realm.schema", "state_payload"),
     ("ak.realm.profile", "realm_profile_payload"),

@@ -684,17 +684,13 @@ def lint_effect_projection(
                 lint.fail(path, f"{ref}.{member} is required")
             else:
                 lint_effect_source(lint, path, f"{ref}.{member}", projection[member])
-        issuer_seq = projection.get("issuer_seq")
-        if (
-            isinstance(issuer_seq, dict)
-            and "const" in issuer_seq
-            and (
-                not isinstance(issuer_seq["const"], int)
-                or isinstance(issuer_seq["const"], bool)
-                or issuer_seq["const"] < 0
+        if projection.get("issuer_seq") != {"envelope_field": "actor_seq"}:
+            lint.fail(
+                path,
+                f"{ref}.issuer_seq must be exactly "
+                '{"envelope_field":"actor_seq"}; ordered_log uses the sparse '
+                "Realm actor-chain coordinate and has no cell-local counter",
             )
-        ):
-            lint.fail(path, f"{ref}.issuer_seq.const must be an unsigned integer")
         return
 
     if projection_kind == "or_set_add":
@@ -2538,6 +2534,114 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
         lint.fail(path, "pcr exposure registry must be a source_of_truth object")
         return
 
+    disclosure_path = ARTIFACTS / "registry" / "outward-disclosure-policy-registry.json"
+    disclosure = load_json(lint, disclosure_path)
+    if not isinstance(disclosure, dict) or disclosure.get("source_of_truth") is not True:
+        lint.fail(disclosure_path, "outward disclosure policy registry must be a source_of_truth object")
+        return
+    disclosure_rows = disclosure.get("policies")
+    if not isinstance(disclosure_rows, list) or not disclosure_rows:
+        lint.fail(disclosure_path, "policies must be a non-empty list")
+        return
+    disclosure_ids: set[str] = set()
+    error_registry = load_json(lint, ARTIFACTS / "registry" / "error-code-registry.json") or {}
+    error_status = {
+        row.get("code"): row.get("http_status")
+        for row in error_registry.get("codes", [])
+        if isinstance(row, dict)
+    }
+    body_classes = disclosure.get("body_shape_classes") or {}
+    header_classes = disclosure.get("header_classes") or {}
+    timing_classes = disclosure.get("timing_classes") or {}
+    for index, policy in enumerate(disclosure_rows):
+        where = f"policies[{index}]"
+        if not isinstance(policy, dict):
+            lint.fail(disclosure_path, f"{where} must be an object")
+            continue
+        policy_id = policy.get("policy_id")
+        if not isinstance(policy_id, str) or not policy_id:
+            lint.fail(disclosure_path, f"{where}.policy_id must be a non-empty string")
+            continue
+        if policy_id in disclosure_ids:
+            lint.fail(disclosure_path, f"duplicate policy_id {policy_id}")
+        disclosure_ids.add(policy_id)
+        gates = policy.get("gate_order")
+        target_read_gate = policy.get("target_read_gate")
+        if (
+            not isinstance(gates, list)
+            or not gates
+            or any(not isinstance(gate, str) or not gate for gate in gates)
+            or len(gates) != len(set(gates))
+        ):
+            lint.fail(disclosure_path, f"{where}.gate_order must be a non-empty unique string list")
+        elif target_read_gate not in gates:
+            lint.fail(disclosure_path, f"{where}.target_read_gate must name a gate_order entry")
+        buckets = policy.get("outward_buckets")
+        if not isinstance(buckets, list):
+            lint.fail(disclosure_path, f"{where}.outward_buckets must be a list")
+            continue
+        bucket_ids: set[str] = set()
+        for position, bucket in enumerate(buckets):
+            spot = f"{where}.outward_buckets[{position}]"
+            if not isinstance(bucket, dict):
+                lint.fail(disclosure_path, f"{spot} must be an object")
+                continue
+            bucket_id = bucket.get("bucket_id")
+            if not isinstance(bucket_id, str) or not bucket_id or bucket_id in bucket_ids:
+                lint.fail(disclosure_path, f"{spot}.bucket_id must be unique and non-empty")
+            bucket_ids.add(bucket_id)
+            code = bucket.get("code")
+            if code not in error_status or bucket.get("http_status") != error_status.get(code):
+                lint.fail(disclosure_path, f"{spot} code/http_status must match error-code-registry")
+            if bucket.get("body_shape_class") not in body_classes:
+                lint.fail(disclosure_path, f"{spot}.body_shape_class is not registered")
+            if bucket.get("header_class") not in header_classes:
+                lint.fail(disclosure_path, f"{spot}.header_class is not registered")
+            if bucket.get("timing_class") not in timing_classes:
+                lint.fail(disclosure_path, f"{spot}.timing_class is not registered")
+            reasons = bucket.get("internal_reason_families")
+            if not isinstance(reasons, list) or not reasons or len(reasons) != len(set(reasons)):
+                lint.fail(disclosure_path, f"{spot}.internal_reason_families must be non-empty and unique")
+
+    contract = load_json(lint, ARTIFACTS / "registry" / "contract-registry.json") or {}
+    operation_rows = (contract.get("operation_registry") or {}).get("operations", [])
+    operation_policy: dict[str, str] = {}
+    for operation in operation_rows if isinstance(operation_rows, list) else []:
+        if not isinstance(operation, dict):
+            continue
+        policy_id = operation.get("outward_disclosure_policy_id")
+        if policy_id is not None:
+            if policy_id not in disclosure_ids:
+                lint.fail(disclosure_path, f"{operation.get('operation_id')} references unknown outward disclosure policy {policy_id}")
+            operation_policy[operation.get("operation_id")] = policy_id
+    keypackage_refs = {
+        operation.get("operation_id")
+        for operation in operation_rows
+        if isinstance(operation, dict)
+        and "keypackage-operations.schema.json" in str(operation.get("request_schema_ref", ""))
+    }
+    missing_keypackage_policy = sorted(keypackage_refs - set(operation_policy))
+    if missing_keypackage_policy:
+        lint.fail(disclosure_path, f"KeyPackage operations without outward disclosure policy: {missing_keypackage_policy}")
+    mappings = load_json(lint, ARTIFACTS / "registry" / "operations-error-mapping.json") or {}
+    mapped_codes = {
+        row.get("operation_id"): set(row.get("operation_specific", []))
+        for row in mappings.get("operations", [])
+        if isinstance(row, dict) and isinstance(row.get("operation_specific"), list)
+    }
+    forbidden_claim_details = {
+        "one_time_keys_exhausted",
+        "principal_unknown",
+        "keypackage_unknown",
+        "keypackage_already_consumed",
+    }
+    for operation_id, policy_id in operation_policy.items():
+        if policy_id != "ak.outward_disclosure.target_private_claim.v1":
+            continue
+        codes = mapped_codes.get(operation_id, set())
+        if "claim_failed" not in codes or codes & forbidden_claim_details:
+            lint.fail(disclosure_path, f"{operation_id} target-private claim mapping must expose claim_failed and no target-private detail codes")
+
     carrier_kinds = data.get("carrier_kinds")
     surface_kinds = data.get("surface_kinds")
     if not isinstance(carrier_kinds, dict) or not carrier_kinds:
@@ -2597,6 +2701,7 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
 
     declared: list[str] = []
     outward_fragments: list[tuple[str, Any]] = []
+    registered_schema_kind_pairs: set[tuple[str, str]] = set()
     private_kinds: set[str] = set()
 
     def resolve_pointer(document: Any, pointer: str) -> Any:
@@ -2637,6 +2742,7 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
             pointers = exposure.get("json_pointers")
             authorization = exposure.get("authorization_policy_id")
             anti_enumeration = exposure.get("anti_enumeration_policy_id")
+            disclosure_policy = exposure.get("outward_disclosure_policy_id")
             if carrier not in carrier_kinds:
                 lint.fail(path, f"{spot}.carrier is not a registered carrier kind")
             if surface not in surface_kinds:
@@ -2645,6 +2751,18 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
                 lint.fail(path, f"{spot}.authorization_policy_id is not registered")
             if anti_enumeration is not None and anti_enumeration not in anti_enumeration_policies:
                 lint.fail(path, f"{spot}.anti_enumeration_policy_id is not registered")
+            mapping = data.get("outward_disclosure_policy_mapping") or {}
+            anti_mapping = mapping.get("anti_enumeration_policy_ids") or {}
+            resolved_disclosure = disclosure_policy
+            if resolved_disclosure is None:
+                if authorization == mapping.get("public_authorization_policy_id"):
+                    resolved_disclosure = mapping.get("public_policy_id")
+                elif anti_enumeration is not None:
+                    resolved_disclosure = anti_mapping.get(anti_enumeration)
+                else:
+                    resolved_disclosure = mapping.get("authenticated_default_policy_id")
+            if resolved_disclosure not in disclosure_ids:
+                lint.fail(path, f"{spot} does not resolve a registered outward disclosure policy")
             if surface == "operation":
                 if exposure.get("operation_id") not in operation_ids:
                     lint.fail(path, f"{spot}.operation_id is not a registered operation")
@@ -2665,12 +2783,18 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
                 continue
             if fragment:
                 try:
-                    outward_fragments.append((event_kind, resolve_pointer(document, fragment)))
+                    fragment_node = resolve_pointer(document, fragment)
+                    outward_fragments.append((event_kind, fragment_node))
                 except (KeyError, IndexError, ValueError):
                     lint.fail(path, f"{spot}.schema_ref fragment does not resolve: {schema_ref}")
                     continue
             else:
+                fragment_node = document
                 outward_fragments.append((event_kind, document))
+            registered_schema_kind_pairs.add((schema_ref, event_kind))
+            annotation = fragment_node.get("x-arkret-pcr-outward-event-kinds") if isinstance(fragment_node, dict) else None
+            if not isinstance(annotation, list) or event_kind not in annotation:
+                lint.fail(path, f"{spot}.schema_ref target lacks x-arkret-pcr-outward-event-kinds annotation for {event_kind}")
             if not isinstance(pointers, list):
                 lint.fail(path, f"{spot}.json_pointers must be a list")
                 continue
@@ -2695,6 +2819,34 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
     duplicates = sorted({kind for kind in declared if declared.count(kind) > 1})
     if duplicates:
         lint.fail(path, f"duplicate event_kind rows: {duplicates}")
+
+    # Reverse direction: a schema cannot mark a PCR kind as outward without an
+    # exact registry exposure that names the same annotated schema fragment.
+    for schema_path in sorted((ARTIFACTS / "schemas").glob("*.json")):
+        document = load_json(lint, schema_path)
+        if not isinstance(document, dict):
+            continue
+
+        def walk_annotations(node: Any, tokens: list[str]) -> None:
+            if isinstance(node, dict):
+                annotation = node.get("x-arkret-pcr-outward-event-kinds")
+                if annotation is not None:
+                    if not isinstance(annotation, list) or not annotation:
+                        lint.fail(schema_path, "x-arkret-pcr-outward-event-kinds must be a non-empty list")
+                    else:
+                        fragment = "/".join(token.replace("~", "~0").replace("/", "~1") for token in tokens)
+                        schema_ref = f"schemas/{schema_path.name}" + (f"#/{fragment}" if fragment else "")
+                        for kind in annotation:
+                            if (schema_ref, kind) not in registered_schema_kind_pairs:
+                                lint.fail(schema_path, f"unregistered PCR outward annotation {kind} at {schema_ref}")
+                for key, value in node.items():
+                    if key != "x-arkret-pcr-outward-event-kinds":
+                        walk_annotations(value, [*tokens, key])
+            elif isinstance(node, list):
+                for index, value in enumerate(node):
+                    walk_annotations(value, [*tokens, str(index)])
+
+        walk_annotations(document, [])
 
     # A kind declared PCR-private must not be reachable through a fragment some
     # other kind already opened. This is the check that catches a carrier quietly

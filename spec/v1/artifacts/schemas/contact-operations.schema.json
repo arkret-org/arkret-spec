@@ -49,6 +49,180 @@
       "type": "string",
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
+    "principal_authority_key": {
+      "type": "object",
+      "required": [
+        "principal_id",
+        "principal_server_id"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bilateral_continuity_checkpoint_core": {
+      "type": "object",
+      "description": "Domain-neutral, root-anchored commitment to one contiguous prefix of a bilateral lineage. Sequence is monotonic; same sequence with a different checkpoint digest is a fork, never a winner election.",
+      "required": [
+        "context",
+        "participants",
+        "root_basis",
+        "root_basis_digest",
+        "covered_through_basis_digest",
+        "prefix_accumulator_root",
+        "covered_prefix_count",
+        "sequence"
+      ],
+      "properties": {
+        "context": {
+          "const": "ak.contact.round.continuity.v1"
+        },
+        "participants": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/principal_authority_key"
+          },
+          "description": "The two exact (principal_id, principal_server_id) authority keys, sorted by canonical tuple bytes."
+        },
+        "root_basis": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/contact_round_evidence_bundle"
+            },
+            {
+              "not": {
+                "required": [
+                  "continuity_checkpoint"
+                ]
+              }
+            }
+          ],
+          "description": "Portable uncheckpointed root Contact round evidence. It is retained so founder and root identity remain independently derivable after prefix compaction."
+        },
+        "root_basis_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "covered_through_basis_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "prefix_accumulator_root": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "covered_prefix_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "previous_checkpoint_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "sequence": {
+                "const": 1
+              }
+            },
+            "required": [
+              "sequence"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "previous_checkpoint_digest"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "previous_checkpoint_digest"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "bilateral_continuity_checkpoint_signature": {
+      "type": "object",
+      "required": [
+        "signer",
+        "signature"
+      ],
+      "properties": {
+        "signer": {
+          "$ref": "#/$defs/principal_authority_key"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bilateral_continuity_checkpoint": {
+      "type": "object",
+      "required": [
+        "core",
+        "checkpoint_digest",
+        "signatures"
+      ],
+      "properties": {
+        "core": {
+          "$ref": "#/$defs/bilateral_continuity_checkpoint_core"
+        },
+        "checkpoint_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest",
+          "description": "H(ak.bilateral-continuity.checkpoint.v1, canonical core)."
+        },
+        "signatures": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/bilateral_continuity_checkpoint_signature"
+          },
+          "description": "Exactly one signature by each registered participant authority key over the checkpoint core."
+        }
+      },
+      "additionalProperties": false
+    },
+    "contact_continuity_evidence": {
+      "type": "object",
+      "required": [
+        "checkpoint",
+        "uncompressed_tail"
+      ],
+      "properties": {
+        "checkpoint": {
+          "$ref": "#/$defs/bilateral_continuity_checkpoint"
+        },
+        "uncompressed_tail": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/contact_round_evidence_bundle"
+          },
+          "description": "Immediate predecessor first; at least the latest terminal round remains explicit, and the final edge must terminate exactly at checkpoint.core.covered_through_basis_digest."
+        }
+      },
+      "additionalProperties": false
+    },
     "contact_accept_request": {
       "oneOf": [
         {
@@ -317,6 +491,10 @@
           "minItems": 1,
           "maxItems": 2,
           "uniqueItems": true
+        },
+        "continuity_checkpoint": {
+          "$ref": "#/$defs/bilateral_continuity_checkpoint",
+          "description": "Latest mutually signed compacted prefix for this lineage. Its presence changes the chain terminator from the root round to covered_through_basis_digest; it never changes the root basis or participant authority pair."
         }
       },
       "allOf": [
@@ -1204,6 +1382,10 @@
             "previous_terminal_contact_round_id": {
               "$ref": "./principal-operations.schema.json#/$defs/digest",
               "description": "Immediate previously accepted terminal Contact round for a recontact request. The Principal Server MUST require an exact local terminal-round match when present and MUST require it when a terminal predecessor exists."
+            },
+            "continuity_evidence": {
+              "$ref": "#/$defs/contact_continuity_evidence",
+              "description": "Portable mutually signed prefix checkpoint plus bounded tail. A caller supplies it when the current Principal Server cannot reconstruct the complete lineage locally; the service verifies it and persists the same checkpoint/tail instead of guessing or skipping a predecessor."
             },
             "message": {
               "type": "string"
@@ -2513,6 +2695,13 @@
       ]
     },
     "peer_contact_submit_request": {
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.contact.accepted",
+        "ak.contact.rejected",
+        "ak.contact.requested",
+        "ak.contact.scope.update",
+        "ak.contact.tombstone"
+      ],
       "oneOf": [
         {
           "type": "object",

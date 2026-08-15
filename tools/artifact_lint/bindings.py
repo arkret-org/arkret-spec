@@ -127,6 +127,75 @@ def check_operation_durable_effect_contract(lint: Lint) -> None:
     if not isinstance(operations, list):
         lint.fail(path, "operation_registry.operations must be an array")
         return
+
+    def request_pointer_node(operation: dict[str, Any], pointer: Any) -> Any:
+        operation_id = operation.get("operation_id", "<unknown>")
+        if not isinstance(pointer, str) or not pointer.startswith("/"):
+            lint.fail(path, f"{operation_id} durable-effect request path must be an RFC 6901 pointer")
+            return None
+        request_ref = operation.get("request_schema_ref")
+        if not isinstance(request_ref, str):
+            lint.fail(path, f"{operation_id} branched durable effect requires request_schema_ref")
+            return None
+        node = load_artifact_schema_from_ref(lint, path, request_ref)
+        for raw_token in pointer[1:].split("/"):
+            token = raw_token.replace("~1", "/").replace("~0", "~")
+            if not isinstance(node, dict):
+                node = None
+                break
+            properties = node.get("properties")
+            node = properties.get(token) if isinstance(properties, dict) else None
+        if node is None:
+            lint.fail(path, f"{operation_id} durable-effect request path does not resolve: {pointer}")
+        return node
+
+    def check_leaf_effect(operation: dict[str, Any], effect: Any, label: str) -> None:
+        operation_id = operation.get("operation_id", "<unknown>")
+        if not isinstance(effect, dict):
+            lint.fail(path, f"{operation_id} {label} must be an object")
+            return
+        kind = effect.get("kind")
+        if kind == "event_log":
+            event_kinds = effect.get("event_kinds")
+            source = effect.get("event_kind_source")
+            sources = effect.get("event_kind_sources")
+            mapping_forms = sum(value is not None for value in (event_kinds, source, sources))
+            if mapping_forms != 1:
+                lint.fail(path, f"{operation_id} {label} event_log effect must declare exactly one mapping form")
+            if event_kinds is not None:
+                if not isinstance(event_kinds, list) or not event_kinds:
+                    lint.fail(path, f"{operation_id} {label}.event_kinds must be non-empty")
+                else:
+                    for event_kind in event_kinds:
+                        if event_kind not in active or event_kind in actor_private:
+                            lint.fail(path, f"{operation_id} {label} maps to invalid shared Event {event_kind!r}")
+            if source is not None and (
+                not isinstance(source, str) or not source.startswith("$request.")
+            ):
+                lint.fail(path, f"{operation_id} {label}.event_kind_source must be a $request JSON path")
+            if sources is not None and (
+                not isinstance(sources, list)
+                or not sources
+                or any(not isinstance(item, str) or not item.startswith("$request.") for item in sources)
+                or len(sources) != len(set(sources))
+            ):
+                lint.fail(path, f"{operation_id} {label}.event_kind_sources must be a non-empty unique array of $request JSON paths")
+            submission_path = effect.get("event_submission_path")
+            if submission_path is not None:
+                submission = request_pointer_node(operation, submission_path)
+                ref = submission.get("$ref") if isinstance(submission, dict) else None
+                if not isinstance(ref, str) or "EventInitialSubmission" not in ref:
+                    lint.fail(path, f"{operation_id} {label}.event_submission_path must target EventInitialSubmission")
+        elif kind == "actor_private_event":
+            if effect.get("event_kind") not in actor_private:
+                lint.fail(path, f"{operation_id} {label} must map actor_private_event to an active private kind")
+        elif kind == "none":
+            rationale = effect.get("rationale")
+            if not isinstance(rationale, str) or not rationale:
+                lint.fail(path, f"{operation_id} {label} none effect must state a rationale")
+        else:
+            lint.fail(path, f"{operation_id} {label} has unknown durable_effect kind {kind!r}")
+
     for operation in operations:
         if not isinstance(operation, dict) or "idempotency_mechanism" not in operation:
             continue
@@ -136,46 +205,35 @@ def check_operation_durable_effect_contract(lint: Lint) -> None:
             lint.fail(path, f"{operation_id} is a write operation without durable_effect")
             continue
         kind = effect.get("kind")
-        if kind == "event_log":
-            event_kinds = effect.get("event_kinds")
-            source = effect.get("event_kind_source")
-            sources = effect.get("event_kind_sources")
-            mapping_forms = sum(value is not None for value in (event_kinds, source, sources))
-            if mapping_forms != 1:
-                lint.fail(path, f"{operation_id} event_log effect must declare exactly one mapping form")
-            if event_kinds is not None:
-                if not isinstance(event_kinds, list) or not event_kinds:
-                    lint.fail(path, f"{operation_id}.durable_effect.event_kinds must be non-empty")
-                else:
-                    for event_kind in event_kinds:
-                        if event_kind not in active or event_kind in actor_private:
-                            lint.fail(path, f"{operation_id} maps to invalid shared Event {event_kind!r}")
-            if source is not None and (
-                not isinstance(source, str) or not source.startswith("$request.")
-            ):
-                lint.fail(path, f"{operation_id}.event_kind_source must be a $request JSON path")
-            if sources is not None and (
-                not isinstance(sources, list)
-                or not sources
-                or any(
-                    not isinstance(item, str) or not item.startswith("$request.")
-                    for item in sources
-                )
-                or len(sources) != len(set(sources))
-            ):
-                lint.fail(
-                    path,
-                    f"{operation_id}.event_kind_sources must be a non-empty unique array of $request JSON paths",
-                )
-        elif kind == "actor_private_event":
-            if effect.get("event_kind") not in actor_private:
-                lint.fail(path, f"{operation_id} must map actor_private_event to an active private kind")
-        elif kind == "none":
-            rationale = effect.get("rationale")
-            if not isinstance(rationale, str) or not rationale:
-                lint.fail(path, f"{operation_id} durable_effect none must state a rationale")
+        if kind == "branched":
+            discriminator = effect.get("discriminator")
+            branches = effect.get("effect_branches")
+            discriminator_path = discriminator.get("request_path") if isinstance(discriminator, dict) else None
+            request_pointer_node(operation, discriminator_path)
+            if not isinstance(branches, list) or len(branches) < 2:
+                lint.fail(path, f"{operation_id} branched durable effect requires at least two effect_branches")
+                continue
+            equals_values: list[str] = []
+            otherwise_count = 0
+            for index, branch in enumerate(branches):
+                if not isinstance(branch, dict):
+                    lint.fail(path, f"{operation_id} effect_branches[{index}] must be an object")
+                    continue
+                has_equals = isinstance(branch.get("equals"), str) and bool(branch.get("equals"))
+                is_otherwise = branch.get("otherwise") is True
+                if has_equals == is_otherwise:
+                    lint.fail(path, f"{operation_id} effect_branches[{index}] must declare exactly one of equals or otherwise=true")
+                if has_equals:
+                    equals_values.append(branch["equals"])
+                if is_otherwise:
+                    otherwise_count += 1
+                check_leaf_effect(operation, branch.get("effect"), f"effect_branches[{index}].effect")
+            if len(equals_values) != len(set(equals_values)):
+                lint.fail(path, f"{operation_id} branched durable effect has duplicate equals values")
+            if otherwise_count != 1 or branches[-1].get("otherwise") is not True:
+                lint.fail(path, f"{operation_id} branched durable effect requires exactly one final otherwise branch")
         else:
-            lint.fail(path, f"{operation_id} has unknown durable_effect kind {kind!r}")
+            check_leaf_effect(operation, effect, "durable_effect")
 
 
 

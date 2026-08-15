@@ -1179,7 +1179,7 @@ ak.vector.cba_lattice.cas_mixed_basis.v1
 - Case A 在 join 阶段被静默接受为 last-write-wins 覆盖。
 - Case B 因实现把 basis 校验错误地提前到与 Case A 相同的拒绝路径而被误拒。
 
-### 2.13 Vector: `ordered_log` issuer 子链 seq 缺口
+### 2.13 Vector: `ordered_log` sparse actor sequence
 
 向量名称：
 
@@ -1187,24 +1187,23 @@ ak.vector.cba_lattice.cas_mixed_basis.v1
 ak.vector.lattice.ordered_log_gap.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `ordered_log` 的缺口规则：“issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断；依赖补齐后按同一规则重算。”
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1：`issuer_seq` 必须等于 envelope `actor_seq`，在单个 cell 内是稀疏坐标而非独立连续计数器。
 
 输入（ordered_log cell，`bottom=inert`）：
 
-- **Case A — 缺口存在**：issuer I 的 append entries 以 `issuer_seq ∈ {0, 1, 3}` 到达（seq 2 缺失）。
-- **Case B — 缺口补齐后重算**：在 Case A 状态上，seq 2 的 entry 通过 backfill 到达，reducer 重算同一 cell。
+- **Case A — 正常稀疏序列**：issuer I 的 append entries 以 `issuer_seq ∈ {0, 1, 3}` 到达；actor_seq 2 是写往其它 cell 的合法 Event。
+- **Case B — 新 entry 后到**：在 Case A 状态上，同 cell 的 actor_seq 2 entry 通过 backfill 到达，reducer 重算。
 
 期望：
 
-- **Case A**：join 产出的 cell value 仅含 `contiguous_prefix`（seq 0、1）；seq 3 的 entry MUST 作为 `pending_gap` 诊断（`reason=dependency_missing`）暴露，MUST NOT 进入 cell value、`state_root` leaf 或任何授权判断。`bottom` 永不出现（与 §5.1 对照表一致）。
-- **Case B**：补齐 seq 2 后，按同一 join 规则确定性重算，cell value 变为 seq 0–3 的完整子链；两个 conformant reducer 以不同到达顺序（先 3 后 2 / 先 2 后 3）重放 MUST 得到 bit-exact 相同的 cell value 与 `state_root` leaf。
-- 同一 `(issuer, seq)` 的逐字等价重复 entry MUST 幂等去重，不得产生双重 entry；非等价候选的 winner 选择不属于本向量，见 §2.21。
+- **Case A**：seq 0、1、3 全部进入 cell value；没有 `pending_gap`，也不要求证明 seq 2 写过本 cell。canonical 顺序为 issuer、actor_seq、decoded event digest。
+- **Case B**：新 entry 加入后，两个 conformant reducer 以不同到达顺序重放 MUST 得到 bit-exact 相同的完整四-entry cell value 与 root leaf。
+- exact Event replay 幂等；相同 `(issuer, seq)` 的不同合法 sibling 全部保留，见 §2.21。
 
 失败条件：
 
-- Case A 把缺口后的 entry 直接并入 cell value 或 `state_root` leaf。
-- Case A 因缺口返回 ⊥ 或阻塞整个 cell（`ordered_log` 的 join 数学上永不产生 ⊥，故按 §9.1.1 登记 `bottom=inert`；缺口只产生 pending / diagnostic，不阻塞协议判断）。
-- Case B 重算结果依赖本地接收顺序，两个 reducer 产出不同的 contiguous prefix。
+- Case A 因 per-cell seq 缺口产生 pending、返回 ⊥、截断 prefix 或排除 seq 3。
+- Case B 重算结果依赖本地接收顺序。
 
 ### 2.14 Vector: auth_context epoch pinning 拒绝过期 key
 
@@ -1447,7 +1446,7 @@ ak.vector.cba_lattice.conflict_recovery_move.v1
 
 失败条件：普通 Control Move 在 `⊥` 下绕过 recovery 例外；post-conflict witness 被接受；recovery capability 未 sealed 或已撤销仍生效；未 sealed 的 recovery Move 改变 canonical state。
 
-### 2.21 Vector: `ordered_log` issuer equivocation winner
+### 2.21 Vector: `ordered_log` sibling-set join
 
 向量名称：
 
@@ -1455,37 +1454,36 @@ ak.vector.cba_lattice.conflict_recovery_move.v1
 ak.vector.lattice.ordered_log_join.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `ordered_log` 的 issuer 顺序与 equivocation 收敛规则，其 winner 键来自 [`encoding.md` §4.2](./encoding.md) 的全协议唯一 tie-break（逻辑 slot equivocation 候选集），digest 定义见 [`encoding.md` §6](./encoding.md)。
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 的 grow-only Event-set join；[`encoding.md` §4.2](./encoding.md) 只稳定序列化顺序，不产生 winner。
 
 输入（ordered_log cell，`bottom=inert`；fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `ak.vector.lattice.ordered_log_join.v1`）：
 
-- **Case A — per-issuer 顺序**：两个 issuer 各自提交 `issuer_seq ∈ {0, 1}`，到达顺序交错。
-- **Case B — 逐字等价重复**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `write.op` bytes 相同。
-- **Case C — equivocation**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `write.op` bytes 不同（含 `op.value` 相同而 `op` 其它字段不同的子例，以及 `op.value` 不含任何 `entry_id` 字段的子例），两个候选 Event 的 canonical `event_digest` 不同。
-- **Case D — 因果边不改变 winner**：与 Case C 相同的候选集，但较小 `event_digest` 的候选通过 `prev_refs` / `causal_refs` 因果地晚于较大者。
+- **Case A — sparse per-issuer 顺序**：两个 issuer 各自提交任意递增 `actor_seq`，到达顺序交错且允许 per-cell 间隔。
+- **Case B — exact replay**：同一 Event identity 与完整 canonical `write.op` 重复到达。
+- **Case C — sibling set**：同一 `(cell, actor_id, issuer_seq)` 的两个不同合法 Event，完整 canonical `write.op` bytes 可同可不同，canonical `event_digest` 不同。
+- **Case D — 因果资料不选边**：与 Case C 相同的集合，但其中一条携带不同 causal refs；若 actor-chain 验证均接受，二者仍全部进入日志。
 - **Case E — digest collision**：两个候选的 canonical `envelope_without_proofs_unsigned_actor_kind_event_id` bytes 不同，却得到完全相同的 typed `event_digest`（同 suite、同 octets）。
 - **Case F — 仅 proofs / reducer stamp 不同**：两个候选的 canonical digest preimage bytes 逐字相同，只有 `proofs` 集或 reducer-stamped `actor_kind` 不同。`scope_ref` 不同必然改变 digest，不属于本例。
 - **Case G — 跨 suite 比较**：两个候选使用不同 digest suite，且 typed wire string 的 UTF-8 顺序与 decoded digest octets 顺序**相反**。
 
 期望：
 
-- **Case A**：每个 issuer 子链的期望起点固定为 `issuer_seq=0`，只有从 `0` 起的连续 prefix 进入 cell value；输入顺序的任意排列 MUST 产出 bit-exact 相同的 cell value 与 `state_root` leaf。实现 MUST NOT 把该 issuer 的最小已见 seq 当作起点——只到达 `issuer_seq=3` 时 MUST 报告 `missing_seq=0` 的 pending gap，MUST NOT 物化 seq 3。
-- **Case B**：幂等去重，该 slot 只产生一条 entry。
-- **Case C**：`event_digest` 按 §4.2 decoded-octets 比较取**最大**的候选进入连续 prefix；loser MUST 保留为 duplicate/equivocation 诊断，且 MUST 仍留在 canonical event log 与审计视图中，MUST NOT 被删除。等价性判定 MUST 使用完整 canonical `write.op` bytes：`op.value` 相同而 `op` 其它字段不同的候选仍是 equivocation；`op.value` 不含 `entry_id` 字段不得导致回退到到达顺序。
-- **Case D**：winner 与 Case C 相同。因果边、`prev_refs`、HLC 与到达顺序 MUST NOT 改变 slot winner，也不得把 seq 复用解释为合法的下一条 append。
+- **Case A**：输入顺序任意排列都产出相同完整 Event set 与 root leaf；只到达 seq 3 时也立即物化。
+- **Case B**：幂等去重，只产生一条 entry。
+- **Case C**：两条 sibling 都进入 joined value；diagnostic 若出现，必须列出完整 sibling set，不得出现 winner/loser 字段。
+- **Case D**：结果与 Case C 相同；因果资料、HLC 与到达顺序不得删除任一已接受 sibling。
 - **Case E**：MUST fail closed（digest collision），MUST NOT 回退到 `event_id`、`op.value` 内任一字段、到达顺序或实现私有 ID。
 - **Case F**：视为同一 producer-signed Event 内容，MUST NOT 报 collision；`proofs` 按 proof profile 合并，reducer stamps 按其各自验证规则处理。
-- **Case G**：winner 由 decoded digest octets 决定，MUST NOT 由 `<suite>:` 前缀的字符串顺序决定。
+- **Case G**：joined value 包含两条；它们的 canonical serialization order 由 decoded digest octets 决定，不由 `<suite>:` 前缀字符串决定。
 
 失败条件：
 
-- 用 `event_id`、`created_at`、HLC、`actor_seq`、到达顺序或某个领域字段（含 `op.value.entry_id` 一类实现私有 id）选 winner（`encoding.md` §4.2 禁止键）。
-- 选 bytewise 最小而非最大 `event_digest`。
+- 用 digest、`event_id`、created_at、HLC、到达顺序或领域字段选 winner。
+- 排除任一合法 sibling，或把后续 actor entry 因同高 sibling 截断。
 - 直接比较 typed digest wire string，使 suite 名先于内容决定 winner。
 - 只比较 `op.value` 而非完整 `write.op`，把 `op` 其它字段不同的候选误判为 duplicate。
-- 从该 issuer 的最小已见 seq 起算 prefix，而不是固定从 `0` 起。
-- equivocation loser 被从 canonical event log 或审计视图中移除，或未暴露 winner/loser 诊断。
-- Case D 因存在因果边而改判 winner。
+- 要求 per-cell prefix 从 0 连续，或产生 pending gap。
+- sibling diagnostic 未列完整 set，或仍暴露 winner/loser。
 - Case F 被误报为 digest collision。
 
 ## 3. Redaction 与 Snapshot Vectors
@@ -2096,9 +2094,9 @@ ak.vector.capability.membership_is_not_baseline.v1
 ak.vector.realm.authority_root_bootstrap.v1
 ```
 
-本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条 registered cell write，其中第五条是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = envelope.actor_id, controller_epoch = 0, authority_generation = 0, capability_action_registry_digest = payload.object.capability_action_registry_digest}`。
+本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条无条件 registered cell write，其中 authority-root 写入是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = envelope.actor_id, controller_epoch = 0, authority_generation = 0, capability_action_registry_digest = payload.object.capability_action_registry_digest}`；`initial_resolution` 或 `managed_agent_control` 条件命中时还必须包含各自已登记条件写入。
 
-正例：五条 registered write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。实现升级 current capability-action registry 后，使用 append-only 归档中一个已发布 predecessor digest 创建的既有 Realm MUST 仍可精确解析该旧 snapshot、重算 digest 并得到与升级前相同的 owner coverage。
+正例：五条无条件 registered write 与条件命中的已登记 write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。实现升级 current capability-action registry 后，使用 append-only 归档中一个已发布 predecessor digest 创建的既有 Realm MUST 仍可精确解析该旧 snapshot、重算 digest 并得到与升级前相同的 owner coverage。
 
 负例（每条各自 MUST fail closed，不得留下 Realm / membership 半成品）：
 
@@ -4625,7 +4623,7 @@ Expected:
 
 Steps:
 
-1. Realm policy 中某 `foci[].type = "experimental-x"`（unregistered）。
+1. Realm policy 中某 `foci[].focus_kind = "experimental-x"`（unregistered）。
 2. Client SDK 尝试解析。
 
 Expected:
@@ -5597,26 +5595,27 @@ receipt schema；其中的示意 JWS / digest 不得用于密码学断言，也�
 本节固定 2026-07-26 一轮流程自洽性审核裁决所要求的向量。它们与既有分节的区别是：
 每条都直接对应一条已关闭的开放缺陷，负例用于防止实现私自回退到裁决前的行为。
 
-### 23.1 Canonical Event tie-break（全协议）
+### 23.1 Canonical Event presentation order
 
 `vector_id`: `ak.vector.encoding.canonical_event_tie_break.v1`
 
-覆盖 [`encoding.md` 4.2](./encoding.md) 的唯一 tie-break 键，两类候选集共用同一规则。
+覆盖 [`encoding.md` 4.2](./encoding.md) 的 producer-biased 展示与序列化顺序；历史 vector id 保留，但不再产生语义 winner。
 
 Steps:
 
-1. 构造并发候选集与同一 `(cell, actor_id, issuer_seq)` 逻辑 slot 的 equivocation 候选集。
+1. 构造并发候选集与同一 `(cell, actor_id, issuer_seq)` 的合法 sibling set。
 2. 对每个候选计算 `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`。
-3. 解码 typed digest 的 hex 为 octets，按 unsigned lexicographic order 取最大者。
+3. 解码 typed digest 的 hex 为 octets，按 unsigned lexicographic order 升序序列化全部候选。
 
 Expected:
 
-- winner 是 decoded digest octets 最大的候选；octets 完全相同而 suite 不同时以 canonical suite id 的 UTF-8 bytewise 顺序作第二键。
-- 必须包含一条 suite 前缀字符串顺序与 decoded octets 顺序**相反**的 transition case：按整串 UTF-8 比较会选错 winner。
+- 全部候选保留且没有 winner；octets 完全相同而 suite 不同时以 canonical suite id 的 UTF-8 bytewise 顺序作第二键。
+- 必须包含一条 suite 前缀字符串顺序与 decoded octets 顺序**相反**的 case：按整串 UTF-8 比较会得到错误序列。
+- fixture 明示攻击者击败已知随机 digest 的期望尝试数约为 2，并断言该顺序不得进入授权、finality、Relation active edge、account status 或 `state_root` 成员资格选择。
 - digest preimage MUST 逐字使用移除 `proofs` / `unsigned` / reducer stamp `actor_kind` 后的 canonical bytes，并保留签名 `scope_ref`；沿用移除 scope 的旧算法 MUST 失败。
 - 仅 `proofs` 或 reducer stamps 不同、canonical preimage 逐字相同的两个输入 MUST NOT 被报成 collision。
 - 同 typed digest（同 suite、同 octets）但 canonical preimage 不同 MUST fail closed，MUST NOT 回退到 `event_id` / HLC / `created_at` / 到达顺序 / 实现私有 ID。
-- producer 在 Event DAG 中人为加入因果边 MUST NOT 改变 slot winner。
+- producer 在 Event DAG 中加入因果资料不得把任一已接受 sibling 变成 loser。
 
 ### 23.2 `ak.realm.create` reducer projection 闭包与 genesis `state_root`
 
@@ -5629,7 +5628,7 @@ Steps:
 
 Expected:
 
-- create Event 的 reducer 输出 MUST 恰好含五条：`ak.component.realm.genesis.v1:null`（`set`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）、`ak.component.realm.reducer_profile.v1:null`（`set`）、`ak.component.realm.authority_root.v1:null`（`set`，controller 由 envelope `actor_id` 派生）。少一条或多一条表示 registry/vector drift，门禁 MUST 失败。
+- create Event 的 reducer 输出 MUST 恰好含五条无条件写入：`ak.component.realm.genesis.v1:null`（`set`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）、`ak.component.realm.reducer_profile.v1:null`（`set`）、`ak.component.realm.authority_root.v1:null`（`set`，controller 由 envelope `actor_id` 派生）；`initial_resolution` 与 `managed_agent_control` 条件命中时分别追加 registry 中对应的条件写入。少一条、漏掉命中的条件写入或出现未登记写入都表示 registry/vector drift，门禁 MUST 失败。
 - 两个实现的 genesis `state_root` MUST 逐字节相同（KAT）。
 - creator membership 必须来自 bootstrap unit 末尾的显式 `ak.member.state{join}`，其 cell MUST 有 inclusion proof；create reducer 自行隐式写 membership 视为额外未登记投影。
 - `ak.component.realm.genesis.v1`、`ak.component.realm.profile.v1` 与所有 required bootstrap facet MUST 在 genesis Seal 即出现在 leaf 集合中；事后补写视为不合规（负例）。

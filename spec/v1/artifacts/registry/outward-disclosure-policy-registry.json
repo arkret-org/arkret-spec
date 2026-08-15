@@ -1,0 +1,224 @@
+{
+  "version": "2026-08-15.1",
+  "source_of_truth": true,
+  "description": "Reusable outward-disclosure policies. Operations and carrier exposures reference a policy id instead of reproducing operation/profile matrices. Authorization decides whether a caller may reach a value; this registry decides which internal failures may cross the boundary and which observable response properties must remain equivalent.",
+  "registry_rules": [
+    "Every referenced policy_id MUST exist exactly once. Missing policy references fail closed.",
+    "gate_order is normative and left-to-right. A target read, inventory lookup, relationship probe, or target-scoped limiter MUST NOT run before the policy's target_read gate.",
+    "An outward bucket fixes code, HTTP status, body shape class, target-sensitive headers and timing class together. Implementations MUST NOT merge only the code while leaking the internal reason through another observable property.",
+    "internal reasons remain available only to restricted audit. Ordinary logs and metric labels MUST use the outward bucket id.",
+    "An operation references the narrowest reusable policy. Per-profile rows are forbidden unless the profile genuinely changes the trust boundary; duplicating an identical policy by operation or profile is a lint failure."
+  ],
+  "body_shape_classes": {
+    "standard_error_constant": "The standard ErrorEnvelope with no target-derived fields and one fixed size class.",
+    "standard_not_found_constant": "The standard not_found ErrorEnvelope with no selector-derived detail.",
+    "none": "No failure envelope is defined by this policy."
+  },
+  "header_classes": {
+    "no_target_sensitive_headers": "Retry-After and every other target-sensitive response header are absent; authentication challenge headers may depend only on the failed outer authentication gate.",
+    "authentication_only": "Only headers required by the failed transport or holder authentication mechanism may vary.",
+    "not_applicable": "No failure envelope is defined by this policy."
+  },
+  "timing_classes": {
+    "target_private_quantized": "All merged target-private failures use the same deployment-declared quantized delay distribution, measured after outer authentication succeeds.",
+    "ordinary": "No target-private timing equivalence beyond the ordinary operation budget.",
+    "not_applicable": "No failure envelope is defined by this policy."
+  },
+  "policies": [
+    {
+      "policy_id": "ak.outward_disclosure.public.v1",
+      "gate_order": [
+        "schema_validation",
+        "public_evaluation"
+      ],
+      "target_read_gate": "public_evaluation",
+      "outward_buckets": []
+    },
+    {
+      "policy_id": "ak.outward_disclosure.authenticated_exact.v1",
+      "gate_order": [
+        "transport_authentication",
+        "authorization",
+        "target_read",
+        "business_evaluation"
+      ],
+      "target_read_gate": "target_read",
+      "outward_buckets": []
+    },
+    {
+      "policy_id": "ak.outward_disclosure.private_not_found.v1",
+      "gate_order": [
+        "transport_authentication",
+        "authorization",
+        "target_read",
+        "outward_mapping"
+      ],
+      "target_read_gate": "target_read",
+      "outward_buckets": [
+        {
+          "bucket_id": "private_not_found",
+          "internal_reason_families": [
+            "target_absent",
+            "target_not_visible",
+            "authority_pair_mismatch"
+          ],
+          "code": "not_found",
+          "http_status": 404,
+          "body_shape_class": "standard_not_found_constant",
+          "header_class": "no_target_sensitive_headers",
+          "timing_class": "target_private_quantized",
+          "detail_visibility": "restricted_audit_only"
+        }
+      ]
+    },
+    {
+      "policy_id": "ak.outward_disclosure.private_single_failure.v1",
+      "gate_order": [
+        "transport_authentication",
+        "authorization",
+        "target_read",
+        "outward_mapping"
+      ],
+      "target_read_gate": "target_read",
+      "outward_buckets": [
+        {
+          "bucket_id": "private_single_failure",
+          "internal_reason_families": [
+            "target_absent",
+            "target_not_visible",
+            "relationship_absent",
+            "policy_denied"
+          ],
+          "code": "not_found",
+          "http_status": 404,
+          "body_shape_class": "standard_not_found_constant",
+          "header_class": "no_target_sensitive_headers",
+          "timing_class": "target_private_quantized",
+          "detail_visibility": "restricted_audit_only"
+        }
+      ]
+    },
+    {
+      "policy_id": "ak.outward_disclosure.target_private_claim.v1",
+      "gate_order": [
+        "transport_authentication",
+        "requester_authentication",
+        "target_read",
+        "business_evaluation",
+        "outward_mapping"
+      ],
+      "target_read_gate": "target_read",
+      "outward_buckets": [
+        {
+          "bucket_id": "target_private_claim_failed",
+          "internal_reason_families": [
+            "target_absent",
+            "target_not_visible",
+            "inventory_exhausted",
+            "consent_denied",
+            "policy_denied",
+            "capability_denied",
+            "request_stale",
+            "material_expired_or_revoked",
+            "target_scoped_abuse_control"
+          ],
+          "code": "claim_failed",
+          "http_status": 400,
+          "body_shape_class": "standard_error_constant",
+          "header_class": "no_target_sensitive_headers",
+          "timing_class": "target_private_quantized",
+          "detail_visibility": "restricted_audit_only"
+        }
+      ]
+    },
+    {
+      "policy_id": "ak.outward_disclosure.owner_diagnostic.v1",
+      "gate_order": [
+        "transport_authentication",
+        "holder_authentication",
+        "owner_pair_match",
+        "target_read",
+        "business_evaluation"
+      ],
+      "target_read_gate": "target_read",
+      "outward_buckets": [],
+      "diagnostic_rule": "Detailed registered operation errors are allowed only after the authenticated holder/device is proven to own the exact material selector."
+    },
+    {
+      "policy_id": "ak.outward_disclosure.bilateral_continuity.v1",
+      "gate_order": [
+        "transport_authentication",
+        "holder_pair_match",
+        "continuity_evidence_read",
+        "cryptographic_validation",
+        "outward_mapping"
+      ],
+      "target_read_gate": "continuity_evidence_read",
+      "outward_buckets": [
+        {
+          "bucket_id": "continuity_evidence_unavailable",
+          "internal_reason_families": [
+            "checkpoint_absent",
+            "predecessor_checkpoint_absent",
+            "tail_segment_absent"
+          ],
+          "code": "continuity_evidence_unavailable",
+          "http_status": 409,
+          "body_shape_class": "standard_error_constant",
+          "header_class": "no_target_sensitive_headers",
+          "timing_class": "ordinary",
+          "detail_visibility": "restricted_audit_only"
+        },
+        {
+          "bucket_id": "continuity_invalid",
+          "internal_reason_families": [
+            "signature_invalid_or_one_sided",
+            "root_or_pair_mismatch",
+            "rollback_or_same_sequence_fork",
+            "accumulator_or_tail_edge_invalid"
+          ],
+          "code": "continuity_invalid",
+          "http_status": 409,
+          "body_shape_class": "standard_error_constant",
+          "header_class": "no_target_sensitive_headers",
+          "timing_class": "ordinary",
+          "detail_visibility": "restricted_audit_only"
+        }
+      ],
+      "diagnostic_rule": "The two codes expose only whether exact portable material must be retrieved or whether supplied material is unsafe. They never reveal peer existence, Contact status, prefix length, failing edge or signature identity."
+    },
+    {
+      "policy_id": "ak.outward_disclosure.contact_pending_verified_mirror.v1",
+      "gate_order": [
+        "holder_authentication",
+        "pending_incoming_contact_lookup",
+        "verified_mirror_lookup",
+        "exact_binding_match",
+        "outward_mapping"
+      ],
+      "target_read_gate": "pending_incoming_contact_lookup",
+      "outward_buckets": [
+        {
+          "bucket_id": "contact_mirror_unavailable",
+          "internal_reason_families": [
+            "contact_absent_or_terminal",
+            "mirror_absent",
+            "mirror_unverified",
+            "receipt_binding_mismatch"
+          ],
+          "code": "not_found",
+          "http_status": 404,
+          "body_shape_class": "standard_not_found_constant",
+          "header_class": "no_target_sensitive_headers",
+          "timing_class": "target_private_quantized",
+          "detail_visibility": "restricted_audit_only"
+        }
+      ],
+      "success_constraints": [
+        "Return the exact verified mirror Event bytes only.",
+        "Do not return or satisfy seal_refs and return an empty derived seals list.",
+        "Authorization closes atomically when the Contact leaves pending_incoming."
+      ]
+    }
+  ]
+}
