@@ -216,6 +216,29 @@ round 直接投影为 `accepted`，两段都不是 `pending_incoming`——这�
 **MUST** 重读 `ak.self.contact.read.list`，**MUST NOT** 缓存、猜测或重放已消费的 receipt。本条的规范执行向量是
 `ak.vector.contact.pending_incoming_request_receipt.v1`。
 
+**Contact verified mirror 与客户端如何取得原始 Event（normative）**：上段要求客户端验证 receipt 对 exact request
+Event ref/digest 的绑定，因此它必须能取得那条 Event。Contact request 位于 **requester 的** PCR，holder 不是该 PCR
+member，普通 Realm 可见性结构上给不出它；`ak.peer.contacts.command.submit` 的 carrier 也**不投递** covering Seal。
+本规范因此固定下列封闭形态：
+
+- `ak.peer.contacts.command.submit` 的接收方 **MUST** 把 carrier 内层的 exact signed Contact Event bytes durable
+  落库为 **Contact verified mirror**，即 §2 流程图中 "peer 保存 verified mirror" 的那一份。
+- **mirror 的定义钉死为**：ingest 时已完成 receipt 密码学验证——issuer service 签名、`accepted_at` 时点的 issuer
+  service key、receipt 逐字绑定该 exact Event ref 与 `request_digest`——**且**已 CAS 落库的 row。可见性检查本身只做
+  字段比对，**MUST NOT** 被解释为"检查时验签即可"；未经 ingest 验证的本地行 **MUST NOT** 被当作 mirror。
+- mirror 是 principal-private 旁路存储：**MUST NOT** 进入接收方的 canonical realm event store，**MUST NOT** 推进任何
+  reducer、Seal、CBA frontier 或 `state_root`。
+- 客户端取得该 exact Event 的**唯一**入口是 `ak.self.events.read.resolve` 的 Contact mirror 分支（合同见
+  [`../sync/service-http-binding.md`](../sync/service-http-binding.md)）：它只从 mirror 取 bytes、只在 contact row
+  处于 `pending_incoming` 时开放、**MUST NOT** 返回任何 Seal。实现 **MUST NOT** 改为经
+  `ak.peer.events.read.resolve` 以 receipt 为凭据向对端 PCR 拉取——那与"不得扫描对端 PCR"只隔一个参数校验。
+- 本条的验证闭环**只有** §3 上段那三项（issuer 签名、`accepted_at` 时点 issuer key、receipt 对 Event ref/digest
+  的绑定）。covering Seal **不在**闭环内；客户端 **MUST NOT** 把"缺 Seal"判为验证失败。
+- **与凭据同生命周期**：该分支的授权凭据就是上段的 `request_receipt`，因此可见性与它同生同灭。contact row 迁出
+  `pending_incoming` 时，服务端 **MUST** 在同一事务内清除 `request_receipt` 并关闭该 Event 的 resolve 可见性；
+  mirror bytes **MAY** 按 retention 保留供本地审计，但 **MUST NOT** 再经该面外露。holder 接受后已通过 Contact
+  record 与 Direct Conversation Realm 取得所需内容，不存在继续 resolve 原始 request Event 的用例。
+
 不存在、policy deny、过期、未授权与 quarantined 对无权主体必须使用相同 opaque failure。
 
 ## 4. Contact operation surface
@@ -241,8 +264,19 @@ Message Signature只能额外叠加，不能替代其中任一项。实现 **MUS
 带 `create=true` 的 operation。
 
 所有 transport binding **MUST** 逐字段等值，不能自行增加 `accepted`、兼容 consent shape、unsigned service row
-或第二轮 assignment。首次接触 message 属于未获同意文本，接受前必须 quarantine/stub，不得把 Contact request
-变成正文投递通道。
+或第二轮 assignment。
+
+**首次接触 message 的封闭约束（normative）**：`ak.contact.requested` 的 `message` 是未获同意文本，本条约束的是
+**投递面**，不是 exact target holder 的可见性。接受前它 **MUST NOT** 进入任何 Strand、message timeline、未读
+计数、消息搜索索引或推送正文；跨服务器投递与一切 non-Contact projection **MUST** 以 stub 替换。它 **只**能经
+`ak.self.contact.read.list` 的 `pending_incoming` row 与 [`../sync/service-http-binding.md`](../sync/service-http-binding.md)
+`ak.self.events.read.resolve` 的 Contact mirror 分支，向 **exact target holder** 呈现完整内容——holder 看不到附言
+就无法判断是否接受，`message` 字段将失去存在理由，因此把本条读成对 holder 的内容剪裁是过度推广。
+
+stub 不是加密措施：`message` 仍是 digest-covered 明文，requester 的 Principal Server 本来就持有它。v1 **MUST NOT**
+为此把 `message` 改为密文——Contact 建立前双方没有共享密钥，没有可用封装。实现同样 **MUST NOT** 以"holder 不必
+自行重算 digest"为由收窄 §3 的验证要求：那会让 holder 的服务器可以拿一张针对 request A 的真 receipt 配上伪造的
+B 内容展示，使 holder 的 respond 绑定到他从未看过的 request。
 
 ## 5. Direct Conversation founder 派生与创建授权
 

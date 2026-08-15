@@ -14,7 +14,7 @@
     "ak.vector.direct_conversation.send_blocker_authority.v1",
     "ak.vector.direct_conversation.suspend_rejoin.v1"
   ],
-  "version": "2026-08-14",
+  "version": "2026-08-15",
   "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#55-caller-authored-founding-unitsource-唯一-slot-与-acceptance-receipt",
   "source_refs": [
     "spec/v1/zh/identity/contact-and-direct-conversation.md",
@@ -1190,6 +1190,43 @@
         "no row in these five states carries request_receipt, because pending_outgoing has no incoming request to answer and the other four have a consumed slot or a terminal round",
         "the omission alone expresses that respond and reject are not authorable now; no error code and no contact_state value is added for it",
         "a glare pair never presents a receipt-bearing row: an unconsumed outgoing request in the holder's own slot keeps the row pending_outgoing while glare evidence is still incomplete, and the mechanically derived basis projects accepted, so the row is never pending_incoming and respond and reject stay forbidden throughout"
+      ]
+    },
+    {
+      "name": "contact_mirror_branch_returns_exact_event_without_seal",
+      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
+      "precondition": "the holder holds a Contact verified mirror whose receipt was cryptographically verified at ingest and CAS-stored, the contact row is pending_incoming, and the requester lives on a different Principal Server so the Event is absent from the holder's realm event store",
+      "action": "call ak.self.events.read.resolve for the exact request Event id with include_payload true",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "the exact signed Event and its complete payload are returned from the Contact verified mirror, so the client can recompute event_digest and check the receipt binding itself",
+        "the returned message field is the original plaintext rather than the delivery stub, because the stub rule constrains delivery surfaces and not the exact target holder",
+        "seals is empty and no covering Seal of the requester Principal Control Realm is disclosed through this branch",
+        "no Event other than the exact requested one is returned and no Realm membership is implied"
+      ]
+    },
+    {
+      "name": "contact_mirror_branch_refuses_seal_refs_and_unverified_rows",
+      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
+      "precondition": "the same pending_incoming mirror, plus a second holder-local row that was stored without completing receipt verification at ingest",
+      "action": "call ak.self.events.read.resolve with seal_refs selecting the covering Seal, and separately for the Event backed only by the unverified local row",
+      "semantic_outcome": "reject",
+      "assertions": [
+        "the seal_refs selector is never satisfied through the Contact mirror branch and is accounted into missing",
+        "the unverified local row does not open the branch, so a row stored without ingest-time receipt verification cannot be used as an independent authority",
+        "neither refusal reveals whether the underlying Event or Seal exists"
+      ]
+    },
+    {
+      "name": "contact_mirror_visibility_closes_on_terminal_round",
+      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
+      "precondition": "the same mirror after the contact row transitions out of pending_incoming into accepted, rejected, expired or tombstoned",
+      "action": "call ak.self.events.read.resolve for the same exact request Event id",
+      "semantic_outcome": "reject",
+      "assertions": [
+        "the transition clears request_receipt and closes resolve visibility in the same transaction, so the credential and the visibility share one lifetime",
+        "the selector is accounted into missing and is indistinguishable from a non-existent Event, and MUST NOT be reported under unauthorized",
+        "retained mirror bytes stay available for local audit but are never exposed through this surface again"
       ]
     }
   ]
