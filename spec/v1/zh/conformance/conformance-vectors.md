@@ -4142,6 +4142,18 @@ ineffective。客户端提交逐 key/grant revoke bundle、只清 UI cache、或
 `agent_projection` 增加 `runtime_state`、或 generic `key_state` 增加 `status` / `runtime_state` 的 schema case
 必须失败；pairing poll outcome 仍必须要求其 operation-local `runtime_state`，证明不是删除 diagnostic enum。
 
+#### 11.4.1 Vector: Controller Membership → Native Agent Cascade
+
+`vector_id`: `ak.vector.agent.membership_cascade.v1`
+
+runner MUST 执行 `agent-membership-cascade-fixture.json` 的全部 semantic cases，并至少构造以下真实签名路径：
+
+1. Agent join 绑定 controller exact `(principal_id, principal_server_id)` 与当前 controller join Event ID；controller leave/ban 或 rejoin 使旧 binding 立即 effective-invalid。
+2. self leave 的 `atomic_self_leave` 缺任一 Agent、增加额外 Agent、重复、换 Realm/pair/generation/signer 或把 leave 改成其它 membership 时，controller 和 Agent Events 全部零写入；完整集合一次性成功。
+3. 第三方 `emergency_terminal` 在 Agent cleanup 不可用时仍接受 terminal Event、durable 写 exact-set intent并返回 `terminal_applied_cleanup_pending`；Agent 从该 basis 起不能 author、取 capability、收 delivery、领 KeyPackage 或保留 MLS active membership。
+4. `emergency_cleanup` 只接受原 initiator 对同 intent 的完整签名集合；restart 后 exact replay 幂等，异内容冲突，overdue 不解封，服务端从不合成 Agent Event。
+5. 单独伪造 `membership_cause="controller_membership_ended"` 或自由文本 `reason` 不产生任何 cascade authority。
+
 ### 11.5 Vector: Act-on-behalf Attribution
 
 `vector_id`: `ak.vector.agent.act_on_behalf.v1`
@@ -6273,6 +6285,33 @@ Runner MUST 加载
 12. 1:1 双方计划同时迁移时，只有 A durable ack B 的 exact notice 且 B durable ack A 的 exact notice 后，
     才可报告 cross-ack preannouncement complete 并按共同 cutover/grace 关闭旧入口；任一 ack 缺失、仅内存、
     digest 不一致或响应不确定时必须保留旧入口或其它已确认恢复面。
+
+## 36. Realm fanout route-miss closure vector
+
+`vector_id`: `ak.vector.fanout.route_miss.v1`
+
+Runner MUST 加载
+[`fanout-route-miss-fixture.json`](../../artifacts/fixtures/fanout-route-miss-fixture.json) 并执行
+`ak.suite.fanout.route_miss.v1`。测试至少使用两个 Principal Server 与一个含多个 joined member 的 Realm，
+覆盖缺 route、后补 verified route、进程重启、共享 service 的多 member witness、leave/ban/rebind、rejoin 与最终
+peer acceptance。仅对 schema 做枚举校验不构成通过：
+
+1. 本地 Event、按 service DID 去重后的完整 frozen target set 与所有 intents 必须同事务；第二个 target 写入
+   fault 时 Event、target 和 intent 全部不存在。
+2. route miss 的唯一 submit 结果是本地 accepted 且 `delivery_state=pending`；不得返回
+   `service_unavailable`，不得漏 target，也不得泄露 service topology。
+3. `pending_route` 与 `pending_delivery` 跨重启、cache eviction 和尝试阈值保留；阈值只触发 operator alert，
+   authority 仍有效时不得 dead-letter。
+4. route 恢复后必须先复校验 frozen exact member、membership Event ref、delivery-binding frontier 与 service。
+   至少一个 witness 仍成立才可按原 idempotency key 发送并推进 delivered。
+5. 全部 witness 失效时必须在网络发送前 terminal CAS 为 `cancelled_authority_lost`；后来相同 member/service 的
+   新 join/rebind 不能复活旧 intent。
+6. 长期离线 target 不阻塞同 Realm 后续合法 Event；每个 Event 冻结自己的 authority generation 和独立 intent。
+7. `ak.self.events.read.delivery_status` 对可见 Event 返回按 opaque target_id 排序的完整 target set；service_id
+   只在 caller 当前可读对应 member delivery-binding 时出现。unknown 与不可见 Event 统一 `not_found`，query
+   不得触发 route lookup、retry 或状态转换。
+8. submit/read 两个 outcome 的 `pending_delivery_count` 必须精确等于 pending_route 与 pending_delivery rows 数；
+   计数为零当且仅当 aggregate state 为 complete。
 
 ## Account status publication carrier
 

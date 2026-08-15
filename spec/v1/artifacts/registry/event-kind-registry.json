@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.11",
+  "version": "2026-08-15.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T13:40:00Z",
+  "generated_at": "2026-08-15T02:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2113,7 +2113,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "capability_gated",
-      "payload": "Realm membership state",
+      "payload": "Realm membership state. Native Personal Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event: self leave uses the registered atomic agent_membership_cascade unit; third-party emergency removal freezes a durable exact-set cleanup intent and the original initiator later signs the complete Agent leave set.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
       "id_source": "not_an_object_id",
       "plane": "control",

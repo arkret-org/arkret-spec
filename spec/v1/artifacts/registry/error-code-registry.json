@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-14.6",
+  "version": "2026-08-15.1",
   "codes": [
     {
       "code": "json_invalid",
@@ -2523,14 +2523,6 @@
         "auth_decision"
       ],
       "description": "A receipted Control Move proposal reached its signed decision_due_at without include, signed-reject, or a valid bounded signed-defer, or exhausted its immutable absolute_due_at / maximum defer count without include or signed-reject. This is a governance health and censorship-evidence fault, not an acceptance or Seal-finality result: a later cryptographically valid Seal remains acceptable and the fault stays auditable. See zh/authz/event-auth-state-resolution.md section 7.2."
-    },
-    {
-      "code": "controller_membership_ended",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "Canonical reason written on reducer-generated ak.member.state transitions that move an active Native Personal Agent from join to leave because its verified controller left or was banned from the same Realm. The cascade MUST also drive Circle membership, delivery, and MLS removal convergence and MUST NOT automatically rejoin the agent if the controller later rejoins. See zh/models/actor.md §3.2 and zh/models/realm-and-space.md §2.7."
     },
     {
       "code": "counter_bound_exceeded",

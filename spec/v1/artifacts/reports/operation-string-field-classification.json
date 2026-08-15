@@ -8,10 +8,10 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 71,
+    "total_fields": 73,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 31,
+      "closed_enum": 33,
       "closed_literal": 13,
       "validated_open_reason_code": 17,
       "validated_open_token": 3
@@ -462,6 +462,14 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
+      "shape": "AgentMembershipCascadeOutcome",
+      "field": "status",
+      "pointer": "#/$defs/AgentMembershipCascadeOutcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
       "shape": "AuthSessionLogoutRequestBody",
       "field": "reason_code",
       "pointer": "#/$defs/AuthSessionLogoutRequestBody/properties/reason_code",
@@ -507,6 +515,14 @@
       "pointer": "#/$defs/DirectoryWithdrawRequestBody/properties/reason",
       "classification": "bounded_free_text",
       "basis": "human-readable text with schema boundary"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "EventDeliveryTargetStatus",
+      "field": "status",
+      "pointer": "#/$defs/EventDeliveryTargetStatus/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",

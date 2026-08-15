@@ -1,0 +1,126 @@
+{
+  "suite": "agent_membership_cascade",
+  "fixture_kind": "schema_and_semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.agent.membership_cascade.v1"
+  },
+  "version": "2026-08-15",
+  "covers_vectors": [
+    "ak.vector.agent.membership_cascade.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/models/actor.md#33-principal_id-与-actor_kind-的语义",
+  "machine_contracts": [
+    "schemas/agent-membership-cascade.schema.json",
+    "schemas/event-payload.schema.json#/$defs/membership_payload",
+    "schemas/service-operation-dtos.schema.json#/$defs/AgentMembershipCascadeSubmission",
+    "registry/operation-registry.json"
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "agent_cleanup_membership_payload_accepts_cause_and_exact_controller_binding",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
+      "expect_valid": true,
+      "instance": {
+        "actor_id": "ak:did_core:webvh:z6mkfixtureagentexample",
+        "membership": "leave",
+        "reason": "controller membership ended",
+        "membership_cause": "controller_membership_ended",
+        "agent_controller_binding": {
+          "controller_authority": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          },
+          "controller_membership_generation_ref": "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
+          "controller_terminal_event_ref": "ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe"
+        }
+      }
+    },
+    {
+      "name": "account_status_payload_rejects_membership_cascade_fields",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_status_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "instance": {
+        "account_id": "account-fixture-1",
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "status": "active",
+        "effective_at": "2026-08-15T00:00:00.000Z",
+        "membership_cause": "controller_membership_ended"
+      }
+    }
+  ],
+  "semantic_cases": [
+    {
+      "name": "effective_membership_is_exact_controller_generation_and",
+      "expected": "agent_active_only_while_all_conjuncts_hold",
+      "invariants": [
+        "agent member cell is join",
+        "controller current join Event equals controller_membership_generation_ref",
+        "controller authority pair matches exactly",
+        "Agent lifecycle and provision/accountability bindings remain active"
+      ]
+    },
+    {
+      "name": "controller_rejoin_does_not_revive_old_agent_join",
+      "expected": "effective_invalid",
+      "invariants": [
+        "the new controller join Event ID is a new membership generation",
+        "the old Agent binding remains stale until a new explicit Agent join"
+      ]
+    },
+    {
+      "name": "self_leave_requires_complete_atomic_set",
+      "expected": "all_or_nothing",
+      "invariants": [
+        "controller signs its terminal Event and executes every Agent leave",
+        "expected Agent set is derived from terminal pre-state",
+        "missing extra duplicate wrong-Realm wrong-generation wrong-signer or non-leave input writes nothing"
+      ]
+    },
+    {
+      "name": "third_party_terminal_is_not_blocked_by_cleanup",
+      "expected": "terminal_applied_cleanup_pending",
+      "invariants": [
+        "terminal Event and durable exact-set intent commit atomically",
+        "all controlled Agents become effective-invalid immediately",
+        "no Agent Event is synthesized"
+      ]
+    },
+    {
+      "name": "emergency_cleanup_requires_original_initiator_and_exact_set",
+      "expected": "cleanup_completed",
+      "invariants": [
+        "each Agent Event is caller-signed with actor_id equal to the Agent and executed_by equal to the original initiator",
+        "controller_terminal_event_ref and cleanup_intent_digest match",
+        "all Agent transitions commit atomically"
+      ]
+    },
+    {
+      "name": "cleanup_replay_and_conflict_are_durable",
+      "expected": "exact_replay_idempotent_changed_content_rejected",
+      "invariants": [
+        "restart does not lose pending or completed intent",
+        "same intent and canonical content returns the first outcome",
+        "same intent with changed content writes nothing"
+      ]
+    },
+    {
+      "name": "cleanup_overdue_never_restores_authority",
+      "expected": "agent_cleanup_overdue",
+      "invariants": [
+        "overdue is an alert state only",
+        "Agent Event authoring capability delivery KeyPackage and MLS active membership remain denied",
+        "server never signs cleanup Events"
+      ]
+    },
+    {
+      "name": "membership_cause_is_non_authorizing",
+      "expected": "forged_cause_rejected",
+      "invariants": [
+        "membership_cause without exact terminal Event and cascade binding grants nothing",
+        "free-text reason is bounded and never proves provenance"
+      ]
+    }
+  ]
+}

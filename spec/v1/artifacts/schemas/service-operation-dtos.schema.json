@@ -98,6 +98,12 @@
       "$ref": "#/$defs/EventView"
     },
     {
+      "$ref": "#/$defs/EventDeliveryStatusRequestBody"
+    },
+    {
+      "$ref": "#/$defs/EventDeliveryStatusOutcome"
+    },
+    {
       "$ref": "#/$defs/EventsFrontierState"
     },
     {
@@ -2249,6 +2255,268 @@
       },
       "additionalProperties": false
     },
+    "AgentMembershipCascadeSubmission": {
+      "type": "object",
+      "description": "Registered atomic/split Native Agent membership cascade unit. The receiver derives the exact Agent set from the controller terminal Event pre-state; the request cannot choose that set by omission or addition.",
+      "required": [
+        "unit_kind",
+        "cascade_mode",
+        "controller_transition",
+        "agent_transitions"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "agent_membership_cascade"
+        },
+        "cascade_mode": {
+          "enum": [
+            "atomic_self_leave",
+            "emergency_terminal",
+            "emergency_cleanup"
+          ]
+        },
+        "controller_transition": {
+          "$ref": "#/$defs/EventInitialSubmission"
+        },
+        "agent_transitions": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/EventInitialSubmission"
+          }
+        },
+        "cleanup_intent_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "cascade_mode": {
+                "const": "emergency_terminal"
+              }
+            },
+            "required": [
+              "cascade_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "agent_transitions": {
+                "maxItems": 0
+              }
+            },
+            "not": {
+              "required": [
+                "cleanup_intent_digest"
+              ]
+            }
+          },
+          "else": {
+            "properties": {
+              "agent_transitions": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "cascade_mode": {
+                "const": "emergency_cleanup"
+              }
+            },
+            "required": [
+              "cascade_mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "cleanup_intent_digest"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "cleanup_intent_digest"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "AgentMembershipCascadeFederationSubmission": {
+      "type": "object",
+      "description": "Federation form of the registered Native Agent cascade unit. Every nested Event already carries its origin Principal Server admission proof; the destination replays the same exact-set and atomicity rules.",
+      "required": [
+        "unit_kind",
+        "cascade_mode",
+        "service_binding_ref",
+        "controller_transition",
+        "agent_transitions"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "agent_membership_cascade"
+        },
+        "cascade_mode": {
+          "enum": [
+            "atomic_self_leave",
+            "emergency_terminal",
+            "emergency_cleanup"
+          ]
+        },
+        "service_binding_ref": {
+          "$ref": "#/$defs/FederationServiceBindingRef"
+        },
+        "controller_transition": {
+          "$ref": "#/$defs/EventFederationSubmission"
+        },
+        "agent_transitions": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/EventFederationSubmission"
+          }
+        },
+        "cleanup_intent_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        },
+        "cba_proof_bundles": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./cba-proof-bundle.schema.json"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "cascade_mode": {
+                "const": "emergency_terminal"
+              }
+            },
+            "required": [
+              "cascade_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "agent_transitions": {
+                "maxItems": 0
+              }
+            },
+            "not": {
+              "required": [
+                "cleanup_intent_digest"
+              ]
+            }
+          },
+          "else": {
+            "properties": {
+              "agent_transitions": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "cascade_mode": {
+                "const": "emergency_cleanup"
+              }
+            },
+            "required": [
+              "cascade_mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "cleanup_intent_digest"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "cleanup_intent_digest"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "AgentMembershipCascadeOutcome": {
+      "type": "object",
+      "required": [
+        "status",
+        "controller_transition_event_id",
+        "agent_transition_event_ids"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "cleanup_completed",
+            "terminal_applied_cleanup_pending"
+          ]
+        },
+        "controller_transition_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "agent_transition_event_ids": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          }
+        },
+        "cleanup_intent_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "terminal_applied_cleanup_pending"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "cleanup_intent_digest"
+            ],
+            "properties": {
+              "agent_transition_event_ids": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "cleanup_intent_digest"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
     "EventsSubmitBatchRequestBody": {
       "type": "object",
       "description": "Batch ak.self.events.command.submit request used by account clients.",
@@ -2307,15 +2575,163 @@
         },
         {
           "$ref": "#/$defs/DirectConversationFoundingFederationSubmission"
+        },
+        {
+          "$ref": "#/$defs/AgentMembershipCascadeFederationSubmission"
         }
       ]
+    },
+    "EventDeliveryState": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "pending"
+      ],
+      "description": "Aggregate Realm fanout state. complete means no target remains pending; pending means at least one durable target is pending_route or pending_delivery."
+    },
+    "EventDeliveryTargetState": {
+      "type": "string",
+      "enum": [
+        "pending_route",
+        "pending_delivery",
+        "delivered",
+        "cancelled_authority_lost"
+      ],
+      "description": "Closed lifecycle for one frozen distinct Realm fanout target. Authority loss is terminal and a later rejoin never revives the old target."
+    },
+    "EventDeliveryTargetStatus": {
+      "type": "object",
+      "description": "Authorized projection of one frozen Realm fanout target. target_id is opaque and stable. service_id is present only when the caller can currently read at least one exact member delivery-binding that contributed the target.",
+      "required": [
+        "target_id",
+        "status"
+      ],
+      "properties": {
+        "target_id": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{15,127}$",
+          "description": "Service-generated opaque target identifier. It MUST NOT encode the target service DID."
+        },
+        "status": {
+          "$ref": "#/$defs/EventDeliveryTargetState"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventDeliveryStatusRequestBody": {
+      "type": "object",
+      "description": "Authenticated, non-enumerating request for the durable fanout state of one caller-visible accepted Event.",
+      "required": [
+        "event_id"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/EventId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventDeliveryStatusOutcome": {
+      "type": "object",
+      "description": "Complete frozen target set for one visible Event. Rows are sorted byte-wise by unique opaque target_id; pending_delivery_count exactly equals rows in pending_route or pending_delivery.",
+      "required": [
+        "event_id",
+        "delivery_state",
+        "pending_delivery_count",
+        "targets"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "delivery_state": {
+          "$ref": "#/$defs/EventDeliveryState"
+        },
+        "pending_delivery_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "targets": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/EventDeliveryTargetStatus"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "delivery_state": {
+                "const": "complete"
+              }
+            },
+            "required": [
+              "delivery_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "pending_delivery_count": {
+                "const": 0
+              },
+              "targets": {
+                "items": {
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "delivered",
+                        "cancelled_authority_lost"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "pending_delivery_count": {
+                "minimum": 1
+              },
+              "targets": {
+                "contains": {
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "pending_route",
+                        "pending_delivery"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                },
+                "minContains": 1
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
     },
     "EventsSubmitOutcome": {
       "type": "object",
       "description": "Result of ak.events.submit. Tracks per-event acceptance / duplication /\nrejection along with the post-write frontier and an optional barrier\ncursor for read-your-writes.\n",
       "required": [
         "status",
-        "accepted"
+        "accepted",
+        "delivery_state",
+        "pending_delivery_count"
       ],
       "properties": {
         "status": {
@@ -2333,6 +2749,16 @@
             "type": "string"
           },
           "description": "Event IDs that entered the accepted set for the first time. Idempotent re-submissions of identical bodies are sealed via duplicate[], not re-listed here."
+        },
+        "delivery_state": {
+          "$ref": "#/$defs/EventDeliveryState",
+          "description": "Current aggregate for fanout intents associated with accepted[] union duplicate[]. It never implies remote acceptance when status is accepted."
+        },
+        "pending_delivery_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 500000,
+          "description": "Exact number of associated distinct targets currently in pending_route or pending_delivery. Target identities and services are intentionally absent from submit responses."
         },
         "ingress_receipts": {
           "type": "array",
@@ -2393,8 +2819,62 @@
         "original_outcome": {
           "$ref": "#/$defs/EventsSubmitOutcome",
           "description": "Present only when status=\"historical_only\" (idempotency-cache replay after origin key revoke / binding or peer-policy change, see sync/federation.md section 8.5.1): carries the originally cached outcome verbatim as historical diagnostics. The nested outcome's status MUST NOT be \"historical_only\"; the top-level accepted[] MUST be empty in that case. Absent for all other status values."
+        },
+        "agent_membership_cascade": {
+          "$ref": "#/$defs/AgentMembershipCascadeOutcome",
+          "description": "Present only for the registered agent_membership_cascade request branch. Exact replay returns the original byte-identical outcome."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "delivery_state": {
+                "const": "complete"
+              }
+            },
+            "required": [
+              "delivery_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "pending_delivery_count": {
+                "const": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "pending_delivery_count": {
+                "minimum": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "historical_only"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "delivery_state": {
+                "const": "complete"
+              },
+              "pending_delivery_count": {
+                "const": 0
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "EventsSubmitRejectedRow": {
@@ -2518,6 +2998,9 @@
         },
         {
           "$ref": "#/$defs/DirectConversationFoundingUnitSubmission"
+        },
+        {
+          "$ref": "#/$defs/AgentMembershipCascadeSubmission"
         }
       ]
     },

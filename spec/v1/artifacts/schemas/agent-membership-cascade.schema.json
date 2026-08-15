@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-membership-cascade.schema.json",
+  "title": "Arkret Native Agent Membership Cascade",
+  "description": "Closed binding and durable cleanup state for Native Personal Agent Realm membership. Effective membership is the AND of the Agent member cell, the exact controller membership generation, Agent lifecycle and provision/accountability validity. Canonical Agent leave transitions are always caller-signed; a service never synthesizes them.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/agent_controller_membership_binding"
+    },
+    {
+      "$ref": "#/$defs/agent_cleanup_pending_record"
+    }
+  ],
+  "$defs": {
+    "principal_authority_key": {
+      "type": "object",
+      "required": [
+        "principal_id",
+        "principal_server_id"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_lifecycle_cause": {
+      "type": "string",
+      "enum": [
+        "controller_membership_ended"
+      ],
+      "description": "Closed audit-only lifecycle cause. It never supplies authorization or proves reducer provenance."
+    },
+    "agent_controller_membership_binding": {
+      "type": "object",
+      "required": [
+        "controller_authority",
+        "controller_membership_generation_ref"
+      ],
+      "properties": {
+        "controller_authority": {
+          "$ref": "#/$defs/principal_authority_key"
+        },
+        "controller_membership_generation_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Exact accepted controller ak.member.state join Event that establishes the bound membership generation. A later rejoin has another Event ID and never revives this binding."
+        },
+        "controller_terminal_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Required only on an explicit controller-membership-ended cleanup Event. It identifies the accepted terminal controller transition whose pre-state determines the exact Agent set and one-shot cascade authority."
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_cleanup_pending_record": {
+      "type": "object",
+      "required": [
+        "schema",
+        "realm_id",
+        "controller_authority",
+        "controller_membership_generation_ref",
+        "initiator_authority",
+        "controller_terminal_event_id",
+        "controller_terminal_event_digest",
+        "expected_agent_ids",
+        "cleanup_intent_digest",
+        "status",
+        "accepted_at",
+        "cleanup_due_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.agent_membership_cascade.v1"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "controller_authority": {
+          "$ref": "#/$defs/principal_authority_key"
+        },
+        "controller_membership_generation_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "initiator_authority": {
+          "$ref": "#/$defs/principal_authority_key"
+        },
+        "controller_terminal_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "controller_terminal_event_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        },
+        "expected_agent_ids": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          },
+          "description": "Lexicographically sorted exact set of active controlled Agents frozen from terminal pre-state."
+        },
+        "cleanup_intent_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
+          "description": "sha256 of the RFC 8785 canonical record fields through expected_agent_ids. It is the durable idempotency key for emergency cleanup."
+        },
+        "status": {
+          "enum": [
+            "agent_cleanup_pending",
+            "agent_cleanup_completed",
+            "agent_cleanup_overdue"
+          ]
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "cleanup_due_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Governance alert deadline only. Crossing it changes pending to overdue but never restores controller or Agent authority."
+        },
+        "completed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "agent_transition_event_ids": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "agent_cleanup_completed"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "completed_at",
+              "agent_transition_event_ids"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "completed_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "agent_transition_event_ids"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

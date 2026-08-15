@@ -5,6 +5,10 @@
       "sha256": "84720efd83a46af0b36be892f824e3db0efe7cc72947e3ca58610799bd4bf9bf"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json",
+      "sha256": "676c5b08cdf2090b7fc7880f593d7cfbd3f1ac64b93eb9f927223780151cb123"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json",
       "sha256": "823199ff050725040efc3c00c754aaff771b993fe296c33c5d1680c6180a1bdf"
     },
@@ -143,6 +147,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
       "sha256": "08cb824128130be33ee4d08841558e0b59d102acc3a1d46c8d20f34952789406"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
+      "sha256": "3abcc6da7a64b3ec592e395a85866b4c4c6b643287976f9056a5426c45ae550c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",

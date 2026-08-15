@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.5",
+  "version": "2026-08-15.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T10:32:27Z",
+  "generated_at": "2026-08-15T02:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -173,6 +173,19 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.membership_cascade.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-membership-cascade-fixture.json"
+      ],
+      "description": "Native Agent effective membership is bound to the exact controller authority pair and join Event generation; self leave is one complete atomic cascade, while third-party terminal removal freezes a durable exact-set cleanup intent without delaying immediate authority loss or synthesizing Agent Events.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json"
       ]
     },
     {
@@ -3040,6 +3053,19 @@
       "description": "Federation ingress authentication-failure family (unknown peer / not authorized / target absent) returns indistinguishable responses within one timing bucket per relation.md section 4.5 sampling rules.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.fanout.route_miss.v1",
+      "status": "active",
+      "domain": "fanout",
+      "applies_to_fixtures": [
+        "fanout-route-miss-fixture.json"
+      ],
+      "description": "Realm Event canonical acceptance atomically freezes the complete distinct member-service target set and durable intents; route miss is pending_route rather than submission failure, authority is rechecked before every send, lost authority terminally cancels the exact old intent, restart never loses an obligation, and authorized reads preserve topology visibility.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
