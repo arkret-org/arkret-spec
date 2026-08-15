@@ -209,6 +209,7 @@ Arkret v1 core conformance 要求如下：
 
 - Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`，但 method 能被解析不代表可用于任意角色或能力。
   - `did:webvh:1.0` 是 v1 core MTI adapter 与 default human/service method。method evidence 的 `parameters.method` MUST 等于 `did:webvh:1.0`；缺失或未知版本 MUST `unsupported_did_method`。
+  - `did:webvh:1.0` 的 method parameter registry 是 closed：只允许 `method`、`scid`、`updateKeys`、`nextKeyHashes`、`witness`、`watchers`、`portable`。构造器与 verifier MUST 消费 `did-method-adapter-registry.json` 的同一 `parameter_allowlist`；任何其他 member（特别是 `governance`）必须在 proof、hash 与持久化之前以 `param_invalid` 拒绝。组织治理只存在于 typed DID Document `arkret_governance` / `ArkretGovernanceService` overlay，不得写入 method-native parameters，也不得与 witness quorum 混同。
   - `did:key` MAY 作为不可变 human identity anchor；其账号、PCR、device 与 recovery 生命周期完全由 PCR 承担。method update、relocation 与 DID-root recovery MUST `unsupported_feature`。它也可用于显式 ephemeral pairwise profile，但两种角色合同不得混用。
   - `did:web` MAY 作为不可迁移 human identity anchor，前提是注册时 DNS/WebPKI bootstrap trust evidence 被 durable 固定，并且所有业务关系绑定 create-once account authority pair；它不提供 method-native history、relocation 或 DID-root recovery，也不是 `did:webvh` outage fallback。
 - `did:webvh` 的 history/pre-rotation 只开启 relocation 与可选 DID-root recovery 能力；它们不是 human anchor 的统一准入门槛。organization、managed Agent 与 service 是否要求持续 DID governance 由各自角色合同决定。

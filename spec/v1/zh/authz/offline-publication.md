@@ -152,9 +152,19 @@ causal order执行四分判定：
 current session/lifecycle/policy gate只能控制当前交付、展示与新副作用，不能覆盖第二分支的历史authoring结论。
 实现不得以`created_at`、`received_at`、本地到达顺序或wall clock替代causal proof。
 
+### 2.0 Publication authority carrier lanes（normative）
+
+普通 Event publication 只有三条互斥 authority lane；选择结果属于已验证 request context，绝不序列化为第四套 submission sidecar：
+
+1. **online self**：唯一 carrier 是 sender-constrained verified session grant + typed introspection holder/device binding。request context 从 `subject + audience` 构造 exact `PrincipalAuthorityKey`，并携 `SessionGrantDeviceBinding {device_id, authorization_event_id, model_generation_ref}` selector；它必须与 producer-signed Event 的 `(actor_id/executed_by, principal_server_id, proof.verification_method)` 机械交集，再从本地 accepted PCR/device evidence 重放。`EventInitialSubmission` 不增加 publication-authority member。
+2. **offline/delayed ingress**：唯一 carrier 是 `AuthorizationLease`，且服务在 lease 窗口内成功签收后产生 `IngressReceipt`。online request context 不能代替 lease，lease 也不能塞入 online authority context。
+3. **peer federation**：peer authority 只来自 Event envelope 内已验证的 origin `principal_server_admission` proof。若 peer 转发最初 offline ingress 的 lease/receipt，它们只证明 origin 的历史签收窗口，不替代也不扩展 origin admission proof。
+
+managed Agent online Event 复用 controller session 的同一 online context，并额外交集 Agent 当前 delegated runtime binding 与 portable signer evidence；不得伪造 human device authority。三条 lane 不得启发式 fallback，也不得从裸 Event core、当前 DID、最新 PCR 或全局 device row猜测 authority。
+
 ### 2.1 提交与重传封装
 
-lease、receipt 与 `CbaProofBundle` 都不是 Event 字段，也不进入 Event digest。普通在线首次提交只要求 `event`；显式延迟/离线模式才附加 lease：
+lease、receipt 与 `CbaProofBundle` 都不是 Event 字段，也不进入 Event digest。普通在线首次提交只要求 `event`，其 authority 来自 §2.0 的 typed request context；显式延迟/离线模式才附加 lease。`EventInitialSubmission` 没有也不得新增 publication authority evidence 字段：
 
 ```text
 EventInitialSubmission {

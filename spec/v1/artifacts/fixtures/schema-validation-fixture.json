@@ -3226,6 +3226,7 @@
         "principal_id": "ak:did_core:webvh:z6mkfixtureholderexample",
         "principal_control_realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
         "issuer_service_id": "ak:did_core:webvh:z6mkfixtureauthorityexample",
+        "current_status_event_ids": [],
         "actor_frontier": {
           "kind": "realm_actor",
           "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
@@ -3414,6 +3415,134 @@
         },
         "canonical_bytes_base64url": "eyJ2ZXJzaW9uSWQiOiIyLWZpeHR1cmUifQ",
         "digest": "sha256:355328413688da845d249c9fd70b13d0a79d5b4e9e6ee874dcddf2bae9d1a4cf"
+      }
+    },
+    {
+      "name": "media_livekit_opaque_token_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome",
+      "expect_valid": true,
+      "instance": {
+        "focus_id": "fra-1",
+        "backend_kind": "livekit",
+        "connect_url": "wss://livekit.example.com",
+        "backend_token": "signed.jwt.token",
+        "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_binding": {
+          "scheme": "ak.media.participant_binding.v1",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+          "focus_id": "fra-1",
+          "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+          "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
+          "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "issued_at": "2026-08-16T00:00:00.000Z",
+          "expires_at": "2026-08-16T00:05:00.000Z",
+          "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
+          "sig": "AA"
+        },
+        "expires_at": "2026-08-16T00:05:00.000Z",
+        "service_signature": {
+          "kid": "did:webvh:z6mkfixture:media.example#key-1",
+          "sig": "AA"
+        }
+      }
+    },
+    {
+      "name": "media_arkret_native_typed_token_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome",
+      "expect_valid": true,
+      "instance": {
+        "focus_id": "fra-1",
+        "backend_kind": "arkret_native",
+        "connect_url": "https://media.example.com",
+        "backend_token": {
+          "kid": "did:webvh:z6mkfixture:media.example#key-1",
+          "payload": {
+            "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+            "focus_id": "fra-1",
+            "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+            "issued_at": "2026-08-16T00:00:00.000Z",
+            "expires_at": "2026-08-16T00:05:00.000Z",
+            "media": {"audio": true, "video": true, "screen": false}
+          },
+          "sig": "AA",
+          "signature_algorithm": "Ed25519"
+        },
+        "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_binding": {
+          "scheme": "ak.media.participant_binding.v1",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+          "focus_id": "fra-1",
+          "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+          "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
+          "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "issued_at": "2026-08-16T00:00:00.000Z",
+          "expires_at": "2026-08-16T00:05:00.000Z",
+          "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
+          "sig": "AA"
+        },
+        "expires_at": "2026-08-16T00:05:00.000Z",
+        "service_signature": {
+          "kid": "did:webvh:z6mkfixture:media.example#key-1",
+          "sig": "AA"
+        }
+      }
+    },
+    {
+      "name": "media_arkret_native_json_string_wrapper_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not of type 'object'",
+      "instance": {
+        "focus_id": "fra-1",
+        "backend_kind": "arkret_native",
+        "connect_url": "https://media.example.com",
+        "backend_token": "{\"kid\":\"did:webvh:z6mkfixture:media.example#key-1\"}",
+        "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_binding": {
+          "scheme": "ak.media.participant_binding.v1",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+          "focus_id": "fra-1",
+          "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+          "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
+          "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "issued_at": "2026-08-16T00:00:00.000Z",
+          "expires_at": "2026-08-16T00:05:00.000Z",
+          "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
+          "sig": "AA"
+        },
+        "expires_at": "2026-08-16T00:05:00.000Z",
+        "service_signature": {"kid": "did:webvh:z6mkfixture:media.example#key-1", "sig": "AA"}
+      }
+    },
+    {
+      "name": "media_livekit_object_token_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not of type 'string'",
+      "instance": {
+        "focus_id": "fra-1",
+        "backend_kind": "livekit",
+        "connect_url": "wss://livekit.example.com",
+        "backend_token": {},
+        "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_binding": {
+          "scheme": "ak.media.participant_binding.v1",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+          "focus_id": "fra-1",
+          "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+          "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
+          "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "issued_at": "2026-08-16T00:00:00.000Z",
+          "expires_at": "2026-08-16T00:05:00.000Z",
+          "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
+          "sig": "AA"
+        },
+        "expires_at": "2026-08-16T00:05:00.000Z",
+        "service_signature": {"kid": "did:webvh:z6mkfixture:media.example#key-1", "sig": "AA"}
       }
     }
   ]

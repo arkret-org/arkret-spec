@@ -655,6 +655,76 @@
         }
       }
     },
+    "ArkretNativeMediaBackendToken": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kid",
+        "payload",
+        "sig",
+        "signature_algorithm"
+      ],
+      "properties": {
+        "kid": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "call_id",
+            "focus_id",
+            "participant_identity",
+            "issued_at",
+            "expires_at",
+            "media"
+          ],
+          "properties": {
+            "call_id": {
+              "type": "string",
+              "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
+            },
+            "focus_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "participant_identity": {
+              "type": "string",
+              "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "issued_at": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            },
+            "expires_at": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            },
+            "media": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "audio",
+                "video",
+                "screen"
+              ],
+              "properties": {
+                "audio": { "type": "boolean" },
+                "video": { "type": "boolean" },
+                "screen": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "sig": {
+          "type": "string",
+          "minLength": 1
+        },
+        "signature_algorithm": {
+          "const": "Ed25519"
+        }
+      }
+    },
     "CallMediaTokenExchangeOutcome": {
       "type": "object",
       "required": [
@@ -678,9 +748,7 @@
           "format": "uri"
         },
         "backend_token": {
-          "type": "string",
-          "description": "Opaque to Arkret protocol; fixed by the backend binding named by backend_kind (e.g. a LiveKit JWT, or the arkret-native {kid, payload, sig, signature_algorithm} object).",
-          "minLength": 1
+          "description": "Closed branch selected by backend_kind: arkret_native uses the typed signature object; every other v1 backend uses a non-empty opaque string."
         },
         "participant_identity": {
           "type": "string",
@@ -778,6 +846,31 @@
           ]
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "backend_kind": { "const": "arkret_native" }
+            },
+            "required": ["backend_kind"]
+          },
+          "then": {
+            "properties": {
+              "backend_token": {
+                "$ref": "#/$defs/ArkretNativeMediaBackendToken"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "backend_token": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "CallMediaTokenExchangeRequestBody": {

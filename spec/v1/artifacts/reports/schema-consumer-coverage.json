@@ -43,7 +43,7 @@
   "summary": {
     "total_schemas": 185,
     "by_consumer": {
-      "declared_wire": 43,
+      "declared_wire": 47,
       "event_kind": 4,
       "inbound": 46,
       "outbound": 49,
@@ -53,30 +53,21 @@
       "startup_compile": 185,
       "vectors": 116
     },
-    "without_wire_consumer": 6,
+    "without_wire_consumer": 2,
     "explicit_prose_only": 2,
-    "unresolved_consumer_coverage": 4,
+    "unresolved_consumer_coverage": 0,
     "without_vector_coverage": 69,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
     "ak.schema.agent_sidecar_exchange_projection.v1",
-    "ak.schema.applet.v1",
-    "ak.schema.device_reanchor.v1",
-    "ak.schema.pin.v1",
-    "ak.schema.rsvp.v1",
-    "ak.schema.search_service.v1"
+    "ak.schema.applet.v1"
   ],
   "explicit_prose_only": [
     "ak.schema.agent_sidecar_exchange_projection.v1",
     "ak.schema.applet.v1"
   ],
-  "unresolved_consumer_coverage": [
-    "ak.schema.device_reanchor.v1",
-    "ak.schema.pin.v1",
-    "ak.schema.rsvp.v1",
-    "ak.schema.search_service.v1"
-  ],
+  "unresolved_consumer_coverage": [],
   "without_vector_coverage": [
     "ak.schema.account_data_encrypted_value.v1",
     "ak.schema.account_data_operations.v1",
@@ -1396,13 +1387,19 @@
       "schema_id": "ak.schema.device_reanchor.v1",
       "file": "schemas/device-reanchor.schema.json",
       "consumers": {
+        "declared_wire": "dynamic_schema_ref",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": false,
+      "wire_covered": true,
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
+      },
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "event kind ak.device.reanchor payload",
+        "normative_ref": "zh/identity/key-management.md#5.0.3"
       }
     },
     {
@@ -2447,13 +2444,19 @@
       "schema_id": "ak.schema.pin.v1",
       "file": "schemas/pin.schema.json",
       "consumers": {
+        "declared_wire": "dynamic_schema_ref",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": false,
+      "wire_covered": true,
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
+      },
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "event kind dispatch for ak.pin.add, ak.pin.remove, and ak.pin.reorder payloads",
+        "normative_ref": "zh/models/pins.md"
       }
     },
     {
@@ -2912,13 +2915,19 @@
       "schema_id": "ak.schema.rsvp.v1",
       "file": "schemas/rsvp.schema.json",
       "consumers": {
+        "declared_wire": "dynamic_schema_ref",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": false,
+      "wire_covered": true,
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
+      },
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "event kind ak.rsvp.set payload",
+        "normative_ref": "zh/models/calendar-event.md#8.4"
       }
     },
     {
@@ -2980,13 +2989,19 @@
       "schema_id": "ak.schema.search_service.v1",
       "file": "schemas/search-service.schema.json",
       "consumers": {
+        "declared_wire": "dynamic_schema_ref",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": false,
+      "wire_covered": true,
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
+      },
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "search profile dispatch for encrypted index manifests, blind-index queries, and Realm search policy",
+        "normative_ref": "zh/sync/privacy-preserving-search.md"
       }
     },
     {

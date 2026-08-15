@@ -430,20 +430,32 @@ def write_report() -> None:
 
 
 def check_report() -> int:
-    expected = dump_json(build_report())
+    report = build_report()
+    expected = dump_json(report)
+    errors: list[str] = []
+    for field in (
+        "unresolved_consumer_coverage",
+        "unresolved_vector_disposition",
+    ):
+        unresolved = report[field]
+        if unresolved:
+            errors.append(
+                f"schema consumer coverage release blocker {field}: "
+                + ", ".join(unresolved)
+            )
     if not REPORT.exists():
-        print(
+        errors.append(
             f"missing {REPORT.relative_to(ROOT).as_posix()} "
             "(run python tools/gen_schema_consumer_coverage.py)",
-            file=sys.stderr,
         )
-        return 1
-    if REPORT.read_text(encoding="utf-8") != expected:
-        print(
+    elif REPORT.read_text(encoding="utf-8") != expected:
+        errors.append(
             f"schema consumer coverage drift: {REPORT.relative_to(ROOT).as_posix()} "
             "(run python tools/gen_schema_consumer_coverage.py)",
-            file=sys.stderr,
         )
+    if errors:
+        for error in errors:
+            print(error, file=sys.stderr)
         return 1
     print("schema consumer coverage: clean")
     return 0

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-15.1",
+  "version": "2026-08-16.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-15T01:20:00Z",
+  "generated_at": "2026-08-16T03:40:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -244,19 +244,34 @@
       "schema_id": "ak.schema.rsvp.v1",
       "file": "schemas/rsvp.schema.json",
       "status": "active",
-      "description": "Payload schema for ak.rsvp.set."
+      "description": "Payload schema for ak.rsvp.set.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "event kind ak.rsvp.set payload",
+        "normative_ref": "zh/models/calendar-event.md#8.4"
+      }
     },
     {
       "schema_id": "ak.schema.pin.v1",
       "file": "schemas/pin.schema.json",
       "status": "active",
-      "description": "Payload schemas for shared pin events."
+      "description": "Payload schemas for shared pin events.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "event kind dispatch for ak.pin.add, ak.pin.remove, and ak.pin.reorder payloads",
+        "normative_ref": "zh/models/pins.md"
+      }
     },
     {
       "schema_id": "ak.schema.search_service.v1",
       "file": "schemas/search-service.schema.json",
       "status": "active",
-      "description": "Privacy-preserving search index manifest, blind index query, and policy shapes."
+      "description": "Privacy-preserving search index manifest, blind index query, and policy shapes.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "search profile dispatch for encrypted index manifests, blind-index queries, and Realm search policy",
+        "normative_ref": "zh/sync/privacy-preserving-search.md"
+      }
     },
     {
       "schema_id": "ak.schema.morph.v1",
@@ -682,7 +697,12 @@
       "schema_id": "ak.schema.device_reanchor.v1",
       "file": "schemas/device-reanchor.schema.json",
       "status": "active",
-      "description": "Closed PCR-policy recovery payload binding one account-local lineage, accepted policy/session, monotonic PCR generation CAS, complete pre-fence Seal frontier and replacement authorization digest."
+      "description": "Closed PCR-policy recovery payload binding one account-local lineage, accepted policy/session, monotonic PCR generation CAS, complete pre-fence Seal frontier and replacement authorization digest.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "event kind ak.device.reanchor payload",
+        "normative_ref": "zh/identity/key-management.md#5.0.3"
+      }
     },
     {
       "schema_id": "ak.schema.recovery_session.v1",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.2",
+  "version": "2026-08-16.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-15T16:17:42Z",
+  "generated_at": "2026-08-16T03:40:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -113,6 +113,17 @@
       "network_resolved_document": true,
       "history_evidence_kind": "native",
       "method_evidence_kind": "webvh_log",
+      "parameter_allowlist": [
+        "method",
+        "scid",
+        "updateKeys",
+        "nextKeyHashes",
+        "witness",
+        "watchers",
+        "portable"
+      ],
+      "unknown_parameter_failure": "param_invalid",
+      "governance_parameter_registered": false,
       "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of the verified current did:webvh log entry>",
       "version_id_rule": "The exact method-native versionId of that same verified current did:webvh log entry, serialized as a non-empty string.",
       "service_resolution_event_ref_rule": "did-webvh-entry-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",

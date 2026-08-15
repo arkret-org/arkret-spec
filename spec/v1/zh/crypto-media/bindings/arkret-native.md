@@ -50,6 +50,8 @@ sidebar:
 
 base64url-编码的 detached JWS，由 token issuer 用 service DID 的 `assertionMethod` key 签名。SFU 在每次 SDP 协商前 MUST 校验该 token：
 
+该对象直接作为 token-exchange response 的 `backend_token`；不得先 JSON 编码成 string。它与同级 `backend_kind="arkret_native"` 构成一个 closed branch，任意未知 member、缺字段或 string 形态均须在进入 backend 前拒绝。
+
 - `kid` 出现在当前 `ak.realm.media_service.service_id` 锚定的 DID 列表中（与 [`../media-service-binding.md` §3](../media-service-binding.md) issuer DID 锚定一致）；
 - `call_id` / `focus_id` 与 SFU 当前 session 一致；
 - `expires_at` 未过期；

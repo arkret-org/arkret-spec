@@ -93,7 +93,7 @@ sidebar:
 
 ## 3. Token Exchange (normative)
 
-会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Arkret-side 授权组件，对协议层不透明的 `backend_token` 由 backend SDK 解析。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Arkret 的 capability、当前 accepted Realm policy；服务实际取得媒体明文时还必须绑定 MLS security frontier。
+会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Arkret-side 授权组件。`backend_token` 是由同级 `backend_kind` 判别的 closed union：`arkret_native` 必须携带 [`bindings/arkret-native.md` §2](./bindings/arkret-native.md) 的 typed object；`livekit`、`mediasoup`、`janus`、`moq_relay` 必须携带非空 opaque string，并由对应 backend SDK 继续解析。客户端 MUST 拒绝 branch 不匹配、未知 backend、把 object 再编码成 JSON string 或启发式双读的响应。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Arkret 的 capability、当前 accepted Realm policy；服务实际取得媒体明文时还必须绑定 MLS security frontier。
 
 请求：
 
@@ -142,6 +142,7 @@ Content-Type: application/json
 
 核心约束（normative）：
 
+- **Backend token branch**：`backend_kind` 与 `backend_token` 形状 MUST 逐项匹配。`arkret_native` branch 是 closed `{kid,payload,sig,signature_algorithm:"Ed25519"}` object，其中 `payload` 也是 closed typed object；其余 v1 branch 是非空 string。实现不得使用 `Value`、object-as-JSON-string、先尝试 string 再尝试 object，或任何未登记 fallback。
 - **TTL 短期化**：`backend_token` / `participant_binding` `expires_at` 的硬上限 MUST ≤ 600s（10 分钟）；推荐上限 SHOULD ≤ 300s。过期前客户端 MUST 重新兑换；backend token 一旦泄漏在 TTL 内通常不可吊销（除非 backend 提供 revocation list），短 TTL 是工程兜底。
 - **Token issuer DID 锚定**：`service_signature.kid` 与 `participant_binding.issuer_kid` 的 controller bare DID MUST 等于当前 epoch `ak.realm.media_service.service_id` 之一，具体 key MUST 命中该 epoch 已接受的 service key binding；验签不要求逐 token 在线解析 DID。出现新 service / key epoch、binding invalidation 或显式 freshness 失效时才进入 DID 权威验证。客户端 MUST 拒绝来自未授权 DID 的 token，错误码 `token_issuer_unauthorised`。该规则把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
   - **命名与类型（normative）**：`issuer_kid` 是 issuer **key identifier**，不是 issuer service identifier，因此该字段名不得改成 `issuer_id`。其值 MUST 是带 verification-method fragment 的 DID URL（例如 `did:web:media.example#key-1`）；去掉 `#fragment` 后得到的 service DID 才与当前 epoch 的 `service_id` 做锚定。`service_id` 标识服务主体，`issuer_kid` 标识该主体用于本次签名的具体密钥，二者不可互换。

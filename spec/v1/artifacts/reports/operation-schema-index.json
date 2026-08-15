@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.2",
+  "version": "2026-08-16.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-15T16:17:42Z",
+  "generated_at": "2026-08-16T03:40:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2443,7 +2443,8 @@
           "principal_control_realm_id",
           "issuer_service_id",
           "actor_frontier",
-          "seal_frontier"
+          "seal_frontier",
+          "current_status_event_ids"
         ],
         "properties": [
           "account_id",
@@ -2451,7 +2452,8 @@
           "principal_control_realm_id",
           "issuer_service_id",
           "actor_frontier",
-          "seal_frontier"
+          "seal_frontier",
+          "current_status_event_ids"
         ],
         "closed": true
       }
