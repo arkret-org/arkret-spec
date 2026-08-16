@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-08-16.3",
+      "version": "2026-08-17.1",
       "generated_at": null,
-      "content_digest": "sha256:96125cb5c93cce57474db91dd4e4fa2174b6b8ebd66ebb72fa22a224ddce9cec"
+      "content_digest": "sha256:d20170354d24c130a37bf28eaf71efa056e7b65ce74a610b9f40397224efaf92"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-16.3",
+  "version": "2026-08-17.1",
   "codes": [
     {
       "code": "json_invalid",
@@ -1434,7 +1434,7 @@
       "code": "device_unauthorized",
       "http_status": 403,
       "scope": "endpoint",
-      "description": "The device is not authorized for the requested operation."
+      "description": "The device is not authorized for the requested operation. This is the typed local/self-surface outcome when no complete current accepted device authorization can be derived; anti-enumerating peer device-revocation checks instead return a signed authority_mismatch decision. A malformed row that claims current verified authorization while omitting its required Event/generation binding is an internal projection-integrity failure, not this ordinary authorization outcome."
     },
     {
       "code": "device_revoked",
