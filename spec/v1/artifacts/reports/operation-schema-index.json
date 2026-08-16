@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.6",
+  "version": "2026-08-16.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-16T15:10:00Z",
+  "generated_at": "2026-08-16T16:20:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2485,7 +2485,8 @@
           "contact_round",
           "request_receipts",
           "remote_mirror_receipt",
-          "glare_concurrency_attestation"
+          "glare_concurrency_attestation",
+          "proposal"
         ],
         "closed": true,
         "variants": [
@@ -2635,6 +2636,23 @@
               "contact_address"
             ],
             "closed": true
+          },
+          {
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "idempotency_key",
+              "proposal",
+              "contact_address"
+            ],
+            "properties": [
+              "kind",
+              "idempotency_key",
+              "proposal",
+              "contact_address"
+            ],
+            "closed": true
           }
         ]
       },
@@ -2653,7 +2671,8 @@
           "retry_after_ms",
           "control_receipt",
           "glare_concurrency_attestation",
-          "request_kind"
+          "request_kind",
+          "checkpoint"
         ],
         "closed": true,
         "variants": [
@@ -2777,6 +2796,23 @@
               "request_kind",
               "control_receipt",
               "retry_after_ms"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_kind": "object",
+            "required": [
+              "result_kind",
+              "status",
+              "control_receipt",
+              "checkpoint"
+            ],
+            "properties": [
+              "result_kind",
+              "status",
+              "control_receipt",
+              "checkpoint"
             ],
             "closed": true
           }
@@ -6215,6 +6251,37 @@
           "active_grant_dots",
           "grant_dots",
           "revoked_dots"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.contact.command.checkpoint",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body",
+        "schema_kind": "object",
+        "required": [
+          "idempotency_key",
+          "peer"
+        ],
+        "properties": [
+          "idempotency_key",
+          "peer"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome",
+        "schema_kind": "object",
+        "required": [
+          "status",
+          "checkpoint_digest"
+        ],
+        "properties": [
+          "status",
+          "checkpoint_digest",
+          "continuity_evidence"
         ],
         "closed": true
       }

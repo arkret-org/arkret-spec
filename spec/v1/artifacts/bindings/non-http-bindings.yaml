@@ -103,6 +103,7 @@ grpc:
       Ack: ak.self.device_messages.command.ack
     SelfContact:
       Request: ak.self.contact.command.request
+      ContinuityCheckpoint: ak.self.contact.command.checkpoint
       Respond: ak.self.contact.command.respond
       Reject: ak.self.contact.command.reject
       List: ak.self.contact.read.list
@@ -425,6 +426,7 @@ mq:
     self.agent.participation.resource.replace: ak.self.agent.participation.resource.replace
     self.agent.participation.resource.get: ak.self.agent.participation.resource.get
     self.contact.command.request: ak.self.contact.command.request
+    self.contact.command.checkpoint: ak.self.contact.command.checkpoint
     self.contact.command.respond: ak.self.contact.command.respond
     self.contact.command.reject: ak.self.contact.command.reject
     self.contact.query.list: ak.self.contact.read.list

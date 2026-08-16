@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9796,
+    "total_properties": 9818,
     "total_schema_documents": 160,
     "by_presence_class": {
-      "optional": 2858,
+      "optional": 2860,
       "optional_defaulted": 70,
-      "required": 6470,
+      "required": 6490,
       "required_nullable": 131,
       "tristate": 267
     },
@@ -4352,13 +4352,16 @@
         "/$defs/bilateral_continuity_checkpoint_core/allOf/0/if/properties/sequence": "required",
         "/$defs/bilateral_continuity_checkpoint_core/properties/context": "required",
         "/$defs/bilateral_continuity_checkpoint_core/properties/covered_prefix_count": "required",
-        "/$defs/bilateral_continuity_checkpoint_core/properties/covered_through_basis_digest": "required",
+        "/$defs/bilateral_continuity_checkpoint_core/properties/covered_through_contact_round_id": "required",
         "/$defs/bilateral_continuity_checkpoint_core/properties/participants": "required",
         "/$defs/bilateral_continuity_checkpoint_core/properties/prefix_accumulator_root": "required",
         "/$defs/bilateral_continuity_checkpoint_core/properties/previous_checkpoint_digest": "optional",
         "/$defs/bilateral_continuity_checkpoint_core/properties/root_basis": "required",
         "/$defs/bilateral_continuity_checkpoint_core/properties/root_basis_digest": "required",
         "/$defs/bilateral_continuity_checkpoint_core/properties/sequence": "required",
+        "/$defs/bilateral_continuity_checkpoint_proposal/properties/checkpoint_digest": "required",
+        "/$defs/bilateral_continuity_checkpoint_proposal/properties/core": "required",
+        "/$defs/bilateral_continuity_checkpoint_proposal/properties/proposer_signature": "required",
         "/$defs/bilateral_continuity_checkpoint_signature/properties/signature": "required",
         "/$defs/bilateral_continuity_checkpoint_signature/properties/signer": "required",
         "/$defs/contact_accept_request/oneOf/0/properties/action": "required",
@@ -4385,6 +4388,12 @@
         "/$defs/contact_agent_projection/properties/controller_id": "required",
         "/$defs/contact_agent_projection/properties/direct_conversation": "optional",
         "/$defs/contact_agent_projection/properties/display_name": "optional",
+        "/$defs/contact_continuity_checkpoint_outcome/allOf/0/if/properties/status": "required",
+        "/$defs/contact_continuity_checkpoint_outcome/properties/checkpoint_digest": "required",
+        "/$defs/contact_continuity_checkpoint_outcome/properties/continuity_evidence": "optional",
+        "/$defs/contact_continuity_checkpoint_outcome/properties/status": "required",
+        "/$defs/contact_continuity_checkpoint_request_body/properties/idempotency_key": "required",
+        "/$defs/contact_continuity_checkpoint_request_body/properties/peer": "required",
         "/$defs/contact_continuity_evidence/properties/checkpoint": "required",
         "/$defs/contact_continuity_evidence/properties/uncompressed_tail": "required",
         "/$defs/contact_current_proof/properties/accepted_frontier": "required",
@@ -4426,6 +4435,7 @@
         "/$defs/contact_list_row/allOf/1/if/properties/state": "required",
         "/$defs/contact_list_row/properties/agents": "optional",
         "/$defs/contact_list_row/properties/bidirectional_scopes": "required",
+        "/$defs/contact_list_row/properties/continuity_evidence": "optional",
         "/$defs/contact_list_row/properties/direct_conversation": "optional",
         "/$defs/contact_list_row/properties/effective_scopes": "optional",
         "/$defs/contact_list_row/properties/granted_by_peer_scopes": "required",
@@ -4703,6 +4713,12 @@
         "/$defs/peer_contact_submit_outcome/oneOf/6/properties/result_kind": "required",
         "/$defs/peer_contact_submit_outcome/oneOf/6/properties/retry_after_ms": "optional",
         "/$defs/peer_contact_submit_outcome/oneOf/6/properties/status": "required",
+        "/$defs/peer_contact_submit_outcome/oneOf/7/properties/checkpoint": "required",
+        "/$defs/peer_contact_submit_outcome/oneOf/7/properties/control_receipt": "required",
+        "/$defs/peer_contact_submit_outcome/oneOf/7/properties/control_receipt/allOf/1/properties/outcome": "required",
+        "/$defs/peer_contact_submit_outcome/oneOf/7/properties/control_receipt/allOf/1/properties/request_kind": "required",
+        "/$defs/peer_contact_submit_outcome/oneOf/7/properties/result_kind": "required",
+        "/$defs/peer_contact_submit_outcome/oneOf/7/properties/status": "required",
         "/$defs/peer_contact_submit_request/oneOf/0/properties/contact_address": "required",
         "/$defs/peer_contact_submit_request/oneOf/0/properties/current_proof": "optional",
         "/$defs/peer_contact_submit_request/oneOf/0/properties/idempotency_key": "required",
@@ -4752,6 +4768,10 @@
         "/$defs/peer_contact_submit_request/oneOf/6/properties/kind": "required",
         "/$defs/peer_contact_submit_request/oneOf/6/properties/remote_mirror_receipt": "required",
         "/$defs/peer_contact_submit_request/oneOf/6/properties/request_receipts": "required",
+        "/$defs/peer_contact_submit_request/oneOf/7/properties/contact_address": "required",
+        "/$defs/peer_contact_submit_request/oneOf/7/properties/idempotency_key": "required",
+        "/$defs/peer_contact_submit_request/oneOf/7/properties/kind": "required",
+        "/$defs/peer_contact_submit_request/oneOf/7/properties/proposal": "required",
         "/$defs/principal_authority_key/properties/principal_id": "required",
         "/$defs/principal_authority_key/properties/principal_server_id": "required",
         "/$defs/reject_acceptance_receipt/properties/accepted_at": "required",
@@ -4777,6 +4797,7 @@
       },
       "conditionally_required": [
         "/$defs/bilateral_continuity_checkpoint_core/properties/previous_checkpoint_digest",
+        "/$defs/contact_continuity_checkpoint_outcome/properties/continuity_evidence",
         "/$defs/contact_lineage/properties/predecessor_event_ref",
         "/$defs/contact_list_row/properties/next_prepare_input",
         "/$defs/contact_list_row/properties/request_receipt",
@@ -5676,7 +5697,8 @@
         "/properties/retained_stub_digest": "required",
         "/properties/schema": "required",
         "/properties/scope": "required",
-        "/properties/subject": "required"
+        "/properties/subject": "required",
+        "/properties/triggering_event_id": "required"
       },
       "conditionally_required": [
         "/properties/legal_hold_ref"
@@ -5716,7 +5738,8 @@
         "/properties/seal_inclusion/properties/seal_ref": "optional",
         "/properties/seal_inclusion/properties/state_root": "optional",
         "/properties/stub_schema": "required",
-        "/properties/subject": "required"
+        "/properties/subject": "required",
+        "/properties/triggering_event_id": "required"
       }
     },
     "event-batch-receipt.schema.json": {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.3",
+  "version": "2026-08-16.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-16T15:10:00Z",
+  "generated_at": "2026-08-16T16:20:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -178,6 +178,7 @@
       "surface": "contact_lifecycle",
       "operations": [
         "ak.self.contact.command.request",
+        "ak.self.contact.command.checkpoint",
         "ak.self.contact.command.respond",
         "ak.self.contact.command.reject",
         "ak.self.contact.command.scope_update",
@@ -1601,7 +1602,7 @@
       "http": "POST /_arkret/peer/account-status",
       "grpc": "PeerAccountStatus/Submit",
       "mq": "peer.account_status.command.submit",
-      "notes": "Account Authority or authorized Principal Server publication of exactly one ak.account.status Event into the account principal's Principal Control Realm. The caller uses service-to-service HTTP Message Signature authentication and a required Idempotency-Key covered by the signature. authority_evidence is Account Authority-signed transport evidence binding account_id, principal_id, principal_control_realm_id, issuer service and a live authority_ref; the receiver independently verifies it, the Event proof, exact Event/evidence field equality, current issuer key/delegation and PCR CBA closure. Initial publication carries the Event without an AuthorizationLease; downstream fanout adds receiver-signed account_status_receipts and CbaProofBundle values. AccountStatusReceipt proves local frontier acceptance, contains no AuthorizationLease id, and generic IngressReceipt is forbidden. Same key plus different canonical body is duplicate_conflict. A byte-identical retry returns the latest durable operation state, allowing pending_seal and fanout progress to converge without creating another Event. accepted or duplicate is terminal for the receiving server's frontier; multi-server propagation continues from a durable bounded outbox and never mutates the signed account-status payload.",
+      "notes": "Account Authority or authorized Principal Server publication of exactly one ak.account.status Event into the account principal's Principal Control Realm. The receiver verifies service authentication, authority evidence, Event proof, exact field equality and PCR CBA closure. For status=erasure_pending, accepted or duplicate is returned only after a durable physical-erasure intent keyed by receiver service, account, triggering Event and storage boundary exists; startup and periodic reconciliation recreate any intent lost between Event commit and job-store commit. Acceptance means irreversible execution was initiated, never that deletion completed. Physical terminal state is proven only by the existing erasure receipt submit/get rail. Same key plus different canonical body is duplicate_conflict; no second erase command is defined.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -1612,7 +1613,11 @@
         "kind": "event_log",
         "event_kinds": [
           "ak.account.status"
-        ]
+        ],
+        "cross_service_effects": [
+          "erasure_pending_requires_durable_physical_erasure_intent_before_ack"
+        ],
+        "irreversibility_note": "The Event remains the only erasure command. For erasure_pending, acceptance is forbidden until the receiver has a durable execution intent; restart reconciliation repairs any cross-store gap. This does not claim physical completion, which is established only by a verified ErasureReceiptPackage."
       }
     },
     {
@@ -1631,7 +1636,7 @@
       "http": "POST /_arkret/peer/contacts",
       "grpc": "PeerContacts/Submit",
       "mq": "peer.contacts.command.submit",
-      "notes": "Unique closed XOR delivery carrier for original holder-signed Contact request, normal response, reject, scope replacement, or tombstone facts plus their exact source acceptance receipts and refreshable current proof. It never carries Direct Conversation binding or Realm Events. Branches use byte-identical durable replay; the receiver never re-signs or treats tentative/stale evidence as authority.",
+      "notes": "Unique closed XOR delivery carrier for original holder-signed Contact request, normal response, reject, scope replacement, tombstone, or bilateral continuity-checkpoint control. The continuity branch carries a one-sided proposal; the receiver recomputes the exact core, verifies the proposer signature, appends only its own participant service-authority signature, durably commits the complete checkpoint and returns it with a signed control receipt. Exact replay returns the same bytes; same-sequence different-digest forks fail closed. It never carries Direct Conversation binding or Realm Events.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "idempotency_key",
@@ -1665,7 +1670,7 @@
       "http": "POST /_arkret/peer/erasure-receipts",
       "grpc": "PeerErasureReceipts/Submit",
       "mq": "peer.erasure_receipt.command.submit",
-      "notes": "Service-authenticated hard-erasure receipt fanout. Source-Service-ID MUST equal receipt.issuer. Idempotency-Key is required and covered by the HTTP Message Signature; its scope is (source service, destination service, key). The receiver verifies the closed receipt, issuer authority at receipt.issued_at, every receipt proof, receipt_digest and the exact retained-stub binding before any deletion or durable acceptance. Same key and canonical body returns the byte-identical signed acceptance; different body returns duplicate_conflict with zero writes. An accepted or duplicate acknowledgement closes the sender outbox item.",
+      "notes": "Service-authenticated terminal erasure-result fanout only; it never requests or triggers deletion. Source-Service-ID MUST equal receipt.issuer. The receiver verifies triggering_event_id, the closed receipt, issuer authority, every proof, receipt_digest and exact retained-stub binding before durable acceptance. Same key and canonical body returns the byte-identical signed acceptance; different body returns duplicate_conflict with zero writes. Account erasure requires triggering_event_id to equal the accepted erasure_pending status Event.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -1674,7 +1679,7 @@
       "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome",
       "durable_effect": {
         "kind": "none",
-        "rationale": "accepts_a_signed_receipt_and_may_trigger_local_erasure_but_does_not_author_an_event"
+        "rationale": "accepts_a_signed_terminal_result_and_never_triggers_erasure_or_authors_an_event"
       }
     },
     {
@@ -3113,6 +3118,24 @@
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
     },
     {
+      "operation_id": "ak.self.contact.command.checkpoint",
+      "http": "POST /_arkret/self/contacts/continuity-checkpoint",
+      "grpc": "SelfContact/ContinuityCheckpoint",
+      "mq": "self.contact.command.checkpoint",
+      "notes": "Holder-authorized deterministic compaction of the oldest contiguous terminal Contact prefix. The server computes the core from accepted history; callers cannot submit or choose it. Cross-service pairs use the continuity_checkpoint branch of ak.peer.contacts.command.submit: the receiver recomputes, countersigns, durably commits and returns the complete checkpoint in one round trip, then the proposer commits the exact returned bytes. Exact replay returns the same checkpoint; same sequence with another digest is continuity_invalid and has no winner. Export reuses continuity_evidence on ak.self.contact.read.list and import reuses the Contact request continuity_evidence field.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome",
+      "outward_disclosure_policy": "ak.outward_disclosure.bilateral_continuity.v1",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "compacts_already_accepted_contact_evidence_without_authoring_an_event"
+      }
+    },
+    {
       "operation_id": "ak.self.contact.command.reject",
       "http": "POST /_arkret/self/contacts/reject",
       "grpc": "SelfContact/Reject",
@@ -3213,7 +3236,7 @@
       "http": "GET /_arkret/self/contacts",
       "grpc": "SelfContact/List",
       "mq": "self.contact.query.list",
-      "notes": "Holder contact projection from source-signed request/response receipts, issuer-local Contact lineages and current signed head leases. An accepted row also carries the closed next_prepare_input cursor whose contact_round_id, version and predecessor_event_ref are copied verbatim into the prepare phase of ak.self.contact.command.scope_update or ak.self.contact.command.tombstone; every other contact_state omits it, and the projected request/response/tombstone event refs are never authoritative lineage heads. A pending_incoming row likewise carries request_receipt, the complete signed request_acceptance_receipt copied verbatim into the prepare phase of ak.self.contact.command.respond or ak.self.contact.command.reject; it is signed by the peer's source service rather than by this server, so the client verifies it independently instead of trusting this server's retelling. Every other contact_state omits it, because pending_outgoing has no incoming request to answer and accepted, rejected, expired and tombstoned have a consumed admission slot or a terminal round; a glare pair is never pending_incoming, so the glare ban on respond and reject needs no extra code. Private Consent and account-data notes are never Contact authority.",
+      "notes": "Holder contact projection from source-signed request/response receipts, issuer-local Contact lineages and current signed head leases. An accepted row carries the next_prepare_input cursor and, after bilateral compaction, the exact portable continuity_evidence checkpoint plus bounded tail; this is the only export surface. A pending_incoming row carries the complete signed request_acceptance_receipt for respond or reject. Every other contact_state omits unavailable authoring/evidence fields. Private Consent and account-data notes are never Contact authority.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list"

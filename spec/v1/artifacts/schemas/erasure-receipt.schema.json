@@ -7,6 +7,7 @@
   "required": [
     "schema",
     "receipt_id",
+    "triggering_event_id",
     "issuer",
     "subject",
     "scope",
@@ -23,6 +24,10 @@
     "receipt_id": {
       "type": "string",
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "triggering_event_id": {
+      "$ref": "./common-ids.schema.json#/$defs/event_id",
+      "description": "Exact accepted ak.account.status Event whose erasure_pending transition created this physical-erasure execution. A receipt is never evidence for another status Event."
     },
     "issuer": {
       "$ref": "#/$defs/did_core_id"

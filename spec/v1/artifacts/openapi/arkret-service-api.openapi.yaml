@@ -901,6 +901,10 @@ components:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_request_body
     ConsentRevokeRequestBody:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body
+    ContactContinuityCheckpointOutcome:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome
+    ContactContinuityCheckpointRequestBody:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body
     ContactList:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list
     ContactRejectOutcome:
@@ -5478,6 +5482,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContactTombstone'
+  /_arkret/self/contacts/continuity-checkpoint:
+    post:
+      operationId: ak.self.contact.command.checkpoint
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      summary: Compact an accepted Contact prefix into one bilateral checkpoint.
+      description: |
+        The server deterministically selects the compactable prefix. For a
+        remote peer it uses the continuity_checkpoint branch of the registered
+        peer Contact carrier; the peer verifies, countersigns and returns the
+        same completed checkpoint in one round trip. A caller cannot provide
+        or choose checkpoint core bytes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactContinuityCheckpointRequestBody'
+      responses:
+        '200':
+          description: Checkpoint is pending peer delivery or durably committed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactContinuityCheckpointOutcome'
   /_arkret/self/contacts/scope-update:
     post:
       operationId: ak.self.contact.command.scope_update

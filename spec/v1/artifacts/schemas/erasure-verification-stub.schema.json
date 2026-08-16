@@ -9,6 +9,7 @@
     "subject",
     "scope",
     "receipt_id",
+    "triggering_event_id",
     "completed_at"
   ],
   "properties": {
@@ -66,6 +67,10 @@
     "receipt_id": {
       "type": "string",
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "triggering_event_id": {
+      "$ref": "./common-ids.schema.json#/$defs/event_id",
+      "description": "Exact accepted erasure_pending account-status Event bound by the receipt and retained after physical deletion."
     },
     "completed_at": {
       "$ref": "#/$defs/timestamp"

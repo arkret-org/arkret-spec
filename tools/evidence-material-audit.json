@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 210,
+  "audited_occurrence_count": 212,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -201,7 +201,7 @@
     {
       "file": "contact-operations.schema.json",
       "key": "continuity_evidence",
-      "occurrences": 1,
+      "occurrences": 3,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",

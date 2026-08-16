@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.6",
+  "version": "2026-08-16.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-16T15:10:00Z",
+  "generated_at": "2026-08-16T16:20:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,12 +18,12 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 242,
+    "total_operations": 243,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 232
+      "typed_schema": 233
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -38,7 +38,7 @@
         "binary_or_redirect": 2,
         "service_describe": 1,
         "streaming_frame_schema": 1,
-        "typed_schema": 158
+        "typed_schema": 159
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -2209,6 +2209,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.contact.command.checkpoint",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/contacts/continuity-checkpoint",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ContactContinuityCheckpointRequestBody",
+        "response": "#/components/schemas/ContactContinuityCheckpointOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.contact.command.reject",

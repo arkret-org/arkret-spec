@@ -38,6 +38,12 @@
       "$ref": "#/$defs/contact_scope_update_outcome"
     },
     {
+      "$ref": "#/$defs/contact_continuity_checkpoint_request_body"
+    },
+    {
+      "$ref": "#/$defs/contact_continuity_checkpoint_outcome"
+    },
+    {
       "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request"
     },
     {
@@ -73,7 +79,7 @@
         "participants",
         "root_basis",
         "root_basis_digest",
-        "covered_through_basis_digest",
+        "covered_through_contact_round_id",
         "prefix_accumulator_root",
         "covered_prefix_count",
         "sequence"
@@ -110,8 +116,9 @@
         "root_basis_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
-        "covered_through_basis_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        "covered_through_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest",
+          "description": "The exact terminal contact_round_id at the compacted-prefix boundary. The oldest remaining tail edge points here; bundle content digests are accumulated only in prefix_accumulator_root."
         },
         "prefix_accumulator_root": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
@@ -200,6 +207,27 @@
       },
       "additionalProperties": false
     },
+    "bilateral_continuity_checkpoint_proposal": {
+      "type": "object",
+      "required": [
+        "core",
+        "checkpoint_digest",
+        "proposer_signature"
+      ],
+      "properties": {
+        "core": {
+          "$ref": "#/$defs/bilateral_continuity_checkpoint_core"
+        },
+        "checkpoint_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "proposer_signature": {
+          "$ref": "#/$defs/bilateral_continuity_checkpoint_signature"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One participant service's immutable proposal. It is never portable continuity evidence until the other service returns and durably commits the completed two-signature checkpoint."
+    },
     "contact_continuity_evidence": {
       "type": "object",
       "required": [
@@ -218,9 +246,75 @@
           "items": {
             "$ref": "#/$defs/contact_round_evidence_bundle"
           },
-          "description": "Immediate predecessor first; at least the latest terminal round remains explicit, and the final edge must terminate exactly at checkpoint.core.covered_through_basis_digest."
+          "description": "Immediate predecessor first; at least the latest terminal round remains explicit, and the final edge must terminate exactly at checkpoint.core.covered_through_contact_round_id."
         }
       },
+      "additionalProperties": false
+    },
+    "contact_continuity_checkpoint_request_body": {
+      "type": "object",
+      "required": [
+        "idempotency_key",
+        "peer"
+      ],
+      "properties": {
+        "idempotency_key": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        },
+        "peer": {
+          "$ref": "#/$defs/contact_peer"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Holder-authorized command to compact the deterministic oldest terminal prefix. The caller never supplies the checkpoint core or boundary."
+    },
+    "contact_continuity_checkpoint_outcome": {
+      "type": "object",
+      "required": [
+        "status",
+        "checkpoint_digest"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "committed"
+          ]
+        },
+        "checkpoint_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "continuity_evidence": {
+          "$ref": "#/$defs/contact_continuity_evidence"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "committed"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "continuity_evidence"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "continuity_evidence"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "contact_accept_request": {
@@ -494,7 +588,7 @@
         },
         "continuity_checkpoint": {
           "$ref": "#/$defs/bilateral_continuity_checkpoint",
-          "description": "Latest mutually signed compacted prefix for this lineage. Its presence changes the chain terminator from the root round to covered_through_basis_digest; it never changes the root basis or participant authority pair."
+          "description": "Latest mutually signed compacted prefix for this lineage. Its presence changes the chain terminator from the root round to covered_through_contact_round_id; it never changes the root basis or participant authority pair."
         }
       },
       "allOf": [
@@ -848,6 +942,10 @@
         "peer_service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
           "description": "Required bootstrap material whenever peer_service_id is present. It MAY be refreshed without changing peer_service_id."
+        },
+        "continuity_evidence": {
+          "$ref": "#/$defs/contact_continuity_evidence",
+          "description": "Latest mutually committed portable checkpoint plus its exact uncompressed tail. Its absence means no committed export exists; clients must not synthesize it from projection summaries."
         },
         "direct_conversation": {
           "$ref": "#/$defs/direct_conversation_summary"
@@ -2128,7 +2226,8 @@
           "type": "string",
           "enum": [
             "proof_refresh",
-            "glare_finalize"
+            "glare_finalize",
+            "continuity_checkpoint"
           ]
         },
         "request_digest": {
@@ -2189,7 +2288,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "The recipient signs every field except signature. This receipt is only for proof_refresh or glare_finalize and cannot stand in for a signed Event mirror receipt."
+      "description": "The recipient signs every field except signature. This receipt is only for proof_refresh, glare_finalize or continuity_checkpoint and cannot stand in for a signed Event mirror receipt."
     },
     "peer_contact_event_submit_outcome": {
       "type": "object",
@@ -2691,6 +2790,56 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "control_receipt",
+            "checkpoint"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "continuity_checkpoint"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "accepted",
+                "duplicate"
+              ]
+            },
+            "control_receipt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/peer_contact_control_receipt"
+                },
+                {
+                  "properties": {
+                    "request_kind": {
+                      "const": "continuity_checkpoint"
+                    },
+                    "outcome": {
+                      "type": "string",
+                      "enum": [
+                        "accepted",
+                        "duplicate"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "request_kind",
+                    "outcome"
+                  ]
+                }
+              ]
+            },
+            "checkpoint": {
+              "$ref": "#/$defs/bilateral_continuity_checkpoint"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -3012,6 +3161,30 @@
             },
             "glare_concurrency_attestation": {
               "$ref": "#/$defs/glare_concurrency_attestation"
+            },
+            "contact_address": {
+              "$ref": "#/$defs/contact_address"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "idempotency_key",
+            "proposal",
+            "contact_address"
+          ],
+          "properties": {
+            "kind": {
+              "const": "continuity_checkpoint"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "proposal": {
+              "$ref": "#/$defs/bilateral_continuity_checkpoint_proposal"
             },
             "contact_address": {
               "$ref": "#/$defs/contact_address"

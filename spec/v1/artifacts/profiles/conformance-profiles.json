@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-16.1",
-  "generated_at": "2026-08-15T16:16:56Z",
+  "version": "2026-08-16.2",
+  "generated_at": "2026-08-16T16:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1199,6 +1199,7 @@
         "ak.self.direct_conversation.command.repair_dispatch",
         "ak.self.direct_conversation.read.resolve",
         "ak.self.contact.command.request",
+        "ak.self.contact.command.checkpoint",
         "ak.self.contact.command.respond",
         "ak.self.contact.command.reject",
         "ak.self.contact.command.scope_update",
@@ -1214,6 +1215,8 @@
       ],
       "wire_contract_refs": [
         "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
+        "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body",
+        "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome",
         "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
         "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
         "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",

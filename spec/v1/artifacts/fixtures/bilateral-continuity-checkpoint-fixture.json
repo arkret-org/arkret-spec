@@ -10,7 +10,10 @@
   ],
   "machine_contracts": [
     "schemas/contact-operations.schema.json#/$defs/bilateral_continuity_checkpoint",
+    "schemas/contact-operations.schema.json#/$defs/bilateral_continuity_checkpoint_proposal",
     "schemas/contact-operations.schema.json#/$defs/contact_continuity_evidence",
+    "registry/operation-registry.json#ak.self.contact.command.checkpoint",
+    "registry/operation-registry.json#ak.peer.contacts.command.submit",
     "registry/outward-disclosure-policy-registry.json"
   ],
   "cases": [
@@ -29,6 +32,20 @@
       ],
       "expected_error": "continuity_invalid",
       "winner": null
+    },
+    {
+      "name": "single_roundtrip_countersigns_and_commits_same_checkpoint",
+      "peer_operation": "ak.peer.contacts.command.submit",
+      "control_kind": "continuity_checkpoint",
+      "proposer_signature_count": 1,
+      "committed_signature_count": 2,
+      "expected": "both_sides_commit_same_checkpoint_digest"
+    },
+    {
+      "name": "response_loss_replays_same_completed_checkpoint",
+      "request_replay": "exact",
+      "recomputed_signature": false,
+      "expected": "same_checkpoint_and_control_receipt_bytes"
     },
     {
       "name": "rollback_or_missing_checkpoint_predecessor_is_invalid",

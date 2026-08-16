@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.mls_governance_binding.full.v1",
-  "version": "2026-08-03",
+  "version": "2026-08-16",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -268,13 +268,13 @@
         "destination_service_id": "ak:did_core:webvh:z6mkfixturepsexample"
       },
       "object_identity": {
-        "requester": "ak:did_core:webvh:z6mkfixture",
-        "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA"
+        "source_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ"
       },
       "sequence": [
         "claim_cas_and_ledger_commit_but_response_is_lost",
-        "retry_same_identity_and_payload_digest",
-        "reuse_identity_with_conflicting_payload_digest"
+        "retry_same_source_service_claim_request_id_and_request_digest",
+        "reuse_source_service_claim_request_id_with_conflicting_request_digest"
       ],
       "negative_mutations": [
         "missing_requester_authorization",

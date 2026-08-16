@@ -54,7 +54,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/bilateral-continuity-checkpoint-fixture.json",
-      "sha256": "0633f2e718c4dd11c6df93b4b99e9d40f6b096f514e4f39040abf450011332a8"
+      "sha256": "8cfb4e2736031a3115b61c7c7abbe3ed67889b8f0a3d8268539c488e7f702022"
     },
     {
       "path": "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json",
@@ -198,7 +198,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "3dec2bf54f4cc37ae6d8711a51ae511212611b44ca59d983355f375ecebea004"
+      "sha256": "37a43ac43a14c0d7659cd492a80a6000203444e759af845fb6d80e7477b08d3e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -306,7 +306,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "df47e31e0956f4fd1d24aa6ab244162b7ef9f15cefccbd9ddb6b0932201b38a9"
+      "sha256": "24a077c84cf2ebc2fe6d8139d0185f8b76ac3b92bdb2bd0eb13814a9deef83d0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/reviewer-authority-pair-fixture.json",
