@@ -17,12 +17,6 @@
       "$ref": "#/$defs/keypackages_claim_outcome"
     },
     {
-      "$ref": "#/$defs/peer_keypackages_claim_request_body"
-    },
-    {
-      "$ref": "#/$defs/peer_keypackages_claim_outcome"
-    },
-    {
       "$ref": "#/$defs/peer_keypackages_claim_query_request_body"
     },
     {
@@ -104,35 +98,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "keypackage_claim_proof": {
-      "description": "Exactly one requester authorization proof is required by a v1 self KeyPackage claim. It reuses the generic non-Event detached-JWS wire leaf while closing audience, purpose, and domain choices for this object family; canonical binding and signer-authority rules are defined in device-lifecycle.md section 9.0.1.",
-      "allOf": [
-        {
-          "$ref": "./event-envelope.schema.json#/$defs/proof"
-        },
-        {
-          "type": "object",
-          "required": [
-            "audience",
-            "proof_purpose"
-          ],
-          "properties": {
-            "audience": {
-              "$ref": "#/$defs/did_core_id"
-            },
-            "proof_purpose": {
-              "type": "string",
-              "const": "holder_acceptance"
-            }
-          },
-          "not": {
-            "required": [
-              "domain"
-            ]
-          }
-        }
-      ]
     },
     "failure": {
       "type": "object",
@@ -412,138 +377,6 @@
       },
       "additionalProperties": false
     },
-    "keypackages_claim_request_body": {
-      "type": "object",
-      "required": [
-        "target_principal_id",
-        "intended_realm_id",
-        "requester",
-        "required_capabilities",
-        "claim_nonce",
-        "expires_at",
-        "holder_acceptance_proof"
-      ],
-      "properties": {
-        "target_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "intended_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "requester": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "required_capabilities": {
-          "$ref": "#/$defs/string_list"
-        },
-        "claim_nonce": {
-          "$ref": "#/$defs/base64url",
-          "minLength": 22,
-          "maxLength": 128,
-          "description": "Requester-generated object identity carrying at least 128 bits of CSPRNG entropy. Together with requester it keys the atomic self-claim idempotency ledger."
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "target_device_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/device_id"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "minimal_metadata_allowed": {
-          "type": "boolean"
-        },
-        "timeout_ms": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "strand_id": {
-          "$ref": "#/$defs/strand_id"
-        },
-        "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "holder_acceptance_proof": {
-          "$ref": "#/$defs/keypackage_claim_proof",
-          "description": "The single requester holder_acceptance proof for this claim. Quorum or hybrid authorization requires a separately defined future request schema and MUST NOT be inferred from this field."
-        }
-      },
-      "additionalProperties": false
-    },
-    "keypackages_claim_outcome": {
-      "type": "object",
-      "description": "Successful target-private KeyPackage claim result. Failure is never represented by per-target rows or inventory counts; every registered target-private failure is the single claim_failed ErrorEnvelope selected by the operation's outward disclosure policy.",
-      "required": [
-        "claims",
-        "claim_receipt"
-      ],
-      "properties": {
-        "claims": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/keypackage_claim_record"
-          }
-        },
-        "claim_receipt": {
-          "$ref": "#/$defs/self_keypackage_claim_receipt"
-        }
-      },
-      "additionalProperties": false
-    },
-    "self_keypackage_claim_receipt": {
-      "type": "object",
-      "required": [
-        "operation_id",
-        "claim_request_id",
-        "request_digest",
-        "claims_digest",
-        "source_service_id",
-        "destination_service_id",
-        "request",
-        "claimed_at",
-        "expires_at",
-        "signature"
-      ],
-      "properties": {
-        "operation_id": {
-          "const": "ak.self.keys.keypackages.command.claim"
-        },
-        "claim_request_id": {
-          "$ref": "#/$defs/base64url",
-          "minLength": 22,
-          "maxLength": 128
-        },
-        "request_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "claims_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "source_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "destination_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "request": {
-          "$ref": "#/$defs/keypackages_claim_request_body"
-        },
-        "claimed_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "signature": {
-          "$ref": "#/$defs/signature"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Authority-signed durable receipt for a same-service KeyPackage claim. claim_request_id equals request.claim_nonce; source_service_id equals destination_service_id; request_digest covers the complete exact request including holder_acceptance_proof; claims_digest covers the exact claims array. It supplies the request-bound current AgentSignerEvidence observation transcript used by a subsequent Welcome."
-    },
     "requester_authorization": {
       "description": "Closed human-device or Native-Agent detached authorization by the requesting participant. The signature transcript, verification-method ownership, freshness, and exact request binding are normative in device-lifecycle.md section 9.2.",
       "oneOf": [
@@ -800,13 +633,11 @@
       "additionalProperties": false,
       "description": "Server-prepared immutable peer claim request fields before requester_authorization is attached. claim_request_id carries at least 128 bits of entropy and equals the Idempotency-Key value on the peer command."
     },
-    "peer_keypackages_claim_transport_binding": {
+    "keypackages_claim_service_binding": {
       "type": "object",
       "required": [
         "source_service_id",
-        "destination_service_id",
-        "source_trust_domain",
-        "destination_trust_domain"
+        "destination_service_id"
       ],
       "properties": {
         "source_service_id": {
@@ -814,34 +645,11 @@
         },
         "destination_service_id": {
           "$ref": "#/$defs/did_core_id"
-        },
-        "source_trust_domain": {
-          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
-        },
-        "destination_trust_domain": {
-          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
         }
       },
       "additionalProperties": false
     },
-    "peer_keypackages_claim_authorization_draft": {
-      "type": "object",
-      "required": [
-        "request",
-        "transport_binding"
-      ],
-      "properties": {
-        "request": {
-          "$ref": "#/$defs/peer_keypackages_claim_unsigned_request"
-        },
-        "transport_binding": {
-          "$ref": "#/$defs/peer_keypackages_claim_transport_binding"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Complete server-reserved object shown to the participant before signing. The signature transcript binds both the immutable request fields and the explicit service/trust-domain transport destination; the client MUST NOT infer transport_binding from local configuration."
-    },
-    "peer_keypackages_claim_request_body": {
+    "keypackages_claim_request_body": {
       "type": "object",
       "required": [
         "claim_request_id",
@@ -853,6 +661,7 @@
         "required_capabilities",
         "claim_nonce",
         "expires_at",
+        "service_binding",
         "requester_authorization"
       ],
       "properties": {
@@ -928,6 +737,9 @@
         "last_resort_allowed": {
           "type": "boolean",
           "default": false
+        },
+        "service_binding": {
+          "$ref": "#/$defs/keypackages_claim_service_binding"
         },
         "requester_authorization": {
           "$ref": "#/$defs/requester_authorization"
@@ -1153,7 +965,7 @@
       "additionalProperties": false,
       "description": "The KeyPackage owner service signs an immutable terminal ledger fact. never_claimed is issued only after the request can no longer succeed; expired/revoked identify every formerly claimed ordinary KeyPackage. This is the portable cleanup authority for a failed Direct Conversation attempt."
     },
-    "peer_keypackages_claim_outcome": {
+    "keypackages_claim_outcome": {
       "type": "object",
       "x-arkret-pcr-outward-event-kinds": [
         "ak.mls.keypackage"
@@ -1226,7 +1038,7 @@
           ]
         },
         "claim_outcome": {
-          "$ref": "#/$defs/peer_keypackages_claim_outcome"
+          "$ref": "#/$defs/keypackages_claim_outcome"
         },
         "consume_receipt": {
           "$ref": "#/$defs/keypackage_consume_receipt"

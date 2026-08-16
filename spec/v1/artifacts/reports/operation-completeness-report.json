@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.3",
+  "version": "2026-08-16.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-16T03:40:00Z",
+  "generated_at": "2026-08-16T15:10:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1118,8 +1118,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/keys/keypackages/claim",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_outcome",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/PeerKeyPackagesClaimRequestBody",
         "response": "#/components/schemas/PeerKeyPackagesClaimOutcome"

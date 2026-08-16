@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-12.1",
+  "version": "2026-08-16.1",
   "source_of_truth": true,
   "description": "Canonical registry of authority-set policy symbols and deterministic projections from accepted CBA control state. Registry rows are templates, not authority: each lease carries the concrete AuthoritySetPolicy and its digest, and verifiers rederive it from basis_ref plus CBA closure.",
   "registry_rules": [
@@ -12,6 +12,21 @@
     "A candidate or post-basis control object MUST NOT create authority for a lease evaluated at an earlier basis"
   ],
   "policies": [
+    {
+      "authority_set_id": "ak.authority_set.recovery_account_authority.v1",
+      "policy_kind": "account_authority",
+      "source_kind": "recovery_policy",
+      "rules_source": "accepted recovery policy and current Account Authority recovery admission state",
+      "projection": {
+        "scope_ref": "account_subject",
+        "source_ref": "accepted_recovery_policy.policy_id",
+        "source_digest": "accepted_recovery_policy_canonical_digest",
+        "generation_ref": "policy_version(decimal)",
+        "basis_ref": "accepted_recovery_policy.acceptance_basis",
+        "authorization_rules": "only recovery factors admitted by the Account Authority for the named account subject"
+      },
+      "defined_in": "zh/identity/account-lifecycle.md"
+    },
     {
       "authority_set_id": "ak.authority_set.recovery_identity_reanchor.v1",
       "policy_kind": "principal_control",

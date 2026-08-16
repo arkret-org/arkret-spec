@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.1",
+  "version": "2026-08-16.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-15T16:16:56Z",
+  "generated_at": "2026-08-16T15:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3769,10 +3769,9 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Self KeyPackage claim requires exactly one fresh requester holder-acceptance proof from the PCR current accepted device, with canonical method {requester}#{requester_device_id} and explicit device authorization Event plus active generation evidence, bound to the proof-free request and authority DID. The (requester, claim_nonce) object identity atomically binds payload digest, KeyPackage CAS and byte-identical outcome; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
+      "description": "Self and peer KeyPackage claim share one closed device|native_agent requester authorization bound to exact claim fields and stable source/destination service DIDs. The source service admits current durable requester authority before local CAS or durable remote relay; uncertain remote outcomes are queried by the original claim id and request digest before any exact resend. The destination-authority ledger atomically binds request digest, KeyPackage CAS and signed receipt; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/crypto-media/device-lifecycle.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
     },

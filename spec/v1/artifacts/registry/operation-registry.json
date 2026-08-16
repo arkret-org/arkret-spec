@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.1",
+  "version": "2026-08-16.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-15T16:16:56Z",
+  "generated_at": "2026-08-16T15:10:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1818,8 +1818,8 @@
         "strategy": "query_operation",
         "operation_id": "ak.peer.keys.keypackages.read.claim"
       },
-      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_outcome",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
       "outward_disclosure_policy_id": "ak.outward_disclosure.target_private_claim.v1",
       "durable_effect": {
         "kind": "none",
@@ -3683,11 +3683,15 @@
       "http": "POST /_arkret/self/keys/keypackages/claim",
       "grpc": "SelfKeys/KeyPackagesClaim",
       "mq": "self.keys.keypackages.command.claim",
-      "notes": "Requester-signed self KeyPackage claim. The requester device's exact durable generation is checked in the same CAS transaction; revocation_pending returns the existing opaque claim_failed outcome before inventory disclosure or claim writes. Exactly one holder_acceptance detached-JWS proof binds the complete proof-free request, authority service DID, requester and at-least-128-bit claim_nonce. The authority atomically commits KeyPackage CAS, (requester, claim_nonce, payload_digest) ledger and byte-identical terminal outcome; exact retries return that outcome and conflicting digest reuse fails before inventory lookup.",
+      "notes": "Session-authenticated entry to the canonical KeyPackage claim carrier. The participant supplies the same closed device|native_agent requester_authorization and stable service_binding with source/destination service DIDs used by peer claim; deployment trust domains are absent from participant-authored bytes and are bound only by the Principal Server's verified resolution plus outer RFC 9421 headers. The local Principal Server verifies the current durable requester authorization and exact current membership delivery binding; local source=destination uses the same destination-authority CAS, while remote targets are durably relayed without rewriting the participant-signed body. Uncertain outcomes are queried by the original claim_request_id and request digest before any exact resend.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
-      "retry_safe": true,
+      "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.peer.keys.keypackages.read.claim"
+      },
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
       "outward_disclosure_policy_id": "ak.outward_disclosure.target_private_claim.v1",

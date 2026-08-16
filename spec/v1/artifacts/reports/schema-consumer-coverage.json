@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 185,
+    "total_schemas": 187,
     "by_consumer": {
-      "declared_wire": 47,
+      "declared_wire": 49,
       "event_kind": 4,
       "inbound": 46,
       "outbound": 49,
       "prose": 107,
       "prose_only": 2,
       "schema_reference": 112,
-      "startup_compile": 185,
+      "startup_compile": 187,
       "vectors": 116
     },
     "without_wire_consumer": 2,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 69,
+    "without_vector_coverage": 71,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -103,6 +103,7 @@
     "ak.schema.erasure_receipt_operations.v1",
     "ak.schema.extension_manifest.v1",
     "ak.schema.high_risk_authority_proof.v1",
+    "ak.schema.http_error_envelope.v1",
     "ak.schema.ice_config_response.v1",
     "ak.schema.inclusion_list.v1",
     "ak.schema.invite_delivery_request.v1",
@@ -135,6 +136,7 @@
     "ak.schema.sdk_conformance_claim.v1",
     "ak.schema.seal_transparency.v1",
     "ak.schema.security_rotation_local_commit.v1",
+    "ak.schema.service_identity_bundle.v1",
     "ak.schema.signal_presence.v1",
     "ak.schema.signal_typing.v1",
     "ak.schema.time.v1"
@@ -1755,6 +1757,25 @@
       }
     },
     {
+      "schema_id": "ak.schema.http_error_envelope.v1",
+      "file": "schemas/http-error-envelope.schema.json",
+      "consumers": {
+        "declared_wire": "dynamic_schema_ref",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "runtime_dispatch_owned",
+        "owner": "dynamic_schema_ref",
+        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+      },
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "application/json error responses selected by operations-error-mapping.json",
+        "normative_ref": "zh/sync/api-conventions.md#5"
+      }
+    },
+    {
       "schema_id": "ak.schema.ice_config_response.v1",
       "file": "schemas/ice-config-response.schema.json",
       "consumers": {
@@ -3054,6 +3075,25 @@
       }
     },
     {
+      "schema_id": "ak.schema.service_identity_bundle.v1",
+      "file": "schemas/service-identity-bundle.schema.json",
+      "consumers": {
+        "declared_wire": "standalone_schema_alias",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "runtime_dispatch_owned",
+        "owner": "standalone_schema_alias",
+        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+      },
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "schema field equals ak.schema.service_identity_bundle.v1",
+        "normative_ref": "zh/identity/identity-did.md#42-service-identity-生命周期与持久化"
+      }
+    },
+    {
       "schema_id": "ak.schema.service_operation_dtos.v1",
       "file": "schemas/service-operation-dtos.schema.json",
       "consumers": {
@@ -3347,6 +3387,7 @@
           "ak.schema.security_rotation_local_commit.v1",
           "ak.schema.security_transaction.v1",
           "ak.schema.service_describe.v1",
+          "ak.schema.service_identity_bundle.v1",
           "ak.schema.service_operation_dtos.v1",
           "ak.schema.signal_envelope.v1",
           "ak.schema.signal_presence.v1",

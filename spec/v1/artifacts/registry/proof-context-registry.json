@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-15.2",
+  "version": "2026-08-16.3",
   "source_of_truth": true,
-  "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
+  "description": "Canonical security-domain contexts for Arkret detached proofs and non-Event cryptographic transcripts. Proof contexts remain schema-bound; domain_separations cover hash, signature, Merkle and HPKE-info transcripts and are not a general string registry.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
     "Every Arkret non-Event schema that uses event-envelope.schema.json#/$defs/proof MUST register an object-family context here",
@@ -461,23 +461,6 @@
       "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/review_receipt"
     },
     {
-      "context": "ak.keypackage-claim-request-proof-v1",
-      "object_family": "keypackage_claim_request",
-      "binding_fields": [
-        "payload_digest",
-        "requester",
-        "target_principal_id",
-        "intended_realm_id",
-        "claim_nonce",
-        "verification_method",
-        "created_at",
-        "proof_purpose",
-        "audience"
-      ],
-      "defined_in": "zh/crypto-media/device-lifecycle.md#901-self-claim-requester-proof-与重放闭包normative",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_claim_proof"
-    },
-    {
       "context": "ak.member-delivery-binding-candidate-proof-v1",
       "object_family": "member_delivery_binding_candidate",
       "binding_fields": [
@@ -806,5 +789,29 @@
       "defined_in": "zh/conformance/snapshot-schema.md",
       "schema_ref": "schemas/snapshot.schema.json"
     }
+  ],
+  "domain_separations": [
+    {"domain":"ak.accountability-scope-set-v1","object_family":"accountability_scope_set","primitive":"canonical_json_sha256","binding_fields":["scopes"]},
+    {"domain":"ak.applet.delivery_authentication_record_digest.v1","object_family":"applet_delivery_authentication_record","primitive":"canonical_json_sha256","binding_fields":["operation_id","direction","source_service_id","destination_service_id","idempotency_key","content_digest","request_digest"]},
+    {"domain":"ak.contact.glare-unconsumed-slot.v1","object_family":"contact_glare_unconsumed_slot","primitive":"canonical_json_sha256","binding_fields":["contact_pair","slot"]},
+    {"domain":"ak.contact.no-outgoing-slot.v1","object_family":"contact_no_outgoing_slot","primitive":"canonical_json_sha256","binding_fields":["contact_pair","slot"]},
+    {"domain":"ak.contact.request-acceptance-core.v1","object_family":"contact_request_acceptance_core","primitive":"canonical_json_sha256","binding_fields":["request","acceptance"]},
+    {"domain":"ak.contact.request-source-checkpoint.v1","object_family":"contact_request_source_checkpoint","primitive":"canonical_json_sha256","binding_fields":["request","source_checkpoint"]},
+    {"domain":"ak.events.frontier.leaf.v1","object_family":"events_frontier_leaf","primitive":"merkle_leaf_sha256","binding_fields":["kind","event_id","actor_id","actor_seq"]},
+    {"domain":"ak.events.frontier.node.v1","object_family":"events_frontier_node","primitive":"merkle_node_sha256","binding_fields":["left","right"]},
+    {"domain":"ak.events.frontier.root.v1","object_family":"events_frontier_root","primitive":"merkle_root_sha256","binding_fields":["empty","root"]},
+    {"domain":"ak.events.frontier.signature.v1","object_family":"events_frontier_signature","primitive":"detached_signature","binding_fields":["frontier_root","realm_id","issuer","observed_at"]},
+    {"domain":"ak.federation.verify_actor.signature.v1","object_family":"federation_verify_actor","primitive":"detached_signature","binding_fields":["actor_id","full_id","evidence_digest","audience"]},
+    {"domain":"ak.http-message-signature.v1","object_family":"http_message_signature","primitive":"http_message_signature","binding_fields":["method","target_uri","authority","content_digest","source_service_id","destination_service_id"]},
+    {"domain":"ak.identity.recovery_policy.signature.v1","object_family":"recovery_policy","primitive":"detached_signature","binding_fields":["signed_fields","policy"]},
+    {"domain":"ak.identity.recovery_receipt.signature.v1","object_family":"recovery_receipt","primitive":"detached_signature","binding_fields":["signed_fields","receipt"]},
+    {"domain":"ak.membership-compensation.single-use-cas.v1","object_family":"membership_compensation_single_use_cas","primitive":"canonical_json_sha256","binding_fields":["delegation_ref","expected_state","operation"]},
+    {"domain":"ak.membership-compensation.terminal-certificate.v1","object_family":"membership_compensation_terminal_certificate","primitive":"detached_signature","binding_fields":["operation_id","terminal_state","certified_at","issuer"]},
+    {"domain":"ak.peer.events.command.submit.service_binding.v1","object_family":"peer_event_submit_service_binding","primitive":"canonical_json_sha256","binding_fields":["realm_id","event_ids","canonical_digests"]},
+    {"domain":"ak.policy.check.transcript.v1","object_family":"policy_check_outcome","primitive":"detached_signature","binding_fields":["request_id","decision","bound_to","freshness_state","auth_state_digest","policy_frontier_digest","membership_frontier_digest","reason_code","next_retry_at","obligations"]},
+    {"domain":"ak.realm-history-secret-share-v1","object_family":"realm_history_secret_share_hpke_info","primitive":"hpke_info","binding_fields":["realm_id","epoch","recipient","ciphertext_purpose"]},
+    {"domain":"ak.realm.organization.statement.v1","object_family":"realm_organization_statement","primitive":"detached_signature","binding_fields":["organization_id","realm_id","statement","signed_at"]},
+    {"domain":"ak.joined-control-view-digest-v1","object_family":"joined_control_view","primitive":"canonical_json_sha256","binding_fields":["leaves","covered_event_digests","control_event_set_root","state_root"]},
+    {"domain":"ak.snapshot.auth_state.issuer_local.v1","object_family":"snapshot_auth_state_issuer_local","primitive":"canonical_json_sha256","binding_fields":["issuer","realm_id","frontier_event_ids","checked_at"]}
   ]
 }

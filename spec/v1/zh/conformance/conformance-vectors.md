@@ -3412,7 +3412,7 @@ Expected：
 
 - 每个变异都 MUST 在 CAS 前失败，目标 KeyPackage 状态不变；participant 与 service 两层授权不可互相替代。
 - 已通过外层 service authentication 的所有 participant / target / policy 业务失败对 peer caller 均为同一 `claim_failed` 外观；响应不得带 `available_count`、逐设备 `failures[]` 或 last-resort record。外层 service signature 变异必须在读取 target 前返回 target-independent `unauthenticated` / `signature_invalid`。
-- Resolver draft 必须显式携带 `{request,transport_binding}`；participant signature 必须绑定 source/destination service 与双方 trust domain，客户端不得从本地配置猜测这些值。
+- Participant authorization 必须绑定 exact claim fields 与 stable `{source_service_id,destination_service_id}`；部署态 trust domain 只由 source Principal Server 经 verified ServiceResolution + Describe 得出并由外层 RFC 9421 headers 绑定，客户端不得猜测 URL/domain。
 - Direct Conversation request 必须同时绑定 pair key、Realm、main Strand 与 MLS group，且不得启用 last-resort。
 
 ### 10.3.4 Vector: Self Claim Authorization And Idempotency
@@ -3421,14 +3421,14 @@ Expected：
 
 Steps：
 
-1. requester 以恰好一个 fresh `holder_acceptance` proof 提交 self claim；`verification_method` 必须逐字等于 `{requester}#{requester_device_id}`，并由 `device_authorization_event_id` 与 `model_generation_ref` 证明它是 PCR 中 current accepted、未撤销且属于 active generation 的设备。proof payload digest、audience、requester、target、Realm 与 claim nonce 均正确，authority 在提交 KeyPackage CAS 后丢失响应。
-2. requester 以同一 `(requester, claim_nonce)` 与相同 proof-free payload digest 重试；再以同一 identity 修改 target / Realm / capability 得到另一 digest。
-3. 分别施加零 proof、两个 proof、开放对象、wrong audience/purpose、stale/future proof、短 nonce、未被 PCR 接受的设备、已 fence/revoke 的设备或 generation、Agent/service key 冒充普通设备、仅 bearer token、以及 proof 有效但 target consent/policy 不满足的单点变异。
+1. requester 以 closed `device` 或 `native_agent` requester authorization 提交 canonical claim；authorization 签名覆盖 exact claim fields 与 `service_binding={source_service_id,destination_service_id}`，并由 current accepted authorization Event / pairing 与 active generation 证明当前授权。source Principal Server 在任何 remote call 前完成 durable admission，destination 只以同一请求执行唯一 CAS。authority 在 destination 接受后丢失响应。
+2. source Principal Server 先按同一 `claim_request_id + request_digest` 查询不确定结果；若为 `unknown` 才原样重发 command。再以同一 identity 修改 target / Realm / selector 得到另一 digest。
+3. 分别施加缺 authorization、开放 branch、wrong service binding、wrong authorized Event/method、stale/future authorization、短 nonce、未被 PCR 接受的设备、已 fence/revoke 的设备或 generation、Agent/service key 冒充普通设备、仅 bearer token、以及 authorization 有效但 target policy 不满足的单点变异。
 
 Expected：
 
-- 正例的 proof 必须按 `ak.keypackage-claim-request-proof-v1` 重建并验证；KeyPackage `published -> claimed` CAS、`(requester, claim_nonce, payload_digest)` ledger 与序列化 outcome 只有一个线性化点，CAS 次数恰为 1。
-- 相同 identity/digest 的重试返回 byte-identical 原 outcome（含原 `available_count`），不得再次选择 KeyPackage；冲突 digest 在 inventory lookup 前以统一 `claim_failed` fail closed，内部 reason 为 `duplicate_conflict`。
+- 正例必须按 `ak.keypackage-claim-authorization-v1` transcript 重建并验证 participant authorization；KeyPackage `published -> claimed` CAS、`(source_service_id, claim_request_id, request_digest)` ledger 与签名 receipt/outcome 只有一个线性化点，CAS 次数恰为 1。
+- 相同 identity/digest 的重试或 query 返回原 outcome，不得再次选择 KeyPackage；冲突 digest 在 inventory lookup 前以统一 `claim_failed` fail closed，内部 reason 为 `duplicate_conflict`。
 - 所有 proof/schema/freshness/authority 变异都在读取 target inventory 或改变状态前失败；proof 不替代 sender-constrained transport authentication、当前 revoke/lifecycle 检查、target consent/policy 或后续 MLS claim envelope。
 - 首次到达的过期请求绝不创建 claim；已有 terminal ledger 只能向当前仍被授权的同一 requester/session binding 返回原 outcome，nonce 重放在任何时间都不能创建第二次 claim。
 

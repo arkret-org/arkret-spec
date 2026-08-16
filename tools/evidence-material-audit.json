@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 209,
+  "audited_occurrence_count": 210,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -823,7 +823,7 @@
     {
       "file": "service-operation-dtos.schema.json",
       "key": "method_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",

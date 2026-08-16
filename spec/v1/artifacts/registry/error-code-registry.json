@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-16.1",
+  "version": "2026-08-16.3",
   "codes": [
     {
       "code": "json_invalid",
@@ -1699,6 +1699,12 @@
       "http_status": 409,
       "scope": "endpoint",
       "description": "The MLS KeyPackage claim request has expired."
+    },
+    {
+      "code": "mls_genesis_already_exists",
+      "http_status": 409,
+      "scope": "both",
+      "description": "An MLS genesis operation attempted to initialize a group whose genesis state is already durably accepted. Receivers MUST preserve the existing group state and reject the conflicting initialization."
     },
     {
       "code": "snapshot_chunk_digest_mismatch",
@@ -3758,6 +3764,14 @@
         "auth_decision"
       ],
       "description": "Current MLS epoch's security_frontier_digest does not cover key-access policy components the client wants to act on (for example media_service_decrypts and plaintext_visible_services for a decrypting media service). Receivers MUST refuse to act until a fresh Commit covers the rederived frontier. See zh/crypto-media/media-service-binding.md §8.2 and zh/crypto-media/encryption-and-audit.md §2.5."
+    },
+    {
+      "code": "mls_genesis_already_exists",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "An MLS genesis operation attempted to initialize a group whose genesis state is already durably accepted. Receivers MUST preserve the existing group state and reject the conflicting initialization."
     },
     {
       "code": "mls_send_pause_advisory_requires_e2ee_relaxed_profile",

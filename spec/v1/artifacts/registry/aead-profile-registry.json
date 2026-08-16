@@ -1,0 +1,31 @@
+{
+  "version": "2026-08-16.1",
+  "source_of_truth": true,
+  "description": "Canonical AEAD construction profiles used where an Arkret wire object selects an AEAD independently of an MLS ciphersuite or HPKE suite.",
+  "registry_rules": [
+    "canonical_id values are exact wire values and MUST be unique",
+    "An AEAD profile names only the AEAD construction, key/nonce/tag sizes and AAD contract; it MUST NOT encode KEM or KDF semantics",
+    "HPKE callers select a registered HPKE suite separately and MUST verify that its aead field agrees with this profile",
+    "Unknown or inactive profiles fail closed"
+  ],
+  "profiles": [
+    {
+      "canonical_id": "ak.aead.chacha20_poly1305.v1",
+      "status": "active",
+      "algorithm": "chacha20_poly1305",
+      "key_length_bytes": 32,
+      "nonce_length_bytes": 12,
+      "tag_length_bytes": 16,
+      "defined_in": "zh/identity/key-management.md"
+    },
+    {
+      "canonical_id": "ak.aead.xchacha20_poly1305.v1",
+      "status": "active",
+      "algorithm": "xchacha20_poly1305",
+      "key_length_bytes": 32,
+      "nonce_length_bytes": 24,
+      "tag_length_bytes": 16,
+      "defined_in": "zh/crypto-media/media-and-blob.md"
+    }
+  ]
+}

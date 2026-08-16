@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.3",
+  "version": "2026-08-16.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-16T03:40:00Z",
+  "generated_at": "2026-08-16T15:10:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3260,7 +3260,7 @@
       "operation_id": "ak.peer.keys.keypackages.command.claim",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_request_body",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
         "schema_kind": "object",
         "required": [
           "claim_request_id",
@@ -3272,6 +3272,7 @@
           "required_capabilities",
           "claim_nonce",
           "expires_at",
+          "service_binding",
           "requester_authorization"
         ],
         "properties": [
@@ -3294,12 +3295,13 @@
           "strand_id",
           "pair_key",
           "last_resort_allowed",
+          "service_binding",
           "requester_authorization"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
         "schema_kind": "object",
         "required": [
           "claim_request_id",
@@ -3937,6 +3939,7 @@
           "did_document",
           "key_log_head",
           "seq",
+          "method_evidence",
           "receipts"
         ],
         "closed": true
@@ -7953,27 +7956,40 @@
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
         "schema_kind": "object",
         "required": [
+          "claim_request_id",
           "target_principal_id",
-          "intended_realm_id",
           "requester",
+          "intended_realm_id",
+          "mls_group_id",
+          "claim_purpose",
           "required_capabilities",
           "claim_nonce",
           "expires_at",
-          "holder_acceptance_proof"
+          "service_binding",
+          "requester_authorization"
         ],
         "properties": [
+          "claim_request_id",
           "target_principal_id",
-          "intended_realm_id",
           "requester",
+          "intended_realm_id",
+          "mls_group_id",
+          "claim_purpose",
           "required_capabilities",
           "claim_nonce",
           "expires_at",
           "target_device_ids",
+          "target_keypackage_ref",
+          "target_agent_id",
+          "target_agent_verification_method",
+          "target_agent_key_authorize_event_id",
           "minimal_metadata_allowed",
           "timeout_ms",
           "strand_id",
-          "mls_group_id",
-          "holder_acceptance_proof"
+          "pair_key",
+          "last_resort_allowed",
+          "service_binding",
+          "requester_authorization"
         ],
         "closed": true
       },
@@ -7981,10 +7997,12 @@
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
         "schema_kind": "object",
         "required": [
+          "claim_request_id",
           "claims",
           "claim_receipt"
         ],
         "properties": [
+          "claim_request_id",
           "claims",
           "claim_receipt"
         ],

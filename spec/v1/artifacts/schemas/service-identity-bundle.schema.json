@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/service-identity-bundle.schema.json",
+  "title": "Arkret Service Identity Recovery Bundle",
+  "description": "Verifiable disaster-recovery bundle for one service DID. Private key bytes are never carried; key references resolve through the configured key backend.",
+  "type": "object",
+  "required": ["schema", "identity", "webvh_history", "receipt_chain", "exported_at"],
+  "properties": {
+    "schema": {"const": "ak.schema.service_identity_bundle.v1"},
+    "identity": {
+      "type": "object",
+      "description": "Stored service identity, DID document and current registration receipt. Consumers must verify their cross-bindings before restore.",
+      "required": ["identity", "did_document", "registration_receipt", "stored_at"],
+      "properties": {
+        "identity": {"type": "object"},
+        "did_document": {"type": "object"},
+        "registration_receipt": {"type": "object"},
+        "stored_at": {"$ref": "./time.schema.json#/$defs/timestamp"}
+      },
+      "additionalProperties": false
+    },
+    "webvh_history": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "object"}
+    },
+    "receipt_chain": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "object"}
+    },
+    "exported_at": {"$ref": "./time.schema.json#/$defs/timestamp"}
+  },
+  "additionalProperties": false
+}

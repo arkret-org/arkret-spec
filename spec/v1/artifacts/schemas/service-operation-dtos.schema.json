@@ -3275,11 +3275,49 @@
         "seq": {
           "type": "integer"
         },
+        "method_evidence": {
+          "$ref": "#/$defs/IdentityMethodEvidence"
+        },
         "receipts": {
           "type": "array",
           "items": {
             "$ref": "./identity-receipt.schema.json"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "IdentityMethodEvidence": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/DidWebvhIdentityMethodEvidence"
+        }
+      ]
+    },
+    "DidWebvhIdentityMethodEvidence": {
+      "type": "object",
+      "description": "Method-native pins derived only after fail-closed verification of the complete did:webvh history. control_key_digest is SHA-256 over the decoded canonical multikey bytes of parameters.updateKeys[0] at version_id.",
+      "required": [
+        "kind",
+        "version_id",
+        "log_head_digest",
+        "control_key_digest"
+      ],
+      "properties": {
+        "kind": {
+          "const": "did_webvh"
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "log_head_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "control_key_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
         }
       },
       "additionalProperties": false
@@ -3295,8 +3333,11 @@
         },
         "requested_evidence_kinds": {
           "type": "array",
+          "uniqueItems": true,
           "items": {
-            "type": "string"
+            "enum": [
+              "did_webvh"
+            ]
           }
         }
       },

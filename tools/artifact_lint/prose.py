@@ -762,7 +762,7 @@ def check_common_object_field_matrix(lint: Lint) -> None:
 
 
 def check_keypackage_claim_proof_shape(lint: Lint) -> None:
-    """Self-claim uses one canonical singular proof field and rejects plural aliases."""
+    """Self/peer claim share one closed requester authorization and service binding."""
 
     path = ARTIFACTS / "schemas" / "keypackage-operations.schema.json"
     data = load_json(lint, path)
@@ -774,13 +774,19 @@ def check_keypackage_claim_proof_shape(lint: Lint) -> None:
         return
     required = claim.get("required") or []
     properties = claim.get("properties") or {}
-    if "holder_acceptance_proof" not in required:
-        lint.fail(path, "self KeyPackage claim must require holder_acceptance_proof")
-    singular = properties.get("holder_acceptance_proof") if isinstance(properties, dict) else None
-    if not isinstance(singular, dict) or singular.get("$ref") != "#/$defs/keypackage_claim_proof":
-        lint.fail(path, "holder_acceptance_proof must directly reference keypackage_claim_proof")
-    if isinstance(properties, dict) and "proofs" in properties:
-        lint.fail(path, "self KeyPackage claim must not retain a plural proofs compatibility field")
+    for field, ref in (
+        ("requester_authorization", "#/$defs/requester_authorization"),
+        ("service_binding", "#/$defs/keypackages_claim_service_binding"),
+    ):
+        if field not in required:
+            lint.fail(path, f"unified KeyPackage claim must require {field}")
+        definition = properties.get(field) if isinstance(properties, dict) else None
+        if not isinstance(definition, dict) or definition.get("$ref") != ref:
+            lint.fail(path, f"unified KeyPackage claim {field} must directly reference {ref}")
+    if isinstance(properties, dict):
+        for legacy in ("holder_acceptance_proof", "proofs", "transport_binding"):
+            if legacy in properties:
+                lint.fail(path, f"unified KeyPackage claim must not retain legacy {legacy}")
 
 
 

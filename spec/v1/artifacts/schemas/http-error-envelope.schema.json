@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/http-error-envelope.schema.json",
+  "title": "Arkret HTTP Error Envelope",
+  "description": "Canonical default application/json error response from sync/api-conventions.md section 5. error.code must resolve through error-code-registry.json.",
+  "type": "object",
+  "required": ["ok", "error"],
+  "properties": {
+    "ok": {"const": false},
+    "error": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,127}$"},
+        "message": {"type": "string", "minLength": 1, "maxLength": 4096},
+        "retry_after_ms": {
+          "oneOf": [
+            {"type": "integer", "minimum": 0, "maximum": 86400000},
+            {"type": "null"}
+          ]
+        },
+        "details": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "request_id": {"type": "string", "pattern": "^ak:request:[0-9a-f-]{36}$"}
+  },
+  "additionalProperties": false
+}

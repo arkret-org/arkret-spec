@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.1",
+  "version": "2026-08-16.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-16T03:40:00Z",
+  "generated_at": "2026-08-16T12:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1049,6 +1049,28 @@
       "file": "schemas/keys-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for ak.self.keys.upload.create, query, claim, and key backup put/list/delete responses."
+    },
+    {
+      "schema_id": "ak.schema.http_error_envelope.v1",
+      "file": "schemas/http-error-envelope.schema.json",
+      "status": "active",
+      "description": "Canonical default application/json HTTP error envelope from sync/api-conventions.md section 5.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "application/json error responses selected by operations-error-mapping.json",
+        "normative_ref": "zh/sync/api-conventions.md#5"
+      }
+    },
+    {
+      "schema_id": "ak.schema.service_identity_bundle.v1",
+      "file": "schemas/service-identity-bundle.schema.json",
+      "status": "active",
+      "description": "Verifiable service DID disaster-recovery bundle containing public DID history, receipts and key references but no private key bytes.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "schema field equals ak.schema.service_identity_bundle.v1",
+        "normative_ref": "zh/identity/identity-did.md#42-service-identity-生命周期与持久化"
+      }
     },
     {
       "schema_id": "ak.schema.service_describe.v1",

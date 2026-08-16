@@ -380,6 +380,15 @@
     }
   ],
   "$defs": {
+    "actor_private_update_kind": {
+      "description": "Closed DeviceMessageEnvelope.kind set for actor-private sibling-device projection updates. These values are transport discriminators, not Event kinds and never enter shared Realm history.",
+      "type": "string",
+      "enum": [
+        "ak.account_data.update",
+        "ak.account.blocklist.update",
+        "ak.read_cursor.update"
+      ]
+    },
     "device_message_id": {
       "type": "string",
       "pattern": "^ak:device_message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"

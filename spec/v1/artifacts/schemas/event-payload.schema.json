@@ -7029,6 +7029,7 @@
         "claim_id",
         "claim_ref",
         "claim_envelope",
+        "claim_receipt",
         "commit_ref",
         "governance_binding",
         "expires_at"
@@ -7069,32 +7070,6 @@
               "recipient_device_id"
             ]
           }
-        }
-      ],
-      "allOf": [
-        {
-          "oneOf": [
-            {
-              "required": [
-                "self_claim_receipt"
-              ],
-              "not": {
-                "required": [
-                  "peer_claim_receipt"
-                ]
-              }
-            },
-            {
-              "required": [
-                "peer_claim_receipt"
-              ],
-              "not": {
-                "required": [
-                  "self_claim_receipt"
-                ]
-              }
-            }
-          ]
         }
       ],
       "anyOf": [
@@ -7332,13 +7307,9 @@
           },
           "additionalProperties": false
         },
-        "peer_claim_receipt": {
+        "claim_receipt": {
           "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt",
-          "description": "Required when the KeyPackage was claimed through the peer claim protocol. The receiving destination Principal Server validates this signed receipt against its durable claim ledger before accepting the Welcome."
-        },
-        "self_claim_receipt": {
-          "$ref": "./keypackage-operations.schema.json#/$defs/self_keypackage_claim_receipt",
-          "description": "Required when the KeyPackage was claimed through the same-service claim operation. It binds the complete exact request and the operation/request/service/challenge transcript."
+          "description": "Destination-signed receipt used for both same-service and remote claims. The receiving destination Principal Server validates it against its durable claim ledger before accepting the Welcome."
         },
         "welcome_ref": {
           "$ref": "#/$defs/object_ref"

@@ -1377,6 +1377,7 @@ components:
               - mimi_reporter_resolution_required
               - franking_tampered
               - mls_keypackage_claim_request_expired
+              - mls_genesis_already_exists
               - snapshot_chunk_digest_mismatch
               - unsupported_content_encoding
               - contact_scope_stale
@@ -1846,13 +1847,13 @@ components:
     PeerEventsResolveRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody
     PeerKeyPackagesClaimOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_outcome
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome
     PeerKeyPackagesClaimQueryOutcome:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_outcome
     PeerKeyPackagesClaimQueryRequestBody:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body
     PeerKeyPackagesClaimRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_request_body
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body
     PolicyCheckOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
     PolicyCheckRequestBody:

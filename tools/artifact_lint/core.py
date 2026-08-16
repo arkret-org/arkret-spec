@@ -884,6 +884,7 @@ _SUPPLY_CALLER_SIGNED_SCHEMAS = frozenset(
         "application_receipt",
         "review_receipt",
         "cancel_receipt",
+        "keypackages_claim_service_binding",
         "schemas/recovery-receipt.schema.json",
     }
 )
