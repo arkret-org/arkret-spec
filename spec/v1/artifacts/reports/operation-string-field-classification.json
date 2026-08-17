@@ -8,12 +8,12 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 74,
+    "total_fields": 78,
     "by_classification": {
-      "bounded_free_text": 7,
-      "closed_enum": 34,
-      "closed_literal": 13,
-      "validated_open_reason_code": 17,
+      "bounded_free_text": 8,
+      "closed_enum": 35,
+      "closed_literal": 14,
+      "validated_open_reason_code": 18,
       "validated_open_token": 3
     },
     "unclassified": 0
@@ -25,6 +25,38 @@
       "shape": "account_status_publication_outcome",
       "field": "status",
       "pointer": "#/$defs/account_status_publication_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "account-operations.schema.json",
+      "shape": "account_status_record",
+      "field": "reason",
+      "pointer": "#/$defs/account_status_record/properties/reason",
+      "classification": "bounded_free_text",
+      "basis": "human-readable text with schema boundary"
+    },
+    {
+      "schema_file": "account-operations.schema.json",
+      "shape": "account_status_record",
+      "field": "reason_code",
+      "pointer": "#/$defs/account_status_record/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "account-operations.schema.json",
+      "shape": "account_status_record",
+      "field": "schema",
+      "pointer": "#/$defs/account_status_record/properties/schema",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "account-operations.schema.json",
+      "shape": "account_status_record",
+      "field": "status",
+      "pointer": "#/$defs/account_status_record/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },

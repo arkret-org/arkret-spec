@@ -677,7 +677,7 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 Session grant 用于 OIDC / SSO、浏览器短会话与远程执行环境。Arkret v1 的
 `kind="ak.session.grant"` 是 Account Authority / Auth Server 对自身授权决定签发的短期 credential
 kind，**不是** Event kind。它的唯一 durable lifecycle 权威是 issuer 自己维护的 ledger；Principal
-Control Realm 不保存 grant genesis、grant state cell 或其兼容投影。
+Control Realm 不保存 grant genesis、grant state cell 或其任何投影。
 
 `SignedSessionGrantClaims` 示例（`session_public_key` 的值是 canonical public-JWK JCS 字符串）：
 

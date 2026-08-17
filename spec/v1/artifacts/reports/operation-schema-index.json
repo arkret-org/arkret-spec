@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.8",
+  "version": "2026-08-17.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-16T16:20:00Z",
+  "generated_at": "2026-08-17T17:35:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2383,13 +2383,10 @@
         "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_request_body",
         "schema_kind": "object",
         "required": [
-          "authority_evidence",
           "publication"
         ],
         "properties": [
-          "authority_evidence",
-          "publication",
-          "cba_proof_bundles"
+          "publication"
         ],
         "closed": true
       },
@@ -2398,62 +2395,62 @@
         "schema_kind": "object",
         "required": [
           "status",
-          "event_id",
+          "account_status_record_id",
+          "status_seq",
           "account_id",
-          "principal_id",
           "propagation_state"
         ],
         "properties": [
           "status",
-          "event_id",
+          "account_status_record_id",
+          "status_seq",
           "account_id",
-          "principal_id",
-          "effective_status_event_id",
-          "account_status_frontier_digest",
+          "current_account_status_record_id",
+          "current_status_seq",
+          "required_status_seq",
           "barrier_cursor",
           "propagation_state",
           "pending_destination_count",
-          "retry_after_ms"
+          "receipt"
         ],
         "closed": true
       }
     },
     {
-      "operation_id": "ak.peer.account_status.read.authoring_frontiers",
+      "operation_id": "ak.peer.account_status.read.resolve",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_request_body",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_resolve_request_body",
         "schema_kind": "object",
         "required": [
-          "authority_evidence",
-          "event_kind"
+          "account_authority_id",
+          "account_id",
+          "from_status_seq",
+          "limit"
         ],
         "properties": [
-          "authority_evidence",
-          "event_kind"
+          "account_authority_id",
+          "account_id",
+          "from_status_seq",
+          "limit"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_resolve_outcome",
         "schema_kind": "object",
         "required": [
+          "account_authority_id",
           "account_id",
-          "principal_id",
-          "principal_control_realm_id",
-          "issuer_service_id",
-          "actor_frontier",
-          "seal_frontier",
-          "current_status_event_ids"
+          "records",
+          "has_more"
         ],
         "properties": [
+          "account_authority_id",
           "account_id",
-          "principal_id",
-          "principal_control_realm_id",
-          "issuer_service_id",
-          "actor_frontier",
-          "seal_frontier",
-          "current_status_event_ids"
+          "records",
+          "has_more",
+          "next_status_seq"
         ],
         "closed": true
       }

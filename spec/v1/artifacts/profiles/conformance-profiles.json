@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-16.2",
-  "generated_at": "2026-08-16T16:00:00Z",
+  "version": "2026-08-17.2",
+  "generated_at": "2026-08-17T10:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1454,7 +1454,6 @@
         "ak.device.list_update",
         "ak.policy.set",
         "ak.mls.keypackage",
-        "ak.account.status",
         "ak.consent.grant",
         "ak.consent.revoke"
       ],
@@ -1521,7 +1520,6 @@
           "ak.realm_key.withheld",
           "ak.realm_key.share_audit",
           "ak.key_backup.active_series",
-          "ak.account.status",
           "ak.consent.grant",
           "ak.consent.revoke",
           "ak.contact.requested",
@@ -2275,7 +2273,6 @@
         "ak.self.events.read.scan",
         "ak.self.snapshot.read.manifest_head",
         "ak.self.authz.read.check",
-        "ak.peer.account_status.read.authoring_frontiers",
         "ak.peer.account_status.command.submit",
         "ak.peer.device_revocations.command.check",
         "ak.self.control_proposal_decisions.command.submit",
@@ -2292,7 +2289,6 @@
         "ak.invite.third_party",
         "ak.invite.claim",
         "ak.invite.revoke",
-        "ak.account.status",
         "ak.device.revoke",
         "ak.capability.grant",
         "ak.capability.revoke"
@@ -2305,7 +2301,8 @@
         "ak.schema.invite.v1",
         "ak.schema.capability.v1",
         "ak.schema.grant_constraint.v1",
-        "ak.schema.device_revocation_state.v1"
+        "ak.schema.device_revocation_state.v1",
+        "ak.schema.account_status_record.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -2568,7 +2565,7 @@
         "unsupported_optional": "omit ak.profile.signal_peer_relay.v1 and ak.peer.signal.command.relay; local Signal and durable federation remain independently usable"
       },
       "additional_requirements": {
-        "encrypted_only_must": "Every relayed item MUST be ak.schema.signal_envelope.v1; plaintext or legacy ephemeral inputs fail closed with signal_plaintext_forbidden.",
+        "encrypted_only_must": "Every relayed item MUST be ak.schema.signal_envelope.v1; plaintext or unencrypted ephemeral inputs fail closed with signal_plaintext_forbidden.",
         "single_hop_must": "A destination MUST NOT relay a peer-received SignalEnvelope to a third service. The original sender-side service performs one direct request per eligible destination service.",
         "no_kind_advertisement_must": "Describe MUST advertise only this profile and operation support; exact product signal kind and target remain encrypted and MUST NOT appear in supported-kinds or routing metadata.",
         "opaque_outcome_must": "A valid authenticated request returns only {accepted:true}; no recipient, binding, capability, count or per-item outcome is exposed.",
@@ -2658,7 +2655,8 @@
         "ak.gate.account.command.issue_session_grant",
         "ak.gate.account.command.refresh_session_grant",
         "ak.gate.account.command.revoke_session",
-        "ak.gate.account.command.introspect_session_grant"
+        "ak.gate.account.command.introspect_session_grant",
+        "ak.peer.account_status.read.resolve"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [
@@ -2666,7 +2664,8 @@
       ],
       "required_schemas": [
         "ak.schema.service_describe.v1",
-        "ak.schema.handle_claim.v1"
+        "ak.schema.handle_claim.v1",
+        "ak.schema.account_status_record.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -2713,7 +2712,7 @@
         "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",
-        "account_status_publication_must": "An Auth Server acting as Account Authority MUST first obtain the PCR-bound issuer actor frontier and accepted Seal frontier through ak.peer.account_status.read.authoring_frontiers, then sign authority_evidence and publish every ak.account.status transition through ak.peer.account_status.command.submit to the bound Principal Server; it MUST NOT synthesize an empty basis, impersonate a holder session, or use a deployment-private route.",
+        "account_status_publication_must": "An Auth Server acting as Account Authority MUST atomically commit its account row, immutable AccountStatusRecord, audit and outbox; genesis is status_seq=1 active and every successor is a current-head CAS. It signs the closed record itself, exposes bounded ak.peer.account_status.read.resolve for authorized replica recovery, and publishes exact record bytes through ak.peer.account_status.command.submit. It MUST NOT author a Realm Event, query PCR frontiers, depend on a holder Seal or maintain a second status truth.",
         "provisional_identity_abandonment_must": "An Auth Server that offers provisional-identity abandonment MUST expose it as the two-step issue_identity_abandonment_challenge + abandon_identity_creation pair and MUST NOT reach the same effect from login, session resume, lease expiry, fence takeover or garbage collection. Both operations are authorized by the account handoff grant alone, because a never-accepted PCR leaves the holder without a principal and therefore without any principal-bound ak.session.grant; the confirmation MUST present a fresh handoff and MUST NOT reuse the grant that obtained the challenge. The challenge is single-use, at most 300 seconds, held in shared durable state, and pins account_subject, holder cnf.jkt, the abandoned principal_id and did_version_id, the identity-creation lease id and fence, and the closed consequence disclosure; expiry and prior consumption remain distinct terminal states. Consuming the challenge, recording the orphan-anchor tombstone / audit reservation, suppressing the reserved_identity_creation checkpoint on every holder-readable surface and releasing the lease MUST commit in one transaction with zero writes on any failure, and replaying the same request_id MUST return the same terminal outcome without a second tombstone. A PCR accepted between issuance and confirmation MUST fail with identity_creation_already_accepted and MUST NOT abandon anything. Re-authentication strength, risk checks, cooldown length, orphan-anchor discovery annotation, handle and namespace release and retention are deployment governance and are not conformance criteria."
       }
     },
@@ -4121,8 +4120,7 @@
       "required_event_kinds": [
         "ak.organization.discovery",
         "ak.organization.moderation_policy",
-        "ak.policy.set",
-        "ak.account.status"
+        "ak.policy.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [

@@ -35,19 +35,6 @@
           "controller_terminal_event_ref": "ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe"
         }
       }
-    },
-    {
-      "name": "account_status_payload_rejects_membership_cascade_fields",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_status_payload",
-      "expect_valid": false,
-      "first_expected_error": "contains:Additional properties are not allowed",
-      "instance": {
-        "account_id": "account-fixture-1",
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "status": "active",
-        "effective_at": "2026-08-15T00:00:00.000Z",
-        "membership_cause": "controller_membership_ended"
-      }
     }
   ],
   "semantic_cases": [

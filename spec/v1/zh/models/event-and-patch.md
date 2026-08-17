@@ -38,7 +38,7 @@ Reducer-input event 按 CBA 分为两类：
 
 非 reducer event 不带这些 reducer 字段。
 
-Event Envelope 是 kind-routed payload 兼容层。v1 的协议状态收敛以 CBA 双平面、Seal、Lattice 与注册 reducer 纯函数为准；`kind + payload` 是唯一业务事实源。
+Event Envelope 是 kind-routed payload 承载层。v1 的协议状态收敛以 CBA 双平面、Seal、Lattice 与注册 reducer 纯函数为准；`kind + payload` 是唯一业务事实源。
 
 ### 2.2 Schema 与字段
 
@@ -108,7 +108,7 @@ MUST 使用 `MlsEncryptedPayload<MessageMetadata>`，不得用 ContentBlock wrap
 
 Anchor Unit 是显式、闭合且有序的 batch protocol，MUST 由对应 bootstrap / re-anchor unit
 validator 构造；SDK MUST NOT 用“一个或一批 Event 的 CBA 条件字段均为空”推断它是 Anchor
-Unit。raw `Event` MAY 用于反序列化、检查、草稿中间态或兼容读取，但 MUST NOT 绕过上述
+Unit。raw `Event` MAY 用于反序列化、检查或草稿中间态，但 MUST NOT 绕过上述
 转换直接进入 publication-evidence 或 submit 网络边界。转换失败 MUST 在发起网络请求前
 fail closed。
 

@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9818,
+    "total_properties": 9819,
     "total_schema_documents": 160,
     "by_presence_class": {
-      "optional": 2860,
+      "optional": 2861,
       "optional_defaulted": 70,
-      "required": 6490,
+      "required": 6492,
       "required_nullable": 131,
-      "tristate": 267
+      "tristate": 265
     },
-    "tristate_occurrences": 267,
-    "tristate_audit_targets": 169,
+    "tristate_occurrences": 265,
+    "tristate_audit_targets": 167,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 160,
+      "absent_null_equivalent": 158,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -43,7 +43,6 @@
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event/properties/payload",
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event",
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/payload",
-    "account-operations.schema.json/$defs/account_status_authoring_frontiers_outcome/properties/seal_frontier/allOf/1/properties/governance_health",
     "account-subscribe-frame.schema.json/$defs/device_message_container/allOf/0/if/properties/messages",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/0/then/properties/blockers",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/1/then/properties/blockers",
@@ -83,12 +82,11 @@
     "erasure-verification-stub.schema.json/properties/legal_hold_ref",
     "event-envelope.schema.json/$defs/predicate/properties/value",
     "event-envelope.schema.json/allOf/121/then/properties/refs",
-    "event-envelope.schema.json/allOf/179/then/properties/scope_ref",
+    "event-envelope.schema.json/allOf/178/then/properties/scope_ref",
     "event-envelope.schema.json/allOf/6/then/properties/payload",
     "event-envelope.schema.json/allOf/7/then/properties/payload",
     "event-payload.schema.json/$defs/account_blocklist_payload/properties/entries/items/properties/expires_at",
     "event-payload.schema.json/$defs/account_data_set_payload/properties/body",
-    "event-payload.schema.json/$defs/account_status_payload/properties/expires_at",
     "event-payload.schema.json/$defs/audit_accessed_payload/properties/cell_head_after",
     "event-payload.schema.json/$defs/audit_accessed_payload/properties/cell_head_before",
     "event-payload.schema.json/$defs/audit_applet_binding_create_payload/properties/expires_at",
@@ -340,16 +338,6 @@
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
-      "schema_file": "account-operations.schema.json",
-      "shape": "/$defs/account_status_authoring_frontiers_outcome",
-      "instance_path": "/seal_frontier/governance_health",
-      "occurrences": [
-        "/$defs/account_status_authoring_frontiers_outcome/properties/seal_frontier/allOf/1/properties/governance_health"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
       "schema_file": "account-subscribe-frame.schema.json",
       "shape": "/$defs/device_message_container",
       "instance_path": "/messages",
@@ -565,7 +553,7 @@
       "shape": "#",
       "instance_path": "/scope_ref",
       "occurrences": [
-        "/allOf/179/then/properties/scope_ref"
+        "/allOf/178/then/properties/scope_ref"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -599,16 +587,6 @@
       ],
       "sdk_disposition": "condition_guarded",
       "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
-    },
-    {
-      "schema_file": "event-payload.schema.json",
-      "shape": "/$defs/account_status_payload",
-      "instance_path": "/expires_at",
-      "occurrences": [
-        "/$defs/account_status_payload/properties/expires_at"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -2145,7 +2123,8 @@
     },
     "account-operations.schema.json": {
       "schema_ids": [
-        "ak.schema.account_operations.v1"
+        "ak.schema.account_operations.v1",
+        "ak.schema.account_status_record.v1 -> #/$defs/account_status_record"
       ],
       "properties": {
         "/$defs/account_binding_receipt/allOf/0/if/properties/binding_kind": "required",
@@ -2280,52 +2259,60 @@
         "/$defs/account_registration_rate_limit_policy/properties/window_seconds": "required",
         "/$defs/account_registration_verification_policy/properties/code_digest": "optional",
         "/$defs/account_registration_verification_policy/properties/required": "optional_defaulted",
-        "/$defs/account_status_authoring_frontiers_outcome/properties/account_id": "required",
-        "/$defs/account_status_authoring_frontiers_outcome/properties/actor_frontier": "required",
-        "/$defs/account_status_authoring_frontiers_outcome/properties/current_status_event_ids": "required",
-        "/$defs/account_status_authoring_frontiers_outcome/properties/issuer_service_id": "required",
-        "/$defs/account_status_authoring_frontiers_outcome/properties/principal_control_realm_id": "required",
-        "/$defs/account_status_authoring_frontiers_outcome/properties/principal_id": "required",
-        "/$defs/account_status_authoring_frontiers_outcome/properties/seal_frontier": "required",
-        "/$defs/account_status_authoring_frontiers_outcome/properties/seal_frontier/allOf/1/properties/governance_health": "tristate",
-        "/$defs/account_status_authoring_frontiers_outcome/properties/seal_frontier/allOf/1/properties/governance_health/properties/status": "required",
-        "/$defs/account_status_authoring_frontiers_request_body/properties/authority_evidence": "required",
-        "/$defs/account_status_authoring_frontiers_request_body/properties/event_kind": "required",
-        "/$defs/account_status_authority_evidence/properties/account_authority_id": "required",
-        "/$defs/account_status_authority_evidence/properties/account_id": "required",
-        "/$defs/account_status_authority_evidence/properties/binding_version": "required",
-        "/$defs/account_status_authority_evidence/properties/expires_at": "required",
-        "/$defs/account_status_authority_evidence/properties/issued_at": "required",
-        "/$defs/account_status_authority_evidence/properties/issuer_service_id": "required",
-        "/$defs/account_status_authority_evidence/properties/principal_control_realm_id": "required",
-        "/$defs/account_status_authority_evidence/properties/principal_id": "required",
-        "/$defs/account_status_authority_evidence/properties/proof": "required",
-        "/$defs/account_status_publication/oneOf/0/properties/event": "required",
+        "/$defs/account_status_publication/oneOf/0/properties/record": "required",
         "/$defs/account_status_publication/oneOf/1/properties/account_status_receipts": "required",
-        "/$defs/account_status_publication/oneOf/1/properties/event": "required",
+        "/$defs/account_status_publication/oneOf/1/properties/record": "required",
         "/$defs/account_status_publication_outcome/properties/account_id": "required",
-        "/$defs/account_status_publication_outcome/properties/account_status_frontier_digest": "optional",
+        "/$defs/account_status_publication_outcome/properties/account_status_record_id": "required",
         "/$defs/account_status_publication_outcome/properties/barrier_cursor": "optional",
-        "/$defs/account_status_publication_outcome/properties/effective_status_event_id": "optional",
-        "/$defs/account_status_publication_outcome/properties/event_id": "required",
+        "/$defs/account_status_publication_outcome/properties/current_account_status_record_id": "optional",
+        "/$defs/account_status_publication_outcome/properties/current_status_seq": "optional",
         "/$defs/account_status_publication_outcome/properties/pending_destination_count": "optional",
-        "/$defs/account_status_publication_outcome/properties/principal_id": "required",
         "/$defs/account_status_publication_outcome/properties/propagation_state": "required",
-        "/$defs/account_status_publication_outcome/properties/retry_after_ms": "optional",
+        "/$defs/account_status_publication_outcome/properties/receipt": "optional",
+        "/$defs/account_status_publication_outcome/properties/required_status_seq": "optional",
         "/$defs/account_status_publication_outcome/properties/status": "required",
-        "/$defs/account_status_publication_request_body/properties/authority_evidence": "required",
-        "/$defs/account_status_publication_request_body/properties/cba_proof_bundles": "optional",
+        "/$defs/account_status_publication_outcome/properties/status_seq": "required",
         "/$defs/account_status_publication_request_body/properties/publication": "required",
         "/$defs/account_status_receipt/properties/accepted_at": "required",
+        "/$defs/account_status_receipt/properties/account_authority_id": "required",
         "/$defs/account_status_receipt/properties/account_id": "required",
-        "/$defs/account_status_receipt/properties/account_status_frontier_digest": "required",
-        "/$defs/account_status_receipt/properties/event_digest": "required",
-        "/$defs/account_status_receipt/properties/event_id": "required",
-        "/$defs/account_status_receipt/properties/principal_control_realm_id": "required",
-        "/$defs/account_status_receipt/properties/principal_id": "required",
+        "/$defs/account_status_receipt/properties/account_status_record_id": "required",
         "/$defs/account_status_receipt/properties/proof": "required",
         "/$defs/account_status_receipt/properties/receipt_id": "required",
         "/$defs/account_status_receipt/properties/receiver_service_id": "required",
+        "/$defs/account_status_receipt/properties/record_digest": "required",
+        "/$defs/account_status_receipt/properties/status_seq": "required",
+        "/$defs/account_status_record/allOf/0/if/properties/status_seq": "required",
+        "/$defs/account_status_record/allOf/0/then/properties/status": "optional",
+        "/$defs/account_status_record/properties/account_authority_id": "required",
+        "/$defs/account_status_record/properties/account_id": "required",
+        "/$defs/account_status_record/properties/account_status_record_id": "required",
+        "/$defs/account_status_record/properties/binding_version": "required",
+        "/$defs/account_status_record/properties/effective_at": "required",
+        "/$defs/account_status_record/properties/expires_at": "optional",
+        "/$defs/account_status_record/properties/issued_at": "required",
+        "/$defs/account_status_record/properties/previous_account_status_record_id": "optional",
+        "/$defs/account_status_record/properties/principal_authority": "required",
+        "/$defs/account_status_record/properties/principal_authority/properties/principal_id": "required",
+        "/$defs/account_status_record/properties/principal_authority/properties/principal_server_id": "required",
+        "/$defs/account_status_record/properties/principal_control_realm_id": "required",
+        "/$defs/account_status_record/properties/proof": "required",
+        "/$defs/account_status_record/properties/reason": "optional",
+        "/$defs/account_status_record/properties/reason_code": "optional",
+        "/$defs/account_status_record/properties/schema": "required",
+        "/$defs/account_status_record/properties/status": "required",
+        "/$defs/account_status_record/properties/status_seq": "required",
+        "/$defs/account_status_record/properties/verification_method": "required",
+        "/$defs/account_status_resolve_outcome/properties/account_authority_id": "required",
+        "/$defs/account_status_resolve_outcome/properties/account_id": "required",
+        "/$defs/account_status_resolve_outcome/properties/has_more": "required",
+        "/$defs/account_status_resolve_outcome/properties/next_status_seq": "optional",
+        "/$defs/account_status_resolve_outcome/properties/records": "required",
+        "/$defs/account_status_resolve_request_body/properties/account_authority_id": "required",
+        "/$defs/account_status_resolve_request_body/properties/account_id": "required",
+        "/$defs/account_status_resolve_request_body/properties/from_status_seq": "required",
+        "/$defs/account_status_resolve_request_body/properties/limit": "required",
         "/$defs/account_update_profile_outcome/properties/profile": "required",
         "/$defs/account_update_profile_request_body/properties/profile_event": "required",
         "/$defs/account_view/properties/devices": "required",
@@ -2497,6 +2484,7 @@
         "/$defs/account_binding_receipt/properties/lease_fence",
         "/$defs/account_register_request_body/properties/identity_creation",
         "/$defs/account_register_request_body/properties/proof",
+        "/$defs/account_status_record/properties/previous_account_status_record_id",
         "/$defs/device_summary/properties/revocation_states"
       ]
     },
@@ -5698,7 +5686,7 @@
         "/properties/schema": "required",
         "/properties/scope": "required",
         "/properties/subject": "required",
-        "/properties/triggering_event_id": "required"
+        "/properties/trigger": "required"
       },
       "conditionally_required": [
         "/properties/legal_hold_ref"
@@ -5726,6 +5714,10 @@
         "/$defs/scope/properties/service_scope": "optional",
         "/$defs/scope/properties/storage_boundary": "required",
         "/$defs/scope/properties/target_refs": "optional",
+        "/$defs/trigger/oneOf/0/properties/event_id": "required",
+        "/$defs/trigger/oneOf/0/properties/kind": "required",
+        "/$defs/trigger/oneOf/1/properties/account_status_record_id": "required",
+        "/$defs/trigger/oneOf/1/properties/kind": "required",
         "/properties/completed_at": "required",
         "/properties/event_digest": "optional",
         "/properties/legal_hold_ref": "tristate",
@@ -5739,7 +5731,7 @@
         "/properties/seal_inclusion/properties/state_root": "optional",
         "/properties/stub_schema": "required",
         "/properties/subject": "required",
-        "/properties/triggering_event_id": "required"
+        "/properties/trigger": "required"
       }
     },
     "event-batch-receipt.schema.json": {
@@ -6060,8 +6052,8 @@
         "/allOf/17/then/properties/payload": "optional",
         "/allOf/170/if/properties/kind": "required",
         "/allOf/170/then/properties/payload": "optional",
-        "/allOf/171/if/properties/kind": "required",
-        "/allOf/171/then/properties/payload": "optional",
+        "/allOf/172/if/properties/kind": "required",
+        "/allOf/172/then/properties/payload": "optional",
         "/allOf/173/if/properties/kind": "required",
         "/allOf/173/then/properties/payload": "optional",
         "/allOf/174/if/properties/kind": "required",
@@ -6073,10 +6065,8 @@
         "/allOf/177/if/properties/kind": "required",
         "/allOf/177/then/properties/payload": "optional",
         "/allOf/178/if/properties/kind": "required",
-        "/allOf/178/then/properties/payload": "optional",
-        "/allOf/179/if/properties/kind": "required",
-        "/allOf/179/then/properties/scope_ref": "tristate",
-        "/allOf/179/then/properties/scope_ref/properties/kind": "required",
+        "/allOf/178/then/properties/scope_ref": "tristate",
+        "/allOf/178/then/properties/scope_ref/properties/kind": "required",
         "/allOf/18/if/properties/kind": "required",
         "/allOf/18/then/properties/payload": "optional",
         "/allOf/19/if/properties/kind": "required",
@@ -6348,15 +6338,6 @@
         "/$defs/account_data_set_payload/properties/owner": "optional",
         "/$defs/account_data_set_payload/properties/tombstone": "optional",
         "/$defs/account_data_set_payload/properties/updated_at": "optional",
-        "/$defs/account_status_payload/properties/account_id": "required",
-        "/$defs/account_status_payload/properties/admin_proof": "optional",
-        "/$defs/account_status_payload/properties/effective_at": "required",
-        "/$defs/account_status_payload/properties/expires_at": "tristate",
-        "/$defs/account_status_payload/properties/principal_id": "required",
-        "/$defs/account_status_payload/properties/reason": "optional",
-        "/$defs/account_status_payload/properties/reason_code": "optional",
-        "/$defs/account_status_payload/properties/status": "required",
-        "/$defs/account_status_payload/properties/supersedes_status_event_ids": "optional",
         "/$defs/actor_profile_create_payload/properties/object": "required",
         "/$defs/actor_profile_update_payload/properties/expected_state_digest": "optional",
         "/$defs/actor_profile_update_payload/properties/patch": "required",

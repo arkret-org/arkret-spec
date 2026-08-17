@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.2",
+  "version": "2026-08-17.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-16T15:00:00Z",
+  "generated_at": "2026-08-17T10:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -126,13 +126,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.account_status.authority_publication.v1",
+      "vector_id": "ak.vector.account_status.issuer_ledger.v1",
       "status": "active",
       "domain": "account_status",
       "applies_to_fixtures": [
         "security-closure-fixture.json"
       ],
-      "description": "Account Authority evidence, PCR-scoped ak.account.status publication, idempotent pending-to-accepted operation state and bounded Principal Server fanout.",
+      "description": "Account Authority issuer-ledger genesis/CAS, signed record identity, exact replay/conflict, monotonic replica gap/fork handling and bounded Principal Server fanout.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -806,7 +806,7 @@
       "applies_to_fixtures": [
         "calendar-rsvp-fixture.json"
       ],
-      "description": "Calendar Strands activate exactly one way: Strand.schema_refs carries ak.schema.calendar_event.v1 and metadata.fields.calendar co-occurs in both directions on the post-patch object, the container self-schema is refused in schema_refs, legacy flat schedule fields and metadata.fields.profile/profile_refs impostors are refused, and writes bind the schema in requirements.schema[].",
+      "description": "Calendar Strands activate exactly one way: Strand.schema_refs carries ak.schema.calendar_event.v1 and metadata.fields.calendar co-occurs in both directions on the post-patch object, the container self-schema is refused in schema_refs, flat schedule fields and metadata.fields.profile/profile_refs impostors are refused, and writes bind the schema in requirements.schema[].",
       "source_refs": [
         "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -4814,7 +4814,7 @@
       "applies_to_fixtures": [
         "capability-fixture.json"
       ],
-      "description": "Realm create atomically materializes five registered cell writes including the singleton ak.component.realm.authority_root.v1 cell whose controller is created_by at epoch 0 and generation 0; missing roots, author-supplied root values, unrecomputable registry digests, legacy founding-grant shapes, and staged/accepted root proofs used outside their basis all fail closed without leaving a partial Realm or membership.",
+      "description": "Realm create atomically materializes five registered cell writes including the singleton ak.component.realm.authority_root.v1 cell whose controller is created_by at epoch 0 and generation 0; missing roots, author-supplied root values, unrecomputable registry digests, non-root founding-grant shapes, and staged/accepted root proofs used outside their basis all fail closed without leaving a partial Realm or membership.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
@@ -5656,7 +5656,7 @@
       "applies_to_fixtures": [
         "sync-fixture.json"
       ],
-      "description": "High-assurance snapshot inclusion-challenge sampling verifies sufficient event_id and actor_seq_range coverage, recomputes the RFC 6962 domain-separated event-set Merkle root (0x00 leaf / 0x01 node), rejects the legacy unprefixed root, rejects commitment-root mismatch, and rejects silent actor sequence gaps.",
+      "description": "High-assurance snapshot inclusion-challenge sampling verifies sufficient event_id and actor_seq_range coverage, recomputes the RFC 6962 domain-separated event-set Merkle root (0x00 leaf / 0x01 node), rejects the unprefixed root, rejects commitment-root mismatch, and rejects silent actor sequence gaps.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/sync-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

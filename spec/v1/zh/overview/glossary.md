@@ -24,7 +24,7 @@ see_also:
 
 - 同一个 canonical 术语只定义一次；不要再添加“见上文”式重复行。
 - 非规范别名可以保留为单独条目，但必须明确写出 canonical 术语，并说明新增 normative 文本应使用哪个术语。
-- 禁用词、历史词和互操作上下文词应标注适用范围；不能把迁移期词汇重新引入 v1 core model。
+- 禁用词和互操作上下文词应标注适用范围；禁用词不得重新引入 v1 core model。
 - 局部上下文词（例如 SFU `participant_id`、Mermaid sequence `participant`）只在对应章节内有效，不升级为全局主体术语。
 - **指针型条目（normative）**：若某术语条目显式声明其 canonical normative 定义下放到某专题文档（用"权威定义见 X §Y"、"单源 normative 定义在 X" 等措辞），则该条目本身只作术语指针，**不**承载该术语的 normative 约束，以被指向的专题文档为权威源。§1 第一段"以下定义优先于扩展实现约定"针对的是 glossary 自身给出完整定义的条目，不把指针型条目升格为权威定义源。
 - crypto / governance 角色名词（`issuer` / `inviter` / `invitee` / `holder` / `notary` / `witness` / `controller` / `subject` 等）的总索引在 [`../models/common-fields.md` §4.3](../models/common-fields.md#43-角色名词登记索引)；本表条目仍是各角色的权威定义源，新增同类角色名词时应同步登记进该索引。
@@ -124,7 +124,7 @@ see_also:
 | Archive / Recovery Service | 归档 / 恢复服务（service role） | history sharing、late key recovery 或组织恢复场景的可选服务角色（含 Archive Node、Key Recovery Service、Recovery Service）；高安全部署 MUST 显式声明。只能按 Realm policy、history visibility、T0 membership 与 capability 返回最小必要 epoch material / backup envelope / recovery proof，MUST NOT 因持有归档副本自动获得明文读取权。服务角色一览（informative）见 [`sync/service-surface.md` §2.5](../sync/service-surface.md)；`service_kind` 机读真源见 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json)、namespace canonical 见 [`service-http-binding.md` §2.1](../sync/service-http-binding.md)。 |
 | Redaction | 清理/隐私裁剪 | 合法授权下对已发布事实做最小化可见性处理。 |
 | Erasure | 物理擦除 | 在某个存储边界内对原始 payload、blob、派生内容的不可恢复删除；不同于 Redaction，它不保留正文。 |
-| Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值；只可用于 timeline 诊断或兼容投影，不参与协议状态 winner。 |
+| Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值；只可用于 timeline 诊断，不参与协议状态 winner。 |
 | Data Plane | 数据面 | 普通协作写入所在平面：消息、reaction、对象字段、排序、协作文本、计数等。DataEvent 签名与授权验证通过后按 Lattice / CRDT 本地接受；Seal 只可对其作观测承诺。 |
 | Control Plane | 控制面 | 治理写入所在平面：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 声明 `sealed=true` 的对象。Control Move 只有被 Seal 覆盖并进入控制面 `state_root` 后才 `sealed`。 |
 | CBA | 控制面基线承诺封存 | `Control-plane Basis-committed Sealing` 的唯一缩写。DataEvent 按自身 `seal_ref` 验证，Control Move 按自身 `seal_basis` 验证并由 Seal 取得 finality。CBA 不表示 Collaboration Base。 |

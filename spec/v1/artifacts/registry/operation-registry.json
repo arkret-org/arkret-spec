@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.5",
+  "version": "2026-08-17.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-16T16:20:00Z",
+  "generated_at": "2026-08-17T17:35:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -131,7 +131,7 @@
         "ak.peer.device_revocations.command.check",
         "ak.peer.events.read.describe",
         "ak.peer.events.command.submit",
-        "ak.peer.account_status.read.authoring_frontiers",
+        "ak.peer.account_status.read.resolve",
         "ak.peer.account_status.command.submit",
         "ak.peer.erasure_receipt.command.submit",
         "ak.peer.erasure_receipt.resource.get",
@@ -1602,7 +1602,7 @@
       "http": "POST /_arkret/peer/account-status",
       "grpc": "PeerAccountStatus/Submit",
       "mq": "peer.account_status.command.submit",
-      "notes": "Account Authority or authorized Principal Server publication of exactly one ak.account.status Event into the account principal's Principal Control Realm. The receiver verifies service authentication, authority evidence, Event proof, exact field equality and PCR CBA closure. For status=erasure_pending, accepted or duplicate is returned only after a durable physical-erasure intent keyed by receiver service, account, triggering Event and storage boundary exists; startup and periodic reconciliation recreate any intent lost between Event commit and job-store commit. Acceptance means irreversible execution was initiated, never that deletion completed. Physical terminal state is proven only by the existing erasure receipt submit/get rail. Same key plus different canonical body is duplicate_conflict; no second erase command is defined.",
+      "notes": "Replicates one exact Account Authority-signed AccountStatusRecord. The receiver verifies transport authentication, record identity/proof, exact account/principal/binding tuple, sequence continuity and previous_account_status_record_id, then atomically advances its monotonic replica and emits a signed receipt. A gap returns dependency_missing with zero writes; stale, duplicate and fork are distinguished without rebuilding or re-signing the record. For status=erasure_pending, accepted or duplicate is returned only after a durable physical-erasure intent keyed by receiver service, account, triggering record and storage boundary exists. Same Idempotency-Key plus different canonical body is duplicate_conflict.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -1610,26 +1610,24 @@
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_outcome",
       "durable_effect": {
-        "kind": "event_log",
-        "event_kinds": [
-          "ak.account.status"
-        ],
+        "kind": "none",
+        "rationale": "replicates_an_existing_account_authority_issuer_record_without_authoring_an_event",
         "cross_service_effects": [
           "erasure_pending_requires_durable_physical_erasure_intent_before_ack"
         ],
-        "irreversibility_note": "The Event remains the only erasure command. For erasure_pending, acceptance is forbidden until the receiver has a durable execution intent; restart reconciliation repairs any cross-store gap. This does not claim physical completion, which is established only by a verified ErasureReceiptPackage."
+        "irreversibility_note": "The signed record is the only erasure command. Acceptance is forbidden until the receiver has a durable execution intent; physical completion is established only by a verified ErasureReceiptPackage."
       }
     },
     {
-      "operation_id": "ak.peer.account_status.read.authoring_frontiers",
-      "http": "POST /_arkret/peer/account-status/authoring-frontiers",
-      "grpc": "PeerAccountStatus/AuthoringFrontiers",
-      "mq": "peer.account_status.query.authoring_frontiers",
-      "notes": "Read-only service-authenticated Account Authority query for the exact issuer actor-chain frontier and Principal Control Realm Seal frontier needed to sign one ak.account.status Event. The receiver verifies the signed authority_evidence, current issuer delegation and account/principal/PCR binding before disclosure. The response binds RealmActorFrontierView.actor_id to issuer_service_id and both frontier realm_id values to principal_control_realm_id; it grants no authority, accepts no Event and never synthesizes an empty PCR.",
+      "operation_id": "ak.peer.account_status.read.resolve",
+      "http": "POST /_arkret/peer/account-status/resolve",
+      "grpc": "PeerAccountStatus/Resolve",
+      "mq": "peer.account_status.query.resolve",
+      "notes": "Service-authenticated bounded read of a contiguous Account Authority issuer-ledger range for freshness and replica gap recovery. The Account Authority returns original signed records in status_seq order and never exposes an account to a service without an existing exact account/principal relationship. Empty, unknown and unauthorized are non-enumerating at the operation boundary.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome"
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_resolve_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_resolve_outcome"
     },
     {
       "operation_id": "ak.peer.contacts.command.submit",
@@ -1670,7 +1668,7 @@
       "http": "POST /_arkret/peer/erasure-receipts",
       "grpc": "PeerErasureReceipts/Submit",
       "mq": "peer.erasure_receipt.command.submit",
-      "notes": "Service-authenticated terminal erasure-result fanout only; it never requests or triggers deletion. Source-Service-ID MUST equal receipt.issuer. The receiver verifies triggering_event_id, the closed receipt, issuer authority, every proof, receipt_digest and exact retained-stub binding before durable acceptance. Same key and canonical body returns the byte-identical signed acceptance; different body returns duplicate_conflict with zero writes. Account erasure requires triggering_event_id to equal the accepted erasure_pending status Event.",
+      "notes": "Service-authenticated terminal erasure-result fanout only; it never requests or triggers deletion. Source-Service-ID MUST equal receipt.issuer. The receiver verifies the closed trigger union, receipt, issuer authority, every proof, receipt_digest and exact retained-stub binding before durable acceptance. Same key and canonical body returns the byte-identical signed acceptance; different body returns duplicate_conflict with zero writes. Account erasure requires the account_status_record trigger branch to equal the accepted erasure_pending record; other erasure uses the event branch.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",

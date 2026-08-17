@@ -427,7 +427,7 @@ GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 
 
 #### 4.4.1 Account Deactivation Federation Fanout
 
-`ak.account.status` 进入 terminal / `deactivated` 状态时，源 Principal Server MUST 把 deactivation event 主动推送给所有曾持有该 principal 的 account/device/KeyPackage/to-device/push-route 状态、或在 Realm membership delivery binding 中服务过该 principal 的 peer Principal Server。该路径与 §4.4 的 revoke fanout 同等级，不得只等待常规 pull。
+`AccountStatusRecord` 进入 terminal / `deactivated` 状态时，首个接收 Principal Server MUST 把原始 signed record 主动推送给所有曾持有该 principal 的 account/device/KeyPackage/to-device/push-route 状态、或在 Realm membership delivery binding 中服务过该 principal 的 peer Principal Server。该路径与 §4.4 的 revoke fanout 同等级，不得只等待常规 pull。
 
 - 默认 `deactivation_propagation_window_ms` MUST ≤ 600000（10 分钟）。高安全部署 MAY 更短。
 - peer 收到 deactivation 后 MUST 立即 drop `recipient_principal_id == deactivated_principal` 的 pending to-device message、停止 KeyPackage claim、撤销 push route 投递，并拒绝该 principal 后续 device-side effect。
@@ -656,7 +656,7 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 | 跨域按 id / digest 补洞 | `QUERY /_arkret/peer/events/resolve`（`ak.peer.events.read.resolve`） | 同上；服务端按 Realm policy、history visibility 与 reference disclosure 裁剪响应。 |
 | 发布 target-signed service route 材料 | `POST /_arkret/peer/service-resolution/publish`（`ak.peer.service_resolution.command.publish`） | 完整 service signature + Content-Digest + Idempotency-Key；header key MUST 逐字等于 body `request_id`。transport key 与 artifact integrity key 按 §6.4 分离，ack 同时绑定两者；requester 与 target 必须满足同 Realm 可见性。 |
 | 恢复 target service route | `QUERY /_arkret/peer/service-resolution/resolve`（`ak.peer.service_resolution.read.resolve`） | 完整 service signature + Content-Digest；按 §6.4 反枚举并只返回有界连续的 target-signed successor/active notice。外部失败只使用 blinded `capability_denied` / `not_found`（另有通用 rate/size error），不得暴露内部 gap/fork/notice 状态。 |
-| Account Authority 获取 PCR authoring frontiers | `POST /_arkret/peer/account-status/authoring-frontiers`（`ak.peer.account_status.read.authoring_frontiers`） | 完整 service signature + Content-Digest；Source-Service-ID 必须等于 authority evidence issuer，receiver 在披露 actor/Seal frontier 前验证当前 account/principal/PCR/delegation binding。 |
+| Account status issuer-ledger resolve | `POST /_arkret/peer/account-status/resolve`（`ak.peer.account_status.read.resolve`） | 完整 service signature + Content-Digest；Account Authority 仅向持有 exact account/principal 状态的服务返回 bounded contiguous original records。 |
 | 获取 MLS epoch-0 public group state | `POST /_arkret/peer/mls/group-state-material`（`ak.peer.mls.read.group_state_material`） | 完整 service signature + Content-Digest；调用方须获目标 Realm 授权，provider 必须按 accepted genesis 验证 selector、content-addressed refs、raw-byte digests 与 RFC 9420 GroupInfo/tree 一致性。 |
 | 跨域 Realm 成员视图 | `QUERY /_arkret/peer/events`（`ak.peer.events.read.scan`）+ `ak.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 snapshot-assisted bootstrap | `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.read.manifest_head`） | 同上；manifest 必须签名并绑定 authority_binding。 |

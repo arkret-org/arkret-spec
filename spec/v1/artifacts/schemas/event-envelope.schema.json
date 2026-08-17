@@ -611,7 +611,6 @@
         "properties": {
           "kind": {
             "enum": [
-              "ak.account.status",
               "ak.actor.discovery",
               "ak.agent.key.authorize",
               "ak.agent.key.revoke",
@@ -3415,25 +3414,6 @@
           "executed_by",
           "authorization_ref"
         ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.account.status"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/account_status_payload"
-          }
-        }
       }
     },
     {

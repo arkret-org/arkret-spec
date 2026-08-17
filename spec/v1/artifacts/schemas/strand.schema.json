@@ -847,37 +847,37 @@
             "required": [
               "start"
             ],
-            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.start"
+            "$comment": "flat calendar schedule field is not v1 wire; the canonical path is metadata.fields.calendar.start"
           },
           {
             "required": [
               "end"
             ],
-            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.end"
+            "$comment": "flat calendar schedule field is not v1 wire; the canonical path is metadata.fields.calendar.end"
           },
           {
             "required": [
               "timezone"
             ],
-            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.timezone"
+            "$comment": "flat calendar schedule field is not v1 wire; the canonical path is metadata.fields.calendar.timezone"
           },
           {
             "required": [
               "all_day"
             ],
-            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.all_day"
+            "$comment": "flat calendar schedule field is not v1 wire; the canonical path is metadata.fields.calendar.all_day"
           },
           {
             "required": [
               "recurrence"
             ],
-            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.recurrence"
+            "$comment": "flat calendar schedule field is not v1 wire; the canonical path is metadata.fields.calendar.recurrence"
           },
           {
             "required": [
               "attendees"
             ],
-            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.attendees"
+            "$comment": "flat calendar schedule field is not v1 wire; the canonical path is metadata.fields.calendar.attendees"
           }
         ]
       },
@@ -951,7 +951,7 @@
         "required": [
           "fields"
         ],
-        "$comment": "Legacy track-local extension field; canonical name is metadata."
+        "$comment": "track-local extension field is not v1 wire; the canonical name is metadata."
       },
       "additionalProperties": false
     },

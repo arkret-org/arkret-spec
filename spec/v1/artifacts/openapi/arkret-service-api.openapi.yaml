@@ -303,14 +303,14 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_register_outcome
     AccountRegisterRequestBody:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_register_request_body
-    AccountStatusAuthoringFrontiersOutcome:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome
-    AccountStatusAuthoringFrontiersRequestBody:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_request_body
     AccountStatusPublicationOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_status_publication_outcome
     AccountStatusPublicationRequestBody:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_status_publication_request_body
+    AccountStatusResolveOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_resolve_outcome
+    AccountStatusResolveRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_resolve_request_body
     AccountSubscribeFrame:
       $ref: ../schemas/account-subscribe-frame.schema.json
     AccountUpdateProfileOutcome:
@@ -4342,9 +4342,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
-  /_arkret/peer/account-status/authoring-frontiers:
+  /_arkret/peer/account-status/resolve:
     post:
-      operationId: ak.peer.account_status.read.authoring_frontiers
+      operationId: ak.peer.account_status.read.resolve
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4352,30 +4352,26 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: Obtain PCR-bound authoring frontiers for an account-status Event.
+      summary: Resolve a bounded contiguous Account Authority status-ledger range.
       description: |
-        Read-only Account Authority query made before signing one
-        `ak.account.status` Event. The receiver verifies the signed authority
-        evidence and current delegation before returning both the exact issuer
-        actor-chain frontier and the exact Principal Control Realm Seal head.
-        Source-Service-ID must equal `issuer_service_id`; both frontier scopes
-        must match the evidence. The operation accepts no Event, advances no
-        frontier, grants no authority, and never synthesizes an empty PCR.
+        Service-authenticated read for replica gap recovery and freshness.
+        The Account Authority returns original signed AccountStatusRecords in
+        status_seq order and does not expose unknown accounts to unrelated callers.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountStatusAuthoringFrontiersRequestBody'
+              $ref: '#/components/schemas/AccountStatusResolveRequestBody'
       responses:
         '200':
-          description: Exact actor-chain and Realm Seal authoring frontiers.
+          description: Bounded contiguous issuer-ledger records.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountStatusAuthoringFrontiersOutcome'
-        '409':
-          description: The PCR has no current fully verifiable accepted authoring frontier.
+                $ref: '#/components/schemas/AccountStatusResolveOutcome'
+        '404':
+          description: Non-enumerating unknown, unrelated, or unauthorized account outcome.
           content:
             application/json:
               schema:
@@ -4390,17 +4386,12 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: Publish an authoritative account-status Event to a Principal Server.
+      summary: Replicate an authoritative AccountStatusRecord to a Principal Server.
       description: |
-        Accepts exactly one Account Authority or delegated authoritative
-        Principal Server signed `ak.account.status` Event for the account
-        principal's Principal Control Realm. `authority_evidence` is a
-        short-lived Account Authority proof binding the service account,
-        principal, PCR, issuer service and live authority reference. The
-        receiver verifies that evidence, the original Event proof and current
-        PCR CBA closure independently. Initial publication carries no
-        AuthorizationLease; receipted fanout adds receiver-signed account-status
-        receipts (never generic IngressReceipt) and CBA proof bundles. A retry
+        Accepts exactly one Account Authority-signed immutable record. The
+        receiver verifies its identity, proof, binding tuple, strict sequence
+        and predecessor before atomically advancing a monotonic local replica.
+        Receipted fanout carries the same original record bytes. A retry
         with the same key and identical canonical body
         returns the latest durable operation state; reuse with different bytes
         is `duplicate_conflict`.
@@ -4410,8 +4401,8 @@ paths:
         required: true
         description: |
           Durable publication operation key. It MUST be covered by the HTTP
-          Message Signature. Byte-identical retries reuse it while
-          `status=pending_seal` or fanout is progressing; a different canonical
+          Message Signature. Byte-identical retries reuse it while fanout is
+          progressing; a different canonical
           body under the same key is rejected with `duplicate_conflict`.
         schema:
           type: string
@@ -9626,7 +9617,7 @@ paths:
       summary: Revoke session grant or access-token authority.
       description: |
         Revokes session grant authority, not device
-        authorization and not durable ak.account.status. An omitted request body
+        authorization and does not create an AccountStatusRecord. An omitted request body
         revokes the current request's session grant. target_grant_id,
         target_device_id and all_sessions=true are mutually exclusive selectors.
 
@@ -9914,7 +9905,7 @@ paths:
         durably schedules Principal-side local account/device session cleanup,
         to-device drop, and push registration removal. Does not emit
         ak.device.revoke, does not erase durable device authorization (re-login
-        restores the device), and does not rewrite ak.account.status. Distinct
+        restores the device), and does not create an AccountStatusRecord. Distinct
         from revoke_session (targeted session-grant revoke).
       responses:
         '200':

@@ -3097,13 +3097,12 @@
       "expect_valid": true,
       "instance": {
         "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000020",
-        "event_id": "ak:event:Aaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
-        "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_status_record_id": "ak:account_status_record:Aaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+        "record_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_authority_id": "ak:did_core:webvh:z6mkfixtureauthorityexample",
         "account_id": "acct_123",
-        "principal_id": "ak:did_core:webvh:z6mkfixtureholderexample",
-        "principal_control_realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+        "status_seq": 1,
         "receiver_service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
-        "account_status_frontier_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "accepted_at": "2026-08-02T00:00:00.000Z",
         "proof": {
           "kind": "detached_jws",
@@ -3121,13 +3120,12 @@
       "first_expected_error": "$: Additional properties are not allowed ('authorization_lease_id' was unexpected)",
       "instance": {
         "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000020",
-        "event_id": "ak:event:Aaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
-        "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_status_record_id": "ak:account_status_record:Aaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+        "record_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_authority_id": "ak:did_core:webvh:z6mkfixtureauthorityexample",
         "account_id": "acct_123",
-        "principal_id": "ak:did_core:webvh:z6mkfixtureholderexample",
-        "principal_control_realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+        "status_seq": 1,
         "receiver_service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
-        "account_status_frontier_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "accepted_at": "2026-08-02T00:00:00.000Z",
         "authorization_lease_id": "ak:authorization_lease:019b5c20-0000-7000-8000-000000000099",
         "proof": {
@@ -3218,37 +3216,14 @@
       }
     },
     {
-      "name": "account_status_authoring_frontiers_outcome_valid",
-      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome",
+      "name": "account_status_resolve_outcome_empty_valid",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_resolve_outcome",
       "expect_valid": true,
       "instance": {
+        "account_authority_id": "ak:did_core:webvh:z6mkfixtureauthorityexample",
         "account_id": "acct_123",
-        "principal_id": "ak:did_core:webvh:z6mkfixtureholderexample",
-        "principal_control_realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
-        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureauthorityexample",
-        "current_status_event_ids": [],
-        "actor_frontier": {
-          "kind": "realm_actor",
-          "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
-          "actor_id": "ak:did_core:webvh:z6mkfixtureauthorityexample",
-          "next_actor_seq": 8,
-          "frontier_event_ids": [
-            "ak:event:AZ3o4tgwfOQyVzd-Kvz9PwDDaaBQiOD2pvcGGRfK6WDx"
-          ],
-          "frontier_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        },
-        "seal_frontier": {
-          "kind": "realm_seal",
-          "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
-          "seal_id": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-          "governance_health": {
-            "status": "healthy",
-            "pending_proposals": [],
-            "retained_faults": []
-          }
-        }
+        "records": [],
+        "has_more": false
       }
     },
     {

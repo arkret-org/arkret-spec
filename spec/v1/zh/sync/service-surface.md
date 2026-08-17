@@ -396,7 +396,7 @@ GET /_arkret/describe
 - `claimed_profiles: [{profile_id, claim_kind: "self_claimed", ...}]` — 服务自声明加入的 profile。
   `claim_kind` 当前固定为 `self_claimed`；Conformance Verifier 验证结果 MUST 改写到 `verified_profiles`，不得复制到本字段。
 - `verified_profiles: [{profile_id, claim_kind: "conformance_verified", verification_run_id, artifact_digest, artifact_ref, verifier_service_id, signature, timestamp, expires_at?}]` —
-  附带 verification run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、verifier identity、签名与验证时间戳的已验证 profile。兼容字段名 `verifier_service_id` 实际承载稳定 verifier `did_core_id`；artifact proof 的 verification-method DID URL 必须取 bare `full_id`，经已登记 adapter 验证并投影到该值，不得把完整 DID 填入此字段。签发主体是中立角色 **Conformance Verifier**（定义见
+  附带 verification run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、verifier identity、签名与验证时间戳的已验证 profile。`verifier_service_id` 承载稳定 verifier `did_core_id`；artifact proof 的 verification-method DID URL 必须取 bare `full_id`，经已登记 adapter 验证并投影到该值，不得把完整 DID 填入此字段。签发主体是中立角色 **Conformance Verifier**（定义见
   [`conformance-suite.md`](../conformance/conformance-suite.md) §6.2）。**约束**：当 `development_mode=true`
   时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
 - `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT

@@ -530,7 +530,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 | `source_refs` | `id[]` | required | 真相源 event id 列表，至少包含产生当前 effective discovery state 的 seal / state event id。 |
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
 | `policy_revision` | `string` | required | `discovery_event` 对应的 effective policy revision；Realm 资源必须等于 Event kind `ak.realm.policy_bundle` 的 payload path `policy_revision` 或由该 revision 派生。 |
-| `principal_server_service_id` | `did_core_id` | required | 当前资源真相源所在 Principal Server 的稳定 service `did_core_id`（字段名为兼容保留）；Directory 必须通过 verified ServiceResolutionRecord 映射当前 `full_id` / URL 后 pull 验证，不得把该值交给 DID resolver。 |
+| `principal_server_service_id` | `did_core_id` | required | 当前资源真相源所在 Principal Server 的稳定 service `did_core_id`；Directory 必须通过 verified ServiceResolutionRecord 映射当前 `full_id` / URL 后 pull 验证，不得把该值交给 DID resolver。 |
 | `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
 | `supersedes_announce_id` | `ak:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
 

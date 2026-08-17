@@ -217,7 +217,7 @@ sender、ingress、relay 和 receiver 都 MUST 验证：
    **任何**入口（含 local `POST /_arkret/self/signal`）MUST 被拒绝为 `param_invalid`，
    不得接受后静默丢弃。
 
-不存在 plaintext branch。任何 MLS-backed scope 的 plaintext signal/legacy ephemeral 输入
+不存在 plaintext branch。任何 MLS-backed scope 的 plaintext signal / 未加密 ephemeral 输入
 MUST 以 `signal_plaintext_forbidden` fail closed。
 
 conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖：

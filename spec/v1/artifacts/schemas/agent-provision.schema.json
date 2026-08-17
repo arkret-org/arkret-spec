@@ -41,7 +41,7 @@
     },
     "accountability_scope": {
       "const": "agent_operator",
-      "description": "Canonical closed accountability scope. The former singleton-array compatibility shape is not valid v1 wire."
+      "description": "Canonical closed accountability scope."
     },
     "requested_scope_digest": {
       "$ref": "#/$defs/digest"

@@ -160,7 +160,10 @@
       "redaction_receipt": {
         "schema": "ak.schema.erasure_receipt.v1",
         "receipt_id": "ak:receipt:01970e58-0004-7000-8000-0000000004b3",
-        "triggering_event_id": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka",
+        "trigger": {
+          "kind": "event",
+          "event_id": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka"
+        },
         "issuer": "ak:did_core:webvh:z6mkfixturesolandexample",
         "subject": {
           "kind": "event",
@@ -178,10 +181,13 @@
           "canonical_payload_bytes",
           "derived_plaintext"
         ],
-        "retained_stub_digest": "sha256:a6058dde28e3a79ea260697b409793db068f048153341b609ffc9506cd1cf920",
+        "retained_stub_digest": "sha256:141a21c93a000395eaf3bf84cc41b86f9a2a252cf2c880c1d65029ac0b51e0a9",
         "retained_stub": {
           "stub_schema": "ak.schema.erasure_verification_stub.v1",
-          "triggering_event_id": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka",
+          "trigger": {
+            "kind": "event",
+            "event_id": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka"
+          },
           "subject": {
             "kind": "event",
             "subject_ref": "ak:event:AVXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR"
@@ -226,7 +232,7 @@
         "content_present": false,
         "proofs_present": false,
         "erasure_receipt_outcome": "completed",
-        "retained_stub_digest": "sha256:a6058dde28e3a79ea260697b409793db068f048153341b609ffc9506cd1cf920",
+        "retained_stub_digest": "sha256:141a21c93a000395eaf3bf84cc41b86f9a2a252cf2c880c1d65029ac0b51e0a9",
         "verification_stub_retained": true,
         "plaintext_fingerprint_present": false,
         "original_preimage_verified": false
@@ -239,7 +245,7 @@
             "subject_ref": "ak:event:AVXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR"
           },
           "event_digest": "sha256:55e1b55dbbe657751ac5c17203918579058c6bfddf391356b5a55b5d0c484a91",
-          "retained_stub_digest": "sha256:a6058dde28e3a79ea260697b409793db068f048153341b609ffc9506cd1cf920",
+          "retained_stub_digest": "sha256:141a21c93a000395eaf3bf84cc41b86f9a2a252cf2c880c1d65029ac0b51e0a9",
           "expected": "accepted",
           "original_preimage_verified": false
         },

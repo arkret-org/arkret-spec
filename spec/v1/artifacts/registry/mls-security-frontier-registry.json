@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-13",
-  "generated_at": "2026-08-13T07:00:00Z",
+  "version": "2026-08-17",
+  "generated_at": "2026-08-17T06:32:00Z",
   "source_of_truth": true,
   "profile_id": "ak.security_frontier.v1",
   "description": "Closed machine contract for the accepted state that changes current or historical MLS key access. Producers never choose frontier members. Verifiers project these inputs from one accepted Seal view and the RFC 9420 group state, then compare the resulting digest with the governance binding.",
@@ -43,15 +43,6 @@
         "ban"
       ],
       "include_when": "The cell subject names the effective Circle. invite and knock are excluded."
-    },
-    {
-      "cell_family": "ak.component.account.status.v1",
-      "scope": "Any MLS scope",
-      "projected_fields": [
-        "principal_id",
-        "status"
-      ],
-      "include_when": "The principal owns a current or pending MLS leaf and the effective terminal status changes leaf eligibility."
     },
     {
       "cell_family": "ak.component.agent.status.v1",

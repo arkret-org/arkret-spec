@@ -1771,130 +1771,130 @@
       ]
     },
     {
-      "vector_id": "ak.vector.account_status.authority_publication.v1",
+      "vector_id": "ak.vector.account_status.issuer_ledger.v1",
       "steps": [
         {
-          "name": "service_authoring_frontiers_is_pcr_and_issuer_bound",
+          "name": "genesis_active_is_atomic_without_pcr_frontier",
           "input": {
-            "authority_evidence_valid": true,
-            "source_service_matches_issuer": true,
-            "actor_frontier_scope_matches": true,
-            "seal_frontier_scope_matches": true,
-            "seal_governance_health": "healthy"
+            "account_binding_commit": true,
+            "status_seq": 1,
+            "status": "active",
+            "pcr_has_accepted_seal": false,
+            "ledger_audit_outbox_atomic": true
           },
           "expected": {
             "outcome": "accepted",
             "invariants": [
-              "actor frontier identifies the exact issuer and PCR",
-              "seal frontier identifies the same PCR and one verified accepted Seal",
-              "the query grants no authority and advances no frontier"
+              "binding account row ledger audit and outbox commit atomically",
+              "genesis has no previous_account_status_record_id",
+              "PCR Seal availability is irrelevant"
             ]
           },
           "runner": {
             "given_state": {
-              "vector_id": "ak.vector.account_status.authority_publication.v1",
+              "vector_id": "ak.vector.account_status.issuer_ledger.v1",
               "preconditions": {
-                "authority_evidence_valid": true,
-                "current_pcr_frontier_available": true
+                "account_binding_not_yet_committed": true,
+                "current_status_head_absent": true
               }
             },
             "operation": "security_closure.evaluate",
             "transcript": {
-              "step": "service_authoring_frontiers_is_pcr_and_issuer_bound",
+              "step": "genesis_active_is_atomic_without_pcr_frontier",
               "canonicalization": "fixture_json_v1",
               "input": {
-                "source_service_matches_issuer": true,
-                "actor_frontier_scope_matches": true,
-                "seal_frontier_scope_matches": true,
-                "seal_governance_health": "healthy"
+                "status_seq": 1,
+                "status": "active",
+                "pcr_has_accepted_seal": false,
+                "ledger_audit_outbox_atomic": true
               }
             },
             "expected_state_transition": {
               "outcome": "accepted",
-              "shared_effects": "none"
+              "account_status_head": "seq_1_active"
             },
             "expected_external_response": {
               "outcome": "accepted",
-              "actor_frontier_kind": "realm_actor",
-              "seal_frontier_kind": "realm_seal"
+              "record_id_present": true
             },
             "expected_audit_reason": "accepted"
           }
         },
         {
-          "name": "matching_authority_evidence_reaches_accepted_frontier",
+          "name": "valid_successor_advances_monotonic_replica",
           "input": {
-            "event_kind": "ak.account.status",
-            "event_authority_fields_match": true,
-            "authority_evidence_valid": true,
-            "pcr_cba_closure_valid": true,
+            "record_schema": "ak.schema.account_status_record.v1",
+            "record_identity_and_proof_valid": true,
+            "status_seq_is_current_plus_one": true,
+            "previous_account_status_record_id_matches": true,
             "idempotency_body_match": true
           },
           "expected": {
             "outcome": "accepted",
             "invariants": [
-              "account status cell is written in the evidence-bound Principal Control Realm",
-              "terminal local ack carries frontier digest and barrier cursor",
-              "fanout progress is operation state and never mutates the signed Event"
+              "receiver advances one monotonic account-status replica",
+              "terminal ack carries a receipt for the exact record",
+              "fanout progress never mutates the signed record"
             ]
           },
           "runner": {
             "given_state": {
-              "vector_id": "ak.vector.account_status.authority_publication.v1",
+              "vector_id": "ak.vector.account_status.issuer_ledger.v1",
               "preconditions": {
-                "authority_evidence_valid": true,
-                "pcr_cba_closure_valid": true
+                "current_status_seq": 1,
+                "current_account_status_record_id_matches_predecessor": true
               }
             },
             "operation": "security_closure.evaluate",
             "transcript": {
-              "step": "matching_authority_evidence_reaches_accepted_frontier",
+              "step": "valid_successor_advances_monotonic_replica",
               "canonicalization": "fixture_json_v1",
               "input": {
-                "event_authority_fields_match": true,
+                "record_identity_and_proof_valid": true,
+                "status_seq_is_current_plus_one": true,
                 "idempotency_body_match": true
               }
             },
             "expected_state_transition": {
               "outcome": "accepted",
-              "account_status_frontier": "advanced",
-              "duplicate_event_count": 0
+              "account_status_replica": "advanced",
+              "duplicate_record_count": 0
             },
             "expected_external_response": {
               "outcome": "accepted",
-              "frontier_digest_present": true,
+              "receipt_present": true,
               "barrier_cursor_present": true
             },
             "expected_audit_reason": "accepted"
           }
         },
         {
-          "name": "authority_or_idempotency_mismatch_is_zero_write",
+          "name": "record_or_idempotency_mismatch_is_zero_write",
           "input": {
-            "event_authority_fields_match": false,
+            "record_identity_and_proof_valid": false,
             "idempotency_body_match": false
           },
           "expected": {
             "outcome": "rejected",
             "reason_code": "duplicate_conflict",
             "invariants": [
-              "issuer account principal PCR and binding evidence are conjunctive",
+              "Account Authority account principal binding and record proof are conjunctive",
               "same Idempotency-Key with different canonical bytes performs zero writes"
             ]
           },
           "runner": {
             "given_state": {
-              "vector_id": "ak.vector.account_status.authority_publication.v1",
+              "vector_id": "ak.vector.account_status.issuer_ledger.v1",
               "preconditions": {
                 "idempotency_key_exists": true
               }
             },
             "operation": "security_closure.evaluate",
             "transcript": {
-              "step": "authority_or_idempotency_mismatch_is_zero_write",
+              "step": "record_or_idempotency_mismatch_is_zero_write",
               "canonicalization": "fixture_json_v1",
               "input": {
-                "event_authority_fields_match": false,
+                "record_identity_and_proof_valid": false,
                 "idempotency_body_match": false
               }
             },
@@ -1911,49 +1911,195 @@
           }
         },
         {
-          "name": "byte_identical_retry_advances_pending_without_duplicate_event",
+          "name": "sequence_gap_is_zero_write_and_resolved_contiguously",
           "input": {
-            "durable_operation_state": "pending_seal",
-            "same_idempotency_key": true,
-            "canonical_body_identical": true,
-            "seal_dependencies_now_available": true
+            "current_status_seq": 2,
+            "submitted_status_seq": 4,
+            "resolve_from_status_seq": 3,
+            "resolved_records_contiguous": true
           },
           "expected": {
-            "outcome": "accepted",
+            "outcome": "dependency_missing",
             "invariants": [
-              "the durable operation record advances from pending_seal to accepted",
-              "the original Event is admitted exactly once",
-              "the retry returns the accepted frontier and barrier cursor"
+              "the gap response performs zero replica writes",
+              "required_status_seq equals current plus one",
+              "bounded resolve returns original signed records in sequence order"
             ]
           },
           "runner": {
             "given_state": {
-              "vector_id": "ak.vector.account_status.authority_publication.v1",
+              "vector_id": "ak.vector.account_status.issuer_ledger.v1",
               "preconditions": {
-                "durable_operation_state": "pending_seal",
-                "same_idempotency_key": true
+                "current_status_seq": 2,
+                "current_account_status_record_id_known": true
               }
             },
             "operation": "security_closure.evaluate",
             "transcript": {
-              "step": "byte_identical_retry_advances_pending_without_duplicate_event",
+              "step": "sequence_gap_is_zero_write_and_resolved_contiguously",
               "canonicalization": "fixture_json_v1",
               "input": {
-                "canonical_body_identical": true,
-                "seal_dependencies_now_available": true
+                "submitted_status_seq": 4,
+                "resolve_from_status_seq": 3,
+                "resolved_records_contiguous": true
               }
             },
             "expected_state_transition": {
-              "outcome": "accepted",
-              "durable_operation_state": "accepted",
-              "duplicate_event_count": 0
+              "outcome": "dependency_missing",
+              "account_status_replica": "unchanged"
             },
             "expected_external_response": {
-              "outcome": "accepted",
-              "frontier_digest_present": true,
-              "barrier_cursor_present": true
+              "outcome": "dependency_missing",
+              "required_status_seq": 3
             },
-            "expected_audit_reason": "accepted"
+            "expected_audit_reason": "dependency_missing"
+          }
+        },
+        {
+          "name": "lower_sequence_is_typed_stale_and_zero_write",
+          "input": {
+            "current_status_seq": 3,
+            "submitted_status_seq": 2,
+            "record_identity_and_proof_valid": true
+          },
+          "expected": {
+            "outcome": "rejected",
+            "error_code": "failed_precondition",
+            "reason_code": "account_status_record_stale",
+            "retryable": false,
+            "invariants": [
+              "lower sequence is not an exact duplicate",
+              "the replica and outbox remain unchanged",
+              "the exact stale record is never retried"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account_status.issuer_ledger.v1",
+              "preconditions": {
+                "current_status_seq": 3
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "lower_sequence_is_typed_stale_and_zero_write",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "submitted_status_seq": 2,
+                "record_identity_and_proof_valid": true
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "account_status_record_stale",
+              "shared_effects": "none"
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "error_code": "failed_precondition",
+              "reason_code": "account_status_record_stale",
+              "retryable": false
+            },
+            "expected_audit_reason": "account_status_record_stale"
+          }
+        },
+        {
+          "name": "chain_conflict_is_typed_fork_and_quarantined",
+          "input": {
+            "current_status_seq": 3,
+            "submitted_status_seq": 3,
+            "same_record_id": false,
+            "next_sequence_predecessor_matches": false
+          },
+          "expected": {
+            "outcome": "rejected",
+            "error_code": "failed_precondition",
+            "reason_code": "account_status_record_fork",
+            "retryable": false,
+            "operator_action": "quarantine_and_alert",
+            "invariants": [
+              "issuer-ledger fork never reuses duplicate_conflict",
+              "fork never enters gap recovery",
+              "the replica and outbox remain unchanged"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account_status.issuer_ledger.v1",
+              "preconditions": {
+                "current_status_seq": 3,
+                "current_account_status_record_id_known": true
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "chain_conflict_is_typed_fork_and_quarantined",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "submitted_status_seq": 3,
+                "same_record_id": false,
+                "next_sequence_predecessor_matches": false
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "account_status_record_fork",
+              "shared_effects": "none"
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "error_code": "failed_precondition",
+              "reason_code": "account_status_record_fork",
+              "retryable": false
+            },
+            "expected_audit_reason": "account_status_record_fork"
+          }
+        },
+        {
+          "name": "binding_version_rollback_is_typed_and_zero_write",
+          "input": {
+            "durable_binding_version": 4,
+            "submitted_binding_version": 3,
+            "record_identity_and_proof_valid": true
+          },
+          "expected": {
+            "outcome": "rejected",
+            "error_code": "failed_precondition",
+            "reason_code": "account_status_binding_rollback",
+            "retryable": false,
+            "invariants": [
+              "binding rollback cannot lower the durable floor",
+              "the replica outbox and erasure intent remain unchanged"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account_status.issuer_ledger.v1",
+              "preconditions": {
+                "durable_binding_version": 4
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "binding_version_rollback_is_typed_and_zero_write",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "submitted_binding_version": 3,
+                "record_identity_and_proof_valid": true
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "account_status_binding_rollback",
+              "shared_effects": "none"
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "error_code": "failed_precondition",
+              "reason_code": "account_status_binding_rollback",
+              "retryable": false
+            },
+            "expected_audit_reason": "account_status_binding_rollback"
           }
         },
         {
@@ -1968,13 +2114,13 @@
             "reason_code": "schema_violation",
             "invariants": [
               "fanout accepts only receiver-signed AccountStatusReceipt values",
-              "AccountStatusReceipt binds the accepted frontier and contains no AuthorizationLease id",
-              "a generic offline-publication IngressReceipt grants no account-status publication authority"
+              "AccountStatusReceipt binds the exact record id digest and status_seq",
+              "a generic Event IngressReceipt grants no account-status replication authority"
             ]
           },
           "runner": {
             "given_state": {
-              "vector_id": "ak.vector.account_status.authority_publication.v1",
+              "vector_id": "ak.vector.account_status.issuer_ledger.v1",
               "preconditions": {
                 "publication_branch": "receipted_fanout"
               }

@@ -797,7 +797,7 @@ upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.cryp
 `ak.self.keys.keypackages.command.claim` 与 `ak.peer.keys.keypackages.command.claim` MUST 消费同一个
 `keypackages_claim_request_body`。requester 必须携带 §9.2.1 定义的 closed
 `device | native_agent` `requester_authorization`，并签名 exact unsigned request 与
-`service_binding`；不得再携带 holder-only proof、兼容 proof 容器或平行 transcript。
+`service_binding`；不得携带 holder-only proof、额外 proof 容器或平行 transcript。
 
 `service_binding` 必须显式绑定稳定的 source/destination Principal Server DID。trust domain 属于部署态 transport
 坐标，不进入 participant transcript；source Principal Server 必须从已验证的 ServiceResolution + ServiceDescribe

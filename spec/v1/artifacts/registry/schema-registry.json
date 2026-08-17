@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.3",
+  "version": "2026-08-17.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-16T12:00:00Z",
+  "generated_at": "2026-08-17T17:35:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -421,6 +421,13 @@
       "file": "schemas/account-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for account self-service operations: viewer, register, profile update, and session revocation."
+    },
+    {
+      "schema_id": "ak.schema.account_status_record.v1",
+      "file": "schemas/account-operations.schema.json",
+      "fragment": "#/$defs/account_status_record",
+      "status": "active",
+      "description": "Immutable Account Authority issuer-ledger lifecycle record with a suite-tagged full-digest identity and detached proof."
     },
     {
       "schema_id": "ak.schema.account_data_operations.v1",

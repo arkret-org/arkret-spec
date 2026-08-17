@@ -148,8 +148,8 @@ truth。完整 MLS 目标 roster 是 `S.controller_id` 加上这个 Agent 集合
 不得继续分发新 epoch 内容。caller、controller、Realm admin、Agent 或 service 均不得在 Sidecar 内设置、
 替换、追加、邀请、移除或转让 participant。
 
-`ak.sidecar.access.replace` 已移除；receiver MUST 将它视为 unknown Event kind。不得用 profile extension
-恢复同义成员列表。
+不得用 profile extension 或任何未注册 Event kind 恢复同义成员列表；receiver MUST 将未注册
+kind 按 unknown Event kind 处理。
 
 专用读取面公开两个只读集合：
 

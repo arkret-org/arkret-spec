@@ -212,7 +212,7 @@ grpc:
     PeerDeviceRevocations:
       Check: ak.peer.device_revocations.command.check
     PeerAccountStatus:
-      AuthoringFrontiers: ak.peer.account_status.read.authoring_frontiers
+      Resolve: ak.peer.account_status.read.resolve
       Submit: ak.peer.account_status.command.submit
     PeerErasureReceipts:
       Get: ak.peer.erasure_receipt.resource.get
@@ -389,7 +389,7 @@ mq:
     peer.events.read.scan.resolve: ak.peer.events.read.resolve
     peer.events.read.scan: ak.peer.events.read.scan
     peer.events.read.scan.frontier: ak.peer.events.read.frontier
-    peer.account_status.query.authoring_frontiers: ak.peer.account_status.read.authoring_frontiers
+    peer.account_status.query.resolve: ak.peer.account_status.read.resolve
     peer.mls.query.group_state_material: ak.peer.mls.read.group_state_material
     peer.invites.command.submit: ak.peer.invites.command.submit
     peer.contacts.command.submit: ak.peer.contacts.command.submit

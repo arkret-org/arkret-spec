@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-16.2",
+  "version": "2026-08-17.1",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -77,33 +77,6 @@
     }
   ],
   "event_kinds": [
-    {
-      "event_kind": "ak.account.status",
-      "exposures": [
-        {
-          "carrier": "exact_event",
-          "surface": "operation",
-          "operation_id": "ak.peer.account_status.command.submit",
-          "direction": "request",
-          "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_request_body",
-          "json_pointers": [
-            "/$defs/account_status_publication_request_body/properties/publication"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1"
-        },
-        {
-          "carrier": "derived_field",
-          "surface": "operation",
-          "operation_id": "ak.peer.account_status.read.authoring_frontiers",
-          "direction": "response",
-          "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome",
-          "json_pointers": [
-            "/$defs/account_status_authoring_frontiers_outcome/properties/principal_control_realm_id"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1"
-        }
-      ]
-    },
     {
       "event_kind": "ak.agent.key.authorize",
       "exposures": []

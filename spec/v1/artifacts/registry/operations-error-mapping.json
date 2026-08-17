@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-16.2",
+  "version": "2026-08-17.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-16T16:00:00Z",
+  "generated_at": "2026-08-17T08:35:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -312,7 +312,7 @@
       "operation_id": "ak.gate.account.command.logout",
       "http_alias": "POST /_arkret/gate/account/logout",
       "operation_specific": [],
-      "description": "Account Authority ordinary hard logout (account-lifecycle §4.1): the only client-visible logout entry. It validates the current ak.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain, and completes or durably schedules Principal-side local account/device session cleanup plus to-device/push removal. Does not write ak.account.status, emit ak.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
+      "description": "Account Authority ordinary hard logout (account-lifecycle §4.1): the only client-visible logout entry. It validates the current ak.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain, and completes or durably schedules Principal-side local account/device session cleanup plus to-device/push removal. Does not create an AccountStatusRecord, emit ak.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
     },
     {
       "operation_id": "ak.gate.account.command.logout_auth_session",
@@ -403,7 +403,7 @@
         "duplicate_conflict",
         "session_grant_replay_indeterminate"
       ],
-      "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or write durable ak.account.status. The issuer durably records the exact mutation outcome; exact request replay returns that outcome, while the same request identity with different canonical intent returns duplicate_conflict. If replay retention no longer proves whether the mutation committed, session_grant_replay_indeterminate fails closed with zero new state changes."
+      "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or create an AccountStatusRecord. The issuer durably records the exact mutation outcome; exact request replay returns that outcome, while the same request identity with different canonical intent returns duplicate_conflict. If replay retention no longer proves whether the mutation committed, session_grant_replay_indeterminate fails closed with zero new state changes."
     },
     {
       "operation_id": "ak.gate.account.exchange.complete_oidc",
@@ -566,21 +566,23 @@
       "operation_specific": [
         "duplicate_conflict",
         "failed_precondition",
+        "account_status_record_stale",
+        "account_status_record_fork",
+        "account_status_binding_rollback",
         "account_status_transition_invalid",
         "erasure_pending_is_terminal",
         "peer_stale"
       ],
-      "description": "Account Authority / delegated Principal Server account-status publication. signature_invalid and unauthorized remain universal authentication failures; failed_precondition covers authority-evidence/Event/PCR field mismatch or stale binding evidence, while the two account-status codes cover illegal lifecycle transitions. Same Idempotency-Key with another canonical body is duplicate_conflict."
+      "description": "Exact Account Authority issuer-record replication. signature_invalid and unauthorized remain universal authentication failures. Ledger rejections use failed_precondition plus a closed reason_code: account_status_record_stale for lower sequence, account_status_record_fork for same-sequence different-record or next-sequence predecessor mismatch, account_status_binding_rollback for a lower binding_version, account_status_transition_invalid for an illegal lifecycle transition, and erasure_pending_is_terminal for a successor after the terminal state. Same Idempotency-Key with another canonical body alone is duplicate_conflict. peer_stale retains its federation-frontier quarantine meaning and is not a lower account-status sequence."
     },
     {
-      "operation_id": "ak.peer.account_status.read.authoring_frontiers",
-      "http_alias": "POST /_arkret/peer/account-status/authoring-frontiers",
+      "operation_id": "ak.peer.account_status.read.resolve",
+      "http_alias": "POST /_arkret/peer/account-status/resolve",
       "operation_specific": [
-        "failed_precondition",
-        "frontier_unavailable",
+        "not_found",
         "peer_stale"
       ],
-      "description": "failed_precondition covers authority-evidence/account/principal/PCR/issuer binding mismatch; frontier_unavailable covers a missing or unverifiable accepted actor/Seal frontier."
+      "description": "Unknown account, unrelated service and unauthorized caller share not_found before ledger disclosure; peer_stale covers an unavailable authoritative observation."
     },
     {
       "operation_id": "ak.peer.contacts.command.submit",

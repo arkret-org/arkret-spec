@@ -772,7 +772,7 @@
         },
         "new_device_pubkey": {
           "$ref": "./public-key.schema.json#/$defs/public_key",
-          "description": "Canonical PublicKey for the requesting device when purpose=same_principal_device_authorization. kid MUST be the requesting ak:device:<uuidv7> id and the key material MUST be carried in key. The legacy {kid, alg, public_key} spelling is not canonical wire and MUST be rejected. The object is later consumed verbatim by ak.gate.account.command.pair_device."
+          "description": "Canonical PublicKey for the requesting device when purpose=same_principal_device_authorization. kid MUST be the requesting ak:device:<uuidv7> id and the key material MUST be carried in key. The {kid, alg, public_key} spelling is not canonical wire and MUST be rejected. The object is later consumed verbatim by ak.gate.account.command.pair_device."
         },
         "challenge_proof": {
           "$ref": "./device-pairing.schema.json#/$defs/device_pairing_challenge_proof",

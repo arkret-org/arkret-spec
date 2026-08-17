@@ -922,7 +922,7 @@ Arkret 不复制易漂移的外部密码学金值；本向量直接 pin MLS WG `
 
 `vector_id`: `ak.vector.mls.security_frontier_key_access_only.v1`
 
-该历史 vector id 为兼容保留；当前语义固定 [`encryption-and-audit.md` §2.5.2](../crypto-media/encryption-and-audit.md#252-send-gate-与-self-heal) 的两条结构性规则：security frontier 只吸收改变密钥访问资格的 closed cell set，普通 DataEvent 的 `seal_ref` 与 MLS frontier 正交。
+本 vector 固定 [`encryption-and-audit.md` §2.5.2](../crypto-media/encryption-and-audit.md#252-send-gate-与-self-heal) 的两条结构性规则：security frontier 只吸收改变密钥访问资格的 closed cell set，普通 DataEvent 的 `seal_ref` 与 MLS frontier 正交。
 
 Steps：
 
@@ -6312,9 +6312,9 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 8. submit/read 两个 outcome 的 `pending_delivery_count` 必须精确等于 pending_route 与 pending_delivery rows 数；
    计数为零当且仅当 aggregate state 为 complete。
 
-## Account status publication carrier
+## Account status issuer ledger
 
-`ak.vector.account_status.authority_publication.v1` MUST 覆盖：Account Authority 先以当前 binding version 的 `authority_evidence` 调用 `ak.peer.account_status.read.authoring_frontiers`，只有 Source-Service-ID 等于 issuer、account/principal/PCR/current delegation 全部匹配且 actor/Seal frontier 可验证时返回 typed frontiers；返回 actor_id/realm_id 不一致、degraded governance、synthetic empty PCR、stale/unresolved Seal 或过期 evidence 均零披露失败，query 本身零写入。producer 必须由返回 actor frontier 构造 `actor_seq/prev_refs`，由验证后的单一 Seal head 构造 `seal_basis.leaves`，不得使用 opaque peer frontier root 或私有 DTO。随后 Event actor/proof、payload account/principal 与 Principal Control Realm 全部一致时进入 `pending_seal -> accepted` 并返回 frontier digest/barrier cursor；相同 Idempotency-Key + byte-identical body 在 pending/accepted 两阶段均不创建第二条 Event且返回最新 operation state；同 key 异 body `duplicate_conflict`。Issuer、account、principal、PCR、authority ref、binding version、proof digest、HTTP Source/Destination 或 trust domain 任一不匹配均零写入失败。Receipted fanout 必须保留原 Event 并携 receiver-signed `account_status_receipts[]` / CBA closure；receipt 必须证明本地 accepted frontier且不含 AuthorizationLease，generic `IngressReceipt` 必须 schema-invalid；目标 ack 前 outbox 保持 pending，超窗投影 `deactivation_federation_incomplete=true`，最终 ack 后清零 flag 而不改写 Event payload。Holder session、第三方服务与通用 `ak.peer.events.command.submit` 缺 account authority evidence 的尝试都不得成为可接受 carrier。
+`ak.vector.account_status.issuer_ledger.v1` MUST 覆盖：account binding 与 `status_seq=1,active` record、account row、audit、outbox 原子提交，PCR 尚无 Seal 也成功；record id 与 proof 对同一 closed unsigned core 做 JCS/SHA-256 闭合，proof controller 必须是 Account Authority；successor 严格执行 `seq=current+1` 与 exact predecessor CAS，exact replay byte-identical、同 request identity 异 intent 零写入冲突；receiver 区分 accepted/duplicate/stale/gap/fork，gap 返回 exact required seq 并通过 bounded resolve 取得连续原始 records；holder offline/revoked/hostile 时 Account Authority 仍可 final `locked/suspended/deactivated/erasure_pending`；receipted fanout 保留原 record bytes，receipt 精确绑定 record，超窗 flag 不回写 record；不存在 Event、Seal、CBA、frontier 或 `pending_seal` 路径。
 
 ## Personal blocklist revision and delivery semantics
 

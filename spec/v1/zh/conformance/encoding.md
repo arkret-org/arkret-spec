@@ -1010,4 +1010,4 @@ nonce = sender_nonce_prefix || device_nonce_counter_be64
 
 `aad_digest` 是**对 AAD bytes 自身**的摘要，与本节无冲突，可由 domain 保留，但 MUST 位于 header/AAD 之外、由外层 proof 覆盖；receiver MUST 重算 AAD 而不是采信调用方自报的 `aad_digest`。domain 之间 MUST NOT 被误写成“统一必须携带”或“统一必须删除”。
 
-**既有密文处置（normative）**：v1 尚无发布，Arkret 采取激进更新、不保留旧数据兼容。任何按前身（不可构造）定义生成的持久密文一律视为不可读，实现 MUST NOT 为其保留第二套 AAD 组成或兼容分支。
+**AAD 组成唯一性（normative）**：每个 domain 的 immutable header 与 AAD 组成 MUST 唯一。实现 MUST NOT 为同一 domain 保留第二套 AAD 组成或平行解密分支；无法按本节定义重算 AAD 的密文 MUST 被视为不可读，而不得改用另一套组成尝试解密。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.1",
+  "version": "2026-08-17.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-15T16:16:56Z",
+  "generated_at": "2026-08-17T11:00:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -112,7 +112,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#10-encrypted-envelope-digest",
-      "section_digest": "sha256:a104f1f8cde7ce27054f793cd35cd5499164ecc36b3dfce183be089c3d53a6b8",
+      "section_digest": "sha256:d26b5b4437467ffce848d589a8473b2b59a81197e78a8ca0cdaa29e95a6acbec",
       "requirement": "Encrypted envelopes carry a pre-encryption immutable header; AAD digest and ciphertext digest are computed over fixed transcripts and any mismatch MUST fail closed.",
       "testability_grade": "vector",
       "evidence_refs": [

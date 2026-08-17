@@ -33,6 +33,11 @@
       "type": "string",
       "pattern": "^ak:session_grant:[A-Za-z0-9_-]{44}$"
     },
+    "account_status_record_id": {
+      "type": "string",
+      "pattern": "^ak:account_status_record:[A-Za-z0-9_-]{44}$",
+      "description": "Account Authority issuer-ledger record identity derived from the complete closed unsigned AccountStatusRecord core."
+    },
     "blob_ref": {
       "type": "string",
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"

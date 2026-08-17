@@ -1665,22 +1665,42 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         f"{id_kind} genesis Event {genesis_kind} does not point back to this id kind",
                     )
         elif id_form == "suite_tagged_full_digest":
-            if id_kind != "session_grant":
+            if authority != "issuer_record":
+                lint.fail(
+                    id_path,
+                    f"{id_kind} suite-tagged row must declare identity_authority=issuer_record",
+                )
+            if genesis_kinds is not None:
+                lint.fail(
+                    id_path,
+                    f"{id_kind} issuer-record row must omit genesis_event_kinds",
+                )
+            contract_ref = row.get("derivation_contract_ref")
+            prefix = "#/id_kind_registry/"
+            contract_name = (
+                contract_ref[len(prefix) :]
+                if isinstance(contract_ref, str) and contract_ref.startswith(prefix)
+                else None
+            )
+            contract = id_registry.get(contract_name) if contract_name else None
+            if not isinstance(contract, dict):
                 lint.fail(
                     id_path,
                     f"{id_kind} has no registered suite_tagged_full_digest authority contract",
                 )
-            if authority != "issuer_record":
+                continue
+            applies_to = contract.get("applies_to_id_kinds")
+            if not isinstance(applies_to, list) or id_kind not in applies_to:
                 lint.fail(
                     id_path,
-                    "session_grant suite-tagged row must declare identity_authority=issuer_record",
+                    f"{id_kind} derivation contract does not declare this id kind",
                 )
-            if genesis_kinds is not None:
-                lint.fail(id_path, "session_grant issuer-record row must omit genesis_event_kinds")
-            if row.get("derivation_contract_ref") != "#/id_kind_registry/issuer_record_identity_contract":
-                lint.fail(id_path, "session_grant must reference issuer_record_identity_contract")
-            if row.get("storage_identity_key") != ["issuer_did", "typed_id"]:
-                lint.fail(id_path, "session_grant storage identity key must bind issuer_did and typed_id")
+            expected_storage_key = contract.get("storage_identity_key", contract.get("identity_key"))
+            if row.get("storage_identity_key") != expected_storage_key:
+                lint.fail(
+                    id_path,
+                    f"{id_kind} storage identity key does not match its derivation contract",
+                )
         elif id_form == "producer_allocated":
             if authority != "producer_signature":
                 lint.fail(

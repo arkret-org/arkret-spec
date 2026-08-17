@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-17.1",
+  "version": "2026-08-17.5",
   "codes": [
     {
       "code": "json_invalid",
@@ -1209,7 +1209,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ak.self.account.command.update_profile` received an `avatar_blob_ref` that is not a valid Arkret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is only a compatibility-layer input outside the Arkret protocol path."
+      "description": "`ak.self.account.command.update_profile` received an `avatar_blob_ref` that is not a valid Arkret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is not a protocol field."
     },
     {
       "code": "unsupported_profile_patch_path",
@@ -1786,13 +1786,40 @@
       "description": "Awaiting moderator review."
     },
     {
+      "code": "account_status_binding_rollback",
+      "applies_to": [
+        "account_status",
+        "service_call",
+        "state_resolution"
+      ],
+      "description": "A Principal Server received an otherwise valid AccountStatusRecord whose binding_version is lower than the durable floor for the same Account Authority and account. The receiver MUST return failed_precondition with this reason, perform zero replica/outbox/erasure-intent writes, and MUST NOT retry the same record. See zh/identity/account-lifecycle.md §3."
+    },
+    {
+      "code": "account_status_record_fork",
+      "applies_to": [
+        "account_status",
+        "service_call",
+        "state_resolution"
+      ],
+      "description": "A Principal Server received an AccountStatusRecord that conflicts with the issuer-ledger chain: either the durable status_seq already names a different record, or the next status_seq does not name the durable head as previous_account_status_record_id. The receiver MUST return failed_precondition with this reason, perform zero writes, stop automatic retry or gap recovery for the conflicting record, and quarantine/alert for operator investigation. It MUST NOT reuse duplicate_conflict, which is reserved by this operation for Idempotency-Key reuse with different canonical request bytes. See zh/identity/account-lifecycle.md §3."
+    },
+    {
+      "code": "account_status_record_stale",
+      "applies_to": [
+        "account_status",
+        "service_call",
+        "state_resolution"
+      ],
+      "description": "A Principal Server received an otherwise valid AccountStatusRecord whose status_seq is lower than its durable replica head. The receiver MUST return failed_precondition with this reason, perform zero writes, and treat the exact record as terminal/non-retryable; this is distinct from duplicate, which requires the same sequence and record identity. See zh/identity/account-lifecycle.md §3."
+    },
+    {
       "code": "account_status_transition_invalid",
       "applies_to": [
         "account_status",
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A `ak.account.status` event requested a `from → to` status transition not permitted by the account-status legal-transition table — e.g. reactivating a `deactivated` account (`deactivated → active`/any lower-severity), which v1 does not define because the §7.1 deactivation fanout (device revoked / KeyPackage retired / session revoked) is irreversible. The reducer / projection MUST `failed_precondition`. (Superseding `erasure_pending` uses the more specific `erasure_pending_is_terminal`.) See zh/identity/account-lifecycle.md §3."
+      "description": "An Account Authority issuer-ledger mutation requested a `from → to` status transition not permitted by the account-status legal-transition table — e.g. reactivating a `deactivated` account. The current-head transaction MUST fail with zero account-row/ledger/audit/outbox writes. A successor after `erasure_pending` uses the more specific `erasure_pending_is_terminal`. See zh/identity/account-lifecycle.md §3."
     },
     {
       "code": "accountability_grant_missing",
@@ -2964,7 +2991,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A `ak.account.status` event attempted to supersede an `erasure_pending` status (via `supersedes_status_event_ids`) down to a lower-severity status. `erasure_pending` is terminal: erasure physically destroys data, so reducers / projections MUST reject the downgrade and keep `erasure_pending` as the current status. See zh/identity/account-lifecycle.md §3."
+      "description": "An Account Authority issuer-ledger mutation attempted to create a successor after `erasure_pending`. The state is terminal because erasure physically destroys data; the current-head transaction and every receiver MUST reject the successor and retain the terminal record. See zh/identity/account-lifecycle.md §3."
     },
     {
       "code": "erasure_receipt_authority_invalid",
@@ -4948,7 +4975,7 @@
         "service_call",
         "client_sync"
       ],
-      "description": "Sub-reason for failed_precondition when any legacy plaintext broadcast envelope is submitted or received. Signal is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Signal for a scope unless they can verify its MLS basis, AAD, and proof. See zh/crypto-media/encryption-and-audit.md section 2.9.1."
+      "description": "Sub-reason for failed_precondition when any plaintext broadcast envelope is submitted or received. Signal is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Signal for a scope unless they can verify its MLS basis, AAD, and proof. See zh/crypto-media/encryption-and-audit.md section 2.9.1."
     },
     {
       "code": "snapshot_issuer_revoked",

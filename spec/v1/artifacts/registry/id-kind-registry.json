@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.3",
+  "version": "2026-08-17.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-12T14:55:00Z",
+  "generated_at": "2026-08-17T17:35:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -127,6 +127,30 @@
       "vector_id": "ak.vector.auth.session_grant_issuer_record.v1",
       "fixture": "session-grant-issuance-fixture.json"
     }
+  },
+  "account_status_record_identity_contract": {
+    "applies_to_id_kinds": [
+      "account_status_record"
+    ],
+    "identity_key": [
+      "account_authority_id",
+      "account_id",
+      "status_seq"
+    ],
+    "authority": "account_authority_signed_immutable_record",
+    "schema": "ak.schema.account_status_record.v1",
+    "canonicalization": "json_jcs",
+    "digest_suite_registry_ref": "registry/digest-suite-registry.json#/suites/canonical_id=sha256",
+    "digest_suite_wire_code": 1,
+    "digest_input": "SHA-256(JCS(record fields excluding account_status_record_id and proof))",
+    "token_layout": "digest_suite_wire_code || 32-byte digest",
+    "sequence_rule": "status_seq starts at 1; seq=1 is active and has no previous_account_status_record_id; every successor is current+1 and names the exact current account_status_record_id",
+    "proof_context": "ak.account-status-record-proof-v1",
+    "storage_identity_key": [
+      "account_authority_id",
+      "account_id",
+      "status_seq"
+    ]
   },
   "realm_token_layout": {
     "wire_form": "ak:realm:<44-char-base64url-no-pad>",
@@ -537,6 +561,21 @@
       "storage_identity_key": [
         "issuer_did",
         "typed_id"
+      ]
+    },
+    {
+      "kind": "account_status_record",
+      "category": "account",
+      "status": "active",
+      "wire_form": "ak:account_status_record:<44-char-suite-tagged-full-digest-token>",
+      "description": "Immutable Account Authority issuer-ledger lifecycle record identity derived from the complete closed unsigned record core.",
+      "id_form": "suite_tagged_full_digest",
+      "identity_authority": "issuer_record",
+      "derivation_contract_ref": "#/id_kind_registry/account_status_record_identity_contract",
+      "storage_identity_key": [
+        "account_authority_id",
+        "account_id",
+        "status_seq"
       ]
     },
     {

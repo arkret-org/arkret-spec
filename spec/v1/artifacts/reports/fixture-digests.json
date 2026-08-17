@@ -6,7 +6,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json",
-      "sha256": "676c5b08cdf2090b7fc7880f593d7cfbd3f1ac64b93eb9f927223780151cb123"
+      "sha256": "44cf8736a6728b64353cd465f9af9d03c40a7b0a36b6f683316470c8571a3643"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json",
@@ -158,7 +158,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "225118deff617399d3a1fe34fc7f771cb1c841717d7dfb08096a112c65ddb249"
+      "sha256": "85127452335628bd3144f6dc6468324321c1c59fbb698dfc0cb33c29ab2b7332"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -306,7 +306,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "24a077c84cf2ebc2fe6d8139d0185f8b76ac3b92bdb2bd0eb13814a9deef83d0"
+      "sha256": "bc833b474ddef896b13eb6f967edc8cf701a23f9ed22fcd900a171010c610b39"
     },
     {
       "path": "spec/v1/artifacts/fixtures/reviewer-authority-pair-fixture.json",
@@ -318,7 +318,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "9058d6bbdb28c4374dc32b4b113f5043cb0256c850ac2e7bd887bd20ab678b41"
+      "sha256": "8cb610153fa91166ac636d066bbd92c400117c938c3d168aadd0b7f4f72acdbd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -334,7 +334,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-      "sha256": "98c65fe61612c965bb80980d9fc762873e8f99b4cd8c0543e67a9548d370f47a"
+      "sha256": "739efce943a00f1f0136d7a0fc63c87af6e8a7a5737d6f6576e945c34f7db030"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",

@@ -195,112 +195,86 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
 
 **认证错误码（normative）**：Account status 导致 session grant 或 grant-binding proof 失效时，服务端 MUST 返回与 current status 匹配的专用错误码，而不是退化成通用 `unauthenticated` / `capability_denied`。已签发 session 访问受保护 `/_arkret/self/*` 资源时：`soft_logged_out` 返回 `401 soft_logged_out`；`locked` 返回 `401 account_locked`；`deactivated` 返回 `401 account_deactivated`；`erasure_pending` 返回 `401 account_erased`。新 session grant 签发、session refresh 或登录完成阶段遇到当前 status 时：`locked` SHOULD 返回 `403 account_locked`；`suspended` MUST 返回 `403 account_suspended`；`deactivated` SHOULD 返回 `403 account_deactivated`；`erasure_pending` MUST 返回 `401 account_erased`。这些 code 的机器真源是 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)；`account_locked` / `account_deactivated` 的入口差异由同行 `http_status_by_context` 机读化，`http_status` 是通用默认值。HTTP status 的差异只表达“已持有 grant 失效”与“新 grant 被 policy 拒发”的入口差异，不改变 account status 语义。
 
-**合法状态转换（normative）**：上面的 severity-order 仲裁解决"并发 head 选谁"，不替代"哪些 `from → to` 转换本身合法"的定义。`ak.account.status` reducer MUST 按下表判定单条状态转换是否合法；非法转换 MUST `failed_precondition`，`reason_code="account_status_transition_invalid"`：
+**合法状态转换（normative）**：Account Authority issuer ledger MUST 按下表判定从 current record 到 successor record 的状态转换是否合法；非法转换 MUST `failed_precondition`，`reason_code="account_status_transition_invalid"`，且 ledger/account row/audit/outbox 均零写入：
 
 | from \ to | `active` | `soft_logged_out` | `locked` | `suspended` | `deactivated` | `erasure_pending` |
 | --- | --- | --- | --- | --- | --- | --- |
 | `active` | —（同态重放） | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `soft_logged_out` | ✓（§4，须 fresh identity control proof） | — | ✓ | ✓ | ✓ | ✓ |
 | `locked` | ✓ | ✓ | — | ✓ | ✓ | ✓ |
-| `suspended` | ✓（appeal 解除，须 `supersedes_status_event_ids` 覆盖完整 blocking head set） | ✓ | ✓ | — | ✓ | ✓ |
+| `suspended` | ✓（appeal 解除，须 Account Authority 当前策略授权） | ✓ | ✓ | — | ✓ | ✓ |
 | `deactivated` | ✗（见下"重激活"） | ✗ | ✗ | ✗ | — | ✓ |
 | `erasure_pending` | ✗ | ✗ | ✗ | ✗ | ✗ | —（terminal） |
 
-- **降低严格度**（任一 `to` 严格度低于 `from`，如 `suspended → active`、`locked → soft_logged_out`）的转换 MUST 满足规则 2（`supersedes_status_event_ids` 精确覆盖当前所有不低于目标严格度的 blocking heads，且每项在当前 Seal view 可见），否则不构成有效恢复。
-  - `soft_logged_out → active` 自助恢复同样必须携带 `supersedes_status_event_ids` 并精确覆盖完整 current head set；§4 的 fresh identity control proof 只提供恢复授权，不替代 head-set resolution。所有降低严格度的路径因此使用同一机读形状，不设 payload 例外。
+- **降低严格度**（任一 `to` 严格度低于 `from`，如 `suspended → active`、`locked → soft_logged_out`）必须由 Account Authority 在 current-head CAS transaction 内验证该转换对应的 fresh identity-control、appeal 或管理员授权。授权证明进入本地审计记录，不进入 portable `AccountStatusRecord`，不得由 receiver 二次裁决。
 - **`erasure_pending` 为 terminal**（规则 3）：其唯一出边为空，任何转出 MUST 拒绝 `erasure_pending_is_terminal`。
-- **`deactivated` 重激活**（normative）：v1 **不**允许同一 `account_id` 的 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout 对绑定到该 account 的 device、KeyPackage、session、push 与 to-device 资源不可逆；需要恢复访问的用户 MUST 创建新的 service account（新 `account_id`）并走完整 onboarding，可继续绑定同一 principal `did_core_id`，但不得复活旧 account 或旧资源。`deactivated` 的唯一合法出边是 `erasure_pending`。实现 MUST NOT 接受声称把该 `account_id` 的 `deactivated` 降级回较低严格度状态的 `ak.account.status` event（`account_status_transition_invalid`）。
+- **`deactivated` 重激活**（normative）：v1 **不**允许同一 `account_id` 的 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout 对绑定到该 account 的 device、KeyPackage、session、push 与 to-device 资源不可逆；需要恢复访问的用户 MUST 创建新的 service account（新 `account_id`）并走完整 onboarding，可继续绑定同一 principal `did_core_id`，但不得复活旧 account 或旧资源。`deactivated` 的唯一合法出边是 `erasure_pending`。实现 MUST NOT 签发声称把该 `account_id` 的 `deactivated` 降级回较低严格度状态的 successor record（`account_status_transition_invalid`）。
 
-状态发布为服务侧 signed account status：
+状态真相是 Account Authority issuer ledger 中的 immutable signed record：
 
 ```json
 {
-  "event_id": "ak:event:Aaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
-  "kind": "ak.account.status",
-  "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
-  "scope_ref": {
-    "kind": "realm",
-    "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe"
-  },
-  "actor_id": "ak:did_core:webvh:zGtABZixoZZ3m4cFx3E65LCmg",
-  "actor_seq": 7,
-  "created_at": "2026-04-26T00:00:00.000Z",
-  "prev_refs": [],
-  "refs": [],
-  "seal_basis": {
-    "leaves": [
-      "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-    ]
-  },
-  "payload": {
-    "account_id": "acct_123",
+  "schema": "ak.schema.account_status_record.v1",
+  "account_status_record_id": "ak:account_status_record:Aaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+  "account_authority_id": "ak:did_core:webvh:zGtABZixoZZ3m4cFx3E65LCmg",
+  "account_id": "acct_123",
+  "principal_authority": {
     "principal_id": "ak:did_core:webvh:z6mkfixture",
-    "status": "suspended",
-    "reason_code": "abuse_review",
-    "effective_at": "2026-04-26T00:00:00.000Z"
+    "principal_server_id": "ak:did_core:webvh:zPrincipalServer"
   },
-  "proofs": [
-    {
-      "kind": "detached_jws",
-      "verification_method": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#key-1",
-      "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "created_at": "2026-04-26T00:00:00.000Z",
-      "jws": "a..b"
-    }
-  ]
+  "principal_control_realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+  "binding_version": 1,
+  "status_seq": 7,
+  "previous_account_status_record_id": "ak:account_status_record:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "status": "suspended",
+  "reason_code": "abuse_review",
+  "effective_at": "2026-04-26T00:00:00.000Z",
+  "issued_at": "2026-04-26T00:00:00.000Z",
+  "verification_method": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#account-status-key",
+  "proof": {
+    "kind": "detached_jws",
+    "verification_method": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#account-status-key",
+    "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "created_at": "2026-04-26T00:00:00.000Z",
+    "jws": "a..b"
+  }
 }
 ```
 
-`ak.account.status` 的 issuer MUST 是对该 `account_id` 具有权威性的 Account Authority，或该 service account 所属 Principal Server 的已委派 service DID。Event `actor_id`、proof controller 与 `signature.kid` controller MUST 解析到同一 issuer service DID；payload 的 `account_id` 与 `principal_id` MUST 逐字匹配该 issuer 在 Event CBA basis 下已验证的 service-account → principal binding。receiver MUST 验证 issuer key 在 `effective_at` 对应的验证窗口内 active，并验证该 service DID 的 Account Authority / Principal Server 委派覆盖目标 account；任一不一致 MUST `unauthorized` 或 `signature_invalid`，不得进入 account status ordered log。holder 自助请求、appeal、管理员操作或风控工作流只可触发该权威 issuer 发布状态，不能让 holder device、任意第三方 Principal Server 或未委派服务自行签发 `ak.account.status`。
+`AccountStatusRecord` 的 signer MUST 是对该 `account_id` 具有权威性的 Account Authority。holder 自助请求、appeal、管理员、风控服务或 Principal Server 只能提交 authenticated transition command；它们不得直接签发 portable record。`verification_method`、proof controller 与 `account_authority_id` 必须解析到同一 Account Authority，且 key 在 `issued_at` 对应的历史窗口内 active。record 的 account/principal/binding tuple 必须逐字匹配 Account Authority 本地已接受 binding。
 
-### 3.1 Account Authority publication carrier（normative）
+### 3.1 Account Authority issuer ledger 与复制载体（normative）
 
-`ak.account.status` 不是 realm-less Event。与所有 active Event Envelope 一样，它 MUST 携带 `realm_id` 与 `scope_ref`；二者必须逐字指向 `authority_evidence.principal_control_realm_id`。这使 issuer authority、ordered-log write、Seal/CBA basis 和跨服务重放继续使用唯一 Event 模型，而不是为 account lifecycle 另造一套无 Realm 的签名/最终性规则。Cell subject 仍是 payload `account_id`；PCR 只是该 cell 的安全与同步 scope，不把不同 account 合并为同一个 lifecycle。
+Account lifecycle 不属于 Principal Control Realm finality domain。`AccountStatusRecord` 不是 Event，不进入 Realm timeline、actor frontier、Seal、CBA、Control Proposal、pending Control index 或 lattice reducer。`principal_control_realm_id` 仅是已验证 account binding coordinate；holder device 或 PCR notary 对 Account Authority 的 deny transition 没有签名或最终否决权。
 
-Account Authority 或已委派 issuer 向 Principal Server 发布状态的唯一 HTTP operation 是 `ak.peer.account_status.command.submit`（`POST /_arkret/peer/account-status`），request 为 `account_status_publication_request_body`：
+Account Authority 的本地 issuer ledger 是该 `account_id` 的唯一 lifecycle 真相源：
 
-在签名 Event 之前，authoritative issuer MUST 通过标准只读操作
-`ak.peer.account_status.read.authoring_frontiers`（`POST /_arkret/peer/account-status/authoring-frontiers`）取得同一 PCR 的
-typed authoring frontiers。request 必须携带完整、当前有效的 `authority_evidence` 与固定
-`event_kind="ak.account.status"`，并使用 §3 的 service-to-service HTTP Message Signature；Source-Service-ID
-MUST 等于 evidence 的 `issuer_service_id`，Destination-Service-ID MUST 是承载该 PCR accepted state 的 Principal
-Server。receiver 在披露任何 frontier 前 MUST 验证 authority proof、当前 delegation/binding version、account、
-principal、PCR 与 issuer 全字段绑定。响应 `account_status_authoring_frontiers_outcome` 同时返回：
+1. 首次 account binding commit MUST 在同一数据库事务创建 `status_seq=1,status=active` 的 genesis record；它没有 `previous_account_status_record_id`，不查询 Principal Server frontier，也不等待 holder/Seal。
+2. successor MUST 对 `(account_authority_id,account_id)` current head 做 CAS，且 `status_seq=current+1`、`previous_account_status_record_id=current.account_status_record_id`。同 request identity + 同 canonical intent exact replay 返回首次 bytes；异 intent 返回 `duplicate_conflict` 且零写入。
+3. account row、immutable record、transition audit 与传播 outbox MUST 原子提交。record identity 是 `0x01 || SHA-256(JCS(closed unsigned core))` 的 canonical Base64URL typed token；unsigned core 是除 `record_id` 与 `proof` 外的全部 record 字段。
+4. `proof` context 固定为 `ak.account-status-record-proof-v1`；proof payload digest 覆盖同一 unsigned core，`verification_method` 必须与 proof 内字段逐字相同并受 `account_authority_id` 控制。
+5. `binding_version` 只能随已接受 account binding 单调推进；同 version 不同 principal authority/PCR tuple 是 fork，较低 version 是 rollback。Account Authority 不得在 binding 尚未权威提交时签 record。
 
-- `actor_frontier: RealmActorFrontierView`，其 `(realm_id, actor_id)` 必须等于
-  `(principal_control_realm_id, issuer_service_id)`；producer 由 `next_actor_seq` 与完整
-  `frontier_event_ids` 构造 Event 的 `actor_seq` / `prev_refs`；
-- `seal_frontier: RealmSealFrontierView`，其 `realm_id` 必须等于同一 PCR；producer 只取
-  `seal_basis.leaves=[seal_frontier.seal_id]`，并验证返回 Seal、重算 `control_event_set_root` 与 `state_root`。
-- `current_status_event_ids: event_id[]`，必须是同一 snapshot 中该 `account_id` 全部有效 account-status
-  heads 的 canonical 升序、无重复集合；无既有 status 时必须是空数组。producer 必须把它作为降低严格度 Event 的
-  `supersedes_status_event_ids` 判定基线；若 heads 在 authoring 与 submit 间变化，receiver 必须以 stale
-  precondition 拒绝，producer 重新查询本 operation，不得猜测或只取一个 winner。
+Account Authority 向 Principal Server 复制状态的唯一写 operation 是 `ak.peer.account_status.command.submit`（`POST /_arkret/peer/account-status`）。request 只携 exact signed record；下游 fanout MAY 附带此前 receiver 的 `account_status_receipts[]`，但不得重建、重签或改变 record bytes。
 
-两种 frontier、account/principal/PCR/issuer 任一不一致、Seal 不可解析、governance health 非健康、authority
-evidence 过期或 hosting service 无 current accepted view 时 MUST fail closed（`frontier_unavailable` / 对应认证
-错误）。该 query 不签发 authority、不接受 Event、不推进 frontier，也不得返回 synthetic empty PCR。仅注册
-PCR genesis unit 可按专用原子 admission 规则派生 genesis basis；既有 PCR 的 Account Authority 不得使用空
-`prev_refs`、空 `seal_basis`、peer opaque frontier root 或实现私有 DTO 代替本操作。
+- receiver MUST 验证 RFC 9421 transport、record id/digest/proof、Account Authority 历史 key、exact account/principal/binding tuple，并以 `(account_authority_id,account_id)` 持久化单调 replica。`seq=current+1` 且 predecessor 精确相等才可 advance；same seq + same id 是 `duplicate`；lower seq 返回 `failed_precondition` + `account_status_record_stale`；same seq + different id 或 next seq predecessor mismatch 返回 `failed_precondition` + `account_status_record_fork` 并停止该 record 的自动重试/补链、进入 quarantine/operator alert；低于 durable floor 的 binding version 返回 `failed_precondition` + `account_status_binding_rollback`。这三类均零写入且对 exact record 不可重试。只有 higher seq gap 返回 `dependency_missing` 与 exact `required_status_seq` 并触发 bounded resolve；`peer_stale` 保留 federation frontier quarantine 原义，不表示 lower account-status sequence。
+- 每份 `AccountStatusReceipt` 闭合绑定 `receipt_id`、account-status record id/digest、Account Authority、account、status_seq、receiver 与 accepted_at；proof context 固定为 `ak.account-status-replication-receipt-proof-v1`。它只证明该 receiver 已 durable replicated exact record，不授予签发 authority。
+- `Idempotency-Key` 必填并进入 HTTP Message Signature transcript。Scope 是 `(Source-Service-ID,Destination-Service-ID,Idempotency-Key)`；同 key 不同 canonical body MUST `duplicate_conflict`。`accepted | duplicate` 是该 receiver 的 terminal ack；本协议不存在 `pending_seal`。
+- HTTP 必须使用 RFC 9421 Message Signature，覆盖 method、target URI、authority、`Content-Digest`、Source/Destination service DID、Source/Destination trust domain 与 `Idempotency-Key`。Outer signature 只认证 transport caller，不替代 Account Authority record proof。
+- receiver 遇 gap 或需要 freshness observation 时使用 `ak.peer.account_status.read.resolve`（`POST /_arkret/peer/account-status/resolve`）向 Account Authority 取得最多 128 条从 `from_status_seq` 开始的原始连续 records。响应按 `status_seq` 升序；`has_more=true` 时给出 `next_status_seq`。未知、无关系或无权 caller 必须在读取 ledger 前以 operation 注册的 non-enumerating outcome 拒绝。
 
-- `publication` 只允许一条完整 `ak.account.status` Event。首次 Account Authority publication 只携 `event`；下游 fanout 携同一原始 Event 与此前 receiver 签发的 `account_status_receipts[]`。每份专用 receipt 闭合绑定 `receipt_id`、Event id/digest、account/principal/PCR、`receiver_service_id`、accepted frontier digest 与 `accepted_at`，proof context 固定为 `ak.account_status.ingress_receipt.v1`；proof controller 必须是 `receiver_service_id`，且 receipt 中的绑定字段必须与 Event/authority evidence 逐字一致。它只证明该 receiver 已把 Event accepted 进本地 account-status frontier，不授予发布 authority。两条 publication 分支都禁止 AuthorizationLease，也禁止复用 generic `IngressReceipt`（后者结构上必含 `authorization_lease_id`）：account status 是高风险在线写入，receiver 必须按当前 authority / binding / revocation state admission，不能用旧 lease 延长发布窗口。
-- `authority_evidence` 是 Account Authority 以专用 context 签名、短期、transport-only 的 exact service-account binding 证明，闭合绑定 `account_authority_id`、Event `issuer_service_id`、`principal_control_realm_id`、`account_id`、`principal_id`、单调 `binding_version`、签发/过期时间。`ak.account.status` 是该 carrier 唯一允许的 Event kind，不再叠加含义重叠、却没有独立可解析真源的 `authority_ref`。Proof context 固定为 `ak.account_status.authority_evidence.v1`，`payload_digest` 是移除 `proof` 后完整对象的 RFC 8785 JCS SHA-256。它不得发布到 Directory、共享 Realm timeline 或 profile，不把部署本地 service-account id 提升为公共身份事实。
-- receiver MUST 逐字段比较 Event `actor_id` / proof controller、Event `realm_id` / `scope_ref`、payload `account_id` / `principal_id` 与 authority evidence；验证 Account Authority proof、Event proof、issuer key 在 `effective_at` 的历史有效性、binding version 未回滚，以及 PCR CBA closure。receiver 必须以 `(account_authority_id, account_id)` 为 key durable CAS 单调 floor；同 version 仅当稳定 binding tuple `(issuer_service_id, principal_control_realm_id, principal_id)` 逐字相同时可视为 fresh evidence replay（`issued_at` / `expires_at` / proof / Account Authority verification method 不进入 fork 比较，允许正常重签与 key rotation），同 version 不同 tuple 是 fork，较低 version 是 rollback。任何缺失、stale、fork、过期或不等都 fail closed。首次 receiver 已有依赖时可省略 request-level `cba_proof_bundles`；receipted fanout 对 receiver 缺失的 PCR 依赖必须携带 bundle 或返回 dependency failure，不能信任来源服务的“已验证”布尔值。
-- `Idempotency-Key` 必填并进入 HTTP Message Signature transcript。Scope 是 `(Source-Service-ID, Destination-Service-ID, Idempotency-Key)`；同 key 不同 canonical body MUST `duplicate_conflict`。相同 key + byte-identical body 可在 `pending_seal` 或 fanout 进行时重试，返回同一 durable operation record 的最新状态，不创建第二条 Event。`accepted | duplicate` 是该 receiver 本地 frontier 的 terminal ack，并返回 `effective_status_event_id`、`account_status_frontier_digest` 与 barrier cursor；`pending_seal` 必须返回 `Retry-After` / `retry_after_ms`，不得谎报 accepted。
-- HTTP 必须使用 RFC 9421 Message Signature，覆盖 method、target URI、authority、`Content-Digest`、Source/Destination service DID、Source/Destination trust domain 与 `Idempotency-Key`。Outer signature 认证 transport caller，不替代 Account Authority evidence、原 Event proof 或 CBA/Seal 验证。
+首个接收 Principal Server 从自身已持久化的 account session/device/KeyPackage/to-device/push-route、principal locator 与 Realm delivery-binding 状态确定**实际受影响 Principal Server 集合**，建立有界 durable outbox，并对每个目标复用上述 operation 的 receipted fanout 分支。集合只包含已经持有或即将持有该 account/principal 状态的服务；不得把 `account_id` 广播给无关 federation peer。每个目标按 `(account_authority_id,account_id,destination_service_id,record_id)` 去重；ack 后移出 outbox，失败按 bounded exponential backoff 重试。Outbox 必须有按 account/record/target 的唯一键、每 account 最大目标数 256、每目标最大一条未完成状态更新；不得跳过 predecessor、`deactivated` 或 `erasure_pending` 屏障，目标缺 gap 时先 resolve/补齐再提交后继。
 
-首个接收 Principal Server 从自身已持久化的 account session/device/KeyPackage/to-device/push-route、principal locator 与 Realm delivery-binding 状态确定**实际受影响 Principal Server 集合**，建立有界 durable outbox，并对每个目标复用上述 operation 的 receipted fanout 分支。集合只包含已经持有或即将持有该 account/principal 状态的服务；不得把 `account_id` 广播给无关 federation peer。每个目标按 `(account_authority_id, account_id, destination_service_id, event_id)` 去重；ack 后移出 outbox，失败按 bounded exponential backoff 重试。Outbox 必须有按 account/event/target 的唯一键、每 account 最大目标数 256、每目标最大一条未完成状态更新；更严格的新 status 可 supersede 尚未发送的较旧非 terminal 更新，但不得删除审计记录或跳过 `deactivated` / `erasure_pending` 屏障。
+上述 genesis/CAS、record identity/proof、gap/stale/duplicate/fork、幂等冲突与 fanout incomplete/complete 转换由 conformance vector `ak.vector.account_status.issuer_ledger.v1` 闭合。
 
-上述 carrier、authority mismatch、幂等冲突、pending Seal 与 fanout incomplete/complete 转换由 conformance vector `ak.vector.account_status.authority_publication.v1` 闭合。
+Current account status 是 ledger current head 的 `status`。该 ledger 是 Account Authority 单写者的 strict hash chain，不存在并发 Event head、severity winner 或 PCR reducer。`account_id` 是 lifecycle key；同一 principal 绑定的其它 `account_id` 独立求值。
 
-Current account status projection 是 ordered_log 上的确定性派生值，而不是简单取本地最后到达的 event。cell family `ak.component.account.status.v1` 的 `cell_subject` 是 `account_id`；`principal_id` 是该 service account 的绑定主体，不是 lifecycle key。本节定义的 severity-order 仲裁是该 cell 上的 canonical projection。若同一 `account_id` 出现并发 `ak.account.status` head，client / server MUST 按以下规则选择当前状态；同一 principal 绑定的其它 `account_id` MUST 独立求值：
+`AccountStatusRecord.expires_at` 仅是管理端与 UI 的复核/续期提示，不会在到时自动解除 `locked`、`suspended` 或其它状态。解除或改变状态仍 MUST 由 Account Authority 提交 successor record；receiver MUST NOT 根据本地墙钟合成状态。
 
-`account_status_payload.expires_at` 仅是管理端与 UI 的复核 / 续期提示，不参与 reducer projection，也不会在到时自动解除 `locked` / `suspended` 或其它状态。解除或改变状态仍 MUST 提交新的 `ak.account.status`，并遵守下述 severity、`supersedes_status_event_ids` 与 terminal 规则；receiver MUST NOT 根据本地墙钟合成状态事件。
-
-1. reducer 先保留全部未被有效 supersede 的 concurrent heads。授权 gate 对该完整 head set 取 deny-dominant 严格度最大值：`erasure_pending` > `deactivated` > `suspended` > `locked` > `soft_logged_out` > `active`。这是状态值 projection，不是选择某条 Event 为 winner。
-2. 降低严格度的状态（例如 appeal 后回到 `active`）MUST 在 payload 的 `supersedes_status_event_ids` 字段（见 [`event-payload.schema.json#/$defs/account_status_payload`](../../artifacts/schemas/event-payload.schema.json)）按 event id canonical 升序、无重复地精确列出当前 Seal view 中所有严格度不低于目标的 blocking heads。缺失、额外、stale 或不可见项都使恢复 Event 以 `failed_precondition` 拒绝；不得部分解除后再靠 digest 选择 active。
-3. **`erasure_pending` 是 terminal 状态（normative，不可逆）**：一旦任一未被拒绝的 head 为 `erasure_pending`，任何把该 `account_id` 降级到其它状态的 Event MUST 被 reducer 拒绝（`erasure_pending_is_terminal`），无论其 supersedes set 如何声明。
-4. 同严格度并发 heads 对授权的结果天然相同，全部保留。普通读面返回 `current_status` 加完整 `current_status_event_ids[]`；`reason_code` / `reason` / `effective_at` 等逐 Event metadata 按 head 列表返回，不再选一条 canonical current Event。UI MAY 按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 排序展示，但必须明示 producer bias，且排序不得改变 gate 结果。
+1. 所有授权 gate MUST 读取本地 authoritative head（Account Authority）或已验证 monotonic replica（其它服务）；freshness 不足时向 Account Authority resolve，不能回调 holder device。
+2. 降低严格度只由 Account Authority current-head transaction 执行，receiver 不接受绕过 predecessor 的恢复 record。
+3. **`erasure_pending` 是 terminal 状态（normative，不可逆）**：任何 successor 均以 `erasure_pending_is_terminal` 拒绝。
+4. 普通读面返回 `current_status`、`current_status_record_id` 与 `current_status_seq`；`reason_code`、`reason`、`effective_at` 来自同一 current record，不存在 producer-biased winner。
 
 **Deactivation 进度 flag（normative）**：`status` 是封闭 6 值枚举（不含下列 token）。`deactivation_partial`（§7.1）与 `deactivation_federation_incomplete`（§7 末）**不是** `status` 值，而是 `deactivated` 状态下叠加的**独立服务侧 flag**，表达 deactivation fanout 的完成进度：
 
@@ -345,7 +319,7 @@ POST /_arkret/gate/account/logout
 
 1. **客户端** MUST：停止 sync、清除本地 session credential / `session_grant` / OIDC 凭证；hard logout SHOULD 额外清除本设备的 grant-binding(DPoP)私钥，使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
 2. **Account Authority → Auth-side** MUST 登出当前 grant 所属的 Auth-side session / `browser_session`，在同一 issuer ledger 中幂等撤销该链的 active grant 并终结轮换链。若 Auth-side 不在同进程，Account Authority MUST 调用标准 S2S 子操作 `POST /_arkret/gate/account/auth-sessions/logout`(`ak.gate.account.command.logout_auth_session`)；该调用 MUST 使用 Account Authority → Auth Server 的部署内 S2S bearer（同 `session_grant_introspection_bearer` 认证族），MUST NOT 复用客户端为高层 `/logout` URL 铸造的 DPoP proof。此后 (i) 凭同一 `cnf.jkt` grant-binding proof 调 `refresh` MUST 被拒(`session_logged_out`)，整条轮换链不可再续；(ii) 该 Auth-side session 下任何 grant 的 introspection MUST 从同一 ledger 返回 inactive(即 grant-binding key 不能在登出后重建或维持会话)。该步骤不得发布 SessionGrant state Event。
-3. **Account Authority → Principal-side** MUST：作废该 grant 的本地 session-grant 内省缓存（下次内省即得 `active=false`）、吊销 / 标记该 principal 本地 account session 与**本地设备会话记录**(使后续以该设备签名的 device-scoped 操作在本 Principal Server fail closed)+ drop 该设备的待投递 to-device 消息，并移除该设备作用域内的 push registration。因 Principal Server 不为客户端铸独立本地 bearer（会话凭据即 grant 本身，见上），此处无单独的本地 bearer 可撤——作废内省缓存 + 撤设备会话记录即足以使该设备后续 `/_arkret/self/*` 请求 fail closed。此操作终结该设备在本 Principal Server 的本地会话状态，但 **不** 改写 `ak.account.status`、不发 `ak.device.revoke` 协议事件、不擦除 durable device authorization 历史(用户重新登录即可在本设备恢复)。注意它与 `ak.gate.account.command.revoke_session`(仅撤 session grant、不触设备会话记录，用于"撤某个会话但保留设备")是不同操作。
+3. **Account Authority → Principal-side** MUST：作废该 grant 的本地 session-grant 内省缓存（下次内省即得 `active=false`）、吊销 / 标记该 principal 本地 account session 与**本地设备会话记录**(使后续以该设备签名的 device-scoped 操作在本 Principal Server fail closed)+ drop 该设备的待投递 to-device 消息，并移除该设备作用域内的 push registration。因 Principal Server 不为客户端铸独立本地 bearer（会话凭据即 grant 本身，见上），此处无单独的本地 bearer 可撤——作废内省缓存 + 撤设备会话记录即足以使该设备后续 `/_arkret/self/*` 请求 fail closed。此操作终结该设备在本 Principal Server 的本地会话状态，但 **不** 创建 AccountStatusRecord、不发 `ak.device.revoke` 协议事件、不擦除 durable device authorization 历史(用户重新登录即可在本设备恢复)。注意它与 `ak.gate.account.command.revoke_session`(仅撤 session grant、不触设备会话记录，用于"撤某个会话但保留设备")是不同操作。
 
 `POST /_arkret/gate/account/auth-sessions/logout` 是部署内部 S2S 子操作，不是客户端 account flow。该子操作 MUST 幂等：同一 Auth-side session / grant 已登出、已吊销、未知或已被剪枝时，Auth Server 仍 MUST 返回成功并把链视为已终结；鉴权失败、请求体不合法、或 Auth Server 无法确认完成时才返回错误。普通客户端、inkson、浏览器 UI 与移动客户端 **MUST NOT** 调用或自行派生该路径；即使高层 `/logout` 失败，客户端也只能重试 `ak.gate.account.command.logout`。客户端和服务实现 **MUST NOT** 依赖任何实现私有 / 产品私有(例如 `/_<impl>/*`)路由完成登出。
 
@@ -421,7 +395,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 - **本地投递必停**：无论 policy 是否 ban，上表前 6 行（session/device/applet/KeyPackage/push/to-device queue）必停 — 否则会出现"账户已停用但其 device 还能签名 / push gateway 还在投递"的不可解释窗口。
 - **MLS Remove**：若 Realm policy 决定 deactivate → leave，对应 MLS group MUST 在 grace window（默认 `mls_deactivation_grace_ms = 600,000 ms`）内 emit `ak.mls.commit` Remove；超时未 commit 则该 Realm 的成员客户端 MUST 在 verified timeline 中把该 principal 标 `unverifiable_member`，不再接受其新 epoch 消息。
 - Fanout 失败的 partial state：如果某条 fanout 因网络 / 服务不可达失败，server `account_status` MUST 标 `deactivation_partial` 并继续重试；客户端 UI MUST 显式标记 "停用未完成" 而不是显示已停用。
-- **跨 Principal Server 传播**：若该 principal 曾在其它 Principal Server 上持有 device / KeyPackage / to-device / push-route 状态，或通过 Realm membership delivery binding 使用过 peer 服务，首个接收 Principal Server MUST 按 §3.1 的 durable affected-service index 与 `ak.peer.account_status.command.submit` receipted fanout 分支主动推送原始 `ak.account.status` Event及其专用 `account_status_receipts[]`；不得塞入通用 Realm federation batch后丢失 account binding evidence，也不得复用需要 AuthorizationLease 的 generic `IngressReceipt`，不得广播给无关 peer。每个 destination 返回的 `accepted | duplicate` 才构成 ack。未在 `deactivation_propagation_window_ms` 内得到全部 ack 时，本地 `propagation_state` 转为 `incomplete`，服务侧投影 flag `deactivation_federation_incomplete=true`，并暂停新 Realm onboard、新 session/device grant 与新 KeyPackage 发布；该 flag 是可变的 outbox/projection 状态，MUST NOT 回写或重签不可变 Event payload。后续全部 ack 到达后将 flag 清零并保留审计记录。
+- **跨 Principal Server 传播**：若该 principal 曾在其它 Principal Server 上持有 device / KeyPackage / to-device / push-route 状态，或通过 Realm membership delivery binding 使用过 peer 服务，首个接收 Principal Server MUST 按 §3.1 的 durable affected-service index 与 `ak.peer.account_status.command.submit` receipted fanout 分支主动推送原始 `AccountStatusRecord` 及其专用 `account_status_receipts[]`；不得塞入通用 Realm federation batch，不得广播给无关 peer。每个 destination 返回的 `accepted | duplicate` 才构成 ack。未在 `deactivation_propagation_window_ms` 内得到全部 ack 时，本地 `propagation_state` 转为 `incomplete`，服务侧投影 flag `deactivation_federation_incomplete=true`，并暂停新 Realm onboard、新 session/device grant 与新 KeyPackage 发布；该 flag 是可变的 outbox/projection 状态，MUST NOT 回写或重签 immutable record。后续全部 ack 到达后将 flag 清零并保留审计记录。
 
 ## 8. Erasure
 
@@ -448,11 +422,11 @@ to-device queue），其失败与重试沿用 `deactivation_partial` 语义。Re
 
 **擦除完成态语义（normative）**：v1 **不**新增 `erased` / `tombstoned` 终态。`erasure_pending` 的 "pending" 表示"擦除已发起且不可逆"，**不**表示"擦除尚未完成"——擦除流程进入该状态后 account status projection 永久停在 `erasure_pending`（§3 规则 3，terminal）。擦除是否**已物理完成**由 erasure receipt（下文）独立表征，而非由 status 推进表达：审计 / UI MUST 通过是否存在有效 `ak.schema.erasure_receipt.v1`（及其 `outcome`）区分"擦除排队 / 进行中"与"擦除已结束",MUST NOT 从 `erasure_pending` 本身推断完成与否。
 
-**执行状态机（normative）**：接收方接受一条 `status=erasure_pending` 的 `ak.account.status` Event 时，必须为每个适用 storage boundary 建立一个可恢复的 durable execution，唯一键为 `(receiver_service_id, account_id, triggering_status_event_id, storage_boundary)`。接收 operation 只有在 execution intent 已持久后才可返回 `accepted | duplicate`；若 Event log 与 job store 不能共享物理事务，实现必须在启动与周期 reconciliation 中从已接受 Event 重新派生缺失 intent，并在修复前保持 fail closed。worker 复用同一 typed erasure service 执行删除；不得在 account-status HTTP 事务内同步做物理擦除，也不得把 receipt submit 当作执行命令。精确重试、进程崩溃与 lease 过期都继续同一个 job；同 key 异 account/Event/boundary 内容为永久冲突。`completed`、`partially_completed` 与 `blocked_by_legal_hold` 都是该 job 的 terminal receipt outcome，只有 transport/infrastructure failure 可重试。
+**执行状态机（normative）**：接收方接受一条 `status=erasure_pending` 的 `AccountStatusRecord` 时，必须为每个适用 storage boundary 建立一个可恢复的 durable execution，唯一键为 `(receiver_service_id,account_id,triggering_status_record_id,storage_boundary)`。接收 operation 只有在 execution intent 已持久后才可返回 `accepted | duplicate`；若 replica store 与 job store 不能共享物理事务，实现必须在启动与周期 reconciliation 中从已接受 record 重新派生缺失 intent，并在修复前保持 fail closed。worker 复用同一 typed erasure service 执行删除；不得在 account-status HTTP 事务内同步做物理擦除，也不得把 receipt submit 当作执行命令。精确重试、进程崩溃与 lease 过期都继续同一个 job；同 key 异 account/record/boundary 内容为永久冲突。`completed`、`partially_completed` 与 `blocked_by_legal_hold` 都是该 job 的 terminal receipt outcome，只有 transport/infrastructure failure 可重试。
 
-Account Authority 不新增第二条私有 peer erase command。它发布 `erasure_pending` Event 后只追踪上述确定性 execution，并通过既有 erasure receipt submit/get 轨道取得结果。Account Authority 只有在验证 receipt package、issuer proof、subject/scope、通用 `triggering_event_id` 逐字等于本次 `erasure_pending` status Event，以及现行 `(principal_id, principal_server_id)` authority pair 全部一致后，才可把物理擦除标为完成；收到 account-status `accepted`、HTTP 2xx、空返回或 connector 本地 no-op 都不构成完成证据。
+Account Authority 不新增第二条私有 peer erase command。它发布 `erasure_pending` record 后只追踪上述确定性 execution，并通过既有 erasure receipt submit/get 轨道取得结果。Account Authority 只有在验证 receipt package、issuer proof、subject/scope、closed trigger 的 `record_id` 逐字等于本次 record，以及现行 `(principal_id,principal_server_id)` authority pair 全部一致后，才可把物理擦除标为完成；收到 account-status `accepted`、HTTP 2xx、空返回或 connector 本地 no-op 都不构成完成证据。
 
-擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `ak.schema.erasure_receipt.v1` payload，并可通过 `ak.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定通用 `triggering_event_id`、`subject`、`scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_digest`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`；retained stub 必须逐字绑定同一个 `triggering_event_id`。账号物理擦除时该字段 MUST 是 exact `erasure_pending` status Event；其他擦除类型绑定各自的授权 Event，不得把通用 receipt 收窄成账号专用形状。`proofs[]` MUST 至少包含 1 条，且其中至少一条由 `issuer` 当前有效的 verification method 签名；空 `proofs[]` MUST 触发下文 fail-closed 校验（等同 `proofs[]` 校验失败）。`retained_stub_digest` MUST 等于 `hash(canonical_json(retained_stub))`；stub 可内联在 receipt，也可通过 erasure receipt endpoint 获取，但两者 canonical bytes 必须一致。Stub 只保留 typed reference 结构、Event ID 与冗余 digest 一致性、receipt/stub binding，以及连接仍存在的 signature、Seal inclusion、redaction authorization 与 legal-hold evidence 所需的最小字段，MUST NOT 保留已擦除明文或裸明文 digest。Event 原 canonical bytes 已擦除时，stub 与 receipt 均不能独立重算或证明其 hash preimage。Receipt 只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
+擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `ak.schema.erasure_receipt.v1` payload，并可通过 `ak.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定 closed `trigger`、`subject`、`scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_digest`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`；retained stub 必须逐字绑定同一个 trigger。账号物理擦除时 trigger MUST 是 exact `erasure_pending` AccountStatusRecord id；其他擦除类型绑定各自授权 Event 的 event 分支。`proofs[]` MUST 至少包含 1 条，且其中至少一条由 `issuer` 当前有效的 verification method 签名；空 `proofs[]` MUST 触发下文 fail-closed 校验（等同 `proofs[]` 校验失败）。`retained_stub_digest` MUST 等于 `hash(canonical_json(retained_stub))`；stub 可内联在 receipt，也可通过 erasure receipt endpoint 获取，但两者 canonical bytes 必须一致。Stub 只保留 typed trigger/reference 结构、冗余 digest 一致性、receipt/stub binding，以及连接仍存在的 signature、redaction authorization 与 legal-hold evidence 所需最小字段，MUST NOT 保留已擦除明文或裸明文 digest。原 canonical bytes 已擦除时，stub 与 receipt 均不能独立重算或证明其 hash preimage。Receipt 只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
 
 **Legal hold 阻塞终态（normative）**：erasure 与 legal hold 并存时，擦除流程有一个稳定终态：`ak.schema.erasure_receipt.v1` 的 `outcome` 枚举含 `blocked_by_legal_hold`（与 `completed` / `partially_completed` 并列；schema 真源见 [`erasure-receipt.schema.json`](../../artifacts/schemas/erasure-receipt.schema.json)，该 outcome 下 `legal_hold_ref` 为必填）。语义约束：
 

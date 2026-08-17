@@ -70,7 +70,7 @@
       "vector_id": "ak.vector.federation.reducer_profile_resolution.v1",
       "input": {
         "source_reducer_profile": "ak.reducer.core.v1",
-        "target_reducer_profile": "ak.reducer.future.v2",
+        "target_reducer_profile": "ak.reducer.unregistered.v1",
         "profile_source": "seal_basis_frozen_predecessor"
       },
       "expected": "unsupported_profile"

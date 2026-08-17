@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-16.8",
+  "version": "2026-08-17.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-16T16:20:00Z",
+  "generated_at": "2026-08-17T17:35:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -4411,40 +4411,6 @@
         }
       ],
       "concurrency_class": "security_barrier"
-    },
-    {
-      "event_kind": "ak.account.status",
-      "category": "account",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "service_attested",
-      "payload": "Account Authority / authoritative Principal Server signed account lifecycle status. Event actor/proof controller is the authorized issuer service DID; payload account_id and principal_id MUST match its verified service-account binding.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_status_payload",
-      "id_source": "not_an_object_id",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.account.status.v1",
-          "cell_subject": {
-            "field": "payload.account_id",
-            "kind": "string"
-          },
-          "lattice": "ordered_log",
-          "bottom": "expose",
-          "effect_projection": {
-            "kind": "append",
-            "value": {
-              "field": "payload"
-            },
-            "issuer_seq": {
-              "envelope_field": "actor_seq"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.account.blocklist",

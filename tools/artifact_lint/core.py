@@ -154,7 +154,7 @@ GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
 
 SECURITY_CLOSURE_VECTOR_IDS = {
     "ak.vector.account.blocklist_projection.v1",
-    "ak.vector.account_status.authority_publication.v1",
+    "ak.vector.account_status.issuer_ledger.v1",
     "ak.vector.aad_visibility.policy_ceiling.v1",
     "ak.vector.federation.idempotency_after_key_revoke.v1",
     "ak.vector.webrtc.media_plaintext_downgrade.v1",

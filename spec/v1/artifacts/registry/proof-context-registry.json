@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-16.3",
+  "version": "2026-08-17.1",
   "source_of_truth": true,
   "description": "Canonical security-domain contexts for Arkret detached proofs and non-Event cryptographic transcripts. Proof contexts remain schema-bound; domain_separations cover hash, signature, Merkle and HPKE-info transcripts and are not a general string registry.",
   "registry_rules": [
@@ -21,6 +21,28 @@
       ],
       "defined_in": "zh/identity/account-lifecycle.md",
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_binding_receipt"
+    },
+    {
+      "context": "ak.account-status-record-proof-v1",
+      "object_family": "account_status_record",
+      "binding_fields": [
+        "payload_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_record"
+    },
+    {
+      "context": "ak.account-status-replication-receipt-proof-v1",
+      "object_family": "account_status_replication_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_receipt"
     },
     {
       "context": "ak.account-handoff-authentication-proof-v1",

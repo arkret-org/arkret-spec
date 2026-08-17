@@ -62,7 +62,7 @@
         "deactivated",
         "erasure_pending"
       ],
-      "description": "Public projection of the account lifecycle status values defined in zh/identity/account-lifecycle.md §3. Implementations MAY hide or coarsen this field in projection views, but the wire enum mirrors ak.account.status."
+      "description": "Public projection of the AccountStatusRecord lifecycle values defined in zh/identity/account-lifecycle.md §3. Implementations MAY hide or coarsen this field in projection views."
     },
     "accountable_principal_ids": {
       "type": "array",

@@ -9,7 +9,7 @@
     "subject",
     "scope",
     "receipt_id",
-    "triggering_event_id",
+    "trigger",
     "completed_at"
   ],
   "properties": {
@@ -68,9 +68,9 @@
       "type": "string",
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "triggering_event_id": {
-      "$ref": "./common-ids.schema.json#/$defs/event_id",
-      "description": "Exact accepted erasure_pending account-status Event bound by the receipt and retained after physical deletion."
+    "trigger": {
+      "$ref": "#/$defs/trigger",
+      "description": "Exact closed trigger copied byte-for-byte from the receipt."
     },
     "completed_at": {
       "$ref": "#/$defs/timestamp"
@@ -78,6 +78,42 @@
   },
   "additionalProperties": false,
   "$defs": {
+    "trigger": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "event"
+            },
+            "event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "account_status_record_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "account_status_record"
+            },
+            "account_status_record_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "subject": {
       "oneOf": [
         {

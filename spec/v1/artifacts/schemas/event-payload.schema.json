@@ -310,65 +310,6 @@
       },
       "additionalProperties": false
     },
-    "account_status_payload": {
-      "type": "object",
-      "required": [
-        "account_id",
-        "principal_id",
-        "status",
-        "effective_at"
-      ],
-      "properties": {
-        "account_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 255,
-          "description": "Opaque service-account identifier. It is the ak.component.account.status.v1 cell subject; accounts bound to the same principal_id are evaluated independently."
-        },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "active",
-            "soft_logged_out",
-            "locked",
-            "suspended",
-            "deactivated",
-            "erasure_pending"
-          ]
-        },
-        "reason_code": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Machine-readable account status diagnostic. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes (for example deactivation_federation_incomplete)."
-        },
-        "reason": {
-          "type": "string"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/nullable_timestamp"
-        },
-        "supersedes_status_event_ids": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/event_ref"
-          },
-          "description": "Canonical event-id-sorted exact set of every current blocking ak.account.status head being superseded. Required by account-lifecycle.md §3 rule 2 when lowering severity. Missing, extra, stale or unsorted entries fail closed; erasure_pending is terminal."
-        },
-        "admin_proof": {
-          "$ref": "#/$defs/signature_material"
-        }
-      },
-      "additionalProperties": false
-    },
     "actor_profile_create_payload": {
       "type": "object",
       "description": "Initial actor profile payload. The materialized resolution projection is reducer-managed from the PCR resolution cell and is forbidden on this authoring surface. id/updated_by/updated_at are likewise materialized fields, not create input.",
@@ -9357,7 +9298,7 @@
         },
         "expires_at": {
           "$ref": "#/$defs/nullable_timestamp",
-          "description": "Administrative review/renewal hint only. It does not auto-transition account status; a later explicit ak.account.status event is required and remains subject to supersedes and terminal rules."
+          "description": "Administrative review/renewal hint only. It does not auto-transition account status; a later AccountStatusRecord is required and remains subject to sequence and terminal rules."
         },
         "supersedes_statement_id": {
           "$ref": "#/$defs/non_empty_string"

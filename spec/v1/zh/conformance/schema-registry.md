@@ -238,7 +238,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.capability.grant` | Grant |
 | `ak.capability.revoke` | Revocation |
 | `ak.capability.derived` | Derived capability state |
-| `ak.account.status` | Signed account lifecycle status |
 | `ak.profile.create` | Actor profile create |
 | `ak.profile.update` | Actor profile patch |
 | `ak.profile.realm_override` | Realm-scoped profile override |

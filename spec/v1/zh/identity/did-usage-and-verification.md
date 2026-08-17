@@ -236,7 +236,7 @@ KAT 见 [`did-binding-digest-fixture.json`](../../artifacts/fixtures/did-binding
 
 | 字段 | 要求 |
 | --- | --- |
-| `did_core_id` / `full_id` | expected 稳定身份与被验证的 bare DID；必须满足注册 adapter 的确定性投影。兼容合同中旧名 `did` 只表示这里的 `full_id`。 |
+| `did_core_id` / `full_id` | expected 稳定身份与被验证的 bare DID；必须满足注册 adapter 的确定性投影。 |
 | `trust_domain` / `purpose` | 结果适用的本地信任域与用途（principal、service、issuer、controller 等）。 |
 | `method` / `verification_method` | DID method 与被接受的具体 DID URL；不适用具体 key 时可省略后者。 |
 | `document_digest` / `history_head` / `version_id` | 固定验证依据；计算方式见 §5.1。method 不支持或 resolver 未传出的 pin 可省略，但 MUST 按 §5.5 的 `limited_trust` 记录逐 pin 状态。 |
