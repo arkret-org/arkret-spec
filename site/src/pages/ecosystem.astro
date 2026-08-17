@@ -36,7 +36,7 @@ const tiers: Tier[] = [
         tag: "protocol · this site",
         status: "stable",
         body:
-          "协议规范本体。`spec/v1/` 是 normative 文本，`spec/v1/artifacts/` 是机器可读的 registry / schema / profile / OpenAPI。本站点直接由 spec 与 artifact 派生。",
+          "协议规范本体。spec/v1/zh 下的中文是唯一 normative 文本，spec/v1/artifacts/ 是语言中立的 registry / schema / profile / OpenAPI。本站点直接由 spec 与 artifact 派生。",
         href: "/zh/v1/spec-map/",
       },
       {
@@ -110,14 +110,14 @@ const tiers: Tier[] = [
     id: "identity",
     title: "可选身份与信任服务",
     blurb:
-      "v1 core 默认走 did:web / did:key 等公共 resolver；下面这些组件在你需要可迁移身份、watcher / mirror、企业级密钥审计时启用。",
+      "v1 的长期 principal 与默认 service DID method 固定为 did:webvh（did.jsonl 历史链 + SCID + witness）。无域名用户的 did.jsonl 默认由自己的 Account Authority 在子域托管；下面这些组件在需要公共托管、独立 witness / mirror 或跨服务商迁移时启用。",
     projects: [
       {
         name: "starid",
         tag: "identity · did:webvh",
         status: "planned",
         body:
-          "可选的公共 DID / `did:webvh` high-trust 服务实现。启用后可以获得 portable migration、watcher / mirror、handle 绑定与密钥轮换审计；v1 core 不强依赖它。",
+          "可选的公共 did:webvh 托管与 high-trust 服务实现。提供 did.jsonl 托管、witness / mirror、handle 绑定与密钥轮换审计。自建 Account Authority 已能承担 did.jsonl 托管，因此 v1 core 不强依赖它。",
       },
     ],
   },

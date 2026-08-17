@@ -2,153 +2,133 @@
 import MarketingLayout from "~/layouts/MarketingLayout.astro";
 import { repoUrl, specReleaseTag, specReleaseLabel } from "~/lib/site-meta";
 
-const heroStats = [
-  { value: "Signed Events", label: "每条持久修改可独立验签" },
-  { value: "Capability Authz", label: "授权链可重放、可撤销、可委托" },
-  { value: "MLS Governance", label: "成员与设备变更绑定加密 epoch" },
-  { value: "DID Agents", label: "人、设备、Agent 共用同一责任链" },
-];
+/* Homepage structure, in the order a first-time reader needs it:
+ *   1. what it is          — hero lead
+ *   2. what the world looks like, and who is authoritative at each layer
+ *                          — protocolStack, from overview/architecture.md §3
+ *                            (core stack Presentation→Identity) with the
+ *                            authority column from the same file's §6 trust
+ *                            boundaries.
+ *   3. what it covers      — landings, from overview/current-model.md §1.1
+ *   4. what you therefore get — guarantees (audit / security / cross-org)
+ *   5. where to start reading — entryPoints
+ * Keep every entry to one sentence; the spec pages carry the detail. */
 
-const painPoints = [
+const protocolStack = [
   {
-    tag: "历史可信",
-    title: "能导出历史，不等于历史可验证",
-    body:
-      "常见协作和社交系统把消息、成员、撤回、权限保存在服务端数据库里。客户端可以验证连接和登录态，却通常不能离线证明「这条历史确实由某个 actor 在某个授权下产生」。Arkret 把持久修改定义为签名 Event, 让同步节点、客户端和审计方都能独立重放。",
+    plane: "Presentation",
+    name: "客户端界面",
+    what: "聊天、看板、时间线、日历、文档——都是同一份事实的不同画法。",
+    authority: "派生，可随时重算",
   },
   {
-    tag: "授权可携带",
-    title: "权限不应该只是一段后台配置",
-    body:
-      "很多系统的「谁能做什么」由服务端 ACL、角色表或控制台配置解释；跨服务迁移、联邦同步或离线审计时，这些规则很难随数据一起被验证。Arkret 用 capability grant 表达主体、资源、动作、时间窗、字段约束和审批要求，授权本身成为可校验对象。",
+    plane: "Projection",
+    name: "本地投影",
+    what: "当前状态、搜索和收件箱默认在你自己的设备上算出来，不必交给服务端索引。",
+    authority: "派生，不是真相源",
   },
   {
-    tag: "E2EE 治理",
-    title: "端到端加密不会自动解决成员治理",
-    body:
-      "E2EE 保护内容密文，但成员加入、移除、设备撤销、举报与审核仍需要协议把治理状态和密钥状态对齐。Arkret 把 Space policy、成员变更和设备生命周期绑定进 MLS epoch；新消息必须基于新 epoch，避免 UI 状态和加密状态分叉。",
+    plane: "Distribution",
+    name: "同步与联邦",
+    what: "Principal Server 之间交换 Realm 增量；加密内容原样转发，服务器不需要能读懂。",
+    authority: "可替换的基础设施",
   },
   {
-    tag: "Agent 边界",
-    title: "Bot token 不足以承载自主 Agent",
-    body:
-      "平台应用通常通过 API token、scope 和服务端审计来限制自动化行为。面对可规划、可委托、可连续行动的 Agent, 协议还需要记录 acting principal、责任主体、资源边界、时间窗和审批约束。Arkret 让 Agent 以 DID principal 身份签名事件，和人类 actor 共用同一套责任链。",
-  },
-];
-
-const protocolPillars = [
-  {
-    mark: "Event",
-    title: "签名事件是事实最小单位",
-    body:
-      "所有持久修改都是 actor 签名的 Event Envelope, prev_refs 形成因果链，event_id 提供幂等。服务端负责同步和索引，但不能替 actor 伪造历史。",
+    plane: "Write",
+    name: "签名事件",
+    what: "每一次持久修改——消息、任务、文档、通话、权限变更、Agent 产出——都是一条 actor 签名的 Event，按 Realm 划定成员、历史与加密边界。",
+    authority: "唯一事实",
+    truth: true,
   },
   {
-    mark: "Capability",
-    title: "权限是凭证，不是后台状态",
-    body:
-      "每次高价值写入都能追溯到 capability grant: 主体、资源、动作、时间窗、字段约束、最大委托深度和 approval 要求都在协议对象里表达。",
-  },
-  {
-    mark: "MLS",
-    title: "治理变更进入加密上下文",
-    body:
-      "成员变更、设备撤销、policy 升级会被 governance binding 写入 MLS GroupContext。实现不能只改 UI 成员表而忘记推进加密 epoch。",
-  },
-  {
-    mark: "Identity",
-    title: "身份不绑定单个服务商账号",
-    body:
-      "principal 默认使用 did:webvh，带 history chain、SCID 和 witness 证据。Handle 只是可迁移的人类入口，权限主体始终是 DID principal。",
-  },
-  {
-    mark: "Object",
-    title: "聊天、任务、文档来自同一事实图",
-    body:
-      "Realm 是安全、同步、权限和加密边界；Space、Strand、Message、Morph、Relation 组成对象图。UI 通过 projection 呈现聊天、看板、时间线或工作流。",
-  },
-  {
-    mark: "Agent",
-    title: "Agent 行为可限权、可回放、可追责",
-    body:
-      "Agent 持有自己的 DID 和 capability grant, 可以加入 MLS group、签名事件、参与 approval 流程。它的每一步行动都进入同一条审计链。",
+    plane: "Identity",
+    name: "身份",
+    what: "principal 是一个 did:webvh，带可审计的控制历史；由你或你的组织掌握，不属于任何厂商。",
+    authority: "信任根",
   },
 ];
 
-const engineStrand = [
+const landings = [
   {
-    step: "01",
-    title: "提交事实",
-    body: "客户端用 actor DID 私钥签名 Event Envelope, 带 prev_refs、event_id 和目标 Space, 产出可重放的事实单元。",
+    concept: "群聊 / 频道",
+    body: "Realm 划定成员与历史边界，Strand 承载一个话题，消息挂在它的 discussion track 上。",
   },
   {
-    step: "02",
-    title: "验证授权",
-    body: "接收方先验 schema, 再验 capability grant 是否覆盖该资源、动作和字段；高风险动作必须满足 approval 约束。",
+    concept: "看板 / 列 / 卡片",
+    body: "看板和列都是 Space，卡片是 Strand。拖动改的是对象位置，不是某个视图的本地状态。",
   },
   {
-    step: "03",
-    title: "锚定状态",
-    body: "事件进入 Anchor DAG, 获得不依赖全局共识的相对顺序；涉及成员、设备或策略时同步锚定到 MLS governance binding。",
+    concept: "Issue / 依赖 / 指派",
+    body: "Strand 带粗粒度 stage；依赖、阻塞、指派用 Relation 表达，不藏在自由字段里。",
   },
   {
-    step: "04",
-    title: "投影视图",
-    body: "reducer 把对象图投影成消息、看板、时间线或关系视图。不同实现可以有不同 UI, 但共享同一份协议事实。",
+    concept: "文档 / 长文",
+    body: "正文在 Strand 的 synthesis track，讨论在 discussion track，同一件事不用拆成两个产品。",
+  },
+  {
+    concept: "只给一部分人的私密子群",
+    body: "Circle 复用父 Realm 的联邦与策略，只裁剪成员、历史与投递，必要时启用独立 MLS group。",
+  },
+  {
+    concept: "和自己的 AI Agent 协作",
+    body: "Agent Sidecar 是每个用户在每个 Realm 内的私人工作区，有独立 MLS，不是普通子群。",
+  },
+];
+
+const guarantees = [
+  {
+    mark: "可审计",
+    title: "历史不需要相信服务器",
+    body: "每条修改都由 actor 签名并带因果链，事后任何一方都能离线重放验证。服务器可以拒收、延迟或丢失副本，但伪造不了。",
+  },
+  {
+    mark: "安全",
+    title: "权限是凭证，不是后台开关",
+    body: "capability 写明资源、动作、时间窗、字段范围与审批要求，可撤销也可委托；成员和设备变更绑定同一个 MLS epoch，移出之后就真的读不到。",
+  },
+  {
+    mark: "跨组织",
+    title: "协作不必把数据交出去",
+    body: "各方掌握自己的服务器、密钥与数据驻地，通过联邦交换事件；对外协作放在单独的 Realm，不开放内部目录。",
   },
 ];
 
 const entryPoints = [
   {
-    title: "中文规范",
-    description: "从架构总览、对象模型到治理约束,一条线读完整体结构。",
-    href: "/zh/v1/",
-    badge: "normative",
-  },
-  {
     title: "规范导览",
-    description: "按阅读路径快速定位每个章节在实现中的职责。",
+    description: "阅读路径与文档地图",
     href: "/zh/v1/spec-map/",
     badge: "map",
   },
   {
+    title: "协议分层",
+    description: "Kernel / Collaboration Base / Extension 的边界",
+    href: "/zh/v1/overview/protocol-layers/",
+    badge: "normative",
+  },
+  {
+    title: "架构与信任边界",
+    description: "服务角色、部署拓扑与谁能证明什么",
+    href: "/zh/v1/overview/architecture/",
+    badge: "normative",
+  },
+  {
+    title: "对象模型",
+    description: "对象总览与 typed-id 一览",
+    href: "/zh/v1/models/overview/",
+    badge: "model",
+  },
+  {
     title: "OpenAPI",
-    description: "服务端 HTTP binding 与请求响应契约,Scalar 渲染。",
+    description: "HTTP binding 与请求响应契约",
     href: "/openapi/",
     badge: "wire",
   },
   {
     title: "Catalog",
-    description: "事件类型、Schema、操作与错误码一目了然,便于跨系统联调。",
+    description: "事件类型、Schema、操作与错误码",
     href: "/catalog/event-kinds/",
     badge: "registry",
-  },
-];
-
-const useCases = [
-  {
-    title: "组织自托管协作",
-    body: "组织掌握 principal server、密钥、数据驻地和 witness 策略，同时保持协议级互操作。",
-  },
-  {
-    title: "跨组织项目空间",
-    body: "Capability grant 是跨域可验证的签名凭证，federation 不需要把权限降级成共享 token。",
-  },
-  {
-    title: "强合规 E2EE 工作区",
-    body: "成员、设备、policy 与 MLS epoch 一起收敛，便于审计谁在什么时候仍有解密资格。",
-  },
-  {
-    title: "AI Agent 协作流",
-    body: "Agent 行为受时间窗、资源、字段和审批约束，每次写入都能回放到具体责任主体。",
-  },
-  {
-    title: "长期可恢复知识库",
-    body: "事件、schema、快照和 frontier 都是协议对象，适合做可迁移、可审计、可重建的组织记忆。",
-  },
-  {
-    title: "多应用同源视图",
-    body: "同一 Space 事实可被聊天、看板、文档、目录或自动化工具投影，不需要复制成多个产品数据库。",
   },
 ];
 ---
@@ -176,15 +156,13 @@ const useCases = [
         </span>
       </div>
       <h1>
-        给协作软件的一层<br />
-        <span class="ak-h1-accent">可验证事实协议</span>
+        协作软件的<br />
+        <span class="ak-h1-accent">去中心化事实层</span>
       </h1>
       <p class="ak-lead">
-        Arkret 定义消息、任务、文档、关系和 Agent 行为在网络中的共同真相：
-        <strong>谁创建</strong>、<strong>基于什么授权</strong>、
-        <strong>处于哪个 Space</strong>、<strong>受哪个加密 epoch 保护</strong>。
-        它不是聊天 UI, 也不是区块链；它是一套事件、身份、授权、E2EE 和同步规范，
-        让不同实现可以共享同一份可验证协作历史。
+        Arkret 只规定一件事：什么算作事实。消息、任务、文档、日历、通话和 AI Agent 的产出，
+        全都是由 actor 签名、按 Realm 划定边界的 Event，在各方自己托管的服务器之间联邦同步。
+        客户端把它们投影成聊天、看板或时间线——界面可以换，事实不变。
       </p>
       <div class="ak-cta-row">
         <a class="ak-btn ak-btn-primary" href="/zh/v1/spec-map/">
@@ -194,16 +172,6 @@ const useCases = [
         <a class="ak-btn ak-btn-ghost" href="/ecosystem/">浏览参考实现</a>
         <a class="ak-btn ak-btn-ghost" href={repoUrl} rel="noopener">GitHub</a>
       </div>
-      <dl class="ak-hero-stats">
-        {
-          heroStats.map((stat) => (
-            <div class="ak-hero-stat">
-              <dt>{stat.value}</dt>
-              <dd>{stat.label}</dd>
-            </div>
-          ))
-        }
-      </dl>
     </div>
   </section>
 
@@ -211,25 +179,32 @@ const useCases = [
     <div class="ak-shell">
       <div class="ak-section-head">
         <div>
-          <span class="ak-section-tag">为什么需要新协议</span>
-          <h2>现实问题不是「有没有功能」,而是「能不能被验证」</h2>
+          <span class="ak-section-tag">协议的全貌</span>
+          <h2>五层，每层都写明谁说了算</h2>
         </div>
         <p class="ak-section-sub">
-          以下问题来自常见系统边界：服务端数据库是事实权威、授权规则留在平台内、
-          E2EE 与治理状态分层、自动化身份依赖 token。Arkret 把这些边界提升到协议层处理。
+          常见系统里这五层混在一个服务端数据库里，于是「谁说了算」永远是那台服务器。
         </p>
       </div>
-      <div class="ak-pain-grid">
+      <ol class="ak-stack">
         {
-          painPoints.map((p) => (
-            <article class="ak-pain-card">
-              <span class="ak-pain-tag">{p.tag}</span>
-              <h3>{p.title}</h3>
-              <p>{p.body}</p>
-            </article>
+          protocolStack.map((row) => (
+            <li class={`ak-stack-row${row.truth ? " ak-stack-row--truth" : ""}`}>
+              <div class="ak-stack-plane">
+                <b>{row.plane}</b>
+                <span>{row.name}</span>
+              </div>
+              <p class="ak-stack-what">{row.what}</p>
+              <div class="ak-stack-auth">{row.authority}</div>
+            </li>
           ))
         }
-      </div>
+      </ol>
+      <p class="ak-stack-note">
+        另有两个横切层：Confidentiality 决定每一层各自能看到什么，
+        让服务器在读不懂正文的前提下也能继续转发；Portability 保证整份历史可导出、
+        可重放、可以换一家服务商继续用。
+      </p>
     </div>
   </section>
 
@@ -237,20 +212,19 @@ const useCases = [
     <div class="ak-shell">
       <div class="ak-section-head">
         <div>
-          <span class="ak-section-tag">六根支柱</span>
-          <h2>Arkret 先定义协作事实，再定义接口和投影</h2>
+          <span class="ak-section-tag">覆盖范围</span>
+          <h2>同一份事实，投影成你熟悉的形态</h2>
         </div>
         <p class="ak-section-sub">
-          签名事件、Capability 授权、MLS 治理绑定、去中心化身份、可投影对象图、Agent 责任链。
+          Arkret 不把某个产品的对象名搬进协议，而是把常见协作场景拆成更稳定的边界。
         </p>
       </div>
-      <div class="ak-pillar-grid">
+      <div class="ak-concepts">
         {
-          protocolPillars.map((pillar) => (
-            <article class="ak-pillar-card">
-              <span class="ak-pillar-mark">{pillar.mark}</span>
-              <h3>{pillar.title}</h3>
-              <p>{pillar.body}</p>
+          landings.map((item) => (
+            <article class="ak-concept">
+              <div class="ak-concept-tag">{item.concept}</div>
+              <p>{item.body}</p>
             </article>
           ))
         }
@@ -262,29 +236,51 @@ const useCases = [
     <div class="ak-shell">
       <div class="ak-section-head">
         <div>
-          <span class="ak-section-tag">运行时闭环</span>
-          <h2>一次写入,沿 4 个确定性环节变成可见状态</h2>
+          <span class="ak-section-tag">因此</span>
+          <h2>安全、可审计、跨组织，是结构带来的，不是配置项</h2>
         </div>
-        <p class="ak-section-sub">
-          协议规定的不是 UI, 而是「提交事实 → 验证授权 → 锚定状态 → 投影视图」的不可分叉路径。
-        </p>
       </div>
-      <ol class="ak-strand-rail">
+      <div class="ak-pillar-grid">
         {
-          engineStrand.map((item, i) => (
-            <li class="ak-strand-node">
-              <div class="ak-strand-node-head">
-                <span class="ak-strand-step-no">{item.step}</span>
-                {i < engineStrand.length - 1 && (
-                  <span class="ak-strand-connector" aria-hidden="true" />
-                )}
-              </div>
-              <h3>{item.title}</h3>
-              <p>{item.body}</p>
-            </li>
+          guarantees.map((g) => (
+            <article class="ak-pillar-card">
+              <span class="ak-pillar-mark">{g.mark}</span>
+              <h3>{g.title}</h3>
+              <p>{g.body}</p>
+            </article>
           ))
         }
-      </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="ak-section">
+    <div class="ak-shell">
+      <div class="ak-section-head">
+        <div>
+          <span class="ak-section-tag">入口</span>
+          <h2>从规范到实现</h2>
+        </div>
+        <p class="ak-section-sub">
+          zh 下的中文是唯一 normative 权威；artifacts 是语言中立的机读契约。
+        </p>
+      </div>
+      <div class="ak-entry-grid ak-entry-grid--wide">
+        {
+          entryPoints.map((entry) => (
+            <a class="ak-resource" href={entry.href}>
+              <div class="ak-resource-row">
+                <span class="ak-resource-title">{entry.title}</span>
+                <span class="ak-resource-badge">{entry.badge}</span>
+              </div>
+              <span class="ak-resource-desc">{entry.description}</span>
+              <span class="ak-resource-arrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+          ))
+        }
+      </div>
     </div>
   </section>
 
@@ -304,54 +300,6 @@ const useCases = [
           <span aria-hidden="true">→</span>
         </span>
       </a>
-    </div>
-  </section>
-
-  <section class="ak-section">
-    <div class="ak-shell ak-home-grid-2">
-      <div>
-        <div class="ak-section-head ak-section-head--stack">
-          <span class="ak-section-tag">入口</span>
-          <h2>从规范到实现</h2>
-          <p class="ak-section-sub">选择最适合的阅读路径,直接进入你的开发节奏。</p>
-        </div>
-        <div class="ak-entry-grid">
-          {
-            entryPoints.map((entry) => (
-              <a class="ak-resource" href={entry.href}>
-                <div class="ak-resource-row">
-                  <span class="ak-resource-title">{entry.title}</span>
-                  <span class="ak-resource-badge">{entry.badge}</span>
-                </div>
-                <span class="ak-resource-desc">{entry.description}</span>
-                <span class="ak-resource-arrow" aria-hidden="true">→</span>
-              </a>
-            ))
-          }
-        </div>
-      </div>
-      <div>
-        <div class="ak-section-head ak-section-head--stack">
-          <span class="ak-section-tag">应用场景</span>
-          <h2>适合需要长期可信边界的产品</h2>
-          <p class="ak-section-sub">
-            当协作历史、权限、加密状态和 Agent 行为都需要被复核时，协议层事实比产品内状态更可靠。
-          </p>
-        </div>
-        <ul class="ak-case-grid">
-          {
-            useCases.map((u) => (
-              <li>
-                <span class="ak-case-mark" aria-hidden="true">✦</span>
-                <div>
-                  <strong>{u.title}</strong>
-                  <span>{u.body}</span>
-                </div>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
     </div>
   </section>
 </MarketingLayout>

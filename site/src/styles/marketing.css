@@ -382,10 +382,12 @@ body.ak-marketing .ak-mono {
   z-index: 0;
 }
 
+/* No max-width of its own: the hero shares `.ak-shell`'s 1400px measure so the
+ * hero band lines up with the section grids below it. Only the prose line
+ * (`.ak-lead`) keeps a readable measure. */
 .ak-hero-inner {
   position: relative;
   z-index: 1;
-  max-width: min(1080px, calc(100vw - 3rem));
 }
 
 .ak-hero h1 {
@@ -398,7 +400,9 @@ body.ak-marketing .ak-mono {
 }
 
 .ak-home-hero {
-  padding: 1rem 0;
+  /* Keep `.ak-shell`'s horizontal padding — overriding it to 0 would push the
+   * hero 1.5rem wider than every section grid below it. */
+  padding: 1rem 1.5rem;
   display: flex;
   flex-direction: column;
 }
@@ -411,14 +415,6 @@ body.ak-marketing .ak-mono {
   filter: drop-shadow(
     0 18px 34px color-mix(in srgb, #000 36%, transparent)
   );
-}
-
-.ak-kicker {
-  margin: 0 0 0.4rem;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ak-fg-muted);
 }
 
 .ak-hero h1 .ak-h1-accent {
@@ -444,59 +440,6 @@ body.ak-marketing .ak-mono {
   line-height: 1.55;
 }
 
-.ak-hero-highlights {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.75rem;
-  margin: 0 0 1.8rem;
-}
-
-.ak-hero-highlight {
-  padding: 1rem 1rem;
-  background: var(--ak-bg-elevated);
-  border: 1px solid var(--ak-border);
-  border-radius: 10px;
-  color: var(--ak-fg-muted);
-}
-
-.ak-hero-highlight h3 {
-  margin: 0 0 0.35rem;
-  font-size: 0.96rem;
-  color: var(--ak-fg);
-}
-
-.ak-hero-highlight p {
-  margin: 0;
-  font-size: 0.86rem;
-  line-height: 1.5;
-}
-
-.ak-feature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
-}
-
-.ak-feature-card {
-  padding: 1.3rem 1.2rem;
-  background: var(--ak-bg-elevated);
-  border: 1px solid var(--ak-border);
-  border-radius: 12px;
-}
-
-.ak-feature-card h3 {
-  margin: 0 0 0.55rem;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.ak-feature-card p {
-  margin: 0;
-  color: var(--ak-fg-muted);
-  font-size: 0.9rem;
-  line-height: 1.55;
-}
-
 .ak-section-elevated {
   position: relative;
   background:
@@ -515,58 +458,19 @@ body.ak-marketing .ak-mono {
   border-bottom: 1px solid var(--ak-border);
 }
 
-.ak-strand {
-  display: grid;
-  gap: 0.8rem;
-}
-
-.ak-strand-step {
-  display: flex;
-  gap: 0.8rem;
-  padding: 1rem 1.1rem;
-  background: var(--ak-bg);
-  border: 1px solid var(--ak-border);
-  border-radius: 10px;
-}
-
-.ak-strand-step-no {
-  width: 2.05rem;
-  height: 2.05rem;
-  border-radius: 999px;
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  font-family: var(--ak-mono);
-  background: var(--ak-accent-soft);
-  border: 1px solid color-mix(in srgb, var(--ak-accent) 25%, transparent);
-  color: var(--ak-accent);
-}
-
-.ak-strand-body h3 {
-  margin: 0 0 0.32rem;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.ak-strand-body p {
-  margin: 0;
-  color: var(--ak-fg-muted);
-  font-size: 0.89rem;
-}
-
-.ak-home-grid-2 {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 1.5rem;
-  align-items: start;
-}
-
 .ak-entry-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.7rem;
+}
+
+/* Full-width variant: used when the entry cards own the whole section rather
+ * than sitting in a narrow column beside other content. */
+.ak-entry-grid--wide {
+  /* 400px tracks give 3 columns at the 1400px shell — six entries land as an
+   * even 3x2 block instead of a row of five plus one orphan. */
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 0.8rem;
 }
 
 .ak-resource {
@@ -598,19 +502,6 @@ body.ak-marketing .ak-mono {
 .ak-resource-desc {
   color: var(--ak-fg-muted);
   font-size: 0.86rem;
-}
-
-.ak-case-list {
-  margin: 0;
-  padding: 0 0 0 1.05rem;
-  color: var(--ak-fg-muted);
-  display: grid;
-  gap: 0.55rem;
-}
-
-.ak-case-list li {
-  line-height: 1.6;
-  font-size: 0.95rem;
 }
 
 .ak-cta-row {
@@ -705,39 +596,93 @@ section.ak-section {
   font-size: 0.95rem;
 }
 
-/* ---------- Intro three-column ----------------------------------------- */
+/* ---------- Protocol stack (homepage "what this actually is") ----------- */
 
-.ak-pillars {
+.ak-stack {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.25rem;
+  gap: 0.5rem;
 }
 
-.ak-pillar {
-  padding: 1.5rem;
+.ak-stack-row {
+  display: grid;
+  grid-template-columns: 15rem 1fr 13rem;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.05rem 1.35rem;
   background: var(--ak-bg-elevated);
   border: 1px solid var(--ak-border);
   border-radius: 12px;
 }
 
-.ak-pillar h3 {
-  margin: 0 0 0.5rem;
-  font-size: 1.05rem;
+/* The Write plane is the one layer that holds truth — everything above is
+ * derived, everything below is replaceable infrastructure. */
+.ak-stack-row--truth {
+  border-color: color-mix(in srgb, var(--ak-accent) 45%, transparent);
+  background:
+    linear-gradient(
+      to right,
+      var(--ak-accent-soft),
+      var(--ak-bg-elevated) 60%
+    );
+}
+
+.ak-stack-plane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.ak-stack-plane b {
+  font-family: var(--ak-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ak-accent);
+}
+
+.ak-stack-plane span {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--ak-fg);
+}
+
+.ak-stack-what {
+  margin: 0;
+  color: var(--ak-fg-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.ak-stack-auth {
+  justify-self: end;
+  text-align: right;
+  font-size: 0.82rem;
+  color: var(--ak-fg-subtle);
+  line-height: 1.45;
+}
+
+.ak-stack-row--truth .ak-stack-auth {
+  color: var(--ak-accent);
   font-weight: 600;
 }
 
-.ak-pillar p {
-  margin: 0;
-  color: var(--ak-fg-muted);
-  font-size: 0.93rem;
-  line-height: 1.55;
+.ak-stack-note {
+  margin: 0.9rem 0 0;
+  color: var(--ak-fg-subtle);
+  font-size: 0.87rem;
+  line-height: 1.6;
 }
 
 /* ---------- Concept grid ----------------------------------------------- */
 
 .ak-concepts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  /* Wide tracks: each concept is one full sentence, so 3 roomy columns read
+   * better than 5 narrow ones at the 1400px shell width. */
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   gap: 1rem;
 }
 
@@ -972,7 +917,6 @@ section.ak-section {
     );
   backdrop-filter: blur(8px);
   overflow: hidden;
-  max-width: 760px;
   box-shadow: var(--ak-shadow-card);
 }
 
@@ -1154,6 +1098,21 @@ section.ak-section {
   margin-bottom: 0.85rem;
 }
 
+.ak-strand-step-no {
+  width: 2.05rem;
+  height: 2.05rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-family: var(--ak-mono);
+  background: var(--ak-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--ak-accent) 25%, transparent);
+  color: var(--ak-accent);
+}
+
 .ak-strand-connector {
   flex: 1;
   height: 1px;
@@ -1175,74 +1134,6 @@ section.ak-section {
   color: var(--ak-fg-muted);
   font-size: 0.88rem;
   line-height: 1.55;
-}
-
-/* ---------- Pain points grid ------------------------------------------- */
-
-.ak-pain-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 0.9rem;
-}
-
-.ak-pain-card {
-  position: relative;
-  padding: 1.5rem 1.5rem 1.6rem;
-  background: var(--ak-bg-elevated);
-  border: 1px solid var(--ak-border);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: var(--ak-shadow-card);
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.ak-pain-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 2px;
-  background: linear-gradient(
-    to right,
-    var(--ak-accent),
-    transparent 70%
-  );
-  opacity: 0.6;
-}
-
-.ak-pain-card:hover {
-  border-color: color-mix(in srgb, var(--ak-accent) 40%, transparent);
-  transform: translateY(-2px);
-  box-shadow: var(--ak-shadow-card-hover);
-}
-
-.ak-pain-tag {
-  display: inline-block;
-  font-family: var(--ak-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  background: var(--ak-accent-soft);
-  color: var(--ak-accent);
-  margin-bottom: 0.75rem;
-}
-
-.ak-pain-card h3 {
-  margin: 0 0 0.55rem;
-  font-size: 1.02rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.35;
-}
-
-.ak-pain-card p {
-  margin: 0;
-  color: var(--ak-fg-muted);
-  font-size: 0.9rem;
-  line-height: 1.62;
 }
 
 /* ---------- Open source banner (single concise callout) ---------------- */
@@ -1374,75 +1265,18 @@ body.ak-marketing a.ak-os-banner:hover .ak-os-banner-cta {
   transform: translateX(0);
 }
 
-/* ---------- Use case grid ---------------------------------------------- */
-
-.ak-case-grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.55rem;
-}
-
-.ak-case-grid li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.85rem 1rem;
-  background: var(--ak-bg-elevated);
-  border: 1px solid var(--ak-border);
-  border-radius: 10px;
-  color: var(--ak-fg);
-}
-
-.ak-case-grid li > div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  flex: 1;
-}
-
-.ak-case-grid strong {
-  font-size: 0.94rem;
-  font-weight: 600;
-  color: var(--ak-fg);
-}
-
-.ak-case-grid li > div span {
-  font-size: 0.84rem;
-  color: var(--ak-fg-muted);
-  line-height: 1.5;
-}
-
-.ak-case-mark {
-  font-family: var(--ak-mono);
-  color: var(--ak-accent);
-  font-size: 0.95rem;
-  margin-top: 0.05rem;
-}
-
 /* ---------- Responsive -------------------------------------------------- */
 
 @media (max-width: 960px) {
   .ak-strand-rail {
     grid-template-columns: repeat(2, 1fr);
   }
-  .ak-stack-tier {
+  .ak-stack-row {
     grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
-  .ak-stack-tier-head {
-    position: static;
-  }
-  .ak-stack-banner {
-    grid-template-columns: 1fr;
-    align-items: start;
-  }
-  .ak-stack-banner-meta {
-    align-items: flex-start;
-  }
-  .ak-license-callout {
-    grid-template-columns: 1fr;
+  .ak-stack-auth {
+    justify-self: start;
     text-align: left;
   }
 }
@@ -1467,20 +1301,8 @@ body.ak-marketing a.ak-os-banner:hover .ak-os-banner-cta {
   section.ak-section {
     padding: 3rem 0;
   }
-  .ak-feature-grid {
-    grid-template-columns: 1fr;
-  }
-  .ak-strand-step {
-    gap: 0.6rem;
-  }
-  .ak-home-grid-2 {
-    grid-template-columns: 1fr;
-  }
   .ak-home-hero {
     padding-top: 0.2rem;
-  }
-  .ak-hero-inner {
-    max-width: 100%;
   }
   .ak-hero-stats {
     grid-template-columns: 1fr;
@@ -1494,14 +1316,5 @@ body.ak-marketing a.ak-os-banner:hover .ak-os-banner-cta {
   }
   .ak-strand-rail {
     grid-template-columns: 1fr;
-  }
-  .ak-stack-banner {
-    padding: 1.5rem;
-  }
-  .ak-stack-tier {
-    padding: 1.2rem;
-  }
-  .ak-license-callout {
-    padding: 1.5rem;
   }
 }
