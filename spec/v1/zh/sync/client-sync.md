@@ -482,7 +482,7 @@ event_id ASC
       "epoch": 12,
       "content_type": "application/vnd.arkret.member-identity+json",
       "ciphertext": "base64url",
-      "aad_visibility_event_id": "routing_digest",
+      "aad_visibility_event_id_kind": "routing_digest",
       "aad": {
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "event_kind": "ak.member.identity.update",

@@ -272,6 +272,35 @@
       }
     },
     {
+      "$comment": "Mirror of message.schema.json's state=redacted branch: the content slot (content <-> encrypted_content) MUST be absent once redaction has cleared it, so 'redacted' is verifiable from the object alone instead of only from the event stream (zh/models/common-fields.md §5 redacted row, §5.2; zh/models/event-and-patch.md §4.2.4).",
+      "if": {
+        "properties": {
+          "state": {
+            "const": "redacted"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "content"
+              ]
+            },
+            {
+              "required": [
+                "encrypted_content"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
       "if": {
         "required": [
           "stage_changed_at"

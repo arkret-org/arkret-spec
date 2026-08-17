@@ -217,7 +217,7 @@
       "context": {
         "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
         "aad_visibility": {
-          "event_id": "routing_digest"
+          "event_id_kind": "routing_digest"
         },
         "mls_group_id": "Zm9vYmFy",
         "epoch": 7
@@ -237,7 +237,7 @@
               "epoch": 7,
               "content_type": "application/json",
               "ciphertext": "reactionAlpha",
-              "aad_visibility_event_id": "routing_digest",
+              "aad_visibility_event_id_kind": "routing_digest",
               "aad": {
                 "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
                 "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
@@ -267,7 +267,7 @@
               "epoch": 7,
               "content_type": "application/json",
               "ciphertext": "reactionAlphaDup",
-              "aad_visibility_event_id": "routing_digest",
+              "aad_visibility_event_id_kind": "routing_digest",
               "aad": {
                 "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
                 "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
@@ -305,7 +305,7 @@
       "context": {
         "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
         "aad_visibility": {
-          "event_id": "hidden"
+          "event_id_kind": "hidden"
         },
         "mls_group_id": "Zm9vYmFy",
         "old_epoch": 7,
@@ -326,7 +326,7 @@
               "epoch": 7,
               "content_type": "application/json",
               "ciphertext": "reactionEpoch7",
-              "aad_visibility_event_id": "hidden",
+              "aad_visibility_event_id_kind": "hidden",
               "aad": {
                 "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
                 "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
@@ -355,7 +355,7 @@
               "epoch": 8,
               "content_type": "application/json",
               "ciphertext": "reactionEpoch8",
-              "aad_visibility_event_id": "hidden",
+              "aad_visibility_event_id_kind": "hidden",
               "aad": {
                 "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
                 "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",

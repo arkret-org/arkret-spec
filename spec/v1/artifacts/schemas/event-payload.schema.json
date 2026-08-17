@@ -15,7 +15,7 @@
       "type": "object",
       "description": "Payload for ak.account.blocklist. Holder-private personal blocklist state; it never enters shared Realm state or federation payloads.",
       "required": [
-        "owner",
+        "holder_id",
         "version",
         "entries"
       ],
@@ -23,7 +23,7 @@
         "kind": {
           "const": "ak.account.blocklist"
         },
-        "owner": {
+        "holder_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "version": {
@@ -283,7 +283,7 @@
         "key": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "owner": {
+        "holder_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "expected_revision": {
@@ -4908,11 +4908,11 @@
     "invite_third_party_create_payload": {
       "type": "object",
       "required": [
-        "third_party_id",
+        "third_party_invite",
         "expires_at"
       ],
       "properties": {
-        "third_party_id": {
+        "third_party_invite": {
           "$ref": "./invite.schema.json#/$defs/third_party_invite",
           "description": "Third-party invite genesis material. The Invite id is derived from this Event's event_id and MUST NOT be carried in the payload."
         },
@@ -7787,25 +7787,6 @@
       "type": "string",
       "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
-    "object_snapshot": {
-      "type": "object",
-      "required": [
-        "id"
-      ],
-      "properties": {
-        "id": {
-          "$ref": "#/$defs/object_ref"
-        }
-      },
-      "additionalProperties": true,
-      "not": {
-        "$comment": "Object kind is derived from the typed-id prefix on `id`; `type` is a banned field name.",
-        "required": [
-          "type"
-        ]
-      },
-      "description": "Embedded object snapshot inside an Event payload. Object kind is derived from the typed-id prefix on `id`; there is no separate `type` field."
-    },
     "or_set_dot": {
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}:[0-9]+$",
@@ -8395,7 +8376,7 @@
     },
     "profile_realm_override_payload": {
       "type": "object",
-      "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies.",
+      "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies. resolution and every resolution.* descendant path are reducer-managed projections of the PCR resolution cell and are forbidden here for the same reason they are forbidden on the generic profile write surface; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
       "required": [
         "target_ref",
         "target_realm_id",
@@ -8409,7 +8390,18 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "patch": {
-          "$ref": "#/$defs/patch"
+          "allOf": [
+            {
+              "$ref": "#/$defs/patch"
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^resolution(?:\\.|$)"
+                }
+              }
+            }
+          ]
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest"
@@ -9477,19 +9469,19 @@
         },
         "aad_visibility": {
           "type": "object",
-          "$comment": "One registered axis in v1. The AAD field set has exactly one wire discriminator, encrypted-envelope.schema.json#/properties/aad_visibility_event_id; the object shape leaves room for a second registered axis without renaming the component, and additionalProperties=false hard-rejects unregistered axis names at wire parse time.",
+          "$comment": "One registered axis in v1. The AAD field set has exactly one wire discriminator, encrypted-envelope.schema.json#/properties/aad_visibility_event_id_kind; the object shape leaves room for a second registered axis without renaming the component, and additionalProperties=false hard-rejects unregistered axis names at wire parse time.",
           "required": [
-            "event_id"
+            "event_id_kind"
           ],
           "properties": {
-            "event_id": {
+            "event_id_kind": {
               "type": "string",
               "enum": [
                 "hidden",
                 "routing_digest",
                 "opaque_id"
               ],
-              "description": "Realm ceiling on encrypted-envelope aad_visibility_event_id. Disclosure order is hidden < routing_digest < opaque_id; an envelope MUST NOT declare a wider value than this ceiling, and a receiver that sees one MUST reject it with reason_code aad_visibility_policy_violation. An envelope MAY declare a narrower value. Absent component means the hidden ceiling, so routing_digest and opaque_id are only reachable after the Realm declares them. See crypto-media/encryption-and-audit.md sections 2.3.2 and 2.8."
+              "description": "Realm ceiling on encrypted-envelope aad_visibility_event_id_kind. Disclosure order is hidden < routing_digest < opaque_id; an envelope MUST NOT declare a wider value than this ceiling, and a receiver that sees one MUST reject it with reason_code aad_visibility_policy_violation. An envelope MAY declare a narrower value. Absent component means the hidden ceiling, so routing_digest and opaque_id are only reachable after the Realm declares them. See crypto-media/encryption-and-audit.md sections 2.3.2 and 2.8."
             }
           },
           "additionalProperties": false
@@ -9883,6 +9875,7 @@
     },
     "relation_update_payload": {
       "type": "object",
+      "description": "Relation patch payload. effective_scope and every effective_scope.* descendant path are the reducer-materialized projection of the verified Event.scope_ref and are forbidden on this generic update surface (reason=effective_scope_reducer_managed); the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
       "oneOf": [
         {
           "required": [
@@ -9903,7 +9896,18 @@
           "description": "Optional optimistic concurrency guard. When present it MUST equal the writer-observed digest of the frozen pre-state this patch was computed against; a mismatch MUST fail closed. Registered as the apply_patch projection's expected_prestate source in contract-registry.json."
         },
         "patch": {
-          "$ref": "#/$defs/patch"
+          "allOf": [
+            {
+              "$ref": "#/$defs/patch"
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^effective_scope(?:\\.|$)"
+                }
+              }
+            }
+          ]
         },
         "relation_id": {
           "$ref": "#/$defs/relation_id"
@@ -10908,7 +10912,29 @@
           "description": "Optional optimistic concurrency guard. When present it MUST equal the writer-observed digest of the frozen pre-state this patch was computed against; a mismatch MUST fail closed. Registered as the apply_patch projection's expected_prestate source in contract-registry.json."
         },
         "object": {
-          "$ref": "#/$defs/object_snapshot"
+          "allOf": [
+            {
+              "$ref": "./view.schema.json"
+            },
+            {
+              "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id (event-kind-registry.json declares id_source=event_derived for ak.view.create), so carrying it in the payload is schema_violation reason object_id_not_event_derived. `type` stays banned because the object kind comes from the typed-id prefix. Reusing view.schema.json also closes the payload: state_changed_at is reducer-derived and view.schema.json already forbids it on any View whose state is not tombstoned.",
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "type"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "ak.view.create object snapshot: the full View object schema minus the id. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance."
         },
         "patch": {
           "$ref": "#/$defs/patch"
@@ -10939,23 +10965,34 @@
       "additionalProperties": false
     },
     "relation_create_object": {
-      "type": "object",
-      "additionalProperties": true,
-      "not": {
-        "anyOf": [
-          {
-            "required": [
-              "id"
-            ]
-          },
-          {
-            "required": [
-              "type"
+      "allOf": [
+        {
+          "$ref": "./relation.schema.json"
+        },
+        {
+          "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived. `type` stays banned because the object kind comes from the typed-id prefix. `effective_scope` is the reducer-materialized projection of the verified Event.scope_ref (zh/models/circle.md §6.2) and MUST NOT be actor-supplied: reason effective_scope_reducer_managed, machine-indexed in registry/reducer-managed-path-registry.json.",
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "id"
+                ]
+              },
+              {
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "required": [
+                  "effective_scope"
+                ]
+              }
             ]
           }
-        ]
-      },
-      "description": "Relation create input. Same shape as object_snapshot minus the id: the relation id is derived from this create Event's event_id (zh/models/common-fields.md); `type` stays banned because the object kind comes from the typed-id prefix."
+        }
+      ],
+      "description": "Relation create input: the full Relation object schema minus the id, the banned `type` name, and the reducer-managed `effective_scope`. Reusing relation.schema.json makes the Relation create shape decidable by schema exactly like the Strand / Morph / Space create shapes, while relation.schema.json's own `fields` property keeps the free edge-metadata surface open. Semantic validation MUST require payload.relation.created_by to match the top-level actor_id and payload.relation.created_at to match the top-level created_at before acceptance."
     }
   }
 }

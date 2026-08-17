@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-17.4",
+  "version": "2026-08-18.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-17T11:30:00+08:00",
+  "generated_at": "2026-08-18T06:45:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -67,7 +67,7 @@
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ],
-      "description": "The Realm ak.realm.policy_bundle aad_visibility.event_id component is a disclosure ceiling over the encrypted-envelope aad_visibility_event_id discriminator: an equal or narrower envelope is accepted, a wider one is rejected with aad_visibility_policy_violation, and an absent component means the hidden ceiling rather than no constraint."
+      "description": "The Realm ak.realm.policy_bundle aad_visibility.event_id_kind component is a disclosure ceiling over the encrypted-envelope aad_visibility_event_id_kind discriminator: an equal or narrower envelope is accepted, a wider one is rejected with aad_visibility_policy_violation, and an absent component means the hidden ceiling rather than no constraint."
     },
     {
       "vector_id": "ak.vector.account.blocklist_projection.v1",
@@ -4945,6 +4945,32 @@
       ]
     },
     {
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "status": "active",
+      "domain": "redaction",
+      "description": "Strand / Morph state=redacted forbids both content slots: an object carrying content or encrypted_content alongside state=redacted MUST fail strand.schema.json / morph.schema.json, the redact post-state with both slots absent MUST validate, and state=archived MUST keep the slot legal.",
+      "applies_to_fixtures": [
+        "redaction-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/models/common-fields.md",
+        "spec/v1/artifacts/fixtures/redaction-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.relation.effective_scope_reducer_managed.v1",
+      "status": "active",
+      "domain": "relation",
+      "description": "Relation is the only patch-surface object whose schema declares effective_scope, so it is the only place an actor could still supply the reducer-materialized value. Both surfaces MUST be decided by schema and MUST produce zero projection writes: an ak.relation.create carrying payload.relation.effective_scope, and an ak.relation.update whose patch addresses effective_scope or any effective_scope.* descendant, both fail with schema_violation reason=effective_scope_reducer_managed.",
+      "applies_to_fixtures": [
+        "circle-scope-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.relation.reference_projection_indistinguishable.v1",
       "status": "active",
       "domain": "relation",
@@ -5798,7 +5824,7 @@
       "applies_to_fixtures": [
         "sync-fixture.json"
       ],
-      "description": "DeviceMessageEnvelope requires a sender-assigned message_id; unacknowledged byte-identical redelivery executes durable handler effects once, conflicting reuse fails with duplicate_conflict/message_id_conflict, and distinct ids remain distinct logical messages.",
+      "description": "DeviceMessageEnvelope requires a sender-assigned device_message_id; unacknowledged byte-identical redelivery executes durable handler effects once, conflicting reuse fails with duplicate_conflict/device_message_id_conflict, and distinct ids remain distinct logical messages.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/sync-fixture.json"
@@ -5828,6 +5854,573 @@
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.account_binding_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.account-binding-receipt-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.account-status-record-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.account-binding-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.account_status_record.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.account-status-record-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.account-status-replication-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.account-status-record-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.account_status_replication_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.account-status-replication-receipt-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.account-handoff-authentication-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.account-status-replication-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.account_handoff_authentication.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.account-handoff-authentication-proof-v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.account-registration-control-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.account-handoff-authentication-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.account_registration_control_proof.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.account-registration-control-proof-v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.accountability-grant-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.account-registration-control-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.accountability_grant.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.accountability-grant-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.agent-requested-scope-disclosure-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.accountability-grant-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.agent_requested_scope_disclosure.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.agent-requested-scope-disclosure-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.agent-runtime-key-possession-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.agent-requested-scope-disclosure-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.agent_runtime_key_possession.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.agent-runtime-key-possession-proof-v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.agent-selector-claim-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.agent-runtime-key-possession-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.agent_selector_claim.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.agent-selector-claim-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.applet-package-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.agent-selector-claim-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.applet_package.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.applet-package-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.audit-release-attestation-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.applet-package-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.attestation_evidence.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.audit-release-attestation-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.audit-ryw-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.audit-release-attestation-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.audit_ryw_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.audit-ryw-receipt-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.authorization-lease-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.audit-ryw-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.authorization_lease.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.authorization-lease-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.control-proposal-authority-ack-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.authorization-lease-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.control_proposal_authority_ack.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.control-proposal-authority-ack-proof-v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.control-proposal-decision-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.control-proposal-authority-ack-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.control_proposal_decision.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.control-proposal-decision-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.device-authorize-accepted-device-possession-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.control-proposal-decision-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.device_authorize_accepted_device_possession.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.device-authorize-accepted-device-possession-proof-v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.device-authorize-possession-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.device-authorize-accepted-device-possession-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.device_authorize_possession.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.device-authorize-possession-proof-v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.device-authorize-recovery-possession-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.device-authorize-possession-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.device_authorize_recovery_possession.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.device-authorize-recovery-possession-proof-v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.device-revocation-gate-decision-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.device-authorize-recovery-possession-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.device_revocation_gate_decision_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.device-revocation-gate-decision-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.did-webvh-witness-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.device-revocation-gate-decision-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.did_webvh_witness_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.did-webvh-witness-receipt-proof-v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory-governance-request-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.did-webvh-witness-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.directory_governance_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.directory-governance-request-proof-v1: digest input deletes `governance_proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory-list-handles-for-subject-request-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.directory-governance-request-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.directory_list_handles_for_subject_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.directory-list-handles-for-subject-request-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory-resolve-agent-selector-request-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.directory-list-handles-for-subject-request-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.directory_resolve_agent_selector_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.directory-resolve-agent-selector-request-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory-resolve-handle-request-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.directory-resolve-agent-selector-request-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.directory_resolve_handle_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.directory-resolve-handle-request-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory-resolve-organization-request-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.directory-resolve-handle-request-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.directory_resolve_organization_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.directory-resolve-organization-request-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.directory-resolve-target-request-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.directory-resolve-organization-request-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.directory_resolve_target_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.directory-resolve-target-request-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.event-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.directory-resolve-target-request-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.event_envelope.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.event-proof-v1: digest input deletes `actor_kind`, `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.extension-manifest-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.event-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.extension_manifest.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.extension-manifest-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.handle-claim-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.extension-manifest-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.handle_claim.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.handle-claim-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.identity-creation-control-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.handle-claim-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.identity_creation_control.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.identity-creation-control-proof-v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.identity-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.identity-creation-control-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.identity_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.identity-receipt-proof-v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.ingress-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.identity-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.ingress_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.ingress-receipt-proof-v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.join-application-cancel-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.ingress-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.join_application_cancel_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.join-application-cancel-receipt-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.join-application-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.join-application-cancel-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.join_application_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.join-application-receipt-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.join-application-review-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.join-application-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.join_application_review_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.join-application-review-receipt-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.key-backup-delete-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.join-application-review-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.key_backup_delete_authority.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.key-backup-delete-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.member-delivery-binding-candidate-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.key-backup-delete-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.member_delivery_binding_candidate.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.member-delivery-binding-candidate-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi-group-info-outcome-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.member-delivery-binding-candidate-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.mimi_group_info_outcome.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.mimi-group-info-outcome-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi-identifier-query-outcome-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.mimi-group-info-outcome-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.mimi_identifier_query_outcome.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.mimi-identifier-query-outcome-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi-identifier-query-request-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.mimi-identifier-query-outcome-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.mimi_identifier_query_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.mimi-identifier-query-request-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi-key-material-outcome-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.mimi-identifier-query-request-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.mimi_key_material_outcome.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.mimi-key-material-outcome-proof-v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi-key-material-request-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.mimi-key-material-outcome-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.mimi_key_material_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.mimi-key-material-request-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi-provider-directory-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.mimi-key-material-request-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.mimi_provider_directory.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.mimi-provider-directory-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi-request-consent-request-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.mimi-provider-directory-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.mimi_request_consent_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.mimi-request-consent-request-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.mimi-update-consent-request-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.mimi-request-consent-request-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.mimi_update_consent_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.mimi-update-consent-request-proof-v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.organization-registration-control-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.mimi-update-consent-request-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.organization_registration_control_proof.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.organization-registration-control-proof-v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.organization-registration-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.organization-registration-control-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.organization_registration_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.organization-registration-receipt-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.device-projection-attestation-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.organization-registration-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.device_projection_attestation.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.device-projection-attestation-proof-v1: digest input is the `attestation` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.principal-locator-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.device-projection-attestation-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.principal_locator.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.principal-locator-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.principal-resolution-projection-attestation-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.principal-locator-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.principal_resolution_projection_attestation.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.principal-resolution-projection-attestation-proof-v1: digest input is the `attestation` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.principal-server-admission-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.principal-resolution-projection-attestation-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.principal_server_event_admission.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.principal-server-admission-proof-v1: digest input deletes `actor_kind`, `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.range-completeness-attestation-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.principal-server-admission-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.range_completeness_attestation.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.range-completeness-attestation-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm-join-candidate-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.range-completeness-attestation-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.realm_join_candidate.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.realm-join-candidate-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm-key-share-sender-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.realm-join-candidate-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.realm_key_share_sender_transcript.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.realm-key-share-sender-proof-v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.realm-key-share-sender-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.event_batch_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.receipt-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.registration-did-evidence-control-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.registration_did_evidence_control.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.registration-did-evidence-control-proof-v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.service-registration-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.registration-did-evidence-control-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.service_registration_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.service-registration-receipt-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.service-resolution-publish-ack-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.service-registration-receipt-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.service_resolution_publish_ack.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.service-resolution-publish-ack-proof-v1: digest input is the `ack` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.service-resolution-record-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.service-resolution-publish-ack-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.service_resolution_record.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.service-resolution-record-proof-v1: digest input is the `record` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.service-route-handover-notice-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.service-resolution-record-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.service_route_handover_notice.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.service-route-handover-notice-proof-v1: digest input is the `notice` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.signal-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.service-route-handover-notice-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.signal_envelope.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.signal-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.snapshot-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.signal-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.snapshot.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.snapshot-proof-v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.snapshot-witness-attestation-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.snapshot-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.snapshot_witness_attestation.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.snapshot-witness-attestation-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.account-binding-receipt-proof-v1 rejected.",
+      "covers_proof_contexts": ["ak.snapshot-witness-attestation-proof-v1"],
+      "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"]
     }
   ]
 }

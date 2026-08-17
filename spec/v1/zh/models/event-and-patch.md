@@ -324,9 +324,10 @@ wire 不存在 producer 书写的 effect 数组（见 §2.4 的单一事实源�
 登记的封闭 tag 派生式；MUST NOT 直接使用裸 `{"envelope_field":"event_id"}`——裸 event_id
 在同 Event 写多个 `or_set` 目标时不唯一。
 
-dot 拼接由 `ak.vector.encoding.or_set_dot_and_batch_tag.v1`（历史 id，当前只验证 dot；
-[`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)）固定，含裸 event_id
-作 tag 与用 wire 数组下标充当第三段的负向例。
+dot 拼接与 batch tag 均由 `ak.vector.encoding.or_set_dot_and_batch_tag.v1`
+（[`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)）固定：该向量既固定
+dot 的三段拼接，也带 `batch_add` 的字节级 `batch_tag` KAT，含裸 event_id 作 tag 与用 wire
+数组下标充当第三段的负向例。
 
 **共享 FSM 真相源（normative）**：任何 `lattice="fsm"` 的共享 cell write 都 MUST 按
 `contract-registry.json` 的 `event_kind_registry.fsm_contracts[cell_family]` 解析唯一状态机。
@@ -650,6 +651,10 @@ Morph profile 或 Realm schema 定义的长文本字段若需要同样的槽保�
 或已按 redaction policy 清除（见 [`common-fields.md` §5](./common-fields.md) `redacted` 行：内容清除、
 envelope 与审计元数据保留）。普通 `ak.<kind>.update` MUST NOT 制造第三种缺席来源。同一个槽的两种编码
 MUST 受同一条规则约束——否则同一份正文能否被移除将取决于 Realm 是否 E2EE，而两者只是同一个槽的明文 / 密文形态。
+该理由的另一半（"已按 redaction policy 清除"确实产生缺席）在三个承载内容槽的对象上都有机读后盾：
+`message.schema.json` 的 `state=redacted` oneOf 分支、`strand.schema.json` 与 `morph.schema.json` 的
+`state=redacted` 条件分支都要求两个槽同时缺席，判据见 [`common-fields.md` §5.2](./common-fields.md)
+与 `ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1`。
 
 **本条不是 redaction capability 的替代，也不限制内容改写（normative）**: redaction 是 whole-object、
 terminal、审计封缄的操作，并 MUST 使历史、搜索索引、本地缓存与 Blob 访问一并失效
@@ -678,6 +683,23 @@ registry 中每条已登记 path 上的 `{"$op":"unset"}` MUST 被拒绝；同�
 - `set`、`add`、`remove` 必须带 `value`;
 - 客户端不能把数字数组下标写入 path; 如需更新无 stable key 的列表元素，必须将对象重建为具名集合项、用 profile 注册的 move/update event,或使用明确的 API 约束字段表示更新目标;
 - path MUST NOT 操作 reducer-managed 字段: `id` / `schema` / `realm_id` / `created_by` / `created_at` / `updated_by` / `updated_at` / `state` / `state_changed_at` (这些字段由对应 lifecycle event 而非 patch 修改;`updated_by` / `updated_at` 由 reducer 从触发 Event 的 actor / `created_at` 派生，允许 patch 写入会让 actor 伪造更新时间戳，与防伪造 `state_changed_at` 的安全意图矛盾；见 [`common-fields.md` §5](./common-fields.md))。reducer 在 path 命中该集合时 MUST `schema_violation` reason=`patch_path_reducer_managed`。本清单为**通用最小集**;对象专属的 progress 字段禁令(Strand / Morph 的 `stage` / `stage_changed_at` patch path MUST `schema_violation`)见 [`common-fields.md` §5.3](./common-fields.md) 与 [`morph.md` §2](./morph.md)。
+
+上述通用最小集与每个对象 kind 的专属禁写集合的 canonical 机读投影是
+[`reducer-managed-path-registry.json`](../../artifacts/registry/reducer-managed-path-registry.json)：
+本节与该 registry MUST 同批更新，reducer、SDK 与 conformance MUST 从 registry 取值，
+MUST NOT 各自解析本节散文，也 MUST NOT 在实现里另写一份平行清单。
+`patch.schema.json` 是通用文档格式，不知道自己正被套用到哪个对象，因此**没有任何通用 patch schema
+能表达 per-object 的禁写集合**；能表达的只有对象自己的 update payload（例如
+`event-payload.schema.json#/$defs/relation_update_payload` 用 `propertyNames` 禁掉
+`effective_scope` 与 `effective_scope.*`），而它们表达了哪几条同样由 registry 的
+`schema_enforced` 逐条登记并双向校验。禁写 path 的**每一条 dotted 后代**一并禁写：
+禁掉 `effective_scope` 即同时禁掉 `effective_scope.circle_id`。
+
+registry 的 `universal_exemptions` 是**逐条具名的规范性例外**，不是对本节的放宽。v1 只有一条：
+共享 View 没有独立的 tombstone event kind，其协议级移除就是 `ak.view.update` patch
+`state="tombstoned"`（见 [`views.md` §3.1](./views.md)），所以 `state` 在 View 上由 actor 撰写，
+而 `state_changed_at` 在 View 上仍是 reducer-derived、仍属禁写。实现 MUST 按对象 kind 判定本集合，
+MUST NOT 用一份 object-agnostic 的清单同时套用到所有对象。
 
 ### 4.3 在 Event 中的位置
 

@@ -1,0 +1,250 @@
+{
+  "version": "2026-08-18",
+  "source_of_truth": true,
+  "description": "Canonical machine-readable projection of the reducer-managed-field protection defined in zh/models/event-and-patch.md section 4.2.5. It answers one question per object kind: which ak.schema.patch.v1 paths a generic update surface MUST reject because the value is owned by the reducer, by the create Event, by a dedicated event kind, or by a cell, rather than by the actor writing the patch. patch.schema.json is a generic document format and cannot express a per-object forbidden set, so before this registry existed every reducer, SDK and conformance runner had to hard-code its own copy of the list. Reducers, SDKs and conformance runners MUST read the set from here and MUST NOT re-derive it from prose.",
+  "registry_rules": [
+    "The effective forbidden set of an object kind is universal_forbidden_patch_paths, restricted to the paths its object schema actually declares, minus that object's universal_exemptions, plus its own forbidden_patch_paths. A path and every dotted descendant of it are forbidden together: banning `effective_scope` also bans `effective_scope.circle_id`.",
+    "universal_forbidden_patch_paths is the general minimum set of zh/models/event-and-patch.md section 4.2.5 and MUST stay identical to the list that section spells out. Object-specific bans belong in the object's forbidden_patch_paths, never in the universal list.",
+    "A universal_exemptions entry is a documented normative carve-out, not a relaxation of the general rule, and MUST name the clause that assigns the path to the generic update surface. v1 has exactly one: a shared View reaches its durable terminal state through an ak.view.update patch setting state=tombstoned (zh/models/views.md section 3.1), so `state` is authored on View while `state_changed_at` stays reducer-derived.",
+    "Only object kinds whose update payload embeds event-payload.schema.json#/$defs/patch appear here. Message carries reducer-managed members too (`effective_scope`, `state_changed_at`), but it has no patch surface at all: ak.message.revise and ak.message.redact are dedicated payloads that are additionalProperties:false, so the ban is already decided by their schemas.",
+    "schema_enforced=true means the named update payload already rejects the path through its own propertyNames guard, so a conforming implementation gets schema_violation from artifact validation alone. schema_enforced=false means only the reducer can decide it. The flag is an assertion about the shipped schema, not a preference: it is verified in both directions, so a guard can neither register a path it does not forbid nor forbid a path it did not register.",
+    "This registry does not classify create payloads. A create payload names its object shape directly, so it expresses its own bans in schema (see event-payload.schema.json#/$defs/relation_create_object); only the generic patch surface needs an external table."
+  ],
+  "reason_codes": [
+    "patch_path_reducer_managed",
+    "effective_scope_reducer_managed"
+  ],
+  "universal_forbidden_patch_paths": [
+    {
+      "path": "id",
+      "basis": "create_locked",
+      "reason_code": "patch_path_reducer_managed",
+      "owner_kind": "reducer",
+      "owner": "The create Event's own event_id, retyped (zh/models/common-fields.md section 6.0). A payload-supplied id would be a second, forgeable truth.",
+      "description": "Object identity is derived, never authored."
+    },
+    {
+      "path": "schema",
+      "basis": "create_locked",
+      "reason_code": "patch_path_reducer_managed",
+      "owner_kind": "reducer",
+      "owner": "Fixed by the create Event. Schema evolution has its own event kinds (for example ak.morph.schema_migrate); a patch MUST NOT retype an object in place.",
+      "description": "Validation schema id of the materialized object."
+    },
+    {
+      "path": "realm_id",
+      "basis": "create_locked",
+      "reason_code": "patch_path_reducer_managed",
+      "owner_kind": "reducer",
+      "owner": "Fixed by the create Event. No canonical object rebinds to another Realm.",
+      "description": "Owning Realm boundary."
+    },
+    {
+      "path": "created_by",
+      "basis": "reducer_derived",
+      "reason_code": "patch_path_reducer_managed",
+      "owner_kind": "reducer",
+      "owner": "The create Event's actor_id.",
+      "description": "Authorship of the object."
+    },
+    {
+      "path": "created_at",
+      "basis": "reducer_derived",
+      "reason_code": "patch_path_reducer_managed",
+      "owner_kind": "reducer",
+      "owner": "The create Event's created_at.",
+      "description": "Creation timestamp."
+    },
+    {
+      "path": "updated_by",
+      "basis": "reducer_derived",
+      "reason_code": "patch_path_reducer_managed",
+      "owner_kind": "reducer",
+      "owner": "The triggering Event's actor_id.",
+      "description": "Most recent update authorship. Allowing a patch to write it would let an actor attribute an update to somebody else."
+    },
+    {
+      "path": "updated_at",
+      "basis": "reducer_derived",
+      "reason_code": "patch_path_reducer_managed",
+      "owner_kind": "reducer",
+      "owner": "The triggering Event's created_at.",
+      "description": "Most recent update timestamp. Allowing a patch to write it would let an actor forge update ordering, contradicting the anti-forgery intent behind state_changed_at."
+    },
+    {
+      "path": "state",
+      "basis": "dedicated_event_owned",
+      "reason_code": "patch_path_reducer_managed",
+      "owner_kind": "reducer",
+      "owner": "The ak.<kind>.archive / ak.<kind>.restore / ak.<kind>.tombstone lifecycle events of zh/models/common-fields.md section 5.1.",
+      "description": "Physical lifecycle axis. View is the one registered exemption; see its universal_exemptions row."
+    },
+    {
+      "path": "state_changed_at",
+      "basis": "reducer_derived",
+      "reason_code": "patch_path_reducer_managed",
+      "owner_kind": "reducer",
+      "owner": "max(Event.created_at, min(covering accepted Seal.sealed_at)) as defined in zh/models/common-fields.md section 3.",
+      "description": "Timestamp of the most recent state transition. Reducer-derived on every object that carries it, including View."
+    }
+  ],
+  "objects": [
+    {
+      "object_kind": "actor_profile",
+      "object_schema_ref": "schemas/actor-profile.schema.json",
+      "update_payload_refs": [
+        "schemas/event-payload.schema.json#/$defs/actor_profile_update_payload",
+        "schemas/event-payload.schema.json#/$defs/profile_realm_override_payload"
+      ],
+      "universal_exemptions": [],
+      "forbidden_patch_paths": [
+        {
+          "path": "resolution",
+          "basis": "cell_projection",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "cell_family",
+          "owner": "ak.component.identity.resolution.v1",
+          "schema_enforced": true,
+          "description": "Read-only current principal full_id projection derived from the PCR identity resolution cell. The cell is the sole write authority, and the projection is not an authorization root."
+        }
+      ]
+    },
+    {
+      "object_kind": "circle",
+      "object_schema_ref": "schemas/circle.schema.json",
+      "update_payload_refs": [
+        "schemas/event-payload.schema.json#/$defs/circle_patch_payload"
+      ],
+      "universal_exemptions": [],
+      "forbidden_patch_paths": [
+        {
+          "path": "encryption_profile",
+          "basis": "create_locked",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "event_kind",
+          "owner": "ak.circle.create",
+          "schema_enforced": false,
+          "description": "Circle content encryption profile is create-locked: a Circle never migrates between plaintext isolation and its own MLS group in place."
+        },
+        {
+          "path": "mls_group_ref",
+          "basis": "reducer_derived",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "event_kind",
+          "owner": "ak.circle.create",
+          "schema_enforced": false,
+          "description": "Reference to the independent MLS group bound to (realm_id, circle_id). Populated by the ak.circle.create reducer and never actor-supplied on wire."
+        }
+      ]
+    },
+    {
+      "object_kind": "morph",
+      "object_schema_ref": "schemas/morph.schema.json",
+      "update_payload_refs": [
+        "schemas/event-payload.schema.json#/$defs/morph_update_payload"
+      ],
+      "universal_exemptions": [],
+      "forbidden_patch_paths": [
+        {
+          "path": "morph_kind",
+          "basis": "create_locked",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "event_kind",
+          "owner": "ak.morph.create",
+          "schema_enforced": true,
+          "description": "Morph kind is fixed at creation; retyping a Morph in place would invalidate its facet and schema_refs contract."
+        },
+        {
+          "path": "stage",
+          "basis": "dedicated_event_owned",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "event_kind",
+          "owner": "ak.morph.stage.set",
+          "schema_enforced": true,
+          "description": "Business progress axis, single-sourced by the stage event so that same-value self-transitions and stage_changed_at stay derivable."
+        },
+        {
+          "path": "stage_changed_at",
+          "basis": "reducer_derived",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "event_kind",
+          "owner": "ak.morph.stage.set",
+          "schema_enforced": true,
+          "description": "Reducer overwrites it with the triggering stage event's created_at and ignores any wire value."
+        }
+      ]
+    },
+    {
+      "object_kind": "relation",
+      "object_schema_ref": "schemas/relation.schema.json",
+      "update_payload_refs": [
+        "schemas/event-payload.schema.json#/$defs/relation_update_payload"
+      ],
+      "universal_exemptions": [],
+      "forbidden_patch_paths": [
+        {
+          "path": "effective_scope",
+          "basis": "reducer_derived",
+          "reason_code": "effective_scope_reducer_managed",
+          "owner_kind": "reducer",
+          "owner": "Materialization of the verified Event.scope_ref after the receiver checks it against scope_circle_id and endpoint pre-state (zh/models/circle.md sections 6.1-6.2).",
+          "schema_enforced": true,
+          "description": "Relation is the only patch-surface object whose schema declares effective_scope, so the generic patch surface is the only place an actor could still supply it. The materialized value is immutable across any later scope rebind."
+        }
+      ]
+    },
+    {
+      "object_kind": "space",
+      "object_schema_ref": "schemas/space.schema.json",
+      "update_payload_refs": [
+        "schemas/event-payload.schema.json#/$defs/space_patch_payload"
+      ],
+      "universal_exemptions": [],
+      "forbidden_patch_paths": []
+    },
+    {
+      "object_kind": "strand",
+      "object_schema_ref": "schemas/strand.schema.json",
+      "update_payload_refs": [
+        "schemas/event-payload.schema.json#/$defs/strand_patch_payload"
+      ],
+      "universal_exemptions": [],
+      "forbidden_patch_paths": [
+        {
+          "path": "stage",
+          "basis": "dedicated_event_owned",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "event_kind",
+          "owner": "ak.strand.stage.set",
+          "schema_enforced": false,
+          "description": "Business progress axis, single-sourced by the stage event so that same-value self-transitions and stage_changed_at stay derivable."
+        },
+        {
+          "path": "stage_changed_at",
+          "basis": "reducer_derived",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "event_kind",
+          "owner": "ak.strand.stage.set",
+          "schema_enforced": false,
+          "description": "Reducer overwrites it with the triggering stage event's created_at and ignores any wire value."
+        }
+      ]
+    },
+    {
+      "object_kind": "view",
+      "object_schema_ref": "schemas/view.schema.json",
+      "update_payload_refs": [
+        "schemas/event-payload.schema.json#/$defs/view_payload"
+      ],
+      "universal_exemptions": [
+        {
+          "path": "state",
+          "owner_kind": "event_kind",
+          "owner": "ak.view.update",
+          "justification": "zh/models/views.md section 3.1: a shared View has no separate tombstone event kind. Its protocol-level removal is an ak.view.update patch setting state=tombstoned, so state is authored on this one object kind. state_changed_at remains reducer-derived and stays forbidden, and tombstoned is terminal: any later update or reconcile MUST fail with view_already_terminal."
+        }
+      ],
+      "forbidden_patch_paths": []
+    }
+  ]
+}

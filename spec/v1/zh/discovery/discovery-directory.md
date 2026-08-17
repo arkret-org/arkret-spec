@@ -673,9 +673,16 @@ detached-JWS proof 叶，并对本对象族封闭三个选择——`proof_purpos
   "verification_method": "<proof.verification_method>",
   "created_at": "<proof.created_at>",
   "proof_purpose": "governance_authorization",
-  "audience": "<目标 Directory service DID>"
+  "audience": "<目标 Directory 的 service_id>"
 }
 ```
+
+**`audience` 形态（normative）**：这里的"目标 Directory 的 service DID"逐字等于该 Directory
+`ak.find.directory.read.describe` 响应中的 `service_id`，即 `did_core_id` 形态
+（`ak:did_core:<method>:<msi>`），与 §2 `directory_restricted_claim_presentation.audience` 同形态。
+完整 `did:<method>:<msi>` 形、DID URL 与数组形**都不是**可接受的替代形；Directory MUST 以
+`service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof` 的 `audience` 约束拒绝其它形态，
+MUST NOT 为兼容而同时接受两种形态。
 
 `operation_id` 进入 binding object，阻断同一签名跨 withdraw / appeal 重放。签名者授权
 沿用既有规则：`verification_method` MUST 解析为该资源当前 DID document epoch 内的
@@ -826,13 +833,42 @@ Directory MUST NOT：
   "operation_id": "<上表中该对象族的 operation>",
   "verification_method": "<proof.verification_method>",
   "created_at": "<proof.created_at>",
-  "audience": "<目标 Directory service DID>"
+  "audience": "<目标 Directory 的 service_id>"
 }
 ```
 
 `audience` MUST 为目标 Directory 的 service DID（单值），`domain` MUST 缺席，`proof_purpose`
-MUST 缺席（`governance_authorization` 只属于 §8.7.1 的写入面）。携带 `proofs` 的请求 MUST 同时
-携带本对象族定义的发起方字段，且 `issuer` MUST 与之 byte-for-byte 相同：`resolve_target` /
+MUST 缺席（`governance_authorization` 只属于 §8.7.1 的写入面）。
+
+**`audience` 形态（normative）**：这里的"目标 Directory 的 service DID"逐字等于该 Directory
+`ak.find.directory.read.describe` 响应中的 `service_id`，即 `did_core_id` 形态
+（`ak:did_core:<method>:<msi>`），与 §2 `directory_restricted_claim_presentation.audience` 及 §8.7.1
+governance proof 的 `audience` 同形态。完整 `did:<method>:<msi>` 形、DID URL 与数组形**都不是**可接受的
+替代形；Directory MUST 以 `directory-operations.schema.json#/$defs/proof` 的 `audience` 约束拒绝其它
+形态，MUST NOT 为兼容而同时接受两种形态。签名方与验证方 MUST 用同一 `service_id` 逐字节构造 binding
+object，形态不一致时签名必然不成立，且失败按本节末段走 §9.2 的不可区分拒绝，现场不会给出可归因信号。
+本条只约束 proof 叶与 binding object 的 `audience`；`resolve_handle` 请求体自身的顶层 `audience`
+字段是 handle claim 的披露 audience 选择器（见本节上文），不是 proof audience，不受本条约束。
+
+binding object 各字段的取值形态如下（本表与 registry 的 `binding_fields` 逐族列表配套，registry 只登记
+字段名，形态以本表为准）：
+
+| binding 字段 | 形态 | 取值来源 |
+| --- | --- | --- |
+| `context` | 上表中该对象族的 context 字面量 | `proof-context-registry.json` |
+| `payload_digest` | typed digest string | `proof.payload_digest` |
+| `issuer` | `did_core_id` | `request.requester`（`resolve_organization` 省略该字段） |
+| `operation_id` | operation id 字面量 | 上表中该对象族的 operation |
+| `verification_method` | DID URL | `proof.verification_method` |
+| `created_at` | RFC 3339 timestamp | `proof.created_at` |
+| `audience` | `did_core_id`（单值） | 目标 Directory `describe.service_id` |
+| `address` | 非空 address string | `request.address`（`resolve_target`） |
+| `handle` | canonical handle | `request.handle`（`resolve_handle`） |
+| `controller_handle` | canonical handle | `request.controller_handle`（`resolve_agent_selector`） |
+| `agent_slug` | agent slug | `request.agent_slug`（`resolve_agent_selector`） |
+| `subject` | `did_core_id` | `request.subject`（`list_handles_for_subject`） |
+
+携带 `proofs` 的请求 MUST 同时携带本对象族定义的发起方字段，且 `issuer` MUST 与之 byte-for-byte 相同：`resolve_target` /
 `resolve_handle` / `list_handles_for_subject` 为 `requester`，`resolve_agent_selector` 为
 `requester`。`directory_resolve_organization_request_body` 没有发起方 wire 字段，其 binding
 object MUST 省略 `issuer`，签名者身份只由 `verification_method` 承载。
@@ -840,7 +876,8 @@ object MUST 省略 `issuer`，签名者身份只由 `verification_method` 承载
 除公共字段外，binding object 还 MUST 逐字加入该族的解析目标：`resolve_target` 加 `address`；
 `resolve_handle` 加 `handle`；`resolve_agent_selector` 加 `controller_handle` 与 `agent_slug`；
 `list_handles_for_subject` 加 `subject`；`resolve_organization` 的目标已完全落在
-`payload_digest` 内，不另加字段。完整逐族 binding fields 以 registry 的 `binding_fields` 为准。
+`payload_digest` 内，不另加字段。完整逐族 binding fields **字段名**以 registry 的 `binding_fields`
+为准，字段**取值形态**以上面的形态表为准；registry 不登记形态，实现 MUST NOT 从字段名推断形态。
 
 **Directory MUST 拒绝 context 与本 operation 对象族不一致的 proof**：在一个族下有效的签名不得
 被另一个族接受。`proof_challenge` 出现时，它随 `payload_digest` 一并被绑定，不另作签名域。

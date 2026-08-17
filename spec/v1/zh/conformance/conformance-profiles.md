@@ -337,7 +337,7 @@ SHOULD 支持：
 - 多 principal-server delegation target 配置
 - DID binding / claim attestation
 
-Auth Server MUST NOT 声明 `ak.profile.identity_registry.v1`、`ak.profile.principal_server.v1` 或 `ak.profile.directory_service.v1`。任何 DID document / key-log 表面 MUST 通过 `compat_surfaces[]` 以 `delegated_resolver` 形式声明，而非自我声称 canonical 权威。
+Auth Server MUST NOT 声明 `ak.profile.identity_registry.v1`、`ak.profile.principal_server.v1` 或 `ak.profile.directory_service.v1`。任何 DID document / key-log 表面 MUST 通过 `interop_surfaces[]` 以 `delegated_resolver` 形式声明，而非自我声称 canonical 权威。
 
 Auth Server MUST NOT 把成功的 OIDC / SSO / password 验证直接当作 DID 控制证明。Account-first inception binding 必须按 [`../identity/account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 验证由 entry 0 method-native control key 签发的 fresh proof；普通已发布 DID binding 与下游资源服务器仍 MUST 重新验证 DID control state（见 `guides/migrating-from-matrix.md`）。
 

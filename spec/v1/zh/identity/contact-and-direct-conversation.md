@@ -649,13 +649,13 @@ Commit/Welcome 与随后的 activation；请求方从 §9.1 resolver 的 `active
 - destination Principal Server 在一个 durable transaction 内，以 `(Source-Service-ID, request_id)`
   固化 exact relay request digest，并从 accepted Direct Conversation binding 决定一个封闭 recipient target
   分支：human principal 分支快照 **peer 全部 current authorized devices**，为每个 target 分配并冻结不同的
-  stable outer `message_id`，再将逐字节相同的 `member_repair_request_content` 原子入全部本地 per-device
+  stable outer `device_message_id`，再将逐字节相同的 `member_repair_request_content` 原子入全部本地 per-device
   queues；Native Agent 分支必须从 accepted Agent key/session binding 解析唯一 current active runtime endpoint，
-  冻结一个 stable `message_id` 并向该 endpoint 原子入队，且不得把 Agent 伪装成 `ak:device`。human snapshot
+  冻结一个 stable `device_message_id` 并向该 endpoint 原子入队，且不得把 Agent 伪装成 `ak:device`。human snapshot
   digest 是 `H('ak.member-repair-target-snapshot-human-v1', device-id 排序的
-  [{recipient_device_id,message_id}])`；Agent snapshot digest 是
+  [{recipient_device_id,device_message_id}])`；Agent snapshot digest 是
   `H('ak.member-repair-target-snapshot-native-agent-v1',
-  {recipient_agent_id,active_runtime_endpoint_ref,message_id})`。
+  {recipient_agent_id,active_runtime_endpoint_ref,device_message_id})`。
   **sender 归属（normative）**：投递到 human recipient 的 `DeviceMessageEnvelope` 以**封闭 XOR**
   声明 requester 侧的 endpoint，与本节 `member_repair_request_content.requester`、
   [`../crypto-media/device-lifecycle.md` §9.0.1](../crypto-media/device-lifecycle.md) 的 consume
@@ -670,16 +670,16 @@ Commit/Welcome 与随后的 activation；请求方从 §9.1 resolver 的 `active
   整条消息），后者会让 recipient 误以为存在一台可独立验证的人类设备。Agent 分支必须携签名方证据，
   是因为 device 分支的等价物来自已接受 device projection——只给一个 Agent principal id，接收方
   无从判断当前哪把 key 代表它。receiver 的去重键随分支分派：device 用
-  `(sender_principal_id, sender_device_id, message_id)`，Native Agent 用
-  `(sender_principal_id, sender_agent_id, message_id)`。任一 target 写失败必须零入队。同
+  `(sender_principal_id, sender_device_id, device_message_id)`，Native Agent 用
+  `(sender_principal_id, sender_agent_id, device_message_id)`。任一 target 写失败必须零入队。同
   source/request/digest exact replay 返回 byte-identical 原 outcome，另一 digest
   `duplicate_conflict` 且零写入；响应丢失或 worker 重启只能重放同一 snapshot / ids / bytes。批次之后
   新授权设备不追溯加入旧批次，recipient 上线后仍从 durable log 重验 current authorization 与上述全部 gate；
-- 队列本身是可靠且 durable 的，对端上线后照常收取；`expires_at` 与 `message_id` 都是 destination
+- 队列本身是可靠且 durable 的，对端上线后照常收取；`expires_at` 与 `device_message_id` 都是 destination
   transaction 生成并冻结的 transport envelope/runtime queue 字段，不属于 caller 提交的
   `member_repair_request_content`。外层 `expires_at` 到期后请求方 **MAY** 用新 repair `request_id` 重新
-  dispatch，由 destination 生成新的 `message_id`；同一 `message_id` 配不同 canonical content **MUST** 以
-  `duplicate_conflict`（`message_id_conflict`）拒绝；
+  dispatch，由 destination 生成新的 `device_message_id`；同一 `device_message_id` 配不同 canonical content **MUST** 以
+  `duplicate_conflict`（`device_message_id_conflict`）拒绝；
 - 请求方 **MUST NOT** 因为发过请求就等待或降级任何校验——它 **MAY** 在对端 push 式自发修复
   时直接观察到 generation 推进（等同于 §13.2 的 push 豁免）；
 - 并发 winner 完全由 §7.3 决定：同 predecessor 下未 active 候选硬上限 16、第 17 个

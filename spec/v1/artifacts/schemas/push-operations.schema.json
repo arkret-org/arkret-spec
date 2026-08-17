@@ -66,8 +66,8 @@
     },
     "registration_id": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9._:-]{1,128}$",
-      "description": "Push gateway local registration id. It is not a registered ak:<kind> protocol object id."
+      "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,128}$",
+      "description": "Push gateway local registration id. It is an opaque_correlation value, so its lexical space is disjoint from the ak: typed-ID namespace: a value MUST NOT begin with ak:."
     },
     "push_key": {
       "type": "string",

@@ -159,7 +159,7 @@
         },
         "key_id": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+          "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,128}$"
         },
         "key_epoch": {
           "type": "integer",
@@ -4741,7 +4741,7 @@
     },
     "membership_compensation_delegation_ref": {
       "type": "string",
-      "pattern": "^ak:membership-compensation-delegation:sha256:[0-9a-f]{64}$",
+      "pattern": "^ak:membership_compensation_delegation:sha256:[0-9a-f]{64}$",
       "description": "Content-addressed accepted-at membership compensation delegation. It is valid only for ak.member.state leave/remove submitted with the matching closed membership_compensation_evidence sidecar and registered single-use evaluator."
     },
     "seal_ref": {

@@ -4,6 +4,230 @@
     "entrypoint": "ak.suite.events.redaction.v1"
   },
   "suite": "redaction",
+  "schema_validation_cases": [
+    {
+      "name": "strand_redacted_with_plaintext_content_rejected",
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}",
+      "instance": {
+        "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+        "content": {
+          "kind": "ak.content.text",
+          "body": "synthesis body that redaction MUST have cleared"
+        },
+        "tracks": {
+          "synthesis": {
+            "is_primary": true
+          }
+        },
+        "state": "redacted",
+        "state_changed_at": "2026-04-26T00:05:00.000Z",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-04-26T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "strand_redacted_with_encrypted_content_rejected",
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}",
+      "instance": {
+        "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+        "encrypted_content": {
+          "scheme": "mls_rfc9420",
+          "version": "1.0",
+          "group_id": "Zm9vYmFy",
+          "epoch": 7,
+          "content_type": "application/vnd.arkret.strand+json",
+          "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA",
+          "aad_visibility_event_id_kind": "routing_digest",
+          "aad": {
+            "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+            "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
+            "event_kind": "ak.strand.create",
+            "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          },
+          "key_ref": {
+            "algorithm": "MLS",
+            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
+          },
+          "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+          "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+        },
+        "tracks": {
+          "synthesis": {
+            "is_primary": true
+          }
+        },
+        "state": "redacted",
+        "state_changed_at": "2026-04-26T00:05:00.000Z",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-04-26T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "strand_redacted_post_state_both_slots_absent_accepted",
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+        "tracks": {
+          "synthesis": {
+            "is_primary": true
+          }
+        },
+        "state": "redacted",
+        "state_changed_at": "2026-04-26T00:05:00.000Z",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-04-26T00:00:00.000Z",
+        "updated_by": "ak:did_core:webvh:z6mkfixture",
+        "updated_at": "2026-04-26T00:05:00.000Z"
+      }
+    },
+    {
+      "name": "strand_archived_keeps_content_slot_accepted",
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+        "content": {
+          "kind": "ak.content.text",
+          "body": "archive is reversible and MUST NOT clear the content slot"
+        },
+        "tracks": {
+          "synthesis": {
+            "is_primary": true
+          }
+        },
+        "state": "archived",
+        "state_changed_at": "2026-04-26T00:05:00.000Z",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-04-26T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "morph_redacted_with_plaintext_content_rejected",
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "schema_ref": "schemas/morph.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}",
+      "instance": {
+        "id": "ak:morph:AWa1nPTHRs4Qn2xLGxu9Kx3lVMxvJvyzFbGkGm2M8Qkd",
+        "schema": "ak.schema.morph.v1",
+        "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+        "schema_refs": [
+          "ak.schema.morph.customer_risk.v1"
+        ],
+        "morph_kind": "customer_risk",
+        "content": {
+          "kind": "ak.content.text",
+          "body": "morph body that redaction MUST have cleared"
+        },
+        "state": "redacted",
+        "state_changed_at": "2026-04-26T00:05:00.000Z",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-04-26T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "morph_redacted_with_encrypted_content_rejected",
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "schema_ref": "schemas/morph.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}",
+      "instance": {
+        "id": "ak:morph:AWa1nPTHRs4Qn2xLGxu9Kx3lVMxvJvyzFbGkGm2M8Qkd",
+        "schema": "ak.schema.morph.v1",
+        "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+        "schema_refs": [
+          "ak.schema.morph.customer_risk.v1"
+        ],
+        "morph_kind": "customer_risk",
+        "encrypted_content": {
+          "scheme": "mls_rfc9420",
+          "version": "1.0",
+          "group_id": "Zm9vYmFy",
+          "epoch": 7,
+          "content_type": "application/vnd.arkret.morph+json",
+          "ciphertext": "bW9ycGhDaXBoZXJ0ZXh0",
+          "aad_visibility_event_id_kind": "routing_digest",
+          "aad": {
+            "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+            "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
+            "event_kind": "ak.morph.create",
+            "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          },
+          "key_ref": {
+            "algorithm": "MLS",
+            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
+          },
+          "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+          "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+        },
+        "state": "redacted",
+        "state_changed_at": "2026-04-26T00:05:00.000Z",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-04-26T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "morph_redacted_post_state_both_slots_absent_accepted",
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "schema_ref": "schemas/morph.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "id": "ak:morph:AWa1nPTHRs4Qn2xLGxu9Kx3lVMxvJvyzFbGkGm2M8Qkd",
+        "schema": "ak.schema.morph.v1",
+        "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+        "schema_refs": [
+          "ak.schema.morph.customer_risk.v1"
+        ],
+        "morph_kind": "customer_risk",
+        "state": "redacted",
+        "state_changed_at": "2026-04-26T00:05:00.000Z",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-04-26T00:00:00.000Z",
+        "updated_by": "ak:did_core:webvh:z6mkfixture",
+        "updated_at": "2026-04-26T00:05:00.000Z"
+      }
+    },
+    {
+      "name": "morph_archived_keeps_content_slot_accepted",
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "schema_ref": "schemas/morph.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "id": "ak:morph:AWa1nPTHRs4Qn2xLGxu9Kx3lVMxvJvyzFbGkGm2M8Qkd",
+        "schema": "ak.schema.morph.v1",
+        "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+        "schema_refs": [
+          "ak.schema.morph.customer_risk.v1"
+        ],
+        "morph_kind": "customer_risk",
+        "content": {
+          "kind": "ak.content.text",
+          "body": "archive is reversible and MUST NOT clear the content slot"
+        },
+        "state": "archived",
+        "state_changed_at": "2026-04-26T00:05:00.000Z",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-04-26T00:00:00.000Z"
+      }
+    }
+  ],
   "cases": [
     {
       "name": "preserved_fields",

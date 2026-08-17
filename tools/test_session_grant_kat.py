@@ -64,7 +64,7 @@ class SessionGrantKatTests(unittest.TestCase):
         errors = self._check(fixture=fixture)
         self.assertTrue(any("issuer_b_domain_separation: canonical_preimage_utf8 mismatch" in error for error in errors), errors)
         self.assertTrue(any("issuer_b_domain_separation: sha256_digest_hex mismatch" in error for error in errors), errors)
-        self.assertTrue(any("issuer_b_domain_separation: grant_id mismatch" in error for error in errors), errors)
+        self.assertTrue(any("issuer_b_domain_separation: session_grant_id mismatch" in error for error in errors), errors)
 
     def test_explicit_canonical_bytes_drift_is_rejected(self) -> None:
         fixture = copy.deepcopy(self.fixture)
@@ -115,10 +115,10 @@ class SessionGrantKatTests(unittest.TestCase):
     def test_grant_token_must_be_suite_code_plus_full_digest(self) -> None:
         fixture = copy.deepcopy(self.fixture)
         vector = fixture["accepted_vectors"][0]
-        vector["grant_id"] = vector["grant_id"][:-1] + "A"
-        vector["jwt_jti"] = vector["grant_id"]
+        vector["session_grant_id"] = vector["session_grant_id"][:-1] + "A"
+        vector["jwt_jti"] = vector["session_grant_id"]
         errors = self._check(fixture=fixture)
-        self.assertTrue(any("grant_id mismatch" in error for error in errors), errors)
+        self.assertTrue(any("session_grant_id mismatch" in error for error in errors), errors)
         self.assertTrue(any("not suite-code || digest" in error for error in errors), errors)
 
     def test_nonce_with_nonzero_padding_bits_is_rejected(self) -> None:

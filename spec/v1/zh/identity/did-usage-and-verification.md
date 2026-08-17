@@ -153,7 +153,7 @@ pattern）。机器门禁 `tools/lint_artifacts.py` 强制这条一致性；新�
 | `resource_id` | Directory announce / withdraw / appeal 指向 Actor 时可以是 `did_core_id`。 | Realm / Applet typed ID 或 directory profile 明确允许的 handle。 |
 | `id` | DID Document 顶层 `id` 是 bare `full_id`；conformance issuer object 若代表稳定主体则是 `did_core_id`；verification method / service entry 的 `id` 是 DID URL。 | 普通 canonical object 的 `id` 是 `ak:<kind>:` typed ID，其它局部对象由自己的 schema 定义。 |
 | `kid` | 签名 profile 明确要求 controller key 时是带 fragment 的 DID URL；仅表达本地 key label 的 profile 不是 DID。 | JWK / JOSE profile-local key label、device-local `ak:device:` key id 或其它 schema-scoped string。 |
-| `audience` | schema 明确把 audience 限定为一个 service / principal 时使用其 `did_core_id`。 | Realm ID、trust domain 或 profile 声明的 audience string / array。 |
+| `audience` | schema **或 object-family 正文**明确把 audience 限定为一个 service / principal 时使用其 `did_core_id`；正文先限定而 schema 尚未收紧的，MUST 把 schema 收紧到 `did_core_id`，不得据此落到右列（例如 directory requester / governance proof 的 `audience`，见 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8.7.1 / §9.0.1）。 | Realm ID、trust domain 或 profile 声明的 audience string / array。 |
 
 多态字段必须先由所在 schema / discriminator 确定分支，再校验值；实现 MUST NOT 用
 `starts_with("did:")` / `starts_with("ak:did_core:")` 代替 schema 分派或自动互转两种形态。

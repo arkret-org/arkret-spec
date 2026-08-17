@@ -403,7 +403,7 @@
         "group_id": "Z3JvdXAtMDAx",
         "epoch": 12,
         "content_type": "application/json",
-        "aad_visibility_event_id": "routing_digest",
+        "aad_visibility_event_id_kind": "routing_digest",
         "aad": {
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "scope_digest": "sha256:1ab18cba8cdb5f932820849de9cc736457eebbceffe27fb7a3f63a47f33fd1dc",
@@ -482,12 +482,12 @@
           }
         ]
       },
-      "expected_metadata_canonical_bytes_utf8": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"event_ref_digest\":\"sha256:3ab72c4d3b623df587fb5ecad008419379a312666c680f3c30d08f8987eb6dc1\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"scope_digest\":\"sha256:1ab18cba8cdb5f932820849de9cc736457eebbceffe27fb7a3f63a47f33fd1dc\"},\"aad_visibility_event_id\":\"routing_digest\",\"content_type\":\"application/json\",\"epoch\":12,\"group_id\":\"Z3JvdXAtMDAx\",\"key_ref\":{\"algorithm\":\"MLS\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\"},\"scheme\":\"mls_rfc9420\",\"version\":\"1.0\"}",
+      "expected_metadata_canonical_bytes_utf8": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"event_ref_digest\":\"sha256:3ab72c4d3b623df587fb5ecad008419379a312666c680f3c30d08f8987eb6dc1\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"scope_digest\":\"sha256:1ab18cba8cdb5f932820849de9cc736457eebbceffe27fb7a3f63a47f33fd1dc\"},\"aad_visibility_event_id_kind\":\"routing_digest\",\"content_type\":\"application/json\",\"epoch\":12,\"group_id\":\"Z3JvdXAtMDAx\",\"key_ref\":{\"algorithm\":\"MLS\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\"},\"scheme\":\"mls_rfc9420\",\"version\":\"1.0\"}",
       "ciphertext_base64url": "Y2lwaGVydGV4dC1leGFtcGxlLTAwMQ",
       "ciphertext_bytes_utf8": "ciphertext-example-001",
       "digest_input_rule": "sha256(canonical_json(payload_metadata) || base64url_decode(ciphertext))",
       "aad_digest": "sha256:dda4e60b37a97da99c705b5b28b83e87722a63831965cab05b2943073fe98eaa",
-      "expected_digest": "sha256:7c07ec6e609fe75aa2d74d4bc848195a4e97c1d6c0b50bb44784e3b154e1733a",
+      "expected_digest": "sha256:6edc1ef9f9bc0fa3008c737ac8837656640c1d26113ea43c8a4ca1c7f4ef23cb",
       "rules": [
         "implementations MUST NOT hash plaintext payload",
         "implementations MUST NOT omit payload metadata required for routing/decryption; otherwise the Principal Server sync surface cannot safely dedupe or audit envelopes"
@@ -1287,21 +1287,21 @@
         "tag_context": "ak.covered-seal-tag-v1",
         "dot": "ak:event:AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09:0",
         "sorted_values": [
-          "ak:seal:01964185-0400-7000-8000-00000000000a",
-          "ak:seal:01964185-0400-7000-8000-00000000000b"
+          "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         ],
         "cases": [
           {
             "index": 0,
-            "value": "ak:seal:01964185-0400-7000-8000-00000000000a",
-            "tag_preimage_utf8": "ak.covered-seal-tag-v1\nak:event:AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09:0\n\"ak:seal:01964185-0400-7000-8000-00000000000a\"",
-            "batch_tag": "y1GH7W2HBXkVKpziiRxX024ueDenNo5qjpTxbvv2HXw"
+            "value": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "tag_preimage_utf8": "ak.covered-seal-tag-v1\nak:event:AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09:0\n\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"",
+            "batch_tag": "r8RMB7hP6sOOrLkIZMSzd00PheE0Fzk8gMJ9hz7LieI"
           },
           {
             "index": 1,
-            "value": "ak:seal:01964185-0400-7000-8000-00000000000b",
-            "tag_preimage_utf8": "ak.covered-seal-tag-v1\nak:event:AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09:0\n\"ak:seal:01964185-0400-7000-8000-00000000000b\"",
-            "batch_tag": "Oa8tHOkw8AaCeqP6Muvs8MRyRW05dB2OYyglzH1rGQg"
+            "value": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "tag_preimage_utf8": "ak.covered-seal-tag-v1\nak:event:AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09:0\n\"ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"",
+            "batch_tag": "D6LTO3kPKhXT3yqXPXlGXb1-VgHVVGoL2X31qQVDiHQ"
           }
         ]
       },

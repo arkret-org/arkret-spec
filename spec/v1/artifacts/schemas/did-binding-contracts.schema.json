@@ -222,11 +222,11 @@
       "type": "object",
       "description": "Per-pin limited-trust record (did-usage-and-verification.md section 5.5). Omitted entirely when both pins are present; when present, each state MUST be consistent with the actual presence of the corresponding pin field. method_unsupported is a legitimate terminal state (did:key has no history); not_surfaced marks a resolver that failed to surface evidence its method supports and is treated as a failure state, not a normal audit note.",
       "required": [
-        "history_head",
-        "version_id"
+        "history_head_status",
+        "version_id_status"
       ],
       "properties": {
-        "history_head": {
+        "history_head_status": {
           "type": "string",
           "enum": [
             "pinned",
@@ -234,7 +234,7 @@
             "not_surfaced"
           ]
         },
-        "version_id": {
+        "version_id_status": {
           "type": "string",
           "enum": [
             "pinned",

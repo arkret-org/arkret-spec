@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-17.4",
+  "version": "2026-08-18.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-17T23:40:00+08:00",
+  "generated_at": "2026-08-18T06:45:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1276,7 +1276,7 @@
           "principal_id",
           "session_grant",
           "expires_at",
-          "grant_id",
+          "session_grant_id",
           "session_public_key",
           "audience"
         ],
@@ -1285,7 +1285,7 @@
           "device_id",
           "session_grant",
           "expires_at",
-          "grant_id",
+          "session_grant_id",
           "session_public_key",
           "audience",
           "granted_scope",
@@ -1511,24 +1511,24 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome",
         "schema_kind": "object",
         "required": [
-          "grant_id",
+          "session_grant_id",
           "grant_jwt",
           "session_public_key",
           "expires_at",
           "audience",
           "scopes",
           "dpop_jkt",
-          "previous_grant_id"
+          "previous_session_grant_id"
         ],
         "properties": [
-          "grant_id",
+          "session_grant_id",
           "grant_jwt",
           "session_public_key",
           "expires_at",
           "audience",
           "scopes",
           "dpop_jkt",
-          "previous_grant_id"
+          "previous_session_grant_id"
         ],
         "closed": true
       }
@@ -1596,7 +1596,7 @@
         "schema_kind": "object",
         "required": [],
         "properties": [
-          "target_grant_id",
+          "target_session_grant_id",
           "target_device_id",
           "all_sessions",
           "applet_id",
@@ -1616,7 +1616,7 @@
         ],
         "properties": [
           "revoked_count",
-          "revoked_grant_ids"
+          "revoked_session_grant_ids"
         ],
         "closed": true
       }
@@ -8513,14 +8513,14 @@
         "required": [
           "ok",
           "realm_id",
-          "owner",
+          "owner_id",
           "members",
           "deleted"
         ],
         "properties": [
           "ok",
           "realm_id",
-          "owner",
+          "owner_id",
           "members",
           "deleted",
           "archived",
@@ -8551,14 +8551,14 @@
         "required": [
           "ok",
           "realm_id",
-          "owner",
+          "owner_id",
           "members",
           "deleted"
         ],
         "properties": [
           "ok",
           "realm_id",
-          "owner",
+          "owner_id",
           "members",
           "deleted",
           "archived",
@@ -8589,14 +8589,14 @@
         "required": [
           "ok",
           "realm_id",
-          "owner",
+          "owner_id",
           "members",
           "deleted"
         ],
         "properties": [
           "ok",
           "realm_id",
-          "owner",
+          "owner_id",
           "members",
           "deleted",
           "archived",
@@ -8627,14 +8627,14 @@
         "required": [
           "ok",
           "realm_id",
-          "owner",
+          "owner_id",
           "members",
           "deleted"
         ],
         "properties": [
           "ok",
           "realm_id",
-          "owner",
+          "owner_id",
           "members",
           "deleted",
           "archived",
@@ -8885,14 +8885,14 @@
         "required": [
           "ok",
           "realm_id",
-          "owner",
+          "owner_id",
           "members",
           "deleted"
         ],
         "properties": [
           "ok",
           "realm_id",
-          "owner",
+          "owner_id",
           "members",
           "deleted",
           "archived",

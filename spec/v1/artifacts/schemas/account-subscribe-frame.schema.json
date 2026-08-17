@@ -202,7 +202,7 @@
         },
         "approval_request_id": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+          "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,128}$"
         },
         "agent_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"

@@ -29,6 +29,7 @@ from .foundation import (
     check_text_files_utf8_no_nul,
     check_timestamp_profile_single_source,
     check_typed_id_carrier_sweep_closure,
+    check_typed_id_fixture_value_closure,
     check_typed_id_payload_form_closure,
     check_typed_id_prefix_registry_closure,
 )
@@ -164,6 +165,10 @@ from .account_status_replica import (
     check_account_status_replica_decision_table,
 )
 
+from .proof_context_transcripts import (
+    check_proof_context_transcript_vectors,
+)
+
 
 
 def run_lint_phase(
@@ -246,6 +251,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "typed_id_carrier_sweep",
                 lambda: check_typed_id_carrier_sweep_closure(lint),
+            ),
+            (
+                "typed_id_fixture_value_closure",
+                lambda: check_typed_id_fixture_value_closure(lint),
             ),
             (
                 "event_kind_verb_form",
@@ -351,6 +360,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "keypackage_write_transcripts",
                 lambda: check_keypackage_write_transcript_fixture(lint),
+            ),
+            (
+                "proof_context_transcripts",
+                lambda: check_proof_context_transcript_vectors(lint),
             ),
             (
                 "declared_schema_fixture_instances",

@@ -2371,7 +2371,7 @@ components:
       - claimed_profiles
       - verified_profiles
       - experimental_features
-      - compat_surfaces
+      - interop_surfaces
       - development_mode
       anyOf:
       - required:
@@ -2828,7 +2828,7 @@ components:
             protocol-level decisions.
           items:
             type: string
-        compat_surfaces:
+        interop_surfaces:
           type: array
           description: |
             Surfaces this service exposes outside its claimed Arkret v1
@@ -9553,7 +9553,7 @@ paths:
                         details:
                           $ref: '#/components/schemas/AgentHumanApprovalProblem'
         '409':
-          description: Conflicting canonical intent, terminal recorded replay, or replay record no longer decidable. A terminal replay carries closed grant_id/state details and never creates a replacement grant.
+          description: Conflicting canonical intent, terminal recorded replay, or replay record no longer decidable. A terminal replay carries closed session_grant_id/state details and never creates a replacement grant.
           content:
             application/json:
               schema:
@@ -9581,7 +9581,7 @@ paths:
                           details:
                             $ref: '#/components/schemas/SessionGrantReplayTerminalProblem'
         '410':
-          description: The recorded exact-replay outcome has expired; the issuer returns its grant_id/state and creates no replacement.
+          description: The recorded exact-replay outcome has expired; the issuer returns its session_grant_id/state and creates no replacement.
           content:
             application/json:
               schema:
@@ -9617,7 +9617,7 @@ paths:
       description: |
         Revokes session grant authority, not device
         authorization and does not create an AccountStatusRecord. An omitted request body
-        revokes the current request's session grant. target_grant_id,
+        revokes the current request's session grant. target_session_grant_id,
         target_device_id and all_sessions=true are mutually exclusive selectors.
 
         Cross grant, cross device, and all_sessions=true revocation requires a
@@ -9683,7 +9683,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionGrantRefreshOutcome'
         '409':
-          description: Conflicting refresh intent, terminal recorded successor, or replay record no longer decidable. A terminal replay carries closed grant_id/state details and never creates a second successor.
+          description: Conflicting refresh intent, terminal recorded successor, or replay record no longer decidable. A terminal replay carries closed session_grant_id/state details and never creates a second successor.
           content:
             application/json:
               schema:
@@ -9711,7 +9711,7 @@ paths:
                           details:
                             $ref: '#/components/schemas/SessionGrantReplayTerminalProblem'
         '410':
-          description: The recorded successor has expired; the issuer returns its grant_id/state and creates no second successor.
+          description: The recorded successor has expired; the issuer returns its session_grant_id/state and creates no second successor.
           content:
             application/json:
               schema:

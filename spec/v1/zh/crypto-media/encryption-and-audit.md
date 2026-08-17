@@ -126,7 +126,7 @@ Realm policy MUST 通过 Event kind `ak.realm.policy_bundle` 的 payload path `m
     "epoch": 12,
     "content_type": "application/json",
     "ciphertext": "base64url",
-    "aad_visibility_event_id": "routing_digest",
+    "aad_visibility_event_id_kind": "routing_digest",
     "aad": {
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "event_kind": "ak.message.create",
@@ -153,13 +153,13 @@ Realm policy MUST 通过 Event kind `ak.realm.policy_bundle` 的 payload path `m
 | `content_type` | string | 是 | 解密后内容的 MIME 类型 |
 | `ciphertext` | base64url | 是 | `mls_rfc9420` scheme 为 MLS PrivateMessage / application message 序列化字节;`mls_exporter_aead_v1` scheme 为 §2.10 定义的 `nonce \|\| AEAD_seal(K_content[N], nonce, aad_bytes, plaintext)`（nonce/AAD 遵循 [encoding.md](../conformance/encoding.md) §10.1；AEAD tag 含在 seal 输出内）。 |
 | `authentication_tag` | base64url | 禁止 | v1 两个 scheme 下均 **MUST NOT 出现**:`mls_rfc9420` 的 tag 已在 MLS message 内、`mls_exporter_aead_v1` 的 AEAD tag 已附在 `ciphertext` 内，均不重复拆出;schema 用顶层 `not` 拒绝该字段（携带者 `schema_violation`）。 |
-| `aad_visibility_event_id` | enum(hidden, routing_digest, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_digest` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合，并按 §2.8 校验它不宽于 Realm `aad_visibility.event_id` 上限。 |
+| `aad_visibility_event_id_kind` | enum(hidden, routing_digest, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_digest` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合，并按 §2.8 校验它不宽于 Realm `aad_visibility.event_id_kind` 上限。 |
 | `aad` | object | 是 | 路由元数据；明文但被 AEAD 认证。 |
 | `aad.realm_id` | id:realm | 是 | 路由与授权的 Realm。 |
 | `aad.event_kind` | string | 是 | 路由 event kind。 |
 | `aad.scope_digest` | hash | 是 | 对本 Event **精确 `scope_ref`** 的域分隔承诺（常量 `ak.aad-scope-v1`），构造见 §2.3.2.1。**所有 scope 一律携带**，无 discriminator、无省略分支。 |
-| `aad.event_id` | id:event | 条件 | `aad_visibility_event_id="opaque_id"` 时必填。 |
-| `aad.event_ref_digest` | hash | 条件 | `aad_visibility_event_id="routing_digest"` 时必填；构造 MUST 按下方 `routing_digest` 条目的 canonical 公式（域分隔常量 `ak.aad-event-ref-v1`），实现 MUST NOT 使用其它输入或顺序。 |
+| `aad.event_id` | id:event | 条件 | `aad_visibility_event_id_kind="opaque_id"` 时必填。 |
+| `aad.event_ref_digest` | hash | 条件 | `aad_visibility_event_id_kind="routing_digest"` 时必填；构造 MUST 按下方 `routing_digest` 条目的 canonical 公式（域分隔常量 `ak.aad-event-ref-v1`），实现 MUST NOT 使用其它输入或顺序。 |
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可改用 `causal_ref_digests`。 |
 | `aad.causal_ref_digests` | array&lt;hash&gt; | 条件 | `causal_refs` 的摘要化形态，高隐私 profile 用以替代明文 `causal_refs`；二者 MUST NOT 同时出现。 |
 | `key_ref.algorithm` | string | 条件 | `mls_rfc9420` scheme 为 `MLS`；`mls_exporter_aead_v1` scheme 为 `MLS-EXPORTER-AEAD`；其他 scheme 必须注册自己的值。 |
@@ -172,9 +172,9 @@ Ratchet tree MUST 由 `ak.mls.genesis`、Welcome、Commit 或 group state proof 
 
 #### 2.3.2 AAD 可见性 Profile 与 canonical 序列化
 
-AAD 字段集合受 Realm 的 `aad_visibility` policy 组件约束（承载与上限语义见 §2.8）。隐私优先 Realm SHOULD 只保留路由所需的 `realm_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Realm MAY 暴露 opaque `aad.event_id`，但该选择 MUST 先由 `ak.realm.policy_bundle` 的 `aad_visibility.event_id` 声明——组件缺省时上限为 `hidden`，越界信封按 §2.8 拒绝。只有该组件的变化改变密钥可见性时才进入 MLS `security_frontier_digest`；其它 AAD disclosure 仍由 Event/CBA/Seal admission 保护。
+AAD 字段集合受 Realm 的 `aad_visibility` policy 组件约束（承载与上限语义见 §2.8）。隐私优先 Realm SHOULD 只保留路由所需的 `realm_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Realm MAY 暴露 opaque `aad.event_id`，但该选择 MUST 先由 `ak.realm.policy_bundle` 的 `aad_visibility.event_id_kind` 声明——组件缺省时上限为 `hidden`，越界信封按 §2.8 拒绝。只有该组件的变化改变密钥可见性时才进入 MLS `security_frontier_digest`；其它 AAD disclosure 仍由 Event/CBA/Seal admission 保护。
 
-`aad_visibility_event_id` 是 schema discriminator，控制 `aad.event_id` 与 `aad.event_ref_digest`：
+`aad_visibility_event_id_kind` 是 schema discriminator，控制 `aad.event_id` 与 `aad.event_ref_digest`：
 
 - `opaque_id`：AAD MUST 包含 `event_id` 且不得包含 `event_ref_digest`，用于跨 provider 投递确认和精确去重。
 - `routing_digest`：AAD MUST 使用 `event_ref_digest`，不得暴露稳定 `event_id`。构造 **MUST**（canonical，normative）为：
@@ -257,7 +257,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "group_id": "base64url",
   "epoch": 12,
   "content_type": "application/json",
-  "aad_visibility_event_id": "routing_digest",
+  "aad_visibility_event_id_kind": "routing_digest",
   "aad": {
     "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "event_kind": "ak.message.create",
@@ -687,13 +687,13 @@ binding 天然覆盖它：
 ```json
 {
   "aad_visibility": {
-    "event_id": "routing_digest"
+    "event_id_kind": "routing_digest"
   }
 }
 ```
 
 **v1 只有一条已登记的可见性轴**：`event_id`，对应逐信封 discriminator
-`aad_visibility_event_id`（[`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)）。
+`aad_visibility_event_id_kind`（[`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)）。
 `aad_visibility` 是闭合对象，未登记的轴名在 wire 解析阶段即 `schema_violation`——新增轴
 必须同时新增一个真实的信封字段与判别式，不得只在 policy 侧凭空多一个 key。
 
@@ -706,7 +706,7 @@ binding 天然覆盖它：
 | `opaque_id` | 暴露 opaque `aad.event_id`，用于跨 provider 投递确认。 |
 
 **上限语义（normative）**：披露序为 `hidden < routing_digest < opaque_id`。
-信封的 `aad_visibility_event_id` MUST NOT 宽于 Realm 当前 accepted `aad_visibility.event_id`；
+信封的 `aad_visibility_event_id_kind` MUST NOT 宽于 Realm 当前 accepted `aad_visibility.event_id_kind`；
 更严（更靠近 `hidden`）永远允许，因为它只披露更少。组件缺省时上限即 `hidden`，因此
 `routing_digest` 与 `opaque_id` 只有在 Realm 显式声明之后才可达——这正是本节与 §2.3.2
 「该选择 MUST 在 Realm policy 中声明」的执行点。接收方与 reducer 观察到越界信封时 MUST 以

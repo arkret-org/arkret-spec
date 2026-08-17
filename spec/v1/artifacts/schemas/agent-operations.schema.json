@@ -155,8 +155,8 @@
     },
     "opaque_local_id": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9._:-]{1,128}$",
-      "description": "Deployment-local short-lived account/auth artifact id. It is not a ak:<kind> protocol object id."
+      "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,128}$",
+      "description": "Deployment-local short-lived account/auth artifact id. It is an opaque_correlation value, so its lexical space is disjoint from the ak: typed-ID namespace: a value MUST NOT begin with ak:."
     },
     "pairing_secret": {
       "type": "string",

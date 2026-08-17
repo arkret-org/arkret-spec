@@ -73,7 +73,7 @@
       "required": [
         "realm_id",
         "effective_scope",
-        "epoch_id",
+        "epoch",
         "index_generation",
         "blind_tokens"
       ],
@@ -85,7 +85,7 @@
         "effective_scope": {
           "$ref": "./event-payload.schema.json#/$defs/effective_scope"
         },
-        "epoch_id": {
+        "epoch": {
           "type": "integer",
           "minimum": 0
         },

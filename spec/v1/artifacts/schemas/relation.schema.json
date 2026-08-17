@@ -4,7 +4,6 @@
   "title": "Arkret Relation",
   "type": "object",
   "required": [
-    "id",
     "schema",
     "realm_id",
     "relation_kind",
@@ -16,7 +15,8 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$",
+      "description": "Present on the materialised object. MUST be absent from the create Event payload: zh/models/common-fields.md derives it from the create Event's own event_id (retyped), so a payload-supplied id would be a second, forgeable truth."
     },
     "schema": {
       "const": "ak.schema.relation.v1"

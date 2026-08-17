@@ -2498,10 +2498,20 @@ def registered_typed_id_wire_prefixes(
                 )
                 continue
             segment = prefix[3:-1]
-            if segment != kind and not row.get("wire_segment_rationale"):
+            # The wire segment MUST be the snake_case kind verbatim. A per-row
+            # rationale used to buy an exception here, but a gate can force a
+            # rationale to exist and cannot force it to be true: the single
+            # registered exception turned out to rest on nothing but its own
+            # prior existence, so the exception slot is gone.
+            if segment != kind:
                 errors.append(
-                    f"{section} row {kind} declares wire segment {segment!r}; a segment that "
-                    "differs from its kind requires a non-empty wire_segment_rationale"
+                    f"{section} row {kind} declares wire segment {segment!r}; a wire segment "
+                    "MUST equal its snake_case kind verbatim"
+                )
+            if row.get("wire_segment_rationale") is not None:
+                errors.append(
+                    f"{section} row {kind} carries wire_segment_rationale; wire segments no "
+                    "longer admit spelling exceptions, so the field MUST be absent"
                 )
             owner = prefixes.get(prefix)
             if owner is not None and owner != kind:
@@ -3394,6 +3404,297 @@ def check_typed_id_prefix_registry_closure(lint: Lint) -> None:
                 f"(carrier {carrier!r}); register it in "
                 "contract-registry.json#/id_kind_registry or drop the ak: prefix",
             )
+
+
+FIXTURE_TYPED_ID_EXEMPTION_PATH = ROOT / "tools" / "fixture-typed-id-exemption-registry.json"
+FIXTURE_TYPED_ID_POSITIONS = ("value", "object_key", "embedded_json_string")
+TYPED_ID_VALUE_RE = re.compile(r"ak:([A-Za-z0-9_-]+):")
+EMBEDDED_JSON_STRING_RE = re.compile(r'"(ak:[A-Za-z0-9_-]+:[^"\\]*)"')
+
+
+def json_pointer_token(token: str) -> str:
+    """Escape one object member name into an RFC 6901 pointer token."""
+    return token.replace("~", "~0").replace("/", "~1")
+
+
+def typed_id_value_occurrences(
+    text: str, pointer: str, position: str
+) -> list[tuple[str, str, str, str, str]]:
+    """Return every concrete typed ID one fixture string ships.
+
+    A schema carries regexes, so the schema-side closures compare value spaces.
+    A fixture carries the bytes themselves, so the comparison has to run per
+    value. Three positions carry a value and nothing else does:
+
+    * the whole string is the identifier;
+    * an object member name is the identifier, which is how cell and Realm maps
+      are keyed;
+    * a JSON string literal embedded in a longer string. That is canonical JSON
+      inside a digest preimage -- ``or_set_batch_add`` hashes
+      ``tag_context || 0x0A || dot || 0x0A || canonical_json(value)`` -- so the
+      quoted run is a shipped value exactly like a standalone one.
+
+    Prose that merely names a prefix is not a value and never enters this list:
+    a prefix with an empty payload (``"ak:event:"`` as a concatenation operand,
+    or ``ak:signal:`` listed as a surface that MUST stay unminted) declares no
+    identifier, and an unquoted mention inside a sentence or a regex is
+    structure rather than content.
+
+    Each row is ``(pointer, position, wire segment, payload, value)``.
+    """
+    rows: list[tuple[str, str, str, str, str]] = []
+    match = TYPED_ID_VALUE_RE.match(text)
+    if match is not None:
+        payload = text[match.end():]
+        if payload:
+            rows.append((pointer, position, match.group(1), payload, text))
+        return rows
+    for embedded in EMBEDDED_JSON_STRING_RE.finditer(text):
+        literal = embedded.group(1)
+        inner = TYPED_ID_VALUE_RE.match(literal)
+        if inner is None:
+            continue
+        payload = literal[inner.end():]
+        if payload:
+            rows.append(
+                (pointer, "embedded_json_string", inner.group(1), payload, literal)
+            )
+    return rows
+
+
+def typed_id_fixture_value_rows(document: Any) -> list[tuple[str, str, str, str, str]]:
+    """Walk one fixture document for every concrete typed-ID value it ships."""
+    rows: list[tuple[str, str, str, str, str]] = []
+
+    def visit(node: Any, pointer: str) -> None:
+        if isinstance(node, dict):
+            for key, child in node.items():
+                child_pointer = f"{pointer}/{json_pointer_token(key)}"
+                rows.extend(typed_id_value_occurrences(key, child_pointer, "object_key"))
+                visit(child, child_pointer)
+        elif isinstance(node, list):
+            for index, child in enumerate(node):
+                visit(child, f"{pointer}/{index}")
+        elif isinstance(node, str):
+            rows.extend(typed_id_value_occurrences(node, pointer, "value"))
+
+    visit(document, "")
+    return rows
+
+
+def typed_id_value_documents(lint: Lint) -> list[tuple[Path, Any]]:
+    """Return every shipped conformance fixture that can carry a typed-ID value.
+
+    ``typed_id_validation_documents`` is the schema-side member list of the same
+    contract. Fixtures were outside it because they validate nothing; they
+    publish values instead, which is why they need their own document list and
+    their own per-value comparison.
+    """
+    documents: list[tuple[Path, Any]] = []
+    for fixture_path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        documents.append((fixture_path, load_json(lint, fixture_path)))
+    return documents
+
+
+def registered_typed_id_value_forms(
+    lint: Lint, registry: dict[str, Any], registry_path: Path
+) -> dict[str, list[str]]:
+    """Return ``wire segment -> accepted payload regexes`` for concrete values.
+
+    The accepted space is assembled from the same two sources the payload-form
+    closure reads, so a fixture can never be held to a different contract than a
+    schema:
+
+    * the registry's own ``event_token_pattern`` /
+      ``uuid_pattern_producer_allocated`` per ``id_kinds`` row, and
+      ``special_forms[].payload_pattern`` per special form;
+    * every end-anchored typed-ID branch already swept out of
+      ``artifacts/schemas`` and ``artifacts/openapi``.
+
+    The second source is what admits a registered composite such as the OR-Set
+    dot ``ak:event:<event_id>:<write_index>``: that shape is a shipped carrier
+    which ``check_typed_id_payload_form_closure`` already proves stays inside the
+    registered value space, so reading it here adds no acceptance the registry
+    has not already closed over, and it keeps the gate from restating a wire form
+    the artifacts own.
+    """
+    forms: dict[str, list[str]] = {}
+    canonical = registry_canonical_payload_regex(lint, registry, registry_path)
+    contracts = registry_special_form_payload_contracts(lint, registry, registry_path)
+    for row in registry.get("id_kinds") or []:
+        if not isinstance(row, dict):
+            continue
+        prefix = typed_id_wire_prefix(row.get("wire_form"))
+        payload = canonical.get(row.get("id_form"))
+        if prefix is not None and payload:
+            forms.setdefault(prefix[3:-1], []).append(payload)
+    for row in registry.get("special_forms") or []:
+        if not isinstance(row, dict):
+            continue
+        prefix = typed_id_wire_prefix(row.get("wire_form"))
+        contract = contracts.get(row.get("kind"))
+        if prefix is not None and contract is not None:
+            forms.setdefault(prefix[3:-1], []).append(contract[0])
+    for _path, _json_path, _carrier, segment, payload, anchored in typed_id_payload_branch_rows(lint):
+        if anchored and payload:
+            forms.setdefault(segment, []).append(payload)
+    return {segment: list(dict.fromkeys(patterns)) for segment, patterns in forms.items()}
+
+
+def payload_matches_registered_form(payload: str, patterns: list[str]) -> bool:
+    """True when one concrete payload is spelled by a registered value space."""
+    for pattern in patterns:
+        try:
+            if re.fullmatch(pattern, payload) is not None:
+                return True
+        except re.error:
+            continue
+    return False
+
+
+def fixture_typed_id_exemptions(lint: Lint) -> dict[tuple[str, str, str], str]:
+    """Load the closed exact-path exemption registry for fixture typed-ID values.
+
+    A conformance fixture legitimately ships a few strings that carry a typed-ID
+    prefix and MUST NOT be a registered wire form: a negative vector whose whole
+    point is that the value is rejected, and a documented wire-form template.
+    Neither can be recognised from a field name -- ``negative_cases``,
+    ``reject_*`` and ``invalid_*`` are authoring conventions, not a contract, and
+    a gate that trusted them would let any future value opt out by renaming its
+    key. So the exemption is declared here instead, pinned to the exact JSON
+    pointer, the exact carrier position and the exact value, with the reason
+    recorded. Changing the value ends the exemption, and an entry that no longer
+    matches a failing occurrence is reported as stale.
+    """
+    registry = load_json(lint, FIXTURE_TYPED_ID_EXEMPTION_PATH)
+    exemptions: dict[tuple[str, str, str], str] = {}
+    if not isinstance(registry, dict):
+        return exemptions
+    categories = registry.get("categories")
+    if not isinstance(categories, dict) or not categories:
+        lint.fail(FIXTURE_TYPED_ID_EXEMPTION_PATH, "categories must be a non-empty object")
+        return exemptions
+    rows = registry.get("entries")
+    if not isinstance(rows, list):
+        lint.fail(FIXTURE_TYPED_ID_EXEMPTION_PATH, "entries must be an array")
+        return exemptions
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            lint.fail(FIXTURE_TYPED_ID_EXEMPTION_PATH, f"entries[{index}] must be an object")
+            continue
+        unknown = set(row) - {"pointer", "position", "value", "category", "reason"}
+        if unknown:
+            lint.fail(
+                FIXTURE_TYPED_ID_EXEMPTION_PATH,
+                f"entries[{index}] has unknown member(s) {sorted(unknown)}",
+            )
+        pointer = row.get("pointer")
+        position = row.get("position")
+        value = row.get("value")
+        category = row.get("category")
+        reason = row.get("reason")
+        if not isinstance(pointer, str) or "#" not in pointer:
+            lint.fail(
+                FIXTURE_TYPED_ID_EXEMPTION_PATH,
+                f"entries[{index}].pointer must be <fixture file>#<json pointer>",
+            )
+            continue
+        fixture_name = pointer.split("#", 1)[0]
+        if not (ARTIFACTS / "fixtures" / fixture_name).is_file():
+            lint.fail(
+                FIXTURE_TYPED_ID_EXEMPTION_PATH,
+                f"{pointer}: names a file that is not a shipped fixture",
+            )
+            continue
+        if position not in FIXTURE_TYPED_ID_POSITIONS:
+            lint.fail(
+                FIXTURE_TYPED_ID_EXEMPTION_PATH,
+                f"{pointer}: position must be one of {sorted(FIXTURE_TYPED_ID_POSITIONS)}",
+            )
+            continue
+        if not isinstance(value, str) or not value:
+            lint.fail(
+                FIXTURE_TYPED_ID_EXEMPTION_PATH,
+                f"{pointer}: value must pin the exact exempted string",
+            )
+            continue
+        if category not in categories:
+            lint.fail(FIXTURE_TYPED_ID_EXEMPTION_PATH, f"{pointer}: unknown category {category!r}")
+        if not isinstance(reason, str) or not reason.strip():
+            lint.fail(FIXTURE_TYPED_ID_EXEMPTION_PATH, f"{pointer}: reason must be a non-empty string")
+        key = (pointer, position, value)
+        if key in exemptions:
+            lint.fail(FIXTURE_TYPED_ID_EXEMPTION_PATH, f"duplicate exemption for {pointer}")
+        exemptions[key] = pointer
+    return exemptions
+
+
+def check_typed_id_fixture_value_closure(lint: Lint) -> None:
+    """Close conformance fixtures over the registered typed-ID wire forms.
+
+    All three earlier typed-ID closures read ``typed_id_validation_documents``,
+    which sweeps ``artifacts/schemas`` and ``artifacts/openapi`` only. A fixture
+    validates nothing, so it was inside no closure at all -- and a shipped
+    positive KAT is exactly where an unregistered wire form does the most damage:
+    implementations align to the vector byte for byte, and any digest computed
+    over the value freezes the wrong bytes into a published expectation.
+
+    A fixture carries values rather than regexes, so this gate compares per
+    value instead of per value space. Every concrete typed ID a fixture ships
+    MUST carry a registered prefix and MUST be spelled by a registered form for
+    that prefix, unless the exact path is registered in
+    ``tools/fixture-typed-id-exemption-registry.json``.
+    """
+    registry_path = ARTIFACTS / "registry" / "id-kind-registry.json"
+    registry = load_json(lint, registry_path)
+    if not isinstance(registry, dict):
+        return
+    prefixes, registry_errors = registered_typed_id_wire_prefixes(registry)
+    for message in registry_errors:
+        lint.fail(registry_path, message)
+    if not prefixes:
+        lint.fail(registry_path, "no canonical typed ID wire prefixes could be parsed")
+        return
+    forms = registered_typed_id_value_forms(lint, registry, registry_path)
+    exemptions = fixture_typed_id_exemptions(lint)
+    used: set[tuple[str, str, str]] = set()
+
+    for path, document in typed_id_value_documents(lint):
+        if document is None:
+            continue
+        for pointer, position, segment, payload, value in typed_id_fixture_value_rows(document):
+            absolute = f"{path.name}#{pointer}"
+            key = (absolute, position, value)
+            if f"ak:{segment}:" not in prefixes:
+                if key in exemptions:
+                    used.add(key)
+                    continue
+                lint.fail(
+                    path,
+                    f"{pointer} ships unregistered typed ID prefix 'ak:{segment}:' "
+                    f"(value {value!r}); register it in "
+                    "contract-registry.json#/id_kind_registry or drop the ak: prefix",
+                )
+                continue
+            if payload_matches_registered_form(payload, forms.get(segment, [])):
+                continue
+            if key in exemptions:
+                used.add(key)
+                continue
+            lint.fail(
+                path,
+                f"{pointer} ships ak:{segment} value {value!r}; it is not any wire form "
+                "registered for that prefix, and a conformance vector MUST NOT publish a "
+                "typed ID the registry never declared. Correct the value, or register the "
+                "exact path in tools/fixture-typed-id-exemption-registry.json",
+            )
+
+    for key in sorted(set(exemptions) - used):
+        lint.fail(
+            FIXTURE_TYPED_ID_EXEMPTION_PATH,
+            f"stale fixture typed ID exemption: {key[0]} ({key[1]}) no longer carries "
+            f"{key[2]!r} or no longer needs an exemption",
+        )
 
 
 EVENT_KIND_VERB_FORMS = ("base", "past_participle", "not_applicable")

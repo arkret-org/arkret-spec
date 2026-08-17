@@ -389,7 +389,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
   "epoch": 42,
   "content_type": "application/json",
   "ciphertext": "base64url",
-  "aad_visibility_event_id": "routing_digest",
+  "aad_visibility_event_id_kind": "routing_digest",
   "aad": {
     "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "event_kind": "ak.message.create",

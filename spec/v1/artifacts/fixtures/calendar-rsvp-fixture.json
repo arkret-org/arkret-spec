@@ -664,7 +664,7 @@
             "epoch": 7,
             "content_type": "application/vnd.arkret.calendar-rsvp-response+json",
             "ciphertext": "rsvpAlpha",
-            "aad_visibility_event_id": "routing_digest",
+            "aad_visibility_event_id_kind": "routing_digest",
             "aad": {
               "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
               "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
@@ -724,7 +724,7 @@
             "epoch": 7,
             "content_type": "application/vnd.arkret.calendar-rsvp-response+json",
             "ciphertext": "rsvpAlpha",
-            "aad_visibility_event_id": "routing_digest",
+            "aad_visibility_event_id_kind": "routing_digest",
             "aad": {
               "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
               "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
@@ -1105,7 +1105,7 @@
             "epoch": 7,
             "content_type": "application/json",
             "ciphertext": "rsvpAlpha",
-            "aad_visibility_event_id": "routing_digest",
+            "aad_visibility_event_id_kind": "routing_digest",
             "aad": {
               "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
               "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",

@@ -38,7 +38,7 @@
       "$ref": "#/$defs/digest",
       "description": "Digest of private invite delivery introduction_evidence. Raw locator tokens and receive-policy state MUST NOT appear in durable Realm events."
     },
-    "third_party_id": {
+    "third_party_invite": {
       "$ref": "#/$defs/third_party_invite"
     },
     "join_rule_snapshot": {
@@ -88,7 +88,7 @@
         ],
         "not": {
           "required": [
-            "third_party_id"
+            "third_party_invite"
           ]
         }
       },

@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "description": "Closed exact-path exemption registry for check_typed_id_fixture_value_closure. Every concrete typed ID a conformance fixture ships MUST be a registered wire form of registry/id-kind-registry.json. A fixture legitimately carries a few strings that wear a typed-ID prefix and MUST NOT be a registered form: a negative vector whose value only exists to be rejected, and a documented wire-form template. Those cases are declared here by exact JSON pointer, carrier position and pinned value, never inferred from a field name such as negative_cases, reject_* or invalid_*, because an authoring convention is not a contract and a gate that trusted one would let any future value opt out by renaming its key. Editing the value ends its exemption, and an entry that stops matching a failing occurrence is reported as stale.",
+  "positions": {
+    "value": "The whole JSON string is the identifier.",
+    "object_key": "The object member name is the identifier.",
+    "embedded_json_string": "A JSON string literal embedded in a longer string, such as canonical JSON inside a digest preimage."
+  },
+  "categories": {
+    "deliberate_negative_vector": "The fixture publishes this value as an input that MUST be rejected. Its whole purpose is that it is not a registered wire form, so correcting it would delete the vector.",
+    "wire_form_template": "The string is a readable wire-form shape carrying placeholders, in the same style as a registry wire_form, and denotes no concrete identifier."
+  },
+  "entries": [
+    {
+      "pointer": "cursor-negative-fixture.json#/vectors/0/cases/1/input_cursor",
+      "position": "value",
+      "value": "ak:cursor:!!!not-base64url!!!",
+      "category": "deliberate_negative_vector",
+      "reason": "The case is named invalid_base64url and expects reason_code invalid_cursor; the payload is outside the registered ak:cursor: alphabet [A-Za-z0-9_-]+ on purpose, which is the property under test."
+    },
+    {
+      "pointer": "long-text-content-fixture.json#/cases/5/expected/valid_blob_ref_shape",
+      "position": "value",
+      "value": "ak:blob:(sha256|blake3):<64 lowercase hex>",
+      "category": "wire_form_template",
+      "reason": "The field states the accepted blob-ref shape rather than one blob ref; the alternation and the <64 lowercase hex> placeholder are template syntax, and the registered value space it restates is special_forms[blob].payload_pattern."
+    },
+    {
+      "pointer": "schema-validation-fixture.json#/schema_validation_cases/93/instance/cells/0",
+      "position": "value",
+      "value": "ak:cell:ak.component.member.state.v1:did:web:host%3",
+      "category": "deliberate_negative_vector",
+      "reason": "Case cell_ref_with_malformed_percent_escape_rejected declares expect_valid false; the truncated percent-escape is exactly what bottom.schema.json must reject."
+    },
+    {
+      "pointer": "schema-validation-fixture.json#/schema_validation_cases/94/instance/cells/0",
+      "position": "value",
+      "value": "ak:cell:message:019640ed-8000-7000-8000-000000000000",
+      "category": "deliberate_negative_vector",
+      "reason": "Case cell_ref_without_complete_ak_component_family_rejected declares expect_valid false; the missing ak.component.<facet-path>.v<n> family is exactly what bottom.schema.json must reject."
+    }
+  ]
+}

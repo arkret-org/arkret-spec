@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-17.7",
+  "version": "2026-08-18.1",
   "codes": [
     {
       "code": "json_invalid",
@@ -1239,7 +1239,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ak.gate.account.command.revoke_session` supplied more than one mutually exclusive selector (`target_grant_id`, `target_device_id`, `all_sessions=true`) or otherwise failed selector closure. Receivers MUST reject instead of choosing one selector implicitly."
+      "description": "`ak.gate.account.command.revoke_session` supplied more than one mutually exclusive selector (`target_session_grant_id`, `target_device_id`, `all_sessions=true`) or otherwise failed selector closure. Receivers MUST reject instead of choosing one selector implicitly."
     },
     {
       "code": "reviewer_capability_revoked",
@@ -1756,7 +1756,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when an encrypted envelope declares an aad_visibility_event_id wider than the Realm ceiling in ak.realm.policy_bundle payload aad_visibility.event_id (disclosure order hidden < routing_digest < opaque_id; an absent component means the hidden ceiling). Receivers and reducers MUST reject and MUST NOT silently downgrade the envelope to hidden. See zh/crypto-media/encryption-and-audit.md §2.8."
+      "description": "Sub-reason for failed_precondition when an encrypted envelope declares an aad_visibility_event_id_kind wider than the Realm ceiling in ak.realm.policy_bundle payload aad_visibility.event_id_kind (disclosure order hidden < routing_digest < opaque_id; an absent component means the hidden ceiling). Receivers and reducers MUST reject and MUST NOT silently downgrade the envelope to hidden. See zh/crypto-media/encryption-and-audit.md §2.8."
     },
     {
       "code": "abuse_cluster",
@@ -2907,7 +2907,7 @@
         "event_envelope",
         "client_sync"
       ],
-      "description": "A stable protocol identity was reused with different canonical content. For Event Envelope event_id this is quarantined per event-auth-state-resolution.md §11; for to-device message_id the send operation rejects the conflicting enqueue with reason message_id_conflict."
+      "description": "A stable protocol identity was reused with different canonical content. For Event Envelope event_id this is quarantined per event-auth-state-resolution.md §11; for to-device device_message_id the send operation rejects the conflicting enqueue with reason device_message_id_conflict."
     },
     {
       "code": "durability_recovery_recipient_unverified",
@@ -2958,7 +2958,7 @@
       "applies_to": [
         "schema_validation"
       ],
-      "description": "Sub-reason for schema_violation when an object content payload illegally carries `effective_scope` where its schema reserves that name for a read-only materialized projection. The Event envelope instead requires producer-signed `scope_ref`; the receiver derives the scope from payload and frozen pre-state, verifies exact equality, and only then may copy it into the object's effective_scope projection. See zh/models/circle.md §6.2."
+      "description": "Sub-reason for schema_violation when an actor-supplied payload illegally carries `effective_scope` where the object schema reserves that name for a read-only materialized projection. Both surfaces are decided by schema: the create shape bans the member (event-payload.schema.json#/$defs/relation_create_object), and the update shape bans the `effective_scope` / `effective_scope.*` patch paths (#/$defs/relation_update_payload), registered in registry/reducer-managed-path-registry.json. The Event envelope instead requires producer-signed `scope_ref`; the receiver derives the scope from payload and frozen pre-state, verifies exact equality, and only then may copy it into the object's effective_scope projection. See zh/models/circle.md §6.2."
     },
     {
       "code": "egress_policy_denied",
@@ -3663,12 +3663,12 @@
       "description": "`ak.message.redact` / `ak.message.revise` / equivalent Message write rejected because the target Message is already in a terminal state (`redacted` or `deleted`). In particular, `ak.message.revise` targeting a terminal Message MUST be rejected with this reason_code."
     },
     {
-      "code": "message_id_conflict",
+      "code": "device_message_id_conflict",
       "applies_to": [
         "event_envelope",
         "client_sync"
       ],
-      "description": "A to-device retry reused the same message_id with different canonical target content. The queue service MUST return duplicate_conflict with this reason_code and MUST NOT enqueue a replacement message. Scheduled-send plan convergence is keyed independently by scheduled_send_id and account-data CAS; durable ak.message.create identity conflicts are keyed only by the content-bound Event.event_id."
+      "description": "A to-device retry reused the same device_message_id with different canonical target content. The queue service MUST return duplicate_conflict with this reason_code and MUST NOT enqueue a replacement message. Scheduled-send plan convergence is keyed independently by scheduled_send_id and account-data CAS; durable ak.message.create identity conflicts are keyed only by the content-bound Event.event_id."
     },
     {
       "code": "metadata_encryption_floor_downgrade",
@@ -4004,7 +4004,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "An `ak.schema.patch.v1` patch path attempts to modify a reducer-managed field (`id` / `schema` / `realm_id` / `created_by` / `created_at` / `state` / `state_changed_at`). These fields are owned by their corresponding lifecycle events; patch MUST NOT touch them. See zh/models/event-and-patch.md §4.2.5."
+      "description": "An `ak.schema.patch.v1` patch path addresses a field the generic update surface does not own. The normative per-object path set is registry/reducer-managed-path-registry.json (universal minimum set plus per-object-kind additions, minus the named View `state` exemption); the description here is not the criterion and MUST NOT be read as one. The forbidden path and every dotted descendant of it are rejected together. See zh/models/event-and-patch.md §4.2.5."
     },
     {
       "code": "patch_unset_redactable_field",

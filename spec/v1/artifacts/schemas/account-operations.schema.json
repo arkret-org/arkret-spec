@@ -78,9 +78,8 @@
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
-    "grant_id": {
-      "type": "string",
-      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
+    "session_grant_id": {
+      "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
     },
     "applet_id": {
       "oneOf": [
@@ -2055,8 +2054,8 @@
     "session_revoke_request_body": {
       "type": "object",
       "properties": {
-        "target_grant_id": {
-          "$ref": "#/$defs/grant_id"
+        "target_session_grant_id": {
+          "$ref": "#/$defs/session_grant_id"
         },
         "target_device_id": {
           "$ref": "#/$defs/device_id"
@@ -2115,13 +2114,13 @@
         "anyOf": [
           {
             "required": [
-              "target_grant_id",
+              "target_session_grant_id",
               "target_device_id"
             ]
           },
           {
             "required": [
-              "target_grant_id",
+              "target_session_grant_id",
               "all_sessions"
             ]
           },
@@ -2133,7 +2132,7 @@
           },
           {
             "required": [
-              "target_grant_id",
+              "target_session_grant_id",
               "applet_id"
             ]
           },
@@ -2163,10 +2162,10 @@
           "type": "integer",
           "minimum": 0
         },
-        "revoked_grant_ids": {
+        "revoked_session_grant_ids": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/grant_id"
+            "$ref": "#/$defs/session_grant_id"
           },
           "uniqueItems": true
         }

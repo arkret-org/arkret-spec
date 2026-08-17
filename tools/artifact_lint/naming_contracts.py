@@ -42,7 +42,17 @@ from .core import (
     read_text,
     resolve_json_pointer,
 )
-from .naming import PREDICATES, enumerate_schema_properties
+from .naming import (
+    EXTERNAL_ANCHOR_URL_RE,
+    EXTERNAL_LITERAL_OBJECT_FIELDS,
+    EXTERNAL_LITERAL_OBJECT_KEYWORD,
+    PREDICATES,
+    TYPED_ID_NAMESPACE_PREFIX,
+    enumerate_property_owners,
+    enumerate_schema_properties,
+    nc_fieldcase_001,
+    terminal_excludes_typed_id_namespace,
+)
 
 NAMING_COVERAGE_MATRIX_PATH = TOOLS_ROOT / "naming-rule-coverage-matrix.json"
 IDENTIFIER_CLASSIFICATION_PATH = TOOLS_ROOT / "identifier-classification-registry.json"
@@ -65,6 +75,12 @@ SECTION_HEADING_SUFFIX = "[ \t　]"
 # Identifier-bearing wire property names. `_ref` / `_refs` are a different
 # contract (2.1.2) and are deliberately out of scope here.
 IDENTIFIER_NAME_SUFFIXES = ("_id", "_ids")
+
+# The two value categories whose values legitimately live in the `ak:` typed-ID
+# namespace. Every other category MUST stay lexically disjoint from it, which is
+# the half of 2.1 the typed-ID prefix closure cannot see: that closure only asks
+# whether an `ak:<kind>:` it finds is registered.
+TYPED_ID_NAMESPACE_OWNER_CATEGORIES = frozenset({"typed_object_id", "responsibility_did"})
 
 
 # --------------------------------------------------------------------------
@@ -403,6 +419,128 @@ def check_naming_rule_coverage_matrix(lint: Lint) -> None:
 # --------------------------------------------------------------------------
 
 
+def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None:
+    """Close NC-FIELDCASE-001: every declared property name is snake_case.
+
+    The one admissible exemption is an object that mirrors an external
+    specification verbatim, and the object declares that itself through
+    ``x-arkret-external-literal-object``. Keeping the fact in the schema rather
+    than in a lint-side table is what makes the exemption exact: it covers the
+    properties that node declares and cannot be inherited by a `$ref`, by another
+    object of the same type name, or by a same-named property elsewhere.
+
+    Three failures are symmetric and all of them matter: a non-snake name outside
+    a marked object, a marked object whose annotation is incomplete, and a marked
+    object that no longer has anything to exempt. The last one keeps the exemption
+    set shrinking on its own instead of outliving the field it was granted for.
+    """
+
+    reached: set[tuple[str, str]] = set()
+    for file_name, document in documents.items():
+        schema_path = SCHEMA_DIR / file_name
+        for owner in enumerate_property_owners(file_name, document):
+            marker = owner.node.get(EXTERNAL_LITERAL_OBJECT_KEYWORD)
+            violations = [name for name in owner.names if nc_fieldcase_001(name)]
+            reached |= {(owner.pointer, name) for name in owner.names}
+            if marker is None:
+                for name in violations:
+                    lint.fail(
+                        schema_path,
+                        f"{owner.pointer}/properties/{name} violates NC-FIELDCASE-001 "
+                        f"(`{name}` is not snake_case); an object that mirrors an external "
+                        f"specification verbatim MUST declare "
+                        f"{EXTERNAL_LITERAL_OBJECT_KEYWORD} on that exact node",
+                    )
+                continue
+            if not isinstance(marker, dict):
+                lint.fail(
+                    schema_path,
+                    f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD} must be an object "
+                    f"declaring {list(EXTERNAL_LITERAL_OBJECT_FIELDS)}",
+                )
+                continue
+            unknown = sorted(set(marker) - set(EXTERNAL_LITERAL_OBJECT_FIELDS) - {"reason"})
+            if unknown:
+                lint.fail(
+                    schema_path,
+                    f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD} declares unknown "
+                    f"members {unknown}",
+                )
+            specification = marker.get("specification")
+            if not isinstance(specification, str) or not specification.strip():
+                lint.fail(
+                    schema_path,
+                    f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD} must name the external "
+                    f"specification whose lexicon governs these property names",
+                )
+            anchor = marker.get("anchor")
+            if not isinstance(anchor, str) or not EXTERNAL_ANCHOR_URL_RE.fullmatch(anchor):
+                # A bare specification name cannot be checked against anything; the
+                # fragment is what pins the exemption to a section rather than to a
+                # whole document.
+                lint.fail(
+                    schema_path,
+                    f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD}.anchor must be an "
+                    f"https:// URL carrying the section fragment that defines these names",
+                )
+            if not violations:
+                lint.fail(
+                    schema_path,
+                    f"{owner.pointer} declares {EXTERNAL_LITERAL_OBJECT_KEYWORD} but every "
+                    f"property it declares is already snake_case; delete the stale annotation",
+                )
+
+    # Walker duality. The owner walk and the occurrence walk are two views of one
+    # population, so a regression in either one shrinks the judged surface without
+    # failing anything unless they are compared.
+    expected = {
+        (occurrence.pointer.rsplit("/properties/", 1)[0], occurrence.name)
+        for file_name, document in documents.items()
+        for occurrence in enumerate_schema_properties(file_name, document)
+    }
+    if expected != reached:
+        lint.fail(
+            NAMING_RULES_FILE,
+            "NC-FIELDCASE-001 owner walk disagrees with the property occurrence walk: "
+            f"missing={sorted(expected - reached)[:5]}, extra={sorted(reached - expected)[:5]}",
+        )
+
+
+def check_typed_id_namespace_disjointness(
+    lint: Lint,
+    file_name: str,
+    pointer: str,
+    name: str,
+    category: str | None,
+    terminals: tuple[tuple[str, str], ...],
+) -> None:
+    """Close the other half of 2.1: non-typed categories may not reach into ``ak:``.
+
+    ``check_typed_id_prefix_registry_closure`` only decides whether an ``ak:<kind>:``
+    that appears in a schema is registered. Nothing asked the opposite question --
+    whether a field that is *not* a typed ID can accept an ``ak:`` value anyway --
+    and the answer used to be yes for every carrier whose character class merely
+    happened to contain ``:``. A bounded terminal that carries no lexical
+    information at all (a bare ``type``) cannot be decided here; those occurrences
+    are the pending-convergence rows of the classification registry. ``category``
+    is ``None`` when neither the type nor the registry classifies the occurrence;
+    that is judged like any other non-owning category, because an occurrence
+    nobody has classified cannot be assumed to own the namespace.
+    """
+
+    if category in TYPED_ID_NAMESPACE_OWNER_CATEGORIES:
+        return
+    where = f"category `{category}`" if category else "unclassified"
+    for kind, value in terminals:
+        if terminal_excludes_typed_id_namespace(kind, value) is False:
+            lint.fail(
+                SCHEMA_DIR / file_name,
+                f"{pointer} is {where} but its {kind} `{value}` admits values in the "
+                f"`{TYPED_ID_NAMESPACE_PREFIX}` typed-ID namespace; the 2.1 categories are "
+                f"mutually exclusive, so the terminal constraint MUST reject them",
+            )
+
+
 def _schema_documents(lint: Lint) -> dict[str, Any]:
     documents: dict[str, Any] = {}
     for path in sorted(SCHEMA_DIR.glob("*.json")):
@@ -554,7 +692,16 @@ def _prose_categories(lint: Lint) -> set[str]:
 
 
 def check_identifier_value_categories(lint: Lint) -> None:
-    """Close the 2.1 identifier value-category contract against schema types."""
+    """Close the 2 field-name lexicon and the 2.1 identifier value-category contract.
+
+    Both contracts read the same schema population, so they share one walk and one
+    entry point. NC-FIELDCASE-001 runs first and unconditionally: it is a property
+    *name* judgement that must not be skipped by any of the early returns the
+    classification registry can trigger.
+    """
+
+    documents = _schema_documents(lint)
+    check_wire_property_name_case(lint, documents)
 
     prose_categories = _prose_categories(lint)
     registry = load_json(lint, IDENTIFIER_CLASSIFICATION_PATH)
@@ -627,7 +774,6 @@ def check_identifier_value_categories(lint: Lint) -> None:
         if not isinstance(row.get("occurrences"), int) or row["occurrences"] < 1:
             lint.fail(IDENTIFIER_CLASSIFICATION_PATH, f"{where}.occurrences must be positive")
 
-    documents = _schema_documents(lint)
     observed: dict[tuple[str, str], int] = {}
     decided: dict[str, int] = {}
     for file_name, document in documents.items():
@@ -637,12 +783,21 @@ def check_identifier_value_categories(lint: Lint) -> None:
                 continue
             terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
             category = derive_category(terminals, id_kinds)
-            if category is not None:
+            if category is None:
+                signature = json.dumps(terminals, ensure_ascii=False, sort_keys=True)
+                key = (name, signature)
+                observed[key] = observed.get(key, 0) + 1
+                registered = index.get(key)
+                category = registered.get("category") if isinstance(registered, dict) else None
+            else:
                 decided[category] = decided.get(category, 0) + 1
-                continue
-            signature = json.dumps(terminals, ensure_ascii=False, sort_keys=True)
-            key = (name, signature)
-            observed[key] = observed.get(key, 0) + 1
+            # An occurrence the type system cannot decide and the registry does
+            # not classify is judged as if it owned nothing, so a newly widened
+            # or newly minted terminal fails closed instead of slipping through
+            # on the way to being registered.
+            check_typed_id_namespace_disjointness(
+                lint, file_name, occurrence.pointer, name, category, terminals
+            )
 
     registered_counts = {key: row.get("occurrences") for key, row in index.items()}
     if registered_counts != observed:

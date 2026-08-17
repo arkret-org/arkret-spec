@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-17.1",
+  "version": "2026-08-18.1",
   "source_of_truth": true,
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
@@ -371,6 +371,14 @@
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Machine-readable projection of the zh/models/event-and-patch.md 4.2.4 redactable content-carrier slots: the paths an ak.schema.patch.v1 $op=\"unset\" MUST NOT remove, with the paired plaintext/encrypted slot and the legal non-terminal and terminal clear paths for each."
+    },
+    {
+      "name": "reducer_managed_paths",
+      "file": "registry/reducer-managed-path-registry.json",
+      "kind": "reducer_managed_path_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Machine-readable projection of the zh/models/event-and-patch.md 4.2.5 reducer-managed-field protection: per object kind, the ak.schema.patch.v1 paths a generic update surface MUST reject, the universal minimum set they extend, and the one named View state exemption."
     },
     {
       "name": "account_status_replica_decisions",

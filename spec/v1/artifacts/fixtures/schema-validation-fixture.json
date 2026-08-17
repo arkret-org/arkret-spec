@@ -269,7 +269,7 @@
         "claimed_profiles": [],
         "verified_profiles": [],
         "experimental_features": [],
-        "compat_surfaces": [],
+        "interop_surfaces": [],
         "development_mode": false
       }
     },
@@ -314,7 +314,7 @@
         "claimed_profiles": [],
         "verified_profiles": [],
         "experimental_features": [],
-        "compat_surfaces": [],
+        "interop_surfaces": [],
         "development_mode": false,
         "resource_kinds": [
           "realm",
@@ -437,7 +437,7 @@
         "claimed_profiles": [],
         "verified_profiles": [],
         "experimental_features": [],
-        "compat_surfaces": []
+        "interop_surfaces": []
       }
     },
     {
@@ -497,7 +497,7 @@
         "claimed_profiles": [],
         "verified_profiles": [],
         "experimental_features": [],
-        "compat_surfaces": [],
+        "interop_surfaces": [],
         "development_mode": false
       }
     },
@@ -1918,7 +1918,7 @@
         "schema": "ak.schema.invite.v1",
         "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "inviter": "ak:did_core:webvh:z6mkfixture",
-        "third_party_id": {
+        "third_party_invite": {
           "display_name_hint": "A.",
           "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "token_salt_id": "salt-2026-05",
@@ -3022,7 +3022,7 @@
       "instance": {
         "policy_revision": 3,
         "aad_visibility": {
-          "event_id": "routing_digest"
+          "event_id_kind": "routing_digest"
         }
       }
     },
@@ -3034,7 +3034,7 @@
         "policy_revision": 3,
         "aad_visibility": {
           "message_id": "hidden",
-          "event_id": "routing_digest",
+          "event_id_kind": "routing_digest",
           "debug_trace_id": "disabled"
         }
       },
@@ -3048,7 +3048,7 @@
         "policy_revision": 3,
         "aad_visibility": {}
       },
-      "first_expected_error": "$.aad_visibility: 'event_id' is a required property"
+      "first_expected_error": "$.aad_visibility: 'event_id_kind' is a required property"
     },
     {
       "name": "realm_policy_bundle_facet_component_echo_invalid",
@@ -3069,7 +3069,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
       "expect_valid": true,
       "instance": {
-        "owner": "ak:did_core:webvh:z6mkfixtureholderexample",
+        "holder_id": "ak:did_core:webvh:z6mkfixtureholderexample",
         "version": 1,
         "entries": [
           {
@@ -3217,7 +3217,7 @@
       "expect_valid": false,
       "first_expected_error": "$.entries[0].target: {'kind': 'actor', 'value': 'display-name-only'} is not valid under any of the given schemas",
       "instance": {
-        "owner": "ak:did_core:webvh:z6mkfixtureholderexample",
+        "holder_id": "ak:did_core:webvh:z6mkfixtureholderexample",
         "version": 1,
         "entries": [
           {
@@ -3239,7 +3239,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
       "expect_valid": true,
       "instance": {
-        "owner": "ak:did_core:webvh:z6mkfixtureholderexample",
+        "holder_id": "ak:did_core:webvh:z6mkfixtureholderexample",
         "version": 2,
         "entries": []
       }
@@ -3249,7 +3249,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
       "expect_valid": true,
       "instance": {
-        "owner": "ak:did_core:webvh:z6mkfixtureholderexample",
+        "holder_id": "ak:did_core:webvh:z6mkfixtureholderexample",
         "version": 3,
         "entries": [
           {
@@ -3272,7 +3272,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
       "expect_valid": true,
       "instance": {
-        "owner": "ak:did_core:webvh:z6mkfixtureholderexample",
+        "holder_id": "ak:did_core:webvh:z6mkfixtureholderexample",
         "version": 4,
         "entries": [
           {

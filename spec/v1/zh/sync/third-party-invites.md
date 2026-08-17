@@ -43,7 +43,7 @@ updated: 2026-07-02
 
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_third_party_create_payload
 {
-  "third_party_id": {
+  "third_party_invite": {
     "display_name_hint": "external invite",
     "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "token_salt_id": "salt-2026-04-28-invite-001",
@@ -57,7 +57,7 @@ updated: 2026-07-02
 }
 ```
 
-`token_commitment` 是盐化承诺；`token_salt` 原值只保存在验证服务的私有状态或加密审计记录中。`oob_code_kind` 是 wire-level discriminator：`offline_token` 表示 OOB code 自身满足 ≥128-bit 熵并按 commitment 校验；`lookup` 表示短码只作为服务端私有 lookup 表索引，必须走 pepper/HMAC 存储与限速。该结构的 object 形态由 [`invite.schema.json`](../../artifacts/schemas/invite.schema.json) 的 `third_party_id` 定义。`verification_public_key` 是验证服务生成的临时签名公钥，用于后续 claim / 认领验证。若需要在 UI 显示目标邮箱，应只在邀请者本地私有状态中保存，或以 E2EE 方式保存给有权查看邀请详情的管理员。
+`token_commitment` 是盐化承诺；`token_salt` 原值只保存在验证服务的私有状态或加密审计记录中。`oob_code_kind` 是 wire-level discriminator：`offline_token` 表示 OOB code 自身满足 ≥128-bit 熵并按 commitment 校验；`lookup` 表示短码只作为服务端私有 lookup 表索引，必须走 pepper/HMAC 存储与限速。该结构的 object 形态由 [`invite.schema.json`](../../artifacts/schemas/invite.schema.json) 的 `third_party_invite` 定义。`verification_public_key` 是验证服务生成的临时签名公钥，用于后续 claim / 认领验证。若需要在 UI 显示目标邮箱，应只在邀请者本地私有状态中保存，或以 E2EE 方式保存给有权查看邀请详情的管理员。
 
 ### 3.2 发送外部通知
 
@@ -144,7 +144,7 @@ Bob 的客户端将 `invite_token`、自己的 `did_core_id`、用于独立验�
 
 `utf8("ak.invite.claim.binding_proof.v1\n") || canonical_json({audience:"arkret.invite.claim", binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_id, token_commitment, verification_service_id})`
 
-其中 `unsigned_binding_proof` 是去掉 `signature` 字段后的 `binding_proof` object；`verification_service_id` 等于 `binding_proof.verification_service_id`；`invite_digest` 是 reducer 当前 pending invite cell 的 canonical digest，计算对象为 `canonical_json({invite_id, realm_id, expires_at, third_party_id})` 后取 `sha256:<hex>`，其中 `third_party_id` MUST 使用该 invite cell 内的当前字段值。Reducer MUST 用 invite cell 记录的 `verification_public_key` / `verification_method` 校验该签名；只验证 `binding_proof` 裸 object、或不绑定 `invite_id` / `token_commitment` / `invite_digest` / `claim_nonce` 的证明 MUST reject。
+其中 `unsigned_binding_proof` 是去掉 `signature` 字段后的 `binding_proof` object；`verification_service_id` 等于 `binding_proof.verification_service_id`；`invite_digest` 是 reducer 当前 pending invite cell 的 canonical digest，计算对象为 `canonical_json({invite_id, realm_id, expires_at, third_party_invite})` 后取 `sha256:<hex>`，其中 `third_party_invite` MUST 使用该 invite cell 内的当前字段值。Reducer MUST 用 invite cell 记录的 `verification_public_key` / `verification_method` 校验该签名；只验证 `binding_proof` 裸 object、或不绑定 `invite_id` / `token_commitment` / `invite_digest` / `claim_nonce` 的证明 MUST reject。
 
 ### 4.3 Realm reducer 状态机转换
 
@@ -161,7 +161,7 @@ Reducer 处理 `ak.invite.claim` 时 MUST 按下列顺序 fail closed；所有�
 3. 验证 `binding_proof` 必须由该 invite 记录中的 `verification_public_key` 签署，签名输入 MUST 是 §4.2 定义的 `ak.invite.claim.binding_proof.v1` transcript，并绑定 `subject_id`、`realm_id`、audience、过期时间、claim nonce、`invite_id`、`token_commitment` 与 invite cell digest；`binding_proof.subject_id`、`binding_proof.realm_id`、`binding_proof.claim_nonce` 与 payload 顶层字段不一致时 MUST reject。
 4. 从 claim CBA basis 的当前 accepted `ak.component.realm.policy_bundle.v1` cell 读取 `allowed_third_party_invite_verification_service_ids`，复校验 `binding_proof.verification_service_id` 在该集合中；字段缺失或空数组都是 deny-all。Invite 创建时绑定的 DID 也必须与 binding proof 一致，但 invite metadata 不能把一个当前已移除的 DID重新授权。该复校验必须在 reducer 内执行；不能因为验证服务、Auth Server、接收 Principal Server sync surface 或历史 invite metadata 已经校验过而跳过。不在授权集内的 `verification_service_id` MUST reject，且不得因后续 `subject_proof` 有效而放行。**该复校验 MUST 绑定 revocation freshness（normative）**：reducer 判定该集合所依据的 bundle cell Seal basis MUST 在目标 Realm 的 `revocation_freshness_window_ms` 内仍新鲜；不得用陈旧 basis 把一个**可能已被撤销**的 `verification_service_id` 当作仍在授权集内放行。由于验证服务的妥协等价于该 3PID 邀请被完全控制（§2.1），3PID claim 属高风险写入：当 reducer 无法在窗口内确认 bundle basis 新鲜时，MUST fail closed——拒绝该 claim 或 quarantine 待 backfill 到足够新鲜的控制面 basis 后重判，MUST NOT 在 freshness 未知时接受 claim。
 5. 验证 `subject_proof` 来自 `subject_id` 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("ak.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"arkret.invite.claim", verification_service_id, binding_proof_digest})`，其中 `verification_service_id` 等于 `binding_proof.verification_service_id`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_service_id` / `binding_proof_digest` 的 subject proof MUST reject；`verification_service_id` 与 `binding_proof.verification_service_id` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
-6. 在 reducer state 中检查 `(invite_id, claim_nonce)` 与 `token_commitment` 两类一次性约束：同一 `(invite_id, claim_nonce)` 的重复 claim、或同一 `token_commitment` 已有 accepted claim projection，均 MUST 以 `duplicate_conflict` 拒绝。v1 base wire 中 `third_party_id.max_claims` MUST 恒为 `1`；任何大于 `1` 或缺失后被解释为多用 token 的写入 MUST `schema_violation` / `duplicate_conflict` fail closed。该检查必须与 invite cell 的 `pending -> claimed` transition 原子提交，不能依赖入站服务的幂等表作为唯一保护。
+6. 在 reducer state 中检查 `(invite_id, claim_nonce)` 与 `token_commitment` 两类一次性约束：同一 `(invite_id, claim_nonce)` 的重复 claim、或同一 `token_commitment` 已有 accepted claim projection，均 MUST 以 `duplicate_conflict` 拒绝。v1 base wire 中 `third_party_invite.max_claims` MUST 恒为 `1`；任何大于 `1` 或缺失后被解释为多用 token 的写入 MUST `schema_violation` / `duplicate_conflict` fail closed。该检查必须与 invite cell 的 `pending -> claimed` transition 原子提交，不能依赖入站服务的幂等表作为唯一保护。
 7. 验证通过后，reducer MUST 原子投影 claim writes：invite cell `pending -> claimed`，记录 `claimed_by=subject_id`、`claim_event_ref`、`claim_nonce_digest`、`token_commitment`、`verification_service_id` 与 `claimed_at` 等派生投影字段；随后该占位符邀请正式转变为针对 `subject_id` 的标准 `ak.invite.create` 或等价 membership proposal。`ak.invite.claim` 本身不直接绕过 Realm join policy 写入 `ak.member.state{membership="join"}`；最终 join 仍由 `subject_id` 通过 `ak.invite.accept` 或 profile 声明的等价 membership proposal 路径完成，reducer MUST 校验 accept/proposal 引用的是这次 accepted claim Event。
 
 验证服务 / 接收 Principal Server sync surface SHOULD 维护 `(invite_id, claim_nonce)` 去重 set，TTL 至少覆盖 `invite.expires_at + 24h`，用于在进入 reducer 仲裁前降低重放成本；该服务侧 set 不是状态真源。任一 nonce 一旦被 reducer 作为 accepted 或 rejected claim 观察到，后续携带同一 `(invite_id, claim_nonce)` 的 claim Event MUST 被 reducer 拒绝，即使前一次 claim 未成为 invite cell winner。该 set 的 key SHOULD 存储为 HMAC / hash，不得持久化明文 invite token；对外失败形态仍按 §6 的不可枚举响应处理。

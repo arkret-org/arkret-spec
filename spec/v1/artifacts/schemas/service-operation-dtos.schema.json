@@ -1073,16 +1073,16 @@
     "DeviceMessageTarget": {
       "type": "object",
       "required": [
-        "message_id",
+        "device_message_id",
         "kind",
         "expires_at",
         "content"
       ],
       "properties": {
-        "message_id": {
+        "device_message_id": {
           "type": "string",
           "pattern": "^ak:device_message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Sender-assigned stable identity copied unchanged into DeviceMessageEnvelope.message_id. Reusing the same sender-scoped message_id with different canonical target content MUST fail with duplicate_conflict (reason message_id_conflict)."
+          "description": "Sender-assigned stable identity copied unchanged into DeviceMessageEnvelope.device_message_id. Reusing the same sender-scoped device_message_id with different canonical target content MUST fail with duplicate_conflict (reason device_message_id_conflict)."
         },
         "kind": {
           "type": "string",
@@ -1630,8 +1630,8 @@
       "properties": {
         "appeal_id": {
           "type": "string",
-          "description": "Directory-local audit reference for the appeal; not a registered ak:<kind> typed ID.",
-          "pattern": "^appeal:[A-Za-z0-9._:-]{1,128}$"
+          "description": "Directory-local audit reference for the appeal; not a registered ak:<kind> typed ID. The payload segment excludes `:` so the value can neither begin with nor embed the ak: typed-ID namespace before the kind is registered.",
+          "pattern": "^appeal:[A-Za-z0-9._-]{1,128}$"
         },
         "received_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1659,8 +1659,8 @@
       "properties": {
         "takedown_id": {
           "type": "string",
-          "description": "The operator takedown_id from the takedown notice.",
-          "pattern": "^takedown:[A-Za-z0-9._:-]{1,128}$"
+          "description": "The operator takedown_id from the takedown notice. The payload segment excludes `:` so the value can neither begin with nor embed the ak: typed-ID namespace before the kind is registered.",
+          "pattern": "^takedown:[A-Za-z0-9._-]{1,128}$"
         },
         "resource_id": {
           "oneOf": [
@@ -4903,6 +4903,11 @@
     },
     "ServiceDidDocument": {
       "type": "object",
+      "x-arkret-external-literal-object": {
+        "specification": "W3C DID Core 1.0, DID document core properties",
+        "anchor": "https://www.w3.org/TR/did-core/#core-properties",
+        "reason": "A raw DID document is emitted and resolved verbatim, so its property names belong to the DID Core lexicon; identity-did.md forbids re-spelling them as snake_case."
+      },
       "additionalProperties": false,
       "required": [
         "@context",
@@ -4969,6 +4974,11 @@
     },
     "ServiceDidEndpoint": {
       "type": "object",
+      "x-arkret-external-literal-object": {
+        "specification": "W3C DID Core 1.0, service properties",
+        "anchor": "https://www.w3.org/TR/did-core/#services",
+        "reason": "A DID document service entry keeps the DID Core lexicon for every member it declares, including the Arkret-defined serviceKind extension property that sits beside serviceEndpoint."
+      },
       "additionalProperties": false,
       "required": [
         "id",
@@ -5001,6 +5011,11 @@
     },
     "ServiceDidVerificationMethod": {
       "type": "object",
+      "x-arkret-external-literal-object": {
+        "specification": "W3C DID Core 1.0, verification methods",
+        "anchor": "https://www.w3.org/TR/did-core/#verification-methods",
+        "reason": "A verification method is resolved and verified verbatim from the DID document, so publicKeyMultibase keeps the DID Core spelling."
+      },
       "additionalProperties": false,
       "required": [
         "id",
@@ -5179,6 +5194,11 @@
     },
     "ServiceWebvhDataIntegrityProof": {
       "type": "object",
+      "x-arkret-external-literal-object": {
+        "specification": "W3C Verifiable Credential Data Integrity 1.0, proofs",
+        "anchor": "https://www.w3.org/TR/vc-data-integrity/#proofs",
+        "reason": "The proof is verified byte-for-byte against the external DID log, so every member keeps the Data Integrity spelling."
+      },
       "additionalProperties": false,
       "required": [
         "type",
@@ -5209,6 +5229,11 @@
     },
     "ServiceWebvhInceptionOperation": {
       "type": "object",
+      "x-arkret-external-literal-object": {
+        "specification": "did:webvh v1.0, the DID log file",
+        "anchor": "https://identity.foundation/didwebvh/v1.0/#the-did-log-file",
+        "reason": "A DID log entry must round-trip byte-for-byte with the external log, so versionId and versionTime keep the did:webvh spelling."
+      },
       "additionalProperties": false,
       "required": [
         "versionId",
@@ -5243,6 +5268,11 @@
     },
     "ServiceWebvhInceptionParameters": {
       "type": "object",
+      "x-arkret-external-literal-object": {
+        "specification": "did:webvh v1.0, did:webvh DID method parameters",
+        "anchor": "https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters",
+        "reason": "The parameters object is hashed and verified as part of the external DID log entry, so scid, method, updateKeys and nextKeyHashes are mirrored verbatim."
+      },
       "additionalProperties": false,
       "required": [
         "scid",
@@ -5556,7 +5586,7 @@
             },
             "proof_jwt": {
               "type": "string",
-              "description": "JWS over ak.session_grant.introspection_proof.v1 claims (grant_id, grant_jwt_hash, audience, challenge, issued_at, expires_at)."
+              "description": "JWS over ak.session_grant.introspection_proof.v1 claims (session_grant_id, grant_jwt_digest, audience, challenge, issued_at, expires_at)."
             }
           }
         }
@@ -5569,7 +5599,7 @@
         "principal_id",
         "session_grant",
         "expires_at",
-        "grant_id",
+        "session_grant_id",
         "session_public_key",
         "audience"
       ],
@@ -5588,9 +5618,9 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "grant_id": {
+        "session_grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
-          "description": "Stable id of the issued session grant. Returned for every grant (human and agent) so the client can reference, refresh, introspect or revoke this exact grant without re-parsing the opaque session_grant. Mirrors SessionGrantRefreshOutcome.grant_id."
+          "description": "Stable id of the issued session grant. Returned for every grant (human and agent) so the client can reference, refresh, introspect or revoke this exact grant without re-parsing the opaque session_grant. Mirrors SessionGrantRefreshOutcome.session_grant_id."
         },
         "session_public_key": {
           "type": "string",
@@ -5647,17 +5677,17 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "grant_id",
+        "session_grant_id",
         "grant_jwt",
         "session_public_key",
         "expires_at",
         "audience",
         "scopes",
         "dpop_jkt",
-        "previous_grant_id"
+        "previous_session_grant_id"
       ],
       "properties": {
-        "grant_id": {
+        "session_grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
         "grant_jwt": {
@@ -5686,7 +5716,7 @@
           "type": "string",
           "description": "RFC 7638 thumbprint of the holder key (equals the grant's cnf.jkt)."
         },
-        "previous_grant_id": {
+        "previous_session_grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
           "description": "The predecessor grant, atomically superseded by this successor on success."
         }
@@ -6291,11 +6321,11 @@
       "type": "object",
       "description": "Closed ErrorEnvelope.error.details for session_grant_replay_expired. The named issuer-ledger record remains authoritative and no replacement grant is created under the same request identity.",
       "required": [
-        "grant_id",
+        "session_grant_id",
         "state"
       ],
       "properties": {
-        "grant_id": {
+        "session_grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
         "state": {
@@ -6309,11 +6339,11 @@
       "type": "object",
       "description": "Closed ErrorEnvelope.error.details for session_grant_replay_terminal. The state is an exact durable issuer-ledger terminal state and no replacement grant is created under the same request identity.",
       "required": [
-        "grant_id",
+        "session_grant_id",
         "state"
       ],
       "properties": {
-        "grant_id": {
+        "session_grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
         "state": {

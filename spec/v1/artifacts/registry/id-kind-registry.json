@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-17.4",
+  "version": "2026-08-18.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-17T23:40:00+08:00",
+  "generated_at": "2026-08-18T06:45:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -256,12 +256,11 @@
     },
     {
       "kind": "membership_compensation_delegation",
-      "wire_form": "ak:membership-compensation-delegation:sha256:<lowercase_hex>",
+      "wire_form": "ak:membership_compensation_delegation:sha256:<lowercase_hex>",
       "payload_pattern": "sha256:[0-9a-f]{64}",
       "status": "active",
       "storage_recommendation": "Store the 32-byte delegation digest or the complete typed content-addressed reference.",
-      "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal the SHA-256 delegation_digest derived from the profile-defined digest-free canonical core.",
-      "wire_segment_rationale": "Registered spelling exception: the wire segment membership-compensation-delegation is kebab-case while the registry kind is snake_case. It is the only registered segment whose spelling differs from its kind, it is recorded here so the closure gate can resolve it from wire_form alone, and it MUST NOT be cited as precedent for any new kebab-case wire segment."
+      "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal the SHA-256 delegation_digest derived from the profile-defined digest-free canonical core."
     },
     {
       "kind": "seal",

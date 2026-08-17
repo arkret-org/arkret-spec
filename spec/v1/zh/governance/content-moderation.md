@@ -298,7 +298,7 @@ Franking 信任链：
 
 ```json
 {
-  "owner": "ak:did_core:webvh:z6mkfixtureHolder",
+  "holder_id": "ak:did_core:webvh:z6mkfixtureHolder",
   "version": 1,
   "entries": [
     {

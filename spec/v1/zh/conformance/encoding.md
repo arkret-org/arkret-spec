@@ -541,6 +541,59 @@ description 若声明指向 enclosing Event 或同 unit / 同 batch 的兄弟 Ev
 `conformance_vector_ids` 必须都是 active 向量、`exemption_id` 必须同时出现在上面的清单表中。
 用含糊措辞让字段落出判定范围等同于绕过本节。
 
+#### 6.0.2 Proof binding object 的统一构造（normative）
+
+上面的 `ak.event-proof-v1` 与 §5 的 `ak.receipt-proof-v1` 只是同一构造的两个实例。本节把该构造
+提升为**对 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)
+`contexts[]` 每一行都生效的唯一规则**，各对象族正文 MUST NOT 再各自重定其中任何一条；正文只补充
+本族特有的字段取值约束（例如 `audience` 必须是哪一个 service DID），不得改写下面四条的编码语义。
+
+**(a) unsigned projection**：当某族的 `binding_fields` 含 `payload_digest` / `receipt_digest` /
+`event_digest` / `envelope_digest` 之一时，该 digest 的原像 MUST 按下列顺序得到：
+
+1. 取被签对象。若该对象是 `{<core>, <proof carrier>}` 形态的外层容器，原像是 `<core>` 成员本身；
+   否则原像是该对象**整体删除 proof carrier 成员之后**的结果。carrier 名由该族 schema 决定
+   （`proof` / `proofs` / `signature` / `governance_proof`）；Event envelope 另按 §6 删除
+   `proofs` / `unsigned` / `actor_kind` / `event_id` 四个成员。
+2. **删除的是成员本身，MUST NOT 置为 `null`**，也 MUST NOT 保留空对象或空数组占位——`null` 与
+   缺席在 JCS 下是不同字节，两种写法会产生两个互不验证的 digest。
+3. **实际存在的 optional 字段一律逐字保留**；缺席的 optional 字段 MUST NOT 被补写默认值、空串、
+   `0` 或 `null`。发送方与接收方 MUST 对同一 wire bytes 得到同一原像。
+4. `payload_digest = "sha256:" || hex(SHA-256(canonical_json(原像)))`，编码同 §3.1。
+
+`binding_fields` 不含上述任一 digest 字段的行，其 binding object 本身就是完整 transcript，不存在
+unsigned projection；这类行 MUST NOT 另行发明一个 payload digest 字段。
+
+**(b) 可选 binding field（`field?`）的缺席形态**：`binding_fields` 中以 `?` 结尾的成员缺席时，
+binding object MUST **整体省略该 key**，MUST NOT 写入 `null`、空串或空数组。这与 §2.1.1 的
+presence 语义、§1.8.1 的 domain / audience 变体向量一致：写 `null` 占位会改变 canonical bytes。
+接收方 MUST 按同一规则重建 binding object，MUST NOT 为求"形状齐整"补键。
+
+**(c) `audience` 的两种形态与选择规则**：`audience` 的 JSON 形态封闭为两种——单个非空字符串，或
+非空、无重复的字符串数组。**恰好一个受众时 MUST 使用单值形态，MUST NOT 写成单元素数组**；两个及
+以上受众时 MUST 使用数组，元素顺序在 canonical bytes 中逐字保留，接收方 MUST NOT 重排或去重后
+再验签。单值与单元素数组在 JCS 下是不同字节，因此二者 MUST NOT 互换。本条只规定编码与形态选择；
+每族 `audience` 取哪个 DID、是否必须为目标 service DID，由该族正文决定。
+
+**(d) context 常量的承载位置**：对象族的 context 常量 MUST 作为 binding object 的成员出现，key
+固定为 `"context"`，值逐字等于 registry 中该行的 `context`。它 MUST NOT 改由 JWS protected /
+unprotected header 参数承载（header 只携带 §6.1 的受保护 `alg`），也 MUST NOT 作为被签对象的
+wire 字段出现。verifier MUST 从 registry 行取该常量自行写入，MUST NOT 采信请求方声明的 context：
+把常量搬进 header 或 wire 会让 §5 / 本节的对象族隔离失效，`registry_rules` 第 3 条"跨族签名必须
+被拒绝"随之不可判定。
+
+detached JWS 的字节形态固定为：signing input = `base64url(canonical_json(protected_header))` +
+`"."` + `base64url(canonical_json(binding_object))`；compact serialization 的 payload segment
+MUST 为空（`base64url(protected_header) + ".." + signature`）。
+
+conformance 入口是每族一条的 `ak.vector.proof_context.transcript.<object_family>.v1`
+（[`conformance-vectors.md` §1.8.2](./conformance-vectors.md)）：向量固化上述 (a)~(d) 的字节结果，
+并为每一族附一个**同一 unsigned body 换成相邻对象族 context** 的负例，该负例 MUST 被拒绝。机器
+门禁是 `tools/artifact_lint/proof_context_transcripts.py` 的 `proof_context_transcripts`：
+`contexts[]` 每行 MUST 被恰好一个该命名的 active 向量覆盖，覆盖关系只登记在
+[`vector-registry.json`](../../artifacts/registry/vector-registry.json) 的
+`covers_proof_contexts[]`（registry 行 MUST NOT 再写第二份），新增 context 而不给向量直接失败。
+
 ### 6.1 Signature Suite registered set
 
 签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。字段命名按对象所有权确定，而不是把外部标准缩写扩散到 Arkret：JWS protected header / JWK 等 JOSE 对象 MUST 保留标准成员 `alg`，其值取 active row 的 `jose_algorithm`；Arkret 自有 raw-signature 对象 MUST 使用完整字段名 `signature_algorithm`，其值取 active row 的 `raw_signature_algorithm`；RFC 9421 `Signature-Input` 的标准 `alg` parameter 必须取 `http_message_signature_algorithm`。三种映射属于不同命名空间，不得相互猜测或替代。schema enum 均须在版本发布时生成并冻结。Arkret 自有对象不得使用 `alg` 作为自定义字段，JOSE / RFC 9421 标准对象也不得把标准成员改名。
@@ -946,7 +999,7 @@ payload_digest = sha256(payload_metadata_bytes || encrypted_payload_bytes)
 
 上式产出 32 字节 raw digest；其 wire 形态 MUST 为 `sha256:<lowercase_hex>`，与 §3.1 一致。`payload_metadata` 的字段集合、缺失字段处理、`mls_rfc9420` 下不得携带 `authentication_tag` 的规则，以 [`crypto-media/encryption-and-audit.md` §2.3.3](../crypto-media/encryption-and-audit.md) 为唯一真源。
 
-`payload_metadata` 至少覆盖 `scheme`、`version`、`group_id`、`epoch`、`content_type`、`aad_visibility_event_id`、`aad` 与 `key_ref` 中实际出现在 envelope 的字段；字段缺失时必须省略，不得写入 `null`。实现 MUST NOT 使用明文 payload 作为 `payload_digest` 输入，也不得把 base64url ciphertext 字符串本身作为密文字节输入。
+`payload_metadata` 至少覆盖 `scheme`、`version`、`group_id`、`epoch`、`content_type`、`aad_visibility_event_id_kind`、`aad` 与 `key_ref` 中实际出现在 envelope 的字段；字段缺失时必须省略，不得写入 `null`。实现 MUST NOT 使用明文 payload 作为 `payload_digest` 输入，也不得把 base64url ciphertext 字符串本身作为密文字节输入。
 
 ### 10.1 AEAD nonce uniqueness（normative）
 

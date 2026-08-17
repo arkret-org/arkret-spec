@@ -10,7 +10,7 @@
     "epoch",
     "content_type",
     "ciphertext",
-    "aad_visibility_event_id",
+    "aad_visibility_event_id_kind",
     "aad",
     "key_ref",
     "aad_digest",
@@ -57,7 +57,7 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]+$"
     },
-    "aad_visibility_event_id": {
+    "aad_visibility_event_id_kind": {
       "type": "string",
       "enum": [
         "hidden",
@@ -244,12 +244,12 @@
     {
       "if": {
         "properties": {
-          "aad_visibility_event_id": {
+          "aad_visibility_event_id_kind": {
             "const": "hidden"
           }
         },
         "required": [
-          "aad_visibility_event_id"
+          "aad_visibility_event_id_kind"
         ]
       },
       "then": {
@@ -276,12 +276,12 @@
     {
       "if": {
         "properties": {
-          "aad_visibility_event_id": {
+          "aad_visibility_event_id_kind": {
             "const": "routing_digest"
           }
         },
         "required": [
-          "aad_visibility_event_id"
+          "aad_visibility_event_id_kind"
         ]
       },
       "then": {
@@ -302,12 +302,12 @@
     {
       "if": {
         "properties": {
-          "aad_visibility_event_id": {
+          "aad_visibility_event_id_kind": {
             "const": "opaque_id"
           }
         },
         "required": [
-          "aad_visibility_event_id"
+          "aad_visibility_event_id_kind"
         ]
       },
       "then": {

@@ -452,6 +452,45 @@ sha256:e7e32a7f26654175a2323581e83de4869b8c0b78606a3d52c8f89d714bf6ed6b
 
 Expected：三个向量的 `expected_canonical_bytes_utf8` 与 `expected_digest` MUST byte-for-byte 复现。
 
+### 1.8.2 Vector: Proof Context Transcript（逐对象族）
+
+`vector_id` 命名规则（每条 registry row 一个，不逐条抄录）：
+
+```text
+ak.vector.proof_context.transcript.<object_family>.v1
+```
+
+其中 `<object_family>` 逐字取自 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)
+同一行的 `object_family`。§1.8 / §1.8.1 只固化 `ak.event-proof-v1` 这一族；本组把同样的字节级
+要求扩到 `contexts[]` 的**全部** 63 行，构造规则统一由 [`encoding.md` §6.0.2](./encoding.md) 定义，
+本节不重述。字节来源是 `proof-context-transcript-fixture.json`，由
+`tools/regenerate_proof_context_transcript_fixture.py` 从 registry 与同一把公开测试密钥
+（`crypto-signature-fixture.json` / `keypackage-write-transcript-fixture.json` 已发布的
+Ed25519 seed）现算，不是手抄。
+
+每条向量的 `cases[i]` MUST byte-for-byte 复现：
+
+- `unsigned_jcs` 与 `unsigned_digest`——unsigned projection 的 canonical bytes 及其 digest；
+  `unsigned_projection` 记录被删除的 carrier 成员及其取值，或改为记录被摘要的 `<core>` 成员；
+  `binding_fields` 不含 self digest 的族取 `null`，并给出理由；
+- `binding_jcs`——binding object 的 canonical bytes：含固定 `"context"` key、全部必备 binding
+  field、以及本例保留的 optional field；`omitted_optional_binding_fields` 列出被整体省略的那些，
+  它们 MUST NOT 以 `null` 出现；
+- `signing_input_ascii` 与 `detached_jws`——`base64url(protected_header)` + `"."` +
+  `base64url(binding_jcs)`，以及 payload segment 为空的 compact 形态；
+- `expected_result = "accept"`。
+
+`negative_cases[i]` 是同一条向量的**必备**负例：同一份 unsigned body、binding object 只把
+`context` 换成 registry 中**相邻一行**（末行回绕到首行）的 context，重新签名。该签名在密码学上
+有效，但接收方按本族注册的 context 重建 transcript，因此 MUST 以 `signature_invalid` 拒绝
+（`expected_result = "reject"`）。没有该负例的向量不构成 domain separation 保证。
+
+机器门禁 `proof_context_transcripts` 反查两个方向：`contexts[]` 每行 MUST 被恰好一个 active
+`ak.vector.proof_context.transcript.*` 覆盖（覆盖关系登记在
+[`vector-registry.json`](../../artifacts/registry/vector-registry.json) 的
+`covers_proof_contexts[]`），且每条 case 的上述字节 MUST 可由 fixture 自身重算并验签通过。新增
+proof context 而不给向量 MUST 直接失败。
+
 ### 1.9 Vector: HLC Order
 
 向量名称：
@@ -607,7 +646,7 @@ event_ref_digest = sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71
 `payload_metadata` canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3","realm_id":"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"},"scheme":"mls_rfc9420","version":"1.0"}
+{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3","realm_id":"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"},"aad_visibility_event_id_kind":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"},"scheme":"mls_rfc9420","version":"1.0"}
 ```
 
 `ciphertext` 的 base64url wire 值与解码后 UTF-8 测试表示：
@@ -620,7 +659,7 @@ ciphertext-example-001
 期望 digest：
 
 ```text
-sha256:4bb1b546bf078c0f90699aa661c799fb69956caed147f17e09ecc79be8bb67bb
+sha256:b94a9feafb6e6a9825f9d65be408b1f995854abc9913c0135e067bb1fcc330c6
 ```
 
 判定规则：
@@ -1658,6 +1697,91 @@ ak.vector.redaction.space_target_ref_schema.v1
 - Payload schema MUST 接受 `ak:space:*` 作为 `ak.redaction` 的 `target_ref` / `object_ref`。
 - Reducer 语义仍按 Space 生命周期规则执行：Space 没有独立 `redacted` state，内容清理合并到 Space metadata cleanup / terminal transition；不得因 schema 漏洞把 Space cleanup 路径降级为实现私有扩展。
 
+### 3.2.2 Vector: Strand / Morph 的 `redacted` post-state 不得保留内容槽
+
+向量名称：
+
+```text
+ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1
+```
+
+Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`（[`common-fields.md` §5.1](../models/common-fields.md) / §5.2）。
+`redacted` 的语义是"内容已按 redaction policy 清除，envelope 与审计元数据保留"，本向量把它固化成可从**单个物化对象**判定的判据：
+`state="redacted"` 时 `content` 与 `encrypted_content` 两个槽 MUST 同时缺席。
+
+负例 1（Strand 声称已 redact，却仍带明文 `content`）：
+
+```json schema=schemas/strand.schema.json expect=invalid first_error="contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}"
+{
+  "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+  "schema": "ak.schema.strand.v1",
+  "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+  "content": {
+    "kind": "ak.content.text",
+    "body": "synthesis body that redaction MUST have cleared"
+  },
+  "tracks": {
+    "synthesis": {
+      "is_primary": true
+    }
+  },
+  "state": "redacted",
+  "state_changed_at": "2026-04-26T00:05:00.000Z",
+  "created_by": "ak:did_core:webvh:z6mkfixture",
+  "created_at": "2026-04-26T00:00:00.000Z"
+}
+```
+
+负例 2（Morph 同形态）：
+
+```json schema=schemas/morph.schema.json expect=invalid first_error="contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}"
+{
+  "id": "ak:morph:AWa1nPTHRs4Qn2xLGxu9Kx3lVMxvJvyzFbGkGm2M8Qkd",
+  "schema": "ak.schema.morph.v1",
+  "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+  "schema_refs": [
+    "ak.schema.morph.customer_risk.v1"
+  ],
+  "morph_kind": "customer_risk",
+  "content": {
+    "kind": "ak.content.text",
+    "body": "morph body that redaction MUST have cleared"
+  },
+  "state": "redacted",
+  "state_changed_at": "2026-04-26T00:05:00.000Z",
+  "created_by": "ak:did_core:webvh:z6mkfixture",
+  "created_at": "2026-04-26T00:00:00.000Z"
+}
+```
+
+正例（redact 之后的 Strand post-state，两个槽都缺席）：
+
+```json schema=schemas/strand.schema.json expect=valid
+{
+  "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+  "schema": "ak.schema.strand.v1",
+  "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+  "tracks": {
+    "synthesis": {
+      "is_primary": true
+    }
+  },
+  "state": "redacted",
+  "state_changed_at": "2026-04-26T00:05:00.000Z",
+  "created_by": "ak:did_core:webvh:z6mkfixture",
+  "created_at": "2026-04-26T00:00:00.000Z",
+  "updated_by": "ak:did_core:webvh:z6mkfixture",
+  "updated_at": "2026-04-26T00:05:00.000Z"
+}
+```
+
+期望结果：
+
+- 两条负例 MUST 被 `strand.schema.json` / `morph.schema.json` 拒绝；`encrypted_content` 形态与 `content` 形态受同一条分支约束，完整的四组正负例（明文槽 / 密文槽 × Strand / Morph）见 [`redaction-fixture.json`](../../artifacts/fixtures/redaction-fixture.json) 的 `schema_validation_cases`。
+- 正例 MUST 通过：reducer / projection MUST 在写入 `state="redacted"` 的同一次转换里清空内容槽，`state_changed_at` 取触发 `ak.redaction` event 的 `created_at`。
+- `state="archived"` MUST 仍允许内容槽存在——archive 是可逆软隐藏，不是内容清除；把 archive 也做成清空是实现越权。
+- 物化对象上 MUST NOT 出现 `redaction_ref` 一类的对象级 redaction 引用：Strand / Morph 走 cross-object `ak.redaction`，审计链接由 `ak.component.object.redaction.v1` cell 的事件索引提供（[`common-fields.md` §5.2](../models/common-fields.md)）。
+
 ### 3.3 Vector: redaction 与 policy scope
 
 向量名称：
@@ -2468,15 +2592,15 @@ Expected：
 Steps：
 
 1. 发送一个带稳定 `ak:device_message:<uuidv7>` 的消息，不 ack，断开后从 account subscribe 或 device-message list 重投同一 stored envelope。
-2. receiver 在 handler 副作用前按 `(sender_principal_id, sender_device_id, message_id)` 查询 durable 去重记录，并在 handler 结果持久化后记录完成；第二次投递只恢复连续完成位点。
-3. 以同一 sender-scoped `message_id` 提交不同 canonical target intent；再以两个不同 `message_id` 提交相同业务 content。
+2. receiver 在 handler 副作用前按 `(sender_principal_id, sender_device_id, device_message_id)` 查询 durable 去重记录，并在 handler 结果持久化后记录完成；第二次投递只恢复连续完成位点。
+3. 以同一 sender-scoped `device_message_id` 提交不同 canonical target intent；再以两个不同 `device_message_id` 提交相同业务 content。
 
 Expected：
 
 - 第 1/2 步的 durable handler effect 恰执行一次；重复 envelope 仍可计入累计 ack 的连续完成区间，不得永久阻塞队列清理。
-- 同 ID 不同内容 MUST 返回 `duplicate_conflict`、reason `message_id_conflict`，两个版本均不得新增队列项。
+- 同 ID 不同内容 MUST 返回 `duplicate_conflict`、reason `device_message_id_conflict`，两个版本均不得新增队列项。
 - 不同 ID 是两个独立逻辑消息，即使业务 content 相同也各处理一次。
-- 缺少 `message_id` 的 envelope 或 send target MUST 在 handler 前以 schema violation 拒绝；kind-specific `transaction_id` / `request_id` 不得替代 envelope ID。
+- 缺少 `device_message_id` 的 envelope 或 send target MUST 在 handler 前以 schema violation 拒绝；kind-specific `transaction_id` / `request_id` 不得替代 envelope ID。
 
 ### 5.9 Vector: Read Cursor 多设备合并
 
@@ -3344,8 +3468,8 @@ Expected：
 
 Preconditions：
 
-- Realm policy 上限来自 `ak.realm.policy_bundle` payload 的 `aad_visibility.event_id`；披露序为 `hidden < routing_digest < opaque_id`（见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)）。
-- 信封的 `aad_visibility_event_id` 与 `aad` 字段集合本身已按 §2.3.1 / §2.3.2 自洽。
+- Realm policy 上限来自 `ak.realm.policy_bundle` payload 的 `aad_visibility.event_id_kind`；披露序为 `hidden < routing_digest < opaque_id`（见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)）。
+- 信封的 `aad_visibility_event_id_kind` 与 `aad` 字段集合本身已按 §2.3.1 / §2.3.2 自洽。
 
 Cases：
 
@@ -5690,7 +5814,7 @@ Expected:
 - 负例：`ak.invite.cancel{rejected}` 之后 `member.state` MUST 回到 `leave`，且该主体在 `history_visibility=invited` Realm 中不再具备 invite-frontier 读取与 key share 资格。
 - 负例：以 expired 为 `reason_code` 的 revoke 之后同上。
 - 负例：定向 invite 的 cancel / revoke 缺失 `payload.invitee`，或其值与 invite cell 记录不等，MUST `reducer_projection_failed`。
-- 正例：3PID 分支（`third_party_id`，无 `invitee`）的 `ak.invite.create` MUST NOT 投影 `member.state` write（防止过度补写）。
+- 正例：3PID 分支（`third_party_invite`，无 `invitee`）的 `ak.invite.create` MUST NOT 投影 `member.state` write（防止过度补写）。
 - 负例：对处于 `invite` 的 Realm member cell 直接提交裸 `ak.member.state{ban}` MUST `invalid_membership_transition`。
 
 ### 23.5 Call state 正交轴各自成 cell

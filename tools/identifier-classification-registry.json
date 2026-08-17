@@ -26,121 +26,12 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "registry_catalog_symbol": 19,
-    "responsibility_did": 485,
-    "typed_object_id": 856
+    "responsibility_did": 488,
+    "typed_object_id": 856,
+    "registry_catalog_symbol": 19
   },
-  "pending_rename_convergence": [
-    {
-      "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/SessionGrantOutcome/properties/grant_id",
-      "name": "grant_id",
-      "suggested_name": "session_grant_id",
-      "reason": "The terminal type is session_grant_id while the field name reuses the Capability Grant stem ak:grant:, so one wire word denotes two different typed kinds.",
-      "owner_batch": "cross-repo-identifier-rename"
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/SessionGrantRefreshOutcome/properties/grant_id",
-      "name": "grant_id",
-      "suggested_name": "session_grant_id",
-      "reason": "The terminal type is session_grant_id while the field name reuses the Capability Grant stem ak:grant:, so one wire word denotes two different typed kinds.",
-      "owner_batch": "cross-repo-identifier-rename"
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/SessionGrantRefreshOutcome/properties/previous_grant_id",
-      "name": "previous_grant_id",
-      "suggested_name": "previous_session_grant_id",
-      "reason": "Role-prefixed form of the same collision; the full kind slug MUST appear once the stem is disambiguated.",
-      "owner_batch": "cross-repo-identifier-rename"
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/SessionGrantReplayExpiredProblem/properties/grant_id",
-      "name": "grant_id",
-      "suggested_name": "session_grant_id",
-      "reason": "The terminal type is session_grant_id while the field name reuses the Capability Grant stem ak:grant:, so one wire word denotes two different typed kinds.",
-      "owner_batch": "cross-repo-identifier-rename"
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/SessionGrantReplayTerminalProblem/properties/grant_id",
-      "name": "grant_id",
-      "suggested_name": "session_grant_id",
-      "reason": "The terminal type is session_grant_id while the field name reuses the Capability Grant stem ak:grant:, so one wire word denotes two different typed kinds.",
-      "owner_batch": "cross-repo-identifier-rename"
-    },
-    {
-      "file": "device-message.schema.json",
-      "pointer": "/properties/message_id",
-      "name": "message_id",
-      "suggested_name": "device_message_id",
-      "reason": "Resolves to device_message_id while every other message_id carries ak:message:; the artifact-root exception of 2.1.1 does not decide which of the two kinds the bare stem denotes.",
-      "owner_batch": "cross-repo-identifier-rename"
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/DeviceMessageTarget/properties/message_id",
-      "name": "message_id",
-      "suggested_name": "device_message_id",
-      "reason": "Same stem collision on the DTO mirror; the pattern is ak:device_message: but the field name says message.",
-      "owner_batch": "cross-repo-identifier-rename"
-    },
-    {
-      "file": "event-payload.schema.json",
-      "pointer": "/$defs/account_blocklist_payload/properties/owner",
-      "name": "owner",
-      "suggested_name": "owner_id",
-      "reason": "Carries did_core_id as a protocol responsibility subject; 2.1.1 requires the _id suffix for responsibility subjects even when the value is a DID.",
-      "owner_batch": "cross-repo-identifier-rename"
-    },
-    {
-      "file": "event-payload.schema.json",
-      "pointer": "/$defs/account_data_set_payload/properties/owner",
-      "name": "owner",
-      "suggested_name": "owner_id",
-      "reason": "Carries did_core_id as a protocol responsibility subject; 2.1.1 requires the _id suffix for responsibility subjects even when the value is a DID.",
-      "owner_batch": "cross-repo-identifier-rename"
-    }
-  ],
+  "pending_rename_convergence": [],
   "classifications": [
-    {
-      "name": "aad_visibility_event_id",
-      "terminal_signature": "[[\"const\", \"hidden\"]]",
-      "category": "non_identifier",
-      "occurrences": 1,
-      "example_path": "encrypted-envelope.schema.json#/allOf/2/if/properties/aad_visibility_event_id",
-      "reason": "The value is not an identifier at all, so the `_id` suffix is a naming defect; convergence is a rename.",
-      "pending_convergence": true
-    },
-    {
-      "name": "aad_visibility_event_id",
-      "terminal_signature": "[[\"const\", \"opaque_id\"]]",
-      "category": "non_identifier",
-      "occurrences": 1,
-      "example_path": "encrypted-envelope.schema.json#/allOf/4/if/properties/aad_visibility_event_id",
-      "reason": "The value is not an identifier at all, so the `_id` suffix is a naming defect; convergence is a rename.",
-      "pending_convergence": true
-    },
-    {
-      "name": "aad_visibility_event_id",
-      "terminal_signature": "[[\"const\", \"routing_digest\"]]",
-      "category": "non_identifier",
-      "occurrences": 1,
-      "example_path": "encrypted-envelope.schema.json#/allOf/3/if/properties/aad_visibility_event_id",
-      "reason": "The value is not an identifier at all, so the `_id` suffix is a naming defect; convergence is a rename.",
-      "pending_convergence": true
-    },
-    {
-      "name": "aad_visibility_event_id",
-      "terminal_signature": "[[\"enum\", \"hidden|opaque_id|routing_digest\"]]",
-      "category": "non_identifier",
-      "occurrences": 1,
-      "example_path": "encrypted-envelope.schema.json#/properties/aad_visibility_event_id",
-      "reason": "The value is not an identifier at all, so the `_id` suffix is a naming defect; convergence is a rename.",
-      "pending_convergence": true
-    },
     {
       "name": "accepted_seal_id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
@@ -225,7 +116,7 @@
     },
     {
       "name": "appeal_id",
-      "terminal_signature": "[[\"pattern\", \"^appeal:[A-Za-z0-9._:-]{1,128}$\"]]",
+      "terminal_signature": "[[\"pattern\", \"^appeal:[A-Za-z0-9._-]{1,128}$\"]]",
       "category": "unregistered_object_identifier",
       "occurrences": 1,
       "example_path": "service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome/properties/appeal_id",
@@ -251,7 +142,7 @@
     },
     {
       "name": "approval_request_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._:-]{1,128}$\"]]",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
       "category": "opaque_correlation",
       "occurrences": 5,
       "example_path": "account-subscribe-frame.schema.json#/$defs/agent_runtime_approval_notification_data/properties/approval_request_id",
@@ -477,24 +368,6 @@
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     },
     {
-      "name": "epoch_id",
-      "terminal_signature": "[[\"type\", \"\\\"integer\\\"\"]]",
-      "category": "non_identifier",
-      "occurrences": 1,
-      "example_path": "search-service.schema.json#/$defs/blind_index_query/properties/epoch_id",
-      "reason": "The value is not an identifier at all, so the `_id` suffix is a naming defect; convergence is a rename.",
-      "pending_convergence": true
-    },
-    {
-      "name": "event_id",
-      "terminal_signature": "[[\"enum\", \"hidden|opaque_id|routing_digest\"]]",
-      "category": "non_identifier",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/realm_policy_bundle_payload/properties/aad_visibility/properties/event_id",
-      "reason": "The value is not an identifier at all, so the `_id` suffix is a naming defect; convergence is a rename.",
-      "pending_convergence": true
-    },
-    {
       "name": "event_id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
@@ -577,14 +450,6 @@
     },
     {
       "name": "id",
-      "terminal_signature": "[[\"pattern\", \"^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\\\s]+|(sha256|blake3):[0-9a-f]{64})$\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/object_snapshot/properties/id",
-      "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
-    },
-    {
-      "name": "id",
       "terminal_signature": "[[\"pattern\", \"^(cx|[a-z0-9][a-z0-9-]*(\\\\.[a-z0-9][a-z0-9-]*)+)\\\\.[a-z0-9_]+(\\\\.[a-z0-9_]+)*\\\\.v[0-9]+$\"]]",
       "category": "registry_catalog_symbol",
       "occurrences": 1,
@@ -601,7 +466,7 @@
     },
     {
       "name": "id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._:-]{1,128}$\"]]",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
       "category": "opaque_correlation",
       "occurrences": 1,
       "example_path": "notification.schema.json#/properties/source_account_artifact/properties/id",
@@ -666,7 +531,7 @@
     },
     {
       "name": "key_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._:-]{1,128}$\"]]",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
       "category": "opaque_correlation",
       "occurrences": 1,
       "example_path": "event-envelope.schema.json#/properties/auth_context/properties/key_id",
@@ -778,7 +643,7 @@
     },
     {
       "name": "pairing_request_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._:-]{1,128}$\"]]",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
       "category": "opaque_correlation",
       "occurrences": 8,
       "example_path": "agent-operations.schema.json#/$defs/key_state/properties/pairing_request_id",
@@ -874,7 +739,7 @@
     },
     {
       "name": "question_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._:-]{1,128}$\"]]",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
       "category": "document_local_symbol",
       "occurrences": 1,
       "example_path": "join-policy-operations.schema.json#/$defs/answer/properties/question_id",
@@ -931,7 +796,7 @@
     },
     {
       "name": "registration_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._:-]{1,128}$\"]]",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
       "category": "opaque_correlation",
       "occurrences": 1,
       "example_path": "push-operations.schema.json#/$defs/push_register_device_outcome/properties/registration_id",
@@ -1154,7 +1019,7 @@
     },
     {
       "name": "takedown_id",
-      "terminal_signature": "[[\"pattern\", \"^takedown:[A-Za-z0-9._:-]{1,128}$\"]]",
+      "terminal_signature": "[[\"pattern\", \"^takedown:[A-Za-z0-9._-]{1,128}$\"]]",
       "category": "unregistered_object_identifier",
       "occurrences": 1,
       "example_path": "service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody/properties/takedown_id",
@@ -1176,15 +1041,6 @@
       "occurrences": 1,
       "example_path": "service-operation-dtos.schema.json#/$defs/EventDeliveryTargetStatus/properties/target_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
-      "name": "third_party_id",
-      "terminal_signature": "[[\"type\", \"\\\"object\\\"\"]]",
-      "category": "non_identifier",
-      "occurrences": 2,
-      "example_path": "event-payload.schema.json#/$defs/invite_third_party_create_payload/properties/third_party_id",
-      "reason": "The value is not an identifier at all, so the `_id` suffix is a naming defect; convergence is a rename.",
-      "pending_convergence": true
     },
     {
       "name": "to_version_id",
@@ -1265,15 +1121,6 @@
       "occurrences": 1,
       "example_path": "service-describe.schema.json#/properties/verified_profiles/items/properties/verification_run_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
-      "name": "version_id",
-      "terminal_signature": "[[\"enum\", \"method_unsupported|not_surfaced|pinned\"]]",
-      "category": "non_identifier",
-      "occurrences": 1,
-      "example_path": "did-binding-contracts.schema.json#/$defs/limited_trust/properties/version_id",
-      "reason": "The value is not an identifier at all, so the `_id` suffix is a naming defect; convergence is a rename.",
-      "pending_convergence": true
     },
     {
       "name": "version_id",

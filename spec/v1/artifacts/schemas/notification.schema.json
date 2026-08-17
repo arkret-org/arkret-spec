@@ -53,8 +53,8 @@
         },
         "id": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9._:-]{1,128}$",
-          "description": "Profile-local approval_request_id. It is not a durable ak:<kind> object id."
+          "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,128}$",
+          "description": "Profile-local approval_request_id. It is an opaque_correlation value, so its lexical space is disjoint from the ak: typed-ID namespace: a value MUST NOT begin with ak:."
         }
       },
       "additionalProperties": false,

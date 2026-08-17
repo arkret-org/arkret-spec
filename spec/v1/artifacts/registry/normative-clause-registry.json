@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-17.4",
+  "version": "2026-08-18.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-17T19:50:00Z",
+  "generated_at": "2026-08-17T22:45:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -68,15 +68,17 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:480f7cce03887d0a9dae00ff6e1858ffca0fda6713d76680250dac3c422eb015",
-      "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another.",
+      "section_digest": "sha256:ef819238aa70a63c2dc3407136042d8376da29a6565a2e7964db8a2a01606b93",
+      "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another. Section 6.0.2 fixes one construction for every registered proof context: the unsigned projection deletes the proof carrier member rather than nulling it and never defaults an absent optional, an absent optional binding field is omitted rather than written as null, audience is a single string or a duplicate-free array with the single-value form mandatory for one audience, and the context constant is a binding object member rather than a JWS header parameter, so a signature valid under one object family's context MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.encoding.signature_binding_payload.v1",
         "ak.vector.encoding.signature_binding_payload_domain.v1",
         "ak.vector.encoding.signature_binding_payload_audience.v1",
         "ak.vector.encoding.signature_binding_payload_domain_audience.v1",
-        "ak.vector.encoding.crypto.signature_negative.v1"
+        "ak.vector.encoding.crypto.signature_negative.v1",
+        "ak.vector.proof_context.transcript.event_envelope.v1",
+        "ak.vector.proof_context.transcript.event_batch_receipt.v1"
       ]
     },
     {
@@ -112,7 +114,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#10-encrypted-envelope-digest",
-      "section_digest": "sha256:73ccd5f773e1833516bdda4cc9f65a184a6406dbd13f177c1b59946a6d419a3d",
+      "section_digest": "sha256:090a7472742770824c8d41e0fc38ad2ef5ff4c2095c56101162a83bedda6db23",
       "requirement": "Encrypted envelopes carry a pre-encryption immutable header; AAD digest and ciphertext digest are computed over fixed transcripts and any mismatch MUST fail closed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -176,7 +178,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:bc895b8bae22190afaf7fa48f96c868b05a468792f0a474d89a47d0f2c791de1",
+      "section_digest": "sha256:89d46cec5dcf38b3f91b63b92259738ca17fb66793433b40162e1fff5cd64e39",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, every peer claim binds the accepted authorization Event id plus its in-envelope Principal Server admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every encrypted envelope MUST commit its exact scope_ref through the unconditional domain-separated aad.scope_digest and receivers MUST recompute it on decrypt, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -295,14 +297,15 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:7f02b0bb5ba5f340d60071bbf8f30ce154047fa541b6ab00c1450e5ab90cf556",
-      "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted.",
+      "section_digest": "sha256:4c7a4b5a6d7fddf87b12cada07846661add98f90789cdb98848d532d03558085",
+      "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted. A patch path MUST NOT address a reducer-managed field of the target object kind; the per-object forbidden set, its universal minimum set and its one named View state exemption are read from registry/reducer-managed-path-registry.json, never re-derived from prose.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.patch.atomic_application.v1",
         "ak.vector.patch.path_grammar_bounds.v1",
         "ak.vector.patch.projection_prestate_binding.v1",
         "ak.vector.patch.redactable_content_slot_unset_ban.v1",
+        "ak.vector.relation.effective_scope_reducer_managed.v1",
         "ak.vector.strand_tracks_update.atomic.v1"
       ]
     },
@@ -340,7 +343,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:e4b7c1e5824d7279da881aaa4e05eda24f84e812735a50f009306e376d3596e2",
+      "section_digest": "sha256:498632a0c0401bb0e72234128c0206a79817c30aa8f0647dbfc5ab2073a80643",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
       "testability_grade": "vector",
       "evidence_refs": [

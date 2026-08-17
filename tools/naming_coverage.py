@@ -52,6 +52,7 @@ PROPERTY_APPLICABILITY = {
     "NC-COUNT-001": None,
     "NC-CODE-001": None,
     "NC-EVIDENCE-001": None,
+    "NC-FIELDCASE-001": None,
     "NC-HASH-001": None,
     "NC-SET-001": "array",
 }

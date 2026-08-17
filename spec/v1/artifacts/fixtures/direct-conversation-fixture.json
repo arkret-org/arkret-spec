@@ -838,7 +838,7 @@
       "semantic_outcome": "accept",
       "assertions": [
         "recipient_target.kind is native_agent and enqueued_target_count is exactly one",
-        "the target snapshot transcript binds recipient_agent_id, active_runtime_endpoint_ref and stable message_id",
+        "the target snapshot transcript binds recipient_agent_id, active_runtime_endpoint_ref and stable device_message_id",
         "no ak:device id, device projection or per-device queue is synthesized",
         "missing, ambiguous, stale or inactive runtime binding fails closed with zero enqueue"
       ]

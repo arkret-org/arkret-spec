@@ -1298,6 +1298,16 @@ def check_declared_schema_fixture_instances(lint: Lint) -> None:
                     and key == "shared"
                 ):
                     key_negative = True
+                # Proof transcripts are digest inputs, not wire instances: an
+                # unsigned projection deletes a member its family schema marks
+                # required, and a binding object that binds a `schema` field is
+                # not an instance of that schema. Their bytes are verified by
+                # proof_context_transcripts instead.
+                if (
+                    owner.name == "proof-context-transcript-fixture.json"
+                    and key in ("unsigned_object", "binding_object")
+                ):
+                    key_negative = True
                 visit(owner, child, f"{pointer}/{key}", key_negative)
         elif isinstance(value, list):
             for index, child in enumerate(value):

@@ -4,7 +4,7 @@
   "title": "Arkret Device Message Envelope",
   "type": "object",
   "required": [
-    "message_id",
+    "device_message_id",
     "kind",
     "sender_principal_id",
     "recipient_principal_id",
@@ -14,9 +14,9 @@
     "content"
   ],
   "properties": {
-    "message_id": {
+    "device_message_id": {
       "$ref": "#/$defs/device_message_id",
-      "description": "Sender-assigned stable identity of one logical to-device message. Queue services MUST preserve it byte-for-byte across retries and redelivery. Receivers deduplicate by (sender_principal_id, sender_device_id, message_id)."
+      "description": "Sender-assigned stable identity of one logical to-device message. Queue services MUST preserve it byte-for-byte across retries and redelivery. Receivers deduplicate by (sender_principal_id, sender_device_id, device_message_id)."
     },
     "kind": {
       "type": "string",
@@ -28,7 +28,7 @@
     },
     "sender_device_id": {
       "$ref": "#/$defs/device_id",
-      "description": "Authoring human device. Exactly one sender endpoint branch is present: this field, or the complete sender_agent_* triple. A Native Agent runtime has no device identity and MUST NOT be disguised as an ak:device (identity/contact-and-direct-conversation.md section 8.2.1, crypto-media/device-lifecycle.md section 9.0.1), which is why the two are a closed XOR rather than one nullable device slot. Receivers deduplicate by (sender_principal_id, sender_device_id, message_id) for a device sender and by (sender_principal_id, sender_agent_id, message_id) for a Native Agent sender."
+      "description": "Authoring human device. Exactly one sender endpoint branch is present: this field, or the complete sender_agent_* triple. A Native Agent runtime has no device identity and MUST NOT be disguised as an ak:device (identity/contact-and-direct-conversation.md section 8.2.1, crypto-media/device-lifecycle.md section 9.0.1), which is why the two are a closed XOR rather than one nullable device slot. Receivers deduplicate by (sender_principal_id, sender_device_id, device_message_id) for a device sender and by (sender_principal_id, sender_agent_id, device_message_id) for a Native Agent sender."
     },
     "sender_agent_id": {
       "$ref": "#/$defs/did_core_id",
@@ -486,7 +486,7 @@
         "ciphertext": {
           "type": "string",
           "minLength": 1,
-          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. The HPKE AAD is the RFC 8785 JCS canonical JSON of {message_id, kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, request_id, secret_id, expires_at}; expires_at is the exact already-validated canonical Arkret UTC millisecond string from DeviceMessageEnvelope and MUST NOT be converted to a second epoch field. Freshness for server-assigned sent_at is bound by the sender-assigned message_id plus the one-time request_id authenticated inside the sealed plaintext and AAD."
+          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. The HPKE AAD is the RFC 8785 JCS canonical JSON of {device_message_id, kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, request_id, secret_id, expires_at}; expires_at is the exact already-validated canonical Arkret UTC millisecond string from DeviceMessageEnvelope and MUST NOT be converted to a second epoch field. Freshness for server-assigned sent_at is bound by the sender-assigned device_message_id plus the one-time request_id authenticated inside the sealed plaintext and AAD."
         }
       },
       "additionalProperties": true

@@ -11,7 +11,7 @@
       "schema_ref": "schemas/device-message.schema.json",
       "expect_valid": true,
       "instance": {
-        "message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
+        "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
         "kind": "ak.key.verification.request",
         "sender_principal_id": "ak:did_core:webvh:z6mkfixture",
         "sender_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
@@ -34,7 +34,7 @@
       "name": "device_message_envelope_missing_message_id_rejected",
       "schema_ref": "schemas/device-message.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$: 'message_id' is a required property",
+      "first_expected_error": "$: 'device_message_id' is a required property",
       "instance": {
         "kind": "ak.key.verification.request",
         "sender_principal_id": "ak:did_core:webvh:z6mkfixture",
@@ -59,7 +59,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessageTarget",
       "expect_valid": true,
       "instance": {
-        "message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
+        "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
         "kind": "ak.key.verification.request",
         "expires_at": "2026-07-16T08:10:00.000Z",
         "content": {
@@ -71,7 +71,7 @@
       "name": "device_message_send_target_missing_message_id_rejected",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessageTarget",
       "expect_valid": false,
-      "first_expected_error": "$: 'message_id' is a required property",
+      "first_expected_error": "$: 'device_message_id' is a required property",
       "instance": {
         "kind": "ak.key.verification.request",
         "expires_at": "2026-07-16T08:10:00.000Z",
@@ -141,7 +141,7 @@
     "dedup_key": [
       "sender_principal_id",
       "sender_device_id",
-      "message_id"
+      "device_message_id"
     ],
     "cases": [
       {
@@ -157,10 +157,10 @@
       },
       {
         "name": "same_message_id_different_content_rejected",
-        "message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
+        "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
         "canonical_envelope_equal": false,
         "expected_error": "duplicate_conflict",
-        "expected_reason_code": "message_id_conflict",
+        "expected_reason_code": "device_message_id_conflict",
         "expected_queue_insertions": 0
       },
       {
@@ -1465,7 +1465,7 @@
               },
               "e2ee_epoch": {
                 "epoch": 7,
-                "key_ref": "ak:mls:fixture"
+                "key_ref": "ak:mls:mls_rfc9420:fixture-group-1"
               }
             },
             "summary": {

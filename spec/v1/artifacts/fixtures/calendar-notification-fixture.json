@@ -71,7 +71,7 @@
         ],
         "verified_profiles": [],
         "experimental_features": [],
-        "compat_surfaces": [],
+        "interop_surfaces": [],
         "development_mode": false
       }
     }

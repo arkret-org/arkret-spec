@@ -36,7 +36,7 @@ VECTOR_OUTPUT_FIELDS = {
     "canonical_preimage_utf8",
     "sha256_digest_hex",
     "suite_wire_code",
-    "grant_id",
+    "session_grant_id",
     "jwt_jti",
 }
 BINDING_BY_CLASS = {
@@ -536,33 +536,33 @@ def check_documents(
         if row.get("suite_wire_code") != suite_code:
             errors.append(f"{name}: suite_wire_code does not come from digest-suite registry")
         expected_id = GRANT_PREFIX + base64.urlsafe_b64encode(bytes([suite_code]) + digest).rstrip(b"=").decode("ascii")
-        grant_id = row.get("grant_id")
-        if grant_id != expected_id:
-            errors.append(f"{name}: grant_id mismatch")
-        if row.get("jwt_jti") != grant_id:
-            errors.append(f"{name}: jwt_jti must equal grant_id")
-        if preimage.get("session_id") == grant_id:
-            errors.append(f"{name}: session_id must not equal grant_id")
-        if isinstance(grant_id, str) and grant_id.startswith(GRANT_PREFIX):
-            token = grant_id[len(GRANT_PREFIX) :]
+        session_grant_id = row.get("session_grant_id")
+        if session_grant_id != expected_id:
+            errors.append(f"{name}: session_grant_id mismatch")
+        if row.get("jwt_jti") != session_grant_id:
+            errors.append(f"{name}: jwt_jti must equal session_grant_id")
+        if preimage.get("session_id") == session_grant_id:
+            errors.append(f"{name}: session_id must not equal session_grant_id")
+        if isinstance(session_grant_id, str) and session_grant_id.startswith(GRANT_PREFIX):
+            token = session_grant_id[len(GRANT_PREFIX) :]
             if not TOKEN_RE.fullmatch(token):
-                errors.append(f"{name}: grant_id token must be exactly 44 Base64URL characters")
+                errors.append(f"{name}: session_grant_id token must be exactly 44 Base64URL characters")
             else:
                 try:
                     decoded = _strict_base64url(token, 33)
                     if decoded[0] != suite_code or decoded[1:] != digest:
-                        errors.append(f"{name}: grant_id token is not suite-code || digest")
+                        errors.append(f"{name}: session_grant_id token is not suite-code || digest")
                 except ValueError as exc:
-                    errors.append(f"{name}: grant_id token {exc}")
+                    errors.append(f"{name}: session_grant_id token {exc}")
         else:
-            errors.append(f"{name}: grant_id has the wrong typed-ID prefix")
-        if isinstance(grant_id, str):
-            if grant_id in seen_ids:
-                errors.append(f"{name}: grant_id duplicates another accepted vector")
-            seen_ids.add(grant_id)
+            errors.append(f"{name}: session_grant_id has the wrong typed-ID prefix")
+        if isinstance(session_grant_id, str):
+            if session_grant_id in seen_ids:
+                errors.append(f"{name}: session_grant_id duplicates another accepted vector")
+            seen_ids.add(session_grant_id)
 
         projected_claims = {key: copy.deepcopy(value) for key, value in preimage.items() if key != "schema"}
-        projected_claims.update({"kind": "ak.session.grant", "jti": grant_id})
+        projected_claims.update({"kind": "ak.session.grant", "jti": session_grant_id})
         claim_properties = claims_schema.get("$defs", {}).get("SignedSessionGrantClaims", {}).get("properties", {})
         if set(projected_claims) - set(claim_properties):
             errors.append(f"{name}: resolved preimage cannot project to the closed signed claims schema")
@@ -576,7 +576,7 @@ def check_documents(
         if assertions.get("all_inputs_normalize_to") != normalized_jwk:
             errors.append("jwk_canonicalization.all_inputs_normalize_to mismatch")
         base_name = next(iter(resolved), None)
-        base_id = rows.get(base_name, {}).get("grant_id") if base_name else None
+        base_id = rows.get(base_name, {}).get("session_grant_id") if base_name else None
         if assertions.get("all_inputs_produce_grant_id") != base_id:
             errors.append("jwk_canonicalization.all_inputs_produce_grant_id mismatch")
         if assertions.get("signed_claim_must_equal_canonical_string") is not True:

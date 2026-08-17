@@ -575,10 +575,19 @@ class IdentifierClassificationTest(MutationHarness):
                 self.assertTrue(row.get("pending_convergence"), row)
 
     def test_pending_rename_row_must_still_resolve(self) -> None:
+        # The list is empty whenever every registered rename has landed, so the
+        # mutation injects its own row instead of corrupting an existing one.
         def mutate(document):
-            document["pending_rename_convergence"][0]["pointer"] = (
-                "/$defs/NoSuchDto/properties/grant_id"
-            )
+            document["pending_rename_convergence"] = [
+                {
+                    "file": "service-operation-dtos.schema.json",
+                    "pointer": "/$defs/NoSuchDto/properties/grant_id",
+                    "name": "grant_id",
+                    "suggested_name": "session_grant_id",
+                    "reason": "synthetic mutation row",
+                    "owner_batch": "cross-repo-identifier-rename",
+                }
+            ]
 
         errors = self.lint_registry(mutate)
         self.assertTrue(any("no longer resolves" in error for error in errors), errors)

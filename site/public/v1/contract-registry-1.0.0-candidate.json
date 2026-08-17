@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-17.4",
+  "version": "2026-08-18.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-17T23:40:00+08:00",
+  "generated_at": "2026-08-18T06:45:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -9865,7 +9865,7 @@
         "schema_id": "ak.schema.service_describe.v1",
         "file": "schemas/service-describe.schema.json",
         "status": "active",
-        "description": "Canonical ServiceDescribe response for ak.server.read.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ak.find.directory.read.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+        "description": "Canonical ServiceDescribe response for ak.server.read.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / interop_surfaces) and the registered directory_service overlay fields used by ak.find.directory.read.describe. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
       },
       {
         "schema_id": "ak.schema.transport_binding.v1",
@@ -10128,8 +10128,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-17.2",
-    "generated_at": "2026-08-17T17:35:00+08:00"
+    "version": "2026-08-18.1",
+    "generated_at": "2026-08-18T06:45:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -10384,12 +10384,11 @@
       },
       {
         "kind": "membership_compensation_delegation",
-        "wire_form": "ak:membership-compensation-delegation:sha256:<lowercase_hex>",
+        "wire_form": "ak:membership_compensation_delegation:sha256:<lowercase_hex>",
         "payload_pattern": "sha256:[0-9a-f]{64}",
         "status": "active",
         "storage_recommendation": "Store the 32-byte delegation digest or the complete typed content-addressed reference.",
-        "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal the SHA-256 delegation_digest derived from the profile-defined digest-free canonical core.",
-        "wire_segment_rationale": "Registered spelling exception: the wire segment membership-compensation-delegation is kebab-case while the registry kind is snake_case. It is the only registered segment whose spelling differs from its kind, it is recorded here so the closure gate can resolve it from wire_form alone, and it MUST NOT be cited as precedent for any new kebab-case wire segment."
+        "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal the SHA-256 delegation_digest derived from the profile-defined digest-free canonical core."
       },
       {
         "kind": "seal",
@@ -11057,8 +11056,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-17.4",
-    "generated_at": "2026-08-17T23:40:00+08:00"
+    "version": "2026-08-18.1",
+    "generated_at": "2026-08-18T06:45:00+08:00"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -14365,7 +14364,7 @@
         "http": "POST /_arkret/self/device_messages",
         "grpc": "SelfDeviceMessages/Send",
         "mq": "self.device_messages.command.send",
-        "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. The sender's exact durable device/generation state is checked in the queue transaction; revocation_pending returns device_revocation_pending and enqueues nothing. Each target carries a sender-assigned message_id copied unchanged into the stored envelope; the service deduplicates logical messages by (sender_principal_id, sender_device_id, message_id), returning the existing outcome for identical canonical target content and duplicate_conflict/message_id_conflict for different content. HTTP batch replay is additionally deduplicated by (sender, Idempotency-Key). Queue pruning is only via ak.self.device_messages.command.ack.",
+        "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. The sender's exact durable device/generation state is checked in the queue transaction; revocation_pending returns device_revocation_pending and enqueues nothing. Each target carries a sender-assigned device_message_id copied unchanged into the stored envelope; the service deduplicates logical messages by (sender_principal_id, sender_device_id, device_message_id), returning the existing outcome for identical canonical target content and duplicate_conflict/device_message_id_conflict for different content. HTTP batch replay is additionally deduplicated by (sender, Idempotency-Key). Queue pruning is only via ak.self.device_messages.command.ack.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -15441,8 +15440,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-17.2",
-    "generated_at": "2026-08-17T17:35:00+08:00"
+    "version": "2026-08-18.1",
+    "generated_at": "2026-08-18T06:45:00+08:00"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

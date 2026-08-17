@@ -142,12 +142,12 @@ class TypedIdPrefixClosureLintTest(unittest.TestCase):
             [],
         )
 
-    def test_registered_special_form_kebab_segment_is_recognized(self) -> None:
+    def test_registered_special_form_segment_is_recognized(self) -> None:
         self.assertEqual(
             self._run(
                 self.registry,
                 pattern_carriers(
-                    "^ak:membership-compensation-delegation:sha256:[0-9a-f]{64}$"
+                    "^ak:membership_compensation_delegation:sha256:[0-9a-f]{64}$"
                 ),
             ),
             [],
@@ -198,14 +198,24 @@ class TypedIdPrefixClosureLintTest(unittest.TestCase):
 
     # --- registry-side mutations ---------------------------------------
 
-    def test_wire_segment_differing_from_kind_needs_a_rationale(self) -> None:
+    def test_wire_segment_differing_from_kind_is_rejected(self) -> None:
         registry = self._mutate()
-        for row in registry["special_forms"]:
-            if row["kind"] == "membership_compensation_delegation":
-                row.pop("wire_segment_rationale", None)
+        registry["special_forms"][0]["wire_form"] = registry["special_forms"][0][
+            "wire_form"
+        ].replace("ak:", "ak:not-the-kind-", 1)
         failures = self._run(registry, [])
         self.assertTrue(
-            any("wire_segment_rationale" in failure for failure in failures), failures
+            any("MUST equal its snake_case kind verbatim" in failure for failure in failures),
+            failures,
+        )
+
+    def test_a_wire_segment_rationale_no_longer_buys_an_exception(self) -> None:
+        registry = self._mutate()
+        registry["special_forms"][0]["wire_segment_rationale"] = "historical spelling"
+        failures = self._run(registry, [])
+        self.assertTrue(
+            any("no longer admit spelling exceptions" in failure for failure in failures),
+            failures,
         )
 
     def test_unparsable_wire_form_is_rejected(self) -> None:
@@ -225,7 +235,6 @@ class TypedIdPrefixClosureLintTest(unittest.TestCase):
                 "status": "active",
                 "storage_recommendation": "n/a",
                 "description": "n/a",
-                "wire_segment_rationale": "n/a",
             }
         )
         failures = self._run(registry, [])

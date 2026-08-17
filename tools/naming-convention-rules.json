@@ -208,6 +208,27 @@
       "enforcement": "registry",
       "enforcement_scope": "No token-level predicate exists; classification-field-registry.json is the only enforcement surface. The predicate only rejects double-axis suffixes.",
       "exact_path_exceptions": []
+    },
+    {
+      "rule_id": "NC-FIELDCASE-001",
+      "axis": "wire_field_case",
+      "applies_to": [
+        "wire_property"
+      ],
+      "predicate": "reject every declared JSON Schema property name that is not snake_case; a leading $ marks a reserved grammar directive key and the remainder is still judged",
+      "narrative_section": "wire-field-case",
+      "exceptions": [
+        {
+          "id": "external-literal-objects",
+          "basis": "external_literal",
+          "reason": "An object that mirrors an external specification verbatim declares x-arkret-external-literal-object on its own schema node. Keeping the fact in the schema is what makes the exemption exact: it covers only the properties that node declares and cannot be reached through $ref, a shared type name or a same-named property elsewhere.",
+          "anchor": "spec/v1/artifacts/schemas/service-operation-dtos.schema.json",
+          "external_anchor": "The external specification named by the annotation's specification member, pinned by its https anchor fragment"
+        }
+      ],
+      "enforcement": "predicate+registry",
+      "enforcement_scope": "The predicate decides the name; the schema-level x-arkret-external-literal-object annotation decides which objects sit outside the Arkret lexicon, and naming_contracts.py:check_wire_property_name_case closes both directions, including annotations that no longer exempt anything.",
+      "exact_path_exceptions": []
     }
   ],
   "negative_cases": [
@@ -289,6 +310,21 @@
     {
       "rule_id": "NC-CLASSIFICATION-001",
       "candidate": "morph_kind_type",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-FIELDCASE-001",
+      "candidate": "nextKeyHashes",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-FIELDCASE-001",
+      "candidate": "@context",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-FIELDCASE-001",
+      "candidate": "$Op",
       "expected": "reject"
     }
   ],
@@ -401,6 +437,16 @@
     {
       "rule_id": "NC-CLASSIFICATION-001",
       "candidate": "risk_tier",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-FIELDCASE-001",
+      "candidate": "pairing_request_id",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-FIELDCASE-001",
+      "candidate": "$op",
       "expected": "accept"
     }
   ]

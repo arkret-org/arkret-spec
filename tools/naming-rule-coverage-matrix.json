@@ -22,11 +22,11 @@
     "partial": "Some occurrences are decided mechanically and the remainder needs human judgement or a registry that is not yet complete."
   },
   "coverage_summary": {
-    "predicate": 15,
+    "predicate": 16,
     "registry_closure": 7,
     "schema_type": 3,
     "prose_only": 7,
-    "uncovered": 3
+    "uncovered": 2
   },
   "rules": [
     {
@@ -617,7 +617,8 @@
       "enforced_by": {
         "predicates": [],
         "functions": [
-          "naming_contracts.py:check_identifier_value_categories"
+          "naming_contracts.py:check_identifier_value_categories",
+          "naming_contracts.py:check_typed_id_namespace_disjointness"
         ],
         "registries": [
           "tools/identifier-classification-registry.json",
@@ -628,10 +629,11 @@
         "identifier_categories"
       ],
       "tests": [
-        "tools/test_naming_gate_lint.py"
+        "tools/test_naming_gate_lint.py",
+        "tools/test_wire_lexical_closure_lint.py"
       ],
       "coverage_level": "partial",
-      "residual_gap": "Category assignment is closed in both directions: the resolved terminal type decides what it can, and every occurrence it cannot decide has an exact classification row that goes stale the moment the schema changes. Two categories, unregistered_object_identifier and non_identifier, are transitional and their rows are still open."
+      "residual_gap": "Category assignment is closed in both directions: the resolved terminal type decides what it can, and every occurrence it cannot decide has an exact classification row that goes stale the moment the schema changes. Mutual exclusivity is closed lexically as well: a category that does not own the ak: namespace must carry a terminal constraint that provably rejects an ak: value, which is the half the typed-ID prefix closure cannot see. A terminal that carries no lexical information at all (a bare `type: string`) cannot be decided either way; those occurrences are exactly the transitional unregistered_object_identifier and non_identifier rows, and their convergence direction is to pin a pattern."
     },
     {
       "rule_id": "NC-IDSUFFIX-001",
@@ -991,17 +993,27 @@
       "applies_to": [
         "wire_property"
       ],
-      "enforcement_kind": "uncovered",
+      "enforcement_kind": "predicate",
       "enforced_by": {
-        "predicates": [],
-        "functions": [],
-        "registries": []
+        "predicates": [
+          "NC-FIELDCASE-001"
+        ],
+        "functions": [
+          "naming_contracts.py:check_wire_property_name_case"
+        ],
+        "registries": [
+          "tools/naming-convention-rules.json"
+        ]
       },
-      "entry_points": [],
-      "tests": [],
-      "coverage_level": "partial",
-      "manual_review_reason": "No check applies a snake_case predicate to wire property names. The gap is not theoretical: the camelCase did:webvh parameters mirrored into the DTO schema are the only reason a camelCase hash spelling was able to reach the schemas at all. Turning this into a predicate first needs the exact-path external-literal exception mechanism to cover verbatim external objects, so the row stays uncovered rather than being called accepted review.",
-      "open_issue": "needs an exact-path external_literal exception set for verbatim external parameter objects before the predicate can be enabled"
+      "entry_points": [
+        "identifier_categories"
+      ],
+      "tests": [
+        "tools/test_wire_lexical_closure_lint.py",
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "full",
+      "residual_gap": "Every declared property name on every shipped schema is decided. The only exemption is an object that declares x-arkret-external-literal-object on its own node with an external https anchor, which covers the properties that node declares and nothing reached through $ref, a shared type name or a same-named property elsewhere; an annotation that stops exempting anything fails as stale."
     },
     {
       "rule_id": "NC-DURATION-001",

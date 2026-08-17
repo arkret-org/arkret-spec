@@ -20,6 +20,7 @@ This module owns the mechanically decidable portion of common-fields.md 2.0.1
 from __future__ import annotations
 
 import re
+import string
 from typing import Any, Callable, Iterator, NamedTuple
 
 FORBIDDEN_BOOLEAN_PREFIXES = ("allow_", "require_", "requires_", "deny_", "force_")
@@ -62,6 +63,26 @@ SchemaRefResolver = Callable[[str, str], tuple[str, Any] | None]
 _NAME_MAP_KEYWORDS = frozenset({"properties", "$defs", "patternProperties", "definitions"})
 
 
+# NC-FIELDCASE-001. The only object whose property names escape the Arkret
+# snake_case lexicon is one that mirrors an external specification verbatim, and
+# it says so on its own schema node rather than in a lint-side name list. The
+# annotation is therefore exact by construction: it governs the properties the
+# node declares directly and nothing reached through `$ref`, a shared type name
+# or a same-named field elsewhere.
+EXTERNAL_LITERAL_OBJECT_KEYWORD = "x-arkret-external-literal-object"
+EXTERNAL_LITERAL_OBJECT_FIELDS = ("specification", "anchor")
+EXTERNAL_ANCHOR_URL_RE = re.compile(r"https://[^\s#]+#\S+\Z")
+
+# Reserved grammar directive keys carry a `$` sigil precisely so they cannot
+# collide with the snake_case data-field namespace; the remainder still has to be
+# snake_case, so this is a lexical rule and not an escape hatch.
+RESERVED_DIRECTIVE_SIGIL = "$"
+
+# The typed-ID namespace token that non-typed identifier value categories must
+# stay disjoint from (common-fields.md 2.1).
+TYPED_ID_NAMESPACE_PREFIX = "ak:"
+
+
 class PropertyOccurrence(NamedTuple):
     """One declared property, addressed by RFC 6901 pointer within its schema."""
 
@@ -69,6 +90,15 @@ class PropertyOccurrence(NamedTuple):
     pointer: str
     name: str
     shape: Any
+
+
+class PropertyOwner(NamedTuple):
+    """One object node that declares ``properties``, with its declared names."""
+
+    file_name: str
+    pointer: str
+    node: Any
+    names: tuple[str, ...]
 
 
 class EnumOccurrence(NamedTuple):
@@ -133,6 +163,24 @@ def enumerate_schema_properties(file_name: str, document: Any) -> Iterator[Prope
                 name,
                 shape,
             )
+
+
+def enumerate_property_owners(file_name: str, document: Any) -> Iterator[PropertyOwner]:
+    """Yield every object node that declares ``properties``, with its own names.
+
+    ``enumerate_schema_properties`` flattens the same population into individual
+    occurrences. NC-FIELDCASE-001 needs the owning node itself, because the
+    external-literal annotation lives on the node and MUST NOT reach any property
+    the node does not declare directly.
+    """
+
+    for pointer, node in enumerate_schema_nodes(file_name, document):
+        if not isinstance(node, dict):
+            continue
+        properties = node.get("properties")
+        if not isinstance(properties, dict):
+            continue
+        yield PropertyOwner(file_name, pointer, node, tuple(properties))
 
 
 def enumerate_schema_enums(file_name: str, document: Any) -> Iterator[EnumOccurrence]:
@@ -372,6 +420,21 @@ def nc_classification_001(candidate: str) -> bool:
     return bool(re.search(r"_(?:kind|type|class|tier)_(?:kind|type|class|tier)\Z", candidate))
 
 
+def nc_fieldcase_001(candidate: str) -> bool:
+    """Wire object field names are snake_case (common-fields.md 2, `object`).
+
+    A leading ``$`` marks a reserved grammar directive key rather than a data
+    field -- ``ak.schema.patch.v1`` uses ``$op`` exactly so the directive cannot
+    collide with a patched field name -- and the remainder is still judged, so
+    ``$Op`` is rejected while ``$op`` is not. Whether an *object* is exempt is a
+    separate question decided by the schema-level external-literal annotation,
+    never by the name.
+    """
+
+    name = candidate[1:] if candidate.startswith(RESERVED_DIRECTIVE_SIGIL) else candidate
+    return not bool(SNAKE_CASE_RE.fullmatch(name))
+
+
 PREDICATES: dict[str, Callable[[str], bool]] = {
     "NC-BOOL-001": nc_bool_001,
     "NC-COUNT-001": nc_count_001,
@@ -383,7 +446,262 @@ PREDICATES: dict[str, Callable[[str], bool]] = {
     "NC-SET-001": nc_set_001,
     "NC-HASH-001": nc_hash_001,
     "NC-CLASSIFICATION-001": nc_classification_001,
+    "NC-FIELDCASE-001": nc_fieldcase_001,
 }
+
+
+# --------------------------------------------------------------------------
+# Lexical disjointness against the typed-ID namespace (common-fields.md 2.1).
+#
+# The value-category table calls itself finite and mutually exclusive, which is
+# only true if the categories that do not own `ak:` cannot produce a value in it.
+# Deciding that from a regex has to be *sound*: every judgement below is a
+# sufficient condition, so an unanalysable pattern is reported as undecided and
+# never as safe. Two sufficient conditions cover the shapes Arkret schemas use:
+#
+# 1. the regex cannot emit one of the characters the forbidden prefix needs, so
+#    the prefix is unreachable regardless of structure;
+# 2. the anchored head provably differs from the forbidden prefix -- a negative
+#    lookahead that forbids it, a leading literal that diverges from it, a
+#    leading character class that excludes its first character, or a leading
+#    group whose every alternative does one of those.
+# --------------------------------------------------------------------------
+
+_REGEX_QUANTIFIER_START = "?*"
+_REGEX_METACHARACTERS = "^$.|()[]{}*+?\\"
+_UNBOUNDED_CLASS_ESCAPES = frozenset({"S", "D", "W"})
+
+
+def _regex_class_end(pattern: str, start: int) -> int:
+    """Return the index of the ``]`` closing the character class opened at ``start``."""
+
+    index = start + 1
+    if index < len(pattern) and pattern[index] == "^":
+        index += 1
+    if index < len(pattern) and pattern[index] == "]":
+        index += 1
+    while index < len(pattern):
+        if pattern[index] == "\\":
+            index += 2
+            continue
+        if pattern[index] == "]":
+            return index
+        index += 1
+    return len(pattern)
+
+
+def _regex_group_end(pattern: str, start: int) -> int:
+    """Return the index of the ``)`` closing the group opened at ``start``."""
+
+    depth = 0
+    index = start
+    while index < len(pattern):
+        char = pattern[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == "[":
+            index = _regex_class_end(pattern, index) + 1
+            continue
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                return index
+        index += 1
+    return len(pattern)
+
+
+def _regex_class_members(body: str) -> frozenset[str] | None:
+    """Expand a character-class body into its member set, or ``None`` when unbounded."""
+
+    members: set[str] = set()
+    index = 0
+    while index < len(body):
+        char = body[index]
+        if char == "\\":
+            escape = body[index + 1: index + 2]
+            if escape in _UNBOUNDED_CLASS_ESCAPES:
+                return None
+            if escape == "d":
+                members |= set(string.digits)
+            elif escape == "w":
+                members |= set(string.ascii_letters + string.digits + "_")
+            elif escape == "s":
+                members |= set(" \t\n\r\f\v")
+            else:
+                members.add(escape)
+            index += 2
+            continue
+        if index + 2 < len(body) and body[index + 1] == "-":
+            start_char = char
+            end_char = body[index + 2]
+            if end_char != "\\" and ord(start_char) <= ord(end_char):
+                members |= {chr(code) for code in range(ord(start_char), ord(end_char) + 1)}
+                index += 3
+                continue
+        members.add(char)
+        index += 1
+    return frozenset(members)
+
+
+def _regex_class_admits(body: str, char: str) -> bool:
+    """Return whether a character class can match ``char``. Unknown means yes."""
+
+    negated = body.startswith("^")
+    members = _regex_class_members(body[1:] if negated else body)
+    if members is None:
+        return True
+    return (char not in members) if negated else (char in members)
+
+
+def _regex_can_emit(pattern: str, char: str) -> bool:
+    """Return whether any string the regex matches can contain ``char``."""
+
+    index = 0
+    while index < len(pattern):
+        current = pattern[index]
+        if current == "\\":
+            escape = pattern[index + 1: index + 2]
+            if escape in _UNBOUNDED_CLASS_ESCAPES or escape == char:
+                return True
+            index += 2
+            continue
+        if current == "[":
+            end = _regex_class_end(pattern, index)
+            if _regex_class_admits(pattern[index + 1:end], char):
+                return True
+            index = end + 1
+            continue
+        if current == "." or current == char:
+            return True
+        index += 1
+    return False
+
+
+def _regex_split_alternatives(pattern: str) -> list[str]:
+    """Split one regex body on its top-level ``|``."""
+
+    alternatives: list[str] = []
+    depth = 0
+    start = 0
+    index = 0
+    while index < len(pattern):
+        char = pattern[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == "[":
+            index = _regex_class_end(pattern, index) + 1
+            continue
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif char == "|" and depth == 0:
+            alternatives.append(pattern[start:index])
+            start = index + 1
+        index += 1
+    alternatives.append(pattern[start:])
+    return alternatives
+
+
+def _regex_atom_is_optional(pattern: str, index: int) -> bool:
+    """Return whether the quantifier at ``index`` lets the preceding atom vanish."""
+
+    if index >= len(pattern):
+        return False
+    if pattern[index] in _REGEX_QUANTIFIER_START:
+        return True
+    if pattern[index] == "{":
+        end = pattern.find("}", index)
+        if end < 0:
+            return True
+        return pattern[index + 1:end].lstrip().startswith("0")
+    return False
+
+
+def _regex_head_excludes(body: str, forbidden: str) -> bool:
+    """Return whether the head of an anchored regex body cannot be ``forbidden``."""
+
+    if not forbidden:
+        return False
+    if not body:
+        # The pattern ends before the forbidden prefix is consumed, so no matching
+        # value is long enough to carry it.
+        return True
+    if body.startswith("(?!"):
+        end = _regex_group_end(body, 0)
+        inner = body[3:end]
+        if inner and forbidden.startswith(inner):
+            return True
+        return _regex_head_excludes(body[end + 1:], forbidden)
+    if body.startswith("("):
+        end = _regex_group_end(body, 0)
+        if _regex_atom_is_optional(body, end + 1):
+            return False
+        inner = body[1:end]
+        if inner.startswith("?:"):
+            inner = inner[2:]
+        elif inner.startswith("?"):
+            return False
+        alternatives = _regex_split_alternatives(inner)
+        return all(
+            _regex_head_excludes(alternative + body[end + 1:], forbidden)
+            for alternative in alternatives
+        )
+    if body.startswith("["):
+        end = _regex_class_end(body, 0)
+        if _regex_atom_is_optional(body, end + 1):
+            return False
+        return not _regex_class_admits(body[1:end], forbidden[0])
+    if body.startswith("\\"):
+        literal = body[1:2]
+        if not literal or literal in "dwsSDWbB":
+            return False
+        if _regex_atom_is_optional(body, 2):
+            return False
+        if literal != forbidden[0]:
+            return True
+        return _regex_head_excludes(body[2:], forbidden[1:])
+    if body[0] in _REGEX_METACHARACTERS:
+        return False
+    if _regex_atom_is_optional(body, 1):
+        return False
+    if body[0] != forbidden[0]:
+        return True
+    return _regex_head_excludes(body[1:], forbidden[1:])
+
+
+def pattern_excludes_prefix(pattern: str, forbidden: str) -> bool:
+    """Return whether an anchored ``pattern`` provably rejects every ``forbidden`` prefix."""
+
+    if not pattern.startswith("^"):
+        return False
+    if any(not _regex_can_emit(pattern, char) for char in set(forbidden)):
+        return True
+    return _regex_head_excludes(pattern[1:], forbidden)
+
+
+def terminal_excludes_typed_id_namespace(kind: str, value: str) -> bool | None:
+    """Judge one resolved terminal constraint against the ``ak:`` namespace.
+
+    ``True`` means the constraint provably cannot produce an ``ak:`` value,
+    ``False`` means it can, and ``None`` means the constraint carries no lexical
+    information at all (a bare ``type`` or ``format``) so nothing can be decided
+    from it.
+    """
+
+    if kind == "pattern":
+        return pattern_excludes_prefix(value, TYPED_ID_NAMESPACE_PREFIX)
+    if kind == "const":
+        return not value.startswith(TYPED_ID_NAMESPACE_PREFIX)
+    if kind == "enum":
+        return not any(
+            member.startswith(TYPED_ID_NAMESPACE_PREFIX) for member in value.split("|")
+        )
+    return None
 
 
 def stacked_wrapper_words(name: str) -> str | None:

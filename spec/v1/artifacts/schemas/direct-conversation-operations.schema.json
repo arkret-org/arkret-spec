@@ -544,7 +544,7 @@
                 },
                 "target_snapshot_digest": {
                   "$ref": "./principal-operations.schema.json#/$defs/digest",
-                  "description": "H('ak.member-repair-target-snapshot-human-v1', device-id-sorted [{recipient_device_id,message_id}])."
+                  "description": "H('ak.member-repair-target-snapshot-human-v1', device-id-sorted [{recipient_device_id,device_message_id}])."
                 },
                 "enqueued_target_count": {
                   "type": "integer",
@@ -566,7 +566,7 @@
                 },
                 "target_snapshot_digest": {
                   "$ref": "./principal-operations.schema.json#/$defs/digest",
-                  "description": "H('ak.member-repair-target-snapshot-native-agent-v1', {recipient_agent_id,active_runtime_endpoint_ref,message_id}), where the endpoint is the one current accepted agent-key/session binding endpoint."
+                  "description": "H('ak.member-repair-target-snapshot-native-agent-v1', {recipient_agent_id,active_runtime_endpoint_ref,device_message_id}), where the endpoint is the one current accepted agent-key/session binding endpoint."
                 },
                 "enqueued_target_count": {
                   "const": 1

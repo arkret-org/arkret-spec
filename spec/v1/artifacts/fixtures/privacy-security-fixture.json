@@ -581,7 +581,7 @@
                 "realm_id": "ak:realm:AXHSTVD5ytlxxQe9ylL4IJEfvL9QDJ0A6XqSjW8G2tBI"
               },
               "index_generation": 7,
-              "epoch_id": 3,
+              "epoch": 3,
               "query_tokens": [
                 "sha256:1111111111111111111111111111111111111111111111111111111111111111",
                 "sha256:2222222222222222222222222222222222222222222222222222222222222222"
