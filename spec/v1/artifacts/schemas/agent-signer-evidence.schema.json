@@ -700,7 +700,7 @@
         },
         "cell_ref": {
           "type": "string",
-          "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:"
+          "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
         },
         "cell_value": {
           "$ref": "#/$defs/key_cell_value"
@@ -773,7 +773,7 @@
         },
         "cell_ref": {
           "type": "string",
-          "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:"
+          "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
         },
         "cell_value": {
           "$ref": "#/$defs/key_cell_value"
@@ -812,8 +812,7 @@
         ],
         "properties": {
           "tag": {
-            "type": "string",
-            "pattern": "^ak:event:[0-9a-f-]+:[0-9]+$"
+            "$ref": "./event-payload.schema.json#/$defs/or_set_dot"
           },
           "value": {
             "oneOf": [
@@ -897,7 +896,7 @@
         },
         "cell_ref": {
           "type": "string",
-          "pattern": "^ak:cell:ak\\.component\\.agent\\.status\\.v1:"
+          "pattern": "^ak:cell:ak\\.component\\.agent\\.status\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
         },
         "cell_value": {
           "type": "string",

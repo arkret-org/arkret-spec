@@ -8,7 +8,7 @@
     "spec/v1/artifacts"
   ],
   "generated_by": "tools/artifact_lint (check_naming_predicates)",
-  "description": "Transient ledger of naming-rule violations that the full-coverage walker surfaced but that batch 1 is not allowed to rename. Every entry is keyed by an exact (file, RFC 6901 pointer, name) triple and owned by a named follow-up batch. Entries are internal debt: they MUST NOT claim an external anchor, and the lint rejects new, ambiguous or stale rows. This file must be empty at closure.",
-  "closure_requirement": "entries must be empty before the naming convergence task is closed",
+  "description": "Current violation ledger for the REGISTERED PREDICATES of tools/naming-convention-rules.json only. Each entry is an occurrence that one of those predicates rejects and that the owning batch is not yet allowed to rename; it is keyed by an exact (file, RFC 6901 pointer, name) triple. This file says nothing about naming contracts enforced by registry closure, schema type or human review: rule-contract coverage is tracked in tools/naming-rule-coverage-matrix.json, and an empty ledger here does NOT mean the naming contract as a whole is closed. Entries are internal debt: they MUST NOT claim an external anchor, and the lint rejects new, ambiguous or stale rows.",
+  "closure_requirement": "entries must be empty before the registered-predicate rename batches are closed; predicate-ledger closure is not rule-contract closure, which is measured by tools/naming-rule-coverage-matrix.json",
   "entries": []
 }

@@ -2,7 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/high-risk-authority-proof.schema.json",
   "title": "Arkret High-Risk Authority Proof Family",
-  "description": "Shared authority proof family for service operations that key-management.md designates as high-risk material destruction or equivalent (first consumer: active-series key backup tail deletion, key-management.md section 7.8). Exactly one closed branch: principal_signing, device_quorum, or trusted_recovery_service, discriminated by `kind`. Every branch reuses the common detached-JWS leaf (event-envelope.schema.json#/$defs/proof) over the operation's single canonical delete-intent transcript; branches never restate the leaf fields. An ordinary current-device session proof is deliberately NOT a branch of this family — operations that accept it for low-risk paths must say so in their own normative text.",
+  "description": "Shared authority proof family for service operations that key-management.md designates as high-risk material destruction or equivalent (first consumer: active-series key backup tail deletion, key-management.md section 7.8). Exactly one closed branch: principal_signing, device_quorum, or trusted_recovery_service, discriminated by `kind`. Every branch reuses the common detached-JWS leaf (event-envelope.schema.json#/$defs/proof) over the operation's single canonical delete-intent transcript; branches never restate the leaf fields. An ordinary current-device session proof is deliberately NOT a branch of this family — operations that accept it for low-risk paths must say so in their own normative text. This is one wire leaf with per-consumer domain separation: the transcript context is owned by the consuming operation, never by the leaf, so x-arkret-proof-contexts below enumerates every registered consumer context and proof-context-registry.json carries the matching consumer_operation on each row.",
+  "x-arkret-proof-contexts": [
+    "ak.key-backup-delete-proof-v1"
+  ],
   "oneOf": [
     {
       "$ref": "#/$defs/principal_signing_proof"
@@ -23,7 +26,7 @@
     },
     "detached_proof": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",
-      "description": "Common detached-JWS leaf. `payload_digest` MUST be the digest of the operation's canonical transcript (for key backup deletion: the delete-intent transcript of key-management.md section 7.8.1); `created_at` MUST fall inside the server-issued challenge window when the operation binds one."
+      "description": "Common detached-JWS leaf. `payload_digest` MUST be the digest of the operation's canonical transcript, whose first member is the consuming operation's registered context (for key backup deletion: the delete-intent transcript of key-management.md section 7.8.1 under ak.key-backup-delete-proof-v1); `created_at` MUST fall inside the server-issued challenge window when the operation binds one. A signature made under another consumer's context MUST be rejected even when it verifies cryptographically."
     },
     "principal_signing_proof": {
       "type": "object",

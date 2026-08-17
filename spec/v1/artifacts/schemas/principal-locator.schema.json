@@ -67,8 +67,7 @@
           "maxLength": 128
         },
         "avatar_blob_ref": {
-          "type": "string",
-          "pattern": "^ak:blob:[A-Za-z0-9._:-]+$"
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
         }
       },
       "additionalProperties": false
@@ -274,8 +273,7 @@
           "maxLength": 128
         },
         "avatar_blob_ref": {
-          "type": "string",
-          "pattern": "^ak:blob:[A-Za-z0-9._:-]+$"
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
         }
       },
       "additionalProperties": false

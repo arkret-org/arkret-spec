@@ -631,16 +631,46 @@ map（key 即成员名，如 Strand `tracks`）、使用 profile 注册的 move/
 
 #### 4.2.4 Op 与 redactable 字段交互（normative）
 
-`ak.schema.patch.v1` 的 `$op="unset"` 路径 MUST NOT 操作以下 redactable 内容字段:
+`ak.schema.patch.v1` 的 `$op="unset"` 路径 MUST NOT 移除以下 **redactable 内容槽**（content carrier slot）:
 
-- Message: `content`、`encrypted_content`、`body`
-- Strand: `metadata.summary`、`encrypted_content`、`encrypted_metadata`、用户可写的长文本 `metadata.fields`
-- Morph: `content`、`encrypted_content`、`metadata.summary`、`encrypted_metadata`、`fields.<text-content-shape>` (由 morph profile 声明)
+- Message: `content`、`encrypted_content`
+- Strand: `content`、`encrypted_content`
+- Morph: `content`、`encrypted_content`
 - 任何在 Realm schema 中标记为 `redactable: true` 的字段。
 
-理由: 这些字段的清除必须走 `ak.<kind>.redact` 或 `ak.redaction` event,以触发 redaction-specific capability check + audit seal + retention policy;允许用 `ak.schema.patch.v1` 直接 `unset` 等价于让任何持有 `ak.<kind>.update` 的 actor 绕过 `ak.<kind>.redact` 的高 tier capability 完成 redaction (redaction escape)。
+上述逐对象清单的 canonical 机读投影是
+[`redactable-field-registry.json`](../../artifacts/registry/redactable-field-registry.json)：本节与该 registry
+MUST 同批更新，reducer、SDK 与 conformance MUST 从 registry 取值，MUST NOT 各自解析本节散文。
+Realm-defined 的 `redactable: true` 字段由该 Realm schema 自身机读声明，不进入本 registry；
+Morph profile 或 Realm schema 定义的长文本字段若需要同样的槽保护，MUST 在该 schema 上标记
+`redactable: true`，v1 core 不再用 `metadata.fields` / `fields.<shape>` 这类散文形状族表达判据。
 
-reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `schema_violation` reason=`patch_unset_redactable_field`。
+理由（**槽存在性语义**，normative）: 内容槽是明文 / 密文二选一的同一个槽（`content` ↔ `encrypted_content`，
+由各对象 schema 的互斥约束保证）。该槽在物化对象上"缺席"只允许表达两件事：从未撰写，
+或已按 redaction policy 清除（见 [`common-fields.md` §5](./common-fields.md) `redacted` 行：内容清除、
+envelope 与审计元数据保留）。普通 `ak.<kind>.update` MUST NOT 制造第三种缺席来源。同一个槽的两种编码
+MUST 受同一条规则约束——否则同一份正文能否被移除将取决于 Realm 是否 E2EE，而两者只是同一个槽的明文 / 密文形态。
+
+**本条不是 redaction capability 的替代，也不限制内容改写（normative）**: redaction 是 whole-object、
+terminal、审计封缄的操作，并 MUST 使历史、搜索索引、本地缓存与 Blob 访问一并失效
+（见 [`strand-and-message.md` §9.2](./strand-and-message.md)）；任何 patch op 都不可能产生该效果，
+因此 patch 上不存在"redaction escape"，本条也 MUST NOT 被当作 capability 分层的一部分去推理。
+redactable 内容槽上的 `$op="set"` 是普通编辑，即使新值为空正文也 MUST 被接受；清空正文的合法**非终态**路径是
+`{"content": {"$op": "set", "value": {"kind": "ak.content.text", "body": ""}}}`（E2EE 形态为对同一空
+ContentBlock 重新封装后 `set` 到 `encrypted_content`），**终态**路径才是 `ak.<kind>.redact` / `ak.redaction`。
+
+**不属于本条的字段（normative，防止过度推广）**: `metadata`、`encrypted_metadata`、`metadata.title`、
+`metadata.summary` 以及 `metadata.fields` 下的任何 path 都**不是**内容槽，不受本条约束；`$op="unset"`
+是它们唯一的非终态清除路径，reducer MUST 接受（post-state 仍需通过对象 schema 与 §4.2.5 检查）。
+把这些 optional 字段纳入禁令会让它们一经写入就只能靠把整个对象推进不可逆终态才能移除，这不是 v1 语义。
+
+reducer MUST 在 patch path 命中 registry 登记的内容槽（或 Realm schema `redactable: true` 字段）
+且 `$op="unset"` 时返回 `schema_violation` reason=`patch_unset_redactable_field`。
+
+本节的正向 / 负向判据由 `ak.vector.patch.redactable_content_slot_unset_ban.v1` 与
+[`state-reducer-hardening-fixture.json`](../../artifacts/fixtures/state-reducer-hardening-fixture.json) 固化：
+registry 中每条已登记 path 上的 `{"$op":"unset"}` MUST 被拒绝；同一 path 上的 `set`（含空正文）
+与 `metadata.summary` / `metadata.title` / `metadata.fields.*` 上的 `unset` MUST 被接受。
 
 #### 4.2.5 Op 其余规则
 

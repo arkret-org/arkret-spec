@@ -152,7 +152,14 @@ scope、JWK thumbprint 等于 grant `cnf.jkt`，以及 `ath` 等于当前 frame 
 `session_grant` 的 hash。任一失败不得消费为成功或建立部分 session。
 
 最终成功必须在同一原子步骤把 challenge 标为 consumed，并写 replay ledger key
-`(cnf.jkt, jti, "ak.websocket-auth.v1")`。同 key、同 nonce 或同
+`(cnf.jkt, jti, "ak.websocket-auth.v1")`。第三个分量是 **replay-cache 分区命名空间**，不是
+detached proof 的 domain separation：它以
+`primitive="replay_cache_namespace"`、`object_family="websocket_dpop_replay_ledger"` 登记在
+[`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 的
+`domain_separations[]`，该处是它的唯一真源。任何其它表面 MUST NOT 复用该命名空间，
+新表面 MUST 先登记自己的一条 `replay_cache_namespace` 行再使用；该字面量 MUST NOT 出现在
+任何名为 `proof_context` 的 wire 或 fixture 字段中，也 MUST NOT 被拼写成 `ak.*-proof-v1`
+形态的 proof context。同 key、同 nonce 或同
 `(connection_id, nonce)` 的第二次使用均失败；ledger 至少保留 300 秒，challenge record
 至少保留到 `expires_at` 后 300 秒，以区分 replay 与 unknown。多实例部署必须使用共享一致
 状态，不能用 process-local map。proof 重放、connection id/nonce/origin/htu/ath 不匹配或

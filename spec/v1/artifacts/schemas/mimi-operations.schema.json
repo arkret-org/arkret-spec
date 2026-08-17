@@ -114,14 +114,8 @@
       "minLength": 1
     },
     "proof": {
-      "$ref": "./event-envelope.schema.json#/$defs/proof"
-    },
-    "proofs": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/proof"
-      },
-      "minItems": 1
+      "$ref": "./event-envelope.schema.json#/$defs/proof",
+      "$comment": "Wire shape only. Every request/outcome family that carries actor proofs declares its own proofs array inline so that each object family owns a distinct detached-proof node with its own registered context (mimi-interop.md section 5.1); a single shared proofs alias would put unrelated MIMI operations under one domain separation."
     },
     "signature": {
       "type": "object",
@@ -253,6 +247,7 @@
     },
     "mimi_key_material_request_body": {
       "type": "object",
+      "x-arkret-proof-context": "ak.mimi-key-material-request-proof-v1",
       "required": [
         "requester",
         "strand_id",
@@ -282,13 +277,18 @@
           "minimum": 0
         },
         "proofs": {
-          "$ref": "#/$defs/proofs"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "minItems": 1
         }
       },
       "additionalProperties": false
     },
     "mimi_key_material_outcome": {
       "type": "object",
+      "x-arkret-proof-context": "ak.mimi-key-material-outcome-proof-v1",
       "anyOf": [
         {
           "required": [
@@ -549,6 +549,7 @@
     },
     "mimi_group_info_outcome": {
       "type": "object",
+      "x-arkret-proof-context": "ak.mimi-group-info-outcome-proof-v1",
       "required": [
         "group_info"
       ],
@@ -560,7 +561,11 @@
           "$ref": "#/$defs/event_id"
         },
         "proofs": {
-          "$ref": "#/$defs/proofs"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "minItems": 1
         }
       },
       "additionalProperties": false
@@ -589,6 +594,7 @@
     },
     "mimi_request_consent_request_body": {
       "type": "object",
+      "x-arkret-proof-context": "ak.mimi-request-consent-request-proof-v1",
       "required": [
         "requester_id",
         "target",
@@ -619,7 +625,11 @@
           "$ref": "#/$defs/timestamp"
         },
         "proofs": {
-          "$ref": "#/$defs/proofs"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "minItems": 1
         }
       },
       "additionalProperties": false
@@ -646,6 +656,7 @@
     "mimi_update_consent_request_body": {
       "type": "object",
       "description": "Carries the caller-authored, caller-signed Arkret consent Control Move. The facade verifies the detached MIMI operation signature over the complete unsigned body, then submits consent_event unchanged through ordinary Event admission. decision=accept requires ak.consent.grant; decision=deny or revoke requires ak.consent.revoke. The facade MUST NOT synthesize, rebuild or co-sign the Event.",
+      "x-arkret-proof-context": "ak.mimi-update-consent-request-proof-v1",
       "required": [
         "consent_id",
         "decision",
@@ -799,6 +810,7 @@
     },
     "mimi_identifier_query_request_body": {
       "type": "object",
+      "x-arkret-proof-context": "ak.mimi-identifier-query-request-proof-v1",
       "required": [
         "identifiers"
       ],
@@ -818,13 +830,18 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "proofs": {
-          "$ref": "#/$defs/proofs"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "minItems": 1
         }
       },
       "additionalProperties": false
     },
     "mimi_identifier_query_outcome": {
       "type": "object",
+      "x-arkret-proof-context": "ak.mimi-identifier-query-outcome-proof-v1",
       "required": [
         "matches",
         "has_more"
@@ -856,7 +873,11 @@
           }
         },
         "proofs": {
-          "$ref": "#/$defs/proofs"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "minItems": 1
         },
         "has_more": {
           "type": "boolean"

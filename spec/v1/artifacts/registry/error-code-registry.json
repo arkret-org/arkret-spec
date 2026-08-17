@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-17.5",
+  "version": "2026-08-17.7",
   "codes": [
     {
       "code": "json_invalid",
@@ -1467,12 +1467,6 @@
       "description": "A fresh device attempted an operation outside its permitted scope."
     },
     {
-      "code": "avatar_url_invalid",
-      "http_status": 400,
-      "scope": "endpoint",
-      "description": "The provided avatar URL is invalid."
-    },
-    {
       "code": "recovery_authorization_device_mismatch",
       "http_status": 409,
       "scope": "endpoint",
@@ -1810,7 +1804,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A Principal Server received an otherwise valid AccountStatusRecord whose status_seq is lower than its durable replica head. The receiver MUST return failed_precondition with this reason, perform zero writes, and treat the exact record as terminal/non-retryable; this is distinct from duplicate, which requires the same sequence and record identity. See zh/identity/account-lifecycle.md §3."
+      "description": "A Principal Server received an otherwise valid AccountStatusRecord whose status_seq is lower than its durable replica head. The durable head is the only comparison baseline, so this reason applies even when the submitted record is byte-identical to a history row the receiver still stores for that status_seq; a retained history row MUST NOT downgrade the outcome to duplicate. The receiver MUST return failed_precondition with this reason, perform zero writes, and treat the exact record as terminal/non-retryable. duplicate is reserved for a submission whose status_seq and record identity both equal the durable head. The full ordered classification is registry/account-status-replica-decision-table.json. See zh/identity/account-lifecycle.md §3.1."
     },
     {
       "code": "account_status_transition_invalid",
@@ -4017,7 +4011,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "An `ak.schema.patch.v1` `$op=\"unset\"` was used on a redactable content field (e.g. message.content, strand.metadata.summary, encrypted_content / encrypted_metadata). Redaction MUST go through `ak.<kind>.redact` or `ak.redaction` events to enforce redaction-specific capability checks and audit. See zh/models/event-and-patch.md §4.2.4."
+      "description": "An `ak.schema.patch.v1` `$op=\"unset\"` addressed a redactable content-carrier slot. The normative path set is registry/redactable-field-registry.json (Message / Strand / Morph `content` and `encrypted_content`) plus any Realm-schema field marked `redactable: true`; the description here is not the criterion. Absence of a content slot on the materialized object is reserved for `never authored` and `cleared by redaction`, so an ordinary update MUST NOT remove it. This is a slot-existence rule, not a capability boundary: `$op=\"set\"` on the same path is ordinary authoring and MUST be accepted even when the new value carries an empty body, and no patch op can reproduce the whole-object, terminal, audit-sealed effect of redaction. `metadata`, `encrypted_metadata`, `metadata.title`, `metadata.summary` and paths under `metadata.fields` are NOT covered and MUST accept `$op=\"unset\"`. See zh/models/event-and-patch.md §4.2.4."
     },
     {
       "code": "pcr_genesis_conflict",

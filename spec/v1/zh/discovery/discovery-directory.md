@@ -794,6 +794,60 @@ Directory MUST NOT：
 - 把 handle 解析结果缓存为全局 actor routing；缓存必须绑定 `handle`、claim digest、audience / scope、requester policy 与 expiry。
 - 执行 join、签发 invite token 或授予 Realm capability；Directory 只返回可验证寻址证据。
 
+#### 9.0.1 Requester proof wire 形态与绑定（normative）
+
+`resolve_target`、`resolve_organization`、`resolve_handle`、`resolve_agent_selector` 与
+`list_handles_for_subject` 的 `proofs[]` 复用通用非 Event detached-JWS proof 叶
+（`event-envelope.schema.json#/$defs/proof`），但**每个 request 对象族各自持有一个内联的
+`proofs[]` 节点与一个独立 context**。`directory-operations.schema.json` 是 DTO 容器而不是一个
+对象族，因此**不存在**覆盖全文件的 directory operation context；schema 侧以
+`x-arkret-proof-context` 逐字投影，
+[`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 是唯一真源：
+
+| 对象族 | operation | context |
+| --- | --- | --- |
+| `directory_resolve_target_request_body` | `ak.find.directory.read.resolve_target` | `ak.directory-resolve-target-request-proof-v1` |
+| `directory_resolve_organization_request_body` | `ak.find.directory.read.resolve_organization` | `ak.directory-resolve-organization-request-proof-v1` |
+| `directory_resolve_handle_request_body` | `ak.find.directory.read.resolve_handle` | `ak.directory-resolve-handle-request-proof-v1` |
+| `directory_resolve_agent_selector_request_body` | `ak.find.directory.read.resolve_agent_selector` | `ak.directory-resolve-agent-selector-request-proof-v1` |
+| `directory_list_handles_for_subject_request_body` | `ak.find.directory.read.list_handles_for_subject` | `ak.directory-list-handles-for-subject-request-proof-v1` |
+
+绑定按 §8.7.1 同一形态构造：先从闭合 request body 删除顶层 `proofs` 成员（不是置为 `null`），
+保留所有实际存在的 optional 字段，计算
+`payload_digest = SHA-256(JCS(request_without_proofs))` typed digest；每条 proof 的
+`payload_digest` MUST 与之 byte-identical。detached JWS 的 payload segment MUST 为空，并对下列
+唯一 canonical binding object 的 JCS bytes 签名：
+
+```json
+{
+  "context": "<上表中该对象族的 context>",
+  "payload_digest": "<proof.payload_digest>",
+  "issuer": "<request.requester>",
+  "operation_id": "<上表中该对象族的 operation>",
+  "verification_method": "<proof.verification_method>",
+  "created_at": "<proof.created_at>",
+  "audience": "<目标 Directory service DID>"
+}
+```
+
+`audience` MUST 为目标 Directory 的 service DID（单值），`domain` MUST 缺席，`proof_purpose`
+MUST 缺席（`governance_authorization` 只属于 §8.7.1 的写入面）。携带 `proofs` 的请求 MUST 同时
+携带本对象族定义的发起方字段，且 `issuer` MUST 与之 byte-for-byte 相同：`resolve_target` /
+`resolve_handle` / `list_handles_for_subject` 为 `requester`，`resolve_agent_selector` 为
+`requester`。`directory_resolve_organization_request_body` 没有发起方 wire 字段，其 binding
+object MUST 省略 `issuer`，签名者身份只由 `verification_method` 承载。
+
+除公共字段外，binding object 还 MUST 逐字加入该族的解析目标：`resolve_target` 加 `address`；
+`resolve_handle` 加 `handle`；`resolve_agent_selector` 加 `controller_handle` 与 `agent_slug`；
+`list_handles_for_subject` 加 `subject`；`resolve_organization` 的目标已完全落在
+`payload_digest` 内，不另加字段。完整逐族 binding fields 以 registry 的 `binding_fields` 为准。
+
+**Directory MUST 拒绝 context 与本 operation 对象族不一致的 proof**：在一个族下有效的签名不得
+被另一个族接受。`proof_challenge` 出现时，它随 `payload_digest` 一并被绑定，不另作签名域。
+**新鲜度**：Directory MUST 拒绝 `proof.created_at` 与接收时刻偏差超过 300 秒的 proof；需要更长
+窗口的调用方 MUST 重新签发，部署 MUST NOT 放宽该常量。proof 校验失败的受限解析 MUST 按 §9.2
+使用与不存在不可区分的统一拒绝，不得回传 proof 层的精确原因。
+
 ### 9.1 通用结果字段（normative）
 
 每条 search / resolve 结果 MUST 包含：

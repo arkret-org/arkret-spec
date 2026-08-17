@@ -111,7 +111,7 @@
     },
     "mls_group_ref": {
       "type": "string",
-      "pattern": "^ak:mls:[a-z0-9_]+:.+$",
+      "pattern": "^ak:mls:[a-z0-9_]+:[A-Za-z0-9._:-]+$",
       "description": "Reducer-derived reference to the independent MLS group bound to (realm_id, circle_id). Present only when encryption_profile='mls_rfc9420'. Populated by ak.circle.create reducer; not actor-supplied on wire."
     },
     "state": {

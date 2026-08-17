@@ -1,0 +1,114 @@
+{
+  "version": "2026-08-17",
+  "source_of_truth": true,
+  "description": "Canonical decision table for the account-status replica receiver classification defined in zh/identity/account-lifecycle.md section 3.1. A receiver of ak.peer.account_status.command.submit classifies an already transport- and proof-verified AccountStatusRecord by comparing it against exactly one baseline: the receiver's durable replica head for (account_authority_id, account_id). Rows are evaluated in the declared order and the first matching row decides the outcome.",
+  "comparison_baseline": "durable_replica_head",
+  "registry_rules": [
+    "The durable replica head is the only comparison baseline. A receiver MUST NOT classify a submission against a stored history row for the submitted status_seq, because how much history a receiver happens to retain is a local retention decision and MUST NOT change the typed outcome of a byte-identical request.",
+    "Rows are evaluated top to bottom and the first match wins. binding_version_rollback is evaluated before every sequence row so that a rolled-back binding can never be durably written by a submission that would otherwise advance the chain.",
+    "Within one head_state the sequence conditions are mutually exclusive and exhaustive over the four relations submitted.status_seq < head.status_seq, == head.status_seq, == head.status_seq + 1 and > head.status_seq + 1, so declaration order is documentation rather than a tie-break.",
+    "accepted and duplicate are the only terminal acks. duplicate means the durable head already is the submitted record, which is the only situation in which the replication objective for that record is genuinely met; it MUST NOT be returned for a lower status_seq, because that would let a bounded outbox mark a destination complete while the successor record is still unreplicated.",
+    "Every rejected row performs zero replica, receipt and outbox writes and is non-retryable for the exact submitted record. dependency_missing is the only outcome that keeps the exact record retryable, and it carries required_status_seq so the caller resolves the gap before resubmitting."
+  ],
+  "classifications": [
+    {
+      "name": "binding_version_rollback",
+      "head_state": "present",
+      "condition": "submitted.binding_version < head.binding_version",
+      "outcome": "rejected",
+      "error_code": "failed_precondition",
+      "reason_code": "account_status_binding_rollback",
+      "replica_writes": "none",
+      "retryable_for_exact_record": false,
+      "description": "The submission carries a binding version below the receiver's durable floor. Evaluated before the sequence rows so a rollback binding is never accepted by the advance branch."
+    },
+    {
+      "name": "genesis_admission",
+      "head_state": "absent",
+      "condition": "submitted.status_seq == 1",
+      "outcome": "accepted",
+      "error_code": null,
+      "reason_code": null,
+      "replica_writes": "advance",
+      "retryable_for_exact_record": false,
+      "description": "The receiver has no durable head yet and the submission is the genesis record. The replica is created at status_seq 1 in one atomic transaction."
+    },
+    {
+      "name": "genesis_gap",
+      "head_state": "absent",
+      "condition": "submitted.status_seq > 1",
+      "outcome": "dependency_missing",
+      "error_code": null,
+      "reason_code": null,
+      "replica_writes": "none",
+      "retryable_for_exact_record": true,
+      "description": "The receiver has no durable head and the submission is not the genesis record. The response carries required_status_seq = 1 and triggers a bounded resolve."
+    },
+    {
+      "name": "advance",
+      "head_state": "present",
+      "condition": "submitted.status_seq == head.status_seq + 1 && submitted.previous_account_status_record_id == head.account_status_record_id",
+      "outcome": "accepted",
+      "error_code": null,
+      "reason_code": null,
+      "replica_writes": "advance",
+      "retryable_for_exact_record": false,
+      "description": "The submission is the exact successor of the durable head and its predecessor reference matches. The replica advances by one in one atomic transaction."
+    },
+    {
+      "name": "fork_predecessor_mismatch",
+      "head_state": "present",
+      "condition": "submitted.status_seq == head.status_seq + 1 && submitted.previous_account_status_record_id != head.account_status_record_id",
+      "outcome": "rejected",
+      "error_code": "failed_precondition",
+      "reason_code": "account_status_record_fork",
+      "replica_writes": "none",
+      "retryable_for_exact_record": false,
+      "description": "The submission claims the next sequence but does not name the durable head as its predecessor. Automatic retry and gap recovery stop; the record is quarantined for operator investigation."
+    },
+    {
+      "name": "duplicate",
+      "head_state": "present",
+      "condition": "submitted.status_seq == head.status_seq && submitted.account_status_record_id == head.account_status_record_id",
+      "outcome": "duplicate",
+      "error_code": null,
+      "reason_code": null,
+      "replica_writes": "none",
+      "retryable_for_exact_record": false,
+      "description": "The submission is byte-identical to the durable head. This is the idempotent terminal ack: the replication objective for this record is met and the caller dequeues the destination."
+    },
+    {
+      "name": "fork_same_sequence",
+      "head_state": "present",
+      "condition": "submitted.status_seq == head.status_seq && submitted.account_status_record_id != head.account_status_record_id",
+      "outcome": "rejected",
+      "error_code": "failed_precondition",
+      "reason_code": "account_status_record_fork",
+      "replica_writes": "none",
+      "retryable_for_exact_record": false,
+      "description": "The durable head sequence already names a different record. Automatic retry and gap recovery stop; the record is quarantined for operator investigation."
+    },
+    {
+      "name": "stale",
+      "head_state": "present",
+      "condition": "submitted.status_seq < head.status_seq",
+      "outcome": "rejected",
+      "error_code": "failed_precondition",
+      "reason_code": "account_status_record_stale",
+      "replica_writes": "none",
+      "retryable_for_exact_record": false,
+      "description": "The submission is below the durable head. This holds even when the submitted record is byte-identical to a history row the receiver still stores for that status_seq: the baseline is the head, never a retained history row, so the outcome is stale and never duplicate."
+    },
+    {
+      "name": "sequence_gap",
+      "head_state": "present",
+      "condition": "submitted.status_seq > head.status_seq + 1",
+      "outcome": "dependency_missing",
+      "error_code": null,
+      "reason_code": null,
+      "replica_writes": "none",
+      "retryable_for_exact_record": true,
+      "description": "The submission is beyond the next sequence. The response carries required_status_seq = head.status_seq + 1 and triggers a bounded resolve; the exact record stays retryable once the gap is filled."
+    }
+  ]
+}

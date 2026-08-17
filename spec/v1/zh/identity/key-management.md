@@ -1048,7 +1048,7 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
 
    ```text
    {
-     "context": "ak.keys.backup_delete.v1",
+     "context": "ak.key-backup-delete-proof-v1",
      "operation": "ak.self.keys.backups.resource.delete",
      "request_id": <DELETE body request_id>,
      "principal_id": <authenticated principal>,
@@ -1067,6 +1067,16 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
    `payload_digest = "sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(transcript)))`。`reason`
    缺省 MUST 固定编码为 JSON `null`，不得省略该键；proof 的 `created_at` MUST 落在
    challenge window（`issued_at`..`expires_at`）内。
+
+   `context` 是本 consumer 在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)
+   登记的唯一对象族 context `ak.key-backup-delete-proof-v1`，其 registry row 以
+   `consumer_operation = "ak.self.keys.backups.resource.delete"` 声明归属。
+   [`high-risk-authority-proof.schema.json`](../../artifacts/schemas/high-risk-authority-proof.schema.json)
+   是**一套 wire leaf、多 consumer context**：leaf 自身不拥有 context，schema 根的
+   `x-arkret-proof-contexts` 逐字枚举全部已登记 consumer context。后续把该 family 复用到别的
+   高风险 operation 时，MUST 先登记该 operation 自己的 context row（带自己的
+   `consumer_operation`）并同步该注解，MUST NOT 复用本 context；用另一 consumer 的 context
+   生成的签名即使密码学验签通过也 MUST 拒绝。
 3. **验证与消费**。`DELETE` body 为闭合 `{request_id, challenge_id, proof, reason?}`。服务端
    MUST 先按当前 caller / path / audience / service 校验 challenge（重放、过期、path 不同、
    audience / service 不同一律 fail closed），再验证 proof 分支的授权（`principal_signing`
@@ -1082,7 +1092,7 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
 5. **conformance**。`ak.vector.key_backup.delete_authority.v1` MUST 覆盖：三个 high-risk
    分支的正例、普通 device proof 删除 active tail 被拒、非尾部单独删除被拒、quorum 去重 /
    低于 policy `k` 被拒、session 过期或已消费被拒、challenge 重放 / 过期被拒，以及篡改
-   `backup_id` / `reason` / `audience` / `nonce` 任一 transcript 字段后验签必然失败。
+   `backup_id` / `reason` / `audience` / `nonce` / `context` 任一 transcript 字段后验签必然失败。
 
 ### 7.9 Algorithm Agility & Forward Compatibility
 

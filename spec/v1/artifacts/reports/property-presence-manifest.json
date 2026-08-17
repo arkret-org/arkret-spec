@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9819,
+    "total_properties": 9822,
     "total_schema_documents": 160,
     "by_presence_class": {
       "optional": 2861,
       "optional_defaulted": 70,
-      "required": 6492,
+      "required": 6495,
       "required_nullable": 131,
       "tristate": 265
     },
@@ -13062,10 +13062,13 @@
         "ak.schema.snapshot.v1"
       ],
       "properties": {
+        "/$defs/snapshot_witness_attestation/properties/proof": "required",
+        "/$defs/snapshot_witness_attestation/properties/witness_id": "required",
         "/allOf/0/if/properties/security_class": "required",
         "/allOf/0/then/properties/verification_hints": "required_nullable",
         "/allOf/0/then/properties/verification_hints/properties/verification_profile": "required",
         "/properties/authority_binding": "required",
+        "/properties/authority_binding/allOf/0/if/properties/authority_kind": "required",
         "/properties/authority_binding/properties/auth_frontier": "required",
         "/properties/authority_binding/properties/auth_state_digest": "required",
         "/properties/authority_binding/properties/authority_kind": "required",
@@ -13108,6 +13111,7 @@
         "/properties/verification_hints/properties/witness_quorum": "optional"
       },
       "conditionally_required": [
+        "/properties/authority_binding/properties/witness_attestations",
         "/properties/verification_hints"
       ]
     },

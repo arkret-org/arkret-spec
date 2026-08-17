@@ -1031,7 +1031,7 @@ organization_id, full_id, local_admin_subject, version_id, log_head_digest, veri
 1. `receipt_claims` 精确为不含 `registration_receipt_id` 与 `proof` 的对象
    `{organization_id, full_id, registration_generation, version_id, log_head_digest, control_proof_kind,
    control_key_digest, local_admin_subject, delegated_scopes, status, issued_at, expires_at,
-   issuer_service_id}`；`registration_receipt_id = "ak:organization-registration-receipt:" ||
+   issuer_service_id}`；`registration_receipt_id = "ak:organization_registration_receipt:" ||
    hex(SHA-256(canonical_json(receipt_claims)))`。
 2. `document` 是加入 `registration_receipt_id`、但删除整个 `proof` 后的完整 receipt；
    `proof.payload_digest = "sha256:" || hex(SHA-256(canonical_json(document)))`。

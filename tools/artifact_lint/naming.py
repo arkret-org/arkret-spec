@@ -327,12 +327,43 @@ def nc_set_001(candidate: str) -> bool:
     return candidate.startswith(FORBIDDEN_SET_PREFIXES)
 
 
-def nc_hash_001(candidate: str) -> bool:
-    """Existing hash-vocabulary rule: no _hash/_hashes, no hash_profile/algorithm."""
+def split_name_words(name: str) -> list[str]:
+    """Split snake_case, camelCase and PascalCase into lowercase words.
 
-    if candidate in {"hash_profile", "hash_algorithm", "hash", "hashes"}:
+    The hash vocabulary is a *word* rule, not a substring or suffix rule. A
+    suffix test on the raw string only sees ``_hash``/``_hashes`` and therefore
+    lets a camelCase spelling such as ``nextKeyHashes`` through, which turns an
+    accidental lexical blind spot into the only thing keeping a field legal.
+    Splitting first makes the same judgement in every casing style, while
+    keeping words that merely *contain* the letters (``hashtag``) intact.
+    """
+
+    words: list[str] = []
+    for chunk in name.split("_"):
+        if chunk:
+            words.extend(re.findall(r"[A-Z]+(?![a-z])|[A-Z][a-z0-9]*|[a-z0-9]+", chunk))
+    return [word.lower() for word in words]
+
+
+HASH_WORDS = frozenset({"hash", "hashes"})
+
+
+def nc_hash_001(candidate: str) -> bool:
+    """Hash-vocabulary rule, decided on word boundaries in any casing style.
+
+    A name is rejected when its final word is ``hash``/``hashes`` (the digest
+    output spelling, which must be ``<noun>_digest``) or when its head word is
+    ``hash`` with a qualifier after it (``hash_profile``, ``hash_algorithm``,
+    ``hashAlgorithm``), which is the selector spelling that must be
+    ``<noun>_algorithm``.
+    """
+
+    words = split_name_words(candidate)
+    if not words:
+        return False
+    if words[-1] in HASH_WORDS:
         return True
-    return candidate.endswith(("_hash", "_hashes"))
+    return words[0] == "hash"
 
 
 def nc_classification_001(candidate: str) -> bool:

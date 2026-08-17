@@ -39,7 +39,7 @@
       "semantic_outcome": "accept",
       "notes": "Every binding field closes one replay path: purpose separates this signature from any other the organization makes, audience and trust_domain pin it to this deployment, origin pins the HTTP surface, nonce makes it unrepeatable, and the 300-second window bounds how long a captured proof stays useful.",
       "instance": {
-        "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
+        "challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "purpose": "ak.organization-registration-control-proof-v1",
@@ -64,7 +64,7 @@
       "instance": {
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
-        "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
+        "challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof": {
@@ -94,7 +94,7 @@
       "instance": {
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
-        "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
+        "challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof": {
@@ -130,7 +130,7 @@
       "semantic_outcome": "accept",
       "notes": "The receipt proves this deployment accepted a local binding and nothing more: it is not a Realm capability, not membership, not a notary designation and not a service delegation. control_proof_kind travels alongside control_key_digest so a later auditor can tell which commitment the digest is over without refetching the request.",
       "instance": {
-        "registration_receipt_id": "ak:organization-registration-receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
+        "registration_receipt_id": "ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 1,
@@ -207,7 +207,7 @@
       "expected_reason_code": "schema_violation",
       "notes": "An unbounded receipt would let a single first-time control proof authorise the organization relationship indefinitely, which is exactly what the refresh operation exists to prevent.",
       "instance": {
-        "registration_receipt_id": "ak:organization-registration-receipt:83d581e0f71e065f802934f17c562f542110c475b3b769ca833cd5ad48fa31f7",
+        "registration_receipt_id": "ak:organization_registration_receipt:83d581e0f71e065f802934f17c562f542110c475b3b769ca833cd5ad48fa31f7",
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 1,
@@ -259,7 +259,7 @@
       "instance": {
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
-        "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
+        "challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof": {
@@ -296,7 +296,7 @@
       "expected_reason_code": "organization_registration_challenge_invalid",
       "notes": "Schema-valid but the window is one hour. JSON Schema cannot compare two timestamps, so the receiver enforces the 300-second ceiling; a longer window buys nothing and widens the interval in which a captured proof remains usable.",
       "instance": {
-        "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
+        "challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "purpose": "ak.organization-registration-control-proof-v1",
@@ -343,14 +343,14 @@
       "expected_reason_code": "organization_registration_challenge_invalid",
       "notes": "Schema-valid but the challenge in challenge_valid requested only organization_profile_manage. The same challenge was already consumed by a successful request under a different canonical digest; consumption permits only a byte-identical retry. A scope mismatch means the control proof was produced for different authority than is now being claimed, so the binding MUST NOT be established.",
       "precondition": {
-        "consumed_challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
+        "consumed_challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "successful_request_digest": "sha256:5f17ec551cf7ea802fc7d698fb22837c9c2d9dfd40d61b9361a12d57daf3fe1b",
         "submitted_request_digest": "sha256:bac8a3c6a131ecb24b5fe196a25fedd134510891d969997a5e588ddf63bc996b"
       },
       "instance": {
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
-        "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
+        "challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof": {
@@ -383,7 +383,7 @@
       "instance": {
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
-        "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
+        "challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "4-zFixtureVersionFour",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof": {
@@ -409,7 +409,7 @@
       "expected_reason_code": "organization_registration_stale",
       "notes": "Schema-valid stale receipt after a controller rotation. Low-risk reads may still consume it; a high-risk path MUST fail closed until refresh succeeds. stale rather than auto-invalidation was chosen because auto-invalidation lets an attacker force an unbind by triggering one rotation, while treating it as still valid lets a stolen-then-rotated organization keep its binding.",
       "instance": {
-        "registration_receipt_id": "ak:organization-registration-receipt:b0ba060fc3a15a3ccf437b075b1b69df2c7ca1399ec8ffb326597b4a66cf8957",
+        "registration_receipt_id": "ak:organization_registration_receipt:b0ba060fc3a15a3ccf437b075b1b69df2c7ca1399ec8ffb326597b4a66cf8957",
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 1,
@@ -445,7 +445,7 @@
       "instance": {
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
-        "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
+        "challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof": {
@@ -473,7 +473,7 @@
       "semantic_outcome": "accept",
       "notes": "Byte-identical retry of the request that successfully consumed this challenge: the challenge-consumption ledger digest matches, generation stays 1 and created is false. This is the only ensure replay that is idempotent; merely repeating organization/admin/scopes under a different challenge or request digest does not qualify.",
       "precondition": {
-        "consumed_challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
+        "consumed_challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "successful_request_digest": "sha256:5f17ec551cf7ea802fc7d698fb22837c9c2d9dfd40d61b9361a12d57daf3fe1b",
         "submitted_request_digest": "sha256:5f17ec551cf7ea802fc7d698fb22837c9c2d9dfd40d61b9361a12d57daf3fe1b"
       },
@@ -483,7 +483,7 @@
         "registration_generation": 1,
         "version_id": "3-zFixtureVersionThree",
         "registration_receipt": {
-          "registration_receipt_id": "ak:organization-registration-receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
+          "registration_receipt_id": "ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
           "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
           "registration_generation": 1,
@@ -522,7 +522,7 @@
         "registration_generation": 2,
         "version_id": "3-zFixtureVersionThree",
         "registration_receipt": {
-          "registration_receipt_id": "ak:organization-registration-receipt:b92cf58c6758a128fd008a0fd1d3995e5d7f3f47e4b2bf06b5ec391bf6bbd09a",
+          "registration_receipt_id": "ak:organization_registration_receipt:b92cf58c6758a128fd008a0fd1d3995e5d7f3f47e4b2bf06b5ec391bf6bbd09a",
           "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
           "registration_generation": 2,
@@ -561,7 +561,7 @@
         "registration_generation": 2,
         "version_id": "3-zFixtureVersionThree",
         "registration_receipt": {
-          "registration_receipt_id": "ak:organization-registration-receipt:e11a6b849bac3054a61a24386d1592f41dda278e53566ada445c710394a3af90",
+          "registration_receipt_id": "ak:organization_registration_receipt:e11a6b849bac3054a61a24386d1592f41dda278e53566ada445c710394a3af90",
           "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
           "registration_generation": 2,
@@ -602,7 +602,7 @@
         "current_registration_status": "active"
       },
       "instance": {
-        "registration_receipt_id": "ak:organization-registration-receipt:a0c4bd02ab8004a5917ad398d7b1578f4ec2ed249fce725507aa6c757563d404",
+        "registration_receipt_id": "ak:organization_registration_receipt:a0c4bd02ab8004a5917ad398d7b1578f4ec2ed249fce725507aa6c757563d404",
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 1,

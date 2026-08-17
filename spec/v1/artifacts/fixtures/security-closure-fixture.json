@@ -2004,6 +2004,58 @@
           }
         },
         {
+          "name": "byte_identical_lower_sequence_is_stale_not_duplicate",
+          "input": {
+            "current_status_seq": 3,
+            "submitted_status_seq": 2,
+            "replica_history_row_present_for_submitted_status_seq": true,
+            "submitted_record_is_byte_identical_to_stored_history_row": true,
+            "record_identity_and_proof_valid": true
+          },
+          "expected": {
+            "outcome": "rejected",
+            "error_code": "failed_precondition",
+            "reason_code": "account_status_record_stale",
+            "retryable": false,
+            "invariants": [
+              "the durable head is the only comparison baseline",
+              "a retained history row for the submitted status_seq never downgrades the outcome to duplicate",
+              "the replica and outbox remain unchanged"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account_status.issuer_ledger.v1",
+              "preconditions": {
+                "current_status_seq": 3,
+                "replica_retains_status_seq_2_history_row": true
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "byte_identical_lower_sequence_is_stale_not_duplicate",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "submitted_status_seq": 2,
+                "submitted_record_is_byte_identical_to_stored_history_row": true,
+                "record_identity_and_proof_valid": true
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "account_status_record_stale",
+              "shared_effects": "none"
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "error_code": "failed_precondition",
+              "reason_code": "account_status_record_stale",
+              "retryable": false
+            },
+            "expected_audit_reason": "account_status_record_stale"
+          }
+        },
+        {
           "name": "chain_conflict_is_typed_fork_and_quarantined",
           "input": {
             "current_status_seq": 3,

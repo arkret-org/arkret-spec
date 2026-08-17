@@ -17,6 +17,7 @@ from .core import (
 
 from .foundation import (
     check_event_id_suite_registry,
+    check_event_kind_verb_form_registration,
     check_id_form_wire_schema_alignment,
     check_pcr_exposure_registry,
     check_proof_context_registry,
@@ -27,6 +28,9 @@ from .foundation import (
     check_state_contract_closure,
     check_text_files_utf8_no_nul,
     check_timestamp_profile_single_source,
+    check_typed_id_carrier_sweep_closure,
+    check_typed_id_payload_form_closure,
+    check_typed_id_prefix_registry_closure,
 )
 
 from .schemas import (
@@ -105,6 +109,11 @@ from .fixtures import (
     check_websocket_binding_fixture,
 )
 
+from .naming_contracts import (
+    check_identifier_value_categories,
+    check_naming_rule_coverage_matrix,
+)
+
 from .prose import (
     check_account_notification_prose_schema_alignment,
     check_canonical_digest_alias,
@@ -145,6 +154,14 @@ from .safety import (
     check_openapi_no_floating_number,
     check_operations_error_mapping_closure,
     check_service_kind_registry,
+)
+
+from .redactable_fields import (
+    check_redactable_field_registry,
+)
+
+from .account_status_replica import (
+    check_account_status_replica_decision_table,
 )
 
 
@@ -218,6 +235,22 @@ def main(argv: list[str] | None = None) -> int:
             ("retired_event_id_contract", lambda: check_retired_event_id_contract(lint)),
             ("registries", lambda: check_registries(lint)),
             ("id_form_wire_schema", lambda: check_id_form_wire_schema_alignment(lint)),
+            (
+                "typed_id_prefix_closure",
+                lambda: check_typed_id_prefix_registry_closure(lint),
+            ),
+            (
+                "typed_id_payload_form_closure",
+                lambda: check_typed_id_payload_form_closure(lint),
+            ),
+            (
+                "typed_id_carrier_sweep",
+                lambda: check_typed_id_carrier_sweep_closure(lint),
+            ),
+            (
+                "event_kind_verb_form",
+                lambda: check_event_kind_verb_form_registration(lint),
+            ),
             ("state_contract_closure", lambda: check_state_contract_closure(lint)),
             ("protocol_layers", lambda: check_protocol_layer_registry(lint)),
         ],
@@ -366,6 +399,8 @@ def main(argv: list[str] | None = None) -> int:
             ("markdown_links", lambda: check_markdown_links(lint)),
             ("markdown_examples", lambda: check_markdown_examples(lint, known)),
             ("naming_predicates", lambda: check_naming_predicates(lint)),
+            ("naming_rule_coverage", lambda: check_naming_rule_coverage_matrix(lint)),
+            ("identifier_categories", lambda: check_identifier_value_categories(lint)),
             ("profile_graph", lambda: check_profile_dependency_graph(lint)),
             ("field_matrix", lambda: check_common_object_field_matrix(lint)),
             ("keypackage_claim_proof_shape", lambda: check_keypackage_claim_proof_shape(lint)),
@@ -403,6 +438,11 @@ def main(argv: list[str] | None = None) -> int:
             ("error_mapping", lambda: check_operations_error_mapping_closure(lint)),
             ("fixture_reasons", lambda: check_fixture_reject_reason_closure(lint)),
             ("error_closure", lambda: check_error_code_closure(lint)),
+            ("redactable_fields", lambda: check_redactable_field_registry(lint)),
+            (
+                "account_status_replica_decisions",
+                lambda: check_account_status_replica_decision_table(lint),
+            ),
             ("openapi_numbers", lambda: check_openapi_no_floating_number(lint)),
             ("field_order", lambda: check_field_order(lint)),
             ("required_field_tables", lambda: check_model_required_field_table_coverage(lint)),

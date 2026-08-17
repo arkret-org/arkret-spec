@@ -2339,7 +2339,14 @@ def check_protocol_layer_registry(lint: Lint) -> None:
 
 
 def check_id_form_wire_schema_alignment(lint: Lint) -> None:
-    """Join ID classification, derived wire forms, schema regexes, and storage rules."""
+    """Join ID classification, derived wire forms, wire schema regexes, and storage rules.
+
+    The regex side is collected from every shipped validation carrier, JSON
+    Schema and OpenAPI alike, and each carrier is expanded into its concrete
+    alternation branches. A union such as ``^ak:(realm|space):<payload>$``
+    therefore constrains ``realm`` and ``space`` individually instead of
+    escaping a ``startswith`` probe that only ever saw single-kind regexes.
+    """
     registry_path = ARTIFACTS / "registry" / "id-kind-registry.json"
     registry = load_json(lint, registry_path)
     if not isinstance(registry, dict):
@@ -2358,14 +2365,7 @@ def check_id_form_wire_schema_alignment(lint: Lint) -> None:
     if "raw 33-byte token" not in storage_text or "must not use a native uuid column" not in storage_text:
         lint.fail(registry_path, "storage_rules must require 33-byte digest tokens outside native UUID columns")
 
-    pattern_rows: list[tuple[Path, str]] = []
-    for schema_path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
-        schema = load_json(lint, schema_path)
-        if not isinstance(schema, dict):
-            continue
-        for _json_path, value, key in walk_json(schema):
-            if key == "pattern" and isinstance(value, str):
-                pattern_rows.append((schema_path, value))
+    branches_by_kind = typed_id_payload_branches_by_kind(lint)
 
     for row in rows:
         if not isinstance(row, dict):
@@ -2375,46 +2375,1180 @@ def check_id_form_wire_schema_alignment(lint: Lint) -> None:
         wire_form = row.get("wire_form")
         if not isinstance(kind, str):
             continue
+        matching = branches_by_kind.get(kind, [])
         if id_form == "event_derived":
             expected_wire = f"ak:{kind}:<44-char-event-token>"
             if wire_form != expected_wire:
                 lint.fail(registry_path, f"{kind} event-derived wire_form must equal {expected_wire!r}")
-            matching = [
-                (path, pattern)
-                for path, pattern in pattern_rows
-                if pattern.startswith(f"^ak:{kind}:")
-            ]
             if not matching:
                 lint.fail(registry_path, f"{kind} event-derived ID has no schema regex")
-            if matching and not any("{44}" in pattern for _, pattern in matching):
+            if matching and not any(
+                payload.startswith(EVENT_TOKEN_PAYLOAD_REGEX) for *_, payload in matching
+            ):
                 lint.fail(registry_path, f"event-derived {kind} schemas never require a 44-character token")
-            for schema_path, pattern in matching:
-                if "{44}" not in pattern and "-7[0-9a-f]{3}-" in pattern:
-                    lint.fail(schema_path, f"event-derived {kind} schema retains a UUID-only pattern")
+            report_inverted_id_form_payloads(lint, kind, "event-derived", matching)
         elif id_form == "suite_tagged_full_digest":
             expected_wire = f"ak:{kind}:<44-char-suite-tagged-full-digest-token>"
             if wire_form != expected_wire:
                 lint.fail(registry_path, f"{kind} suite-tagged wire_form must equal {expected_wire!r}")
-            matching = [
-                (path, pattern)
-                for path, pattern in pattern_rows
-                if pattern.startswith(f"^ak:{kind}:")
-            ]
             if not matching:
                 lint.fail(registry_path, f"{kind} suite-tagged ID has no schema regex")
-            if matching and not any("{44}" in pattern for _, pattern in matching):
+            if matching and not any(
+                payload.startswith(EVENT_TOKEN_PAYLOAD_REGEX) for *_, payload in matching
+            ):
                 lint.fail(registry_path, f"suite-tagged {kind} schemas never require a 44-character token")
+            report_inverted_id_form_payloads(lint, kind, "suite-tagged", matching)
         elif id_form == "producer_allocated":
             expected_wire = f"ak:{kind}:<uuidv7>"
             if wire_form != expected_wire:
                 lint.fail(registry_path, f"{kind} producer wire_form must equal {expected_wire!r}")
-            matching = [
-                (path, pattern)
-                for path, pattern in pattern_rows
-                if pattern.startswith(f"^ak:{kind}:")
-            ]
-            if matching and not any("-7[0-9a-f]{3}-" in pattern for _, pattern in matching):
+            if matching and not any(
+                payload.startswith(PRODUCER_UUID_PAYLOAD_REGEX) for *_, payload in matching
+            ):
                 lint.fail(registry_path, f"producer-allocated {kind} schemas never require UUIDv7")
+            for path, json_path, pattern, payload in matching:
+                if not payload.startswith(EVENT_TOKEN_PAYLOAD_REGEX):
+                    continue
+                lint.fail(
+                    path,
+                    f"{json_path} validates producer-allocated ak:{kind} with a 44-character "
+                    f"token payload {payload!r} (carrier {pattern!r}); the canonical wire form is "
+                    f"ak:{kind}:{PRODUCER_UUID_PAYLOAD_REGEX}",
+                )
+
+
+TYPED_ID_WIRE_PREFIX_RE = re.compile(r"^ak:([A-Za-z0-9_-]+):")
+TYPED_ID_BRANCH_PREFIX_RE = re.compile(r"^\^?ak:([A-Za-z0-9_-]+):")
+REGEX_QUANTIFIER_RE = re.compile(r"[*+?]|\{\d+(?:,\d*)?\}")
+REGEX_LITERAL_BRANCH_LIMIT = 512
+REGEX_LITERAL_TEXT_LIMIT = 256
+EVENT_TOKEN_PAYLOAD_REGEX = "[A-Za-z0-9_-]{44}"
+PRODUCER_UUID_PAYLOAD_REGEX = (
+    "[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
+)
+UUID_PAYLOAD_PREFIX_RE = re.compile(r"^\[0-9a-f\]\{8\}-\[0-9a-f\]\{4\}-")
+
+
+def report_inverted_id_form_payloads(
+    lint: Lint,
+    kind: str,
+    label: str,
+    matching: list[tuple[Path, str, str, str]],
+) -> None:
+    """Fail on a digest-token kind whose carrier validates a UUID payload instead.
+
+    This is the inverted contract the OpenAPI mirror shipped: the canonical
+    44-character token was rejected while a UUID shape the protocol declares
+    permanently invalid was accepted. Any UUID payload is rejected, not only the
+    retired version-8 layout, because no digest-token kind has a UUID form at all.
+    """
+    for path, json_path, pattern, payload in matching:
+        if not UUID_PAYLOAD_PREFIX_RE.match(payload):
+            continue
+        lint.fail(
+            path,
+            f"{json_path} validates {label} ak:{kind} with a UUID payload {payload!r} "
+            f"(carrier {pattern!r}); the canonical wire form is "
+            f"ak:{kind}:{EVENT_TOKEN_PAYLOAD_REGEX}",
+        )
+
+
+def typed_id_wire_prefix(wire_form: object) -> str | None:
+    """Parse the canonical ``ak:<segment>:`` prefix out of a registry wire_form.
+
+    Both ``id_kinds`` and ``special_forms`` declare their prefix inside
+    ``wire_form``, so the gate never needs a hand-written allowlist that cannot
+    be validated back against the registry.
+    """
+    if not isinstance(wire_form, str):
+        return None
+    match = TYPED_ID_WIRE_PREFIX_RE.match(wire_form)
+    if match is None:
+        return None
+    return f"ak:{match.group(1)}:"
+
+
+def registered_typed_id_wire_prefixes(
+    registry: object,
+) -> tuple[dict[str, str], list[str]]:
+    """Return {canonical wire prefix: kind} plus registry-side defects."""
+    prefixes: dict[str, str] = {}
+    errors: list[str] = []
+    if not isinstance(registry, dict):
+        return prefixes, ["id kind registry is not an object"]
+    for section in ("id_kinds", "special_forms"):
+        rows = registry.get(section)
+        if not isinstance(rows, list):
+            errors.append(f"{section} must be an array")
+            continue
+        for row in rows:
+            if not isinstance(row, dict):
+                errors.append(f"{section} rows must be objects")
+                continue
+            kind = row.get("kind")
+            wire_form = row.get("wire_form")
+            if not isinstance(kind, str) or not kind:
+                errors.append(f"{section} row has a missing or non-string kind")
+                continue
+            prefix = typed_id_wire_prefix(wire_form)
+            if prefix is None:
+                errors.append(
+                    f"{section} row {kind} wire_form {wire_form!r} does not start with a "
+                    "parsable ak:<segment>: prefix"
+                )
+                continue
+            segment = prefix[3:-1]
+            if segment != kind and not row.get("wire_segment_rationale"):
+                errors.append(
+                    f"{section} row {kind} declares wire segment {segment!r}; a segment that "
+                    "differs from its kind requires a non-empty wire_segment_rationale"
+                )
+            owner = prefixes.get(prefix)
+            if owner is not None and owner != kind:
+                errors.append(
+                    f"wire prefix {prefix!r} is claimed by both {owner!r} and {kind!r}; "
+                    "a prefix MUST resolve to exactly one registered kind"
+                )
+            prefixes[prefix] = kind
+    return prefixes, errors
+
+
+def _regex_close(states: list[tuple[str, bool]]) -> list[tuple[str, bool]]:
+    return [(text, False) for text, _ in states]
+
+
+def _regex_append(states: list[tuple[str, bool]], text: str) -> list[tuple[str, bool]]:
+    grown: list[tuple[str, bool]] = []
+    for current, open_ in states:
+        if not open_ or len(current) >= REGEX_LITERAL_TEXT_LIMIT:
+            grown.append((current, False))
+        else:
+            grown.append((current + text, True))
+    return grown
+
+
+def _regex_dedupe(states: list[tuple[str, bool]]) -> list[tuple[str, bool]]:
+    seen: dict[tuple[str, bool], None] = {}
+    for state in states:
+        seen.setdefault(state, None)
+    trimmed = list(seen)
+    if len(trimmed) > REGEX_LITERAL_BRANCH_LIMIT:
+        return _regex_close(trimmed[:REGEX_LITERAL_BRANCH_LIMIT])
+    return trimmed
+
+
+def _regex_skip_class(pattern: str, index: int) -> int:
+    index += 1
+    if index < len(pattern) and pattern[index] == "^":
+        index += 1
+    if index < len(pattern) and pattern[index] == "]":
+        index += 1
+    while index < len(pattern) and pattern[index] != "]":
+        index += 2 if pattern[index] == "\\" else 1
+    return min(index + 1, len(pattern))
+
+
+def _regex_skip_group(pattern: str, index: int) -> int:
+    depth = 1
+    while index < len(pattern) and depth:
+        char = pattern[index]
+        if char == "\\":
+            index += 1
+        elif char == "[":
+            index = _regex_skip_class(pattern, index) - 1
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        index += 1
+    return index
+
+
+def _regex_read_quantifier(pattern: str, index: int) -> tuple[bool, int]:
+    match = REGEX_QUANTIFIER_RE.match(pattern, index)
+    if match is None:
+        return False, index
+    index = match.end()
+    if index < len(pattern) and pattern[index] in "?+":
+        index += 1
+    return True, index
+
+
+def _regex_parse_sequence(
+    pattern: str, index: int
+) -> tuple[list[tuple[str, bool]], int]:
+    states: list[tuple[str, bool]] = [("", True)]
+    while index < len(pattern) and pattern[index] not in "|)":
+        char = pattern[index]
+        if char in "^$":
+            index += 1
+            continue
+        if char == "(":
+            index += 1
+            if pattern.startswith("?:", index):
+                index += 2
+            elif pattern.startswith("?", index):
+                index = _regex_skip_group(pattern, index)
+                _, index = _regex_read_quantifier(pattern, index)
+                states = _regex_close(states)
+                continue
+            inner, index = _regex_parse_alternation(pattern, index)
+            if index >= len(pattern) or pattern[index] != ")":
+                return _regex_close(states), len(pattern)
+            index += 1
+            quantified, index = _regex_read_quantifier(pattern, index)
+            if quantified:
+                states = _regex_close(states)
+                continue
+            merged: list[tuple[str, bool]] = []
+            for text, open_ in states:
+                if not open_:
+                    merged.append((text, False))
+                    continue
+                for inner_text, inner_open in inner:
+                    merged.append((text + inner_text, inner_open))
+            states = _regex_dedupe(merged)
+            continue
+        if char == "[":
+            index = _regex_skip_class(pattern, index)
+            _, index = _regex_read_quantifier(pattern, index)
+            states = _regex_close(states)
+            continue
+        if char == ".":
+            index += 1
+            _, index = _regex_read_quantifier(pattern, index)
+            states = _regex_close(states)
+            continue
+        if char == "\\":
+            if index + 1 >= len(pattern):
+                return _regex_close(states), len(pattern)
+            escaped = pattern[index + 1]
+            index += 2
+            quantified, index = _regex_read_quantifier(pattern, index)
+            if quantified or escaped.isalnum():
+                states = _regex_close(states)
+            else:
+                states = _regex_append(states, escaped)
+            continue
+        index += 1
+        quantified, index = _regex_read_quantifier(pattern, index)
+        if quantified:
+            states = _regex_close(states)
+        else:
+            states = _regex_append(states, char)
+    return states, index
+
+
+def _regex_parse_alternation(
+    pattern: str, index: int
+) -> tuple[list[tuple[str, bool]], int]:
+    branches, index = _regex_parse_sequence(pattern, index)
+    while index < len(pattern) and pattern[index] == "|":
+        more, index = _regex_parse_sequence(pattern, index + 1)
+        branches = _regex_dedupe(branches + more)
+    return branches, index
+
+
+def regex_literal_branches(pattern: str) -> list[tuple[str, bool]]:
+    """Expand a JSON Schema regex into ``(literal text, is_complete)`` branches.
+
+    ``is_complete`` is False when the branch stopped at a character class,
+    wildcard, quantifier or lookaround, meaning the literal text only covers a
+    prefix of what that branch can accept. Grouped and union patterns are
+    expanded, so ``^ak:(a|b):x$`` yields both concrete branches instead of one
+    opaque string.
+    """
+    branches, _ = _regex_parse_alternation(pattern, 0)
+    return branches
+
+
+def _regex_source_quantifier(pattern: str, index: int) -> tuple[str, int]:
+    match = REGEX_QUANTIFIER_RE.match(pattern, index)
+    if match is None:
+        return "", index
+    end = match.end()
+    if end < len(pattern) and pattern[end] in "?+":
+        end += 1
+    return pattern[index:end], end
+
+
+def _regex_expansion_dedupe(branches: list[str]) -> list[str]:
+    seen: dict[str, None] = {}
+    for branch in branches:
+        seen.setdefault(branch, None)
+    return list(seen)[:REGEX_LITERAL_BRANCH_LIMIT]
+
+
+def _regex_expand_sequence(pattern: str, index: int) -> tuple[list[str], int]:
+    branches = [""]
+    while index < len(pattern) and pattern[index] not in "|)":
+        char = pattern[index]
+        if char == "(":
+            start = index
+            index += 1
+            if pattern.startswith("?:", index):
+                index += 2
+            elif pattern.startswith("?", index):
+                end = _regex_skip_group(pattern, index)
+                _, end = _regex_source_quantifier(pattern, end)
+                branches = [text + pattern[start:end] for text in branches]
+                index = end
+                continue
+            inner, index = _regex_expand_alternation(pattern, index)
+            if index >= len(pattern) or pattern[index] != ")":
+                return [text + pattern[start:] for text in branches], len(pattern)
+            index += 1
+            quantifier, index = _regex_source_quantifier(pattern, index)
+            if quantifier:
+                branches = [text + pattern[start:index] for text in branches]
+                continue
+            branches = _regex_expansion_dedupe(
+                [text + option for text in branches for option in inner]
+            )
+            continue
+        if char == "[":
+            end = _regex_skip_class(pattern, index)
+            _, end = _regex_source_quantifier(pattern, end)
+            branches = [text + pattern[index:end] for text in branches]
+            index = end
+            continue
+        if char == "\\":
+            end = min(index + 2, len(pattern))
+            _, end = _regex_source_quantifier(pattern, end)
+            branches = [text + pattern[index:end] for text in branches]
+            index = end
+            continue
+        end = index + 1
+        _, end = _regex_source_quantifier(pattern, end)
+        branches = [text + pattern[index:end] for text in branches]
+        index = end
+    return branches, index
+
+
+def _regex_expand_alternation(pattern: str, index: int) -> tuple[list[str], int]:
+    branches, index = _regex_expand_sequence(pattern, index)
+    while index < len(pattern) and pattern[index] == "|":
+        more, index = _regex_expand_sequence(pattern, index + 1)
+        branches = _regex_expansion_dedupe(branches + more)
+    return branches, index
+
+
+def regex_alternation_expansions(pattern: str) -> list[str]:
+    """Expand one regex into a concrete regex per alternation branch.
+
+    ``regex_literal_branches`` keeps only the literal head of a branch, which is
+    enough to read a typed-ID prefix but says nothing about the payload that
+    follows it. This expander preserves regex source instead, so
+    ``^ak:(realm|space):[A-Za-z0-9_-]{44}$`` becomes two self-contained regexes
+    whose payload can be compared against the id_form the registry declares.
+    Character classes, escapes and quantified groups are copied verbatim: they
+    are opaque to the caller, not silently dropped.
+    """
+    branches, _ = _regex_expand_alternation(pattern, 0)
+    return branches
+
+
+def typed_id_payload_branches(pattern: str) -> list[tuple[str, str]]:
+    """Return ``(kind segment, payload regex)`` per typed-ID branch of one regex.
+
+    A branch whose kind segment is itself a character class declares no literal
+    kind, so it yields nothing; there is no registry row to hold it to.
+    """
+    return [
+        (segment, payload)
+        for segment, payload, _anchored in typed_id_anchored_payload_branches(pattern)
+    ]
+
+
+def typed_id_anchored_payload_branches(pattern: str) -> list[tuple[str, str, bool]]:
+    """Return ``(kind segment, payload regex, end anchored)`` per typed-ID branch.
+
+    Whether the branch terminates matters as much as what it spells: a carrier
+    that stops at ``^ak:cell:<component>:`` constrains nothing after the anchor,
+    so an unterminated branch accepts every trailing byte the registry never
+    declared. The anchor flag is kept beside the payload so one closure can hold
+    both facts instead of re-parsing the regex.
+    """
+    branches: list[tuple[str, str, bool]] = []
+    for branch in regex_alternation_expansions(pattern):
+        match = TYPED_ID_BRANCH_PREFIX_RE.match(branch)
+        if match is None:
+            continue
+        payload = branch[match.end():]
+        anchored = payload.endswith("$")
+        if anchored:
+            payload = payload[:-1]
+        branches.append((match.group(1), payload, anchored))
+    return branches
+
+
+def regex_carriers_in_document(document: Any) -> list[tuple[str, str]]:
+    """Return every regex that validates wire text in one document.
+
+    ``pattern`` constrains a value, ``patternProperties`` keys constrain object
+    keys, and both are shipped validation. Sweeping only ``pattern`` left typed
+    IDs used as object keys outside every closure.
+    """
+    carriers: list[tuple[str, str]] = []
+    if not isinstance(document, dict):
+        return carriers
+    for json_path, value, key in walk_json(document):
+        if key == "pattern" and isinstance(value, str):
+            carriers.append((json_path, value))
+        elif key == "patternProperties" and isinstance(value, dict):
+            for member in value:
+                if isinstance(member, str):
+                    carriers.append((f"{json_path}[{member}]", member))
+    return carriers
+
+
+def literal_typed_id_prefixes(value: str) -> set[str]:
+    """Return the literal ``ak:<segment>:`` prefix carried by one literal string.
+
+    A branch whose kind segment never terminates in literal text (``^ak:[a-z_]+:``
+    and friends) resolves to nothing: it declares no literal prefix, so there is
+    nothing for the registry to close over.
+    """
+    if not value.startswith("ak:"):
+        return set()
+    remainder = value[3:]
+    boundary = remainder.find(":")
+    if boundary <= 0:
+        return set()
+    return {f"ak:{remainder[:boundary]}:"}
+
+
+def typed_id_prefix_carriers_in_document(
+    path: Path, document: Any
+) -> list[tuple[Path, str, str, set[str]]]:
+    """Collect every validation carrier in one document that accepts a literal typed ID.
+
+    ``pattern``, ``patternProperties`` keys, ``const`` and ``enum`` are all
+    validation carriers; restricting the sweep to ``pattern`` values starting
+    with ``^ak:`` would miss grouped and union regexes, typed IDs used as object
+    keys, plus constant IDs entirely. The whole document is walked, so a shape
+    reused through a local ``$ref`` is inspected at its definition site.
+    """
+    carriers: list[tuple[Path, str, str, set[str]]] = []
+    if not isinstance(document, dict):
+        return carriers
+    for json_path, regex in regex_carriers_in_document(document):
+        found: set[str] = set()
+        for text, _complete in regex_literal_branches(regex):
+            found |= literal_typed_id_prefixes(text)
+        if found:
+            carriers.append((path, json_path, regex, found))
+    for json_path, value, key in walk_json(document):
+        if key == "const" and isinstance(value, str):
+            found = literal_typed_id_prefixes(value)
+            if found:
+                carriers.append((path, json_path, value, found))
+        elif key == "enum" and isinstance(value, list):
+            found = set()
+            for member in value:
+                if isinstance(member, str):
+                    found |= literal_typed_id_prefixes(member)
+            if found:
+                carriers.append((path, json_path, repr(value), found))
+    return carriers
+
+
+def typed_id_validation_documents(lint: Lint) -> list[tuple[Path, Any]]:
+    """Return every shipped document that can validate a typed ID on the wire.
+
+    Both closure directions read this one list, so ``registry -> artifact`` and
+    ``artifact -> registry`` can never disagree about which files are inside the
+    typed-ID contract. The OpenAPI mirror is a published external contract, not
+    documentation, so it is swept exactly like a JSON Schema.
+    """
+    documents: list[tuple[Path, Any]] = []
+    for schema_path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
+        documents.append((schema_path, load_json(lint, schema_path)))
+    for openapi_path in sorted((ARTIFACTS / "openapi").glob("*.yaml")):
+        documents.append((openapi_path, load_yaml(lint, openapi_path)))
+    return documents
+
+
+def schema_typed_id_prefix_carriers(
+    lint: Lint,
+) -> list[tuple[Path, str, str, set[str]]]:
+    """Sweep every shipped schema plus the OpenAPI mirror for typed ID carriers."""
+    carriers: list[tuple[Path, str, str, set[str]]] = []
+    for path, document in typed_id_validation_documents(lint):
+        carriers.extend(typed_id_prefix_carriers_in_document(path, document))
+    return carriers
+
+
+def typed_id_payload_branches_by_kind(
+    lint: Lint,
+) -> dict[str, list[tuple[Path, str, str, str]]]:
+    """Group every swept ``pattern`` branch by the typed-ID kind it validates.
+
+    Each row is ``(document, json path, carrier regex, payload regex)``. An
+    OpenAPI field reached through ``$ref`` or ``allOf`` is inspected at the
+    definition site the reference resolves to, which the whole-document walk
+    always visits, so no carrier hides behind an indirection.
+    """
+    grouped: dict[str, list[tuple[Path, str, str, str]]] = {}
+    for path, json_path, carrier, segment, payload, _anchored in typed_id_payload_branch_rows(lint):
+        grouped.setdefault(segment, []).append((path, json_path, carrier, payload))
+    return grouped
+
+
+def typed_id_payload_branch_rows(
+    lint: Lint,
+) -> list[tuple[Path, str, str, str, str, bool]]:
+    """Return every swept typed-ID payload branch as one flat row.
+
+    Each row is ``(document, json path, carrier regex, wire segment, payload
+    regex, end anchored)``. ``patternProperties`` keys are swept exactly like
+    ``pattern`` values, so a typed ID used as an object key is inside the same
+    closure as a typed ID used as a value.
+    """
+    rows: list[tuple[Path, str, str, str, str, bool]] = []
+    for path, document in typed_id_validation_documents(lint):
+        for json_path, carrier in regex_carriers_in_document(document):
+            for segment, payload, anchored in typed_id_anchored_payload_branches(carrier):
+                rows.append((path, json_path, carrier, segment, payload, anchored))
+    return rows
+
+
+WIRE_FORM_PLACEHOLDER_RE = re.compile(r"<[^>]*>")
+REGEX_GROUP_FLAG_RE = re.compile(r"\(\?[:=!]|\(\?<[=!]")
+
+
+def wire_form_payload_template(wire_form: object) -> str | None:
+    """Return the payload template a registry ``wire_form`` declares after its prefix."""
+    if not isinstance(wire_form, str):
+        return None
+    match = TYPED_ID_WIRE_PREFIX_RE.match(wire_form)
+    if match is None:
+        return None
+    return wire_form[match.end():]
+
+
+def wire_form_payload_segments(template: str) -> int:
+    """Count the ``:``-separated payload segments a registry wire form declares."""
+    return WIRE_FORM_PLACEHOLDER_RE.sub("", template).count(":") + 1
+
+
+def regex_payload_segments(payload: str) -> int:
+    """Count the ``:``-separated segments one payload regex can ever produce.
+
+    A colon inside a character class, an escape, a bounded quantifier or a group
+    flag such as ``(?:`` belongs to the surrounding segment, so it is skipped.
+    Quantified and alternated groups are copied verbatim by the branch expander,
+    so a colon inside one is counted even when a concrete value could omit it.
+    The count is therefore permissive by construction: it can only let a payload
+    through, never fail a canonical one that really carries the declared
+    separators.
+    """
+    segments = 1
+    index = 0
+    while index < len(payload):
+        flag = REGEX_GROUP_FLAG_RE.match(payload, index)
+        if flag is not None:
+            index = flag.end()
+            continue
+        char = payload[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == "[":
+            index = _regex_skip_class(payload, index)
+            continue
+        if char == "{":
+            end = payload.find("}", index)
+            index = len(payload) if end < 0 else end + 1
+            continue
+        if char == ":":
+            segments += 1
+        index += 1
+    return segments
+
+
+PayloadCharset = tuple[bool, frozenset[str]]
+
+UNIVERSAL_PAYLOAD_CHARSET: PayloadCharset = (True, frozenset())
+EMPTY_PAYLOAD_CHARSET: PayloadCharset = (False, frozenset())
+REGEX_DIGIT_CHARS = frozenset("0123456789")
+REGEX_WORD_CHARS = frozenset(
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
+)
+REGEX_WHITESPACE_CHARS = frozenset(" \t\n\r\f\v")
+REGEX_CLASS_RANGE_LIMIT = 256
+DIGEST_SUITE_WIRE_PLACEHOLDER = "<digest-suite>:"
+
+
+def payload_charset_union(left: PayloadCharset, right: PayloadCharset) -> PayloadCharset:
+    """Return the characters either side can produce.
+
+    A charset is ``(True, excluded)`` for a negated class and ``(False, members)``
+    otherwise, so a negated class stays exact instead of collapsing to "anything".
+    """
+    left_negated, left_members = left
+    right_negated, right_members = right
+    if left_negated and right_negated:
+        return (True, left_members & right_members)
+    if left_negated:
+        return (True, left_members - right_members)
+    if right_negated:
+        return (True, right_members - left_members)
+    return (False, left_members | right_members)
+
+
+def payload_charset_contains(outer: PayloadCharset, inner: PayloadCharset) -> bool:
+    """Return True when every character ``inner`` admits is inside ``outer``."""
+    outer_negated, outer_members = outer
+    inner_negated, inner_members = inner
+    if outer_negated and inner_negated:
+        return outer_members <= inner_members
+    if outer_negated:
+        return not (inner_members & outer_members)
+    if inner_negated:
+        return False
+    return inner_members <= outer_members
+
+
+def _regex_escape_charset(escaped: str) -> PayloadCharset:
+    if escaped == "d":
+        return (False, REGEX_DIGIT_CHARS)
+    if escaped == "D":
+        return (True, REGEX_DIGIT_CHARS)
+    if escaped == "w":
+        return (False, REGEX_WORD_CHARS)
+    if escaped == "W":
+        return (True, REGEX_WORD_CHARS)
+    if escaped == "s":
+        return (False, REGEX_WHITESPACE_CHARS)
+    if escaped == "S":
+        return (True, REGEX_WHITESPACE_CHARS)
+    if escaped == "n":
+        return (False, frozenset("\n"))
+    if escaped == "r":
+        return (False, frozenset("\r"))
+    if escaped == "t":
+        return (False, frozenset("\t"))
+    if escaped.isalnum():
+        # An unrecognised alphanumeric escape is a class this reader cannot
+        # bound, so it widens to everything rather than silently narrowing.
+        return UNIVERSAL_PAYLOAD_CHARSET
+    return (False, frozenset(escaped))
+
+
+def _regex_class_member(body: str, index: int) -> tuple[PayloadCharset, str | None, int]:
+    """Read one character-class member as ``(charset, literal char, next index)``."""
+    if body[index] == "\\" and index + 1 < len(body):
+        escaped = body[index + 1]
+        charset = _regex_escape_charset(escaped)
+        literal = escaped if charset == (False, frozenset(escaped)) else None
+        return charset, literal, index + 2
+    return (False, frozenset(body[index])), body[index], index + 1
+
+
+def _regex_class_charset(pattern: str, index: int) -> tuple[PayloadCharset, int]:
+    end = _regex_skip_class(pattern, index)
+    body = pattern[index + 1 : max(end - 1, index + 1)]
+    negated = body.startswith("^")
+    if negated:
+        body = body[1:]
+    charset = EMPTY_PAYLOAD_CHARSET
+    cursor = 0
+    while cursor < len(body):
+        low, low_char, after_low = _regex_class_member(body, cursor)
+        if low_char is not None and after_low < len(body) - 1 and body[after_low] == "-":
+            high, high_char, after_high = _regex_class_member(body, after_low + 1)
+            if high_char is not None:
+                span = ord(high_char) - ord(low_char)
+                if 0 <= span <= REGEX_CLASS_RANGE_LIMIT:
+                    charset = payload_charset_union(
+                        charset,
+                        (
+                            False,
+                            frozenset(
+                                chr(code)
+                                for code in range(ord(low_char), ord(high_char) + 1)
+                            ),
+                        ),
+                    )
+                else:
+                    charset = payload_charset_union(charset, UNIVERSAL_PAYLOAD_CHARSET)
+                cursor = after_high
+                continue
+            charset = payload_charset_union(charset, high)
+        charset = payload_charset_union(charset, low)
+        cursor = after_low
+    if negated:
+        member_negated, members = charset
+        charset = UNIVERSAL_PAYLOAD_CHARSET if member_negated else (True, members)
+    return charset, end
+
+
+def regex_payload_charset(payload: str) -> PayloadCharset:
+    """Return every character one payload regex can place on the wire.
+
+    Group syntax, alternation bars, quantifiers and anchors describe structure,
+    not content, so only classes, escapes, wildcards and literal characters
+    contribute. The reader over-approximates on anything it cannot bound, which
+    can only make a carrier look wider than it is — never narrower.
+    """
+    charset = EMPTY_PAYLOAD_CHARSET
+    index = 0
+    while index < len(payload):
+        flag = REGEX_GROUP_FLAG_RE.match(payload, index)
+        if flag is not None:
+            index = flag.end()
+            continue
+        char = payload[index]
+        if char == "\\":
+            if index + 1 >= len(payload):
+                return UNIVERSAL_PAYLOAD_CHARSET
+            charset = payload_charset_union(
+                charset, _regex_escape_charset(payload[index + 1])
+            )
+            index += 2
+            continue
+        if char == "[":
+            member, index = _regex_class_charset(payload, index)
+            charset = payload_charset_union(charset, member)
+            continue
+        if char == "{":
+            end = payload.find("}", index)
+            index = len(payload) if end < 0 else end + 1
+            continue
+        if char == ".":
+            charset = payload_charset_union(charset, UNIVERSAL_PAYLOAD_CHARSET)
+            index += 1
+            continue
+        if char in "()|*+?^$":
+            index += 1
+            continue
+        charset = payload_charset_union(charset, (False, frozenset(char)))
+        index += 1
+    return charset
+
+
+def active_digest_suite_payload_regex(lint: Lint) -> str | None:
+    """Return the payload regex the active digest suites spell, or None on error.
+
+    A ``<digest-suite>`` wire form is only as closed as the suite vocabulary it
+    points at, so the regex is derived from ``digest-suite-registry.json`` rather
+    than restated. Activating or retiring a suite then moves the typed-ID gate
+    with it instead of leaving the two registries to drift.
+    """
+    path = ARTIFACTS / "registry" / "digest-suite-registry.json"
+    registry = load_json(lint, path)
+    if not isinstance(registry, dict):
+        return None
+    suites = registry.get("suites")
+    if not isinstance(suites, list):
+        lint.fail(path, "suites must be an array of registered digest suites")
+        return None
+    canonical_ids: list[str] = []
+    digest_lengths: set[int] = set()
+    for row in suites:
+        if not isinstance(row, dict) or row.get("status") != "active":
+            continue
+        canonical_id = row.get("canonical_id")
+        digest_length = row.get("digest_length_bytes")
+        if not isinstance(canonical_id, str) or not isinstance(digest_length, int):
+            lint.fail(
+                path,
+                "an active suite row MUST declare canonical_id and digest_length_bytes",
+            )
+            return None
+        canonical_ids.append(canonical_id)
+        digest_lengths.add(digest_length)
+    if not canonical_ids or len(digest_lengths) != 1:
+        lint.fail(
+            path,
+            "active digest suites MUST exist and MUST share one digest_length_bytes "
+            "so a <digest-suite> typed ID has a single payload length",
+        )
+        return None
+    return f"(?:{'|'.join(canonical_ids)}):[0-9a-f]{{{2 * digest_lengths.pop()}}}"
+
+
+def registry_special_form_payload_contracts(
+    lint: Lint, registry: dict[str, Any], path: Path
+) -> dict[str, tuple[str, int]]:
+    """Return ``kind -> (payload regex, minimum payload segments)`` per special form.
+
+    ``wire_form`` is a human-readable template whose placeholders declare no value
+    space at all, which is why a special-form carrier could ship any alphabet it
+    liked. ``payload_pattern`` is that value space, and this reader also holds the
+    registry to its own two statements: the regex MUST carry at least the
+    separators ``wire_form`` declares, and a ``<digest-suite>`` template MUST
+    spell exactly the active suites of ``digest-suite-registry.json``.
+    """
+    contracts: dict[str, tuple[str, int]] = {}
+    digest_suite_payload = active_digest_suite_payload_regex(lint)
+    for row in registry.get("special_forms") or []:
+        if not isinstance(row, dict) or not isinstance(row.get("kind"), str):
+            continue
+        kind = row["kind"]
+        template = wire_form_payload_template(row.get("wire_form"))
+        if template is None:
+            lint.fail(path, f"special_forms[{kind}].wire_form must carry an ak:<kind>: prefix")
+            continue
+        payload_pattern = row.get("payload_pattern")
+        if not isinstance(payload_pattern, str) or not payload_pattern:
+            lint.fail(
+                path,
+                f"special_forms[{kind}] must declare payload_pattern, the "
+                f"machine-readable value space of everything after ak:{kind}:",
+            )
+            continue
+        required_segments = wire_form_payload_segments(template)
+        if regex_payload_segments(payload_pattern) < required_segments:
+            lint.fail(
+                path,
+                f"special_forms[{kind}].payload_pattern {payload_pattern!r} carries "
+                f"fewer ':' segments than wire_form {row.get('wire_form')!r}; the two "
+                "MUST declare one value space",
+            )
+            continue
+        if (
+            template.startswith(DIGEST_SUITE_WIRE_PLACEHOLDER)
+            and digest_suite_payload is not None
+            and payload_pattern != digest_suite_payload
+        ):
+            lint.fail(
+                path,
+                f"special_forms[{kind}].payload_pattern is {payload_pattern!r}; a "
+                "<digest-suite> wire form MUST spell the active suites registered in "
+                f"digest-suite-registry.json, {digest_suite_payload!r}",
+            )
+            continue
+        contracts[kind] = (payload_pattern, required_segments)
+    return contracts
+
+
+def registry_canonical_payload_regex(lint: Lint, registry: dict[str, Any], path: Path) -> dict[str, str]:
+    """Return the canonical payload regex per ``id_form``, read from the registry.
+
+    The regexes are the registry's own ``event_token_pattern`` and
+    ``uuid_pattern_producer_allocated``. Reading them here instead of restating
+    them keeps the gate from drifting away from the artifact it enforces; the
+    module constants are held to the same registry text.
+    """
+    canonical: dict[str, str] = {}
+    declared = {
+        "event_derived": ("event_token_pattern", EVENT_TOKEN_PAYLOAD_REGEX),
+        "suite_tagged_full_digest": ("event_token_pattern", EVENT_TOKEN_PAYLOAD_REGEX),
+        "producer_allocated": (
+            "uuid_pattern_producer_allocated",
+            PRODUCER_UUID_PAYLOAD_REGEX,
+        ),
+    }
+    for id_form, (field, constant) in declared.items():
+        pattern = registry.get(field)
+        if not isinstance(pattern, str):
+            lint.fail(path, f"{field} must be a string payload regex")
+            continue
+        if pattern != f"^{constant}$":
+            lint.fail(
+                path,
+                f"{field} is {pattern!r}; the typed-ID closure enforces "
+                f"{f'^{constant}$'!r} and the two MUST stay one value",
+            )
+            continue
+        canonical[id_form] = constant
+    return canonical
+
+
+def check_typed_id_payload_form_closure(lint: Lint) -> None:
+    """Close every typed-ID payload branch against the registered wire form.
+
+    ``check_id_form_wire_schema_alignment`` proves only that some branch spells
+    the canonical payload and that no branch inverts the id_form. A payload that
+    is neither canonical nor inverted — a bare prefix anchor, a character class
+    missing the canonical alphabet's uppercase or ``_``, a class wide enough to
+    admit unregistered text, or a length the registry never declared — escaped
+    both directions and still shipped. Every branch is held to the registry here:
+
+    * a registered ``id_kinds`` payload MUST start with that ``id_form``'s
+      canonical payload regex, so a composite carrier such as an OR-Set dot keeps
+      its suffix while its leading token stays canonical;
+    * a registered ``special_forms`` payload MUST carry at least the separator
+      segments its ``wire_form`` declares AND MUST stay inside the alphabet its
+      ``payload_pattern`` registers, so a carrier may be narrower than the
+      registered value space for one field but can never admit an octet the
+      registry rejects;
+    * every branch MUST terminate, because an unanchored branch leaves the whole
+      tail of the value unconstrained.
+    """
+    registry_path = ARTIFACTS / "registry" / "id-kind-registry.json"
+    registry = load_json(lint, registry_path)
+    if not isinstance(registry, dict):
+        return
+    prefixes, registry_errors = registered_typed_id_wire_prefixes(registry)
+    for message in registry_errors:
+        lint.fail(registry_path, message)
+    canonical = registry_canonical_payload_regex(lint, registry, registry_path)
+    id_forms: dict[str, str] = {}
+    for row in registry.get("id_kinds") or []:
+        if isinstance(row, dict) and isinstance(row.get("kind"), str):
+            id_form = row.get("id_form")
+            if isinstance(id_form, str):
+                id_forms[row["kind"]] = id_form
+    contracts = registry_special_form_payload_contracts(lint, registry, registry_path)
+    special_charsets = {
+        kind: regex_payload_charset(payload_pattern)
+        for kind, (payload_pattern, _segments) in contracts.items()
+    }
+
+    for path, json_path, carrier, segment, payload, anchored in typed_id_payload_branch_rows(lint):
+        kind = prefixes.get(f"ak:{segment}:")
+        if kind is None:
+            # check_typed_id_prefix_registry_closure owns unregistered prefixes.
+            continue
+        accepted: list[str] = []
+        canonical_payload = canonical.get(id_forms.get(kind, ""))
+        if canonical_payload is not None:
+            accepted.append(f"ak:{kind}:{canonical_payload}")
+        contract = contracts.get(kind)
+        if contract is not None:
+            accepted.append(f"ak:{kind}:{contract[0]}")
+        if not accepted:
+            continue
+        if not anchored:
+            lint.fail(
+                path,
+                f"{json_path} validates ak:{segment} with an unterminated payload "
+                f"{payload!r} (carrier {carrier!r}); a typed-ID branch MUST end-anchor "
+                f"so the registered wire form {' or '.join(accepted)} is the whole value",
+            )
+            continue
+        if canonical_payload is not None and payload.startswith(canonical_payload):
+            continue
+        if (
+            contract is not None
+            and payload
+            and regex_payload_segments(payload) >= contract[1]
+            and payload_charset_contains(
+                special_charsets[kind], regex_payload_charset(payload)
+            )
+        ):
+            continue
+        lint.fail(
+            path,
+            f"{json_path} validates ak:{segment} with payload {payload!r} "
+            f"(carrier {carrier!r}); it is wider than or disjoint from the registered "
+            f"wire form {' or '.join(accepted)}",
+        )
+
+
+def check_typed_id_carrier_sweep_closure(lint: Lint) -> None:
+    """Require every cross-document ``$ref`` to land inside the swept carrier set.
+
+    The typed-ID gates only bind what they read. A reference to a document
+    outside ``artifacts/schemas`` and ``artifacts/openapi`` would move wire
+    validation out of both closures without any gate noticing, which is exactly
+    how the OpenAPI mirror drifted before it was swept.
+    """
+    documents = typed_id_validation_documents(lint)
+    swept = {path.resolve() for path, _ in documents}
+    for path, document in documents:
+        if not isinstance(document, dict):
+            continue
+        for json_path, value, key in walk_json(document):
+            if key != "$ref" or not isinstance(value, str):
+                continue
+            target = value.split("#", 1)[0]
+            if not target:
+                continue
+            if (path.parent / target).resolve() in swept:
+                continue
+            lint.fail(
+                path,
+                f"{json_path} references {value!r}, a document outside the typed ID "
+                "carrier sweep; typed ID validation must stay inside "
+                "artifacts/schemas and artifacts/openapi",
+            )
+
+
+def check_typed_id_prefix_registry_closure(lint: Lint) -> None:
+    """Close schema -> registry: every literal ak:<segment>: MUST be registered.
+
+    ``check_id_form_wire_schema_alignment`` walks registry -> schema and only
+    proves that a registered kind has some matching regex. Nothing stopped a
+    schema from minting an unregistered prefix, which is exactly the failure the
+    fail-closed parser rule in encoding.md forbids on the wire.
+    """
+    registry_path = ARTIFACTS / "registry" / "id-kind-registry.json"
+    registry = load_json(lint, registry_path)
+    prefixes, registry_errors = registered_typed_id_wire_prefixes(registry)
+    for message in registry_errors:
+        lint.fail(registry_path, message)
+    if not prefixes:
+        lint.fail(registry_path, "no canonical typed ID wire prefixes could be parsed")
+        return
+    for path, json_path, carrier, found in schema_typed_id_prefix_carriers(lint):
+        for prefix in sorted(found):
+            if prefix in prefixes:
+                continue
+            lint.fail(
+                path,
+                f"{json_path} accepts unregistered typed ID prefix {prefix!r} "
+                f"(carrier {carrier!r}); register it in "
+                "contract-registry.json#/id_kind_registry or drop the ak: prefix",
+            )
+
+
+EVENT_KIND_VERB_FORMS = ("base", "past_participle", "not_applicable")
+VERB_FORM_PROSE_ANCHOR = "verb_form"
+VERB_FORM_PROSE_PATH = SPEC_ROOT / "zh" / "models" / "common-fields.md"
+
+
+def prose_past_participle_event_kinds(text: str) -> tuple[set[str], list[str]]:
+    """Parse the readable past-participle exception table into a per-kind set."""
+    errors: list[str] = []
+    kinds: set[str] = set()
+    lines = text.splitlines()
+    anchor = None
+    for index, line in enumerate(lines):
+        if VERB_FORM_PROSE_ANCHOR in line and "past_participle" in line:
+            anchor = index
+            break
+    if anchor is None:
+        return kinds, ["no verb_form registration paragraph found"]
+    started = False
+    for line in lines[anchor + 1:]:
+        stripped = line.strip()
+        if not stripped:
+            if started:
+                break
+            continue
+        if not stripped.startswith("|"):
+            if started:
+                break
+            continue
+        started = True
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if not cells:
+            continue
+        first = cells[0]
+        if first in {"kind", ""} or set(first) <= {"-", ":", " "}:
+            continue
+        if not (first.startswith("`") and first.endswith("`")):
+            errors.append(f"past-participle table row {first!r} must name one kind in backticks")
+            continue
+        kind = first.strip("`")
+        if "/" in kind or " " in kind:
+            errors.append(
+                f"past-participle table row {kind!r} merges several kinds; use one kind per row"
+            )
+            continue
+        if kind in kinds:
+            errors.append(f"past-participle table lists {kind!r} twice")
+        kinds.add(kind)
+    if not started:
+        errors.append("verb_form registration paragraph is not followed by a table")
+    return kinds, errors
+
+
+def event_kind_verb_form_errors(rows: object) -> list[str]:
+    """Validate the terminal-segment classification carried by event_kind rows."""
+    errors: list[str] = []
+    if not isinstance(rows, list):
+        return ["event_kinds must be an array"]
+    for row in rows:
+        if not isinstance(row, dict):
+            errors.append("event_kinds rows must be objects")
+            continue
+        event_kind = row.get("event_kind")
+        if not isinstance(event_kind, str) or not event_kind:
+            errors.append("event_kinds row has a missing or non-string event_kind")
+            continue
+        if row.get("status") != "active":
+            continue
+        verb_form = row.get("verb_form")
+        rationale = row.get("verb_form_rationale")
+        if verb_form not in EVENT_KIND_VERB_FORMS:
+            errors.append(
+                f"{event_kind} must declare verb_form as one of "
+                f"{list(EVENT_KIND_VERB_FORMS)}, found {verb_form!r}"
+            )
+            continue
+        if verb_form == "past_participle":
+            if not isinstance(rationale, str) or not rationale.strip():
+                errors.append(
+                    f"{event_kind} declares verb_form=past_participle without a non-empty "
+                    "verb_form_rationale"
+                )
+        elif rationale is not None:
+            errors.append(
+                f"{event_kind} declares verb_form={verb_form} and MUST NOT carry a "
+                "verb_form_rationale"
+            )
+    return errors
+
+
+def check_event_kind_verb_form_registration(lint: Lint) -> None:
+    """Close the terminal-segment classification across truth source, view and prose.
+
+    An English suffix scan cannot decide this: ``bound`` and ``withheld`` are
+    irregular past participles, so the registration is the only complete record
+    and the readable table MUST close against it in both directions.
+    """
+    contract_path = ARTIFACTS / "registry" / "contract-registry.json"
+    generated_path = ARTIFACTS / "registry" / "event-kind-registry.json"
+    contract = load_json(lint, contract_path)
+    generated = load_json(lint, generated_path)
+    section = contract.get("event_kind_registry") if isinstance(contract, dict) else None
+    source_rows = section.get("event_kinds") if isinstance(section, dict) else None
+    for message in event_kind_verb_form_errors(source_rows):
+        lint.fail(contract_path, message)
+    if not isinstance(source_rows, list):
+        return
+
+    generated_rows = generated.get("event_kinds") if isinstance(generated, dict) else None
+    if not isinstance(generated_rows, list):
+        lint.fail(generated_path, "event_kinds must be an array")
+        return
+    source_map = {
+        row.get("event_kind"): (row.get("verb_form"), row.get("verb_form_rationale"))
+        for row in source_rows
+        if isinstance(row, dict)
+    }
+    generated_map = {
+        row.get("event_kind"): (row.get("verb_form"), row.get("verb_form_rationale"))
+        for row in generated_rows
+        if isinstance(row, dict)
+    }
+    if source_map != generated_map:
+        for event_kind in sorted(set(source_map) | set(generated_map), key=str):
+            if source_map.get(event_kind) != generated_map.get(event_kind):
+                lint.fail(
+                    generated_path,
+                    f"generated verb_form registration for {event_kind!r} drifted from "
+                    "contract-registry.json (run python tools/artifact_pipeline.py generate)",
+                )
+
+    registered = {
+        row.get("event_kind")
+        for row in source_rows
+        if isinstance(row, dict)
+        and row.get("status") == "active"
+        and row.get("verb_form") == "past_participle"
+    }
+    prose_kinds, prose_errors = prose_past_participle_event_kinds(
+        read_text(VERB_FORM_PROSE_PATH)
+    )
+    for message in prose_errors:
+        lint.fail(VERB_FORM_PROSE_PATH, message)
+    for event_kind in sorted(registered - prose_kinds, key=str):
+        lint.fail(
+            VERB_FORM_PROSE_PATH,
+            f"{event_kind} is registered as past_participle but missing from the readable table",
+        )
+    for event_kind in sorted(prose_kinds - registered, key=str):
+        lint.fail(
+            VERB_FORM_PROSE_PATH,
+            f"{event_kind} is listed as a past-participle exception but is not registered "
+            "with verb_form=past_participle",
+        )
 
 
 
@@ -2436,7 +3570,199 @@ def check_text_files_utf8_no_nul(lint: Lint) -> None:
 
 
 
+SHARED_PROOF_LEAF = ("event-envelope.schema.json", "/$defs/proof")
+PROOF_CONTEXT_ANNOTATION = "x-arkret-proof-context"
+PROOF_CONTEXT_SET_ANNOTATION = "x-arkret-proof-contexts"
+PROOF_CONTEXT_PATTERN = r"ak\.[a-z0-9-]+-proof-v1"
+REPLAY_CACHE_NAMESPACE_PRIMITIVE = "replay_cache_namespace"
+DOMAIN_SEPARATION_PRIMITIVES = frozenset(
+    {
+        "canonical_json_sha256",
+        "merkle_leaf_sha256",
+        "merkle_node_sha256",
+        "merkle_root_sha256",
+        "detached_signature",
+        "http_message_signature",
+        "hpke_info",
+        REPLAY_CACHE_NAMESPACE_PRIMITIVE,
+    }
+)
+
+
+def _proof_pointer_escape(token: str) -> str:
+    return token.replace("~", "~0").replace("/", "~1")
+
+
+def _proof_schema_documents(lint: Lint) -> dict[str, Any]:
+    documents: dict[str, Any] = {}
+    for schema_path in sorted((ARTIFACTS / "schemas").glob("*.json")):
+        document = load_json(lint, schema_path)
+        if isinstance(document, (dict, list)):
+            documents[schema_path.name] = document
+    return documents
+
+
+def _proof_ref_edges(documents: dict[str, Any]) -> list[tuple[str, str, str, str]]:
+    """Every ``$ref`` edge between schema nodes as (file, node_pointer, target_file, target_pointer)."""
+    edges: list[tuple[str, str, str, str]] = []
+
+    def walk(file_name: str, node: Any, pointer: str) -> None:
+        if isinstance(node, dict):
+            ref = node.get("$ref")
+            if isinstance(ref, str):
+                target, _, fragment = ref.partition("#")
+                target_file = file_name if not target else target.split("/")[-1]
+                if target_file in documents:
+                    edges.append((file_name, pointer, target_file, fragment))
+            for key, child in node.items():
+                walk(file_name, child, f"{pointer}/{_proof_pointer_escape(key)}")
+        elif isinstance(node, list):
+            for index, child in enumerate(node):
+                walk(file_name, child, f"{pointer}/{index}")
+
+    for file_name, document in documents.items():
+        walk(file_name, document, "")
+    return edges
+
+
+def _shared_proof_use_points(documents: dict[str, Any]) -> list[tuple[str, str]]:
+    """Terminal use points of the shared detached-proof leaf.
+
+    A node is proof-carrying when its ``$ref`` chain terminates at
+    ``event-envelope.schema.json#/$defs/proof``. Intermediate aliases such as
+    ``high-risk-authority-proof.schema.json#/$defs/detached_proof`` are consumed by
+    the nodes that reference them, so only unreferenced proof-carrying nodes are
+    reported: those are the places where a detached proof actually lands in a wire
+    object family and therefore need a registered context.
+    """
+    edges = _proof_ref_edges(documents)
+    proof_nodes = {(file, pointer) for file, pointer, tf, tp in edges if (tf, tp) == SHARED_PROOF_LEAF}
+    changed = True
+    while changed:
+        changed = False
+        for file, pointer, target_file, target_pointer in edges:
+            if (target_file, target_pointer) in proof_nodes and (file, pointer) not in proof_nodes:
+                proof_nodes.add((file, pointer))
+                changed = True
+    referenced = {(target_file, target_pointer) for _, _, target_file, target_pointer in edges}
+    return sorted(node for node in proof_nodes if node not in referenced)
+
+
+def _resolve_proof_schema_ref(documents: dict[str, Any], schema_ref: str) -> tuple[str, str, Any]:
+    """Resolve ``schemas/<file>.json#/<pointer>`` to (file, pointer, node-or-None)."""
+    file_part, _, fragment = schema_ref.partition("#")
+    file_name = file_part.split("/")[-1]
+    document = documents.get(file_name)
+    if document is None:
+        return file_name, fragment, None
+    if not fragment:
+        return file_name, "", document
+    try:
+        node = resolve_json_pointer(document, "#" + fragment)
+    except (KeyError, IndexError, ValueError):
+        return file_name, fragment, None
+    return file_name, fragment, node
+
+
+def _proof_anchor_covers(anchor: tuple[str, str], file_name: str, pointer: str) -> bool:
+    anchor_file, anchor_pointer = anchor
+    if anchor_file != file_name:
+        return False
+    return anchor_pointer == "" or pointer == anchor_pointer or pointer.startswith(anchor_pointer + "/")
+
+
+def _proof_annotation_at(documents: dict[str, Any], file_name: str, pointer: str) -> tuple[str, Any] | None:
+    """Nearest proof-context annotation at the node or one of its ancestors."""
+    parts = [part for part in pointer.split("/") if part != ""]
+    while True:
+        node_pointer = "".join(f"/{part}" for part in parts)
+        _, _, node = _resolve_proof_schema_ref(documents, f"{file_name}#{node_pointer}")
+        if isinstance(node, dict):
+            if PROOF_CONTEXT_SET_ANNOTATION in node:
+                return PROOF_CONTEXT_SET_ANNOTATION, node[PROOF_CONTEXT_SET_ANNOTATION]
+            if PROOF_CONTEXT_ANNOTATION in node:
+                return PROOF_CONTEXT_ANNOTATION, node[PROOF_CONTEXT_ANNOTATION]
+        if not parts:
+            return None
+        parts.pop()
+
+
+def _proof_annotated_nodes(document: Any) -> list[tuple[str, dict[str, Any]]]:
+    """Every node carrying a proof-context annotation, keyed by JSON Pointer."""
+    found: list[tuple[str, dict[str, Any]]] = []
+
+    def walk(node: Any, pointer: str) -> None:
+        if isinstance(node, dict):
+            if PROOF_CONTEXT_ANNOTATION in node or PROOF_CONTEXT_SET_ANNOTATION in node:
+                found.append((pointer, node))
+            for key, child in node.items():
+                walk(child, f"{pointer}/{_proof_pointer_escape(key)}")
+        elif isinstance(node, list):
+            for index, child in enumerate(node):
+                walk(child, f"{pointer}/{index}")
+
+    walk(document, "")
+    return found
+
+
+def _proof_top_def(pointer: str) -> str:
+    """The ``/$defs/<name>`` entry a pointer lives under, or "" for a root-level node."""
+    parts = [part for part in pointer.split("/") if part != ""]
+    if len(parts) >= 2 and parts[0] == "$defs":
+        return f"/$defs/{parts[1]}"
+    return ""
+
+
+def _proof_packed_leaf_holders(documents: dict[str, Any]) -> dict[tuple[str, str], list[str]]:
+    """Top-level ``$defs`` entries that reach another entry's subtree only through ``$ref``.
+
+    A DTO container can pass the closure while still packing dozens of object families
+    behind one proof node: every family ``$ref``s the same ``#/$defs/proofs`` alias, so
+    there is a single terminal use point and one fragmentless row covers it. The wire
+    graph then cannot tell the families apart, which is exactly what domain separation
+    is supposed to do. Counting the distinct holders of a use point's own ``$defs``
+    entry makes that shape mechanically visible.
+    """
+    holders: dict[tuple[str, str], set[str]] = {}
+    for source_file, source_pointer, target_file, target_pointer in _proof_ref_edges(documents):
+        if source_file != target_file:
+            continue
+        owner = _proof_top_def(target_pointer)
+        holder = _proof_top_def(source_pointer)
+        if not owner or not holder or holder == owner:
+            continue
+        holders.setdefault((target_file, owner), set()).add(holder)
+    return {key: sorted(value) for key, value in holders.items()}
+
+
+def _proof_named_field_values(document: Any, key: str) -> list[tuple[str, Any]]:
+    """Every value carried by a field with this exact name, keyed by JSON Pointer."""
+    found: list[tuple[str, Any]] = []
+
+    def walk(node: Any, pointer: str) -> None:
+        if isinstance(node, dict):
+            for name, child in node.items():
+                child_pointer = f"{pointer}/{_proof_pointer_escape(name)}"
+                if name == key:
+                    found.append((child_pointer, child))
+                walk(child, child_pointer)
+        elif isinstance(node, list):
+            for index, child in enumerate(node):
+                walk(child, f"{pointer}/{index}")
+
+    walk(document, "")
+    return found
+
+
 def check_proof_context_registry(lint: Lint) -> None:
+    """Close the shared detached-proof surface in both directions.
+
+    Forward: every terminal use point of ``event-envelope.schema.json#/$defs/proof``
+    must resolve to exactly one most-specific registry row. Reverse: every row must
+    resolve to a real schema node, and a row whose subtree only contains use points
+    owned by deeper rows is over-broad and must be tightened to the inner object
+    family it claims. A canonical token regex is a spelling check, never the closure.
+    """
     path = ARTIFACTS / "registry" / "proof-context-registry.json"
     data = load_json(lint, path)
     if not isinstance(data, dict) or data.get("source_of_truth") is not True:
@@ -2446,8 +3772,19 @@ def check_proof_context_registry(lint: Lint) -> None:
     if not isinstance(rows, list) or not rows:
         lint.fail(path, "proof context registry must contain non-empty contexts[]")
         return
+
+    documents = _proof_schema_documents(lint)
+    operation_registry = load_json(lint, ARTIFACTS / "registry" / "operation-registry.json")
+    known_operations = {
+        row.get("operation_id")
+        for row in (operation_registry or {}).get("operations", [])
+        if isinstance(row, dict)
+    }
+
     contexts: set[str] = set()
     families: set[str] = set()
+    anchors: dict[str, tuple[str, str]] = {}
+    consumer_operations: dict[str, str] = {}
     for index, row in enumerate(rows):
         if not isinstance(row, dict):
             lint.fail(path, f"contexts[{index}] must be an object")
@@ -2456,10 +3793,13 @@ def check_proof_context_registry(lint: Lint) -> None:
         family = row.get("object_family")
         fields = row.get("binding_fields")
         schema_ref = row.get("schema_ref")
+        consumer_operation = row.get("consumer_operation")
         if not isinstance(context, str) or not re.fullmatch(r"ak\.[a-z0-9-]+-proof-v1", context):
             lint.fail(path, f"contexts[{index}].context is not a canonical proof context")
+            context = None
         elif context in contexts:
             lint.fail(path, f"duplicate proof context {context}")
+            context = None
         else:
             contexts.add(context)
         if not isinstance(family, str) or not family:
@@ -2470,20 +3810,247 @@ def check_proof_context_registry(lint: Lint) -> None:
             families.add(family)
         if not isinstance(fields, list) or not fields or not all(isinstance(item, str) and item for item in fields):
             lint.fail(path, f"contexts[{index}].binding_fields must be a non-empty string array")
+        if consumer_operation is not None:
+            if not isinstance(consumer_operation, str) or consumer_operation not in known_operations:
+                lint.fail(
+                    path,
+                    f"contexts[{index}].consumer_operation is not a registered operation: {consumer_operation!r}",
+                )
+            elif context is not None:
+                consumer_operations[context] = consumer_operation
         if not isinstance(schema_ref, str) or not schema_ref.startswith("schemas/"):
             lint.fail(path, f"contexts[{index}].schema_ref must point into artifacts/schemas")
-        else:
-            schema_path = ARTIFACTS / schema_ref.split("#", 1)[0]
-            if not schema_path.is_file():
-                lint.fail(path, f"contexts[{index}].schema_ref does not resolve: {schema_ref}")
+            continue
+        file_name, fragment, node = _resolve_proof_schema_ref(documents, schema_ref)
+        if file_name not in documents:
+            lint.fail(path, f"contexts[{index}].schema_ref does not resolve: {schema_ref}")
+            continue
+        if node is None:
+            lint.fail(
+                path,
+                f"contexts[{index}].schema_ref fragment does not resolve to a schema node: {schema_ref}",
+            )
+            continue
+        if not isinstance(node, dict):
+            lint.fail(path, f"contexts[{index}].schema_ref must resolve to a schema object: {schema_ref}")
+            continue
+        if context is not None:
+            anchors[context] = (file_name, fragment)
 
-    token_re = re.compile(r"ak\.[a-z0-9-]+-proof-v1")
+    use_points = _shared_proof_use_points(documents)
+    packed_holders = _proof_packed_leaf_holders(documents)
+    owned: dict[str, list[tuple[str, str]]] = {context: [] for context in anchors}
+    for file_name, pointer in use_points:
+        covering = [context for context, anchor in anchors.items() if _proof_anchor_covers(anchor, file_name, pointer)]
+        if not covering:
+            lint.fail(
+                path,
+                "shared detached-proof use point has no registered context: "
+                f"schemas/{file_name}#{pointer}",
+            )
+            continue
+        depth = max(len(anchors[context][1]) for context in covering)
+        resolved = sorted(context for context in covering if len(anchors[context][1]) == depth)
+        for context in resolved:
+            owned[context].append((file_name, pointer))
+        annotation = _proof_annotation_at(documents, file_name, pointer)
+        if len(resolved) > 1:
+            # One shared wire leaf with several consumer contexts: the schema node must
+            # enumerate them and every row must name the consuming operation it belongs to.
+            if annotation is None or annotation[0] != PROOF_CONTEXT_SET_ANNOTATION:
+                lint.fail(
+                    path,
+                    f"schemas/{file_name}#{pointer} is claimed by {len(resolved)} contexts "
+                    f"({', '.join(resolved)}) but the schema node carries no "
+                    f"{PROOF_CONTEXT_SET_ANNOTATION} enumerating them",
+                )
+            elif not isinstance(annotation[1], list) or sorted(annotation[1]) != resolved:
+                lint.fail(
+                    path,
+                    f"{PROOF_CONTEXT_SET_ANNOTATION} at schemas/{file_name}#{pointer} must list "
+                    f"exactly {resolved}",
+                )
+            missing = [context for context in resolved if context not in consumer_operations]
+            if missing:
+                lint.fail(
+                    path,
+                    "contexts sharing one schema anchor must each declare consumer_operation; "
+                    f"missing for {', '.join(missing)}",
+                )
+            declared = [consumer_operations[context] for context in resolved if context in consumer_operations]
+            if len(set(declared)) != len(declared):
+                lint.fail(
+                    path,
+                    f"contexts sharing schemas/{file_name}#{pointer} declare a duplicate consumer_operation",
+                )
+            continue
+        context = resolved[0]
+        owner = _proof_top_def(pointer)
+        holders = packed_holders.get((file_name, owner), []) if owner else []
+        anchor_fragment = anchors[context][1]
+        if len(holders) > 1 and not (
+            anchor_fragment == owner or anchor_fragment.startswith(owner + "/")
+        ):
+            lint.fail(
+                path,
+                f"schemas/{file_name}#{pointer} is a packed shared-proof leaf: {owner} is reached from "
+                f"{len(holders)} object families ({', '.join(holders)}) while only {context} covers it; "
+                "give every family its own proof node and row, or register one row per consumer_operation",
+            )
+        if annotation is not None:
+            if annotation[0] == PROOF_CONTEXT_ANNOTATION:
+                if annotation[1] != context:
+                    lint.fail(
+                        path,
+                        f"{PROOF_CONTEXT_ANNOTATION} at schemas/{file_name}#{pointer} is {annotation[1]!r} "
+                        f"but the registry binds {context!r}",
+                    )
+            elif not isinstance(annotation[1], list) or sorted(annotation[1]) != [context]:
+                lint.fail(
+                    path,
+                    f"{PROOF_CONTEXT_SET_ANNOTATION} at schemas/{file_name}#{pointer} must list "
+                    f"exactly ['{context}']",
+                )
+
+    for context, anchor in sorted(anchors.items()):
+        inside = [point for point in use_points if _proof_anchor_covers(anchor, *point)]
+        if inside and not owned[context]:
+            lint.fail(
+                path,
+                f"{context} claims schemas/{anchor[0]}#{anchor[1]} but every shared-proof use point "
+                "inside it belongs to a deeper context; tighten schema_ref to the object family it describes",
+            )
+        if context in consumer_operations:
+            _, _, node = _resolve_proof_schema_ref(documents, f"{anchor[0]}#{anchor[1]}")
+            listed = node.get(PROOF_CONTEXT_SET_ANNOTATION) if isinstance(node, dict) else None
+            if not isinstance(listed, list) or context not in listed:
+                lint.fail(
+                    path,
+                    f"{context} declares consumer_operation, so schemas/{anchor[0]}#{anchor[1]} must list it "
+                    f"in {PROOF_CONTEXT_SET_ANNOTATION}",
+                )
+
+    for file_name, document in sorted(documents.items()):
+        for pointer, node in _proof_annotated_nodes(document):
+            for key in (PROOF_CONTEXT_ANNOTATION, PROOF_CONTEXT_SET_ANNOTATION):
+                value = node.get(key)
+                if value is None:
+                    continue
+                declared = [value] if key == PROOF_CONTEXT_ANNOTATION else value
+                if key == PROOF_CONTEXT_ANNOTATION and not isinstance(value, str):
+                    lint.fail(ARTIFACTS / "schemas" / file_name, f"{key} at {pointer} must be a string")
+                    continue
+                if key == PROOF_CONTEXT_SET_ANNOTATION and (
+                    not isinstance(value, list) or not value or not all(isinstance(item, str) for item in value)
+                ):
+                    lint.fail(ARTIFACTS / "schemas" / file_name, f"{key} at {pointer} must be a non-empty string array")
+                    continue
+                for item in declared:
+                    if item not in anchors:
+                        lint.fail(
+                            ARTIFACTS / "schemas" / file_name,
+                            f"{key} at {pointer} names an unregistered proof context: {item}",
+                        )
+                    elif not _proof_anchor_covers(anchors[item], file_name, pointer):
+                        lint.fail(
+                            ARTIFACTS / "schemas" / file_name,
+                            f"{key} at {pointer} names {item}, whose registry schema_ref anchors elsewhere",
+                        )
+
+    token_re = re.compile(PROOF_CONTEXT_PATTERN)
     used: set[str] = set()
     for scan_path in SPEC_ROOT.rglob("*"):
         if scan_path.is_file() and scan_path.suffix.lower() in {".json", ".md", ".yaml", ".yml"}:
             used.update(token_re.findall(scan_path.read_text(encoding="utf-8")))
     for token in sorted(used - contexts):
         lint.fail(path, f"proof context literal is not registered: {token}")
+
+    # Domain separations are the second half of this file: separators that are not
+    # signing contexts but still decide security outcomes. A replay-cache namespace
+    # partitions a replay ledger, so an unregistered or reused literal silently merges
+    # two surfaces' replay windows, and spelling one as a proof context (or carrying it
+    # in a field named proof_context) makes two different primitives look like one.
+    separations = data.get("domain_separations")
+    if not isinstance(separations, list) or not separations:
+        lint.fail(path, "proof context registry must contain non-empty domain_separations[]")
+        separations = []
+    domains: set[str] = set()
+    separation_families: set[str] = set()
+    replay_namespaces: set[str] = set()
+    for index, row in enumerate(separations):
+        if not isinstance(row, dict):
+            lint.fail(path, f"domain_separations[{index}] must be an object")
+            continue
+        domain = row.get("domain")
+        family = row.get("object_family")
+        primitive = row.get("primitive")
+        fields = row.get("binding_fields")
+        if not isinstance(domain, str) or not domain.startswith("ak."):
+            lint.fail(path, f"domain_separations[{index}].domain must be an ak.* literal")
+            domain = None
+        elif domain in domains:
+            lint.fail(path, f"duplicate domain separation {domain}")
+            domain = None
+        else:
+            domains.add(domain)
+        if not isinstance(family, str) or not family:
+            lint.fail(path, f"domain_separations[{index}].object_family must be a non-empty string")
+        elif family in families:
+            lint.fail(
+                path,
+                f"domain separation object_family {family} is already a proof context object family",
+            )
+        elif family in separation_families:
+            lint.fail(path, f"duplicate domain separation object_family {family}")
+        else:
+            separation_families.add(family)
+        if primitive not in DOMAIN_SEPARATION_PRIMITIVES:
+            lint.fail(
+                path,
+                f"domain_separations[{index}].primitive is not a registered primitive: {primitive!r}",
+            )
+        if not isinstance(fields, list) or not fields or not all(isinstance(item, str) and item for item in fields):
+            lint.fail(path, f"domain_separations[{index}].binding_fields must be a non-empty string array")
+        if primitive != REPLAY_CACHE_NAMESPACE_PRIMITIVE:
+            continue
+        if domain is not None and re.fullmatch(PROOF_CONTEXT_PATTERN, domain):
+            lint.fail(
+                path,
+                f"{domain} is a replay-cache namespace and MUST NOT be spelled as a proof context",
+            )
+        defined_in = row.get("defined_in")
+        if not isinstance(defined_in, str) or not defined_in:
+            lint.fail(
+                path,
+                f"domain_separations[{index}] with primitive {REPLAY_CACHE_NAMESPACE_PRIMITIVE} "
+                "must declare defined_in",
+            )
+            continue
+        source = SPEC_ROOT / defined_in.split("#", 1)[0]
+        if not source.is_file():
+            lint.fail(path, f"domain_separations[{index}].defined_in does not resolve: {defined_in}")
+        elif domain is not None and domain not in source.read_text(encoding="utf-8"):
+            lint.fail(path, f"{domain} is not defined in its declared source {defined_in}")
+        if domain is not None:
+            replay_namespaces.add(domain)
+
+    for fixture_path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        fixture = load_json(lint, fixture_path)
+        if fixture is None:
+            continue
+        for pointer, value in _proof_named_field_values(fixture, "proof_context"):
+            if not isinstance(value, str) or value not in contexts:
+                lint.fail(
+                    fixture_path,
+                    f"proof_context at {pointer} is not a registered proof context: {value!r}",
+                )
+        for pointer, value in _proof_named_field_values(fixture, REPLAY_CACHE_NAMESPACE_PRIMITIVE):
+            if not isinstance(value, str) or value not in replay_namespaces:
+                lint.fail(
+                    fixture_path,
+                    f"{REPLAY_CACHE_NAMESPACE_PRIMITIVE} at {pointer} is not a registered "
+                    f"replay-cache namespace: {value!r}",
+                )
 
 
 

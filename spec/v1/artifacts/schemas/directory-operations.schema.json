@@ -112,14 +112,8 @@
       "minLength": 1
     },
     "proof": {
-      "$ref": "./event-envelope.schema.json#/$defs/proof"
-    },
-    "proofs": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/proof"
-      },
-      "minItems": 1
+      "$ref": "./event-envelope.schema.json#/$defs/proof",
+      "$comment": "Wire shape only. Every request family that carries requester proofs declares its own proofs array inline so that each object family owns a distinct detached-proof node with its own registered context (discovery-directory.md section 9.0.1); a single shared proofs alias would put unrelated operations under one domain separation."
     },
     "directory_presented_claim": {
       "type": "object",
@@ -655,6 +649,7 @@
     },
     "directory_resolve_target_request_body": {
       "type": "object",
+      "x-arkret-proof-context": "ak.directory-resolve-target-request-proof-v1",
       "required": [
         "address"
       ],
@@ -672,7 +667,11 @@
           "$ref": "#/$defs/directory_restricted_claim_presentations"
         },
         "proofs": {
-          "$ref": "#/$defs/proofs"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "minItems": 1
         },
         "token": {
           "$ref": "#/$defs/non_empty_string"
@@ -767,6 +766,7 @@
     },
     "directory_resolve_organization_request_body": {
       "type": "object",
+      "x-arkret-proof-context": "ak.directory-resolve-organization-request-proof-v1",
       "properties": {
         "organization_principal_id": {
           "$ref": "#/$defs/did_core_id"
@@ -775,7 +775,11 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "proofs": {
-          "$ref": "#/$defs/proofs"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "minItems": 1
         }
       },
       "anyOf": [
@@ -944,6 +948,7 @@
     "directory_resolve_handle_request_body": {
       "type": "object",
       "description": "Resolve a canonical handle. For restricted handle claims, requester / proofs / claim_presentations / audience / realm_id are authorization inputs; services MUST use indistinguishable denial for anonymous or unauthorized restricted, revoked, rate-limited, and not-found cases.",
+      "x-arkret-proof-context": "ak.directory-resolve-handle-request-proof-v1",
       "required": [
         "handle"
       ],
@@ -973,7 +978,11 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "proofs": {
-          "$ref": "#/$defs/proofs"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "minItems": 1
         }
       },
       "additionalProperties": false
@@ -1019,6 +1028,7 @@
     },
     "directory_resolve_agent_selector_request_body": {
       "type": "object",
+      "x-arkret-proof-context": "ak.directory-resolve-agent-selector-request-proof-v1",
       "required": [
         "controller_handle",
         "agent_slug",
@@ -1049,7 +1059,11 @@
           "$ref": "#/$defs/did_core_id"
         },
         "proofs": {
-          "$ref": "#/$defs/proofs"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "minItems": 1
         }
       },
       "additionalProperties": false
@@ -1094,6 +1108,7 @@
     "directory_list_handles_for_subject_request_body": {
       "type": "object",
       "description": "List currently visible handle claims for a subject. The service MUST apply the same visibility, audience, requester proof, rate-limit, and indistinguishable-denial rules as resolve_handle; absence of a returned handle is not proof the subject has none.",
+      "x-arkret-proof-context": "ak.directory-list-handles-for-subject-request-proof-v1",
       "required": [
         "subject"
       ],
@@ -1114,7 +1129,11 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "proofs": {
-          "$ref": "#/$defs/proofs"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "minItems": 1
         },
         "as_of": {
           "$ref": "#/$defs/timestamp"

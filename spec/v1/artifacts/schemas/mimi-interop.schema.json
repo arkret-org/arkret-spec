@@ -38,6 +38,7 @@
     },
     "provider_directory": {
       "type": "object",
+      "x-arkret-proof-context": "ak.mimi-provider-directory-proof-v1",
       "$comment": "The Arkret facade's outbound self-declaration (service_kind is a single-role const). The security core (schema discriminator, service_id, proof) and the complete capability declaration are all required so the signed unsigned projection (extensions/mimi-interop.md section 3.1) covers everything a consumer routes or negotiates on. Top-level and mimi-subtree extension openness is retained for draft evolution, but unknown fields MUST NOT change endpoint derivation, capability negotiation, authorization, routing or signature verification, and never enter the v1 transcript.",
       "required": [
         "schema",
@@ -171,7 +172,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Detached JWS by a verification method whose bare controller full_id validates under the registered method adapter and projects exactly to service_id (did_core_id), over the canonical unsigned projection (extensions/mimi-interop.md section 3.1). Direct full-DID/core-id string comparison is forbidden. payload_digest is the projection digest; the proof object itself never enters the projection. A digest or dev placeholder is not a signature."
+          "description": "Detached JWS by a verification method whose bare controller full_id validates under the registered method adapter and projects exactly to service_id (did_core_id), over the canonical unsigned projection (extensions/mimi-interop.md section 3.1). The projection's first member is the registered object-family context ak.mimi-provider-directory-proof-v1 (proof-context-registry.json); a signature made under any other context MUST be rejected even when it verifies cryptographically. Direct full-DID/core-id string comparison is forbidden. payload_digest is the projection digest; the proof object itself never enters the projection. A digest or dev placeholder is not a signature."
         }
       },
       "additionalProperties": true

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-17.2",
+  "version": "2026-08-17.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-17T11:00:00Z",
+  "generated_at": "2026-08-17T19:50:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -112,7 +112,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#10-encrypted-envelope-digest",
-      "section_digest": "sha256:d26b5b4437467ffce848d589a8473b2b59a81197e78a8ca0cdaa29e95a6acbec",
+      "section_digest": "sha256:73ccd5f773e1833516bdda4cc9f65a184a6406dbd13f177c1b59946a6d419a3d",
       "requirement": "Encrypted envelopes carry a pre-encryption immutable header; AAD digest and ciphertext digest are computed over fixed transcripts and any mismatch MUST fail closed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -230,7 +230,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:5142d25603ed5e83730f6de068c03a90bc1e8e636a9c84f661dcd3bb0855dfb5",
+      "section_digest": "sha256:6a24977e890b280714f1e23bf5a954c9793d7e408df236422d313783724e873b",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -295,13 +295,14 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:9c2006507d886e03ecfbb24b99d6976cef8d6e54628776a5f09f0e9a68829f57",
-      "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected.",
+      "section_digest": "sha256:7f02b0bb5ba5f340d60071bbf8f30ce154047fa541b6ab00c1450e5ab90cf556",
+      "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.patch.atomic_application.v1",
         "ak.vector.patch.path_grammar_bounds.v1",
         "ak.vector.patch.projection_prestate_binding.v1",
+        "ak.vector.patch.redactable_content_slot_unset_ban.v1",
         "ak.vector.strand_tracks_update.atomic.v1"
       ]
     },

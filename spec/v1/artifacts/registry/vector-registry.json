@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-17.2",
+  "version": "2026-08-17.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-17T10:00:00+08:00",
+  "generated_at": "2026-08-17T11:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4555,6 +4555,20 @@
       ]
     },
     {
+      "vector_id": "ak.vector.patch.redactable_content_slot_unset_ban.v1",
+      "status": "active",
+      "domain": "patch",
+      "applies_to_fixtures": [
+        "state-reducer-hardening-fixture.json"
+      ],
+      "description": "Pins the event-and-patch.md §4.2.4 slot-existence rule against the machine-readable redactable-field-registry.json: $op=\"unset\" on every registered content-carrier slot is rejected with patch_unset_redactable_field, plaintext and encrypted forms of one slot decide identically, $op=\"set\" with an empty body stays ordinary authoring, and metadata.title / metadata.summary / metadata.fields.* accept unset so an optional field can never become write-once.",
+      "source_refs": [
+        "spec/v1/zh/models/event-and-patch.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.policy_server.binding_tombstone.v1",
       "status": "active",
       "domain": "policy_server",
@@ -5660,6 +5674,19 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/sync-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.snapshot.witness_quorum_attestation.v1",
+      "status": "active",
+      "domain": "snapshot",
+      "applies_to_fixtures": [
+        "sync-fixture.json"
+      ],
+      "description": "Snapshot witness attestations are a typed object family signed under ak.snapshot-witness-attestation-proof-v1 over the signature-free canonical projection: missing attestations under authority_kind=witness_quorum, a duplicate signer, an unauthorized or revoked witness, a deduplicated count below the policy threshold, the manifest context reused as the witness context, a mutated projection, and a rewritten or reordered witness list MUST all be rejected, while a valid quorum is accepted and the top-level issuer signature binds the final sorted witness set.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/sync-fixture.json",
+        "spec/v1/zh/conformance/snapshot-schema.md"
       ]
     },
     {

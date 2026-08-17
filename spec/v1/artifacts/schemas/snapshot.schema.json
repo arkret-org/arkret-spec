@@ -4,9 +4,55 @@
   "$defs": {
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "snapshot_witness_attestation": {
+      "type": "object",
+      "x-arkret-proof-context": "ak.snapshot-witness-attestation-proof-v1",
+      "description": "One witness statement that the snapshot issuer held snapshot-sealing authority for this exact reduced state at manifest created_at. It is a distinct object family from the manifest itself: the witness signs the canonical SnapshotWitnessAttestation projection of snapshot-schema.md section 5.1 under context ak.snapshot-witness-attestation-proof-v1, which binds the snapshot identity, state, frontier, event-set commitment and authority state but excludes every signature and proof field, so a witness never signs a transcript containing its own or another witness's signature. The manifest-level ak.snapshot-proof-v1 context MUST NOT be reused here.",
+      "required": [
+        "witness_id",
+        "proof"
+      ],
+      "properties": {
+        "witness_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Stable did_core_id of the witness. The proof verification_method stays a full DID URL whose bare controller full_id is validated and projected to this value by the registered method adapter; direct full-DID/core-id string comparison is forbidden. Quorum counting is per witness_id, so several keys of one witness count once."
+        },
+        "proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "description": "Detached proof whose payload_digest is the SHA-256 typed digest of the JCS canonical SnapshotWitnessAttestation projection (snapshot-schema.md section 5.1). Verifiers MUST recompute the projection from the manifest and this row's witness_id and MUST reject any other transcript.",
+          "x-canonical-bytes-include": [
+            "context",
+            "witness_id",
+            "snapshot_id",
+            "realm_id",
+            "reducer_profile",
+            "schema_profile_refs",
+            "security_class",
+            "state_digest",
+            "frontier",
+            "event_set_commitment",
+            "issuer",
+            "authority_kind",
+            "auth_state_digest",
+            "auth_frontier",
+            "snapshot_created_at"
+          ],
+          "x-canonical-bytes-exclude": [
+            "signature",
+            "witness_attestations",
+            "verification_hints",
+            "chunks",
+            "created_by",
+            "checked_at"
+          ]
+        }
+      },
+      "additionalProperties": false
     }
   },
   "title": "Arkret Snapshot Manifest",
+  "x-arkret-proof-context": "ak.snapshot-proof-v1",
   "type": "object",
   "required": [
     "id",
@@ -167,7 +213,8 @@
         },
         "witness_quorum": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "The witness threshold the issuer claims to have satisfied. It is a declared value, never the source of the threshold: verifiers MUST derive the real threshold from the accepted Realm auth/policy state resolved at created_at through authority_binding.auth_frontier / auth_state_digest, and MUST reject the snapshot when this declared value differs from that derived threshold or when the deduplicated valid witness count is below it."
         },
         "conflict_records_digest": {
           "type": "string",
@@ -221,7 +268,7 @@
     },
     "authority_binding": {
       "type": "object",
-      "description": "Evidence that created_by was authorized to seal this snapshot at created_at. Verifiers MUST reject the snapshot when this binding cannot be checked against Realm policy / witness quorum at or before created_at.",
+      "description": "Evidence that created_by was authorized to seal this snapshot at created_at. Verifiers MUST reject the snapshot when this binding cannot be checked against Realm policy / witness quorum at or before created_at. authority_kind=witness_quorum additionally requires the typed witness_attestations list below; there is no untyped alternative carrier.",
       "required": [
         "issuer",
         "authority_kind",
@@ -263,16 +310,37 @@
         "witness_attestations": {
           "type": "array",
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/proof"
+            "$ref": "#/$defs/snapshot_witness_attestation"
           },
-          "minItems": 1
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Typed witness quorum evidence. Rows MUST be sorted by witness_id in UTF-8 byte order and witness_id MUST be unique across rows (JSON Schema cannot express the sort; snapshot-schema.md section 5.1 makes both normative). Each witness signs the signature-free SnapshotWitnessAttestation projection first; the issuer then signs the manifest containing this final ordered list, so adding, dropping or reordering a row invalidates the manifest signature. Quorum admission uses only the accepted Realm auth/policy state resolved from auth_frontier / auth_state_digest at the manifest created_at: authorized witness set, per-witness key validity, revocation freshness and threshold all come from there, never from verification_hints.witness_quorum. There is no untyped equivalent quorum proof in v1."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "authority_kind": {
+                "const": "witness_quorum"
+              }
+            },
+            "required": [
+              "authority_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "witness_attestations"
+            ]
+          }
+        }
+      ]
     },
     "signature": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",
-      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds id, realm_id, reducer_profile, schema_profile_refs, state_digest, frontier, event_set_commitment, chunks (chunk_ref / digest / size_bytes), security_class, verification_hints, created_by, created_at, and authority_binding. Because security_class is signed (and required), a high_assurance -> standard downgrade cannot be performed without invalidating the signature.",
+      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds id, realm_id, reducer_profile, schema_profile_refs, state_digest, frontier, event_set_commitment, chunks (chunk_ref / digest / size_bytes), security_class, verification_hints, created_by, created_at, and authority_binding — including the final sorted authority_binding.witness_attestations list, so a rewritten, truncated or reordered witness set invalidates this signature. Because security_class is signed (and required), a high_assurance -> standard downgrade cannot be performed without invalidating the signature. This transcript uses context ak.snapshot-proof-v1; each witness attestation uses the separate ak.snapshot-witness-attestation-proof-v1 context and never signs this transcript, which is what keeps the two levels acyclic.",
       "x-canonical-bytes-include": [
         "id",
         "realm_id",

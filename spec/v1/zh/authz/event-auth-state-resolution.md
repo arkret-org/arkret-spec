@@ -301,7 +301,7 @@ Seal {
 
 ### 6.1 Seal id 与签名 transcript
 
-`id = ak:seal:<algo>:<hex>`，hex MUST 等于 `H(seal_canonical_bytes)`。`id` 与 `notary_signature` 不进入 `seal_canonical_bytes`。除这两个字段外，所有顶层字段都进入 canonical bytes 和 signature transcript，包括 `control_event_set_root`、`notary_seq` 与所有 optional observational roots。
+`id = ak:seal:<digest-suite>:<hex>`（与 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `special_forms[kind=seal]` 的 `wire_form` / `payload_pattern` 逐字一致），`<digest-suite>` MUST 是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 active 行且等于该 Realm 的 `digest_algorithm`，`H` 取该 suite 的 hash；hex MUST 等于 `H(seal_canonical_bytes)`。`id` 与 `notary_signature` 不进入 `seal_canonical_bytes`。除这两个字段外，所有顶层字段都进入 canonical bytes 和 signature transcript，包括 `control_event_set_root`、`notary_seq` 与所有 optional observational roots。
 
 Receiver MUST：
 

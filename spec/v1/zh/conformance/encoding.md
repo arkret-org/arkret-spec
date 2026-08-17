@@ -330,7 +330,7 @@ managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/pr
 - `ak:did_core:<method>:<core>` 是 DID method adapter 产出的稳定 `did_core_id`，不是 Arkret 私有 DID method，也不是可直接交给 DID resolver 的完整 DID。`<method>` 与 `<core>` 必须按 registry / adapter 校验；编码层不得截断、拆分后重新拼接或从中推导 endpoint。
 - `ak:cursor:<base64url>` 是 opaque token，不是 typed UUID object ID。
 - `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
-- `ak:seal:sha256:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。
+- `ak:seal:<digest-suite>:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。`<digest-suite>` 与 `ak:blob:<digest-suite>:<digest>` 取同一值空间：MUST 是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 active 行，且 MUST 等于该 Realm 声明的 `digest_algorithm`；Seal id 是 critical field，前缀不属于 active 行时 MUST 以 `unsupported_digest_algorithm` fail closed（[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）。
 - `ak:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；`component` MUST 是从 cell-component registry 取得并原样嵌入的完整 `ak.component.<family-path>.v<n>` family 标识符，`subject` 是 cell 的 subject key）。因此标准实例形如 `ak:cell:ak.component.strand.position.v1:<subject>`；`ak:cell:component.*`、`ak:cell:<裸 family>`、任何非 `ak.component.*.v<n>` family、截断/非十六进制 percent escape 或任何未完整携带 `ak.component.*.v<n>` 的形态 MUST 拒绝。
   - **Subject 嵌入编码按 registry subject kind 分派（normative，封闭表）**：subject 的 wire 形态由 `contract-registry.json` 的 `cell_writes[].cell_subject` 唯一决定。下表覆盖该字段的**全部**合法形态；实现 MUST NOT 让两行同时适用于同一字段，也 MUST NOT 按字段内容猜测规则。
 
@@ -986,7 +986,7 @@ nonce = sender_nonce_prefix || device_nonce_counter_be64
 
 任何依赖 AEAD 输出的字段——包括覆盖 authentication tag 的 `ciphertext_digest`、`payload_digest`、content digest 或 receipt——MUST NOT 进入同一次 AEAD 的 AAD。此类 **post-encryption commitment** MUST 由该 domain 指定的外层 authentication（已签名 Event / encrypted descriptor / upload receipt / envelope proof）覆盖；某条路径若没有任何外层认证，MUST 补齐认证，MUST NOT 把 digest 塞回 AEAD AAD。
 
-**为什么是纯删除（normative rationale）**：本节的前身条款曾以“防止 (key, nonce) 下的 ciphertext 被与另一 AAD 配对解密”为由要求 AAD 绑定 `ciphertext_digest`。该理由不成立：AEAD 的 tag 本身就是对 `(key, nonce, AAD, ciphertext)` 四元组的认证，在 `AAD₁` 下产生的密文改用 `AAD₂` 验证必然失败——这是 AEAD 的定义性质。因此从 AAD 中删除 ciphertext digest **不损失任何安全属性**：ciphertext↔AAD 绑定由 tag 提供；ciphertext↔key domain 绑定由实际使用的 key 与 AAD 中已认证的 `key_ref` 共同提供；ciphertext↔nonce 绑定由 nonce 参与 seal/open 提供；AEAD 非 key-committing 的已知问题由 `key_ref` 与域分离处理，`ciphertext_digest` 从来无助于此。规范 MUST NOT 保留该错误理由文本，否则后续 scheme 会重新引入同样的绑定。
+**Anti-pattern：以“防止 AAD 配对替换”为由把 ciphertext digest 绑进 AAD（normative）**：任何 scheme MUST NOT 把该次 AEAD 自身输出的派生值（ciphertext digest、payload digest、tag 或覆盖它们的 receipt）写入同一次 AEAD 的 AAD，也 MUST NOT 用“否则 `(key, nonce)` 下的 ciphertext 会被与另一 AAD 配对解密”这一理由要求该绑定。该理由不成立：AEAD tag 本身就是对 `(key, nonce, AAD, ciphertext)` 四元组的认证，在 `AAD₁` 下产生的密文改用 `AAD₂` 验证必然失败，这是 AEAD 的定义性质。这样定义会破坏两条不变量：AAD MUST 在调用 seal 之前完全确定（§10.2），而该绑定要求先得到 seal 输出才能构造 AAD，形成无解的循环依赖；同时它把一个零收益字段写入认证输入，使 receiver 无法按本节定义唯一重算 AAD。不绑定 ciphertext digest **不损失任何安全属性**：ciphertext↔AAD 绑定由 tag 提供；ciphertext↔key domain 绑定由实际使用的 key 与 AAD 中已认证的 `key_ref` 共同提供；ciphertext↔nonce 绑定由 nonce 参与 seal/open 提供；AEAD 非 key-committing 的已知问题由 `key_ref` 与域分离处理，ciphertext digest 对此从无帮助。post-encryption commitment 的正确位置是外层认证，见上一段。
 
 **明确否决的替代构造**：
 

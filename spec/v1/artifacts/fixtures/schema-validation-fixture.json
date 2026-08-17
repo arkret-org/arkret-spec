@@ -3138,6 +3138,80 @@
       }
     },
     {
+      "name": "erasure_receipt_account_status_record_trigger_valid",
+      "schema_ref": "schemas/erasure-receipt.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.erasure_receipt.v1",
+        "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000030",
+        "trigger": {
+          "kind": "account_status_record",
+          "account_status_record_id": "ak:account_status_record:AUPhm9XGSn2ah7YYExswNu0yaccqupAufE2bFvqEoD5N"
+        },
+        "issuer": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+        "subject": {
+          "kind": "principal",
+          "subject_ref": "ak:did_core:webvh:z6mkfixtureerasedaccountexample"
+        },
+        "scope": {
+          "storage_boundary": "account_private_store"
+        },
+        "outcome": "completed",
+        "erased_classes": [
+          "account_private_state",
+          "push_routes"
+        ],
+        "retained_stub_digest": "sha256:aa67f34cd4e055246b8a73abe15734c39945b5c0e2e5693c00cada4e13d93e59",
+        "retained_stub": {
+          "stub_schema": "ak.schema.erasure_verification_stub.v1",
+          "subject": {
+            "kind": "principal",
+            "subject_ref": "ak:did_core:webvh:z6mkfixtureerasedaccountexample"
+          },
+          "scope": {
+            "storage_boundary": "account_private_store"
+          },
+          "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000030",
+          "trigger": {
+            "kind": "account_status_record",
+            "account_status_record_id": "ak:account_status_record:AUPhm9XGSn2ah7YYExswNu0yaccqupAufE2bFvqEoD5N"
+          },
+          "completed_at": "2026-08-02T00:10:00.000Z"
+        },
+        "legal_hold_ref": null,
+        "completed_at": "2026-08-02T00:10:00.000Z",
+        "issued_at": "2026-08-02T00:10:00.000Z",
+        "proofs": [
+          {
+            "verification_method": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
+            "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "signature": "receipt-signature-base64url-placeholder"
+          }
+        ]
+      }
+    },
+    {
+      "name": "erasure_verification_stub_account_status_record_trigger_valid",
+      "schema_ref": "schemas/erasure-verification-stub.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "stub_schema": "ak.schema.erasure_verification_stub.v1",
+        "subject": {
+          "kind": "principal",
+          "subject_ref": "ak:did_core:webvh:z6mkfixtureerasedaccountexample"
+        },
+        "scope": {
+          "storage_boundary": "account_private_store"
+        },
+        "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000030",
+        "trigger": {
+          "kind": "account_status_record",
+          "account_status_record_id": "ak:account_status_record:AUPhm9XGSn2ah7YYExswNu0yaccqupAufE2bFvqEoD5N"
+        },
+        "completed_at": "2026-08-02T00:10:00.000Z"
+      }
+    },
+    {
       "name": "account_blocklist_actor_target_with_value_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
       "expect_valid": false,

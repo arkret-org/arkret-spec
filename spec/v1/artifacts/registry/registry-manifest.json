@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-16.3",
+  "version": "2026-08-17.1",
   "source_of_truth": true,
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
@@ -363,6 +363,22 @@
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Closed named-exemption registry for the zh/sync/service-http-binding.md 2.2.2 request material supply-closure law. Rows carry individually adjudicated exceptions (external_form, open_finding, deferred_supply) per operation and json-path prefix; open findings must reference a live arkret-work review anchor and be deleted when the gap closes. Consumed by tools/lint_artifacts.py#check_request_material_supply_closure."
+    },
+    {
+      "name": "redactable_fields",
+      "file": "registry/redactable-field-registry.json",
+      "kind": "redactable_field_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Machine-readable projection of the zh/models/event-and-patch.md 4.2.4 redactable content-carrier slots: the paths an ak.schema.patch.v1 $op=\"unset\" MUST NOT remove, with the paired plaintext/encrypted slot and the legal non-terminal and terminal clear paths for each."
+    },
+    {
+      "name": "account_status_replica_decisions",
+      "file": "registry/account-status-replica-decision-table.json",
+      "kind": "decision_table",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical ordered decision table for the account-status replica receiver classification in zh/identity/account-lifecycle.md 3.1. Every branch compares the submission against the durable replica head and nothing else."
     },
     {
       "name": "runner_kinds",

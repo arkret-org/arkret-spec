@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.cba_lattice.v1",
-  "version": "2026-06-19",
+  "version": "2026-08-17",
   "suite": "state_reducer_hardening",
   "runner": {
     "kind": "named_suite",
@@ -12,6 +12,7 @@
     "ak.vector.realm_key.withheld_policy_basis.v1",
     "ak.vector.patch.atomic_application.v1",
     "ak.vector.patch.projection_prestate_binding.v1",
+    "ak.vector.patch.redactable_content_slot_unset_ban.v1",
     "ak.vector.state_root.incremental.v1",
     "ak.vector.strand_tracks_update.atomic.v1"
   ],
@@ -710,6 +711,181 @@
               "reason": "schema_violation",
               "reason_code": "patch_path_invalid",
               "tracks_unchanged": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "vector_id": "ak.vector.patch.redactable_content_slot_unset_ban.v1",
+      "assertions": [
+        "every_registered_content_slot_rejects_unset",
+        "plaintext_and_encrypted_slot_decisions_are_identical",
+        "set_on_a_registered_slot_is_accepted_even_when_the_body_is_empty",
+        "metadata_paths_are_not_content_slots_and_accept_unset",
+        "rejected_patch_leaves_the_object_unchanged"
+      ],
+      "input": {
+        "path_source": "registry/redactable-field-registry.json#/redactable_fields",
+        "cases": [
+          {
+            "name": "message_content_unset_rejected",
+            "object_kind": "message",
+            "event_kind": "ak.message.revise",
+            "patch": {
+              "content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "message_encrypted_content_unset_rejected",
+            "object_kind": "message",
+            "event_kind": "ak.message.revise",
+            "patch": {
+              "encrypted_content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "strand_content_unset_rejected",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "strand_encrypted_content_unset_rejected",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "encrypted_content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "morph_content_unset_rejected",
+            "object_kind": "morph",
+            "event_kind": "ak.morph.update",
+            "patch": {
+              "content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "morph_encrypted_content_unset_rejected",
+            "object_kind": "morph",
+            "event_kind": "ak.morph.update",
+            "patch": {
+              "encrypted_content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "strand_content_set_to_empty_body_accepted",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "content": {
+                "$op": "set",
+                "value": {
+                  "kind": "ak.content.text",
+                  "body": ""
+                }
+              }
+            },
+            "expected": {
+              "decision": "accept",
+              "content_slot_present": true,
+              "state_unchanged": "active"
+            }
+          },
+          {
+            "name": "strand_metadata_summary_unset_accepted",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "metadata.summary": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "accept",
+              "state_unchanged": "active",
+              "rationale": "metadata.summary is not a content-carrier slot; unset is its only non-terminal clear path"
+            }
+          },
+          {
+            "name": "morph_metadata_summary_unset_accepted",
+            "object_kind": "morph",
+            "event_kind": "ak.morph.update",
+            "patch": {
+              "metadata.summary": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "accept",
+              "state_unchanged": "active",
+              "rationale": "metadata.summary is not a content-carrier slot; unset is its only non-terminal clear path"
+            }
+          },
+          {
+            "name": "strand_metadata_fields_unset_accepted",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "metadata.fields.dropped_field": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "accept",
+              "state_unchanged": "active",
+              "rationale": "paths under metadata.fields are ordinary optional members"
             }
           }
         ]

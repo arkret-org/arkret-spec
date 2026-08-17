@@ -1,0 +1,1053 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": 1,
+  "kind": "naming_rule_coverage_matrix",
+  "source_of_truth": false,
+  "generated_from": [
+    "spec/v1/zh/models/common-fields.md",
+    "tools/naming-convention-rules.json",
+    "tools/artifact_lint"
+  ],
+  "generated_by": "tools/artifact_lint/naming_contracts.py (check_naming_rule_coverage_matrix)",
+  "description": "Inventory of every normative naming clause of common-fields.md and the enforcement that actually decides it. The audit unit is a stable rule_id plus a normative anchor (section heading plus a verbatim quote), NOT a hand-counted axis number: the prose keeps evolving, and an axis count drifts the moment a clause is split or merged. rule_id values that also appear in naming-convention-rules.json denote the same rule; the other identifiers were assigned here for clauses the prose never numbered, and they are new identifiers rather than a continuation of any earlier manual inventory. `enforcement_kind` is what a row claims and the lint verifies: named predicates must be in the executed predicate table, named functions must be defined in tools/artifact_lint and reachable in the static call graph from a check that runs from the artifact-lint main entry, and named registries and tests must exist. `prose_only` and `uncovered` may not name executable enforcement, may not claim full coverage, and must state why the residual risk is accepted; neither is a default fallback.",
+  "enforcement_kinds": {
+    "predicate": "An executable name predicate decides the clause. It is either a registered rule of naming-convention-rules.json or a closed table inside the named check function.",
+    "registry_closure": "A registry is the single truth and the check closes the wire/prose surface against it.",
+    "schema_type": "The resolved JSON Schema terminal type decides the clause; the check reads the type rather than the name.",
+    "prose_only": "No mechanical enforcement exists and the clause is knowingly left to human review.",
+    "uncovered": "No mechanical enforcement exists and the gap is tracked as an open protocol issue, not accepted."
+  },
+  "coverage_levels": {
+    "full": "Every occurrence of the clause on the declared surfaces is decided mechanically.",
+    "partial": "Some occurrences are decided mechanically and the remainder needs human judgement or a registry that is not yet complete."
+  },
+  "coverage_summary": {
+    "predicate": 15,
+    "registry_closure": 7,
+    "schema_type": 3,
+    "prose_only": 7,
+    "uncovered": 3
+  },
+  "rules": [
+    {
+      "rule_id": "NC-BOOL-001",
+      "title": "Permission booleans end _allowed, obligation booleans end _required",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**R1 布尔许可与义务**"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-BOOL-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": [
+          "tools/naming-convention-rules.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "full"
+    },
+    {
+      "rule_id": "NC-COUNT-001",
+      "title": "Counts use _count and byte sizes use _bytes",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**R2 计数与长度**"
+      },
+      "applies_to": [
+        "wire_property",
+        "registry_semantic_field",
+        "fixture_assertion_field"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-COUNT-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": [
+          "tools/naming-convention-rules.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "full"
+    },
+    {
+      "rule_id": "NC-ENUM-001",
+      "title": "Arkret-owned symbolic enum literals are snake_case",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**R3 符号枚举值**"
+      },
+      "applies_to": [
+        "symbolic_enum_value"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-ENUM-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": [
+          "tools/naming-convention-rules.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "The predicate decides snake_case for every literal it is handed, but deciding which enums are Arkret-owned rather than external is registry work that is not complete, so only the registered non-snake literals are currently swept."
+    },
+    {
+      "rule_id": "NC-TYPE-001",
+      "title": "Type names fold acronyms and use the closed structural wrapper table",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**R4 类型名**"
+      },
+      "applies_to": [
+        "json_schema_defs_key",
+        "openapi_schema_component",
+        "conceptual_type_name"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-TYPE-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": [
+          "tools/naming-convention-rules.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "Acronym folding, stacked wrapper words and rejected wrapper roles are decided mechanically; telling a domain subject apart from a structural wrapper role stays registry-driven through rejected_wrapper_words."
+    },
+    {
+      "rule_id": "NC-CODE-001",
+      "title": "Machine reasons use reason_code and protocol errors use error_code",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**R5 机器原因码**"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-CODE-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": [
+          "tools/naming-convention-rules.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "full"
+    },
+    {
+      "rule_id": "NC-EVIDENCE-001",
+      "title": "evidence names a container spanning at least two material families",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**R6 证据材料名词**"
+      },
+      "applies_to": [
+        "wire_property",
+        "conceptual_type_name"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-EVIDENCE-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": [
+          "tools/evidence-material-audit.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "The predicate only rejects singular-material stems; whether a given container really spans two families is adjudicated per occurrence in evidence-material-audit.json, and that judgement itself is human even though its closure against the schemas is mechanical."
+    },
+    {
+      "rule_id": "NC-ARTIFACT-001",
+      "title": "Artifact filenames are kebab-case and provenance matches the data flow",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**R7 artifact 文件与 provenance**"
+      },
+      "applies_to": [
+        "artifact_filename",
+        "artifact_provenance"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-ARTIFACT-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": [
+          "tools/naming-convention-rules.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "full"
+    },
+    {
+      "rule_id": "NC-SET-001",
+      "title": "Allowlist and denylist collections use allowed_ and denied_",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**R8 集合前缀**"
+      },
+      "applies_to": [
+        "wire_property",
+        "fixture_wire_specimen"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-SET-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": [
+          "tools/naming-convention-rules.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "full"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "title": "Hash vocabulary: digest for bytes, algorithm for selectors, never hash",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**既有 hash 词汇判据**"
+      },
+      "applies_to": [
+        "wire_property",
+        "json_schema_defs_key",
+        "conceptual_type_name"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-HASH-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": [
+          "tools/naming-convention-rules.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "full"
+    },
+    {
+      "rule_id": "NC-CLASSIFICATION-001",
+      "title": "kind / type / class / tier are four mutually exclusive classification axes",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**四轴分类后缀**"
+      },
+      "applies_to": [
+        "wire_property",
+        "registry_semantic_field"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-CLASSIFICATION-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates",
+          "schemas.py:check_classification_context_paths"
+        ],
+        "registries": [
+          "spec/v1/artifacts/registry/classification-field-registry.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates",
+        "classification_contexts"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "The predicate only rejects double-axis suffixes such as _kind_type; the per-field axis decision and the external anchor for every `type` path live in classification-field-registry.json."
+    },
+    {
+      "rule_id": "NC-SIZE-001",
+      "title": "Byte-size fields use the _bytes suffix and never a bare size",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "3.0.1",
+        "quote": "表示字节数的字段 MUST 使用 `_bytes` 后缀"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-COUNT-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": []
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "The NC-COUNT-001 predicate rejects the forbidden _size / _len / _length spellings, which is the whole enforceable half; whether a numeric field means bytes rather than elements is a semantic judgement no name predicate can make."
+    },
+    {
+      "rule_id": "NC-ALIAS-001",
+      "title": "Projection rows reuse canonical field names instead of inventing aliases",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "Projection row 若表达 canonical object 的同一概念"
+      },
+      "applies_to": [
+        "wire_property",
+        "projection_row",
+        "prose_json_example"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": []
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "check_key sweeps every JSON artifact and every declared JSON example against the closed FORBIDDEN_NAMING_ALIAS_KEYS table, so a known alias cannot come back; a newly invented alias is only caught once it is added to that table."
+    },
+    {
+      "rule_id": "NC-TIMEBOUND-001",
+      "title": "Validity bounds are not_before and expires_at",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "时间边界命名约定：有效期下界统一使用 `not_before`"
+      },
+      "applies_to": [
+        "wire_property",
+        "prose_json_example"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": []
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "valid_from, valid_until, not_after, cache_valid_until and retention_until are rejected by the alias table. `fresh_until` and `grace_until` are deliberately NOT aliases of expires_at: the first is a proof-freshness bound and the second is the `cutover_at < grace_until <= expires_at` phase bound, so a blanket _until ban would be wrong and no predicate attempts it."
+    },
+    {
+      "rule_id": "NC-SIGNER-001",
+      "title": "verification_method, key_id and sender_actor_id are the signing-role names",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "签名 proof 中表示签名 key DID URL 的字段统一为 `verification_method`"
+      },
+      "applies_to": [
+        "wire_property",
+        "prose_json_example"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": []
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "signed_by, sender and sender_display_name are rejected by the alias table; whether a given signature field should carry a role prefix is not decided mechanically."
+    },
+    {
+      "rule_id": "NC-SERVICEID-001",
+      "title": "Service identity fields are service_id, never *_service_did",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.1",
+        "quote": "Service identity 字段统一使用 `service_id`"
+      },
+      "applies_to": [
+        "wire_property",
+        "registry_semantic_field",
+        "prose_json_example"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": []
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "check_key rejects service_did and every *_service_did spelling except the registered principal_server_did stem; deciding when material genuinely needs the DID ecosystem `_did` name (pairwise_did, operator DIDs) stays human."
+    },
+    {
+      "rule_id": "NC-NAMESPACE-001",
+      "title": "`ak.` names registry symbols and `ak:` names typed instances",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "因此，看到 `ak:` 先按"
+      },
+      "applies_to": [
+        "wire_property",
+        "typed_id_wire_form",
+        "registry_symbol",
+        "normative_prose"
+      ],
+      "enforcement_kind": "registry_closure",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "foundation.py:check_id_form_wire_schema_alignment",
+          "prose.py:check_typed_id_prose_consistency"
+        ],
+        "registries": [
+          "spec/v1/artifacts/registry/id-kind-registry.json"
+        ]
+      },
+      "entry_points": [
+        "id_form_wire_schema",
+        "typed_id_prose"
+      ],
+      "tests": [
+        "tools/test_lint_artifacts_runtime.py"
+      ],
+      "coverage_level": "full"
+    },
+    {
+      "rule_id": "NC-IDKIND-001",
+      "title": "ID kind slugs and wire prefixes are complete snake_case words",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "ID kind 与 wire prefix 必须使用完整 snake_case 名称"
+      },
+      "applies_to": [
+        "typed_id_wire_form",
+        "registry_semantic_field"
+      ],
+      "enforcement_kind": "registry_closure",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "foundation.py:check_id_form_wire_schema_alignment"
+        ],
+        "registries": [
+          "spec/v1/artifacts/registry/id-kind-registry.json"
+        ]
+      },
+      "entry_points": [
+        "id_form_wire_schema"
+      ],
+      "tests": [
+        "tools/test_lint_artifacts_runtime.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "The lexical half is closed: the kind slug must match [a-z0-9_]+ and the generated `ak:{kind}:` wire form must be the one the schemas use. Whether a complete word was abbreviated (`msg` for `message`) is a semantic judgement and stays human."
+    },
+    {
+      "rule_id": "NC-TYPEDID-001",
+      "title": "Typed IDs appear in full on the wire and in signed material",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "`id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID"
+      },
+      "applies_to": [
+        "wire_property",
+        "signed_transcript_field"
+      ],
+      "enforcement_kind": "schema_type",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "schemas.py:check_stable_identity_fields_use_core_id",
+          "schemas.py:check_did_full_id_allowlist"
+        ],
+        "registries": [
+          "tools/did-full-id-allowlist.json",
+          "spec/v1/artifacts/registry/id-kind-registry.json"
+        ]
+      },
+      "entry_points": [
+        "stable_identity_core_ids",
+        "did_full_id_allowlist"
+      ],
+      "tests": [
+        "tools/test_lint_artifacts_runtime.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "Wire schemas are closed against the registered forms and every full-DID field is allowlisted per path. The storage and configuration boundaries the clause also governs (database columns, environment variables) are outside this repository and are not checked here."
+    },
+    {
+      "rule_id": "NC-IDENTIFIER-001",
+      "title": "Every identifier field belongs to exactly one value category",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.1",
+        "quote": "**Identifier value category 表（normative，有限且互斥）**"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "schema_type",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "naming_contracts.py:check_identifier_value_categories"
+        ],
+        "registries": [
+          "tools/identifier-classification-registry.json",
+          "spec/v1/artifacts/registry/id-kind-registry.json"
+        ]
+      },
+      "entry_points": [
+        "identifier_categories"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "Category assignment is closed in both directions: the resolved terminal type decides what it can, and every occurrence it cannot decide has an exact classification row that goes stale the moment the schema changes. Two categories, unregistered_object_identifier and non_identifier, are transitional and their rows are still open."
+    },
+    {
+      "rule_id": "NC-IDSUFFIX-001",
+      "title": "A single concrete kind carries its full kind slug in the field name",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.1.1",
+        "quote": "单一具体 kind MUST 在字段名中出现 kind slug"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "prose_only",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [],
+        "registries": [
+          "tools/identifier-classification-registry.json"
+        ]
+      },
+      "entry_points": [],
+      "tests": [],
+      "coverage_level": "partial",
+      "manual_review_reason": "Deciding whether a field name contains the full slug of the one kind it admits needs the reviewer to know which kind is concrete in that context; the artifact-root exception of 2.1.1 deliberately allows `<artifact>_id`, so no predicate can tell a legal short stem from a colliding one. The confirmed collisions are pinned per path in pending_rename_convergence, which fails as soon as the path stops matching, so the accepted residual risk is limited to collisions nobody has found yet.",
+      "manual_review_owner": "spec review of every new identifier field"
+    },
+    {
+      "rule_id": "NC-REF-001",
+      "title": "_ref and _refs are reserved for reference material",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.1.2",
+        "quote": "`_ref` / `_refs` 只用于 reference material"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "prose_only",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [],
+        "registries": []
+      },
+      "entry_points": [],
+      "tests": [],
+      "coverage_level": "partial",
+      "manual_review_reason": "The allowed categories are causal, finality, proof, schema/profile, content-addressed and polymorphic reference; all six are semantic roles that the schema type cannot express, because a causal reference and an ordinary object reference can resolve to the same typed pattern. Review accepts this because a wrong choice here mis-describes a field but cannot make a receiver bind the wrong value: the terminal type still decides what is accepted.",
+      "manual_review_owner": "spec review of every new reference field"
+    },
+    {
+      "rule_id": "NC-SCOPE-001",
+      "title": "Bare scope is the object's own boundary; references use a domain prefix",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "`scope` 命名约定：当 scope 是该对象自身的边界字段时"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "schema_type",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "schemas.py:check_wire_schema_no_bare_scope"
+        ],
+        "registries": []
+      },
+      "entry_points": [
+        "wire_scope"
+      ],
+      "tests": [
+        "tools/test_lint_artifacts_runtime.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "Bare `scope` is rejected on the guarded wire schemas outside the registered self-boundary objects; choosing the right domain prefix among read_scope, match_scope, claim_scope and the rest is not decided mechanically."
+    },
+    {
+      "rule_id": "NC-LIFECYCLE-001",
+      "title": "state, status and stage name three different axes",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "`state` / `status` / `stage` 命名约定"
+      },
+      "applies_to": [
+        "wire_property",
+        "state_enum"
+      ],
+      "enforcement_kind": "registry_closure",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "foundation.py:check_state_contract_closure",
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": []
+      },
+      "entry_points": [
+        "state_contract_closure",
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py",
+        "tools/test_fsm_reachability_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "The lifecycle state contract is closed against its registry and any schema reusing the reserved `stage` name outside the protocol-level 8-value axis fails; whether a new field should be `status` rather than `state` is still a semantic call."
+    },
+    {
+      "rule_id": "NC-ACTION-001",
+      "title": "Capability actions are ak.<entity>.<verb> bound to target_event_kinds",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "Capability action 命名约定"
+      },
+      "applies_to": [
+        "capability_action_symbol",
+        "registry_semantic_field"
+      ],
+      "enforcement_kind": "registry_closure",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "bindings.py:check_capability_action_event_mapping"
+        ],
+        "registries": [
+          "spec/v1/artifacts/registry/capability-action-registry.json"
+        ]
+      },
+      "entry_points": [
+        "capability_mapping"
+      ],
+      "tests": [
+        "tools/test_lint_artifacts_runtime.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "Every action maps to registered target_event_kinds, so no consumer has to split the action string. Whether a new action was entitled to differ in name from the event kind it authorizes is decided by the registered deviation categories, which are reviewed by hand."
+    },
+    {
+      "rule_id": "NC-FIELDORDER-001",
+      "title": "Schema property order follows the content / lifecycle / audit clusters",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "3.2",
+        "quote": "本表是 §3 / §3.1 之外的**顺序**约定"
+      },
+      "applies_to": [
+        "json_schema_property_order",
+        "openapi_schema_component"
+      ],
+      "enforcement_kind": "registry_closure",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "safety.py:check_field_order"
+        ],
+        "registries": [
+          "tools/field-order-rules.json"
+        ]
+      },
+      "entry_points": [
+        "field_order"
+      ],
+      "tests": [
+        "tools/test_lint_artifacts_runtime.py"
+      ],
+      "coverage_level": "full"
+    },
+    {
+      "rule_id": "NC-SYMBOLLIT-001",
+      "title": "Security-domain separation labels are registry-registered ak.* literals",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "需要安全域分离的固定字符串 label 也使用 registry 明确登记的 `ak.*` 值"
+      },
+      "applies_to": [
+        "exporter_label",
+        "registry_symbol"
+      ],
+      "enforcement_kind": "registry_closure",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "safety.py:check_exporter_label_registry"
+        ],
+        "registries": [
+          "spec/v1/artifacts/registry/exporter-label-registry.json"
+        ]
+      },
+      "entry_points": [
+        "exporter_labels"
+      ],
+      "tests": [
+        "tools/test_lint_artifacts_runtime.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "MLS-Exporter labels are closed against their registry with the exact context field shape. The MLS GroupContext extension name `mls_governance_binding` is a single fixed literal that the exporter registry does not own, and no separate closure exists for it."
+    },
+    {
+      "rule_id": "NC-TEXTFIELD-001",
+      "title": "summary, description, title, display_name and name have distinct roles",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "`summary` / `description` 命名约定"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "prose_only",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [],
+        "registries": []
+      },
+      "entry_points": [],
+      "tests": [],
+      "coverage_level": "partial",
+      "manual_review_reason": "Whether a string field is a short preview, a long explanation, a human-readable name or an external protocol label is a content judgement, and OpenAPI itself uses `summary` and `description` as keywords, so a name-level sweep would fire on the specification format rather than on Arkret fields. Review accepts this because a wrong choice affects presentation only and cannot change what a receiver validates.",
+      "manual_review_owner": "spec review of every new text field"
+    },
+    {
+      "rule_id": "NC-AUDIT-001",
+      "title": "Object authorship is created_by / updated_by, never creator_*",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "`created_by` / `creator_*` 命名约定"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "prose_only",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [],
+        "registries": []
+      },
+      "entry_points": [],
+      "tests": [],
+      "coverage_level": "partial",
+      "manual_review_reason": "`creator_*` stays legal inside external protocol and cryptographic transcript structures such as the MLS group creator tuple, so a token-level ban would fire on exactly the occurrences the clause allows. Distinguishing the two needs the surrounding transcript, which no name predicate sees. The residual risk is bounded because the per-object required-field tables already pin created_by / updated_by on every canonical object.",
+      "manual_review_owner": "spec review of object metadata fields"
+    },
+    {
+      "rule_id": "NC-AUDIENCE-001",
+      "title": "recipient_service_id and audience are not interchangeable",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "`recipient_service_id` 与 `audience` 不可互换"
+      },
+      "applies_to": [
+        "wire_property",
+        "signed_transcript_field"
+      ],
+      "enforcement_kind": "prose_only",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [],
+        "registries": []
+      },
+      "entry_points": [],
+      "tests": [],
+      "coverage_level": "partial",
+      "manual_review_reason": "Both fields carry the same value shape, a service identity, so no type or name evidence separates a routing target from a cryptographic audience binding; only the surrounding proof definition does. Review accepts this because each proof definition states its own audience binding, and a mismatch surfaces as a verification failure in the domain KAT rather than as silently wrong routing.",
+      "manual_review_owner": "spec review of proof and delivery fields"
+    },
+    {
+      "rule_id": "NC-POLICYFIELD-001",
+      "title": "Inline <axis>_profile / <axis>_policy versus referenced <axis>_policy_id",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "6.1",
+        "quote": "Policy 对象 vs 内联配置的字段命名约定"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "prose_only",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [],
+        "registries": []
+      },
+      "entry_points": [],
+      "tests": [],
+      "coverage_level": "partial",
+      "manual_review_reason": "The choice between an inline closed enum and a referenced Policy object is a modelling decision about reuse, size and audit needs, not a lexical property; the resulting field is already type-checked either way. Review accepts this because both forms are individually validated, so a wrong choice costs modelling quality rather than wire correctness.",
+      "manual_review_owner": "spec review of policy-bearing objects"
+    },
+    {
+      "rule_id": "NC-FACETEVENT-001",
+      "title": "Facet-setting events use the bare noun form unless .set is justified",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "**Facet 值设置事件的命名形态（normative）**"
+      },
+      "applies_to": [
+        "event_kind_symbol"
+      ],
+      "enforcement_kind": "prose_only",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [],
+        "registries": []
+      },
+      "entry_points": [],
+      "tests": [],
+      "coverage_level": "partial",
+      "manual_review_reason": "The two admissible forms are both canonical, and the criterion is whether the kind needs to be told apart from a same-named patch path or needs its own capability split. Both are facts about the surrounding registries rather than about the kind string, and the criterion has to be applied when the kind is proposed. Review accepts this because both forms are fully registered and dispatched from the registry, so the choice cannot produce an unroutable kind.",
+      "manual_review_owner": "spec review of every new facet event kind"
+    },
+    {
+      "rule_id": "NC-EVENTVERB-001",
+      "title": "Event kind verbs are the bare form unless a past participle is registered",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "登记终段形态 `verb_form`"
+      },
+      "applies_to": [
+        "event_kind_symbol",
+        "registry_semantic_field"
+      ],
+      "enforcement_kind": "registry_closure",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "foundation.py:check_event_kind_verb_form_registration"
+        ],
+        "registries": [
+          "spec/v1/artifacts/registry/contract-registry.json"
+        ]
+      },
+      "entry_points": [
+        "event_kind_verb_form"
+      ],
+      "tests": [
+        "tools/test_event_kind_verb_form_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "Every active event kind must declare verb_form, and a past participle must carry its rationale, so the registration cannot be skipped. Whether the declared verb_form matches the English morphology of the kind's final segment is still read by a human when the kind is proposed."
+    },
+    {
+      "rule_id": "NC-FIELDCASE-001",
+      "title": "Wire object field names are snake_case",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.",
+        "quote": "JSON object，字段名必须 snake_case"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "uncovered",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [],
+        "registries": []
+      },
+      "entry_points": [],
+      "tests": [],
+      "coverage_level": "partial",
+      "manual_review_reason": "No check applies a snake_case predicate to wire property names. The gap is not theoretical: the camelCase did:webvh parameters mirrored into the DTO schema are the only reason a camelCase hash spelling was able to reach the schemas at all. Turning this into a predicate first needs the exact-path external-literal exception mechanism to cover verbatim external objects, so the row stays uncovered rather than being called accepted review.",
+      "open_issue": "needs an exact-path external_literal exception set for verbatim external parameter objects before the predicate can be enabled"
+    },
+    {
+      "rule_id": "NC-DURATION-001",
+      "title": "Integer durations carry an explicit unit suffix chosen by time scale",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "3.0.2",
+        "quote": "表示机器处理时长的新增 wire 字段 SHOULD 使用整数加显式单位后缀"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "uncovered",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [],
+        "registries": []
+      },
+      "entry_points": [],
+      "tests": [],
+      "coverage_level": "partial",
+      "manual_review_reason": "The prose fixes a closed two-row scale table, so the clause is mechanically decidable in principle: an integer duration field whose name ends in neither _ms nor _seconds could be rejected outright. Nothing implements it, so a unitless duration name can still be added silently. The row is uncovered, not prose_only, because there is no reason to accept the gap.",
+      "open_issue": "no predicate rejects a unitless integer duration field name"
+    },
+    {
+      "rule_id": "NC-SLUG-001",
+      "title": "An object's own slug is bare; other objects reference <entity>_slug",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "3.0.3",
+        "quote": "对象自身的 canonical slug 字段 MUST 使用裸名 `slug`"
+      },
+      "applies_to": [
+        "wire_property"
+      ],
+      "enforcement_kind": "uncovered",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [],
+        "registries": []
+      },
+      "entry_points": [],
+      "tests": [],
+      "coverage_level": "partial",
+      "manual_review_reason": "This is the slug half of the same self-versus-reference distinction NC-IDSUFFIX-001 makes for identifiers, and the identifier half is at least partly closed by the classification registry while the slug half has nothing. The clause is decidable once each schema declares whether it is the owning object, which is the same input the identifier classification already needs.",
+      "open_issue": "no closure exists for owning-object versus referencing slug fields"
+    }
+  ]
+}

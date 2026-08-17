@@ -219,7 +219,7 @@
       "properties": {
         "cursor": {
           "type": "string",
-          "pattern": "^ak:cursor:.+$"
+          "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
         },
         "reason_code": {
           "type": "string",
@@ -1867,7 +1867,7 @@
       "properties": {
         "seal_id": {
           "type": "string",
-          "pattern": "^ak:seal:sha256:[0-9a-f]{64}$"
+          "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
         },
         "accepted_event_digests": {
           "type": "array",
@@ -3620,7 +3620,7 @@
       "properties": {
         "challenge_id": {
           "type": "string",
-          "pattern": "^ak:organization-registration-challenge:[0-9a-f]{64}$"
+          "pattern": "^ak:organization_registration_challenge:[0-9a-f]{64}$"
         },
         "organization_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -3727,7 +3727,7 @@
         },
         "challenge_id": {
           "type": "string",
-          "pattern": "^ak:organization-registration-challenge:[0-9a-f]{64}$"
+          "pattern": "^ak:organization_registration_challenge:[0-9a-f]{64}$"
         },
         "version_id": {
           "type": "string",
@@ -3838,7 +3838,7 @@
     "OrganizationRegistrationReceipt": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Provider-signed record that this deployment accepted an external Organization DID binding. receipt_claims is exactly the object formed by removing registration_receipt_id and proof from the receipt; registration_receipt_id is ak:organization-registration-receipt:<lowercase hex SHA-256(canonical_json(receipt_claims))>. proof.payload_digest hashes the complete receipt after registration_receipt_id is inserted and proof is removed, so neither digest is self-referential. proof is a detached JWS over the ak.organization-registration-receipt-proof-v1 binding object. The receipt proves acceptance of one generation of one local binding and nothing else: it is not a Realm capability, not membership, not a notary designation, and not a service delegation.",
+      "description": "Provider-signed record that this deployment accepted an external Organization DID binding. receipt_claims is exactly the object formed by removing registration_receipt_id and proof from the receipt; registration_receipt_id is ak:organization_registration_receipt:<lowercase hex SHA-256(canonical_json(receipt_claims))>. proof.payload_digest hashes the complete receipt after registration_receipt_id is inserted and proof is removed, so neither digest is self-referential. proof is a detached JWS over the ak.organization-registration-receipt-proof-v1 binding object. The receipt proves acceptance of one generation of one local binding and nothing else: it is not a Realm capability, not membership, not a notary designation, and not a service delegation.",
       "required": [
         "registration_receipt_id",
         "organization_id",
@@ -3859,8 +3859,8 @@
       "properties": {
         "registration_receipt_id": {
           "type": "string",
-          "pattern": "^ak:organization-registration-receipt:[0-9a-f]{64}$",
-          "description": "ak:organization-registration-receipt: plus lowercase hex SHA-256(canonical_json(receipt with registration_receipt_id and proof both omitted))."
+          "pattern": "^ak:organization_registration_receipt:[0-9a-f]{64}$",
+          "description": "ak:organization_registration_receipt: plus lowercase hex SHA-256(canonical_json(receipt with registration_receipt_id and proof both omitted))."
         },
         "organization_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -3953,7 +3953,7 @@
         },
         "challenge_id": {
           "type": "string",
-          "pattern": "^ak:organization-registration-challenge:[0-9a-f]{64}$"
+          "pattern": "^ak:organization_registration_challenge:[0-9a-f]{64}$"
         },
         "version_id": {
           "type": "string",
@@ -5050,8 +5050,8 @@
           "$ref": "#/$defs/ServiceWebvhInceptionOperation"
         },
         "idempotency_key": {
-          "type": "string",
-          "pattern": "^ak:service-registration:[0-9a-f]{64}$"
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id",
+          "description": "Bounded opaque caller-chosen correlation string used only to relate audit records for one ensure attempt. It is deliberately outside the ak: typed-ID namespace and MUST NOT be parsed by the typed-ID parser or treated as an object identity. Registration identity is the canonical (service_kind, public_base) key that Provider persistence enforces with UNIQUE(service_kind, public_base), and the single idempotency authority for this operation is the operation registry's idempotency_mechanism=object_id; this field never establishes a second one."
         },
         "previous_receipt": {
           "oneOf": [

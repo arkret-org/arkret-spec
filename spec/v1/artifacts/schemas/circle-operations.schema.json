@@ -143,7 +143,7 @@
         },
         "mls_group_ref": {
           "type": "string",
-          "pattern": "^ak:mls:[a-z0-9_]+:.+$",
+          "pattern": "^ak:mls:[a-z0-9_]+:[A-Za-z0-9._:-]+$",
           "description": "Reducer-derived MLS group reference; present only when encryption_profile='mls_rfc9420'."
         },
         "state": {
@@ -356,7 +356,7 @@
         },
         "mls_group_ref": {
           "type": "string",
-          "pattern": "^ak:mls:[a-z0-9_]+:.+$"
+          "pattern": "^ak:mls:[a-z0-9_]+:[A-Za-z0-9._:-]+$"
         },
         "note": {
           "type": "string",

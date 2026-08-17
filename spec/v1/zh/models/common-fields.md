@@ -88,17 +88,21 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - `recipient_service_id` 与 `audience` 不可互换：前者是物理路由目标 service DID，后者是密码学 transcript / proof 的受众绑定。即使 `audience` 只有一个 DID，也不得替代 `recipient_service_id`；反之亦然。
 - `scope` 命名约定：当 scope 是该对象自身的边界字段时，wire schema 使用裸 `scope`（与对象自身 `id` 的命名规则相同），例如 `ak.schema.erasure_receipt.v1.scope`、`ak.schema.erasure_verification_stub.v1.scope`、`ak.schema.event_batch_receipt.v1.scope`。当字段引用外部对象、表达子结构中的特定作用域，或同一 payload 同时出现多个 scope 语义时，必须用领域前缀说明形态与用途，例如 `read_scope`、`event_range`、`match_scope`、`claim_scope`、`agent_key_scope`、`consent_scope`、`realm_key_scope`、`extension_scope`、`constraint_scope`、`policy_scope`、`search_scope`、`relation_scope`。Registry 元数据若表示条目适用范围，可继续使用 `scope`。
 - 诊断命名约定：机器可枚举的失败 / 恢复 / reset 原因使用 `reason_code` 或带领域前缀的 `*_reason_code`；人类可读自由文本使用 `reason` 或 `description`。受控枚举不得命名为 `reason`。
-- ID kind 与 wire prefix 必须使用完整 snake_case 名称，不得使用缩写前缀（例如使用 `ak:notification:`、`ak:device_message:`、`ak:key_event:`、`ak:moderation_queue_item:`、`ak:request:`、`ak:transaction:`、`ak:franking_proof:`）。
+- ID kind 与 wire prefix 必须使用完整 snake_case 名称，不得使用缩写前缀（例如使用 `ak:notification:`、`ak:device_message:`、`ak:key_event:`、`ak:moderation_queue_item:`、`ak:request:`、`ak:transaction:`、`ak:franking_proof:`）。该要求同样适用于 special form：special form 的 wire segment MUST 由其 `wire_form` 唯一解析，且默认与 snake_case `kind` 逐字相同；当前唯一的登记拼写例外是 `membership_compensation_delegation` / `ak:membership-compensation-delegation:`，它在 registry 内以 `wire_segment_rationale` 单独登记，不构成新增 kebab-case wire segment 的先例。
+- **schema → registry 封闭（normative）**：任何 schema validation carrier（`pattern`，含分组 / union 分支；`const`；`enum`；以及经本地 `$ref` 复用的同一形状）实际可接受的每一个字面 `ak:<segment>:` 前缀，MUST 唯一命中 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 中某个 `id_kinds` 或 `special_forms` 行由 `wire_form` 解析出的 canonical wire prefix。artifact lint 执行该封闭；未登记前缀是合同缺陷，不是可以留待运行时容忍的写法。反过来，纯关联用途的有界 opaque 字符串（例如 `ServiceRegistrationEnsureRequestBody.idempotency_key`）MUST NOT 借用 `ak:` 命名空间：它不进入 typed-ID parser，也不得成为该 operation 的第二个幂等 authority——注册 identity 是 canonical `(service_kind, public_base)` 唯一约束，幂等机制以 operation registry 的 `idempotency_mechanism` 为准。
 - CRDT lattice 字段使用 `lattice`，枚举值使用 snake_case（如 `or_set`、`mv_register`、`cas_register`、`ordered_log`）。新增 lattice 枚举不得使用 kebab-case，且必须先完成 join、op schema、profile gate 与 conformance vector 闭包。
-- Event kind 动词使用动词原形表达 reducer 动作（如 `authorize`、`revoke`、`rotate`、`tombstone`）；只有纯状态通告或外部标准名有明确理由时才可使用过去分词。**过去分词形态 MUST 逐条登记**（`event-kind-registry.json` 的 `verb_form: "past_participle"` 加理由），不得凭"读起来像通告"自行选用。v1 已登记的过去分词 kind 与其理由：
+- Event kind 动词使用动词原形表达 reducer 动作（如 `authorize`、`revoke`、`rotate`、`tombstone`）；只有纯状态通告或外部标准名有明确理由时才可使用过去分词。**每个 active event kind MUST 在 `contract-registry.json#/event_kind_registry.event_kinds[]` 登记终段形态 `verb_form`**，取值为封闭三值 `base`（动词原形）/ `past_participle`（过去分词）/ `not_applicable`（终段是名词化 facet、状态名或外部标准专名，不表达动词）；`event-kind-registry.json` 的同名字段是该登记的生成投影，不是第二个真源。`verb_form: "past_participle"` MUST 同时携带非空 `verb_form_rationale`；`base` 与 `not_applicable` MUST NOT 携带该字段，伪造例外理由与漏登记同样不可接受。判据是语义而非拼写：`bound` 与 `withheld` 都是不规则过去分词，任何 `ed` / `en` 后缀扫描都会漏项，因此英文后缀启发式只能作为 review 提示，MUST NOT 充当 correctness gate。下表是同一登记的可读投影，一 kind 一行，由 artifact lint 与 registry 双向闭合：
 
   | kind | 理由 |
   | --- | --- |
   | `ak.audit.accessed` | 纯审计通告：记录"已被访问"这一既成事实，无 reducer 动作语义。 |
   | `ak.capability.derived` | 纯派生通告：记录 grant 派生结果，派生动作本身由 `ak.capability.grant` 承担。 |
-  | `ak.mls.commit_failed` | 外部结果通告：MLS commit 失败是 RFC 9420 处理结果，不是 Arkret reducer 动作。 |
-  | `ak.contact.requested` / `.accepted` / `.rejected` | contact round 的三个终态通告；round 推进由 source service 的 slot CAS 承担，Event 只广播既成状态。 |
+  | `ak.contact.requested` | contact round 状态通告；round 推进由 source service 的 slot CAS 承担，Event 只广播既成状态。 |
+  | `ak.contact.accepted` | contact round 终态通告；round 推进由 source service 的 slot CAS 承担，Event 只广播既成状态。 |
+  | `ak.contact.rejected` | contact round 终态通告；round 推进由 source service 的 slot CAS 承担，Event 只广播既成状态。 |
   | `ak.direct_conversation.bound` | founding unit 完成后的绑定事实通告。 |
+  | `ak.mls.commit_failed` | 外部结果通告：MLS commit 或 Welcome 处理失败是 RFC 9420 处理结果，不是 Arkret reducer 动作。 |
+  | `ak.realm_key.withheld` | delivery-decision 结果通告：key source 独立重验 membership、device 与 policy 后，记录"本次 key 已被扣留"的既成事实并携 `withheld_reason_code`，不是要求 reducer 执行 withhold 动作的命令式 Event。 |
 
 - **Facet 值设置事件的命名形态（normative）**：写入单个 Realm 配置切面的 event kind 使用**裸名词形态** `ak.<scope>.<facet>`（如 `ak.realm.join_rule`、`ak.realm.history_visibility`、`ak.member.state`、`ak.call.state`），不追加 `.set`。`.set` 后缀**只保留**给两种情形：(a) 需要与同名 patch 路径区分（`ak.<kind>.stage.set` 对应 `stage` 字段，而 `ak.<kind>.update` 的 patch 路径 MUST NOT 触及 `stage`）；(b) 需要独立 capability 切分（`ak.strand.watch.set` / `ak.policy.set` / `ak.account_data.set` / `ak.rsvp.set`）。两种形态都是 canonical，选择依据 MUST 是上述判据而非作者偏好；新增 facet event 默认取裸名词形态。
 - Capability action 命名约定：
@@ -122,6 +126,22 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 ### 2.1 Identifier 字段命名约定（normative）
 
 本节适用所有持有 protocol identifier、DID material 或 reference material 的 wire 字段。字段名只表达 **value category**，不表达"硬归属 vs 软导航"、权限传播、同步传播、retention 级联或 E2EE key 级联。后者 MUST 由 role prefix、JSON Schema `description` 和对象专属章节共同定义。
+
+**Identifier value category 表（normative，有限且互斥）**：每个 identifier 字段 MUST 恰好属于下表九类之一。类别的真源是 schema 解析后的 terminal 约束（递归展开本地与跨文件 `$ref`、`oneOf` / `anyOf` 分支与 `pattern`）；字段名只负责如实表达该类别，MUST NOT 反过来决定类别，实现也 MUST NOT 仅凭字段名推断值的种类。
+
+| 类别 | 值形态与类型来源 | 允许的字段名形态 | 可否作为 identity / authorization key |
+| --- | --- | --- | --- |
+| `typed_object_id` <!-- identifier_category: typed_object_id --> | `ak:<kind>:<payload>`，其中 kind 或 special form 已登记于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)；schema 以指向 `common-ids.schema.json` 的 `$ref` 或等价 anchored pattern 声明 | 对象自身使用 `id`；引用他者使用 `<kind>_id` / `<role>_<kind>_id` / `expected_<role>_<kind>_id`（详见 §2.1.1） | 是。它是协议对象主键，可直接作为授权主体、去重键与签名 transcript 中的身份 |
+| `responsibility_did` <!-- identifier_category: responsibility_did --> | `ak:did_core:<method>:<core>`，或 schema 显式声明的完整 `did:` URI / DID URL | 责任主体使用 `_id`（`actor_id`、`principal_id`、`subject_id`、`<role>_service_id`）；必须强调 DID ecosystem 原始 material 时使用 `_did` / `full_id` / `did_url`（详见 §2.1.3） | 是。它是责任主体身份，相等性即完整值的逐字节相等 |
+| `registry_catalog_symbol` <!-- identifier_category: registry_catalog_symbol --> | 命名某个 registry 条目的符号，canonical 形态通常是 `ak.<symbol-path>`；schema 以 anchored `^ak\.` pattern、`const` 或该 registry 的闭合枚举声明 | 保留各 registry 的 canonical 字段名，例如 `operation_id`、`profile_id`、`schema_id`；新增 catalog 字段 SHOULD 使用 registry 自有名或 `*_symbol` | 否。它命名目录条目而不是对象实例，MUST NOT 作为授权主体或对象主键使用 |
+| `opaque_correlation` <!-- identifier_category: opaque_correlation --> | 有界 opaque 字符串（MUST 由 `pattern` 或 `maxLength` 限定上界），由某一方铸造用于关联一次请求、挑战、传输、租约或 transcript 位置 | 保留领域既有名，例如 `request_id`、`challenge_id`、`transaction_id`、`<noun>_round_id`、`*_handle` | 否。它只承载关联语义，MUST NOT 单独决定授权、身份归属或 envelope 去重 |
+| `transport_idempotency_key` <!-- identifier_category: transport_idempotency_key --> | 传输层重复提交坐标，有界 opaque 字符串；不指向任何协议对象，也不进入对象身份 | MUST 使用 `idempotency_key`，MUST NOT 使用 `_id` 后缀，MUST NOT 复用 typed-ID 词法空间 | 否。只用于同一请求的重复提交判定，MUST NOT 进入身份、授权或因果判定 |
+| `external_system_identifier` <!-- identifier_category: external_system_identifier --> | 词法空间由外部标准或外部系统拥有并逐字保留的标识符，例如 RFC 9420 MLS group id、did:webvh `versionId`、OAuth/OIDC `client_id`、MIMI / Matrix 与媒体后端句柄 | 保留外部原名，MUST NOT 改写为 Arkret typed-ID 形态，也 MUST NOT 追加 `ak:` 前缀 | 否。只在该外部绑定内部有效，Arkret MUST NOT 把它解析成 typed ID 或授权主体 |
+| `document_local_symbol` <!-- identifier_category: document_local_symbol --> | 只在承载它的对象、策略或 registry 行内可解析的符号；schema 以有界 pattern 或闭合枚举声明 | `rule_id`、`gate_id`、`question_id`、`entry_id`、`share_id`、`widget_id` 等 | 否。离开承载对象即无意义，MUST NOT 作为授权主体或跨对象引用 |
+| `unregistered_object_identifier` <!-- identifier_category: unregistered_object_identifier --> | **待收敛类别**：字段确实标识一个持久 Arkret 对象，但该对象 kind 尚未登记于 `id-kind-registry.json`，schema 也未固定 typed pattern | 现状字段名保留；收敛方向 MUST 是登记 kind 并改用 typed 形态，或改判为上述某个已闭合类别 | 否。收敛完成前 MUST NOT 作为授权主体 |
+| `non_identifier` <!-- identifier_category: non_identifier --> | **待收敛类别**：字段值根本不是标识符（模式枚举、描述性 object、计数器等），`_id` 后缀是命名缺陷 | 无允许形态；收敛方向 MUST 是改名为如实表达语义的字段名 | 否 |
+
+新增或修改 identifier 字段时：类别 MUST 能由 schema terminal 约束唯一判定；只有类型无法唯一判定的路径才逐条登记到 `tools/identifier-classification-registry.json`，MUST NOT 为已由 `$ref` 明确的字段再复制一份人工登记。`unregistered_object_identifier` 与 `non_identifier` 只是现存字段的过渡状态，MUST NOT 作为新字段的目标类别。已判定但需要跨仓一次性执行的 rename 逐路径登记在同一 registry 的 `pending_rename_convergence`，MUST NOT 用新旧双名、serde alias 或双读实现。
 
 #### 2.1.1 `_id`
 
@@ -510,7 +530,7 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 - **stage 模板槽**:适配 §5.3 的对象 MUST 注册一条 `ak.<kind>.stage.set` event,并在 event kind registry 显式绑定该对象类型的专用 stage-set payload schema（现有绑定为 `strand_stage_set_payload` 与 `morph_stage_set_payload`;详见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json));`ak.<kind>.update` patch 路径 MUST NOT 修改 `stage` / `stage_changed_at`(违者 `schema_violation`,单源约束)。**stage 变更不携带 reason 字段**:事件本身已经 durable 且 `created_by` / `created_at` 即审计归属；需要解释"为什么 cancel / block / supersede"时,actor SHOULD 在该对象的 discussion track 发一条 Message(`ak.message.create`),通过 `references` Relation 指向本次 `ak.<kind>.stage.set` event,而不是把 reason 藏在对象字段里。
 - **可逆 lifecycle facet 的两种合规形态**:`ak.<kind>.archive` / `ak.<kind>.restore` 模板槽描述的是**独立 archive event + 独立 restore event** 成对形态（Strand / Space / Morph 即此形态）。但可逆 lifecycle 也允许第二种形态：**单一 reversible boolean facet event**（同一 `ak.<kind>.archive` 写 `true` / `false` 在 active ↔ archived 间切换，不发布独立 `ak.<kind>.restore`）。Realm 的 `ak.realm.archive` / `ak.realm.freeze` 即此形态（见 [`realm-and-space.md` §2.6.0](./realm-and-space.md#260-realm-可逆-lifecycle-facetakrealmarchive--akrealmfreeze)）。某 Event 是否属于本模板，不按 kind 名称或是否写 `fsm` 猜测：只有其目标 family 在 canonical `fsm_contracts` 中声明 `axis="object_lifecycle"` 时，event-kind 行才 MUST 登记 `lifecycle_modality`（`reversible` 或 `terminal`）。workflow、membership、status、audit、key-material FSM 以及 OR-Set 撤销均不适用。具体对象采用哪种形态，以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的该字段为准；`reversible` boolean facet 不要求也不应存在配套 `ak.<kind>.restore`。
 - **state 校验来源唯一**:本节所有模板事件的状态机校验入口都是 §5.1 表，不在各对象文档重复说明转换矩阵。
-- "Space 没有 redacted"：Space 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；title / summary 的内容清理通过 `ak.space.tombstone` 或 `ak.redaction` 一并完成。
+- "Space 没有 redacted"：Space 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；**整个 Space 的**内容清理通过 `ak.space.tombstone` 或 `ak.redaction` 一并完成。该句只解释"为什么 Space 不需要 `redacted` 终态"，**不**表示单个 metadata 字段只能靠终态清除：`title` / `summary` 都不是 [`event-and-patch.md` §4.2.4](./event-and-patch.md) 的内容槽，`$op="unset"` 是它们的非终态清除路径（`short_text` 的 `minLength: 1` 只排除 `set ""`，不排除 `unset`）。
 - "Message / Relation 没有 archived"：Message timeline 是有时序流，Relation 是边——两者都不需要"软隐藏可撤销"语义；要隐藏 Message 用 redaction，要解除 Relation 用删除即可。
 - "Relation 用 `tombstoned` 单一终态"：删除与 redaction 在边语义上不可区分（边只有"存在"或"不存在"），故物化 state 合并为单一 `tombstoned`；具体 reason 在对应 `ak.relation.tombstone` / `ak.redaction` event 中保留。
 - Reducer 与 projection MUST 把 `tombstoned` 视为不可逆删除状态；Strand / Morph 不使用 `deleted`，其不可逆内容清除状态是 `redacted`。UI 展示策略（隐藏 vs 显示 tombstone 占位符）由 client 根据对象类型决定。

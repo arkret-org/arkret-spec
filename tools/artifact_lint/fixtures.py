@@ -3387,7 +3387,11 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
         expected_jkt = b64url(hashlib.sha256(canonical_jwk.encode("utf-8")).digest())
         if kat.get("cnf_jkt") != expected_jkt:
             lint.fail(path, "dpop_kat cnf_jkt is not the RFC 7638 JWK thumbprint")
-        expected_replay_key = [expected_jkt, claims.get("jti"), "ak.websocket-auth.v1"]
+        namespace = kat.get("replay_cache_namespace")
+        if not isinstance(namespace, str) or not namespace:
+            lint.fail(path, "dpop_kat replay_cache_namespace must be a non-empty string")
+            namespace = None
+        expected_replay_key = [expected_jkt, claims.get("jti"), namespace]
         if kat.get("expected_replay_ledger_key") != expected_replay_key:
             lint.fail(path, "dpop_kat replay ledger key drift")
     else:

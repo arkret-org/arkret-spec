@@ -71,7 +71,8 @@
   "$defs": {
     "cursor_value": {
       "type": "string",
-      "pattern": "^ak:cursor:.+$"
+      "pattern": "^ak:cursor:[A-Za-z0-9_-]{1,2028}$",
+      "maxLength": 2048
     },
     "event_container": {
       "type": "object",
@@ -344,7 +345,7 @@
       "properties": {
         "cell": {
           "type": "string",
-          "pattern": "^ak:cell:"
+          "pattern": "^ak:cell:ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
         },
         "issuer": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -362,8 +363,7 @@
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "type": "string",
-            "pattern": "^ak:event:"
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
           }
         },
         "event_digests": {

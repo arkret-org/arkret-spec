@@ -1,11 +1,19 @@
 {
-  "version": "2026-08-17.1",
+  "version": "2026-08-17.3",
   "source_of_truth": true,
-  "description": "Canonical security-domain contexts for Arkret detached proofs and non-Event cryptographic transcripts. Proof contexts remain schema-bound; domain_separations cover hash, signature, Merkle and HPKE-info transcripts and are not a general string registry.",
+  "description": "Canonical security-domain contexts for Arkret detached proofs and non-Event cryptographic transcripts. Proof contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript: it MUST NOT be spelled as a proof context and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
     "Every Arkret non-Event schema that uses event-envelope.schema.json#/$defs/proof MUST register an object-family context here",
-    "A verifier MUST reject a valid signature made under a context registered to a different object family"
+    "A verifier MUST reject a valid signature made under a context registered to a different object family",
+    "schema_ref MUST resolve to a real node: the file part MUST exist and the JSON Pointer fragment, when present, MUST resolve to a schema object",
+    "Every terminal use point of the shared detached-proof leaf (a schema node whose $ref chain terminates at event-envelope.schema.json#/$defs/proof and that no other node references) MUST be covered by exactly one most-specific row here; a fragmentless schema_ref is exact only when the file root itself is the object family",
+    "A row whose schema_ref subtree contains shared-proof use points that all belong to deeper rows is over-broad and MUST be tightened to the inner $defs node it actually describes",
+    "One shared wire leaf MAY carry several consumer contexts. Every row anchored on a shared anchor MUST declare a distinct consumer_operation from operation-registry.json, and the anchored schema node MUST list exactly those contexts in x-arkret-proof-contexts",
+    "A schema node MAY project its single context as x-arkret-proof-context; when both the annotation and a registry row exist they MUST agree byte-for-byte",
+    "A shared-proof use point whose enclosing top-level $defs entry is reached by $ref from more than one other top-level $defs entry of the same file is a packed leaf. Unless every covering row declares its own consumer_operation, each object family MUST hold its own proof node and its own row; one row MUST NOT stand for several request/outcome families",
+    "domain_separations rows MUST have unique domain and object_family values, MUST NOT reuse an object_family already registered in contexts[], and MUST declare a primitive from the closed set canonical_json_sha256, merkle_leaf_sha256, merkle_node_sha256, merkle_root_sha256, detached_signature, http_message_signature, hpke_info, replay_cache_namespace",
+    "A replay_cache_namespace row MUST declare defined_in, and the normative document it names MUST contain the domain literal. Every fixture field named replay_cache_namespace MUST carry a registered replay_cache_namespace domain, and every fixture field named proof_context MUST carry a registered proof context"
   ],
   "contexts": [
     {
@@ -56,7 +64,7 @@
         "audience"
       ],
       "defined_in": "zh/identity/account-lifecycle.md",
-      "schema_ref": "schemas/account-operations.schema.json"
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_authentication_proof"
     },
     {
       "context": "ak.account-registration-control-proof-v1",
@@ -324,19 +332,78 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof"
     },
     {
-      "context": "ak.directory-operation-proof-v1",
-      "object_family": "directory_operation",
+      "context": "ak.directory-list-handles-for-subject-request-proof-v1",
+      "object_family": "directory_list_handles_for_subject_request",
       "binding_fields": [
         "payload_digest",
         "issuer",
         "operation_id",
+        "subject",
         "verification_method",
         "created_at",
-        "domain?",
-        "audience?"
+        "audience"
       ],
-      "defined_in": "zh/discovery/discovery-directory.md",
-      "schema_ref": "schemas/directory-operations.schema.json"
+      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body"
+    },
+    {
+      "context": "ak.directory-resolve-agent-selector-request-proof-v1",
+      "object_family": "directory_resolve_agent_selector_request",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "controller_handle",
+        "agent_slug",
+        "verification_method",
+        "created_at",
+        "audience"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body"
+    },
+    {
+      "context": "ak.directory-resolve-handle-request-proof-v1",
+      "object_family": "directory_resolve_handle_request",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "handle",
+        "verification_method",
+        "created_at",
+        "audience"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body"
+    },
+    {
+      "context": "ak.directory-resolve-organization-request-proof-v1",
+      "object_family": "directory_resolve_organization_request",
+      "binding_fields": [
+        "payload_digest",
+        "operation_id",
+        "verification_method",
+        "created_at",
+        "audience"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body"
+    },
+    {
+      "context": "ak.directory-resolve-target-request-proof-v1",
+      "object_family": "directory_resolve_target_request",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "address",
+        "verification_method",
+        "created_at",
+        "audience"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body"
     },
     {
       "context": "ak.event-proof-v1",
@@ -483,6 +550,30 @@
       "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/review_receipt"
     },
     {
+      "context": "ak.key-backup-delete-proof-v1",
+      "object_family": "key_backup_delete_authority",
+      "consumer_operation": "ak.self.keys.backups.resource.delete",
+      "binding_fields": [
+        "payload_digest",
+        "operation",
+        "request_id",
+        "principal_id",
+        "backup_id",
+        "reason",
+        "challenge_id",
+        "challenge",
+        "nonce",
+        "audience",
+        "service_id",
+        "issued_at",
+        "expires_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/identity/key-management.md",
+      "schema_ref": "schemas/high-risk-authority-proof.schema.json"
+    },
+    {
       "context": "ak.member-delivery-binding-candidate-proof-v1",
       "object_family": "member_delivery_binding_candidate",
       "binding_fields": [
@@ -498,19 +589,129 @@
       "schema_ref": "schemas/member-delivery-binding-candidate.schema.json"
     },
     {
-      "context": "ak.mimi-operation-proof-v1",
-      "object_family": "mimi_operation",
+      "context": "ak.mimi-group-info-outcome-proof-v1",
+      "object_family": "mimi_group_info_outcome",
+      "binding_fields": [
+        "payload_digest",
+        "operation_id",
+        "room_binding_ref?",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome"
+    },
+    {
+      "context": "ak.mimi-identifier-query-outcome-proof-v1",
+      "object_family": "mimi_identifier_query_outcome",
+      "binding_fields": [
+        "payload_digest",
+        "operation_id",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome"
+    },
+    {
+      "context": "ak.mimi-identifier-query-request-proof-v1",
+      "object_family": "mimi_identifier_query_request",
+      "binding_fields": [
+        "payload_digest",
+        "issuer?",
+        "operation_id",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body"
+    },
+    {
+      "context": "ak.mimi-key-material-outcome-proof-v1",
+      "object_family": "mimi_key_material_outcome",
+      "binding_fields": [
+        "payload_digest",
+        "operation_id",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome"
+    },
+    {
+      "context": "ak.mimi-key-material-request-proof-v1",
+      "object_family": "mimi_key_material_request",
       "binding_fields": [
         "payload_digest",
         "issuer",
         "operation_id",
+        "strand_id",
+        "device_id",
         "verification_method",
         "created_at",
-        "domain?",
-        "audience?"
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body"
+    },
+    {
+      "context": "ak.mimi-provider-directory-proof-v1",
+      "object_family": "mimi_provider_directory",
+      "binding_fields": [
+        "payload_digest",
+        "schema",
+        "service_id",
+        "service_kind",
+        "supported_profiles",
+        "mimi",
+        "verification_method",
+        "created_at"
       ],
       "defined_in": "zh/extensions/mimi-interop.md",
-      "schema_ref": "schemas/mimi-operations.schema.json"
+      "schema_ref": "schemas/mimi-interop.schema.json#/$defs/provider_directory"
+    },
+    {
+      "context": "ak.mimi-request-consent-request-proof-v1",
+      "object_family": "mimi_request_consent_request",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "target",
+        "purpose",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body"
+    },
+    {
+      "context": "ak.mimi-update-consent-request-proof-v1",
+      "object_family": "mimi_update_consent_request",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "consent_id",
+        "decision",
+        "verification_method",
+        "created_at",
+        "domain",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body"
     },
     {
       "context": "ak.organization-registration-control-proof-v1",
@@ -810,6 +1011,31 @@
       ],
       "defined_in": "zh/conformance/snapshot-schema.md",
       "schema_ref": "schemas/snapshot.schema.json"
+    },
+    {
+      "context": "ak.snapshot-witness-attestation-proof-v1",
+      "object_family": "snapshot_witness_attestation",
+      "binding_fields": [
+        "payload_digest",
+        "witness_id",
+        "snapshot_id",
+        "realm_id",
+        "reducer_profile",
+        "schema_profile_refs",
+        "security_class",
+        "state_digest",
+        "frontier",
+        "event_set_commitment",
+        "issuer",
+        "authority_kind",
+        "auth_state_digest",
+        "auth_frontier",
+        "snapshot_created_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/conformance/snapshot-schema.md",
+      "schema_ref": "schemas/snapshot.schema.json#/$defs/snapshot_witness_attestation"
     }
   ],
   "domain_separations": [
@@ -834,6 +1060,7 @@
     {"domain":"ak.realm-history-secret-share-v1","object_family":"realm_history_secret_share_hpke_info","primitive":"hpke_info","binding_fields":["realm_id","epoch","recipient","ciphertext_purpose"]},
     {"domain":"ak.realm.organization.statement.v1","object_family":"realm_organization_statement","primitive":"detached_signature","binding_fields":["organization_id","realm_id","statement","signed_at"]},
     {"domain":"ak.joined-control-view-digest-v1","object_family":"joined_control_view","primitive":"canonical_json_sha256","binding_fields":["leaves","covered_event_digests","control_event_set_root","state_root"]},
-    {"domain":"ak.snapshot.auth_state.issuer_local.v1","object_family":"snapshot_auth_state_issuer_local","primitive":"canonical_json_sha256","binding_fields":["issuer","realm_id","frontier_event_ids","checked_at"]}
+    {"domain":"ak.snapshot.auth_state.issuer_local.v1","object_family":"snapshot_auth_state_issuer_local","primitive":"canonical_json_sha256","binding_fields":["issuer","realm_id","frontier_event_ids","checked_at"]},
+    {"domain":"ak.websocket-auth.v1","object_family":"websocket_dpop_replay_ledger","primitive":"replay_cache_namespace","binding_fields":["cnf_jkt","jti"],"defined_in":"zh/sync/websocket-binding.md#31-challenge_dpop_session_v1-proofnormative"}
   ]
 }

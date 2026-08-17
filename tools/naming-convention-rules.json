@@ -4,6 +4,9 @@
   "narrative_source": "spec/v1/zh/models/common-fields.md#2-类型记法",
   "classification_registry": "spec/v1/artifacts/registry/classification-field-registry.json",
   "evidence_material_audit": "tools/evidence-material-audit.json",
+  "coverage_matrix": "tools/naming-rule-coverage-matrix.json",
+  "identifier_classification_registry": "tools/identifier-classification-registry.json",
+  "scope_note": "This file registers only the mechanically decidable predicates. It is not the inventory of the naming contract; every normative naming clause, including the ones enforced by registry closure, schema type or human review, is enumerated in coverage_matrix.",
   "baseline": [],
   "rules": [
     {
@@ -180,6 +183,15 @@
           "basis": "external_literal",
           "reason": "RFC 9420 GroupContext field projected verbatim into the MIMI interop surface.",
           "external_anchor": "RFC 9420 section 8.2 GroupContext confirmed_transcript_hash"
+        },
+        {
+          "id": "webvh-inception-next-key-hashes",
+          "file": "service-operation-dtos.schema.json",
+          "pointer": "/$defs/ServiceWebvhInceptionParameters/properties/nextKeyHashes",
+          "name": "nextKeyHashes",
+          "basis": "external_literal",
+          "reason": "did:webvh inception parameter projected verbatim; the pre-rotation commitment is compared byte-for-byte against the external key log.",
+          "external_anchor": "did:webvh specification nextKeyHashes parameter"
         }
       ]
     },
@@ -262,6 +274,16 @@
     {
       "rule_id": "NC-HASH-001",
       "candidate": "hash_algorithm",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "nextKeyHashes",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "hashAlgorithm",
       "expected": "reject"
     },
     {
@@ -359,6 +381,16 @@
     {
       "rule_id": "NC-HASH-001",
       "candidate": "digest_algorithm",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "updateKeys",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "hashtag_count",
       "expected": "accept"
     },
     {

@@ -69,7 +69,7 @@
   ],
   "dpop_kat": {
     "proof_schema_ref": "schemas/websocket-dpop-proof.schema.json",
-    "proof_context": "ak.websocket-auth.v1",
+    "replay_cache_namespace": "ak.websocket-auth.v1",
     "base_url": "wss://server.example/_arkret/ws",
     "origin": "https://app.example",
     "connection_id": "Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-17.2",
+  "version": "2026-08-17.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-17T17:35:00+08:00",
+  "generated_at": "2026-08-17T23:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -19,7 +19,8 @@
     "A producer_allocated UUIDv7 is never a globally sufficient protocol identity. Its canonical identity key is (mint_authority, typed_id), where mint_authority is the DID whose accepted proof authorized the first durable appearance of that ID. Bare typed-ID lookup, cross-authority deduplication, and last-writer-wins collision repair are forbidden.",
     "Storage implementations MAY store producer_allocated UUID values as raw 16-byte UUIDs. Event-derived and suite-tagged full-digest IDs MUST instead store their raw 33-byte token; they MUST NOT use a native UUID column.",
     "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID; suite_tagged_full_digest uses a full uint8 digest suite code followed by all 32 digest octets. Both token forms serialize as 44 unpadded Base64URL characters.",
-    "A database MAY intern any full Realm wire identity in a canonical Realm table and use a database-local surrogate pk for joins, indexes, and foreign keys. That pk is never serialized or signed. The canonical table MUST retain a unique lossless 33-byte Realm identity (or its full typed wire form), and every realm_pk foreign key MUST resolve to the same wire Realm identity carried by the protocol record."
+    "A database MAY intern any full Realm wire identity in a canonical Realm table and use a database-local surrogate pk for joins, indexes, and foreign keys. That pk is never serialized or signed. The canonical table MUST retain a unique lossless 33-byte Realm identity (or its full typed wire form), and every realm_pk foreign key MUST resolve to the same wire Realm identity carried by the protocol record.",
+    "Every special_forms row declares payload_pattern, the machine-readable value space of everything after its ak:<kind>: prefix; wire_form remains the human-readable template and payload_pattern is its only normative expansion. A schema, OpenAPI or profile carrier MAY be narrower than payload_pattern for a specific field, but MUST NOT accept an octet payload_pattern rejects, and MUST end-anchor so no trailing byte escapes the declared value space."
   ],
   "producer_allocated_identity_contract": {
     "identity_key": [
@@ -173,6 +174,7 @@
     {
       "kind": "cursor",
       "wire_form": "ak:cursor:<base64url>",
+      "payload_pattern": "[A-Za-z0-9_-]+",
       "status": "active",
       "storage_recommendation": "Store as an opaque token or store server-private cursor state keyed by a raw token.",
       "description": "Opaque sync/query cursor; not a typed-UUIDv7 object ID."
@@ -180,6 +182,7 @@
     {
       "kind": "blob",
       "wire_form": "ak:blob:<digest-suite>:<digest>",
+      "payload_pattern": "(?:sha256|blake3):[0-9a-f]{64}",
       "status": "active",
       "storage_recommendation": "Store digest bytes/hex separately from any logical blob row ID.",
       "description": "Content-addressed blob reference using an active digest-suite id (v1: sha256 or profile-gated blake3); distinct from ak:blob:<uuid> blob metadata IDs."
@@ -187,20 +190,23 @@
     {
       "kind": "mls",
       "wire_form": "ak:mls:<profile>:<profile_id>",
+      "payload_pattern": "[a-z0-9_]+:[A-Za-z0-9._:-]+",
       "status": "profile_extension",
       "storage_recommendation": "Store profile and raw profile_id separately.",
-      "description": "MLS-profile scoped reference such as KeyPackage IDs; validated by the E2EE profile, not by the generic typed-UUIDv7."
+      "description": "MLS-profile scoped reference such as KeyPackage IDs; validated by the E2EE profile, not by the generic typed-UUIDv7. payload_pattern is the core-registered outer value space the profile MUST stay inside; the profile MAY narrow it further but MUST NOT accept an octet outside it."
     },
     {
       "kind": "pseudonym",
       "wire_form": "ak:pseudonym:<scope_id>:<random>",
+      "payload_pattern": "[a-z0-9_]+:[A-Za-z0-9_-]+",
       "status": "profile_extension",
       "storage_recommendation": "Store scope and random identifier separately when used in credential tables.",
-      "description": "Realm-scoped pseudonymous credential reference; validated by the E2EE profile. v1 core uses Realm as the boundary; Matrix-style Room terminology is only allowed in MIMI/Matrix interop modules."
+      "description": "Realm-scoped pseudonymous credential reference; validated by the E2EE profile. payload_pattern is the core-registered outer value space the profile MUST stay inside; the profile MAY narrow it further but MUST NOT accept an octet outside it. v1 core uses Realm as the boundary; Matrix-style Room terminology is only allowed in MIMI/Matrix interop modules."
     },
     {
       "kind": "plan",
       "wire_form": "ak:plan:<base64url>",
+      "payload_pattern": "[A-Za-z0-9_-]+",
       "status": "active",
       "storage_recommendation": "Store as an opaque install-plan token; do not parse it as UUIDv7.",
       "description": "Applet install-plan identifier. The suffix is an opaque non-empty base64url token."
@@ -208,27 +214,67 @@
     {
       "kind": "service_registration_receipt",
       "wire_form": "ak:service_registration_receipt:<sha256-hex>",
+      "payload_pattern": "[0-9a-f]{64}",
       "status": "active",
       "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
-      "description": "Content-addressed ServiceRegistrationReceipt identifier derived from canonical receipt claims."
+      "description": "Content-addressed ServiceRegistrationReceipt identifier derived from canonical receipt claims. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt claims))."
+    },
+    {
+      "kind": "organization_registration_challenge",
+      "wire_form": "ak:organization_registration_challenge:<64-lowercase-hex>",
+      "payload_pattern": "[0-9a-f]{64}",
+      "status": "active",
+      "storage_recommendation": "Store the 32 raw challenge octets together with the challenge consumption ledger row; it is registry-local single-use state, never a federated object ID and never a native UUID column.",
+      "description": "Single-use Organization registration control challenge identifier issued by ak.root.identity.organization_registration.command.prepare. It is registry-allocated, neither content-addressed nor Event-derived, and it never denotes a durable protocol object.",
+      "allocation": {
+        "method": "registry_csprng_random",
+        "entropy_bits": 256,
+        "payload_encoding": "32 octets rendered as exactly 64 lowercase hexadecimal characters",
+        "derivation_from_request_forbidden": true,
+        "uniqueness_scope": [
+          "issuing_registry_service_id"
+        ],
+        "uniqueness_rule": "The registry MUST atomically reserve the value before returning it and MUST reallocate on any collision with a live or consumed ledger row; a challenge value is never reissued.",
+        "single_use": true,
+        "consumption_rule": "The registry MUST consume the challenge inside the same transaction that persists (challenge_id, canonical_request_digest, outcome).",
+        "replay_key": [
+          "challenge_id",
+          "canonical_request_digest"
+        ],
+        "replay_rule": "Only a byte-identical retry may return the recorded outcome; the same challenge_id carrying any different canonical_request_digest, or a consumed challenge_id with no matching successful ledger row, MUST be rejected with organization_registration_challenge_invalid.",
+        "validity_window_seconds_maximum": 300,
+        "security_rationale": "A caller-chosen or request-derived challenge would let the caller pick freshness and defeat single-use consumption, so the registry mints the full 256-bit value itself and binds the outcome to the exact canonical request bytes."
+      }
+    },
+    {
+      "kind": "organization_registration_receipt",
+      "wire_form": "ak:organization_registration_receipt:<64-lowercase-hex>",
+      "payload_pattern": "[0-9a-f]{64}",
+      "status": "active",
+      "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
+      "description": "Content-addressed OrganizationRegistrationReceipt identifier. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt_claims)), where receipt_claims is exactly the receipt object with registration_receipt_id and proof both omitted; it is the same content-addressed family as service_registration_receipt and MUST NOT be reused as a Realm capability, membership, notary designation or service delegation."
     },
     {
       "kind": "membership_compensation_delegation",
       "wire_form": "ak:membership-compensation-delegation:sha256:<lowercase_hex>",
+      "payload_pattern": "sha256:[0-9a-f]{64}",
       "status": "active",
       "storage_recommendation": "Store the 32-byte delegation digest or the complete typed content-addressed reference.",
-      "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal the SHA-256 delegation_digest derived from the profile-defined digest-free canonical core."
+      "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal the SHA-256 delegation_digest derived from the profile-defined digest-free canonical core.",
+      "wire_segment_rationale": "Registered spelling exception: the wire segment membership-compensation-delegation is kebab-case while the registry kind is snake_case. It is the only registered segment whose spelling differs from its kind, it is recorded here so the closure gate can resolve it from wire_form alone, and it MUST NOT be cited as precedent for any new kebab-case wire segment."
     },
     {
       "kind": "seal",
-      "wire_form": "ak:seal:sha256:<digest>",
+      "wire_form": "ak:seal:<digest-suite>:<digest>",
+      "payload_pattern": "(?:sha256|blake3):[0-9a-f]{64}",
       "status": "active",
       "storage_recommendation": "Store as a content-addressed canonical Seal hash.",
-      "description": "Content-addressed Seal identifier."
+      "description": "Content-addressed Seal identifier using an active digest-suite id (v1: sha256 or profile-gated blake3), the same suite-tagged shape as ak:blob:<digest-suite>:<digest>. The suite segment is not fixed to sha256: a Seal id is a critical field, so its suite prefix MUST equal the Realm digest_algorithm and MUST be an active row of registry/digest-suite-registry.json; any other prefix fails closed with unsupported_digest_algorithm. See spec/v1/zh/authz/event-auth-state-resolution.md section 6."
     },
     {
       "kind": "cell",
       "wire_form": "ak:cell:ak.component.<facet-path>.v<n>:<subject>",
+      "payload_pattern": "ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*",
       "status": "active",
       "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
       "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:. When the registry declares cell_subject: null for a family, the canonical subject segment is the literal ASCII string 'null' (ak:cell:<component>:null); the cell is located by the Event envelope realm_id and implementations MUST NOT encode realm_id, Realm role classification, or any payload-derived value into that segment. See spec/v1/zh/conformance/encoding.md section 4."
@@ -236,6 +282,7 @@
     {
       "kind": "did_core",
       "wire_form": "ak:did_core:<method>:<core>",
+      "payload_pattern": "[a-z0-9]+:[^\\s/?#]+",
       "status": "active",
       "storage_recommendation": "Store the complete canonical value for equality and indexing; generic consumers MUST NOT split or normalize the adapter-defined core segment.",
       "description": "Stable DID-derived principal, actor or service identity core. It is not a DID, is not directly resolvable, and MUST be projected only by a registered DID method adapter from a canonical bare full_id. Registered as a special form rather than an id_form because its identity authority is the external DID method, not an Arkret producer or Event digest."
@@ -243,6 +290,7 @@
     {
       "kind": "trust_domain",
       "wire_form": "ak:trust_domain:<scope>",
+      "payload_pattern": "[a-z0-9][a-z0-9._\\-:]{0,127}",
       "status": "active",
       "storage_recommendation": "Store the complete canonical ak:trust_domain:<scope> value by default. A compressed schema may store the raw scope only in an explicitly named trust_domain_scope column and MUST restore the typed prefix at the persistence boundary.",
       "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk root, recovery and authorization proofs. NOT a typed-UUIDv7 object id. See identity-did.md §3.6."

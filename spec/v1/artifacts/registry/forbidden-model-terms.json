@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 7,
+  "version": 8,
   "kind": "forbidden_model_terms",
   "source_of_truth": true,
   "description": "Current-model lint registry for terms that are not valid v1 core concept names. It is a prose/code hygiene aid, not a wire contract; conformance scanners may grep downstream prose and source for occurrences outside allowed_contexts.",
   "rejection_levels": {
     "hard_reject": "MUST NOT appear in current normative prose, current SDK / service code identifiers, or current UI copy describing v1 core model.",
-    "docs_only": "Removed from current normative prose; survives in CHANGELOG / glossary deprecation notes."
+    "docs_only": "Forbidden in current model and normative surfaces; allowed only in the contexts explicitly listed by the term entry (currently changelog and negative_test)."
   },
   "allowed_context_definitions": {
     "changelog": "Reference in CHANGELOG.",

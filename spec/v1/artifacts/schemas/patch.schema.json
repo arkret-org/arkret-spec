@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/patch.schema.json",
   "title": "Arkret Field Patch (ak.schema.patch.v1)",
-  "description": "Canonical field-patch format embedded in event payloads (typically at payload.patch) for non-create updates. Its only protocol identifier is ak.schema.patch.v1. Grammar, parser responsibilities, redactable-field protection and reducer-managed-field protection are defined normatively in zh/models/event-and-patch.md §4.",
+  "description": "Canonical field-patch format embedded in event payloads (typically at payload.patch) for non-create updates. Its only protocol identifier is ak.schema.patch.v1. Grammar, parser responsibilities, redactable content-slot protection and reducer-managed-field protection are defined normatively in zh/models/event-and-patch.md §4; the machine-readable path set an $op=\"unset\" MUST NOT remove is registry/redactable-field-registry.json, which this schema deliberately does not restate.",
   "type": "object",
   "minProperties": 1,
   "propertyNames": {

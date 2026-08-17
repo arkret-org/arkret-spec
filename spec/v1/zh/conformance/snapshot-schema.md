@@ -150,7 +150,8 @@ Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST �
 - Realm owner
 - Realm creator or active Realm admin
 - trusted snapshot issuer
-- witness quorum
+- witness quorum（`authority_kind="witness_quorum"`，其 attestation 载体、context、canonical
+  projection 与 admission 规则见 §5.1）
 - policy-approved snapshot issuer
 
 Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`state_digest`、frontier、`event_set_commitment` 与每个 chunk 的 digest。其中 manifest 内部一致性 MUST 包含：当 `event_set_commitment.covered_event_ids` 存在时，consumer MUST 校验它与 `frontier.event_ids` 是**同一个 event id 集合**（集合相等；两个字段绑定的都是同一 snapshot frontier——`frontier` 声明 reducer state 的截止边界，`event_set_commitment` 承诺到达该同一边界的 event 集合，见 §2 示例与 §6），任何不一致 MUST 拒绝该 snapshot，不得以其中一侧为准继续 bootstrap。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 必须携带 `authority_binding`，其中 `issuer` 必须等于 `created_by`，`auth_frontier` / `auth_state_digest` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。`auth_state_digest` 是 issuer-local opaque commitment：verifier MUST 检查它与 `auth_frontier` 绑定一致，并 MUST 按自己可取得的 accepted auth state 回放或查询来判定签名者在 `created_at` 的授权与撤销新鲜度；除非部署 profile 另行声明可复算的 auth-state canonical encoding，verifier MUST NOT 只因无法逐字重算该 digest 就接受或拒绝。若签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `snapshot_issuer_revoked` 拒绝。
@@ -160,6 +161,87 @@ Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`
 - `(now - manifest.created_at) ≤ snapshot_max_acceptance_age_ms`。默认 `snapshot_max_acceptance_age_ms = 2_592_000_000`（30 天）；`security_class=high_assurance` 的 Realm MUST 收紧到 ≤ `604_800_000`（7 天）。超出该窗口后，即使曾经有效的 snapshot 也 MUST 被拒绝——client MUST 请求新的 manifest，因为 auth state 与 policy 的漂移已使旧 snapshot 无法安全代表当前状态。
 - 签名者属于 §5 列出的任一合法类别，且其权限链在当前 auth state 下仍**可解析**。如果该链已被裁剪（例如 Realm tombstone、governance reset 或越过 manifest 时代的 auth-chain compaction），snapshot MUST 被拒绝。
 - 撤销新鲜度以 `authority_binding.auth_frontier` / `auth_state_digest` 解析出的签名者撤销状态为准（snapshot manifest 无独立 `signer.revoked_at` wire 字段；撤销时点是从该 auth state 派生的逻辑值）。判定规则:由 auth state 解析出的签名者撤销生效时点 MUST NOT exist，**或** 严格晚于 `manifest.created_at`。严格在 `created_at` **之后**生效的撤销不追溯使 manifest 失效，但 client 在用当前状态写入新 Event 前 MUST 先重放 snapshot frontier 之后的事件。若该重放无法完整补齐（backfill 缺依赖、source 不可达或 frontier 之后事件无法完整重放），client MUST fail closed，MUST NOT 基于不完整的 post-snapshot 状态写入新 Event；此时按 §6.2 raw replay fallback 处理或要求新的 manifest / 重新初始同步。
+
+### 5.1 Snapshot Witness Attestation（normative）
+
+`authority_binding.witness_attestations[]` 是**独立于 manifest 的对象族**
+`snapshot_witness_attestation`（[`snapshot.schema.json#/$defs/snapshot_witness_attestation`](../../artifacts/schemas/snapshot.schema.json)），
+不是顶层 `signature` 的复签。每行是闭合 `{witness_id, proof}`：`witness_id` 是该 witness 的稳定
+`did_core_id`，`proof` 是共享 detached proof。
+
+**独立 context**。该族在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)
+登记的唯一 context 是 `ak.snapshot-witness-attestation-proof-v1`；schema 侧的
+`x-arkret-proof-context` 注解与本节 MUST 逐字一致。顶层 `ak.snapshot-proof-v1` MUST NOT 被复用
+为 witness 的隐式别名；用 manifest context 生成的 witness 签名即使密码学验签通过也 MUST 以
+`signature_invalid` 拒绝。
+
+**canonical projection（精确、非"至少"）**。`proof.payload_digest` 是下列闭合对象的 canonical
+JSON（[`encoding.md` §2](./encoding.md)，JCS）SHA-256 typed digest。projection 的所有取值都从
+manifest 与该行 `witness_id` 重算，proof 自身、`signature`、整个 `witness_attestations[]`、
+`verification_hints`、`chunks[]`、`created_by`（其值 MUST 等于已纳入的 `issuer`）与
+`authority_binding.checked_at` 都**不进入** projection——这正是 witness 不会签到包含自己签名的
+transcript、因而无签名循环的原因：
+
+```text
+{
+  "context": "ak.snapshot-witness-attestation-proof-v1",
+  "witness_id": <this row's witness_id>,
+  "snapshot_id": <manifest.id>,
+  "realm_id": <manifest.realm_id>,
+  "reducer_profile": <manifest.reducer_profile>,
+  "schema_profile_refs": <manifest.schema_profile_refs>,
+  "security_class": <manifest.security_class>,
+  "state_digest": <manifest.state_digest>,
+  "frontier": <manifest.frontier>,
+  "event_set_commitment": <manifest.event_set_commitment>,
+  "issuer": <manifest.authority_binding.issuer>,
+  "authority_kind": <manifest.authority_binding.authority_kind>,
+  "auth_state_digest": <manifest.authority_binding.auth_state_digest>,
+  "auth_frontier": <manifest.authority_binding.auth_frontier>,
+  "snapshot_created_at": <manifest.created_at>
+}
+```
+
+`payload_digest = "sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(projection)))`。verifier MUST 自己
+从 manifest 重算该 projection 并比对；MUST NOT 接受任何其它 transcript，也 MUST NOT 因 issuer
+声称某种私有 projection 而放宽。
+
+**签名顺序与列表绑定（normative）**。签名严格分两步且不可交换：
+
+1. witness 先对上述**无签名** projection 出具 attestation；此时 manifest 的
+   `witness_attestations[]` 与顶层 `signature` 都还不存在于 projection 输入中。
+2. issuer 再把**最终**的 `witness_attestations[]` 写入 manifest 并签顶层 `signature`。该列表
+   MUST 按 `witness_id` 的 UTF-8 字节序升序排列且 `witness_id` 全局唯一；顶层 signature 覆盖
+   完整 `authority_binding`，因此增删、改写或重排任何一行都会使顶层 signature 失效。
+
+verifier MUST 先验顶层 signature，再逐行验 witness attestation；顺序非升序或 `witness_id` 重复
+MUST 以 `schema_violation` 拒绝，MUST NOT 先归一化再接受。
+
+**quorum admission（normative）**。`authority_binding.authority_kind = "witness_quorum"` 时
+`witness_attestations[]` MUST 存在且非空（schema 条件必备）。admission 的全部授权输入 MUST 只来自
+`authority_binding.auth_frontier` / `auth_state_digest` 在 `manifest.created_at` 解析出的 accepted
+Realm auth/policy state：
+
+- **授权 witness set**：`witness_id` MUST 在该 state 的授权 snapshot-witness 集合内；不在集合内的行
+  MUST 以 `snapshot_authority_unverified` 拒绝，且不计入 quorum。
+- **key validity 与撤销新鲜度**：`proof.verification_method` 的 controller `full_id` MUST 由已登记
+  method adapter 验证并 `project(full_id) == witness_id`（禁止完整 DID 与 `did_core_id` 直接字符串
+  比较）；该 key 在 `manifest.created_at` MUST 处于有效且未撤销状态，判定规则与 §5 对 issuer 的
+  撤销新鲜度规则相同。verifier 无法确认撤销新鲜度时 MUST 隔离或拒绝，MUST NOT 计入 quorum。
+- **去重**：quorum 计数以 `witness_id` 为单位。同一 witness 的多个 key 或多份签名只计一次。
+- **threshold**：threshold MUST 由上述 accepted auth/policy state 给出。`verification_hints.witness_quorum`
+  是 issuer 自报的**声明值**，不是 threshold 来源：它已落在顶层签名 transcript 内，verifier MUST 把它
+  与 policy 推导出的 threshold 比对，不相等 MUST 以 `snapshot_authority_unverified` 拒绝。去重后的有效
+  witness 数低于 policy threshold 时同样 MUST 以 `snapshot_authority_unverified` 拒绝。
+
+**v1 没有"等价 quorum proof"**。v1 只有 `witness_attestations[]` 这一个 typed carrier。任何未在本节
+定义的替代 quorum 证据 MUST NOT 被接受，实现 MUST NOT 用私有字段、`x_*` 扩展或带外材料补洞；
+需要新的 quorum 形态时，必须先在本节定义 closed union 分支、独立 context 与验证合同，而不是让
+verifier 各自解释。
+
+conformance：`ak.vector.snapshot.witness_quorum_attestation.v1` MUST 覆盖缺失 attestations、重复
+signer、未授权 witness、已撤销 witness、阈值不足、错误 context、错误 projection、witness 列表被改写、
+有效 quorum，以及顶层 issuer signature 对最终 witness 集合的绑定。
 
 `proof`、`verification_method`、`generator_signature` 与 `state_signature` 不是 v1 snapshot manifest 顶层字段。v1 manifest 只允许 §（上文）的**单一** `signature`（detached proof，内部含 `verification_method`）；上述易混淆名作为 manifest 顶层字段时 MUST 拒绝。权威字段集以 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 为准。
 

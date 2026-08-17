@@ -104,11 +104,15 @@ directory 文档由 [`mimi-interop.schema.json#/$defs/provider_directory`](../..
 
 **精确（非"至少"）unsigned projection**。`proof.payload_digest` 是下列闭合对象的
 canonical JSON（[`../conformance/encoding.md` §2](../conformance/encoding.md)，JCS）
-SHA-256 typed digest；proof 自身与任何未登记扩展字段都不进入 projection：
+SHA-256 typed digest；proof 自身与任何未登记扩展字段都不进入 projection。projection
+首个成员是本对象族在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)
+登记的唯一 context `ak.mimi-provider-directory-proof-v1`（schema 侧投影为
+`mimi-interop.schema.json#/$defs/provider_directory` 的 `x-arkret-proof-context`，两处 MUST
+逐字一致）；用其它对象族 context 生成的签名即使密码学验签通过也 MUST 拒绝：
 
 ```text
 {
-  "context": "ak.mimi.provider_directory.v1",
+  "context": "ak.mimi-provider-directory-proof-v1",
   "schema": ...,
   "service_id": ...,
   "service_kind": ...,
@@ -150,8 +154,9 @@ freshness 外，接收方 MUST：
 
 conformance：`ak.vector.mimi.provider_directory_signature.v1` MUST 覆盖正向签名向量，以及
 缺失任一 required 能力、篡改 endpoint / cipher suite / content profile / room policy、proof
-controller 与 `service_id` 不同、unknown extension 试图改变路由、过期 `created_at`、HTTP
-signature 合法但 directory JWS 无效（及反向）等负向量。
+controller 与 `service_id` 不同、unknown extension 试图改变路由、过期 `created_at`、projection
+`context` 被替换为其它已登记对象族 context、HTTP signature 合法但 directory JWS 无效（及反向）
+等负向量。
 
 ## 4. Room Binding
 
@@ -315,24 +320,38 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret DataEv
 
 ### 5.1 MIMI operation actor proof（normative）
 
-MIMI DTO 中名为 `signature` 的字段是 Actor DID/device 对具体操作的 detached payload proof，不是 Event Envelope proof。它 MUST 使用 `payload_digest`，MUST NOT 使用只适用于 Event Envelope 的 `event_digest`。proof envelope 由 `mimi-operations.schema.json#/$defs/signature` 定义；`domain` MUST 等于接收部署的 `trust_domain`，`audience` MUST 覆盖接收 Principal Server service DID。
+MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对具体操作的 detached payload proof，不是 Event Envelope proof。它 MUST 使用 `payload_digest`，MUST NOT 使用只适用于 Event Envelope 的 `event_digest`。单值形态由 `mimi-operations.schema.json#/$defs/signature` 定义，数组形态由各对象族自己内联的 `proofs[]`（元素为 `#/$defs/proof`）定义；两者的 `domain` MUST 等于接收部署的 `trust_domain`，`audience` MUST 覆盖接收 Principal Server service DID。
 
-对 `ak.open.mimi.command.update_consent`，发送方 MUST 先从 request body 移除顶层 `signature` 字段，对剩余完整对象计算 `payload_digest = sha256(canonical_json(unsigned_request_body))`，再以 canonical JSON 编码并签署下列 transcript：
+**每个对象族一个 context（normative）**：`mimi-operations.schema.json` 是 DTO 容器而不是一个对象族，因此**不存在**覆盖全文件的 MIMI operation context。持有 detached proof 的对象族逐个登记独立 context，schema 侧以 `x-arkret-proof-context` 逐字投影，[`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 是唯一真源：
+
+| 对象族 | operation | context |
+| --- | --- | --- |
+| `mimi_key_material_request_body.proofs[]` | `ak.open.mimi.exchange.request_key_material` | `ak.mimi-key-material-request-proof-v1` |
+| `mimi_key_material_outcome.signature` | `ak.open.mimi.exchange.request_key_material` | `ak.mimi-key-material-outcome-proof-v1` |
+| `mimi_group_info_outcome.proofs[]` | `ak.open.mimi.read.group_info` | `ak.mimi-group-info-outcome-proof-v1` |
+| `mimi_request_consent_request_body.proofs[]` | `ak.open.mimi.command.request_consent` | `ak.mimi-request-consent-request-proof-v1` |
+| `mimi_update_consent_request_body.signature` | `ak.open.mimi.command.update_consent` | `ak.mimi-update-consent-request-proof-v1` |
+| `mimi_identifier_query_request_body.proofs[]` | `ak.open.mimi.read.identifiers` | `ak.mimi-identifier-query-request-proof-v1` |
+| `mimi_identifier_query_outcome.proofs[]` | `ak.open.mimi.read.identifiers` | `ak.mimi-identifier-query-outcome-proof-v1` |
+
+发送方 MUST 先从 request/outcome body 移除顶层 `signature` 或 `proofs` 成员（删除成员本身，不是置为 `null`），保留所有实际存在的 optional 字段，对剩余完整对象计算 `payload_digest = sha256(canonical_json(unsigned_body))`，再以 canonical JSON 编码并签署下列 transcript：
 
 ```json
 {
-  "context": "ak.mimi-operation-proof-v1",
+  "context": "<上表中该对象族的 context>",
   "payload_digest": "sha256:<lowercase-hex>",
-  "issuer": "<request.actor_id>",
-  "operation_id": "ak.open.mimi.command.update_consent",
-  "verification_method": "<signature.verification_method>",
-  "created_at": "<signature.created_at>",
+  "issuer": "<request.actor_id | request.requester | request.requester_id>",
+  "operation_id": "<上表中该对象族的 operation>",
+  "verification_method": "<proof.verification_method>",
+  "created_at": "<proof.created_at>",
   "domain": "<destination trust_domain>",
   "audience": "<destination Principal Server service DID>"
 }
 ```
 
-字段顺序不影响 canonical JSON；`audience` 也可为至少覆盖目标 service DID 的非空无重复字符串数组。接收方 MUST 重算 unsigned body digest，验证 `issuer == actor_id`、当前 DID Document 授权的 `verification_method`、`kind=detached_jws`、`alg=Ed25519`、精确的 operation/domain/audience 绑定和 JWS。`created_at` MUST 位于接收方当前时钟前后 300 秒内。proof 失败 MUST 在写 consent state 之前拒绝；同一 proof 只能随其已绑定的完整 request body 使用。相同 `consent_event.event.event_id` 与 byte-identical Event 的请求重放是 §10 定义的 retry-safe 例外，MUST 返回原 accepted Event ref；相同 Event ID 携不同 canonical Event bytes MUST `duplicate_conflict`，不得被 proof replay 检查改写成另一种成功或提前泄露 holder state。
+transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`：`issuer` 只在该对象族的 wire 形态定义了发起方字段时出现（`mimi_key_material_request_body.requester`、`mimi_request_consent_request_body.requester_id`、`mimi_update_consent_request_body.actor_id` MUST 出现；`mimi_identifier_query_request_body.requester` 可缺席，缺席时 transcript MUST 同时省略 `issuer`），outcome 族的签发方身份只由 `verification_method` 承载。除公共字段外还 MUST 逐字加入该族的目标标识：`mimi_key_material_request_body` 加 `strand_id` 与 `device_id`；`mimi_request_consent_request_body` 加 `target` 与 `purpose`；`mimi_update_consent_request_body` 加 `consent_id` 与 `decision`；`mimi_group_info_outcome` 在 `room_binding_ref` 存在时加该字段。
+
+字段顺序不影响 canonical JSON；`audience` 也可为至少覆盖目标 service DID 的非空无重复字符串数组。接收方 MUST 重算 unsigned body digest，验证 `issuer` 等于该族的发起方字段、当前 DID Document 授权的 `verification_method`、`kind=detached_jws`、`alg=Ed25519`、精确的 context/operation/domain/audience 绑定和 JWS。**接收方 MUST 拒绝 context 与本 operation 对象族不一致的 proof**：在一个族下有效的签名不得被另一个族接受，跨 operation 与 request/outcome 方向的重放由 context 本身阻断，不依赖 `operation_id` 是否被某个实现纳入 transcript。`created_at` MUST 位于接收方当前时钟前后 300 秒内。proof 失败 MUST 在写 consent state 之前拒绝；同一 proof 只能随其已绑定的完整 body 使用。相同 `consent_event.event.event_id` 与 byte-identical Event 的请求重放是 §10 定义的 retry-safe 例外，MUST 返回原 accepted Event ref；相同 Event ID 携不同 canonical Event bytes MUST `duplicate_conflict`，不得被 proof replay 检查改写成另一种成功或提前泄露 holder state。
 
 Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致，并且仍 MUST 验证上述 actor proof。跨 provider 调用还 MUST 同时通过本节的 HTTP Message Signature：provider transport proof 与 actor operation proof 缺一不可，任何一层都不得替代另一层。
 

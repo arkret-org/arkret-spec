@@ -1121,6 +1121,31 @@ runner MUST 从 `scalability-limits-fixture.json` 的 generator 构造并验证�
 
 schema validation 与 reducer / SDK parser 必须给出一致结论；只在其中一层拒绝不构成通过。
 
+#### 2.10.2 Vector: redactable 内容槽的 unset 禁令与合法清除路径
+
+向量名称：
+
+```text
+ak.vector.patch.redactable_content_slot_unset_ban.v1
+```
+
+runner MUST 从
+[`redactable-field-registry.json`](../../artifacts/registry/redactable-field-registry.json) 的
+`redactable_fields[]` 枚举 path，并按 `state-reducer-hardening-fixture.json` 的对应 case 验证：
+
+- 对**每一条**已登记 `(object_kind, path)` 注入 `{"$op":"unset"}`，MUST 得到 `schema_violation`、
+  `reason_code=patch_unset_redactable_field`，且目标对象零变更。明文 path 与其 `paired_path`
+  的判定 MUST 完全一致——`ak.strand.update` + `content` 与 `ak.strand.update` + `encrypted_content`
+  不得给出不同结论，否则同一份正文的可移除性会取决于 Realm 是否 E2EE。
+- 对同一条 path 注入 `{"$op":"set","value":{"kind":"ak.content.text","body":""}}`，MUST 被接受：
+  §4.2.4 是槽存在性约束，不是内容改写约束，空正文改写是普通编辑。
+- 对 `metadata.summary`、`metadata.title` 与 `metadata.fields.<key>` 注入 `{"$op":"unset"}`，
+  MUST 被接受：它们不是内容槽，`unset` 是其唯一的非终态清除路径。把它们当作 redactable
+  会让 optional 字段变成 write-once。
+
+失败条件：实现把禁令推广到 `metadata.*`（造成无法清除的字段），或只对明文/密文其中一种形态生效，
+或把 redactable path 上的 `set` 也拒绝（造成正文不可编辑）。
+
 ### 2.11 Vector: `fsm` 家族 join 幂等与并发冲突
 
 向量名称：
@@ -6314,7 +6339,7 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 
 ## Account status issuer ledger
 
-`ak.vector.account_status.issuer_ledger.v1` MUST 覆盖：account binding 与 `status_seq=1,active` record、account row、audit、outbox 原子提交，PCR 尚无 Seal 也成功；record id 与 proof 对同一 closed unsigned core 做 JCS/SHA-256 闭合，proof controller 必须是 Account Authority；successor 严格执行 `seq=current+1` 与 exact predecessor CAS，exact replay byte-identical、同 request identity 异 intent 零写入冲突；receiver 区分 accepted/duplicate/stale/gap/fork，gap 返回 exact required seq 并通过 bounded resolve 取得连续原始 records；holder offline/revoked/hostile 时 Account Authority 仍可 final `locked/suspended/deactivated/erasure_pending`；receipted fanout 保留原 record bytes，receipt 精确绑定 record，超窗 flag 不回写 record；不存在 Event、Seal、CBA、frontier 或 `pending_seal` 路径。
+`ak.vector.account_status.issuer_ledger.v1` MUST 覆盖：account binding 与 `status_seq=1,active` record、account row、audit、outbox 原子提交，PCR 尚无 Seal 也成功；record id 与 proof 对同一 closed unsigned core 做 JCS/SHA-256 闭合，proof controller 必须是 Account Authority；successor 严格执行 `seq=current+1` 与 exact predecessor CAS，exact replay byte-identical、同 request identity 异 intent 零写入冲突；receiver 区分 accepted/duplicate/stale/gap/fork，且分类基线只有 durable replica head——在连续 replica 上重投一条低于 head 且与本地仍保留的同 `status_seq` 历史行逐字节相同的 record，MUST 得到 `failed_precondition` + `account_status_record_stale`（`retryable=false`、零写入），MUST NOT 降级为 `duplicate`；gap 返回 exact required seq 并通过 bounded resolve 取得连续原始 records；holder offline/revoked/hostile 时 Account Authority 仍可 final `locked/suspended/deactivated/erasure_pending`；receipted fanout 保留原 record bytes，receipt 精确绑定 record，超窗 flag 不回写 record；不存在 Event、Seal、CBA、frontier 或 `pending_seal` 路径。
 
 ## Personal blocklist revision and delivery semantics
 

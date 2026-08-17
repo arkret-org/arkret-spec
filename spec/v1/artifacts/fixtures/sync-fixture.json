@@ -1005,6 +1005,415 @@
       }
     ]
   },
+  "snapshot_witness_quorum": {
+    "vector_id": "ak.vector.snapshot.witness_quorum_attestation.v1",
+    "proof_context": "ak.snapshot-witness-attestation-proof-v1",
+    "manifest_proof_context": "ak.snapshot-proof-v1",
+    "assertions": [
+      "witness_attestations_are_a_typed_object_family_not_a_bare_proof_list",
+      "witness_projection_excludes_every_signature_and_proof_field",
+      "witness_context_is_registered_and_distinct_from_the_manifest_context",
+      "witness_signs_before_the_issuer_seals_the_final_sorted_list",
+      "issuer_signature_binds_the_final_witness_set",
+      "quorum_admission_reads_only_accepted_realm_auth_policy_state",
+      "verification_hints_witness_quorum_is_a_declared_value_never_the_threshold_source",
+      "one_witness_counts_once_regardless_of_how_many_keys_it_signs_with"
+    ],
+    "accepted_auth_state": {
+      "resolved_at": "2026-04-26T00:00:00.000Z",
+      "auth_frontier": [
+        "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+      ],
+      "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "witness_quorum_threshold": 2,
+      "authorized_witnesses": [
+        {
+          "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+          "verification_methods": [
+            "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
+            "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-2"
+          ],
+          "revoked_at": null
+        },
+        {
+          "witness_id": "ak:did_core:webvh:z6mkfixturewitnessb",
+          "verification_methods": [
+            "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1"
+          ],
+          "revoked_at": null
+        },
+        {
+          "witness_id": "ak:did_core:webvh:z6mkfixturewitnessc",
+          "verification_methods": [
+            "did:webvh:z6mkfixturewitnessc:witness-c.example#snapshot-witness-1"
+          ],
+          "revoked_at": "2026-04-25T00:00:00.000Z"
+        }
+      ]
+    },
+    "manifest": {
+      "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000002",
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "reducer_profile": "ak.reducer.core.v1",
+      "schema_profile_refs": [
+        "ak.profile.core_event_store.v1"
+      ],
+      "security_class": "high_assurance",
+      "state_digest": "sha256:2c2f1cbbc1e6dc6c1c4a1e6f2b0ad4a4a49d51df1f4d4b6f1ee0f0a1b2c3d4e5",
+      "frontier": {
+        "event_ids": [
+          "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
+        ],
+        "timeline_hlc": "01970e589d21-0004-a13f9c2e"
+      },
+      "event_set_commitment": {
+        "algorithm": "merkle_event_set_v1",
+        "root": "sha256:f4760c510ee72b1abe2e93a56a8ec46652ce9fdde2f67b0ff7f83e68e8b72f0e",
+        "covered_event_count": 20
+      },
+      "verification_hints": {
+        "witness_quorum": 2
+      },
+      "created_by": "ak:did_core:webvh:z6mkfixture",
+      "created_at": "2026-04-26T00:00:00.000Z",
+      "authority_binding": {
+        "issuer": "ak:did_core:webvh:z6mkfixture",
+        "authority_kind": "witness_quorum",
+        "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "auth_frontier": [
+          "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+        ],
+        "checked_at": "2026-04-26T00:00:00.000Z",
+        "witness_attestations": [
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
+              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          },
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessb",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
+              "payload_digest": "sha256:3d4d0dbc6317fe753b4b072193e081053610fe3872e14a2392799b3f856c8c76",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          }
+        ]
+      }
+    },
+    "canonical_input": {
+      "context": "ak.snapshot-witness-attestation-proof-v1",
+      "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+      "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "reducer_profile": "ak.reducer.core.v1",
+      "schema_profile_refs": [
+        "ak.profile.core_event_store.v1"
+      ],
+      "security_class": "high_assurance",
+      "state_digest": "sha256:2c2f1cbbc1e6dc6c1c4a1e6f2b0ad4a4a49d51df1f4d4b6f1ee0f0a1b2c3d4e5",
+      "frontier": {
+        "event_ids": [
+          "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
+        ],
+        "timeline_hlc": "01970e589d21-0004-a13f9c2e"
+      },
+      "event_set_commitment": {
+        "algorithm": "merkle_event_set_v1",
+        "root": "sha256:f4760c510ee72b1abe2e93a56a8ec46652ce9fdde2f67b0ff7f83e68e8b72f0e",
+        "covered_event_count": 20
+      },
+      "issuer": "ak:did_core:webvh:z6mkfixture",
+      "authority_kind": "witness_quorum",
+      "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "auth_frontier": [
+        "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+      ],
+      "snapshot_created_at": "2026-04-26T00:00:00.000Z"
+    },
+    "expected_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+    "cases": [
+      {
+        "name": "valid_quorum_accepted",
+        "witness_attestations": [
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
+              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          },
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessb",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
+              "payload_digest": "sha256:3d4d0dbc6317fe753b4b072193e081053610fe3872e14a2392799b3f856c8c76",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          }
+        ],
+        "declared_witness_quorum": 2,
+        "expected": "snapshot_accepted"
+      },
+      {
+        "name": "witness_quorum_without_attestations_rejected",
+        "authority_kind": "witness_quorum",
+        "witness_attestations_present": false,
+        "expected_error": "schema_violation"
+      },
+      {
+        "name": "duplicate_signer_counts_once",
+        "witness_attestations": [
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
+              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          },
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-2",
+              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          }
+        ],
+        "declared_witness_quorum": 2,
+        "deduplicated_valid_witness_count": 1,
+        "expected_error": "schema_violation",
+        "note": "witness_id is not unique across rows, so the manifest fails the list rule before quorum counting; when one witness signs with two keys in one row set the deduplicated count is 1 and quorum fails as well"
+      },
+      {
+        "name": "unauthorized_witness_not_counted",
+        "witness_attestations": [
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
+              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          },
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessd",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessd:witness-d.example#snapshot-witness-1",
+              "payload_digest": "sha256:f79921bfdb208794cc9c462a96a9e41201c51ad4dab54b230fa69881a96ea4b8",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          }
+        ],
+        "declared_witness_quorum": 2,
+        "deduplicated_valid_witness_count": 1,
+        "expected_error": "snapshot_authority_unverified"
+      },
+      {
+        "name": "revoked_witness_not_counted",
+        "witness_attestations": [
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
+              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          },
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessc",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessc:witness-c.example#snapshot-witness-1",
+              "payload_digest": "sha256:71f9918f7aa8be8a2602ba371696cdd9e7dec925e04ac9a59a211d14dcd477e9",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          }
+        ],
+        "declared_witness_quorum": 2,
+        "deduplicated_valid_witness_count": 1,
+        "expected_error": "snapshot_authority_unverified",
+        "note": "witness C was revoked at 2026-04-25T00:00:00.000Z, strictly before snapshot_created_at"
+      },
+      {
+        "name": "below_threshold_rejected",
+        "witness_attestations": [
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
+              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          }
+        ],
+        "declared_witness_quorum": 2,
+        "deduplicated_valid_witness_count": 1,
+        "expected_error": "snapshot_authority_unverified"
+      },
+      {
+        "name": "declared_hint_below_policy_threshold_rejected",
+        "witness_attestations": [
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
+              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          },
+          {
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessb",
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
+              "payload_digest": "sha256:3d4d0dbc6317fe753b4b072193e081053610fe3872e14a2392799b3f856c8c76",
+              "created_at": "2026-04-26T00:00:00.000Z",
+              "jws": "..."
+            }
+          }
+        ],
+        "declared_witness_quorum": 1,
+        "policy_witness_quorum_threshold": 2,
+        "expected_error": "snapshot_authority_unverified",
+        "note": "verification_hints.witness_quorum is a declared value cross-checked against the policy-derived threshold; it is never the threshold source"
+      },
+      {
+        "name": "wrong_context_rejected",
+        "canonical_input": {
+          "context": "ak.snapshot-proof-v1",
+          "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+          "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "reducer_profile": "ak.reducer.core.v1",
+          "schema_profile_refs": [
+            "ak.profile.core_event_store.v1"
+          ],
+          "security_class": "high_assurance",
+          "state_digest": "sha256:2c2f1cbbc1e6dc6c1c4a1e6f2b0ad4a4a49d51df1f4d4b6f1ee0f0a1b2c3d4e5",
+          "frontier": {
+            "event_ids": [
+              "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
+            ],
+            "timeline_hlc": "01970e589d21-0004-a13f9c2e"
+          },
+          "event_set_commitment": {
+            "algorithm": "merkle_event_set_v1",
+            "root": "sha256:f4760c510ee72b1abe2e93a56a8ec46652ce9fdde2f67b0ff7f83e68e8b72f0e",
+            "covered_event_count": 20
+          },
+          "issuer": "ak:did_core:webvh:z6mkfixture",
+          "authority_kind": "witness_quorum",
+          "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "auth_frontier": [
+            "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+          ],
+          "snapshot_created_at": "2026-04-26T00:00:00.000Z"
+        },
+        "expected_digest": "sha256:0dbf40c64170d4017d132c7e4cd2c150db0d645c9f287d4de48b83d1a8696307",
+        "expected_error": "signature_invalid",
+        "note": "reusing the manifest context yields a different transcript digest and MUST be rejected even when the JWS verifies"
+      },
+      {
+        "name": "wrong_projection_rejected",
+        "canonical_input": {
+          "context": "ak.snapshot-witness-attestation-proof-v1",
+          "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
+          "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "reducer_profile": "ak.reducer.core.v1",
+          "schema_profile_refs": [
+            "ak.profile.core_event_store.v1"
+          ],
+          "security_class": "high_assurance",
+          "state_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "frontier": {
+            "event_ids": [
+              "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
+            ],
+            "timeline_hlc": "01970e589d21-0004-a13f9c2e"
+          },
+          "event_set_commitment": {
+            "algorithm": "merkle_event_set_v1",
+            "root": "sha256:f4760c510ee72b1abe2e93a56a8ec46652ce9fdde2f67b0ff7f83e68e8b72f0e",
+            "covered_event_count": 20
+          },
+          "issuer": "ak:did_core:webvh:z6mkfixture",
+          "authority_kind": "witness_quorum",
+          "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "auth_frontier": [
+            "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
+          ],
+          "snapshot_created_at": "2026-04-26T00:00:00.000Z"
+        },
+        "expected_digest": "sha256:21601094ec3db837bbceb286abca636aaf420ac42cdb071e27ea47c83c4ddb8f",
+        "expected_error": "signature_invalid"
+      },
+      {
+        "name": "projection_must_not_contain_signature_fields",
+        "forbidden_projection_members": [
+          "signature",
+          "witness_attestations"
+        ],
+        "expected_error": "signature_invalid",
+        "note": "a witness that signed the manifest including witness_attestations would sign a transcript containing its own signature"
+      },
+      {
+        "name": "witness_list_rewritten_invalidates_issuer_signature",
+        "issuer_signed_witness_ids": [
+          "ak:did_core:webvh:z6mkfixturewitnessa",
+          "ak:did_core:webvh:z6mkfixturewitnessb"
+        ],
+        "delivered_witness_ids": [
+          "ak:did_core:webvh:z6mkfixturewitnessa",
+          "ak:did_core:webvh:z6mkfixturewitnessb",
+          "ak:did_core:webvh:z6mkfixturewitnessd"
+        ],
+        "expected_error": "signature_invalid"
+      },
+      {
+        "name": "witness_list_reordered_invalidates_issuer_signature",
+        "issuer_signed_witness_ids": [
+          "ak:did_core:webvh:z6mkfixturewitnessa",
+          "ak:did_core:webvh:z6mkfixturewitnessb"
+        ],
+        "delivered_witness_ids": [
+          "ak:did_core:webvh:z6mkfixturewitnessb",
+          "ak:did_core:webvh:z6mkfixturewitnessa"
+        ],
+        "expected_error": "schema_violation",
+        "note": "rows MUST be sorted by witness_id UTF-8 byte order; a receiver rejects the unsorted list and MUST NOT normalize it first"
+      }
+    ]
+  },
   "account_subscribe_schema_cases": [
     {
       "name": "typed_device_list_delta_valid",
