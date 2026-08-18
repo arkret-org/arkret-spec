@@ -155,6 +155,7 @@
         },
         "consent_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 256,
           "description": "Optional consent cell id locating the holder consent cell, to speed up receiver verification of the active grant dot."

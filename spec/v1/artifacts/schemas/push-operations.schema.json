@@ -124,7 +124,14 @@
           "$ref": "#/$defs/push_key"
         },
         "app_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "platform": {
           "$ref": "#/$defs/non_empty_string"
@@ -417,7 +424,14 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "app_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -460,7 +474,14 @@
           "$ref": "#/$defs/push_key"
         },
         "app_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         }
       },
       "additionalProperties": false

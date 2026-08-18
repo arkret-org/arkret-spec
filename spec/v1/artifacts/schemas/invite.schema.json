@@ -8,7 +8,6 @@
     "schema",
     "realm_id",
     "inviter",
-    "join_rule_snapshot",
     "state",
     "expires_at",
     "created_at"
@@ -40,9 +39,6 @@
     },
     "third_party_invite": {
       "$ref": "#/$defs/third_party_invite"
-    },
-    "join_rule_snapshot": {
-      "type": "object"
     },
     "capability_grant_refs": {
       "type": "array",
@@ -132,6 +128,7 @@
         },
         "token_salt_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 128,
           "description": "Opaque handle for the verification service's private salt record. The salt value itself MUST NOT appear on wire."
@@ -144,6 +141,7 @@
         },
         "pepper_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 128,
           "description": "Server-private pepper generation identifier for lookup mode; the pepper value itself is never on wire."

@@ -687,6 +687,7 @@
             },
             "focus_id": {
               "type": "string",
+              "pattern": "^(?!ak:)",
               "minLength": 1,
               "maxLength": 64
             },
@@ -709,9 +710,15 @@
                 "screen"
               ],
               "properties": {
-                "audio": { "type": "boolean" },
-                "video": { "type": "boolean" },
-                "screen": { "type": "boolean" }
+                "audio": {
+                  "type": "boolean"
+                },
+                "video": {
+                  "type": "boolean"
+                },
+                "screen": {
+                  "type": "boolean"
+                }
               }
             }
           }
@@ -740,6 +747,7 @@
       "properties": {
         "focus_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 64
         },
@@ -784,6 +792,7 @@
             },
             "focus_id": {
               "type": "string",
+              "pattern": "^(?!ak:)",
               "minLength": 1,
               "maxLength": 64
             },
@@ -850,9 +859,13 @@
         {
           "if": {
             "properties": {
-              "backend_kind": { "const": "arkret_native" }
+              "backend_kind": {
+                "const": "arkret_native"
+              }
             },
-            "required": ["backend_kind"]
+            "required": [
+              "backend_kind"
+            ]
           },
           "then": {
             "properties": {
@@ -900,6 +913,7 @@
         },
         "focus_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 64
         },
@@ -3309,6 +3323,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "log_head_digest": {
@@ -3419,6 +3434,7 @@
         },
         "mls_group_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 512
         },
@@ -3482,6 +3498,7 @@
         },
         "mls_group_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 512
         },
@@ -3731,6 +3748,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "description": "The exact resolved DID version the control proof was made against. Pinning the version is what makes the receipt auditable later: without it, a receipt asserts control at an unknown point in the DID's history."
         },
@@ -3824,6 +3842,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "registration_receipt": {
@@ -3876,6 +3895,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "log_head_digest": {
@@ -3957,6 +3977,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "log_head_digest": {
@@ -4159,7 +4180,8 @@
       ],
       "properties": {
         "request_id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(?!ak:)"
         },
         "bound_to": {
           "type": "object",
@@ -4268,7 +4290,8 @@
       ],
       "properties": {
         "request_id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(?!ak:)"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -5127,6 +5150,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "registration_receipt": {
@@ -5169,6 +5193,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "log_head_digest": {
@@ -5423,7 +5448,8 @@
           "type": "string"
         },
         "service_account_id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(?!ak:)"
         },
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -5915,6 +5941,7 @@
             },
             "client_id": {
               "type": "string",
+              "pattern": "^(?!ak:)",
               "minLength": 1,
               "description": "OIDC public client id selected from the advertised auth method. Required when proof_kind is oidc_code_exchange."
             },
@@ -6217,6 +6244,7 @@
         },
         "session_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "cnf": {

@@ -1012,6 +1012,7 @@
       "properties": {
         "recipient_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "description": "Realm-unique stable id for this recovery recipient."
         },
         "principal_id": {

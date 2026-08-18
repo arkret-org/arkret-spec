@@ -88,7 +88,14 @@
       ],
       "properties": {
         "statement_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "organization_id": {
           "$ref": "#/$defs/did_core_id"
@@ -117,10 +124,24 @@
           "$ref": "#/$defs/nullable_timestamp"
         },
         "supersedes_statement_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "revokes_statement_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "realm_frontier_digest": {
           "$ref": "#/$defs/digest"

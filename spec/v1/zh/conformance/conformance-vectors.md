@@ -1683,9 +1683,9 @@ ak.vector.redaction.preserve_fields.v1
 ak.vector.redaction.space_target_ref_schema.v1
 ```
 
-输入（payload 片段，必须通过 `event-payload.schema.json#/$defs/object_lifecycle_payload`）：
+输入（payload 片段，必须通过 `ak.redaction` 注册的 `event-payload.schema.json#/$defs/cross_object_redaction_payload`）：
 
-```json schema=schemas/event-payload.schema.json#/$defs/object_lifecycle_payload
+```json schema=schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload
 {
   "target_ref": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
   "reason": "privacy_cleanup"
@@ -1694,10 +1694,65 @@ ak.vector.redaction.space_target_ref_schema.v1
 
 期望结果：
 
-- Payload schema MUST 接受 `ak:space:*` 作为 `ak.redaction` 的 `target_ref` / `object_ref`。
+- Payload schema MUST 接受 `ak:space:*` 作为 `ak.redaction` 的 `target_ref`。
 - Reducer 语义仍按 Space 生命周期规则执行：Space 没有独立 `redacted` state，内容清理合并到 Space metadata cleanup / terminal transition；不得因 schema 漏洞把 Space cleanup 路径降级为实现私有扩展。
 
-### 3.2.2 Vector: Strand / Morph 的 `redacted` post-state 不得保留内容槽
+### 3.2.2 Vector: Message 只能由专属 `ak.message.redact` 进入 `redacted`
+
+向量名称：
+
+```text
+ak.vector.redaction.message_target_exclusive_kind.v1
+```
+
+[`common-fields.md` §5.1](../models/common-fields.md) 的 Message 豁免要求：注册了对象专属 `ak.<kind>.redact` 的对象
+MUST 只走该专属 kind，cross-object `ak.redaction` MUST NOT 指向它。v1 唯一这样的对象是 Message。
+本向量把该裁决固化为 schema 级判据，使实现无需维护按字符串前缀判断的私有 allow/deny 表。
+
+负例 1（cross-object `ak.redaction` 用 `target_ref` 指向 Message）：
+
+```json schema=schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload expect=invalid first_error="contains:'ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw' does not match"
+{
+  "target_ref": "ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
+}
+```
+
+负例 2（cross-object `ak.redaction` 试图携带 `message_id` 成员）：
+
+```json schema=schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload expect=invalid first_error="contains:is not valid under any of the given schemas"
+{
+  "message_id": "ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
+}
+```
+
+正例 1（cross-object `ak.redaction` 指向非 Message 对象）：
+
+```json schema=schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload expect=valid
+{
+  "target_ref": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+  "reason": "privacy_cleanup"
+}
+```
+
+正例 2（`ak.message.redact` 指向 Message）：
+
+```json schema=schemas/event-payload.schema.json#/$defs/message_redact_payload expect=valid
+{
+  "message_id": "ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
+}
+```
+
+判定要求：
+
+- `cross_object_redaction_payload` 的 `target_ref` 词法空间 MUST 不含 `ak:message:` 分支，且 `message_id` MUST NOT 是其成员；两条负例都 MUST 在写入任何 cell 之前失败。
+- `message.redaction_ref` 的取值域因此闭合为 accepted `ak.message.redact` 的 Event id，不需要"多条 redaction 取哪一条"的选择规则。
+
+失败判定：
+
+- reducer 接受指向 Message 的 `ak.redaction` 并把它写入 `ak.component.object.redaction.v1` cell。
+- 实现用自维护的前缀 allow/deny 表替代 schema 判据。
+
+### 3.2.3 Vector: Strand / Morph 的 `redacted` post-state 不得保留内容槽
 
 向量名称：
 

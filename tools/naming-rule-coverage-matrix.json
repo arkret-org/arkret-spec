@@ -632,8 +632,8 @@
         "tools/test_naming_gate_lint.py",
         "tools/test_wire_lexical_closure_lint.py"
       ],
-      "coverage_level": "partial",
-      "residual_gap": "Category assignment is closed in both directions: the resolved terminal type decides what it can, and every occurrence it cannot decide has an exact classification row that goes stale the moment the schema changes. Mutual exclusivity is closed lexically as well: a category that does not own the ak: namespace must carry a terminal constraint that provably rejects an ak: value, which is the half the typed-ID prefix closure cannot see. A terminal that carries no lexical information at all (a bare `type: string`) cannot be decided either way; those occurrences are exactly the transitional unregistered_object_identifier and non_identifier rows, and their convergence direction is to pin a pattern."
+      "coverage_level": "full",
+      "residual_gap": "Category assignment is closed in both directions and the reverse lexical closure now fails closed. The resolved terminal type decides what it can, every occurrence it cannot decide has an exact classification row that goes stale the moment the schema changes, and every non-owning category carries a terminal that provably rejects an ak: value - the shared floor is string-profiles.schema.json#/$defs/non_typed_identifier_floor. An occurrence whose terminal proves neither acceptance nor rejection is a lint failure rather than a silent pass, so a newly minted bare `type: string` identifier cannot reach the wire. The remaining judgement is per-field convergence direction (register a typed kind vs tighten the opaque profile), which is a naming decision rather than a namespace leak."
     },
     {
       "rule_id": "NC-IDSUFFIX-001",

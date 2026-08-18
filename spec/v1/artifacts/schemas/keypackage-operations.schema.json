@@ -144,7 +144,14 @@
       ],
       "properties": {
         "keypackage_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "keypackage_ref": {
           "$ref": "#/$defs/object_ref"
@@ -251,7 +258,14 @@
       ],
       "properties": {
         "claim_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "keypackage_ref": {
           "$ref": "#/$defs/object_ref"
@@ -346,7 +360,14 @@
           "$ref": "#/$defs/strand_id"
         },
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -475,7 +496,14 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "claim_purpose": {
           "type": "string",
@@ -680,7 +708,14 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "claim_purpose": {
           "type": "string",
@@ -1285,7 +1320,14 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "mls_epoch": {
           "type": "integer",
@@ -1338,7 +1380,14 @@
         "claim_ids": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/non_empty_string"
+            "allOf": [
+              {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              {
+                "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+              }
+            ]
           },
           "minItems": 1,
           "uniqueItems": true
@@ -1356,7 +1405,14 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "mls_epoch": {
           "type": "integer",
@@ -1449,7 +1505,14 @@
         "claim_ids": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/non_empty_string"
+            "allOf": [
+              {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              {
+                "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+              }
+            ]
           },
           "minItems": 1,
           "uniqueItems": true
@@ -1468,7 +1531,14 @@
           "$ref": "#/$defs/strand_id"
         },
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "epoch": {
           "type": "integer",

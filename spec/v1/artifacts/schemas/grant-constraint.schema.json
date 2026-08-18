@@ -16,6 +16,7 @@
   "properties": {
     "constraint_id": {
       "type": "string",
+      "pattern": "^(?!ak:)",
       "description": "Optional stable identifier of this constraint within the grant; used for diagnostics and overrides."
     },
     "constraint_kind": {
@@ -350,6 +351,7 @@
       "description": "Limits applet interop-session operations to the listed applet-defined session correlation ids.",
       "items": {
         "type": "string",
+        "pattern": "^(?!ak:)",
         "minLength": 1
       },
       "uniqueItems": true

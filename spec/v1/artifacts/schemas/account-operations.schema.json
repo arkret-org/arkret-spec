@@ -402,7 +402,14 @@
           "description": "Complete DID resolved by the Account Authority and signed by the holder; it MUST equal the register request full_id byte-for-byte."
         },
         "did_version_id": {
-          "$ref": "#/$defs/non_empty_string",
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ],
           "description": "Adapter-defined versionId of the entry whose current active update key signed this proof."
         },
         "log_head_digest": {
@@ -484,7 +491,14 @@
           "format": "uri"
         },
         "client_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "redirect_uri": {
           "type": "string",
@@ -883,6 +897,7 @@
         },
         "did_version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "description": "Validated did:webvh inception versionId copied into the root-control transcript."
         },
@@ -1011,6 +1026,7 @@
         },
         "did_version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "log_head_digest": {
@@ -1161,7 +1177,14 @@
           "description": "Verified complete DID whose registered adapter projects to principal_id."
         },
         "did_version_id": {
-          "$ref": "#/$defs/non_empty_string",
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ],
           "description": "Adapter-defined version identifier pinned when the account binding was accepted."
         },
         "control_key_digest": {
@@ -1716,6 +1739,7 @@
         },
         "account_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 255
         },
@@ -1889,6 +1913,7 @@
         },
         "account_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 255
         },
@@ -1935,6 +1960,7 @@
         },
         "account_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 255
         },
@@ -1965,6 +1991,7 @@
         },
         "account_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 255
         },
@@ -2015,6 +2042,7 @@
         },
         "account_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 255
         },
@@ -2242,7 +2270,14 @@
           "description": "Server-resolved full_id echoed into the signed proof transcript; it MUST project to principal_id."
         },
         "did_version_id": {
-          "$ref": "#/$defs/non_empty_string",
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ],
           "description": "versionId of the entry the Account Authority resolved as current; the proof MUST be signed by that entry's active update key."
         },
         "log_head_digest": {
@@ -2303,7 +2338,14 @@
           "description": "Provisional principal recorded in the holder-authenticated reserved_identity_creation checkpoint. The Account Authority MUST reject any other value and MUST NOT issue a challenge for a principal whose PCR is already accepted."
         },
         "did_version_id": {
-          "$ref": "#/$defs/non_empty_string",
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ],
           "description": "versionId of the published entry 0 that becomes the orphan anchor. Pinning it lets the confirmation detect a PCR acceptance that landed after the challenge was issued instead of abandoning a live identity."
         }
       },
@@ -2361,7 +2403,14 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "did_version_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "identity_creation_lease_id": {
           "$ref": "#/$defs/opaque_registration_id"
@@ -2432,7 +2481,14 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "did_version_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -2463,7 +2519,14 @@
           "description": "The abandoned provisional principal. Its published entry 0 is now a permanently unusable orphan anchor: it MUST NOT be reused and continuity MUST NOT be claimed over it."
         },
         "did_version_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "abandoned_at": {
           "$ref": "#/$defs/timestamp"

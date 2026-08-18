@@ -210,6 +210,27 @@ Question 是封闭对象，必填 `question_id`、`prompt_canonical`、`answer_k
 
 单个 `application_form` gate 的 `questions[]` MUST ≤ 64 项（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）；超过时 MUST `schema_violation`。
 
+**引用键与总量预算（normative）**：`question_id` 只在同一 gate 内唯一，因此一条 answer 的引用键 MUST 是
+**`(gate_id, question_id)` 二元组**——一个 policy 可以有多个 `application_form` gate，裸 `question_id`
+在两个 gate 都声明同名 slug 时无法唯一指向其中一条。[`join-policy-operations.schema.json#/$defs/answer`](../../artifacts/schemas/join-policy-operations.schema.json)
+的两个成员都 `$ref` 到定义端同一组 slug 类型
+（[`event-payload.schema.json#/$defs/join_policy_gate_id`](../../artifacts/schemas/event-payload.schema.json) 与
+`#/$defs/join_policy_question_id`），因此 answer **不可能**拼出 policy 永远无法定义的引用；
+SDK 也只实现这一组共享强类型，不得在引用端另建更宽的字符串类型。
+
+词法合法不等于存在：reducer MUST 把每个 `(gate_id, question_id)` 对照 `policy_version_digest`
+钉住的那一版 policy 解析，未定义的对、指向非 `application_form` gate 的 `gate_id`、以及重复的同一对
+分别以 `join_policy_unknown_answer_reference` 与 `join_policy_duplicate_answer_reference` 拒绝
+（见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）。
+
+单个 policy 中**所有** `application_form` gate 的 `questions[]` 总数 MUST ≤ 一条 application 的
+`answers[]` 上限（同一个机器常量，当前 64）；超过时 MUST `schema_violation`
+（`reason_code=join_policy_question_budget_exceeded`）。缺这条总量预算时，`combinator=all`
+会允许一个**没有任何合法 application 能满足**的 policy（16 个 gate × 64 questions 远超 64 条 answers），
+而申请人只能在提交时才发现。enforcement 与 §3.1 的 `gate_id` 唯一性同构三层：schema 分别约束两侧上限、
+[`check_join_policy_question_budget`](../../../../tools/artifact_lint/prose.py) 机械拒绝 artifact 与
+Markdown 示例中的越预算 policy、reducer 在 wire 上以上述 reason_code 拒绝。
+
 ## 4. 与 `default_join_rule` 的交叉表
 
 Join Policy 的 gate 分三条**正交轴**，`default_join_rule` 只影响其中一条。"Join Policy 在某些 join rule 下整体不生效"是错误概括，MUST NOT 按该概括实现。
@@ -380,12 +401,12 @@ receipt 与 private body MUST 在同一 durable transaction 中写入；任一 s
 | `policy_version_digest` | yes | `digest` | 提交时 `realm.join_policy` cell value 的 canonical digest；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
 | `private_body_digest` | yes | `digest` | 对本次 profile-private body 的 `sha256:JCS`；receipt 只绑定 digest，不复制正文。 |
 | `application_revision_digest` | yes | `digest` | 按 §7.3 固定前像计算，review 必须绑定同一 revision。 |
-| `answers` | conditional | `array<Answer>` | 位于 `private_body{mode="server_protected"}`；任一 `application_form` gate 存在时必填，覆盖该 gate 所有 `required=true` 的 question_id。 |
+| `answers` | conditional | `array<Answer>` | 位于 `private_body{mode="server_protected"}`；任一 `application_form` gate 存在时必填，覆盖每个这样的 gate 所有 `required=true` 的 `(gate_id, question_id)` 对。 |
 | `gate_proofs` | conditional | `array<GateProof>` | 位于 `private_body{mode="server_protected"}`；任一可自动解析 gate 存在时按需提供（与自动解析路径同形）。 |
 | `applicant_note` | no | `string` | 位于 private body，1..2000 chars 自由文本备注。 |
 | `encryption_envelope` | conditional | `object` | 位于 `private_body{mode="reviewer_envelope"}`；E2EE Realm 必填，见 §8。 |
 
-`Answer` 形态：`{question_id, value: string|string[]|boolean}`；reducer 仅做存在性 / shape 校验，语义评估留给 reviewer。`answers[]` MUST ≤ 64 项（与 §3.3 `questions[]` 上限对齐）、`gate_proofs[]` MUST ≤ 16 项（与 §3 `gates` 1..16 上限对齐）；超过时 MUST `schema_violation`（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）。非 E2EE Realm 使用 `server_protected` private record；E2EE Realm 使用 reviewer envelope。两种 body 都只经 §7.1.1 私有 operation 传输，不进入 `ak.member.state`。
+`Answer` 形态：`{gate_id, question_id, value: string|string[]|boolean}`；引用键是 §3.3 的 `(gate_id, question_id)` 二元组，reducer 做存在性 / 唯一性 / shape 校验，语义评估留给 reviewer。`answers[]` MUST ≤ 64 项（与 §3.3 的 policy 级 `questions[]` 总量预算是同一个机器常量）、`gate_proofs[]` MUST ≤ 16 项（与 §3 `gates` 1..16 上限对齐）；超过时 MUST `schema_violation`（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）。非 E2EE Realm 使用 `server_protected` private record；E2EE Realm 使用 reviewer envelope。两种 body 都只经 §7.1.1 私有 operation 传输，不进入 `ak.member.state`。
 
 ### 7.3 `member.application.review`
 

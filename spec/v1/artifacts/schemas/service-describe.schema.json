@@ -302,6 +302,7 @@
             },
             "salt_epoch_id": {
               "type": "string",
+              "pattern": "^(?!ak:)",
               "minLength": 1,
               "maxLength": 128,
               "description": "Opaque public epoch label for the active secret. This is not the secret salt value."
@@ -337,6 +338,7 @@
     },
     "rate_limit_policy_id": {
       "type": "string",
+      "pattern": "^(?!ak:)",
       "minLength": 1,
       "description": "Identifier for a cacheable, verifiable rate-limit policy object with the same minimum fields as rate_limit_policy. See zh/sync/api-conventions.md §8."
     },
@@ -844,6 +846,7 @@
           },
           "verification_run_id": {
             "type": "string",
+            "pattern": "^(?!ak:)",
             "minLength": 1
           },
           "artifact_digest": {
@@ -1222,6 +1225,7 @@
         },
         "client_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "scopes": {

@@ -36,6 +36,7 @@
     },
     "package_id": {
       "type": "string",
+      "pattern": "^(?!ak:)",
       "minLength": 1,
       "description": "Distribution identifier only. Not a grant subject."
     },

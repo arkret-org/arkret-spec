@@ -566,7 +566,7 @@
                 },
                 "target_snapshot_digest": {
                   "$ref": "./principal-operations.schema.json#/$defs/digest",
-                  "description": "H('ak.member-repair-target-snapshot-native-agent-v1', {recipient_agent_id,active_runtime_endpoint_ref,device_message_id}), where the endpoint is the one current accepted agent-key/session binding endpoint."
+                  "description": "H('ak.member-repair-target-snapshot-native-agent-v1', {recipient_agent_id,recipient_agent_verification_method,recipient_agent_key_authorize_event_id,device_message_id}). The three recipient members are the closed Agent endpoint triple this spec already uses for every other Agent role (sender / requester / consumer / target): the Agent principal, the exact DID URL verification_method of the one current accepted agent key, and the accepted ak.agent.key.authorize Event id that authorized it. No opaque endpoint reference is admitted: an unregistered *_ref would hide two authorization coordinates inside the canonical digest preimage."
                 },
                 "enqueued_target_count": {
                   "const": 1

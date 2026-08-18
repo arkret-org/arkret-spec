@@ -307,6 +307,7 @@
         },
         "did_version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "description": "The exact did:webvh inception versionId pinned by the identity-root control proof and used to initialize current_device_generation_ref."
         },

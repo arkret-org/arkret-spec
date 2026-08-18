@@ -267,7 +267,14 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "app_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "app_version": {
           "$ref": "#/$defs/non_empty_string"
@@ -653,7 +660,14 @@
       ],
       "properties": {
         "key_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"
@@ -1439,7 +1453,14 @@
           "$ref": "./principal-operations.schema.json#/$defs/operation_id"
         },
         "challenge_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+          "allOf": [
+            {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "challenge": {
           "type": "string",
@@ -1506,7 +1527,14 @@
           "description": "Idempotency identity of the abandonment. Replaying it returns the recorded terminal outcome and MUST NOT produce a second tombstone."
         },
         "challenge_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+          "allOf": [
+            {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "challenge": {
           "type": "string",
@@ -2063,7 +2091,14 @@
           "description": "UTF-8 byte-lexicographically sorted accepted refs for Sidecar genesis, ownership, Agent lifecycle/runtime-key authorization, and exact Realm membership. It excludes action grants, participation selections, and MLS/key-readiness results."
         },
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "epoch": {
           "type": "integer",

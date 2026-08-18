@@ -226,6 +226,43 @@
         "created_by": "ak:did_core:webvh:z6mkfixture",
         "created_at": "2026-04-26T00:00:00.000Z"
       }
+    },
+    {
+      "name": "cross_object_redaction_message_target_ref_rejected",
+      "vector_id": "ak.vector.redaction.message_target_exclusive_kind.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:'ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw' does not match",
+      "instance": {
+        "target_ref": "ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
+      }
+    },
+    {
+      "name": "cross_object_redaction_message_id_member_rejected",
+      "vector_id": "ak.vector.redaction.message_target_exclusive_kind.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "message_id": "ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
+      }
+    },
+    {
+      "name": "cross_object_redaction_strand_target_ref_accepted",
+      "vector_id": "ak.vector.redaction.message_target_exclusive_kind.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload",
+      "instance": {
+        "target_ref": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+        "reason": "privacy_cleanup"
+      }
+    },
+    {
+      "name": "message_redact_message_id_accepted",
+      "vector_id": "ak.vector.redaction.message_target_exclusive_kind.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/message_redact_payload",
+      "instance": {
+        "message_id": "ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
+      }
     }
   ],
   "cases": [
@@ -340,8 +377,14 @@
     {
       "name": "space_target_ref_schema",
       "vector_id": "ak.vector.redaction.space_target_ref_schema.v1",
-      "input": "object_lifecycle_payload_with_space_target_ref",
+      "input": "cross_object_redaction_payload_with_space_target_ref",
       "expected": "schema_accepts_ak_space_target_ref_rejects_malformed"
+    },
+    {
+      "name": "message_target_exclusive_kind",
+      "vector_id": "ak.vector.redaction.message_target_exclusive_kind.v1",
+      "input": "cross_object_redaction_payload_with_message_target",
+      "expected": "schema_rejects_message_target_ref_and_message_id_member_accepts_message_redact"
     },
     {
       "name": "policy_scope",

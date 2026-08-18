@@ -40,6 +40,7 @@
         },
         "from_version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 512
         },
@@ -50,6 +51,7 @@
         },
         "to_version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 512
         }
@@ -167,6 +169,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 512
         }
@@ -193,6 +196,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 512
         },
@@ -618,6 +622,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 512
         },
@@ -1517,6 +1522,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 512,
           "description": "Native DID-method version coordinate copied from the exact verified signed ServiceResolutionRecord; cache replacement cannot infer or refresh it independently."

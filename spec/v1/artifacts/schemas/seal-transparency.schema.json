@@ -19,6 +19,7 @@
   "properties": {
     "log_id": {
       "type": "string",
+      "pattern": "^(?!ak:)",
       "minLength": 1,
       "maxLength": 256,
       "description": "Stable identifier of the transparency log (operator URL, DID, or registry name)."
@@ -78,6 +79,7 @@
       "properties": {
         "log_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 256
         },

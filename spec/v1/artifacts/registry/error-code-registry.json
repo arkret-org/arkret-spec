@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-18.1",
+  "version": "2026-08-18.2",
   "codes": [
     {
       "code": "json_invalid",
@@ -3464,6 +3464,30 @@
       "description": "Sub-reason for a schema_violation on ak.realm.join_policy where gates[] contains duplicate gate_id values. gate_id MUST be stable and unique within the policy so that audit refs in ak.member.state{gate_proofs[gate_id=…]} are unambiguous. Wire response uses code=schema_violation with reason_code=join_policy_duplicate_gate_id. See zh/governance/join-policy.md §3.1."
     },
     {
+      "code": "join_policy_duplicate_answer_reference",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for a schema_violation on a join-policy application whose answers[] repeats a (gate_id, question_id) reference. question_id is only unique within one application_form gate, so the reference key is the pair; a repeated pair leaves the reviewer with two answers for one question and no rule to choose between them. Wire response uses code=schema_violation with reason_code=join_policy_duplicate_answer_reference. See zh/governance/join-policy.md 3.3."
+    },
+    {
+      "code": "join_policy_question_budget_exceeded",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for a schema_violation on ak.realm.join_policy whose application_form gates declare more questions[] in total than one application can carry in answers[]. Under combinator=all such a policy has no satisfiable application at all, so it MUST be rejected at the policy rather than discovered at submit time. The budget is the same machine constant as the answers[] cap. Wire response uses code=schema_violation with reason_code=join_policy_question_budget_exceeded. See zh/governance/join-policy.md 3.3."
+    },
+    {
+      "code": "join_policy_unknown_answer_reference",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for a schema_violation on a join-policy application whose answers[] names a (gate_id, question_id) pair the referenced policy version does not define, or names a gate that is not an application_form gate. Lexical validity of both slugs is not existence: the reducer MUST resolve the pair against the policy version pinned by policy_version_digest. Wire response uses code=schema_violation with reason_code=join_policy_unknown_answer_reference. See zh/governance/join-policy.md 3.3."
+    },
+    {
       "code": "join_rule_policy_mismatch",
       "applies_to": [
         "event_envelope",
@@ -5500,5 +5524,6 @@
       "*_not_permitted": "use _denied",
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
-  }
+  },
+  "generated_at": "2026-08-18T08:45:00+08:00"
 }

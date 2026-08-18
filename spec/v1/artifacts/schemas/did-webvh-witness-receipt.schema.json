@@ -38,6 +38,7 @@
     },
     "version_id": {
       "type": "string",
+      "pattern": "^(?!ak:)",
       "minLength": 1,
       "description": "The exact did:webvh versionId this attestation covers, verbatim from the log entry. Binding to versionId rather than to a digest of the document is what makes the receipt replayable against did-witness.json, whose proofs are themselves keyed by versionId."
     },

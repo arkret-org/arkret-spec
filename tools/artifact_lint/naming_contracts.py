@@ -531,14 +531,35 @@ def check_typed_id_namespace_disjointness(
     if category in TYPED_ID_NAMESPACE_OWNER_CATEGORIES:
         return
     where = f"category `{category}`" if category else "unclassified"
-    for kind, value in terminals:
-        if terminal_excludes_typed_id_namespace(kind, value) is False:
+    verdicts = [terminal_excludes_typed_id_namespace(kind, value) for kind, value in terminals]
+    for (kind, value), verdict in zip(terminals, verdicts):
+        if verdict is False:
             lint.fail(
                 SCHEMA_DIR / file_name,
                 f"{pointer} is {where} but its {kind} `{value}` admits values in the "
                 f"`{TYPED_ID_NAMESPACE_PREFIX}` typed-ID namespace; the 2.1 categories are "
                 f"mutually exclusive, so the terminal constraint MUST reject them",
             )
+    # Fail closed on "undecided". A terminal that carries no lexical information
+    # at all (a bare `type: string`) used to pass here, so an occurrence nobody
+    # could judge was silently treated as judged-clean while the schema still
+    # accepted `ak:<any kind>:<any payload>`. 2.1 requires every non-owning
+    # category to carry a `pattern` / `const` / closed `enum` that provably
+    # rejects the prefix; `maxLength` bounds the length and proves nothing about
+    # the namespace. An object-typed descriptor is not an identifier terminal, so
+    # it has nothing to constrain.
+    if any(verdict is True for verdict in verdicts):
+        return
+    if any(kind == "type" and value == '"object"' for kind, value in terminals):
+        return
+    lint.fail(
+        SCHEMA_DIR / file_name,
+        f"{pointer} is {where} and no terminal constraint proves it rejects the "
+        f"`{TYPED_ID_NAMESPACE_PREFIX}` typed-ID namespace; a category that does not own that "
+        f"namespace MUST carry a pattern / const / closed enum floor (the shared one is "
+        f"string-profiles.schema.json#/$defs/non_typed_identifier_floor). Resolved terminals: "
+        f"{list(terminals)}",
+    )
 
 
 def _schema_documents(lint: Lint) -> dict[str, Any]:

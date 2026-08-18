@@ -74,14 +74,18 @@
     },
     "answer": {
       "type": "object",
+      "description": "One application-form answer. A join policy MAY carry several application_form gates and question_id is only gate-scoped, so the reference key is the pair (gate_id, question_id); a bare question_id could name a question in more than one gate. Both members reuse the definition-side slug types verbatim, so no answer can spell a reference the policy could never define. See zh/governance/join-policy.md 3.3 / 7.2.",
       "required": [
+        "gate_id",
         "question_id",
         "value"
       ],
       "properties": {
+        "gate_id": {
+          "$ref": "event-payload.schema.json#/$defs/join_policy_gate_id"
+        },
         "question_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,128}$"
+          "$ref": "event-payload.schema.json#/$defs/join_policy_question_id"
         },
         "value": {
           "$ref": "#/$defs/answer_value"
@@ -105,7 +109,9 @@
           "items": {
             "$ref": "#/$defs/answer"
           },
-          "maxItems": 64
+          "maxItems": 64,
+          "uniqueItems": true,
+          "description": "Answers of one application revision. maxItems is the same machine constant as the policy-wide application_form question budget, so a policy that a combinator=all applicant could never satisfy is rejected at the policy, not discovered at submit time. Duplicate (gate_id, question_id) pairs are rejected by the reducer with reason_code=join_policy_duplicate_answer_reference."
         },
         "gate_proofs": {
           "type": "array",

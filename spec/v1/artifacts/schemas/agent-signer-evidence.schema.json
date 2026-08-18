@@ -759,6 +759,7 @@
         },
         "transition_key_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 512
         },
@@ -1149,6 +1150,7 @@
         },
         "log_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "leaf_count": {

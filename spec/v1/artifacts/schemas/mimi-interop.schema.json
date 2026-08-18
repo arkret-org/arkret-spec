@@ -274,7 +274,8 @@
               ]
             },
             "mls_group_id": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^(?!ak:)"
             },
             "content_profile": {
               "type": "string",
@@ -363,10 +364,12 @@
           "$ref": "#/$defs/digest"
         },
         "mapped_operation_id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(?!ak:)"
         },
         "mimi_message_id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(?!ak:)"
         },
         "arkret_event_id": {
           "type": "string",

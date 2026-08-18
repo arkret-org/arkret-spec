@@ -390,7 +390,14 @@
           "$ref": "#/$defs/signature"
         },
         "key_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "key_digest": {
           "$ref": "#/$defs/digest"

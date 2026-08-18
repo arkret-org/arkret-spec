@@ -655,7 +655,10 @@ Commit/Welcome 与随后的 activation；请求方从 §9.1 resolver 的 `active
   digest 是 `H('ak.member-repair-target-snapshot-human-v1', device-id 排序的
   [{recipient_device_id,device_message_id}])`；Agent snapshot digest 是
   `H('ak.member-repair-target-snapshot-native-agent-v1',
-  {recipient_agent_id,active_runtime_endpoint_ref,device_message_id})`。
+  {recipient_agent_id,recipient_agent_verification_method,recipient_agent_key_authorize_event_id,device_message_id})`。
+  该 endpoint **MUST** 用本节 sender 归属同一套封闭 Agent 三元组表达（`<角色>_agent_id` + `<角色>_agent_verification_method` + `<角色>_agent_key_authorize_event_id`，此处角色为 `recipient`），
+  **MUST NOT** 引入 `active_runtime_endpoint_ref` 一类未登记的 opaque `*_ref`：该 digest 的 JCS preimage 逐字包含成员名，把 `verification_method` 与 `agent_key_authorize_event_id` 两个授权坐标藏进一个不透明字符串会让跨实现算出不同 digest。
+  三个 recipient 成员分别是 Agent principal、唯一 current accepted agent key 的完整 DID URL `verification_method`，以及授权它的 accepted `ak.agent.key.authorize` Event id。
   **sender 归属（normative）**：投递到 human recipient 的 `DeviceMessageEnvelope` 以**封闭 XOR**
   声明 requester 侧的 endpoint，与本节 `member_repair_request_content.requester`、
   [`../crypto-media/device-lifecycle.md` §9.0.1](../crypto-media/device-lifecycle.md) 的 consume

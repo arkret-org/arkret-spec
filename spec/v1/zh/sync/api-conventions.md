@@ -123,6 +123,30 @@ HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan` �
 未登记 durable Event。该闭包由 `tools/lint_artifacts.py` 与
 `operation-registry-coverage-fixture.json` 机械校验。
 
+**leaf effect 的成员集合是封闭的（normative）**：上述三种 `kind` 各自的成员集合逐字封闭，
+未登记的 key MUST 使整条 registry 行失败。`branched` 是**组合节点**而不是 leaf effect：
+顶层 `branched` object 只允许 `kind`、`discriminator` 与 `effect_branches`，
+每个 `effect_branches[].effect` 递归使用同一套 leaf 定义。
+
+**`cross_service_effects` / `irreversibility_note`（normative）**：这是 leaf effect 上与 `kind`
+**正交**的一对 optional 成员。
+
+- `kind` 只描述本 operation 在当前 Arkret 服务内**是否/如何 author durable Event**；
+  `cross_service_effects` 描述同一 operation **越过本地事务边界后可能已经提交的外部持久副作用**。
+  两者正交：`kind:"none"` 的 operation 同样可以有外部 durable effect
+  （例：`ak.peer.account_status.command.submit` 不 author Event，但 `erasure_pending` 分支要求
+  接收端先落 durable 物理擦除意图才能 ack）。因此 MUST NOT 把这对成员绑死在 `event_log` 上。
+- 两个成员 MUST **同时出现或同时缺席**。出现时 `cross_service_effects` MUST 非空、逐字去重，
+  每项是 operation-local 的稳定 slug；`irreversibility_note` MUST 非空。
+- **presence 就是那条机器信号**：这对成员出现即表示该 operation 可能产生**不可安全盲重试**的持久效果。
+  消费者 MUST 只按 pair 的 presence 判定，MUST NOT 从未注册 slug 推导任何额外协议行为
+  （补偿策略、重试类别、副作用分类）。slug 是诊断 / 审计标签，不是封闭枚举；
+  两个现有样本不足以支撑枚举语义。若将来确实需要按 effect kind 自动选择补偿策略，
+  MUST 另建 registered effect-kind registry 与 typed retry class 并同批迁移现有行，
+  MUST NOT 把自由 slug 偷偷当枚举使用。
+- 这对成员 MUST 放在实际发生副作用的 leaf effect 上（含 `effect_branches[].effect`），
+  顶层 `branched` object MUST NOT 携带它们——否则一个分支的不可逆性会被错误推广到全部请求。
+
 **`viewer` action（术语定义）**：`ak.self.account.read.viewer` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
 
 ### 2.5 HTTP method 语义

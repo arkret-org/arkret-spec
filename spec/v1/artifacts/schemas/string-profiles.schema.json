@@ -76,6 +76,10 @@
       "pattern": "^[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
       "format": "arkret-content-text",
       "description": "NFC multilingual content text; rendering contexts must escape markup and apply bidi isolation."
+    },
+    "non_typed_identifier_floor": {
+      "pattern": "^(?!ak:)",
+      "description": "Lexical floor of every identifier value category that does NOT own the ak: namespace (opaque_correlation, document_local_symbol, external_system_identifier, registry_catalog_symbol, unregistered_object_identifier); see common-fields.md 2.1. The negative lookahead IS the floor: it mechanically proves the value cannot be an ak: typed id, which maxLength alone can never prove, while admitting every other value the field already accepted. It deliberately constrains nothing else - the per-field convergence direction (a registered typed kind, or a tighter opaque profile) is decided per object family, so a pattern-only floor composes with whatever profile the field already carries instead of pre-empting it."
     }
   }
 }

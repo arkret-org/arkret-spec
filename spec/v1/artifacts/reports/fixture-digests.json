@@ -126,7 +126,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "416e4dc309b6fd65a4424e3f96e58cbb10b14250078b2b5231e0f160e5b10a15"
+      "sha256": "684ff7a714a27d8dca088769e3250f2e8377583420e5f959ebbdd577e47eec13"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -310,7 +310,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "22aa8dfa964ad5b99b5726799bf9f0440ba515757c01b2552b85d442121e7152"
+      "sha256": "d60fa2bac35f4e1a1a9e7dbabdb751bdc2d0e898ecc8ec00f0bc8f1aec05db8c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/reviewer-authority-pair-fixture.json",
@@ -322,7 +322,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "b973ffa2f59a0b321f9f83f02a53cedcc9194f718b991cd31326d30886a189dc"
+      "sha256": "566a58c735154b5db60971f61af7688aaa99748a0758a758da92c53a26d2352c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

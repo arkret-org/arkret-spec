@@ -43,7 +43,9 @@
             ],
             "properties": {
               "entry_id": {
-                "$ref": "#/$defs/non_empty_string"
+                "type": "string",
+                "pattern": "^ak:block:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "description": "Blocklist entry identity. This is the registered ak:block:<uuidv7> typed id of id-kind-registry.json, not a document-local symbol: the wire form owns the ak: namespace, so common-fields.md 2.1 classifies it as typed_object_id and the terminal MUST pin that form."
               },
               "target": {
                 "type": "object",
@@ -404,13 +406,34 @@
       ],
       "properties": {
         "approval_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "request_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "draft_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -453,13 +476,34 @@
       ],
       "properties": {
         "rejection_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "request_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "draft_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -492,10 +536,24 @@
       ],
       "properties": {
         "request_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "draft_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -569,7 +627,14 @@
           "$ref": "#/$defs/object_ref"
         },
         "operation_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "account_data_key": {
           "$ref": "#/$defs/non_empty_string"
@@ -630,7 +695,14 @@
       ],
       "properties": {
         "draft_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -688,6 +760,7 @@
         },
         "pairing_request_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 256,
           "description": "Optional profile-local, short-lived pairing artifact id. Required by the agent-key pairing acceptance flow and MUST equal the pairing_request_id in the accepted request; it is not a durable protocol object ref."
@@ -3910,6 +3983,53 @@
       "type": "string",
       "pattern": "^(ak\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
     },
+    "cross_object_redaction_payload": {
+      "type": "object",
+      "description": "Payload for the cross-object ak.redaction. Shares the ak.component.object.redaction.v1 cell family with ak.message.redact but carries a target set that mechanically excludes Message: message_id is not a member and target_ref cannot spell ak:message:.",
+      "anyOf": [
+        {
+          "required": [
+            "target_ref"
+          ]
+        },
+        {
+          "required": [
+            "event_id"
+          ]
+        },
+        {
+          "required": [
+            "target_event_id"
+          ]
+        }
+      ],
+      "properties": {
+        "target_ref": {
+          "$ref": "#/$defs/cross_object_redaction_target_ref"
+        },
+        "event_id": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "target_event_id": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "preserve": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "cross_object_redaction_target_ref": {
+      "type": "string",
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
+      "description": "Cross-object ak.redaction object target. Identical to object_ref except that ak:message: is removed from the typed-object alternation: Message is the only object with a registered object-scoped redact kind, so a Message MUST enter state=redacted through ak.message.redact and MUST NOT be the target of a cross-object ak.redaction (models/common-fields.md 5.2)."
+    },
     "device_authorize_payload": {
       "type": "object",
       "description": "Closed authorization record shared by registration genesis, PCR-policy recovery, and accepted-device pairing. registration_anchor and pcr_recovery use a candidate-device possession proof over the full authorization core; pcr_recovery is admitted only beside an accepted recovery session and monotonic PCR generation CAS. accepted_device uses the current accepted approving device. None of these branches derives human authority from current DID state.",
@@ -4030,7 +4150,14 @@
           "$ref": "#/$defs/digest"
         },
         "stream_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
@@ -4075,7 +4202,14 @@
           "minLength": 1
         },
         "push_target_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "push_gateway_service_id": {
           "$ref": "#/$defs/did_core_id"
@@ -4405,6 +4539,7 @@
         },
         "mls_group_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "genesis_event_ref": {
@@ -4848,7 +4983,14 @@
       ],
       "properties": {
         "request_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "value": {},
         "state": {
@@ -5185,9 +5327,7 @@
             ],
             "properties": {
               "gate_id": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 64
+                "$ref": "#/$defs/join_policy_gate_id"
               },
               "kind": {
                 "type": "string",
@@ -5243,8 +5383,7 @@
                   ],
                   "properties": {
                     "question_id": {
-                      "type": "string",
-                      "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+                      "$ref": "#/$defs/join_policy_question_id"
                     },
                     "prompt_canonical": {
                       "type": "string",
@@ -5455,6 +5594,16 @@
           }
         }
       ]
+    },
+    "join_policy_gate_id": {
+      "type": "string",
+      "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,64}$",
+      "description": "Stable gate identifier, unique within one join policy gates[]. Both the definition site and every reference site (gate_proofs[].gate_id, Answer.gate_id) MUST use this one definition so the two lexical spaces cannot drift. The pattern is the document_local_symbol floor of common-fields.md 2.1: it mechanically excludes the ak: namespace that typed_object_id and responsibility_did own exclusively, and it admits the runtime:<challenge_id> spelling used by challenge gate proofs. See zh/governance/join-policy.md 3.1."
+    },
+    "join_policy_question_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+      "description": "Application-form question identifier, unique within one application_form gate. It is gate-scoped, so a reference is only unambiguous as the pair (gate_id, question_id). Both the definition site and Answer MUST use this one definition. See zh/governance/join-policy.md 3.3."
     },
     "key_backup_active_series_payload": {
       "description": "Payload for ak.key_backup.active_series. The standalone ak.schema.key_backup_active_series.v1 schema carries the authoritative signed active-series record shape.",
@@ -6235,6 +6384,7 @@
     },
     "message_redact_payload": {
       "type": "object",
+      "description": "Payload for ak.message.redact, the object-scoped redact kind registered for Message. Message is the only object that enters state=redacted through its own kind rather than a cross-object ak.redaction, which is why message.schema.json materializes redaction_ref (models/common-fields.md 5.2).",
       "anyOf": [
         {
           "required": [
@@ -6429,7 +6579,14 @@
           "uniqueItems": true
         },
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string",
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ],
           "description": "MLS group id. MUST be present for E2EE MIMI rooms."
         },
         "content_profile": {
@@ -6469,6 +6626,7 @@
       "properties": {
         "mls_group_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "commit_ref": {
@@ -6530,6 +6688,7 @@
       "properties": {
         "mls_group_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "base_epoch": {
@@ -6608,6 +6767,7 @@
       "properties": {
         "mls_group_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "effective_scope": {
@@ -6701,6 +6861,7 @@
         },
         "mls_group_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "previous_epoch": {
@@ -6857,7 +7018,14 @@
       ],
       "properties": {
         "keypackage_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -6888,7 +7056,14 @@
           ]
         },
         "claim_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -6923,7 +7098,14 @@
       ],
       "properties": {
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "base_epoch": {
           "type": "integer",
@@ -7032,7 +7214,14 @@
       ],
       "properties": {
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "epoch": {
           "type": "integer",
@@ -7064,7 +7253,14 @@
           "description": "Canonical hash of the claimed MLS KeyPackage bytes. MUST equal the referenced ak.mls.keypackage.payload.keypackage_digest and claim_ref.keypackage_digest."
         },
         "claim_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "claim_ref": {
           "type": "object",
@@ -7099,7 +7295,14 @@
           ],
           "properties": {
             "claim_id": {
-              "$ref": "#/$defs/non_empty_string"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/non_empty_string"
+                },
+                {
+                  "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+                }
+              ]
             },
             "keypackage_ref": {
               "$ref": "#/$defs/keypackage_ref"
@@ -7193,7 +7396,14 @@
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "claim_id": {
-              "$ref": "#/$defs/non_empty_string"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/non_empty_string"
+                },
+                {
+                  "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+                }
+              ]
             },
             "requester_actor_id": {
               "$ref": "#/$defs/did_core_id"
@@ -7883,7 +8093,14 @@
           "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
         },
         "focus_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -8158,7 +8375,14 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "action_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "value": {},
         "state": {
@@ -9060,6 +9284,7 @@
         },
         "recovery_recipient_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "description": "Required only for share_kind=realm_recovery_key. Stable durability_policy.recovery_recipients[].recipient_id covered by this RRK seal."
         },
@@ -9233,7 +9458,14 @@
       ],
       "properties": {
         "statement_id": {
-          "$ref": "#/$defs/non_empty_string",
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ],
           "description": "Stable id of this organization statement. It is audit identity, not the reducer cell subject; the reducer cell subject is (organization_id, relationship)."
         },
         "realm_id": {
@@ -9293,10 +9525,24 @@
           "description": "Administrative review/renewal hint only. It does not auto-transition account status; a later AccountStatusRecord is required and remains subject to sequence and terminal rules."
         },
         "supersedes_statement_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "revokes_statement_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "realm_frontier_digest": {
           "$ref": "#/$defs/digest",
@@ -9926,7 +10172,14 @@
       ],
       "properties": {
         "resource_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "value": {},
         "state": {
@@ -10075,7 +10328,14 @@
       ],
       "properties": {
         "schema_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "value": {},
         "state": {
@@ -10490,7 +10750,14 @@
       ],
       "properties": {
         "focus_id": {
-          "$ref": "#/$defs/non_empty_string",
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ],
           "description": "Stable focus id inside this Realm media service. It enters the signed canonical bytes and the session_focus election (call-state.md section 4.1)."
         },
         "focus_kind": {

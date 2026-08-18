@@ -60,6 +60,7 @@
     },
     "mls_group_id": {
       "type": "string",
+      "pattern": "^(?!ak:)",
       "minLength": 1,
       "description": "Optional MLS group identifier (base64url RFC 9420 GroupID) for diagnostic / cross-implementation correlation. NOT used by the reducer for authorization — authoritative MLS group state lives in ak.mls.genesis / ak.mls.commit events. Provided here so audit projections can quickly correlate an identity-link with its MLS group without replaying the full epoch chain."
     },

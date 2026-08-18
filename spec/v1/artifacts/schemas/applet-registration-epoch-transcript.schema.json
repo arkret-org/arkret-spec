@@ -174,7 +174,14 @@
           "pattern": "^did:[a-z0-9]+$"
         },
         "version_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "version_time": {
           "$ref": "#/$defs/timestamp"

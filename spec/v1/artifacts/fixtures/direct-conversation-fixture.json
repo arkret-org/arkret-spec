@@ -773,6 +773,45 @@
       }
     }
   ],
+  "member_repair_target_snapshot_kat": {
+    "description": "Byte-level KAT for the two member-repair target snapshot transcripts of contact-and-direct-conversation.md 8.2.1. Preimage is the ASCII domain separator, exactly one 0x0A, then RFC 8785 JCS of the snapshot value. The Native Agent branch pins the closed recipient endpoint triple: no opaque endpoint reference is an admitted preimage member, so a renamed, missing or substituted authorization coordinate changes the digest.",
+    "human_principal": {
+      "domain_separator": "ak.member-repair-target-snapshot-human-v1\n",
+      "targets_as_enqueued": [
+        {
+          "recipient_device_id": "ak:device:01970e58-0002-7000-8000-0000000000b2",
+          "device_message_id": "ak:device_message:01970e58-0003-7000-8000-0000000000c2"
+        },
+        {
+          "recipient_device_id": "ak:device:01970e58-0001-7000-8000-0000000000b1",
+          "device_message_id": "ak:device_message:01970e58-0003-7000-8000-0000000000c1"
+        }
+      ],
+      "targets_device_id_sorted": [
+        {
+          "recipient_device_id": "ak:device:01970e58-0001-7000-8000-0000000000b1",
+          "device_message_id": "ak:device_message:01970e58-0003-7000-8000-0000000000c1"
+        },
+        {
+          "recipient_device_id": "ak:device:01970e58-0002-7000-8000-0000000000b2",
+          "device_message_id": "ak:device_message:01970e58-0003-7000-8000-0000000000c2"
+        }
+      ],
+      "canonical_jcs": "[{\"device_message_id\":\"ak:device_message:01970e58-0003-7000-8000-0000000000c1\",\"recipient_device_id\":\"ak:device:01970e58-0001-7000-8000-0000000000b1\"},{\"device_message_id\":\"ak:device_message:01970e58-0003-7000-8000-0000000000c2\",\"recipient_device_id\":\"ak:device:01970e58-0002-7000-8000-0000000000b2\"}]",
+      "target_snapshot_digest": "sha256:6f269f72b1170dd89526586289f98686ba932de07266237ce9c61bdfd6848e4d"
+    },
+    "native_agent": {
+      "domain_separator": "ak.member-repair-target-snapshot-native-agent-v1\n",
+      "target": {
+        "recipient_agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
+        "recipient_agent_verification_method": "did:webvh:z6mkfixture:agent.example#ed25519-2026-05-fixture",
+        "recipient_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
+        "device_message_id": "ak:device_message:01970e58-0003-7000-8000-0000000000d1"
+      },
+      "canonical_jcs": "{\"device_message_id\":\"ak:device_message:01970e58-0003-7000-8000-0000000000d1\",\"recipient_agent_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\",\"recipient_agent_key_authorize_event_id\":\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"recipient_agent_verification_method\":\"did:webvh:z6mkfixture:agent.example#ed25519-2026-05-fixture\"}",
+      "target_snapshot_digest": "sha256:f2c278f6978d89461a51ac3133c07b24c33a176b7cd7a712a2b701d72180cd42"
+    }
+  },
   "semantic_cases": [
     {
       "name": "existing_offline_agent_is_found",
@@ -838,7 +877,7 @@
       "semantic_outcome": "accept",
       "assertions": [
         "recipient_target.kind is native_agent and enqueued_target_count is exactly one",
-        "the target snapshot transcript binds recipient_agent_id, active_runtime_endpoint_ref and stable device_message_id",
+        "the target snapshot transcript binds exactly recipient_agent_id, recipient_agent_verification_method, recipient_agent_key_authorize_event_id and the stable device_message_id; an opaque endpoint reference is not an admitted preimage member",
         "no ak:device id, device projection or per-device queue is synthesized",
         "missing, ambiguous, stale or inactive runtime binding fails closed with zero enqueue"
       ]

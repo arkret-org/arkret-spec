@@ -150,6 +150,27 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 
 `ak:` 词法空间由 `typed_object_id` 与 `responsibility_did` 两类独占，这是本表"互斥"成立的前提：其余任何类别的 identifier 字段，其 schema terminal 约束 MUST 使值不可能以 `ak:` 开头——只声明了 `pattern` 却允许 `ak:<任意kind>:<载荷>` 的字段等于同时满足两行判据。`description` 散文与 `identifier-classification-registry.json` 的 `reason` MUST NOT 用来替代该 pattern 约束，实现也 MUST NOT 依赖它们判断值的种类。反向亦然：`ak:<kind>:` 前缀只有在 kind 已登记于 `id-kind-registry.json` 时才合法，MUST NOT 引入"kind 已注册即可在非 typed-ID 字段上复用该前缀"这类条件式例外。
 
+**词法下界（normative）**：上一段的"MUST 使值不可能以 `ak:` 开头"是一条对 terminal 约束的要求，
+不是对散文的要求。每个**不拥有 `ak:` 命名空间**的类别（`registry_catalog_symbol`、
+`opaque_correlation`、`transport_idempotency_key`、`external_system_identifier`、
+`document_local_symbol`、`unregistered_object_identifier`）的 identifier terminal MUST 提供
+`pattern`、`const` 或闭合 `enum`，使"拒绝 `ak:` 前缀"可以**逐 occurrence 机械证明**。
+`maxLength` 只限制长度，MUST NOT 单独作为词法下界——它对命名空间不作任何断言。
+裸 `type: "string"`（无 pattern / const / enum）判不出类别：按 §2.1 表的判据它同时满足
+`opaque_correlation`、`document_local_symbol` 与 `unregistered_object_identifier` 的描述，
+也不排除 `typed_object_id` 的值形态，因此本表自称的"有限且互斥"对它不成立。
+
+共享下界是
+[`string-profiles.schema.json#/$defs/non_typed_identifier_floor`](../../artifacts/schemas/string-profiles.schema.json)，
+其内容恰好是否定前瞻 `^(?!ak:)`：它**只**证明该值不是 `ak:` typed id，不收窄字符集，
+因为具体收敛方向（登记 kind 改用 typed 形态，或收紧为更严的 opaque profile）按对象族逐字段裁决，
+下界不得替这些字段预先选定最终形态。
+
+门禁 MUST **fail closed**：`check_typed_id_namespace_disjointness` 对既不能证明拒绝、
+也不能证明接受的 occurrence 直接失败，MUST NOT 把"未判定"当作"已通过"——后者会让 schema
+层继续合法承载 `ak:<任意kind>:<任意载荷>` 而 release gate 一言不发。`_id` 后缀的
+`type: "object"` 描述符不是 identifier terminal，本要求对它不适用（其成员各自受本要求约束）。
+
 #### 2.1.1 `_id`
 
 `_id` 用于单一、具体、已在 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 登记的 protocol kind，或本协议把 DID 当作责任主体 ID 使用的字段。
@@ -503,6 +524,8 @@ delivery `status` 镜像投递过程，仍 MUST 用 `status`。
 | `ak.<kind>.redact` 或 cross-object `ak.redaction` 指向该对象 | `active`、`archived` | `redacted`(如对象支持),或合并到 `tombstoned` | `<kind>_already_terminal` |
 
 > **Strand / Morph 豁免**:上表 `ak.<kind>.tombstone` 行是通用模板;Strand 与 Morph **没有** `tombstone` 终态(也不用 `deleted`),其不可逆终态经指向该对象的 `ak.redaction` 进入 `redacted`(见 §5.2 模板槽与 [strand-and-message.md §9.1](./strand-and-message.md))。对 Strand / Morph 提交 `ak.<kind>.tombstone` 不适用。
+>
+> **Message 豁免(normative)**:上表 `ak.<kind>.redact` 行的两条驱动路径是**按对象互斥**的，不是任选其一。已在 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 注册对象专属 `ak.<kind>.redact` 的对象 MUST 只走该专属 kind;cross-object `ak.redaction` MUST NOT 指向这类对象。v1 唯一这样的对象是 Message,因此 `ak.redaction` 的 payload MUST NOT 把 Message 作为目标——判据是 schema 级的:`ak.redaction` 绑定的 `cross_object_redaction_payload` 既不含 `message_id` 成员，其 `target_ref` 的词法空间也已删去 `ak:message:` 分支，因此该目标在写入任何 cell 之前即 `schema_violation`。reducer MUST NOT 另建按字符串前缀维护的私有 allow/deny 表。判据由 `ak.vector.redaction.message_target_exclusive_kind.v1` 固化。
 
 `<kind>` 是 schema 类型短名(`strand`、`circle`、`space`、`morph`、`message`、`relation`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`strand_not_active` / `strand_not_archived` / `strand_already_terminal`,`circle_not_active` / `circle_not_archived` / `circle_already_terminal`,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`,以及无 archived 态对象的 `message_already_terminal` / `relation_already_terminal`(见本节末段)。
 
@@ -528,7 +551,7 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 | `ak.<kind>.archive` | active → archived;写入 `state_changed_at`。 | `ak.strand.archive`、`ak.circle.archive`、`ak.space.archive`、`ak.morph.archive` |
 | `ak.<kind>.restore` | archived → active;写入 `state_changed_at`。 | `ak.strand.restore`、`ak.circle.restore`、`ak.space.restore`、`ak.morph.restore` |
 | `ak.<kind>.tombstone` 或 cross-object `ak.redaction` | active/archived → terminal(`tombstoned`/`deleted`/`redacted`);不可逆。Strand 与 Morph 的终态仅通过指向该对象的 `ak.redaction` 表达。 | `ak.circle.tombstone`、`ak.space.tombstone`、`ak.relation.tombstone`、`ak.redaction`(指向 strand / space / morph / message) |
-| `ak.<kind>.redact` 或 cross-object `ak.redaction` | active/archived → `redacted`(若对象支持);envelope 保留,content 清空。v1 wire 实际注册形态请以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准:Message 走 `ak.message.redact`;Strand / Morph / Space / Relation 等未单独注册 `ak.<kind>.redact` 的对象走 cross-object `ak.redaction`。两种 wire 形态都是 canonical (`active` status),按对象选择;reducer 不得自行折叠或互换。 | `ak.message.redact`、`ak.redaction`(用于 strand / morph / space / relation 等未单独注册的对象) |
+| `ak.<kind>.redact` 或 cross-object `ak.redaction` | active/archived → `redacted`(若对象支持);envelope 保留,content 清空。v1 wire 实际注册形态请以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准:Message 走 `ak.message.redact`;Strand / Morph / Space / Relation 等未单独注册 `ak.<kind>.redact` 的对象走 cross-object `ak.redaction`。两种 wire 形态都是 canonical (`active` status),**按对象互斥**;reducer 不得自行折叠、互换或让两者指向同一对象(§5.1 Message 豁免)。 | `ak.message.redact`、`ak.redaction`(用于 strand / morph / space / relation 等未单独注册的对象) |
 
 模板使用约束:
 
@@ -539,7 +562,7 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 - **可逆 lifecycle facet 的两种合规形态**:`ak.<kind>.archive` / `ak.<kind>.restore` 模板槽描述的是**独立 archive event + 独立 restore event** 成对形态（Strand / Space / Morph 即此形态）。但可逆 lifecycle 也允许第二种形态：**单一 reversible boolean facet event**（同一 `ak.<kind>.archive` 写 `true` / `false` 在 active ↔ archived 间切换，不发布独立 `ak.<kind>.restore`）。Realm 的 `ak.realm.archive` / `ak.realm.freeze` 即此形态（见 [`realm-and-space.md` §2.6.0](./realm-and-space.md#260-realm-可逆-lifecycle-facetakrealmarchive--akrealmfreeze)）。某 Event 是否属于本模板，不按 kind 名称或是否写 `fsm` 猜测：只有其目标 family 在 canonical `fsm_contracts` 中声明 `axis="object_lifecycle"` 时，event-kind 行才 MUST 登记 `lifecycle_modality`（`reversible` 或 `terminal`）。workflow、membership、status、audit、key-material FSM 以及 OR-Set 撤销均不适用。具体对象采用哪种形态，以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的该字段为准；`reversible` boolean facet 不要求也不应存在配套 `ak.<kind>.restore`。
 - **state 校验来源唯一**:本节所有模板事件的状态机校验入口都是 §5.1 表，不在各对象文档重复说明转换矩阵。
 - **`redacted` 的内容槽投影(机读判据,normative)**:§5 表 `redacted` 行的"内容已清除"在三个承载内容槽的对象上都有 schema 后盾——[`message.schema.json`](../../artifacts/schemas/message.schema.json) 顶层 `oneOf` 的 `state=redacted` 分支,以及 [`strand.schema.json`](../../artifacts/schemas/strand.schema.json) / [`morph.schema.json`](../../artifacts/schemas/morph.schema.json) 的 `state=redacted` 条件分支,都要求 `content` 与 `encrypted_content` 两个槽 MUST 缺席。接收方因此无需回放事件流即可从单个物化对象判定内容是否真的被清除;reducer / projection MUST 在写入 `state=redacted` 的同一次转换里清空该槽,残留任一槽即 `schema_violation`。判据由 `ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1` 固化。
-- **cross-object `ak.redaction` 的对象不物化 redaction 引用(normative)**:走 cross-object `ak.redaction` 的对象(Strand / Morph / Space / Relation)MUST NOT 在物化对象上新增 `redaction_ref` 一类的对象级 redaction event 引用;审计链接走事件索引——`ak.redaction` 在 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 上登记的 `cell_writes` 已把 `payload.target_ref` 作为 `ak.component.object.redaction.v1` cell subject,由对象 id 反查触发 redaction 的 event 是规范定义的 canonical projection,不是实现私有扫描;对象上必须物化的 redaction 痕迹只有 `state=redacted` + `state_changed_at`(§5.1)与上一条的内容槽缺席分支。**Message 是唯一例外**,因为它是唯一注册了对象专属 `ak.message.redact` 的对象:该 kind 是 message-scoped 且 terminal,一条 Message 至多被一条 `ak.message.redact` 推入 `redacted`,`message.schema.json` 的 `redaction_ref` 因此有唯一无歧义的指向,并且它是 Message 局部字段(见 [`strand-and-message.md` §9.2](./strand-and-message.md)),既不在 §3.1 通用字段矩阵内也不是通用模板槽。反向不成立:`ak.redaction` 的 payload 可指向对象(`target_ref`)也可指向 event(`event_id` / `target_event_id`)并可带 `preserve[]` 做字段级裁剪,同一对象上可以出现多条,给 Strand / Morph 加单值 `redaction_ref` 会凭空要求一条"多条里选哪一条"的排序规则,而该规则在协议里没有任何其他用途。
+- **cross-object `ak.redaction` 的对象不物化 redaction 引用(normative)**:走 cross-object `ak.redaction` 的对象(Strand / Morph / Space / Relation)MUST NOT 在物化对象上新增 `redaction_ref` 一类的对象级 redaction event 引用;审计链接走事件索引——`ak.redaction` 在 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 上登记的 `cell_writes` 已把 `payload.target_ref` 作为 `ak.component.object.redaction.v1` cell subject,由对象 id 反查触发 redaction 的 event 是规范定义的 canonical projection,不是实现私有扫描;对象上必须物化的 redaction 痕迹只有 `state=redacted` + `state_changed_at`(§5.1)与上一条的内容槽缺席分支。**Message 是唯一例外**,因为它是唯一注册了对象专属 `ak.message.redact` 的对象:该 kind 是 message-scoped 且 terminal,而 §5.1 的 Message 豁免又在 schema 层把 cross-object `ak.redaction` 的 Message 目标整体删除,因此推 Message 进入 `redacted` 的 event family 只有一个,`message.schema.json` 的 `redaction_ref` 也就有唯一无歧义的指向,并且它是 Message 局部字段(见 [`strand-and-message.md` §9.2](./strand-and-message.md)),既不在 §3.1 通用字段矩阵内也不是通用模板槽。反向不成立:`ak.redaction` 的 payload 可指向对象(`target_ref`)也可指向 event(`event_id` / `target_event_id`)并可带 `preserve[]` 做字段级裁剪,同一对象上可以出现多条,给 Strand / Morph 加单值 `redaction_ref` 会凭空要求一条"多条里选哪一条"的排序规则,而该规则在协议里没有任何其他用途。
 - "Space 没有 redacted"：Space 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；**整个 Space 的**内容清理通过 `ak.space.tombstone` 或 `ak.redaction` 一并完成。该句只解释"为什么 Space 不需要 `redacted` 终态"，**不**表示单个 metadata 字段只能靠终态清除：`title` / `summary` 都不是 [`event-and-patch.md` §4.2.4](./event-and-patch.md) 的内容槽，`$op="unset"` 是它们的非终态清除路径（`short_text` 的 `minLength: 1` 只排除 `set ""`，不排除 `unset`）。
 - "Message / Relation 没有 archived"：Message timeline 是有时序流，Relation 是边——两者都不需要"软隐藏可撤销"语义；要隐藏 Message 用 redaction，要解除 Relation 用删除即可。
 - "Relation 用 `tombstoned` 单一终态"：删除与 redaction 在边语义上不可区分（边只有"存在"或"不存在"），故物化 state 合并为单一 `tombstoned`；具体 reason 在对应 `ak.relation.tombstone` / `ak.redaction` event 中保留。

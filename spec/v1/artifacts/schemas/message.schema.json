@@ -187,7 +187,7 @@
     "redaction_ref": {
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
-      "description": "Required when state=redacted; references the ak.message.redact event that produced this state. MUST be absent for other states."
+      "description": "Required when state=redacted; references the accepted ak.message.redact Event id that produced this state. A cross-object ak.redaction can never be the source: its payload class excludes Message targets, so this reference is single-valued and unambiguous (models/common-fields.md 5.1 Message exemption). MUST be absent for other states."
     },
     "created_by": {
       "$ref": "#/$defs/did_core_id"

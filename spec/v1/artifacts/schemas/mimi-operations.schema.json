@@ -233,7 +233,14 @@
       ],
       "properties": {
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "epoch": {
           "type": "integer",
@@ -270,7 +277,14 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "epoch": {
           "type": "integer",
@@ -336,7 +350,14 @@
       ],
       "properties": {
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "update": {
           "type": "object",
@@ -345,9 +366,9 @@
             "payload"
           ],
           "properties": {
-        "kind": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Semantic update kind and durable-effect discriminator. It MUST equal the kind inside the decoded opaque payload. ak.mimi.room_binding selects the caller-authored Event branch; every other value selects the receipt-only branch."
+            "kind": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Semantic update kind and durable-effect discriminator. It MUST equal the kind inside the decoded opaque payload. ak.mimi.room_binding selects the caller-authored Event branch; every other value selects the receipt-only branch."
             },
             "payload": {
               "$ref": "#/$defs/opaque_payload"
@@ -365,10 +386,10 @@
         "sender_actor_id": {
           "$ref": "#/$defs/did_core_id"
         },
-    "room_binding_event": {
-      "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-      "description": "Complete caller-authored and caller-signed ak.mimi.room_binding initial submission. It is required exactly when /update/kind is ak.mimi.room_binding. The facade MUST first verify that the decoded opaque payload carries the same semantic kind, then bind the Event's exact payload to the path room, target Realm and Strand, MLS group, and authenticated MIMI operation and submit these exact bytes through ordinary Event admission. It MUST NOT synthesize, rebuild or co-sign the Event. Every other receipt-only branch MUST omit this field."
-    }
+        "room_binding_event": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+          "description": "Complete caller-authored and caller-signed ak.mimi.room_binding initial submission. It is required exactly when /update/kind is ak.mimi.room_binding. The facade MUST first verify that the decoded opaque payload carries the same semantic kind, then bind the Event's exact payload to the path room, target Realm and Strand, MLS group, and authenticated MIMI operation and submit these exact bytes through ordinary Event admission. It MUST NOT synthesize, rebuild or co-sign the Event. Every other receipt-only branch MUST omit this field."
+        }
       },
       "additionalProperties": false
     },
@@ -493,7 +514,14 @@
           "$ref": "#/$defs/ciphertext"
         },
         "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "epoch": {
           "type": "integer",
@@ -979,7 +1007,14 @@
           ],
           "properties": {
             "context_id": {
-              "$ref": "#/$defs/non_empty_string"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/non_empty_string"
+                },
+                {
+                  "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+                }
+              ]
             },
             "request_digest": {
               "$ref": "#/$defs/digest"

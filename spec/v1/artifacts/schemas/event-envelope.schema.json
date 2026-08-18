@@ -2524,10 +2524,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "ak.message.redact",
-              "ak.redaction"
-            ]
+            "const": "ak.message.redact"
           }
         },
         "required": [
@@ -2538,6 +2535,26 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/message_redact_payload"
+          }
+        }
+      }
+    },
+    {
+      "$comment": "ak.redaction is the cross-object redaction kind. Its payload class excludes Message so that a Message can only reach state=redacted through the object-scoped ak.message.redact.",
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.redaction"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/cross_object_redaction_payload"
           }
         }
       }
@@ -4512,26 +4529,32 @@
         },
         "network_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "instance_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "user_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "location_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "event_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "external_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "url": {

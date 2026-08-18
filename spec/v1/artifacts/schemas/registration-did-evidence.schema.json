@@ -42,6 +42,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "control_key_digest": {
@@ -91,6 +92,7 @@
         },
         "version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1
         },
         "control_key_digest": {

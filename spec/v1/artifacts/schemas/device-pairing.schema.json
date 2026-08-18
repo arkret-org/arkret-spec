@@ -72,7 +72,14 @@
       ],
       "properties": {
         "transaction_id": {
-          "$ref": "#/$defs/non_empty_string",
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ],
           "description": "Verification transaction id of the ak.key.verification.request that carried this pairing challenge."
         },
         "request_canonical_digest": {

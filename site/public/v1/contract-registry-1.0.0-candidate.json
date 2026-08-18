@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.1",
+  "version": "2026-08-18.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-18T06:45:00+08:00",
+  "generated_at": "2026-08-18T08:45:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -6676,8 +6676,8 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_redact_payload",
+        "payload": "Cross-object redaction envelope for non-Message objects/events and profile-declared content trimming. Message is excluded: it has its own registered ak.message.redact.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload",
         "lifecycle_modality": "terminal",
         "id_source": "not_an_object_id"
       },

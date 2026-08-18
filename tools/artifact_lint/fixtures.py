@@ -1801,6 +1801,124 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
 
 
 
+def check_member_repair_target_snapshot_kat(lint: Lint) -> None:
+    """Recompute both member-repair target snapshot transcripts byte for byte.
+
+    `contact-and-direct-conversation.md` §8.2.1 puts the snapshot member names
+    into the JCS preimage verbatim. The Native Agent branch therefore MUST spell
+    the closed recipient endpoint triple and MUST NOT hide the two authorization
+    coordinates behind an opaque `*_ref`: a renamed, dropped or substituted
+    member has to move the digest, or two implementations could disagree on the
+    same endpoint while both claiming to follow the spec.
+    """
+
+    fixture_path = ARTIFACTS / "fixtures" / "direct-conversation-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    kat = fixture.get("member_repair_target_snapshot_kat") if isinstance(fixture, dict) else None
+    if not isinstance(kat, dict):
+        lint.fail(fixture_path, "missing member_repair_target_snapshot_kat")
+        return
+
+    human = kat.get("human_principal")
+    agent = kat.get("native_agent")
+    if not isinstance(human, dict) or not isinstance(agent, dict):
+        lint.fail(fixture_path, "member-repair snapshot KAT needs both closed recipient branches")
+        return
+
+    human_domain = "ak.member-repair-target-snapshot-human-v1\n"
+    agent_domain = "ak.member-repair-target-snapshot-native-agent-v1\n"
+    if human.get("domain_separator") != human_domain:
+        lint.fail(fixture_path, "human member-repair snapshot has the wrong domain separator")
+    if agent.get("domain_separator") != agent_domain:
+        lint.fail(
+            fixture_path,
+            "Native Agent member-repair snapshot has the wrong domain separator",
+        )
+
+    enqueued = human.get("targets_as_enqueued")
+    sorted_targets = human.get("targets_device_id_sorted")
+    if (
+        not isinstance(enqueued, list)
+        or not enqueued
+        or not isinstance(sorted_targets, list)
+        or len(enqueued) != len(sorted_targets)
+    ):
+        lint.fail(fixture_path, "human member-repair snapshot needs enqueued and sorted targets")
+    else:
+        for index, row in enumerate(sorted_targets):
+            if not isinstance(row, dict) or set(row) != {
+                "recipient_device_id",
+                "device_message_id",
+            }:
+                lint.fail(
+                    fixture_path,
+                    f"human member-repair target[{index}] must be exactly "
+                    "{recipient_device_id, device_message_id}",
+                )
+                return
+        expected_order = sorted(
+            enqueued, key=lambda row: str(row.get("recipient_device_id"))
+        )
+        if sorted_targets != expected_order:
+            lint.fail(
+                fixture_path,
+                "human member-repair snapshot is not device-id sorted, so the transcript "
+                "would depend on enqueue order",
+            )
+        if enqueued == sorted_targets:
+            lint.fail(
+                fixture_path,
+                "human member-repair KAT must enqueue out of order so the sort is actually pinned",
+            )
+        jcs = canonical_json(sorted_targets)
+        if human.get("canonical_jcs") != jcs:
+            lint.fail(fixture_path, "human member-repair canonical_jcs is stale")
+        if human.get("target_snapshot_digest") != sha256_text(human_domain + jcs):
+            lint.fail(fixture_path, "human member-repair target_snapshot_digest is stale")
+
+    target = agent.get("target")
+    expected_members = {
+        "recipient_agent_id",
+        "recipient_agent_verification_method",
+        "recipient_agent_key_authorize_event_id",
+        "device_message_id",
+    }
+    if not isinstance(target, dict) or set(target) != expected_members:
+        lint.fail(
+            fixture_path,
+            "Native Agent member-repair snapshot must be exactly "
+            f"{sorted(expected_members)}; an opaque endpoint reference is not admitted",
+        )
+        return
+    jcs = canonical_json(target)
+    if agent.get("canonical_jcs") != jcs:
+        lint.fail(fixture_path, "Native Agent member-repair canonical_jcs is stale")
+    digest = sha256_text(agent_domain + jcs)
+    if agent.get("target_snapshot_digest") != digest:
+        lint.fail(fixture_path, "Native Agent member-repair target_snapshot_digest is stale")
+
+    # The retired opaque spelling MUST NOT reproduce the pinned digest.
+    retired = dict(target)
+    retired.pop("recipient_agent_verification_method")
+    retired.pop("recipient_agent_key_authorize_event_id")
+    retired["active_runtime_endpoint_ref"] = target["recipient_agent_verification_method"]
+    if sha256_text(agent_domain + canonical_json(retired)) == digest:
+        lint.fail(
+            fixture_path,
+            "the retired opaque active_runtime_endpoint_ref preimage still reproduces the digest",
+        )
+
+    schema_path = ARTIFACTS / "schemas" / "direct-conversation-operations.schema.json"
+    schema_text = read_text(schema_path)
+    if "active_runtime_endpoint_ref" in schema_text and (
+        "MUST NOT" not in schema_text and "not admitted" not in schema_text
+    ):
+        lint.fail(
+            schema_path,
+            "active_runtime_endpoint_ref may only appear as an explicitly retired spelling",
+        )
+
+
 def check_direct_conversation_digest_vectors(lint: Lint) -> None:
     """Pin the two domain-separated Direct Conversation identity digests."""
 

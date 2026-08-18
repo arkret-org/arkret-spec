@@ -150,7 +150,14 @@
       ],
       "properties": {
         "claim_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "subject": {
           "$ref": "#/$defs/did_core_id"
@@ -1503,7 +1510,14 @@
             "resource_ids": {
               "type": "array",
               "items": {
-                "$ref": "#/$defs/non_empty_string"
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/non_empty_string"
+                  },
+                  {
+                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+                  }
+                ]
               },
               "uniqueItems": true
             }

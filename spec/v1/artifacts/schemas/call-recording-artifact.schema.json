@@ -192,6 +192,7 @@
             },
             "focus_id": {
               "type": "string",
+              "pattern": "^(?!ak:)",
               "minLength": 1,
               "maxLength": 256
             },

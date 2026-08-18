@@ -149,12 +149,77 @@ def check_operation_durable_effect_contract(lint: Lint) -> None:
             lint.fail(path, f"{operation_id} durable-effect request path does not resolve: {pointer}")
         return node
 
+    # api-conventions.md 2.4.1: each leaf kind has a literally closed member set,
+    # plus one pair that is orthogonal to kind and must co-occur.
+    cross_service_pair = ("cross_service_effects", "irreversibility_note")
+    leaf_members = {
+        "event_log": {
+            "kind",
+            "event_kinds",
+            "event_kind_source",
+            "event_kind_sources",
+            "event_submission_path",
+            "rationale",
+            *cross_service_pair,
+        },
+        "actor_private_event": {"kind", "event_kind", "rationale", *cross_service_pair},
+        "none": {"kind", "rationale", *cross_service_pair},
+    }
+    branched_members = {"kind", "discriminator", "effect_branches"}
+
+    def check_cross_service_pair(operation_id: str, effect: dict[str, Any], label: str) -> None:
+        effects = effect.get("cross_service_effects")
+        note = effect.get("irreversibility_note")
+        present = [name for name in cross_service_pair if name in effect]
+        if len(present) == 1:
+            lint.fail(
+                path,
+                f"{operation_id} {label} declares {present[0]} alone; "
+                "cross_service_effects and irreversibility_note MUST co-occur",
+            )
+            return
+        if not present:
+            return
+        if (
+            not isinstance(effects, list)
+            or not effects
+            or any(not isinstance(item, str) or not item for item in effects)
+            or len(effects) != len(set(effects))
+        ):
+            lint.fail(
+                path,
+                f"{operation_id} {label}.cross_service_effects must be a non-empty, "
+                "duplicate-free array of non-empty operation-local slugs",
+            )
+        if not isinstance(note, str) or not note.strip():
+            lint.fail(
+                path,
+                f"{operation_id} {label}.irreversibility_note must be a non-empty string",
+            )
+
     def check_leaf_effect(operation: dict[str, Any], effect: Any, label: str) -> None:
         operation_id = operation.get("operation_id", "<unknown>")
         if not isinstance(effect, dict):
             lint.fail(path, f"{operation_id} {label} must be an object")
             return
         kind = effect.get("kind")
+        allowed = leaf_members.get(kind) if isinstance(kind, str) else None
+        if allowed is not None:
+            unknown = sorted(set(effect) - allowed)
+            if unknown:
+                lint.fail(
+                    path,
+                    f"{operation_id} {label} declares unregistered durable_effect member(s) "
+                    f"{unknown} on kind={kind!r}; the leaf member set is closed",
+                )
+        if kind == "branched":
+            lint.fail(
+                path,
+                f"{operation_id} {label} is a leaf position, but branched is a composition "
+                "node and MUST NOT nest",
+            )
+            return
+        check_cross_service_pair(operation_id, effect, label)
         if kind == "event_log":
             event_kinds = effect.get("event_kinds")
             source = effect.get("event_kind_source")
@@ -206,6 +271,17 @@ def check_operation_durable_effect_contract(lint: Lint) -> None:
             continue
         kind = effect.get("kind")
         if kind == "branched":
+            unknown = sorted(set(effect) - branched_members)
+            if unknown:
+                lint.fail(
+                    path,
+                    f"{operation_id} branched durable_effect declares unregistered member(s) "
+                    f"{unknown}; the composition node carries only "
+                    f"{sorted(branched_members)}. cross_service_effects / "
+                    "irreversibility_note belong on the branch effect that actually has the "
+                    "side effect, so one branch's irreversibility is not generalized to every "
+                    "request",
+                )
             discriminator = effect.get("discriminator")
             branches = effect.get("effect_branches")
             discriminator_path = discriminator.get("request_path") if isinstance(discriminator, dict) else None

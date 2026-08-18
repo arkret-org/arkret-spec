@@ -59,7 +59,14 @@
           "$ref": "#/$defs/digest"
         },
         "qualified_ingress_id": {
-          "$ref": "#/$defs/opaque_id"
+          "allOf": [
+            {
+              "$ref": "#/$defs/opaque_id"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"
@@ -280,7 +287,14 @@
               "const": "claimed_unconsumed"
             },
             "claim_id": {
-              "$ref": "#/$defs/opaque_id"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/opaque_id"
+                },
+                {
+                  "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+                }
+              ]
             },
             "action": {
               "const": "revoke"
@@ -502,6 +516,7 @@
         },
         "did_version_id": {
           "type": "string",
+          "pattern": "^(?!ak:)",
           "minLength": 1,
           "description": "Validated did:webvh inception versionId. It MUST match the same fields in identity_creation_control_proof and the accepted registry log."
         },
