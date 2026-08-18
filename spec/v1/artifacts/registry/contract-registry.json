@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.7",
+  "version": "2026-08-19",
   "source_of_truth": true,
-  "generated_at": "2026-08-19T00:20:00+08:00",
+  "generated_at": "2026-08-19T06:55:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -15412,8 +15412,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-18.2",
-    "generated_at": "2026-08-18T21:55:00+08:00"
+    "version": "2026-08-19",
+    "generated_at": "2026-08-19T06:55:00+08:00"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
