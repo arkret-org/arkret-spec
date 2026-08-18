@@ -8,7 +8,8 @@
   "covers_vectors": [
     "ak.vector.identity.pcr_genesis.v1",
     "ak.vector.identity.registration_saga.v1",
-    "ak.vector.identity.provisional_identity_abandonment.v1"
+    "ak.vector.identity.provisional_identity_abandonment.v1",
+    "ak.vector.identity.frozen_reservation_barrier.v1"
   ],
   "digest_domains": {
     "identity_creation_control_proof": "ak.identity-creation-control-proof-v1",
@@ -127,6 +128,49 @@
         "did_history_0_canonical_bytes"
       ],
       "expected": "fail_closed_before_sign_or_adopt"
+    }
+  ],
+  "frozen_reservation_barrier_cases": [
+    {
+      "name": "missing_expired_mismatched_stale_holder_zero_registry_io",
+      "attempts": [
+        "no_lease",
+        "expired_lease",
+        "mismatched_fence",
+        "stale_holder"
+      ],
+      "expected": "fail_closed_before_registry_io_zero_requests_on_registry_spy"
+    },
+    {
+      "name": "concurrent_holders_single_frozen_operation",
+      "holders": 2,
+      "distinct": [
+        "principal_id",
+        "canonical_did_operation"
+      ],
+      "expected": "one_frozen_operation_reaches_registry_other_fails_before_registry_io"
+    },
+    {
+      "name": "crash_after_registry_accept_before_did_published_checkpoint",
+      "fault": "crash_after_registry_accept_before_did_published",
+      "then": [
+        "lease_expiry",
+        "fence_takeover",
+        "internal_saga_recovery",
+        "stale_holder_retry"
+      ],
+      "expected": "recovery_only_queries_or_exact_replays_frozen_bytes_single_did_stable_accepted_at_stale_holder_rejected"
+    },
+    {
+      "name": "takeover_fresh_device_transcript_vs_frozen_operation_replacement",
+      "allowed": "resign_fresh_device_transcript_within_permitted_fields",
+      "rejected": [
+        "principal_id",
+        "full_id",
+        "operation_digest",
+        "canonical_bytes"
+      ],
+      "expected": "replacement_attempts_fail_closed_before_registry_io_frozen_operation_unchanged"
     }
   ],
   "mutation_cases": [

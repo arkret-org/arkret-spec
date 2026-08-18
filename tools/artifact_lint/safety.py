@@ -106,6 +106,13 @@ def check_error_code_closure(lint: Lint) -> None:
         # the code-shape heuristic.
         "authority_mismatch",
         "generation_mismatch",
+        # Closed freshness flag of the account onboarding goal
+        # (account-operations.schema.json#/$defs/account_onboarding_goal,
+        # account-lifecycle.md §2.1.2). It is a snapshot field, not a wire
+        # reason code, but ends in _required and appears on a sentence that
+        # also rejects expired/revoked handoffs, so it would otherwise trip
+        # the code-shape heuristic.
+        "fresh_authentication_required",
     }
 
     for path in markdown_files():

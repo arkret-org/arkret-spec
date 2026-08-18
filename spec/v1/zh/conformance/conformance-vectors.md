@@ -3858,6 +3858,37 @@ Expected：
 - 第 5 步重放返回同一终态且**只有一条** tombstone；expired 与 consumed 分别返回
   `identity_creation_challenge_expired` 与 `identity_creation_challenge_already_consumed`。
 
+### 10.9.0.3 Vector: Identity Creation Frozen-Reservation Barrier Before DID Publication
+
+`vector_id`: `ak.vector.identity.frozen_reservation_barrier.v1`
+
+Runner MUST 在 Account Authority 与 DID registry / method-native log 之间插入 registry spy，使每次
+registry 请求（method-native publication、query 与 exact replay）可计数且可比对 canonical bytes；
+断言不能只基于 Account Authority 数据库的"零写入"，必须同时断言 registry spy 观察到的请求序列。
+
+Steps：
+
+1. 分别以无 lease、expired lease、mismatched fence 与 stale holder 提交 register 或任何
+   DID publication 请求。
+2. 同一账号/audience 的两个 holder 以不同 `principal_id` 与不同 canonical DID operation 并发注册。
+3. registry 接受后、`did_published` checkpoint 提交前注入进程崩溃，随后让原 holder lease 过期并发生
+   fence takeover，执行内部 saga recovery；其间 stale holder 再以原 request identity 与 bytes 重试
+   register。
+4. takeover holder 沿用 frozen reservation，分别在规范允许的字段范围内以新 device 重签 fresh
+   transcript，以及尝试替换 `principal_id`、`full_id`、operation digest 或 canonical operation bytes。
+
+Expected：
+
+- 第 1 步全部在任何 registry I/O 前 fail closed、零写入，registry spy 计数为零请求。
+- 第 2 步只冻结一份 canonical DID operation，且只有该 exact operation 到达 registry；另一 holder 的
+  请求在任何 registry I/O 前失败，最终只有一个 DID。
+- 第 3 步恢复只 query/exact replay 原 frozen bytes，registry spy 见不到第二份 operation；最终只有一个
+  DID 与一个稳定 `accepted_at`，收敛到同一 `did_published` checkpoint；stale holder 的重试被拒绝且
+  零写入。
+- 第 4 步 fresh device transcript 在允许字段范围内重签成功；替换 `principal_id` / `full_id` /
+  operation digest / canonical bytes 的请求在任何 registry I/O 前 fail closed，冻结的 DID operation
+  保持不变。该步明确区分"DID operation freeze 后不可变"与"genesis 材料允许重签"的边界。
+
 ### 10.9.1 Vector: Device Revocation Seal Binding
 
 `vector_id`: `ak.vector.device.revocation_seal_binding.v1`

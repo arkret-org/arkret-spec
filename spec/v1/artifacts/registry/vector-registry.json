@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.5",
+  "version": "2026-08-18.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-18T18:00:00+08:00",
+  "generated_at": "2026-08-18T21:16:37+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3389,6 +3389,20 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/principal-server-admission-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.frozen_reservation_barrier.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "pcr-genesis-fixture.json"
+      ],
+      "description": "Before the first DID registry / method-native publication request the Account Authority MUST, in one atomic step, validate the live identity-creation lease, matching fence, holder, reservation and challenge, and freeze principal_id, full_id and the complete canonical DID operation bytes with their digest; holder-originated commands without a matching live lease/fence fail closed with zero writes before any registry I/O, and after the freeze any first submission, retry, crash recovery, response-loss reconciliation or fence takeover only queries or exact-replays the frozen operation, so a registry spy observes at most one canonical DID operation per reservation and a single stable accepted_at.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/account-lifecycle.md"
       ]
     },
     {
