@@ -5326,7 +5326,7 @@
       "additionalProperties": false
     },
     "join_policy_component": {
-      "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate cell family, and rides inside the ak.component.realm.policy_bundle.v1 cas_register value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/lint_artifacts.py check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
+      "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate cell family, and rides inside the ak.component.realm.policy_bundle.v1 cas_register value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/artifact_lint check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
       "type": "object",
       "required": [
         "gates",

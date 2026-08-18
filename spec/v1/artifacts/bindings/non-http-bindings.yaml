@@ -8,7 +8,7 @@ coverage: complete_except_http_only
 coverage_contract: >-
   Every registered operation that is not marked http_only_variant=true MUST appear
   at least once in this binding artifact. Operations marked http_only_variant=true
-  MUST NOT appear here. tools/lint_artifacts.py enforces both directions after
+  MUST NOT appear here. tools/artifact_lint enforces both directions after
   parsing this file as YAML.
 frame_schemas:
   websocket:

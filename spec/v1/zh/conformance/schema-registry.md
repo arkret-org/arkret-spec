@@ -37,7 +37,7 @@ sidebar:
 vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` 必须可解析，未登记名称
 一律 fail closed。
 
-各 registry（schema / event kind / typed ID / operation / profile）的**当前 registered 计数及其 CI 门禁**（由 `tools/lint_artifacts.py` 的 `check_release_readiness_counts` 对照 Canonical registry 自动校验）集中登记在 [`overview/release-readiness.md` §2](../overview/release-readiness.md) 的计数表；本文不重复维护计数，引用时以该表与各 Canonical JSON registry 为权威来源。
+各 registry（schema / event kind / typed ID / operation / profile）的**当前 registered 计数及其 CI 门禁**（由 `tools/artifact_lint` 的 `check_release_readiness_counts` 对照 Canonical registry 自动校验）集中登记在 [`overview/release-readiness.md` §2](../overview/release-readiness.md) 的计数表；本文不重复维护计数，引用时以该表与各 Canonical JSON registry 为权威来源。
 
 ### 1.1 schema id ↔ 文件名映射例外（normative）
 

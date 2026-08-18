@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-13.2",
+  "version": "2026-08-18.1",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-08-13T15:40:00Z",
+  "generated_at": "2026-08-18T14:30:00Z",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
-  "generated_by": "tools/lint_artifacts.py#check_profile_dependency_graph",
+  "generated_by": "tools/artifact_lint#check_profile_dependency_graph",
   "description": "Generated DAG view of profile inheritance / dependency / mutual-exclusion edges. Derived from profile_requirements[<profile_id>].{inherits, depends_on, mutually_exclusive_with} in conformance-profiles.json. Consumed by zh/conformance/conformance-profiles.md §2.1 visualization tooling. Profiles whose only relationship is to be claimable on their own (no inherits / depends_on / mutually_exclusive_with) MAY be omitted from the edges[] list; they still appear in nodes[].",
   "edge_kinds": {
     "inherits": "A profile that inherits another transitively re-declares its required_endpoints / required_event_kinds / required_schemas / required_capability_actions. Inheritance edges are transitive and form a DAG (no cycles).",

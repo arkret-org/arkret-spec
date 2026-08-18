@@ -38,12 +38,28 @@ spec/v1/
     ├── bindings/                  # 非 HTTP transport binding
     └── fixtures/                  # conformance fixtures
 site/
-└── ...                            # 协议站（npm 项目）
+└── ...                            # 协议站（pnpm 项目）
 tools/
 ├── artifact_pipeline.py           # registry 生成 / drift check
 ├── artifact_lint/                  # 分域的跨构件 + Markdown 一致性 lint 包
-└── migrations/                    # 历史一次性迁移脚本；不属于日常流水线
+└── migrations/                    # 历史一次性迁移脚本；已执行完毕，MUST NOT 重跑
 ```
+
+`tools/migrations/` 只保留已执行过的一次性重命名脚本作为改名口径记录（例如
+`20260810_did_identifier_naming.py` 对应 decision 0021 的 `did_core_id` / `did_full_id` 改名）。
+它们的替换是按 token 前缀匹配的，重跑会命中改名后才出现的合法同前缀字段
+（如 `expected_did_key`），因此**不得**再次运行，也不得纳入任何流水线。
+
+### 手动 fixture 再生成器
+
+以下脚本不在 CI 流水线内，只在对应 fixture 的输入变化时手动运行；它们是各自 fixture
+唯一的再生成路径，**不得**按“无调用者”删除：
+
+| 脚本 | 产出 |
+| --- | --- |
+| `tools/regenerate_crypto_signature_fixture.py` | `spec/v1/artifacts/fixtures/crypto-signature-fixture.json` 的 canonical bytes、digest 与真实 Ed25519 / ES256 / ML-DSA-65 签名，并同步 `websocket-binding-fixture.json` 内嵌的 event frame。需要 `cryptography` 与支持 ML-DSA-65 的 `openssl`（3.5+）。 |
+
+其余 `generate_*` / `regenerate_*` 脚本在其产出 fixture 的 `generated_by` 字段中自行登记。
 
 ## 规范权威层级
 
@@ -77,8 +93,8 @@ CI: [`.github/workflows/artifact-lint.yml`](./.github/workflows/artifact-lint.ym
 
 ```
 cd site
-npm install
-npm run dev          # http://localhost:4321
+pnpm install
+pnpm run dev       # http://localhost:4321
 pnpm run build     # 静态产物 site/dist/
 ```
 

@@ -33,7 +33,7 @@ updated: 2026-05-25
 - `artifacts/deployment-probes.json`
   - 部署层机器探针，覆盖 TLS 握手、运维 posture 等不属于 object-model conformance vector 的可验收要求。
 - `artifacts/reports/*`
-  - 含两类性质不同的报告：(a) **协议契约派生报告**（如 `operation-schema-index.json`、`operation-completeness-report.json`、`fixture-digests.json`，头部带 `source_of_truth: false` + `generated_from` / `generated_by`，是从 `contract-registry.json` 等契约真源派生的生成视图）；(b) **实现 / 发布 baseline 报告**（如 `teabay-*-baseline-*`、`release-readiness-*`，记录具体实现的本地 / CI conformance 证据与发布审计）。两类均不作为协议规范来源；(a) 类随契约真源由 pipeline 重生成，(b) 类用于发布前审计和实现成熟度追踪。
+  - **协议契约派生报告**（如 `operation-schema-index.json`、`operation-completeness-report.json`、`fixture-digests.json`，头部带 `source_of_truth: false` + `generated_from` / `generated_by`，是从 `contract-registry.json` 等契约真源派生的生成视图）。不作为协议规范来源，随契约真源由 pipeline 重生成。
 
 ### 1.2 生成视图（Generated）
 

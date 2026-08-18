@@ -37,7 +37,7 @@ resolve。字段来源于 DID **不等于**读取或写入该字段时必须解�
 对 human principal，DID 权威验证还必须分成两个互不替代的时态：注册时或 Event accepted-at
 时点的历史证据用于重放已经成立的身份/PCR 起源；current DID evidence 只用于当前外部身份声明、
 method successor、显式启用的 DID-root recovery。历史验证不得查询最新 DID head 后用当前
-controller 替代旧 key；current controller 也不得仅凭 `core_id` 相同取得既有 PCR、membership、grant、
+controller 替代旧 key；current controller 也不得仅凭 `did_core_id` 相同取得既有 PCR、membership、grant、
 contact、session 或 account lifecycle authority。
 
 ## 2. DID 派生身份字段总表
@@ -139,7 +139,7 @@ DID URL 时才属于本表；这些裸字段名不是 DID URL 的通用别名。
 的 verification method **对象数组**除外），以及 schema 声明为 DID URL 的 `kid` / `key_ref`
 等封闭 key reference，其约束 MUST 解析到与本 profile 逐字等价的定义（直接 `$ref`
 `common-ids#/$defs/did_url`、`$ref` 一份逐字等于它的本地 `$defs/did_url`，或内联同一
-pattern）。机器门禁 `tools/lint_artifacts.py` 强制这条一致性；新增更宽或更窄的变体一律
+pattern）。机器门禁 `tools/artifact_lint` 强制这条一致性；新增更宽或更窄的变体一律
 视为 spec 缺陷。
 
 ### 2.3 条件性或多态字段

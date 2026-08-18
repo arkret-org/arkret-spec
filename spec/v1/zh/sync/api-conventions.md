@@ -120,7 +120,7 @@ HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan` �
 一个 operation 不得同时声明静态 kind 与任一种动态 source，也不得同时声明
 `event_kind_source` 与 `event_kind_sources`，不得把 actor-private kind 填进
 `event_log`。HTTP / gRPC / MQ adapter 必须实现同一 mapping；成功响应不能绕过该声明产生
-未登记 durable Event。该闭包由 `tools/lint_artifacts.py` 与
+未登记 durable Event。该闭包由 `tools/artifact_lint` 与
 `operation-registry-coverage-fixture.json` 机械校验。
 
 **leaf effect 的成员集合是封闭的（normative）**：上述三种 `kind` 各自的成员集合逐字封闭，

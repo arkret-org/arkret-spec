@@ -341,7 +341,7 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 - **Capability Grant** 使用 grant 语义字段（签发 / 撤销相关）表达生命周期；其"创建时间"语义由 `issued_at`（而非通用 `created_at`）承载，retention / audit / 排序查询 MUST 使用 grant 自身的 `issued_at` / `expires_at` / `revoked_at`，不要回退到通用 `created_at`。
 - **Notification** 同属 actor-private projection，不暴露开放扩展容器（见 §3.1 附注）。
 
-> 说明：§3.2 排序硬规则已由 `tools/lint_artifacts.py` 的 `check_field_order` 自动校验——递归全部 `artifacts/schemas/*.schema.json` 的每个 `properties` 对象，强制 `created_by < created_at < updated_at`、`updated_by < updated_at`，以及 `state_changed_at` / `stage_changed_at` 紧邻 `state` / `stage`。规则按字段存在性条件触发，故 Read Cursor（无 `created_at`）、Capability Grant（用 `issued_at`）等有意例外天然不触发，无需白名单。
+> 说明：§3.2 排序硬规则已由 `tools/artifact_lint` 的 `check_field_order` 自动校验——递归全部 `artifacts/schemas/*.schema.json` 的每个 `properties` 对象，强制 `created_by < created_at < updated_at`、`updated_by < updated_at`，以及 `state_changed_at` / `stage_changed_at` 紧邻 `state` / `stage`。规则按字段存在性条件触发，故 Read Cursor（无 `created_at`）、Capability Grant（用 `issued_at`）等有意例外天然不触发，无需白名单。
 
 ## 4. 主体引用字段交叉对照
 

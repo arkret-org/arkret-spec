@@ -532,7 +532,7 @@ conformance 入口沿用 `ak.vector.event_id.content_bound.v1`：每个跨 Event
 正例，与旧互引形状必须被 `event_id_digest_mismatch` 拒绝的负例；每条 C 类例外 MUST 另有一个
 **可构造性证明**向量，展示按其声明顺序真的能推导出该值而不产生 `event_id_digest_mismatch`。
 
-机器门禁是 `tools/lint_artifacts.py` 的 `preimage_event_identity`。它**不再靠读措辞决定放行**，而是
+机器门禁是 `tools/artifact_lint` 的 `preimage_event_identity`。它**不再靠读措辞决定放行**，而是
 查登记表：判定范围是 `event_id` / `*_event_id` / `*_event_ref` / `*_event_digest` 名族，外加
 description 自称由 Event 标识派生（`retype(...)`、event-derived 等派生语）的字段；范围内字段的
 description 若声明指向 enclosing Event 或同 unit / 同 batch 的兄弟 Event，**无条件**失败，

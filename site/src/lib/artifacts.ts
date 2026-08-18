@@ -178,7 +178,7 @@ export const profileMatrix = conformanceProfiles;
 
 /**
  * Distinct `ak.profile.*` ids declared anywhere in conformance-profiles.json.
- * Mirrors what `tools/lint_artifacts.py` reports as "N profiles" so the
+ * Mirrors what `tools/artifact_lint` reports as "N profiles" so the
  * homepage stat and release-readiness numbers stay in sync.
  */
 export const totalProfileCount: number = (() => {

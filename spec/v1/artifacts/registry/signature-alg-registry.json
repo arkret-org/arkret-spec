@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-04.2",
+  "version": "2026-08-18.1",
   "source_of_truth": true,
   "description": "Canonical signature algorithm vocabulary and explicit per-standard mappings for v1 JOSE, Arkret raw signatures, and RFC 9421 HTTP Message Signatures.",
   "registry_rules": [
@@ -8,7 +8,7 @@
     "An RFC 9421 Signature-Input alg parameter MUST use http_message_signature_algorithm. JOSE names such as ES256 are not HTTP Signature Algorithms registry names and MUST NOT be substituted.",
     "Activating a reserved/new algorithm requires a new schema version and profile negotiation; registry activation MUST NOT expand an existing schema enum in place (zh/conformance/schema-registry.md §6.1 b.1).",
     "Algorithms not present as active rows MUST fail closed with unsupported_signature_alg on critical proofs.",
-    "Every status=active row MUST declare kat_vector_id naming an active vector-registry entry; every status=reserved row MUST instead declare kat_absence_reason and MUST NOT declare kat_vector_id. tools/lint_artifacts.py enforces this binding.",
+    "Every status=active row MUST declare kat_vector_id naming an active vector-registry entry; every status=reserved row MUST instead declare kat_absence_reason and MUST NOT declare kat_vector_id. tools/artifact_lint enforces this binding.",
     "A reserved hybrid row is a single negotiated verification policy over two independent proof entries, not a new unregistered compact signature encoding. Both components MUST bind the same canonical payload and proof purpose; accepting a stripped single component as hybrid-verified is forbidden."
   ],
   "algorithms": [

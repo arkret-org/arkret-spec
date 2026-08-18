@@ -240,7 +240,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   MUST 从入口集经已登记 cell write 可达、所有 `allowed_transitions` MUST 有对应写入、
   const→const 写入 MUST 不越表——这是 OPEN-FLOW-PROTO-013 当初缺失的那道门。
 
-机器门禁：`tools/lint_artifacts.py` 的 `request_material_supply` 与 `fsm_reachability`，
+机器门禁：`tools/artifact_lint` 的 `request_material_supply` 与 `fsm_reachability`，
 随 release gate `--strict` 强制执行；例外表与本节双向绑定（门禁查表 + 反向校验行未失效）。
 
 ### 2.3 端点契约清单

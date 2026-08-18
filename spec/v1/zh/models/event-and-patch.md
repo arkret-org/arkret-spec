@@ -400,7 +400,7 @@ barrier 串行化。实现不得按 Event kind 名称猜测类别。
 - 无 `condition` 的目标是无条件必需目标。
 - 未知 `kind`、缺 `field`、`field` 不是点分具名路径、`field_equals` 缺 `const` 或 `const` 不是标量，MUST fail closed（registry 无效，发布门禁失败）。
 - **`any_field_present` 的两种正当用途**：(i) 同一语义值在同 kind 的不同 payload 形态下落在不同路径（例如 invite 既可用 `payload.invite` 完整对象、也可用扁平字段承载）；(ii) 同一 cell 承载多个不同字段，其中任一字段出现即需写该 cell。
-- **subject 可派生性（normative）**：条件命中时该目标的 `cell_subject` MUST 可派生。用途 (i) 下 `cell_subject` 必然是 `coalesce`，其 `fields[]` MUST 与 `condition.fields[]` 逐项一致、同序——否则会出现「条件命中但 subject 无法派生」或反之的组合；该一致性由 `tools/lint_artifacts.py` 机械校验。用途 (ii) 下 `cell_subject` 取一个与条件字段无关的路径，该路径 MUST 是 payload 的无条件必填字段。
+- **subject 可派生性（normative）**：条件命中时该目标的 `cell_subject` MUST 可派生。用途 (i) 下 `cell_subject` 必然是 `coalesce`，其 `fields[]` MUST 与 `condition.fields[]` 逐项一致、同序——否则会出现「条件命中但 subject 无法派生」或反之的组合；该一致性由 `tools/artifact_lint` 机械校验。用途 (ii) 下 `cell_subject` 取一个与条件字段无关的路径，该路径 MUST 是 payload 的无条件必填字段。
 - `condition` 只决定该目标是否参与，MUST NOT 改变 `cell_family`、`cell_subject` 派生式、
   `lattice` 或 `bottom`；需要按判别值切换取值字段时使用已登记的 `select` component。
 

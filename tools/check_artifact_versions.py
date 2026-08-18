@@ -139,6 +139,7 @@ def main(argv: list[str] | None = None) -> int:
         REFERENCE.write_text(
             json.dumps(current, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
+            newline="\n",
         )
         print(f"updated {REFERENCE.relative_to(ROOT).as_posix()} ({len(rows)} artifacts)")
         return 0

@@ -2,7 +2,7 @@
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
   "version": "2026-08-13.3",
-  "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/lint_artifacts.py validates schema_validation_cases[] against schema_ref.",
+  "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",

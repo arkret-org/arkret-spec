@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.6",
+  "version": "2026-08-18.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-18T22:40:00+08:00",
+  "generated_at": "2026-08-19T00:20:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -18,7 +18,7 @@
   },
   "registry_rules": [
     "clause_id values are stable and MUST NOT be reused after a clause is retired; retire a clause by setting status=deprecated instead of deleting the row.",
-    "source_anchor MUST be a repository-relative markdown path plus an existing heading slug. section_digest MUST equal the sha256 of that heading's section text as computed by tools/lint_artifacts.py.",
+    "source_anchor MUST be a repository-relative markdown path plus an existing heading slug. section_digest MUST equal the sha256 of that heading's section text as computed by tools/artifact_lint.",
     "testability_grade=vector rows MUST list evidence_refs containing active vector ids from vector-registry.json. testability_grade=api_shape or audit rows MUST instead declare test_plan describing the non-vector proof.",
     "A clause MUST NOT claim evidence it does not have: an obligation with no executable proof stays out of this registry rather than pointing at an unrelated vector."
   ],
@@ -68,7 +68,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:d6915ea97e3cd2b295383395ec7dcd1b9fa41294d0eeeaeb3d7d6e01ebd64623",
+      "section_digest": "sha256:a1bd631c3a5f05c5b4facce506cbfd628ac419a1f55940f574105dc1247c3562",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another. Section 6.0.2 fixes one construction for every registered proof context: the unsigned projection deletes the proof carrier member rather than nulling it and never defaults an absent optional, an absent optional binding field is omitted rather than written as null, audience is a single string or a duplicate-free array with the single-value form mandatory for one audience, and the context constant is a binding object member rather than a JWS header parameter, so a signature valid under one object family's context MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -126,7 +126,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:8c5557cdbb0e5464bd580e426c7e6bf1f0fc61b08053c4fb3455315f36e85b3a",
+      "section_digest": "sha256:c35d9a83488d232b841a7dd15393e316bef08e0b861e1b86ee755bd8f775a373",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -144,7 +144,7 @@
       "section_digest": "sha256:89d24d810f265cad44040722051b5f31a4da7a4b0f7d9722cedc02f445875d64",
       "requirement": "Every operation_id ends with <kind>.<action> drawn from the closed kind set, and the action MUST describe a protocol effect rather than an HTTP method name.",
       "testability_grade": "api_shape",
-      "test_plan": "Enforced mechanically by tools/lint_artifacts.py: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."
+      "test_plan": "Enforced mechanically by tools/artifact_lint: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."
     },
     {
       "clause_id": "AK-NC-009",
@@ -467,7 +467,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#601-原像内禁止承诺-event-标识normative",
-      "section_digest": "sha256:92ab61150786411440384a8ea4473ef61ea2bf6b6412629ac0f2e16a2dcc20ee",
+      "section_digest": "sha256:eb2acfabf160ec61e995aa6a7522c29b3dadaafa2bec237bcfc243e2de402e27",
       "requirement": "Fields inside the event_digest preimage MUST NOT commit to the enclosing Event's own event_id, event_digest or any retype of them, nor to the identity of a not-yet-formed sibling Event in the same atomic unit or ordered submit batch; those two classes have no fixed point, MUST be rejected as event_id_digest_mismatch, and MUST NOT be exempted by any registry. Commitments of that kind MUST instead use the counterpart's payload digest or a structure outside the preimage (proofs, receipts). A one-way forward declaration naming a later Event from a separate submission whose canonical bytes the author already froze is constructible and MUST be allowed only when preimage-identity-exemption-registry.json carries an active row for exactly that field and the field's own description declares the forward commitment.",
       "testability_grade": "vector",
       "evidence_refs": [
