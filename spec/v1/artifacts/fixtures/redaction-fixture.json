@@ -10,14 +10,14 @@
       "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
       "schema_ref": "schemas/strand.schema.json",
       "expect_valid": false,
-      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}",
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}, {'required': ['tracks'], 'properties': {'tracks': {'required': ['synthesis'], 'properties': {'synthesis': {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}}}}}]}",
       "instance": {
         "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
         "schema": "ak.schema.strand.v1",
         "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
         "content": {
           "kind": "ak.content.text",
-          "body": "synthesis body that redaction MUST have cleared"
+          "body": "description body that redaction MUST have cleared"
         },
         "tracks": {
           "synthesis": {
@@ -35,7 +35,7 @@
       "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
       "schema_ref": "schemas/strand.schema.json",
       "expect_valid": false,
-      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}",
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}, {'required': ['tracks'], 'properties': {'tracks': {'required': ['synthesis'], 'properties': {'synthesis': {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}}}}}]}",
       "instance": {
         "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
         "schema": "ak.schema.strand.v1",
@@ -64,6 +64,73 @@
         "tracks": {
           "synthesis": {
             "is_primary": true
+          }
+        },
+        "state": "redacted",
+        "state_changed_at": "2026-04-26T00:05:00.000Z",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-04-26T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "strand_redacted_with_synthesis_track_plaintext_content_rejected",
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}, {'required': ['tracks'], 'properties': {'tracks': {'required': ['synthesis'], 'properties': {'synthesis': {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}}}}}]}",
+      "instance": {
+        "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+        "tracks": {
+          "synthesis": {
+            "is_primary": true,
+            "content": {
+              "kind": "ak.content.text",
+              "body": "synthesis track content that redaction MUST have cleared"
+            }
+          }
+        },
+        "state": "redacted",
+        "state_changed_at": "2026-04-26T00:05:00.000Z",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-04-26T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "strand_redacted_with_synthesis_track_encrypted_content_rejected",
+      "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}, {'required': ['tracks'], 'properties': {'tracks': {'required': ['synthesis'], 'properties': {'synthesis': {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}}}}}]}",
+      "instance": {
+        "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+        "tracks": {
+          "synthesis": {
+            "is_primary": true,
+            "encrypted_content": {
+              "scheme": "mls_rfc9420",
+              "version": "1.0",
+              "group_id": "Zm9vYmFy",
+              "epoch": 7,
+              "content_type": "application/vnd.arkret.strand+json",
+              "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA",
+              "aad_visibility_event_id_kind": "routing_digest",
+              "aad": {
+                "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
+                "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
+                "event_kind": "ak.strand.create",
+                "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+              },
+              "key_ref": {
+                "algorithm": "MLS",
+                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
+              },
+              "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+              "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+            }
           }
         },
         "state": "redacted",
@@ -109,7 +176,11 @@
         },
         "tracks": {
           "synthesis": {
-            "is_primary": true
+            "is_primary": true,
+            "content": {
+              "kind": "ak.content.text",
+              "body": "archive is reversible and MUST NOT clear synthesis track content"
+            }
           }
         },
         "state": "archived",

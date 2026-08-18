@@ -3,7 +3,7 @@ title: 当前模型说明
 status: candidate
 normative: false
 stability: v1
-updated: 2026-07-13
+updated: 2026-08-18
 ---
 
 ## 0. 文档定位
@@ -32,6 +32,7 @@ Arkret 不是把某个产品的对象名搬进协议，而是把常见协作产�
 
 `Strand` 承载同一事项的正式表达与讨论过程：
 
+- 顶层 `content` / `encrypted_content`：Strand 自身的 Description，不属于任何 track
 - `tracks` 的 key：定义 Strand 当前启用的能力轨道（key 是 track 稳定名）
 - `tracks.<name>.is_primary=true`：可显式定义默认主入口；若未显式设置且存在 key `synthesis`，默认主入口派生为 `synthesis`
 - `state`（active/archived/redacted）= 物理生命周期；`stage`（draft/proposed/planned/in_progress/blocked/done/cancelled/superseded，可选）= 业务进度。两者正交，分别由 `ak.strand.archive` 家族与 `ak.strand.stage.set` 维护。详见 [`models/common-fields.md` §5.3](../models/common-fields.md)。
@@ -41,16 +42,18 @@ Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review�
 
 ## 3. Strand 的标准 Track
 
-`Strand.tracks` 是 track 定义 map（key 是 track 稳定名）。v1 标准化两个 track name：
+`Strand.tracks` 是 track entry map（key 是 track 稳定名）。v1 标准化两个 track name：
 
-- `synthesis`：正式表达、结构化字段、状态推进、标题、摘要、正文
+- `synthesis`：独立的正式记录正文，canonical carrier 是 `tracks.synthesis.content` / `encrypted_content`
 - `discussion`：消息时间线、通知入口与讨论 UI；成员、历史可见性和 E2EE 由整个 Strand 的 effective scope 决定，不由 track 自己持有
+
+Strand 本体字段不归入任何 track：`content` / `encrypted_content` 是 Description，`metadata.title`、`metadata.summary`、`metadata.fields` 与 `stage` 也是 Strand 基础面。Primary track 解析到 Synthesis 只回答“需要一个 track 时选哪个”，不决定 Description 是否存在，也不规定对象详情页的 tab 顺序或默认 tab；客户端可以把 Description 独立列在所有 track 之前并默认打开。任何实现都不得把这些基础字段重解释为 Synthesis 内容。
 
 这两个名称同时是当前
 [`track-name-registry.json`](../../artifacts/registry/track-name-registry.json) 的完整 active
 集合；正则只约束登记语法，未登记名称不能进入 `Strand.tracks`。
 
-Track 可独立启用或关闭，也可原子切换 primary；「只聊天不归纳」和「只承载结构化正文不开讨论」都是合法模型形态。完整的 active/primary 不变量、`discussion` 启用护栏与 `ak.strand.tracks.update` patch 规则只由 [`models/strand-and-message.md` §4.5–§4.8](../models/strand-and-message.md) 规范定义，本导览不重复承载。
+Track 可独立启用或关闭，也可原子切换 primary；「只聊天不归纳」和「只维护 Synthesis 正文不开讨论」都是合法模型形态。完整的 active/primary 不变量、`discussion` 启用护栏与 `ak.strand.tracks.update` patch 规则只由 [`models/strand-and-message.md` §4.5–§4.8](../models/strand-and-message.md) 规范定义，本导览不重复承载。
 
 ## 4. 工作流容器
 

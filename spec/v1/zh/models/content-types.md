@@ -3,7 +3,7 @@ title: Content Types
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-08-18
 ---
 
 ## 0. 规范语言
@@ -14,7 +14,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Arkret 的 `message` 标准对象、Strand synthesis / discussion 和可讨论的 Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
+Arkret 的 `message` 标准对象、Strand Description、Strand synthesis / discussion 和可讨论的 Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
 
 - 所有客户端能够以一致的方式渲染各种消息类型
 - 不支持某种内容类型的客户端能通过 `fallback_text` 优雅降级
@@ -24,7 +24,7 @@ Arkret 的 `message` 标准对象、Strand synthesis / discussion 和可讨论�
 
 ### 2.1 Content 是结构化的，不是裸字符串
 
-Message 的 `content` 字段、`ak.message.create` / `ak.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_content` 字段、Strand 的 `content` / `encrypted_content` 字段、Strand discussion 摘要以及 Morph 的 `content` / `encrypted_content` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
+Message 的 `content` 字段、`ak.message.create` / `ak.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_content` 字段、Strand Description 的顶层 `content` / `encrypted_content`、Strand synthesis track 的 `tracks.synthesis.content` / `tracks.synthesis.encrypted_content`，以及 Morph 的 `content` / `encrypted_content` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
 
 ### 2.2 单一 Content Block 架构
 
@@ -551,7 +551,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 在端到端加密场景下：
 - `content` 字段的完整 JSON 对象被加密为 `encrypted_content`
-- `encrypted_content` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`ak.message.create` / `ak.message.revise` 和 Strand synthesis `content` 使用同一 canonical envelope；没有 `content` 明文对偶的 payload surface MAY 继续使用通用 `encrypted_payload`
+- 每个 `encrypted_content` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`ak.message.create` / `ak.message.revise`、Strand Description、`tracks.synthesis` 分别使用其所在对象或 track 内明文 `content` 的 canonical envelope；没有明文内容对偶的 payload surface MAY 继续使用通用 `encrypted_payload`
 - `body` 字段在密文信封中**不保留明文副本**（防止元数据泄露）
 - 用于推送通知的脱敏摘要由发送者的客户端单独生成并附在明文元数据中（参见 `push-notifications.md`）
 

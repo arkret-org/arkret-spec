@@ -3,7 +3,7 @@ title: Strand & Message
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-08-18
 ---
 
 ## 0. 规范语言
@@ -63,8 +63,8 @@ Schema id: `ak.schema.strand.v1`
 | `agent_participation` | no | `object{native_agent:{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf:boolean}}` | component省略时继承有效Circle/Realm父级；一旦出现五位全部required且closed，只能逐位收紧，unknown/stale/fork全deny。旧三位/`reply`别名拒绝。第三方mention gate见§9.4.5。 | native personal agent在Strand scope内的治理上限。 |
 | `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Strand metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Strand metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
-| `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)。 | 富文本正文。 |
-| `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Strand synthesis 正文或附件内容。 |
+| `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)；与 `encrypted_content` 二选一。 | Strand 自身的正文，即 UI 的 **Description**。它不属于 synthesis / discussion 任一 track。 |
+| `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Strand Description 的 ContentBlock。 |
 | `tracks` | yes | `map<TrackName, StrandTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`ak.strand.archive` MUST 来自 `active`（否则 `strand_not_active`）；`ak.strand.restore` MUST 来自 `archived`（否则 `strand_not_archived`）；`ak.redaction` 指向 Strand 时 MUST 来自 `{active, archived}`（否则 `strand_already_terminal`）。same-state self-transition MUST fail。**Strand 不引入独立 `tombstoned` 终态**；deletion 语义通过指向该 Strand 的 `ak.redaction` 表达，见 [common-fields.md §5.1](./common-fields.md)。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
@@ -93,12 +93,20 @@ Schema id: `ak.schema.strand.v1`
   },
   "content": {
     "kind": "ak.content.text",
-    "body": "Please finish the final review.",
+    "body": "统一支付链路的背景、范围和验收说明。",
     "format": "markdown",
-    "formatted_body": "Please finish the final review."
+    "formatted_body": "统一支付链路的背景、范围和验收说明。"
   },
   "tracks": {
-    "synthesis": { "is_primary": true },
+    "synthesis": {
+      "is_primary": true,
+      "content": {
+        "kind": "ak.content.text",
+        "body": "当前共识：先统一退款状态机，再迁移风控回调。",
+        "format": "markdown",
+        "formatted_body": "当前共识：先统一退款状态机，再迁移风控回调。"
+      }
+    },
     "discussion": { "profile": "review" }
   },
   "scope_circle_id": "ak:circle:ARXbvtRVuDBYaF4WF9z-UaI6zlszC0W60gTZIVJDcvFR",
@@ -149,7 +157,7 @@ Schema id: `ak.schema.strand.v1`
 - 该 Message 受 `discussion` track 的权限、E2EE、redaction、editing 规则约束（与所有其他讨论同级），可以被引用、回应、撤回。
 - 审计归属由 `ak.strand.stage.set` event 自身的 `actor_id` / `created_at` 提供——事件日志就是真源，不需要在对象上再开一个 256-char 黑盒字段。
 
-**Capability**：`ak.strand.stage.set`（low risk_tier）—— 允许把推进 Strand 进度的权限授予 reporter / assignee / member，而不必给完整 `ak.strand.update`（后者可改 metadata / content）。
+**Capability**：`ak.strand.stage.set`（low risk_tier）—— 允许把推进 Strand 进度的权限授予 reporter / assignee / member，而无需授予任何正文编辑权限。Description 与 Synthesis 是两个独立写入面：前者的 canonical path 是 `content` / `encrypted_content`，后者是 `tracks.synthesis.content` / `tracks.synthesis.encrypted_content`。两者虽都通过 `ak.strand.update` event 写入，但 grant MUST 使用该 action 强制要求的 `allowed_write_fields` 逐路径授权；获准编辑其中一面 MUST NOT 推导出另一面的编辑权。Track 的启用、关闭、primary 与 profile 仍由独立的 `ak.strand.tracks.update` action 管理。
 
 **Reducer 硬约束**（来自 [common-fields.md §5.3.3](./common-fields.md)）：
 
@@ -167,10 +175,10 @@ Schema id: `ak.schema.strand.v1`
 
 ## 4. Tracks 模型
 
-`tracks` 是 active track 定义 map：
+`tracks` 是 track entry map：
 
 - key 是 track 稳定名（`TrackName = ^[a-z][a-z0-9_]{0,63}$`）；
-- value 是该 track 的配置对象；
+- value 是该 track 的 entry；它包含 track 配置，且 `synthesis` entry 还可携带自己的正文；
 - `is_primary=true` 是可选显式 primary 标记。
 
 TrackName 的 canonical 真源是
@@ -192,23 +200,24 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 | `profile` | no | `string` | 由 Realm schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | track 交互 profile（pure UI hint）。 |
 | `template` | no | `string` | track profile 可声明结构模板。 | 模板引用。 |
 | `metadata` | no | `object` |  | track-local UI metadata（pure UI hint，不影响访问）。 |
+| `content` | no | `ContentBlock` | v1 仅 `synthesis` track 可携带；与 `encrypted_content` 二选一。`discussion` 携带该字段 MUST `schema_violation`。 | track 自身的叙事正文。 |
+| `encrypted_content` | conditional | `EncryptedPayload` | v1 仅 `synthesis` track 可携带；与 `content` 二选一。 | E2EE 场景下包裹 track ContentBlock。 |
 
 ### 4.2 `synthesis` track
 
-`synthesis` track 承载 Strand 随 `discussion` 推进而沉淀下来的**正式记录**：把讨论中逐步形成的共识、结论与决策整理、收敛成连贯的正式表达。它同时是 Strand 当前可被编辑、被引用、被推进的主数据面——既是这件事"谈成了什么"的权威表述，也是后续被引用、推进（`stage`）与审阅的对象本体。它不是被动、只读、自动生成的"摘要侧栏"，而是由人主动整理、可持续编辑的权威记录面。
+`synthesis` track 承载 Strand 随 `discussion` 推进而沉淀下来的**正式记录**：把讨论中逐步形成的共识、结论与决策整理、收敛成连贯的正式表达。它不是 Strand 本身的 Description，也不是被动、只读、自动生成的"摘要侧栏"；它是由人主动整理、可持续编辑的独立协作面。
 
 适合放入：
 
-- `metadata.title`
-- `metadata.summary`
-- `content`
-- `metadata.fields`
-- 状态推进字段
-- 结构化业务字段
+- `tracks.synthesis.content`（或同一 track 内的 E2EE 对偶 `encrypted_content`）
+- 从 discussion Message 引用、归纳出的共识、结论与决策
+- 与正式记录直接相关的附件或 Content Block 结构
 
-`content` SHOULD 使用 `content-types.md` 定义的 Content Block；结构化状态和业务字段继续放在 `metadata.fields`，不要把可归约状态只藏在富文本正文中。
+`tracks.synthesis.content` SHOULD 使用 `content-types.md` 定义的 Content Block。`metadata.title`、`metadata.summary`、`metadata.fields`、`stage` 和其他基础 reducer 字段属于 Strand 本体，不因 UI 当前打开哪个 track 而改变归属；尤其是 Strand 顶层 `content` 永远是 Description，MUST NOT 被解释或投影为 synthesis。
 
 `synthesis` 是可选 track：`tracks` map 不要求声明它。「只聊天不归纳」的 Strand（仅 `discussion`）是合法形态，见 §9.4 与 [`overview/current-model.md` §3](../overview/current-model.md)。若 Strand 同时声明了 `synthesis` 与 `discussion` 且未显式标 primary，`synthesis` 按 §4.5 第 2 条派生为 primary。关闭已存在的 `synthesis` track 与关闭任何 track 同形：在 `ak.strand.tracks.update` 同一 patch 中写 `tracks.synthesis.enabled: set false`；若当前 primary 是 `synthesis`，同一 patch 必须把 primary 转给另一个 active track（§4.6 / §4.7 / §4.8）。
+
+`ak.strand.update` 对 `tracks.synthesis.content` / `tracks.synthesis.encrypted_content` 的写入必须在 pre-state 与 post-state 上验证该 track 存在且 active；否则 MUST 以 `failed_precondition`、`reason_code="track_disabled"` 拒绝。该 gate 只覆盖 Synthesis track 内容，不覆盖 Strand 顶层 `content` / `encrypted_content`：Description 是 Strand 本体，即使 Strand 只有 discussion track 也可独立读写。禁用 track 只冻结新写入，不删除已存在的 track 内容。
 
 ### 4.3 `discussion` track
 
@@ -238,9 +247,9 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 - discussion 可见成员关系不从 `assigned_to`、`watches` 或其他 Strand relation 隐式派生；track 自身不持有 membership，可见成员一律由 Strand 的 effective scope 决定（`scope_circle_id=null` 时为父 Realm 的 membership / capability / policy；`scope_circle_id` 指向 Circle 时为该 [Circle](./circle.md) 的 membership / capability / policy），若实现需要此类映射必须可审计地声明。`watches` 是个人通知订阅偏好（§8），不是访问 / membership 控制。
 - 当 `discussion` track 不存在或不处于 active 状态时，`ak.message.create`、`ak.message.revise`、`ak.message.redact` MUST 被拒绝。receiver 必须先完成 [`event-and-patch.md` §2.8](./event-and-patch.md) 的目标可见性与授权门；仅对已可见且已授权的目标，错误语义 SHOULD 为 `discussion_track_disabled` 或等价 fail-closed 结果。不可见、不存在、跨 scope 与 tombstone 目标必须保持相同的 `not_found` / opaque denial，不能用该错误泄露 Strand 或 Track 状态。
 
-### 4.4 Track 是纯展示标识，不是 access 域
+### 4.4 Track 是协作面，不是独立 access 域
 
-**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自 Strand 的 effective scope —— `scope_circle_id=null` 时继承父 Realm，`scope_circle_id` 指向 Circle 时继承该 Circle（见 §5 与 [`circle.md`](./circle.md)）。
+Track entry 可以携带交互配置；`synthesis` 还携带自己的内容槽，`discussion` 则关联 Message timeline。因此 Track 不是“纯展示标签”。但 Track **不携带独立的 membership / history visibility / E2EE security boundary**：其访问边界继承 Strand 的 effective scope —— `scope_circle_id=null` 时继承父 Realm，`scope_circle_id` 指向 Circle 时继承该 Circle（见 §5 与 [`circle.md`](./circle.md)）。Action、`allowed_tracks` 与 `allowed_write_fields` 可以在这个共同安全边界内进一步收窄操作权，但不会为 track 创建第二套成员或密钥域。
 
 Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid 模型）—— 任何需要独立访问域的场景必须通过 `Strand.scope_circle_id` 把整个 Strand 落在 [Circle](./circle.md)，或者按 [`circle.md` §7.2](./circle.md) 拆为两个 Strand + Relation。
 
@@ -260,7 +269,7 @@ Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid �
 上述候选集只包含 `enabled=true`（或按 schema 缺省为 true）的 track。显式 primary 指向
 disabled track 时 reducer MUST `failed_precondition`（`reason_code="track_disabled"`）。
 
-resolved primary 只影响默认打开哪个协作面，不改变 `strand_id`，不授予读取、写入或管理权限。
+resolved primary 只在调用方明确需要选择一个 track 协作面时提供默认值，不改变 `strand_id`，不授予读取、写入或管理权限。Description 是 Strand 本体而非 track；primary 解析不规定 Description tab 与 track tabs 的排列或对象详情页默认 tab，也不得用于隐藏、删除或重解释 Description。
 
 ### 4.6 Track 转换
 
@@ -371,7 +380,7 @@ flowchart LR
 - Strand identity 只保存一份，resolved primary track 只决定默认视角，不创建新的对象副本。
 - `tracks` 是 map，key 唯一性由结构保证；至多一个 active track MAY 设置 `is_primary=true`。
 - 多个显式 primary MUST 被 reducer 拒绝。
-- `synthesis` track 与 `discussion` track 共享同一 `metadata`、`content` 和基础 reducer 字段；track 不存在独立 access 域。
+- `synthesis` track 与 `discussion` track 共享同一 effective scope 和基础 Strand identity，但不共享内容槽：Description 使用 Strand 顶层 `content` / `encrypted_content`，Synthesis 使用 `tracks.synthesis.content` / `tracks.synthesis.encrypted_content`，Discussion 使用 Message timeline。
 - `synthesis` track 字段级限制使用 capability constraints；不为 `synthesis` 单独创建成员表或 access 域。
 - `is_primary` 只是默认入口标记，不授予读取、写入或管理权限。
 

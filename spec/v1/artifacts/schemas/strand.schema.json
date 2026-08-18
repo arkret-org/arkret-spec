@@ -104,18 +104,48 @@
       "description": "Encrypted envelope whose plaintext is a strand_metadata object. Required instead of plaintext metadata when the effective metadata_encryption_floor is e2ee_required."
     },
     "content": {
-      "$ref": "#/$defs/content_block"
+      "$ref": "#/$defs/content_block",
+      "description": "Strand description body. This is base Strand content and is independent of the synthesis and discussion tracks."
     },
     "encrypted_content": {
       "$ref": "./encrypted-envelope.schema.json",
-      "description": "Encrypted envelope whose plaintext is a ContentBlock for Strand synthesis content."
+      "description": "Encrypted envelope whose plaintext is the Strand description ContentBlock. Exclusive with content."
     },
     "tracks": {
       "type": "object",
-      "description": "Active Strand tracks, keyed by an active name in track-name-registry.json. Tracks are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. The entire Strand shares a single effective scope determined by Strand.scope_circle_id (see models/circle.md); there is no per-track security boundary. At most one track entry may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in models/strand-and-message.md §4.5. The map MUST contain at least one entry; propertyNames fails closed for names outside the registry-backed TrackName enum.",
+      "description": "Active Strand collaboration surfaces, keyed by an active name in track-name-registry.json. The synthesis entry may carry its own content / encrypted_content; the discussion entry configures a Message timeline and may not carry either field. Tracks do NOT carry independent membership / permissions / history visibility / E2EE: the entire Strand shares a single effective scope determined by Strand.scope_circle_id (see models/circle.md). At most one track entry may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in models/strand-and-message.md §4.5. The map MUST contain at least one entry; propertyNames fails closed for names outside the registry-backed TrackName enum.",
       "minProperties": 1,
       "propertyNames": {
         "$ref": "#/$defs/track_name"
+      },
+      "properties": {
+        "discussion": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/strand_track"
+            },
+            {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "content"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "encrypted_content"
+                    ]
+                  }
+                ]
+              },
+              "$comment": "Discussion content is carried by Message timeline objects, never by the discussion track config."
+            }
+          ]
+        },
+        "synthesis": {
+          "$ref": "#/$defs/strand_track"
+        }
       },
       "additionalProperties": {
         "$ref": "#/$defs/strand_track"
@@ -272,7 +302,7 @@
       }
     },
     {
-      "$comment": "Mirror of message.schema.json's state=redacted branch: the content slot (content <-> encrypted_content) MUST be absent once redaction has cleared it, so 'redacted' is verifiable from the object alone instead of only from the event stream (zh/models/common-fields.md §5 redacted row, §5.2; zh/models/event-and-patch.md §4.2.4).",
+      "$comment": "Mirror of message.schema.json's state=redacted branch: both authored Strand slots — description (content <-> encrypted_content) and tracks.synthesis content (content <-> encrypted_content inside that track) — MUST be absent once redaction has cleared them, so 'redacted' is verifiable from the object alone instead of only from the event stream (zh/models/common-fields.md §5 redacted row, §5.2; zh/models/event-and-patch.md §4.2.4).",
       "if": {
         "properties": {
           "state": {
@@ -295,6 +325,22 @@
               "required": [
                 "encrypted_content"
               ]
+            },
+            {
+              "required": ["tracks"],
+              "properties": {
+                "tracks": {
+                  "required": ["synthesis"],
+                  "properties": {
+                    "synthesis": {
+                      "anyOf": [
+                        {"required": ["content"]},
+                        {"required": ["encrypted_content"]}
+                      ]
+                    }
+                  }
+                }
+              }
             }
           ]
         }
@@ -928,7 +974,7 @@
     },
     "strand_track": {
       "type": "object",
-      "description": "Strand track entry — a pure section pointer (synthesis vs discussion timeline). The track's stable name is the map key in Strand.tracks; this object holds the track's per-entry config. Tracks do NOT carry independent membership / permissions / history visibility / E2EE. The whole Strand has a single effective scope determined by Strand.scope_circle_id (see models/circle.md); there is no per-track security boundary. To represent 'wide synthesis + narrow discussion', create two Strands linked by a confidential_discussion_of Relation per models/circle.md §7.2.",
+      "description": "Strand track entry. The stable name is the map key in Strand.tracks. The synthesis entry may carry its own narrative content / encrypted_content in addition to config; the discussion entry is config-only because its authored content is carried by Message objects. Tracks do NOT carry independent membership / permissions / history visibility / E2EE. The whole Strand has a single effective scope determined by Strand.scope_circle_id (see models/circle.md); there is no per-track security boundary. To represent 'wide synthesis + narrow discussion', create two Strands linked by a confidential_discussion_of Relation per models/circle.md §7.2.",
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -974,13 +1020,32 @@
             ]
           },
           "additionalProperties": true
+        },
+        "content": {
+          "$ref": "#/$defs/content_block",
+          "description": "Track-owned ContentBlock. In the active v1 registry only tracks.synthesis may carry this field; tracks.discussion content is carried by Message objects."
+        },
+        "encrypted_content": {
+          "$ref": "./encrypted-envelope.schema.json",
+          "description": "Encrypted counterpart of track-owned content. In the active v1 registry only tracks.synthesis may carry this field."
         }
       },
       "not": {
-        "required": [
-          "fields"
-        ],
-        "$comment": "track-local extension field is not v1 wire; the canonical name is metadata."
+        "anyOf": [
+          {
+            "required": [
+              "fields"
+            ],
+            "$comment": "track-local extension field is not v1 wire; the canonical name is metadata."
+          },
+          {
+            "required": [
+              "content",
+              "encrypted_content"
+            ],
+            "$comment": "Track content plaintext and encrypted forms are mutually exclusive."
+          }
+        ]
       },
       "additionalProperties": false
     },

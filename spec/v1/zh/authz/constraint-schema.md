@@ -237,7 +237,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`allowed_tracks` 只限制 Strand track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `ak.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
+`allowed_tracks` 只限制 Strand track-targeted 操作范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `ak.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。Synthesis 正文写入的 target track 由 patch path `tracks.synthesis.content` / `tracks.synthesis.encrypted_content` 唯一派生；Strand 顶层 Description 与 metadata / stage / lifecycle 等基础字段没有 track 归属，MUST NOT 被 `allowed_tracks=["synthesis"]` 自动覆盖，仍须由 action 与 `allowed_write_fields` 单独授权。
 
 `discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks.<name>.profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 决定。
 

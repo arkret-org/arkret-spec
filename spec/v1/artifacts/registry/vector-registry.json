@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.2",
+  "version": "2026-08-18.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-18T08:45:00+08:00",
+  "generated_at": "2026-08-18T15:45:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4962,7 +4962,7 @@
       "vector_id": "ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1",
       "status": "active",
       "domain": "redaction",
-      "description": "Strand / Morph state=redacted forbids both content slots: an object carrying content or encrypted_content alongside state=redacted MUST fail strand.schema.json / morph.schema.json, the redact post-state with both slots absent MUST validate, and state=archived MUST keep the slot legal.",
+      "description": "Strand state=redacted forbids both its Description pair (content / encrypted_content) and tracks.synthesis content pair; Morph forbids its content pair. An object carrying any applicable slot alongside state=redacted MUST fail its schema, the redact post-state with all slots absent MUST validate, and state=archived MUST keep the slots legal.",
       "applies_to_fixtures": [
         "redaction-fixture.json"
       ],

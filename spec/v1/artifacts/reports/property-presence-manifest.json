@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9831,
+    "total_properties": 9837,
     "total_schema_documents": 160,
     "by_presence_class": {
-      "optional": 2868,
+      "optional": 2872,
       "optional_defaulted": 70,
       "required": 6497,
-      "required_nullable": 131,
+      "required_nullable": 133,
       "tristate": 265
     },
     "tristate_occurrences": 265,
@@ -13214,7 +13214,9 @@
         "/$defs/strand_metadata/properties/fields": "optional",
         "/$defs/strand_metadata/properties/summary": "optional",
         "/$defs/strand_metadata/properties/title": "optional",
+        "/$defs/strand_track/properties/content": "optional",
         "/$defs/strand_track/properties/enabled": "optional_defaulted",
+        "/$defs/strand_track/properties/encrypted_content": "optional",
         "/$defs/strand_track/properties/is_primary": "optional",
         "/$defs/strand_track/properties/metadata": "optional",
         "/$defs/strand_track/properties/profile": "optional",
@@ -13228,6 +13230,8 @@
         "/allOf/2/then/properties/schema_refs": "required_nullable",
         "/allOf/3/if/properties/state": "required",
         "/allOf/4/if/properties/state": "required",
+        "/allOf/4/then/not/anyOf/2/properties/tracks": "required_nullable",
+        "/allOf/4/then/not/anyOf/2/properties/tracks/properties/synthesis": "required_nullable",
         "/properties/agent_participation": "optional",
         "/properties/agent_participation/properties/native_agent": "required",
         "/properties/content": "optional",
@@ -13246,6 +13250,8 @@
         "/properties/state": "optional",
         "/properties/state_changed_at": "optional",
         "/properties/tracks": "required",
+        "/properties/tracks/properties/discussion": "optional",
+        "/properties/tracks/properties/synthesis": "optional",
         "/properties/updated_at": "optional",
         "/properties/updated_by": "optional"
       },

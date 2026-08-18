@@ -89,7 +89,9 @@ View 展示 Strand、Message 或跨 Realm Relation 时，必须先按对象 home
 | --- | --- |
 | Strand 拖到另一个 List | `ak.strand.move` |
 | Strand 在同一 List 内排序 | `ak.strand.reorder` |
-| 修改 Strand 标题、状态、负责人、截止时间 | `ak.strand.update` |
+| 修改 Strand 标题、Description、Synthesis 正文或 profile-defined 截止时间 | `ak.strand.update`（正文两面分别受 `allowed_write_fields` 约束） |
+| 推进 Strand 业务阶段 | `ak.strand.stage.set` |
+| 添加 / 移除负责人 | `ak.relation.create` / `ak.relation.tombstone`（`relation_kind=assigned_to`） |
 | 切换 Strand 默认 track / 开启 / 关闭 track / 修改 track profile | `ak.strand.tracks.update` |
 | 修改 Board Space / List Space 元数据 | `ak.space.update` |
 | 发送、编辑、撤回 discussion 消息 | `ak.message.create` / `ak.message.revise` / `ak.message.redact` |

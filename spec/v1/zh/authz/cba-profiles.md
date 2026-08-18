@@ -121,6 +121,11 @@ human self-principal PCR 的 `[ak.realm.create, ak.device.authorize]` genesis un
 **MUST NOT** 携 AuthorizationLease 或 Control Proposal Ack，但两条 canonical Event、pending Control
 index 与首 Seal obligation 仍必须原子建立。不得把此例外扩大到 ordinary Realm、managed Agent PCR、
 organization PCR 或 re-anchor/recovery。
+这里的 identity-root / founding-device “proof”均指各 Event 的唯一 producer proof。首次 admission
+落库后，两条 canonical Event 可各自按 federation 规则追加一个已验证的
+`principal_server_admission` proof；后续为首个 successor Seal 重放 genesis 时，validator 必须接受
+`[producer, principal_server_admission]` 的 accepted-Event 形态并继续只用 producer proof 判断
+identity-root / founding-device authority。不得把 admission proof 误计为第二个 author。
 
 该 authority set 正由单元创建，不能循环要求尚未生效的 founding notary state 作为 receipt
 验证前提，但允许以下两个互斥且可独立验证的 ingress authority 来源：
@@ -150,7 +155,7 @@ authority、reanchor、recovery 或普通 Control Move 不得使用第二条例�
 
 **authority-authored self-principal PCR Move**：human PCR genesis 已由 accepted Seal 建立后，若
 Control Move 同时满足 `realm_id=principal_control_realm_id(actor_id)`、current notary profile 为
-`single_did(actor_id)`、proof method 精确为该 principal 当前 active accepted device 的 canonical DID URL（该 URL
+`single_did(actor_id)`、唯一 producer proof method 精确为该 principal 当前 active accepted device 的 canonical DID URL（该 URL
 由 principal 当前 `full_id` 构成且 fragment 等于 `device_id`，不得把 `principal_id` 直接拼接 fragment），并通过 generation/fence、current Seal basis 与完整 Event signature 校验，
 则该 device 就是 proposal authority 且已经 author exact Move；这不是需要另一个 authority 签收的
 proposal。此类 Move **MUST** 省略独立 Control Proposal Ack，admitting service 仍须原子持久化
@@ -159,6 +164,10 @@ canonical Event 与无 Ack 的 pending Control row，并只在同一 current dev
 不得补签 Ack 或推进期限。任一 profile、principal、device method、accepted generation 或 Seal basis不匹配
 都必须 fail closed，且不得使用本例外。managed Agent controller delegation、organization governance、
 ordinary Realm、re-anchor/recovery 与任意 threshold/mixed notary 继续走上文的显式 Ack/quorum 轨道。
+首次 admission 后的 canonical Event 会按 federation 规则追加且仅追加一个已验证的
+`principal_server_admission` proof；Ack-less authority 重验必须只选择唯一 producer proof，并忽略该
+transport-origin attestation。实现不得因 admission proof 的存在把已接受 Event 误判为多 producer，
+也不得把 admission proof 当作 producer authority 或接受两个 producer proofs。
 
 Realm 可通过 `proposal_decision_window_ms`、`proposal_absolute_deadline_ms` 与
 `max_proposal_defers` 声明更严格的有效值；协议硬上限：

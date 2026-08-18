@@ -106,7 +106,7 @@ Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint
 
 ### 2.3 Strand track 选择
 
-Strand 的 synthesis / discussion 能力面使用 `kind="strand"` 选择器，再用 `allowed_tracks` 限制 track 范围。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
+Strand 的 track-targeted 能力面使用 `kind="strand"` 选择器，再用 `allowed_tracks` 限制 track 范围：`tracks.synthesis.content` 写入的 track 是 `synthesis`，Message timeline 操作的 track 是 `discussion`。Strand 顶层 Description（`content` / `encrypted_content`）以及 metadata / stage / lifecycle 等基础面不属于任何 track，MUST NOT 为套用 `allowed_tracks` 而被重分类成 `synthesis`；这类字段写入由 action 与 `allowed_write_fields` 收窄。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
 
 ```json
 {
@@ -127,7 +127,7 @@ Strand 的 synthesis / discussion 能力面使用 `kind="strand"` 选择器，�
 }
 ```
 
-`allowed_tracks=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `ak.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
+`allowed_tracks=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `ak.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。相应地，`allowed_tracks=["synthesis"]` 只收窄已经获准的 Synthesis track 操作，不授予顶层 Description 写入权；Description 与 Synthesis 正文仍须分别出现在 `ak.strand.update` grant 的 `allowed_write_fields` 中。
 
 ## 3. 字符串 Shorthand（可选 CLI / 日志形态，non-normative）
 
@@ -281,7 +281,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 `strand:ak:realm:...:*`
 
 - 匹配：该 Realm 中所有 Strand。
-- 若只允许某个 track 范围，必须使用 `allowed_tracks`。
+- 若只允许某个 track-targeted 操作范围，必须使用 `allowed_tracks`；Strand 基础字段没有 track 归属，使用 `allowed_write_fields` 收窄。
 
 `strand:ak:realm:...:ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh`
 
@@ -293,7 +293,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 `message:ak:realm:...:ak:strand:...:*`
 
 - 匹配：某个 Strand `discussion` track 内的所有 Message。
-- 不授予 Strand synthesis 字段写入权限。
+- 不授予 Strand Description 或 synthesis track 正文写入权限。
 - 不绕过 Strand 的 effective scope（`Strand.scope_circle_id=null` 时为父 Realm scope，否则为该 [Circle](../models/circle.md) scope）的 membership、history visibility、redaction 或 E2EE key eligibility。
 
 ### 4.5 Morph 选择器

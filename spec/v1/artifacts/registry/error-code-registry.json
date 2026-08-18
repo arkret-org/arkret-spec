@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-18.2",
+  "version": "2026-08-18.3",
   "codes": [
     {
       "code": "json_invalid",
@@ -4035,7 +4035,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "An `ak.schema.patch.v1` `$op=\"unset\"` addressed a redactable content-carrier slot. The normative path set is registry/redactable-field-registry.json (Message / Strand / Morph `content` and `encrypted_content`) plus any Realm-schema field marked `redactable: true`; the description here is not the criterion. Absence of a content slot on the materialized object is reserved for `never authored` and `cleared by redaction`, so an ordinary update MUST NOT remove it. This is a slot-existence rule, not a capability boundary: `$op=\"set\"` on the same path is ordinary authoring and MUST be accepted even when the new value carries an empty body, and no patch op can reproduce the whole-object, terminal, audit-sealed effect of redaction. `metadata`, `encrypted_metadata`, `metadata.title`, `metadata.summary` and paths under `metadata.fields` are NOT covered and MUST accept `$op=\"unset\"`. See zh/models/event-and-patch.md §4.2.4."
+      "description": "An `ak.schema.patch.v1` `$op=\"unset\"` addressed a redactable content-carrier slot. The normative path set is registry/redactable-field-registry.json (Message / Morph content pairs; Strand Description and synthesis content pairs) plus any Realm-schema field marked `redactable: true`; the description here is not the criterion. Absence of a content slot on the materialized object is reserved for `never authored` and `cleared by redaction`, so an ordinary update MUST NOT remove it. This is a slot-existence rule, not a capability boundary: `$op=\"set\"` on the same path is ordinary authoring and MUST be accepted even when the new value carries an empty body, and no patch op can reproduce the whole-object, terminal, audit-sealed effect of redaction. `metadata`, `encrypted_metadata`, `metadata.title`, `metadata.summary` and paths under `metadata.fields` are NOT covered and MUST accept `$op=\"unset\"`. See zh/models/event-and-patch.md §4.2.4."
     },
     {
       "code": "pcr_genesis_conflict",
@@ -5525,5 +5525,5 @@
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
   },
-  "generated_at": "2026-08-18T08:45:00+08:00"
+  "generated_at": "2026-08-18T16:30:00+08:00"
 }

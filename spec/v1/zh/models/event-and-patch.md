@@ -635,7 +635,7 @@ map（key 即成员名，如 Strand `tracks`）、使用 profile 注册的 move/
 `ak.schema.patch.v1` 的 `$op="unset"` 路径 MUST NOT 移除以下 **redactable 内容槽**（content carrier slot）:
 
 - Message: `content`、`encrypted_content`
-- Strand: `content`、`encrypted_content`
+- Strand: `content`、`encrypted_content`（Description），以及 `tracks.synthesis.content`、`tracks.synthesis.encrypted_content`（synthesis track）
 - Morph: `content`、`encrypted_content`
 - 任何在 Realm schema 中标记为 `redactable: true` 的字段。
 
@@ -646,7 +646,8 @@ Realm-defined 的 `redactable: true` 字段由该 Realm schema 自身机读声�
 Morph profile 或 Realm schema 定义的长文本字段若需要同样的槽保护，MUST 在该 schema 上标记
 `redactable: true`，v1 core 不再用 `metadata.fields` / `fields.<shape>` 这类散文形状族表达判据。
 
-理由（**槽存在性语义**，normative）: 内容槽是明文 / 密文二选一的同一个槽（`content` ↔ `encrypted_content`，
+理由（**槽存在性语义**，normative）: 每个内容槽都是明文 / 密文二选一的一对字段（例如 Description 的
+`content` ↔ `encrypted_content`、synthesis track 内的 `tracks.synthesis.content` ↔ `tracks.synthesis.encrypted_content`，
 由各对象 schema 的互斥约束保证）。该槽在物化对象上"缺席"只允许表达两件事：从未撰写，
 或已按 redaction policy 清除（见 [`common-fields.md` §5](./common-fields.md) `redacted` 行：内容清除、
 envelope 与审计元数据保留）。普通 `ak.<kind>.update` MUST NOT 制造第三种缺席来源。同一个槽的两种编码

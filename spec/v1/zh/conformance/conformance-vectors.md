@@ -1174,8 +1174,9 @@ runner MUST 从
 
 - 对**每一条**已登记 `(object_kind, path)` 注入 `{"$op":"unset"}`，MUST 得到 `schema_violation`、
   `reason_code=patch_unset_redactable_field`，且目标对象零变更。明文 path 与其 `paired_path`
-  的判定 MUST 完全一致——`ak.strand.update` + `content` 与 `ak.strand.update` + `encrypted_content`
-  不得给出不同结论，否则同一份正文的可移除性会取决于 Realm 是否 E2EE。
+  的判定 MUST 完全一致——Description 的 `content` / `encrypted_content` 对与 Synthesis 的
+  `tracks.synthesis.content` / `tracks.synthesis.encrypted_content` 对都必须各自保持明密文对称，
+  否则同一份正文的可移除性会取决于 Realm 是否 E2EE。
 - 对同一条 path 注入 `{"$op":"set","value":{"kind":"ak.content.text","body":""}}`，MUST 被接受：
   §4.2.4 是槽存在性约束，不是内容改写约束，空正文改写是普通编辑。
 - 对 `metadata.summary`、`metadata.title` 与 `metadata.fields.<key>` 注入 `{"$op":"unset"}`，
@@ -1762,18 +1763,19 @@ ak.vector.redaction.strand_morph_redacted_content_slot_absent.v1
 
 Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`（[`common-fields.md` §5.1](../models/common-fields.md) / §5.2）。
 `redacted` 的语义是"内容已按 redaction policy 清除，envelope 与审计元数据保留"，本向量把它固化成可从**单个物化对象**判定的判据：
-`state="redacted"` 时 `content` 与 `encrypted_content` 两个槽 MUST 同时缺席。
+`state="redacted"` 时 Strand 的 Description 槽（顶层 `content` / `encrypted_content`）与 synthesis 槽
+（`tracks.synthesis.content` / `encrypted_content`）MUST 全部缺席；Morph 的 content 槽同理。
 
 负例 1（Strand 声称已 redact，却仍带明文 `content`）：
 
-```json schema=schemas/strand.schema.json expect=invalid first_error="contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}"
+```json schema=schemas/strand.schema.json expect=invalid first_error="contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}, {'required': ['tracks'], 'properties': {'tracks': {'required': ['synthesis'], 'properties': {'synthesis': {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}}}}}]}"
 {
   "id": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
   "schema": "ak.schema.strand.v1",
   "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
   "content": {
     "kind": "ak.content.text",
-    "body": "synthesis body that redaction MUST have cleared"
+    "body": "description body that redaction MUST have cleared"
   },
   "tracks": {
     "synthesis": {
@@ -1832,7 +1834,7 @@ Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`�
 
 期望结果：
 
-- 两条负例 MUST 被 `strand.schema.json` / `morph.schema.json` 拒绝；`encrypted_content` 形态与 `content` 形态受同一条分支约束，完整的四组正负例（明文槽 / 密文槽 × Strand / Morph）见 [`redaction-fixture.json`](../../artifacts/fixtures/redaction-fixture.json) 的 `schema_validation_cases`。
+- 所有负例 MUST 被 `strand.schema.json` / `morph.schema.json` 拒绝；每个 `encrypted_content` 形态与同槽的 `content` 形态受同一分支约束。Strand 顶层 Description、Strand Synthesis track、Morph 三个内容面各自的明文 / 密文负例，以及无槽 redacted 与保槽 archived 正例，见 [`redaction-fixture.json`](../../artifacts/fixtures/redaction-fixture.json) 的 `schema_validation_cases`。
 - 正例 MUST 通过：reducer / projection MUST 在写入 `state="redacted"` 的同一次转换里清空内容槽，`state_changed_at` 取触发 `ak.redaction` event 的 `created_at`。
 - `state="archived"` MUST 仍允许内容槽存在——archive 是可逆软隐藏，不是内容清除；把 archive 也做成清空是实现越权。
 - 物化对象上 MUST NOT 出现 `redaction_ref` 一类的对象级 redaction 引用：Strand / Morph 走 cross-object `ak.redaction`，审计链接由 `ak.component.object.redaction.v1` cell 的事件索引提供（[`common-fields.md` §5.2](../models/common-fields.md)）。

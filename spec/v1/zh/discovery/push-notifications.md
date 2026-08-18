@@ -206,8 +206,9 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
 
 - Event payload 显式引用 Strand（如 `ak.message.create` 携带 `strand_id`，或 `ak.strand.update` 直接作用于 Strand）→ 按 Event 类型映射：
   - `ak.message.create` / `ak.message.revise` / `ak.message.redact` / `ak.reaction.add` / `ak.reaction.remove` 在 Strand 的 discussion timeline 中产生 → `track_name = "discussion"`
-  - `ak.strand.update`（修改 Strand synthesis 字段、状态、标题等）→ `track_name = "synthesis"`
-  - `ak.strand.create` / `ak.strand.archive` / `ak.strand.restore` / `ak.strand.move` / `ak.strand.reorder` → `track_name = "synthesis"`（生命周期与位置变更归入 synthesis 视角，便于过滤）
+  - `ak.strand.update` 的 patch 触及 `tracks.synthesis.content` / `tracks.synthesis.encrypted_content` → `track_name = "synthesis"`；同时必须通过该 track 的 active gate
+  - `ak.strand.update` 只修改 `content` / `encrypted_content`（Description）、metadata、状态、标题等 Strand 基础字段 → 不派生 `track_name`；这些字段不属于任一 track
+  - `ak.strand.create` / `ak.strand.archive` / `ak.strand.restore` / `ak.strand.move` / `ak.strand.reorder` → 不派生 `track_name`（生命周期与位置是 Strand 基础面，不得冒充 synthesis 更新）
   - `ak.strand.tracks.update`（track 配置 / primary / enabled 变更）→ patch 影响的每个 track key 各派生一条 `track_name`；同时影响多个 track 时 server 派生 set，`strand_track` pattern 匹配任一即匹配
   - `ak.strand.watch.set` → `track_name` 不派生（watch 是个人偏好，不属于任一 track 时间线）；`strand_track` condition 视为不匹配
 - Event 不属于任何 Strand（普通 Realm 消息）→ `strand_track` condition 视为不匹配（既不为真，也不报错）；用户希望覆盖普通 Realm 消息时应使用 `field_match` on `realm_id` 而非 `strand_track`

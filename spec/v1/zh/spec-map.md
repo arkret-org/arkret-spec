@@ -89,7 +89,7 @@ see_also:
 - Realm 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
 - Strand、Message 和 Realm workflow 容器是协议标准对象，拥有明确主语义和 reducer。
 - Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
-- Strand 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载正式表达与讨论能力。Track 是纯展示 / 时间线分段标识，**不携带独立 access**——整个 Strand 共享单一 effective scope（由 `Strand.scope_circle_id` 决定，null = Realm-default，否则指向同 Realm 的 [Circle](./models/circle.md)）。需要独立 membership、历史可见性或 E2EE 边界时，把整 Strand 落在 Circle，或按 [`models/circle.md` §7.2](./models/circle.md) 拆为两个 Strand + Relation。
+- Strand 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载独立正式记录正文与 Message 讨论时间线。Strand 顶层 `content` 始终是 Description，不属于任何 track。Track **不携带独立 access security boundary**——整个 Strand 共享单一 effective scope（由 `Strand.scope_circle_id` 决定，null = Realm-default，否则指向同 Realm 的 [Circle](./models/circle.md)）；写入权限仍可由 action 与字段 / track constraints 收窄。需要独立 membership、历史可见性或 E2EE 边界时，把整 Strand 落在 Circle，或按 [`models/circle.md` §7.2](./models/circle.md) 拆为两个 Strand + Relation。
 - View 是投影定义，不拥有真相数据。
 
 ### 3.3 Principal Server / Events / Sync / Projection

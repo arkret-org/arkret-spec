@@ -3592,6 +3592,93 @@
         "expires_at": "2026-08-16T00:05:00.000Z",
         "service_signature": {"kid": "did:webvh:z6mkfixture:media.example#key-1", "sig": "AA"}
       }
+    },
+    {
+      "name": "strand_description_is_valid_without_synthesis_track",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "content": {
+          "kind": "ak.content.text",
+          "body": "Description remains a Strand body even on a discussion-only Strand."
+        },
+        "tracks": {
+          "discussion": {
+            "is_primary": true
+          }
+        },
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-08-18T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "strand_description_and_synthesis_track_content_are_distinct",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "content": {
+          "kind": "ak.content.text",
+          "body": "Independent Description"
+        },
+        "tracks": {
+          "synthesis": {
+            "is_primary": true,
+            "content": {
+              "kind": "ak.content.text",
+              "body": "Independent Synthesis track content"
+            }
+          },
+          "discussion": {}
+        },
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-08-18T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "strand_discussion_track_cannot_carry_content",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['content']}, {'required': ['encrypted_content']}]}",
+      "instance": {
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "tracks": {
+          "discussion": {
+            "is_primary": true,
+            "content": {
+              "kind": "ak.content.text",
+              "body": "Discussion content belongs in Message objects."
+            }
+          }
+        },
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-08-18T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "strand_top_level_synthesis_content_alias_is_rejected",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:Unevaluated properties are not allowed ('synthesis_content' was unexpected)",
+      "instance": {
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "synthesis_content": {
+          "kind": "ak.content.text",
+          "body": "This invalid alias must never return."
+        },
+        "tracks": {
+          "discussion": {
+            "is_primary": true
+          }
+        },
+        "created_by": "ak:did_core:webvh:z6mkfixture",
+        "created_at": "2026-08-18T00:00:00.000Z"
+      }
     }
   ]
 }
