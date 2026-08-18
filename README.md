@@ -79,7 +79,7 @@ CI: [`.github/workflows/artifact-lint.yml`](./.github/workflows/artifact-lint.ym
 cd site
 npm install
 npm run dev          # http://localhost:4321
-npm run build        # 静态产物 site/dist/
+pnpm run build     # 静态产物 site/dist/
 ```
 
 详见 [`site/README.md`](./site/README.md)。

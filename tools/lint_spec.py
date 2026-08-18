@@ -482,10 +482,6 @@ def lint_file(path: Path) -> list[Finding]:
         if line.strip():
             previous_nonblank = line.strip()
 
-    for idx, raw in enumerate(all_lines, start=1):
-        # Skip lines inside fenced code blocks heuristically: tracked below.
-        pass
-
     in_code = False
     pending_ignore: set[str] = set()
     for idx, raw in enumerate(all_lines, start=1):
