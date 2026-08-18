@@ -793,6 +793,38 @@
             }
           },
           {
+            "name": "strand_tracks_synthesis_content_unset_rejected",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "tracks.synthesis.content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
+            "name": "strand_tracks_synthesis_encrypted_content_unset_rejected",
+            "object_kind": "strand",
+            "event_kind": "ak.strand.update",
+            "patch": {
+              "tracks.synthesis.encrypted_content": {
+                "$op": "unset"
+              }
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "reason_code": "patch_unset_redactable_field",
+              "object_unchanged": true
+            }
+          },
+          {
             "name": "morph_content_unset_rejected",
             "object_kind": "morph",
             "event_kind": "ak.morph.update",
