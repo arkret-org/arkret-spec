@@ -1880,7 +1880,7 @@
       "mq": "peer.service_resolution.command.publish",
       "notes": "Realm-scoped service-authenticated publication of exactly one target-signed ServiceResolutionRecord or ServiceRouteHandoverNotice. Idempotency-Key is required, is covered by the HTTP Message Signature, and MUST equal body.request_id. Transport replay is keyed by (Source-Service-ID, realm_id, request_id) and binds the complete canonical request digest: exact replay returns the original ack and a different digest is duplicate_conflict. Artifact integrity is independently keyed by (Source-Service-ID, realm_id, target service_id, artifact family/key/revision): the same artifact key with another digest conflicts with zero overwrite. The receiver validates source peer authority, target visibility, exact artifact_digest, target proof, full_id-to-core projection, sequential record/notice basis, time rules and hard bounds before writing its service-local mirror ledger. The receiver-signed ack cross-binds both keys, request_digest and accepted time; it proves durable receipt of exact bytes only and never makes a URL authoritative or declares a migration safe unless the deployment-required peer set has all acked.",
       "body_class": "non_streaming_json",
-      "max_canonical_body_bytes": 262144,
+      "max_canonical_body_bytes": 65536,
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
