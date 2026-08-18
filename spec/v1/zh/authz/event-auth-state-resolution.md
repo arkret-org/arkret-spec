@@ -66,7 +66,7 @@ DataEvent {
   causal_refs[]                  // 语义因果前驱 event_digest；可由 refs[role=causal] 表达
   seal_ref                 // 单个控制面 Seal id
   auth_context {
-    did
+    actor_id
     key_id
     key_epoch
     credential_epoch?
@@ -91,7 +91,7 @@ DataEvent 的 `auth_context` MUST pin 事件签名时 producer 声称的身份�
 
 ```text
 auth_context {
-  did
+  actor_id
   key_id
   key_epoch
   credential_epoch?
@@ -794,7 +794,7 @@ AvailabilityReceipt {
 Realm 的 `digest_algorithm` 只能通过控制面 suite-transition Control Move 改变。transition Move MUST 经 Seal 接受，并在该 Transition Seal 上同时承诺旧 suite 与新 suite：
 
 1. transition Move 的 payload MUST 声明 `from_digest_algorithm`、`to_digest_algorithm`、`transition_snapshot_ref` 与 `snapshot_commitment`；`from_digest_algorithm` MUST 等于当前 Realm live suite，`to_digest_algorithm` MUST 是 digest-suite registry 的 active row，且不得违反 registry 的 no-downgrade strength order。
-2. Transition Seal body MUST 携带 `previous_state_root`，其 suite prefix 等于 `from_digest_algorithm`，并继续携带普通 `state_root`，其 suite prefix 等于 `to_digest_algorithm`。`previous_state_root` 是 §3.3 Realm 级 suite 排他的唯一豁免字段。
+2. Transition Seal body MUST 携带 `previous_state_root`，其 suite prefix 等于 `from_digest_algorithm`，并继续携带普通 `state_root`，其 suite prefix 等于 `to_digest_algorithm`。`previous_state_root` 是 [`../conformance/encoding.md` §3.3](../conformance/encoding.md) 的 Realm 级 suite 排他的唯一豁免字段。
 3. Verifier MUST 用旧 suite 重算 transition **前**治理 view 的 `previous_state_root`，用新 suite 重算应用 transition Move **后**治理 view 的 `state_root`，并验证 `snapshot_commitment` 对同一 control/data frontier 的 inclusion。`previous_digest_algorithm` MUST 等于 transition Move 的 `from_digest_algorithm`。任一 root、snapshot commitment、suite identity 或 suite strength 判定不匹配时，Transition Seal MUST `rejected_seal`。
 
 上述状态机的认证入口是 `ak.vector.hash_transition.dual_root_recompute.v1` 与 `ak.vector.hash_transition.fail_closed.v1`（`hash-transition-fixture.json`）。声明 `ak.profile.hash_transition.v1` 的实现 MUST 执行双 suite 正例以及缺 root、错 suite、snapshot mismatch、降级、非 Transition Seal 携带 `previous_state_root`、迁移后旧 suite 再现的全部负例。

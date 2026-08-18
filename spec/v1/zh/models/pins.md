@@ -20,7 +20,7 @@ see_also:
 
 Shared pin 是进入 Realm reducer 的共享投影事实，用于把 Message、Strand、Morph、Relation 或其它可引用对象固定在某个共享范围中。个人保存 / 收藏不使用 shared pin；它们由 [personal-productivity.md](./personal-productivity.md) 的 account data 表达。
 
-**架构决策（normative boundary）**：Pin 有意不建模为 `Relation.kind=pinned`。Relation 表达对象之间可查询、可参与图遍历的语义边；Pin 表达某个 projection home 的有序 UI roster，`pin_scope` 不是关系端点或安全边界，且 reorder 是高频 CAS 排序操作。把 Pin 放入 Relation 会让 UI 排序边进入通用关系图、改变 graph query / relation-kind registry 语义并混淆 scope。实现 MUST 使用本文件的 pin cell 与三类 event，MUST NOT 以 `Relation` 代替 shared Pin；二者共享 `event_digest` 并发 tie-break 规则只是复用确定性原语，不表示模型等价。
+**架构决策（normative boundary）**：Pin 有意不建模为 `Relation.kind=pinned`。Relation 表达对象之间可查询、可参与图遍历的语义边；Pin 表达某个 projection home 的有序 UI roster，`pin_scope` 不是关系端点或安全边界，且 reorder 是高频 CAS 排序操作。把 Pin 放入 Relation 会让 UI 排序边进入通用关系图、改变 graph query / relation-kind registry 语义并混淆 scope。实现 MUST 使用本文件的 pin cell 与三类 event，MUST NOT 以 `Relation` 代替 shared Pin。
 
 实现声明 `ak.profile.pinned_items.v1` 时，MUST 支持 `ak.pin.add`、`ak.pin.remove` 和 `ak.pin.reorder`。
 
@@ -65,6 +65,12 @@ effective 断言来自 `ak.pin.remove` 时该 entry 不出现在 roster；来自
 该 payload；来自 `ak.pin.reorder` 时 rank 取该 reorder 的 `rank`，`note` 与其余 entry 字段
 继承自同一 `(pin_scope, target_ref)` 下因果最晚的存活 `ak.pin.add` 断言——reorder
 「只更新 rank」即由此保证，reorder MUST NOT 清除 note。
+
+**没有可继承 `ak.pin.add` 时的 reorder（normative）**：若该 `(pin_scope, target_ref)` 下不存在
+因果更早且存活的 `ak.pin.add` 断言（从未 add，或 effective 断言是 `ak.pin.remove`），reducer
+MUST 以 `failed_precondition`（`reason=pin_target_not_pinned`）拒绝该 `ak.pin.reorder`，
+**MUST NOT** 用只有 rank 的合成 entry 把目标重新放回 roster。目标对象尚未在本地物化时按
+[`common-fields.md` §5.1](./common-fields.md) 的「未知对象 pending / replay」保留待重放。
 
 该 or_set 的 join 仍是 dot 集合并，可交换、可结合、幂等且数学上永不产生 `⊥`；registry 登记的
 `bottom=expose` 按 §9.1.1 由本节这一领域规则定义暴露语义。审计视图保留全部断言。

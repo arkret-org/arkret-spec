@@ -48,8 +48,8 @@ Schema id: `ak.schema.event.v1`
 | --- | --- | --- | --- | --- |
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `conformance-vectors.md`。 | 事件 ID。 |
 | `kind` | yes | `string` | MUST 匹配 `^ak\.[a-z0-9_]+(\.[a-z0-9_]+)*$`；标准 kind MUST 登记于 `event-kind-registry.json`。Registry 的 reducer contract 声明内部 cell target、lattice、bottom 与投影。 | 事件 kind。 |
-| `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
-| `scope_ref` | yes | `object` | `{kind:realm, realm_id}` 或 `{kind:circle, realm_id, circle_id}`。由 producer 声明并进入 event digest、proof 与 E2EE AAD；reducer 从 payload 和 accepted references 独立派生后逐字段比对。 | 签名安全作用域。 |
+| `realm_id` | conditional | `id:realm` | 除 `ak.realm.create` 外必填。Realm genesis Event **省略**该字段，接收方按 [`realm-and-space.md` §2.5.0](./realm-and-space.md) 从 Event 自身或已签名 actor DID 派生；payload 也 MUST NOT 重复携带（[`common-fields.md` §6.0](./common-fields.md)）。 | 所属 Realm。 |
+| `scope_ref` | yes | `object` | 封闭 `oneOf`，分支集合以 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json) 的 `$defs.scope_ref` 为准（v1 为 `realm` / `circle` / `sidecar` / `realm_genesis`）。由 producer 声明并进入 event digest、proof 与 E2EE AAD；reducer 从 payload 和 accepted references 独立派生后逐字段比对。 | 签名安全作用域。 |
 | `actor_id` | yes | `did_core_id` | 必须匹配 proof 控制链投影出的 `did_core_id`（`executed_by` 缺失时）；`executed_by` 存在时 proof 控制链投影对齐 `executed_by`。 | 事件归属的 principal of record。 |
 | `principal_server_id` | yes | `did_core_id` | producer 自行选择并进入 canonical Event bytes 与 `event_digest`。它必须对应 `author_id = executed_by ?? actor_id` 的账号 authority；service principal 直接 author 时等于其自身 service DID。任何接收服务、replica、notary 或 transport relay 都不得补写或改写。 | 实际 author 的唯一 origin Principal Server。 |
 | `executed_by` | conditional | `did_core_id` | agent / applet / delegated service 代 `actor_id` 写入时出现。出现时 MUST 与 `authorization_ref` 同时出现；Applet delegated 写入还 MUST 同时出现 `applet_id`。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 解析 proof 的完整 DID URL `verification_method`，并校验其控制主体投影为 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的主体。 |
@@ -61,7 +61,7 @@ Schema id: `ak.schema.event.v1`
 | `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在计算 Event digest 与签名之前截断到毫秒，不得使用 `+00:00`；不能单独决定因果。 | 创建时间。 |
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Control Move precondition 或 Seal finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
 | `prev_refs` | yes | `array<EventId>` | 可为空。每项是完整 suite-tagged Event ID，仅承载 actor event chain causal predecessors；suite code 与全部 digest bytes 进入本 Event digest preimage。 | Actor event chain 前序的完整密码学身份。 |
-| `causal_refs` | conditional | `array<hash>` | 携带 `payload.patch` 的 DataEvent MUST 为每个 registry 目标 cell 精确引用一个 accepted base-head event digest，见 §4.3.1；其余 DataEvent 可用于声明业务因果。它不提供全局完整性证明。 | 数据面因果前驱。 |
+| `causal_refs` | conditional | `array<digest>` | 携带 `payload.patch` 的 DataEvent MUST 为每个 registry 目标 cell 精确引用一个 accepted base-head event digest，见 §4.3.1；其余 DataEvent 可用于声明业务因果。它不提供全局完整性证明。 | 数据面因果前驱。 |
 | `refs` | yes | `array<SemanticRef>` | 默认 `[]`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 语义引用集合。 |
 | `requirements` | no | `object` | `requirements.{schema[], features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / feature / critical extension）。Reducer profile 从 Event 的 CBA governance basis 读取，不在 Event 中声明。 |
 | `preconditions` | conditional | `array<Predicate>` | 仅 Control Move 携带；在 `seal_basis` 治理 view 下求值。DataEvent MUST 省略。 | 控制面原子条件。 |
@@ -69,7 +69,6 @@ Schema id: `ak.schema.event.v1`
 | `auth_context` | conditional | `object` | DataEvent 必填；pin DID/key epoch。有效 capability 集合从 `seal_ref` 治理状态派生，producer 不提交重复引用。 | 数据面签名密钥上下文。 |
 | `seal_basis` | conditional | `object` | Control Move 必填；只含 canonical sorted、duplicate-free `leaves[]` 并进入 canonical bytes。receiver 验证这些 Seal 并重算 covered control set、joined state 与 Seal roots；不得由 producer 重复抄写 roots。 | 控制面提交基线。 |
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
-| `redacts` | no | `id:event` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。**producer / self submit 与 peer submit 的 Event MUST NOT 携带该字段**；它只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断。service-added `unsigned` 单对象 canonical JSON MUST NOT 超过 16 KiB，见 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md)。 | 仅 read view 的本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个 producer proof；origin Principal Server 完成本地准入后最多追加一个 `principal_server_admission`。 | producer 签名与 origin admission 证明。 |
 
@@ -434,7 +433,7 @@ Create 类 Event 的 `payload.object` MAY 使用其登记的对象或 genesis sc
 
 `event_id` 不再包含时间段。本节下界仅证明因果单调性、CBA basis 时序与 future-skew admission，不给完整 256-bit digest 增加额外密码学位数，也不能阻止攻击者为可预测的未来时间预计算。真正限制预计算需要事前不可预测的 recent Seal/head/beacon 加可信首次准入窗口；本节不声称单独提供该性质。
 
-判据全部是**签名值对签名值的比较，不使用本地时钟**，因此无时钟依赖、跨 receiver 收敛、与到达顺序无关，且对经 submit 还是 federation 路径到达的 Event 一律成立：
+判据 (a) / (b) 是**签名值对签名值的比较，不使用本地时钟**；(c) 是既有的未来一侧 skew 上界，它按定义使用 receiver 本地时钟，因此只作用于 admission 窗口，不参与因果或收敛判定，因此无时钟依赖、跨 receiver 收敛、与到达顺序无关，且对经 submit 还是 federation 路径到达的 Event 一律成立：
 
 ```text
 (a) created_at ≥ max( prev_refs[] 中每条已接受 Event 的 created_at )

@@ -147,15 +147,27 @@ Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠
 
 ### 4.1 Agent draft、Sidecar view 与 participation account data
 
-三类 controller-owned encrypted account data 类型在 `ak.agent.*` 命名空间下:
+两类 controller-owned encrypted account data 类型在 `ak.agent.*` 命名空间下:
 
 - **`ak.agent.draft.v1`**:agent 通过 `ak.agent.draft.propose` / `ak.agent.action_request`(actor_private_event)提议候选内容,Principal Server 通过 capability / policy / accountability / risk check 后,materialize 为 controller-owned `ak.agent.draft.v1` account-data。Key pattern 建议 `ak.agent.draft.v1:<agent_id>:<draft_id>`,声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。Draft MUST NOT 作为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event` 进入目标 Realm 共享历史。Draft 引用目标 `realm_id` / `strand_id` / `message_id` 不授予目标 Realm 成员读取 draft 内容的权利。
 - **`ak.agent.sidecar_view_state.v1`**：controller-private context view state，使用 `ak.schema.agent_sidecar_view_state.v1` plaintext。Key pattern `ak.agent.sidecar_view_state.v1:<controller_id>:<target_realm_id>:<target_strand_id>`；保存 Sidecar 寄宿显示的 `display_mode=context_merged|sidecar_only`、pin/折叠与跨设备 HLC。它引用 `sidecar_id`，但不得产生 shared Strand durable 写入。
-- **`ak.agent.participation.v1`**：Account Authority 持有的 controller-private 逐 scope selection authority，required 内容为 closed `{target_scope,selection,version}`，selection 五位恰为 `{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf}`。Key pattern 为 `ak.agent.participation.v1:<agent_id>:<scope_key>`，scope 只允许 realm/circle/strand closed XOR，`encrypted_at_rest=true`。首次 version 为 1，replace 以 expected_version 做 CAS。它不授予 capability、不写 Realm Event、不复制 ceiling/effective；target 在实际动作时将 Account Authority 签发的当前 selection 与本地 current ceiling、普通 capability 和 lifecycle 求交。
 
-上述类型 key 前缀不同、key 第二段语义不同（`draft` / `participation` 为 agent_id，Sidecar view 为 controller_id），不会在 `ak.agent.*` 命名空间下冲突。注册时 MUST 在 `account-data-key-registry.json` 显式声明 key pattern、plaintext schema 与 holder principal，reducer/client 据此做归属、key/content binding 与 closed-schema 校验。
+上述两类 key 前缀不同、key 第二段语义不同（`draft` 为 agent_id，Sidecar view 为 controller_id），不会在 `ak.agent.*` 命名空间下冲突。注册时 MUST 在 `account-data-key-registry.json` 显式声明 key pattern、plaintext schema 与 holder principal，reducer/client 据此做归属、key/content binding 与 closed-schema 校验。
 
-`ak.schema.agent_sidecar_exchange_projection.v1` 不属于本节 Account Data：它只是 controller 设备从 Sidecar private Event history 生成的本地可删除 cache/SDK DTO，不注册 account-data key，不进入 account stream，也不跨设备合并。真相源与恢复规则见 [`sidecar.md`](./sidecar.md) §7.2。
+**Agent participation selection 不是 Account Data（normative）**：逐 scope 的 Agent participation
+selection 由 Account Authority 持有，寻址键是 `(agent_id, target_scope)`，读写入口只有
+`ak.self.agent.participation.resource.get` / `.replace`（见
+[`../sync/service-http-binding.md` §5](../sync/service-http-binding.md) 与
+[`../authz/capabilities.md` §11](../authz/capabilities.md)）。它 **MUST NOT** 登记 account-data key，也
+**MUST NOT** 经 `ak.account_data.set` 写入：那会给同一记录造出第二套 CAS 计数器
+（account-data 的 `expected_revision` 与本记录的 `expected_version`），两者无法互相推导。记录内容是
+closed `{target_scope, selection, version}`，`selection` 五位恰为
+`{reply_message, reaction_add, reaction_remove, accept_third_party_mention, act_on_behalf}`，
+`target_scope` 只允许 realm / circle / strand 的 closed XOR。首次写 `expected_version=0`，每次接受严格 +1。
+它不授予 capability、不写 Realm Event、不复制 ceiling/effective；target 在实际动作时将当前 selection 与
+本地 current ceiling、普通 capability 和 lifecycle 求交。
+
+`ak.schema.agent_sidecar_exchange_projection.v1` 不属于本节 Account Data：它只是 controller 设备从 Sidecar private Event history 生成的本地可删除 cache/SDK DTO，不注册 account-data key，不进入 account stream，也不跨设备合并。真相源是 Sidecar private Event history 本身（[`sidecar.md` §8](./sidecar.md)）；fold 与 cache 恢复的判据由 [`../conformance/conformance-vectors.md` §11.10.4](../conformance/conformance-vectors.md) 固化。
 
 ### 4.2 隐私边界(normative)
 
@@ -163,7 +175,7 @@ Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠
 
 - 存储 MUST 使用 `wire_scope=actor_private_event` 通道(encrypted account data 或 actor-private stream);不得进入 shared Realm data-plane history 或 control-plane Seal history。
 - 目标 Realm 的 `ak.self.events.stream.subscribe` / `ak.self.events.read.scan` / shared reducer / Realm search index / notification fanout / push preview MUST NOT 返回 draft、Sidecar view state 或本地 exchange cache 内容。
-- `ak.self.account.stream.subscribe` 只能把 controller-owned approval draft / Sidecar view state 返回给 controller principal 的授权 session。Agent runtime MUST NOT 接收上述 controller-owned encrypted account data：其 value 以 controller account secret 派生密钥加密（[`account-data.md`](./account-data.md) §3），不同 principal 的 account secret 强制隔离，不存在也不得新增向 Agent runtime 分发该 secret 的机制。Agent runtime 所需的 Sidecar exchange identity 经 [`sidecar.md`](./sidecar.md) §7.2.1 的加密 exchange binding 在 Event 内传递。
+- `ak.self.account.stream.subscribe` 只能把 controller-owned approval draft / Sidecar view state 返回给 controller principal 的授权 session。Agent runtime MUST NOT 接收上述 controller-owned encrypted account data：其 value 以 controller account secret 派生密钥加密（[`account-data.md`](./account-data.md) §3），不同 principal 的 account secret 强制隔离，不存在也不得新增向 Agent runtime 分发该 secret 的机制。Agent runtime 所需的 Sidecar exchange identity 只经 Event 内的 exchange binding 传递（runtime 从 `role=request` binding 取得 `exchange_id`，不存在 Account Data projection 读写路径），判据见 [`../conformance/conformance-vectors.md` §11.10.3](../conformance/conformance-vectors.md)。
 - 若服务端存储明文，该 deployment MUST 把"明文可见服务"写入 profile / policy 并向 controller 披露；默认语义 SHOULD 是服务端只保存 encrypted account data。
 - Draft 发布到目标 Strand 时,shared event MAY 通过 `refs[].role="draft_source"` 携带 opaque digest,但明文 draft id、private metadata、scratchpad、private prompt 或历史版本 MUST NOT 泄露到共享历史。
 - Sidecar 发布到目标 Strand 时，MUST NOT 泄露 `sidecar_id`、private Event id、MLS material、private messages、scratchpad 或 draft history。

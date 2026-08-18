@@ -27,10 +27,14 @@ updated: 2026-07-02
 - `draft-ietf-mimi-room-policy-03`
 - `draft-kohbrok-mimi-identifiers-01`
 
-本 profile 的 active conformance vectors 为：
+本 profile 的 active conformance vector 集合以
+[`vector-registry.json`](../../artifacts/registry/vector-registry.json) 的 `ak.vector.mimi.*` 行为准
+（清单以该 registry 为唯一权威，本节只是它的可读镜像；两者不一致时以 registry 为准）：
 
 - `ak.vector.mimi.provider_directory_draft_pinning.v1`
+- `ak.vector.mimi.provider_directory_signature.v1`
 - `ak.vector.mimi.room_binding_projection.v1`
+- `ak.vector.mimi.room_update_branched_effect.v1`
 - `ak.vector.mimi.keypackage_claim_lifecycle.v1`
 - `ak.vector.mimi.content_roundtrip.v1`
 - `ak.vector.mimi.identifier_query_privacy.v1`
@@ -499,7 +503,7 @@ MIMI identifier MUST NOT 被直接作为 Arkret actor。映射规则：
 
 ## 11. Abuse Report And Proxy Download
 
-`ak.open.mimi.command.report_abuse` MUST 映射到 `ak.self.moderation.command.report`。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
+`ak.open.mimi.command.report_abuse` MUST 映射到一条 `ak.self.moderation.report` **Event**，由 facade 以自己的 service DID 作者身份提交到普通 Event admission（`service_attested` variant，见下方「归属与 admission 的分离」）。它 **MUST NOT** 走 `ak.self.moderation.command.report` operation：该 self endpoint 只接受 reporter 本人设备直接签名，并显式禁止 MIMI facade provenance（[`../governance/content-moderation.md` §3.1](../governance/content-moderation.md)），按它走必被拒。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
 
 入站 MIMI report 的 `reporter` MUST 按 [§10 Identifiers And Consent](#10-identifiers-and-consent) 的 consent / holder-claim 规则解析到 Arkret principal,facade MUST NOT 仅凭来源 provider 的断言把 report 归因到既有 principal(防止以他人名义举报)。映射前 facade 还 MUST 校验该 reporter 对 `target_ref` 在对应 Realm / scope 内可见(对齐 [`../governance/content-moderation.md` §3.1/§3.3](../governance/content-moderation.md)),并把 [`../governance/content-moderation.md` §3.1.1](../governance/content-moderation.md) 的 per-reporter 限速至少按 (映射后 reporter principal DID, 来源 provider service DID) 双维度施加；不满足按 pairwise / pending 处理或拒绝。
 

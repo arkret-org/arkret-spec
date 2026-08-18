@@ -37,7 +37,7 @@ registry 中 `storage="encrypted_account_data"` 的 value MUST 使用 `ak.schema
 
 account secret 属于 `secret_storage`，MUST 进入 key-backup / recovery lifecycle；不同 principal 与不同 `account_data_key` 的派生 key MUST 域隔离。
 
-AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id`、`account_data_key`、`schema`、`version`。该对象即本 domain 在 [`../conformance/encoding.md` §10.2](../conformance/encoding.md) 意义上的 **pre-encryption immutable header**：四个字段全部在 AEAD seal 前确定。`aad_digest` 是该 canonical JSON 的 `sha256:` digest；`ciphertext_digest` 是解码后 ciphertext bytes 的 `sha256:` digest。两者都是 header 之外的字段，MUST NOT 进入 AAD——`ciphertext_digest` 覆盖含 AEAD tag 的完整密文，把它放回 AAD 会形成不可构造循环。Consumer MUST 在解密前验证闭合 schema、AAD actor/path/data-type 绑定与两个 digest（`aad_digest` 由 consumer 从 envelope 重建 `aad` 后重算比对，MUST NOT 采信调用方自报值代替 AAD）；任一不匹配 MUST fail closed，且不得以失败结果覆盖本地已验证状态。Server MAY 重算 digest 与验证 envelope 结构，但 MUST NOT 获得 account secret、派生 key 或明文。
+AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id`、`account_data_key`、`schema`、`version`。该对象即本 domain 在 [`../conformance/encoding.md` §10.2](../conformance/encoding.md) 意义上的 **pre-encryption immutable header**：四个字段全部在 AEAD seal 前确定。`aad_digest` 是该 canonical JSON 的 `sha256:` digest；`ciphertext_digest` 是解码后 ciphertext bytes 的 `sha256:` digest。两者都是 header 之外的字段，MUST NOT 进入 AAD——`ciphertext_digest` 覆盖含 AEAD tag 的完整密文，把它放回 AAD 会形成不可构造循环。Consumer MUST 在解密前验证闭合 schema、AAD 的四个字段绑定（`actor_id` 归属、`account_data_key` 命名空间、`schema` 与 `version`）与两个 digest（`aad_digest` 由 consumer 从 envelope 重建 `aad` 后重算比对，MUST NOT 采信调用方自报值代替 AAD）；任一不匹配 MUST fail closed，且不得以失败结果覆盖本地已验证状态。Server MAY 重算 digest 与验证 envelope 结构，但 MUST NOT 获得 account secret、派生 key 或明文。
 
 ## 4. 文档放置规则
 
@@ -55,7 +55,7 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id
 - 每次被接受的写入（包括 tombstone 写入）存储 `expected_revision + 1`。
 - `revision` 是**高水位**：MUST NOT 回退。即使 tombstone 已被 GC，服务端仍 MUST 保留该 key 的最后 `revision`。
 
-`ak.account_data.set` payload 与 `ak.self.account_data.resource.replace` request body MUST 携带 `expected_revision`；`ak.self.account_data.resource.delete` MUST 以同名 query 参数携带。创建一个从未写入的 key 使用 `expected_revision=0`。
+`ak.account_data.set` payload MUST 携带 `expected_revision`。`ak.self.account_data.resource.replace` 与 `ak.self.account_data.resource.delete` 的 request body 都只承载一个 signed `ak.account_data.set` Event，`expected_revision` 因此始终取自该 Event 的 payload，没有并行的 query 参数入口。创建一个从未写入的 key 使用 `expected_revision=0`。
 
 服务端 MUST 在同一 key 上原子地比较并写入：`expected_revision` 不等于当前 `revision` 时 MUST 以 `cas_conflict` 拒绝，MUST NOT 存储任何内容、MUST NOT 推进 `revision`，也 MUST NOT 向其它设备 fanout。因此设备 A 的旧字节级 retry 在设备 B 的新写之后必然失败，而不是把 key 整体退回旧值。
 

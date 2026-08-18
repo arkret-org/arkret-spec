@@ -519,7 +519,7 @@ SHOULD 支持：
 - `ak.profile.sovereign_deployment.v1`（`ak.profile.sovereign_enclave.v1` 经 `inherits` 继承）
 - `ak.profile.isolated_sovereign_network.v1`（经 `inherits` 同时继承上述两者，无需重复声明）
 
-这些 profile 下，对所有受保护 `ak.self.*` operation，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ak.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §6](./encoding.md)）。`ak.self.` 是机器可判定的默认保护面；新增或未知 operation 默认 fail closed。带 body 请求的 exact canonical HTTP content bytes、唯一 RFC 9530 `sha-256` token 与 raw-byte verification MUST 遵循 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md)。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；operation registry 明确允许匿名 public metadata projection 时，无有效 proof 只能返回该公开 projection，必须按未认证请求处理，不得授予 session / capability 语义。PoP header 形态见 [`../sync/service-http-binding.md` §2.5.2](../sync/service-http-binding.md)。
+这些 profile 下，对所有受保护 `ak.self.*` operation，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ak.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §7.2](./encoding.md)）。`ak.self.` 是机器可判定的默认保护面；新增或未知 operation 默认 fail closed。带 body 请求的 exact canonical HTTP content bytes、唯一 RFC 9530 `sha-256` token 与 raw-byte verification MUST 遵循 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md)。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；operation registry 明确允许匿名 public metadata projection 时，无有效 proof 只能返回该公开 projection，必须按未认证请求处理，不得授予 session / capability 语义。PoP header 形态见 [`../sync/service-http-binding.md` §2.5.2](../sync/service-http-binding.md)。
 
 ## 16. Sovereign Client
 
@@ -821,7 +821,7 @@ Applet bridge SHOULD 支持：
 
 MUST 支持：
 
-- 在接收 E2EE Event Envelope 时签发 `ak.moderation.franking_proof` 事件，绑定 `event_id`、`ciphertext_digest`、`aad_digest`、`sender_claim` (含 mls_group_id + epoch)、`received_by` (service DID)、`received_at`、`replay_nonce`。
+- 在接收 E2EE Event Envelope 时签发 `ak.moderation.franking_proof` 事件，绑定 `event_id`、`ciphertext_digest`、`aad_digest`、`sender_claim`（**仅 `mls_group_id_digest`**：携带 raw `mls_group_id` 或明文 `epoch` MUST 被拒，见 [`conformance-vectors.md` §7.4](./conformance-vectors.md)）、`received_by` (service DID)、`received_at`、`replay_nonce`。
 - franking proof `signature` 由 service DID 当前有效 verification method 签发，覆盖 franking proof canonical bytes。
 - 每条 franking proof 必须可被独立 verify：使用 proof 接受时点固定的 service key binding 校验 verification method 有效期与 Realm service binding，并重算 payload hash。仅在本地尚无该 issuer / key binding、binding invalidation 或显式 historical freshness 要求命中时解析相应 DID Document；重放同一 accepted binding 的 proof 不得逐条在线解析。
 - 接收 reporter 提交的 `ak.self.moderation.command.report` 时，把 franking proof ID 与 report ID 绑定为审计链一部分；不得仅信 reporter 单方声称。

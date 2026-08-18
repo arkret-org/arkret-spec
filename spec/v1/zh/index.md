@@ -91,15 +91,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 
 ### 3.3 目录结构分层
 
-- 总览与决策
-- 身份、组织与隐私
-- 对象模型与交互
-- 授权、治理与状态
-- 同步、服务与联邦
-- 发现、目录与用户状态
-- 加密、设备与媒体
-- 扩展、Agent 与集成
-- Schema、编码与一致性
+目录分组与各目录职责的单点承载是 [`spec-map.md` §4](./spec-map.md)。本节此前复述了一份清单并已漂移（缺 `guides/` 组），现改为指针，避免两处各自演进。
 
 ## 4. 关键设计决策
 
@@ -128,7 +120,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 - 看板定义：`Board Space -> List Space -> Strand`。
 - 会话定义：`Strand(discussion track) -> Message`。
 - `ak.strand.tracks.update` 是 track 配置（启用 / 关闭 / 切换 primary / 修改 profile）的唯一写入路径，不复制对象、不迁移历史。
-- Track 不携带独立 access；整个 Strand 共享单一 effective scope（由 `Strand.scope_circle_id` 决定）。需要独立成员、历史或 E2EE 边界时，把整个 Strand 通过 `scope_circle_id` 落在一个 [Circle](./models/circle.md)，或拆为两个 Strand + `confidential_discussion_of` Relation（见 [`models/circle.md` §7.2](./models/circle.md)）。
+- Track 不携带独立 access（单点承载见 [`models/strand-and-message.md` §4](./models/strand-and-message.md)）；整个 Strand 共享单一 effective scope（由 `Strand.scope_circle_id` 决定）。需要独立成员、历史或 E2EE 边界时，把整个 Strand 通过 `scope_circle_id` 落在一个 [Circle](./models/circle.md)，或拆为两个 Strand + `confidential_discussion_of` Relation（见 [`models/circle.md` §7.2](./models/circle.md)）。
 
 ### 4.4 同步与真相模型
 

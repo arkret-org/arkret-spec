@@ -766,7 +766,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read cursor、mention
       ]
     }
   ],
-  "next_cursor": "search_cursor_abc",
+  "next_cursor": "ak:cursor:eyJleHBpcmVzX2F0IjoiMjA5OS0xMi0zMVQyMzo1OTo1OS4wMDBaIiwiaCI6ImFiY2RlZmdoaWprbG1ub3BxcnN0dXYiLCJpc3N1ZWRfYXQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5LjAwMFoiLCJwdXJwb3NlIjoic3RyZWFtIiwidiI6IjEifQ",
   "total_estimate": 42
 }
 ```

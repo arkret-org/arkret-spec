@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.3",
+  "version": "2026-08-18.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-18T15:45:00+08:00",
+  "generated_at": "2026-08-18T18:00:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5694,8 +5694,7 @@
           "backend_token",
           "participant_identity",
           "participant_binding",
-          "expires_at",
-          "service_signature"
+          "expires_at"
         ],
         "properties": [
           "focus_id",
@@ -5704,7 +5703,6 @@
           "participant_identity",
           "participant_binding",
           "expires_at",
-          "service_signature",
           "backend_kind"
         ],
         "closed": true

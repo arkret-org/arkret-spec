@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.3",
+  "version": "2026-08-18.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-18T15:45:00+08:00",
+  "generated_at": "2026-08-18T18:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -812,12 +812,8 @@
           {
             "cell_family": "ak.component.audit.access_log.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.target_ref",
-                "payload.target_cell_id",
-                "payload.paired_event_id"
-              ]
+              "kind": "typed_id",
+              "field": "payload.target_ref"
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -1527,11 +1523,8 @@
           {
             "cell_family": "ak.component.circle.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.circle_id",
-                "payload.target_ref"
-              ]
+              "kind": "id:circle",
+              "field": "payload.target_ref"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -1602,11 +1595,8 @@
           {
             "cell_family": "ak.component.circle.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.circle_id",
-                "payload.target_ref"
-              ]
+              "kind": "id:circle",
+              "field": "payload.target_ref"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -1630,11 +1620,8 @@
           {
             "cell_family": "ak.component.circle.tombstone.v1",
             "cell_subject": {
-              "fields": [
-                "payload.circle_id",
-                "payload.target_ref"
-              ],
-              "kind": "coalesce"
+              "kind": "id:circle",
+              "field": "payload.target_ref"
             },
             "lattice": "cas_register",
             "bottom": "reject",
@@ -2671,13 +2658,8 @@
           {
             "cell_family": "ak.component.object.redaction.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.message_id",
-                "payload.target_ref",
-                "payload.event_id",
-                "payload.target_event_id"
-              ]
+              "kind": "id:message",
+              "field": "payload.message_id"
             },
             "lattice": "or_set",
             "bottom": "inert",
@@ -2701,12 +2683,8 @@
           {
             "cell_family": "ak.component.message.revision.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.message_id",
-                "payload.target_ref",
-                "payload.revision_of"
-              ]
+              "kind": "id:message",
+              "field": "payload.message_id"
             },
             "lattice": "mv_register",
             "bottom": "expose",
@@ -3097,11 +3075,8 @@
           {
             "cell_family": "ak.component.morph.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.morph_id",
-                "payload.target_ref"
-              ]
+              "kind": "id:morph",
+              "field": "payload.target_ref"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -3146,11 +3121,8 @@
           {
             "cell_family": "ak.component.morph.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.morph_id",
-                "payload.target_ref"
-              ]
+              "kind": "id:morph",
+              "field": "payload.target_ref"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -4735,12 +4707,8 @@
           {
             "cell_family": "ak.component.object.redaction.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.target_ref",
-                "payload.event_id",
-                "payload.target_event_id"
-              ]
+              "kind": "typed_id",
+              "field": "payload.target_ref"
             },
             "lattice": "or_set",
             "bottom": "inert",
@@ -5073,11 +5041,8 @@
           {
             "cell_family": "ak.component.space.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.space_id",
-                "payload.target_ref"
-              ]
+              "kind": "id:space",
+              "field": "payload.space_id"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -5144,11 +5109,8 @@
           {
             "cell_family": "ak.component.space.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.space_id",
-                "payload.target_ref"
-              ]
+              "kind": "id:space",
+              "field": "payload.space_id"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -5172,11 +5134,8 @@
           {
             "cell_family": "ak.component.space.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.space_id",
-                "payload.target_ref"
-              ]
+              "kind": "id:space",
+              "field": "payload.space_id"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -5197,11 +5156,8 @@
           {
             "cell_family": "ak.component.space.metadata.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.space_id",
-                "payload.target_ref"
-              ]
+              "kind": "id:space",
+              "field": "payload.space_id"
             },
             "lattice": "mv_register",
             "bottom": "expose",
@@ -5243,11 +5199,8 @@
           {
             "cell_family": "ak.component.strand.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.strand_id",
-                "payload.target_ref"
-              ]
+              "kind": "id:strand",
+              "field": "payload.target_ref"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -5384,11 +5337,8 @@
           {
             "cell_family": "ak.component.strand.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.strand_id",
-                "payload.target_ref"
-              ]
+              "kind": "id:strand",
+              "field": "payload.target_ref"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -5900,7 +5850,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ak.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
+        "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ak.member.state{membership=join}.delivery_binding (see governance/member-delivery-binding.md §4).",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_delivery_binding_policy_payload",
         "id_source": "not_an_object_id"
       },

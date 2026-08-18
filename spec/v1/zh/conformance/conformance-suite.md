@@ -38,7 +38,7 @@ Schema 依赖由 Event Envelope 的 `requirements.schema[]` 声明；Realm reduc
 
 `runner-kind-registry.json#runner_kinds[*].execution_status` 是执行契约发布状态。`active` vector 表示“规范要求执行”，不表示任何外部参考仓库已经实现；它只有在所有 `applies_to_fixtures` 的 runner kind 均为 `contract_published` 时才可登记。认证器必须实际执行本地映射并保存逐 case 结果；仅看到 `active` 或 `contract_published` 不得声称 gate 已通过。`planned` / 未知状态的 runner 不得进入 `v1-conformance-certified` 闭包。
 
-Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-profiles.md) §6 与 `conformance-profiles.json` 的 `role` 为准）:**实现 profile**（声明实现承担的角色与能力集合）与 **hardening profile**（在某实现 profile 之上叠加的安全加固 overlay,`role=admin`,不单独作为可声明的实现角色）。
+Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `profile_roles` / `role` 为准）:**实现 profile**（声明实现承担的角色与能力集合）与 **hardening profile**（在某实现 profile 之上叠加的安全加固 overlay,`role=admin`,不单独作为可声明的实现角色）。
 
 **实现 profile**:
 

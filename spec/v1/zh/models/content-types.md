@@ -244,7 +244,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 - **Timeline**：先显示 `body`，下载 / 验证成功后替换为完整正文。
 - **Search**：只能索引已解密且完整验证的 Blob 正文；fallback 可单独标记为 partial。
-- **Mentions**：提交通知所需的 canonical mentions MUST 仍在 Message metadata / encrypted metadata 中，MUST NOT 要求服务端扫描 Blob。
+- **Mentions**：提交通知所需的 canonical mentions MUST 仍在所属 Content Block 的 `mentions[]` 中（§3.2 的唯一 wire 承载位置），MUST NOT 要求服务端扫描 Blob。
 - **Reply/quote**：引用 Message ID，不复制完整长正文。
 - **Push**：MUST NOT 把 Blob 正文发送给 push provider；沿用 blind/visible profile 边界。
 - **Redaction / expiry**：Message 不可见后 MUST 同步使 fallback、搜索索引、缓存和 Blob 访问失效；Blob GC 沿用现有引用追踪。
@@ -557,7 +557,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 ## 9. v1 扩展规则
 
-- Emoji / Sticker MUST 作为 `ak.content.image`、`ak.content.file` 或注册的 `ak.content.sticker` block 表达，并引用 content-addressed blob；客户端不得从未授权 URL 热加载私有表情资源。
+- Emoji / Sticker MUST 作为 `ak.content.image` 或 `ak.content.file` block 表达，并引用 content-addressed blob；v1 **没有**注册 `ak.content.sticker`，`ak.content.*` 前缀只能由 Arkret 注册，因此实现不得自行发明该 kind。客户端不得从未授权 URL 热加载私有表情资源。
 - 投票 / 表单等交互式消息 SHOULD 使用 `poll` Morph、Relation 和 event reducer 表达；消息中的 content block 只能作为入口或摘要，不能成为唯一计票真相源。
 - URL 预览 MUST 作为可丢弃的 rendering hint 或受控 preview blob 表达。服务端抓取私有链接前必须有用户或 Realm policy 授权，预览服务若接触正文或页面内容，MUST 列入 `plaintext_visible_services`。
 - E2EE 场景下缩略图 SHOULD 由客户端生成并加密上传；服务端生成缩略图前必须被声明为 plaintext-visible service，并遵守 `media-and-blob.md` 的 MIME、缓存和授权规则。

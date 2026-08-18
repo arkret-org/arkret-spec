@@ -45,8 +45,13 @@ Kernel Event、CBA 或 federation schema。
 ### 1.2 Collaboration Base
 
 Collaboration Base 是官方协作基础包，包含 Strand、Message/Content、Relation、View 与
-Blob-backed long text。宣称 `Arkret Collaboration Client` 的实现 MUST 同时声明并通过
-Kernel 与 Collaboration Base conformance；仅声明 Kernel 的实现 MAY 完全不理解上述 payload。
+Blob-backed long text。**分层不是 conformance 声明单位**：v1 没有、也不会注册 `kernel` /
+`collaboration_base` 对应的 profile id，实现的 conformance 声明一律通过
+[`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 implementation
+profile 作出（协作对象由 `ak.profile.full_client.v1` 一类 profile 覆盖）。分层的规范作用只有两条：
+[`protocol-layer-registry.json`](../../artifacts/registry/protocol-layer-registry.json) 对每个 active
+Event.kind 的唯一归属，以及本节开头的依赖方向约束。只覆盖 Kernel 层 kind 的实现 MAY 完全不理解上述
+协作 payload。
 
 ### 1.3 Extension
 

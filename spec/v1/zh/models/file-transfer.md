@@ -64,7 +64,7 @@ transfer_key = derive_account_data_key(transfer_id)
 | `plaintext_size_bytes` | yes | 加密前文件字节数。 |
 | `access` | yes | 封闭对象；`access.visibility` 取 `actor_private` 或 `device_bound`，`device_bound` 时必须携带互异的 `recipient_device_ids[]`，条目数 MUST 为 1–1,000。 |
 | `encryption` | yes | 文件密文 AEAD、AAD 与 key-delivery descriptor。 |
-| `origin_device_id` | yes | 发起上传的 `ak:device:<uuid>`。 |
+| `origin_device_id` | yes | 发起上传的 `ak:device:<uuidv7>`。 |
 | `created_at` | yes | 传输创建时间，RFC3339 UTC。 |
 | `updated_hlc` | yes | LWW 状态合并用 HLC。 |
 | `retention_expires_at` | yes | transfer record 最晚保留时间。 |

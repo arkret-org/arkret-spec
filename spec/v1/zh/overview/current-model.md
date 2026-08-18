@@ -81,7 +81,7 @@ Realm membership、Strand 更新权限与 discussion timeline 可见性使用统
 
 - `ak.member.state` 控制 Realm membership
 - `ak.strand.*` 控制 Strand 自身与工作流位置
-- Track 不携带独立 access；整 Strand 共享单一 effective scope（`Strand.scope_circle_id`：null = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。
+- Track 不携带独立 access（单点承载见 [`../models/strand-and-message.md` §4](../models/strand-and-message.md)）；整 Strand 共享单一 effective scope（`Strand.scope_circle_id`：null = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。
 - 需要让 Strand 拥有独立 membership / history visibility / 投递裁剪或 E2EE 时，把 `Strand.scope_circle_id` 指向一个 Circle；`ak.circle.member.state` 控制 Circle 成员状态（`Circle.members ⊆ Realm.members`）。
 - Strand 可见性按整 Strand 单一 scope 判定：`scope_circle_id=null` 按 Realm-default policy；`scope_circle_id` 指向 Circle 时按该 Circle 自身 history visibility 与 membership 独立判断。
 - Strand 可读不代表 Strand synthesis 可写——授权评估始终是 capability ∧ scope membership 两层 AND（详见 [`../models/circle.md` §8](../models/circle.md)）。

@@ -19,7 +19,7 @@ updated: 2026-07-13
 实现侧应把以下 artifact 作为 v1 协议事实来源:
 
 - `registry/event-kind-registry.json`: event kind 是否 active、wire scope、cell family、lattice、bottom、payload schema。
-- `registry/operation-registry.json`: service operation ID、surface group、profile tier。
+- `registry/operation-registry.json`: service operation ID、transport binding（`http` / `grpc` / `mq`）、`body_class`、`success_shape_kind` 与 `response_schema_ref`。profile 归属不在本文件，见 `profiles/conformance-profiles.json`。
 - `registry/schema-registry.json`: registered schema ID 到 schema artifact 的映射；consumer 递归解析同目录 `$ref` 指向的 raw schema artifact（例如 `event-envelope.schema.json` 引用 `event-payload.schema.json`、`common-ids.schema.json` 与 `read-cursor.schema.json`），避免假设 registry 直接列出的文件就是全部需要发布或缓存的 schema 文件。该要求的权威来源是 [`../overview/release-readiness.md`](../overview/release-readiness.md)。
 - `registry/track-name-registry.json`: `Strand.tracks` active key 的闭集、状态与 schema/profile owner；未登记名称不得仅凭正则匹配进入 reducer。
 - `registry/id-kind-registry.json`: typed ID kind 与 wire form。
@@ -56,9 +56,9 @@ Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类�
 Soland 是 Principal Server，不是协议 registry 的来源。
 
 - Event kind admission 先查 `event-kind-registry.json` 的 active durable event kind。
-- 已有强语义 validator 可以继续留在 `routing/events/operations.rs`，用于 strand、message、redaction 等需要 server policy 的路径。
+- 已有强语义 validator 可以继续留在 `crates/http/src/routing/events/operations/`，用于 strand、message、redaction 等需要 server policy 的路径。
 - 对没有手写强语义 validator 的 active event kind，Soland 应 fallback 到 SDK artifact payload validator。
-- `src/kinds.rs` 中的常量应逐步缩为 server-local alias 和 readable match arms；新增 standard event kind 不应要求先修改 `kinds.rs` 才能被识别。
+- server-local event-kind 常量应逐步缩为 alias 和 readable match arms；新增 standard event kind 不应要求先修改这些常量才能被识别。
 
 ## Inkson
 

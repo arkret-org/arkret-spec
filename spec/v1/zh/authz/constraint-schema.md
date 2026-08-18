@@ -59,6 +59,8 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | 约束 family | constraint_subkind（可选） | 类别 | 说明 | 启用 profile |
 |-------------|---------------|------|------|------|
 | `temporal` | （省略 = 普通时间窗口） | core | `not_before` / `expires_at` 时间窗口。 | core |
+| `temporal` | `window` | core | 命名时间窗口（`recurrence` 等窗口字段），与普通 `not_before` / `expires_at` 同一 family。 | core |
+| `temporal` | `session` | core | `max_session_duration` 等会话时长上界；**不是** device/session binding（后者走 `claim_based.claim`）。 | core |
 | `temporal` | `edit_window` | extension | `applies_to_actions=["ak.message.revise.own"]` + `message_edit_window` 限定自助编辑窗口。 | `ak.profile.chat_mvp.v1` |
 | `temporal` | `redact_window` | extension | `applies_to_actions=["ak.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `ak.profile.chat_mvp.v1` |
 | `field_access` | （省略 = 列表比较） | core | 写入面 `allowed_write_fields` / `denied_write_fields`（§4.1 / §4.2）与读取面 `allowed_read_fields` / `denied_read_fields` / `sensitive_fields` / `sensitive_handling`（§4.3）。 | core |
@@ -315,8 +317,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_kind": "authority_control",
   "effect": "allow",
-  "authority_scope": "narrowing_only",
-  "scope_expansion_allowed": false
+  "authority_scope": "narrowing_only"
 }
 ```
 
@@ -357,11 +358,6 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
 - `authority_regrant_allowed=true` 时允许继续再授权，深度仍受 §10.1
   `max_authority_depth ≤ parent - 1` 与 §10.2 DFS 上限 4 治理。
 
-**`scope_expansion_allowed`**：
-
-- v1 中 [`capabilities.md` §10.1](./capabilities.md) 强制 child `actions[]` ⊆ parent、`resources[]` 为 parent 的 selector-narrowing 子集。`scope_expansion_allowed=true` 与该收窄不变量直接矛盾，因此 **v1 reducer MUST 拒绝** `scope_expansion_allowed=true`，返回 `schema_violation`（`reason="scope_expansion_forbidden"`）。该字段在 v1 wire 上只允许取 `false`（缺省即 `false`）；声明 `true` 不构成"扩权许可"，而是非法 grant。
-- 若未来某 profile 确需 scope 扩展语义，MUST 注册独立 profile 并在该 profile 内重新定义上界来源；v1 core 不提供。
-
 **`authority_scope`（三值）**：取值 ∈ `{narrowing_only, same_scope, custom}`，reducer 校验规则：
 
 | 值 | 校验规则 |
@@ -370,7 +366,7 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
 | `same_scope` | child 的 `actions[]` MUST = parent（逐元素相等集合），`resources[]` MUST 与 parent selector 等价（既不放宽也不收窄），`constraints[]` MUST ⊇ parent 约束集。用于“原样再授权但不扩权”的场景（如授予 standby principal）。任一维度不等价 MUST 返回 `schema_violation`（`reason="authority_scope_mismatch"`）。 |
 | `custom` | 必须由声明该值的 extension profile 定义完整收窄判据；未声明对应 profile 的 reducer **MUST fail closed**（`schema_violation`，`reason="authority_scope_custom_unsupported"`），MUST NOT 把 `custom` 当作 `narrowing_only` 的别名放行。 |
 
-未注册的 `authority_scope` 值 MUST fail closed。`authority_scope` 与 `scope_expansion_allowed` 同时出现且语义冲突时（如 `same_scope` 但 `scope_expansion_allowed=true`），按更严格规则裁决——`scope_expansion_allowed=true` 在 v1 已被独立拒绝（见上），因此该组合整体 `schema_violation`。
+未注册的 `authority_scope` 值 MUST fail closed。v1 **没有** `scope_expansion_allowed` 开关：[`capabilities.md` §10.1](./capabilities.md) 的收窄不变量是无条件的，一个只允许取 `false` 的 wire boolean 不表达任何可行使语义，只会给 producer 一个可写错的字段。需要 scope 扩展语义的 profile MUST 注册 `authority_scope="custom"` 并自行定义上界来源。
 
 所有 `ak.capability.grant` 都必须携带非空、类型化的 `issuer_authority_refs[]`；因此不存在可选的
 “要求 parent ref”开关。grant ref 本身就是显式的上游 authority 边，供 §10.2 环检测与 §10.3

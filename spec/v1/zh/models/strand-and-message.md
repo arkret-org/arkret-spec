@@ -166,12 +166,12 @@ Schema id: `ak.schema.strand.v1`
 3. `stage_changed_at` reducer-derived，忽略 wire 上 actor-supplied 值
 4. same-value self-transition → reducer 接受但不更新 `stage_changed_at`、不产生审计变更
 5. `ak.strand.update` patch path 出现 `stage` / `stage_changed_at` → `schema_violation`
-6. `strand.metadata.fields.stage` / `strand.metadata.fields.stage_reason` / `strand.metadata.fields.lifecycle` / `strand.metadata.fields.progress_state` → `schema_violation`（forbidden-wire reserved-name guard）
+6. `strand.metadata.fields.stage` / `strand.metadata.fields.status` / `strand.metadata.fields.stage_reason` / `strand.metadata.fields.lifecycle` / `strand.metadata.fields.progress_state` → `schema_violation`（forbidden-wire reserved-name guard）
 7. `ak.strand.update` MAY patch `schema_refs`，但 reducer MUST 对 **post-patch 完整对象**重新求值 §3 的双向共现，而不是只看被 patch 的路径；同一 patch 未成对增删 ref 与 profile 子树时 `schema_violation`。携带 profile 子树的 create / update 还 MUST 在 `requirements.schema[]` 绑定同一 schema id，缺绑定时 `schema_violation`
 
 **与 workflow profile 的关系**：未启用自定义 workflow 时，actor 可直接调用 `ak.strand.stage.set`。启用 workflow profile 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— 携带 `stage` 的 Strand 使用该字段作为 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
 
-**与 `metadata.fields.status` 的关系**：`metadata.fields.status` 是自由扩展字段（profile 自管），可与 `stage` 共存表达 fine-grained 业务子状态；但 stage 本身**不允许**藏在 `metadata.fields` 下。
+**与 `metadata.fields.*` 的关系**：`metadata.fields.status` 与 `stage` / `stage_reason` / `lifecycle` / `progress_state` 一样是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 `hard_reject` 保留名（`status` 是 stage 概念最直接的同义拼写），出现即 `schema_violation`。fine-grained 业务子状态 MUST 使用领域命名 key（例如 `metadata.fields.jira_status`），并把粗粒度进度映射到顶层 `stage`；stage 本身也**不允许**藏在 `metadata.fields` 下。
 
 ## 4. Tracks 模型
 
@@ -623,7 +623,7 @@ Schema id: `ak.schema.message.v1`
 
 - 客户端 MUST 在提交 `ak.message.create` / `ak.message.revise` 之前完成 Blob 上传并取得稳定 hash ref；reducer 不为 Blob 可达性背书，接收端按现有 Blob / Content 校验错误（`digest_mismatch` 等）处理。
 - Message 转为 `state=redacted`、超出适用的 retention 窗口或所属 Realm/Strand 不再可见时，实现 MUST 同步使 inline fallback、搜索索引、本地缓存与该 Blob 的访问一并失效；Blob GC 沿用现有引用追踪。仅清空 `content` 而让完整正文仍可从索引或缓存恢复不满足 redaction 语义。
-- long text 与 revision chain、`replies_to`、reaction、mention 通知的关系与普通 `ak.content.text` 完全相同：引用方引用 Message ID，MUST NOT 复制完整长正文；canonical mentions MUST 仍在 Message metadata / `encrypted_metadata` 中，MUST NOT 要求服务端扫描 Blob。
+- long text 与 revision chain、reply Relation、reaction、mention 通知的关系与普通 `ak.content.text` 完全相同：引用方引用 Message ID，MUST NOT 复制完整长正文；canonical mentions MUST 仍在所属 Content Block 的 `mentions[]` 中（§9.2 的唯一 wire 承载位置），MUST NOT 要求服务端扫描 Blob。
 
 ### 9.3 最小示例
 
@@ -840,7 +840,7 @@ Message timeline 的同步与 reducer 行为：
 | Message 创建 | append-only。Timeline 展示排序是 projection-only，默认键为 causal_depth → HLC → actor_id → actor_seq → event_id；不得输入 canonical state、授权或 winner 选择。 |
 | Message 编辑 | 并发 revision 共存于 revision chain；默认视图可按下文 §9.5.1 的 producer-biased 稳定顺序先展示一条，普通 branch 读取面保留全部 revision 分支。 |
 | Message 撤回 | 若 revision 与 redaction 并发，默认视图 redaction 优先；审计视图保留完整历史。 |
-| 撤回先到、原消息后到 | 接收方 MUST 保留 dangling redaction，待原消息到达后再应用；保留键为 `redacts` 目标 event id。 |
+| 撤回先到、原消息后到 | 接收方 MUST 保留 dangling redaction，待原消息到达后再应用；保留键为 `ak.message.redact` 的 `payload.message_id`。 |
 | Reaction | Reaction-specific remove-wins set 收敛；同一 actor 对同一 emoji 的 add/remove 由 §9.8.3 定义。 |
 
 历史可见性枚举与 canonical 语义见 [`../governance/history-visibility.md`](../governance/history-visibility.md)。

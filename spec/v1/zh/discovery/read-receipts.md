@@ -52,6 +52,10 @@ UI。relay attestation 不能替代 sender device proof。任何把 receipt targ
 外层的旧明文 envelope MUST 以 `schema_violation` 或
 `signal_plaintext_forbidden` 拒绝。
 
+### 2.2 计数与呈现
+
+Read receipt 的展示只回答"谁读到哪里"；未读计数是另一条派生链（§4），二者 MUST NOT 互相推导。
+
 ### 2.3 防雪崩与合并
 
 Read Receipt 是高频信号。发送方客户端 MUST 支持语义合并：客户端 SHOULD debounce 可见区域滚动产生的更新，并且对同一 `(realm_id, read_scope, actor)` 在短窗口内只发送最新位置。默认建议窗口为 1 秒，交互结束、窗口失焦或显式“标为已读”时 SHOULD flush 最新位置。
@@ -91,7 +95,7 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 发送客户端 MUST NOT 生成、接收客户端 MUST 丢弃该 scope 的 `ak.receipt.read`。 |
-| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Strand 的 effective scope 可见性允许的全部观察者；`members` = Strand effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人（Principal Server sync surface 按发送者 fanout，不广播给其他成员）。**警告**：在 `history_visibility=world_readable` 的 Realm/Strand 下，`visibility=public` 允许外部观察者读取 actor 的已读位置；若用于 metadata-private 场景，receipt-policy MUST 收紧 `visibility` 为 `members` 或 `private`。该组合的 reducer 级强制判定见 §2.5.1。 |
+| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Strand 的 effective scope 可见性允许的全部观察者；`members` = Strand effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人。**执行点在客户端**：服务端看不到加密 `SignalEnvelope` 内的 `event_id`，只能按签名 `scope_ref` 收窄 fanout，不能按发送者定向投递（判据见下方规则表）。**警告**：在 `history_visibility=world_readable` 的 Realm/Strand 下，`visibility=public` 允许外部观察者读取 actor 的已读位置；若用于 metadata-private 场景，receipt-policy MUST 收紧 `visibility` 为 `members` 或 `private`。该组合的 reducer 级强制判定见 §2.5.1。 |
 | `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。disclosure 的合规下限禁止从父 `required` 降到 `optional` 或 `disabled`，除非父 policy 显式声明 `receipt_compliance_opt_in.child_privacy_tightening_against_required=true`。 |
 | `receipt_compliance_opt_in` | closed object | absent（全部 false） | 单一合规旁路对象；子字段为 `child_privacy_tightening_against_required`、`public_receipts_on_world_readable`、`forced_public_world_readable_receipts`。对象 / 子字段缺失或为 false 均等价未 opt-in；未知子字段 `schema_violation`。最后一项是第二道门，不能替代 `public_receipts_on_world_readable=true`。 |
 
@@ -184,7 +188,7 @@ Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 
 
 Read Cursor 是 actor-private 持久状态，但仍然是高频更新。客户端 MUST 按 read_scope 合并，只提交相对本地已知 read cursor 单调前进的位置；在同一 `(actor_id, device_id, realm_id, read_scope)` 上的连续滚动 SHOULD 以最新位置覆盖待发送更新。默认建议将活跃阅读期间的持久写入 debounce 到 1 秒以上，或在离开 Strand、应用进入后台、手动标记已读时立即 flush。
 
-服务端接收 actor-private `ak.read_cursor.advance` 时 SHOULD 按第 5 节合并，而不是保留不可见的全量游标历史。若实现需要审计，可保留最小 device、old/new position 和时间摘要；不得把共享 Realm timeline 当作 read cursor 的压缩日志。
+服务端接收 actor-private `ak.read_cursor.advance` 时 SHOULD 按 §6.5 的多设备合并规则合并，而不是保留不可见的全量游标历史。若实现需要审计，可保留最小 device、old/new position 和时间摘要；不得把共享 Realm timeline 当作 read cursor 的压缩日志。
 
 ## 4. 未读计数 (Unread Notification Count)
 

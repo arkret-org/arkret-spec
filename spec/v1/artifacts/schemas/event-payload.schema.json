@@ -1430,9 +1430,8 @@
           "$ref": "#/$defs/digest"
         },
         "webhook_auth": {
-          "description": "Transaction push HTTP signature policy copied from the Applet package. webhook_auth.key_ref is the Applet service DID URL used to verify the app/bridge->arkret inbound HTTP message signature and is bound to this registration_epoch; node->Applet pushes verify the Arkret source service DID from Source-Service-ID instead.",
-          "additionalProperties": true,
-          "kind": "object"
+          "$ref": "applet-package.schema.json#/$defs/webhook_auth",
+          "description": "Transaction push HTTP signature policy copied from the Applet package. webhook_auth.key_ref is the Applet service DID URL used to verify the app/bridge->arkret inbound HTTP message signature and is bound to this registration_epoch; node->Applet pushes verify the Arkret source service DID from Source-Service-ID instead."
         },
         "manifest": {
           "type": "object",
@@ -2506,9 +2505,39 @@
                 "failed",
                 "cancelled"
               ]
+            },
+            "failure_reason_code": {
+              "$ref": "#/$defs/call_capture_failure_reason_code",
+              "description": "Machine reason for to=\"failed\". Required when to=\"failed\" and forbidden otherwise, so a failed call always carries a diagnostic and a non-failed transition cannot smuggle one."
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "to": {
+                    "const": "failed"
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              },
+              "then": {
+                "required": [
+                  "failure_reason_code"
+                ]
+              },
+              "else": {
+                "not": {
+                  "required": [
+                    "failure_reason_code"
+                  ]
+                }
+              }
+            }
+          ]
         },
         "focus": {
           "type": "object",
@@ -3985,33 +4014,13 @@
     },
     "cross_object_redaction_payload": {
       "type": "object",
-      "description": "Payload for the cross-object ak.redaction. Shares the ak.component.object.redaction.v1 cell family with ak.message.redact but carries a target set that mechanically excludes Message: message_id is not a member and target_ref cannot spell ak:message:.",
-      "anyOf": [
-        {
-          "required": [
-            "target_ref"
-          ]
-        },
-        {
-          "required": [
-            "event_id"
-          ]
-        },
-        {
-          "required": [
-            "target_event_id"
-          ]
-        }
+      "description": "Payload for the cross-object ak.redaction. Shares the ak.component.object.redaction.v1 cell family with ak.message.redact but carries a target set that mechanically excludes Message: message_id is not a member and target_ref cannot spell ak:message:. target_ref is the single target carrier; its lexical space covers both object targets and ak:event: targets, so the cell subject is well defined without a coalesce.",
+      "required": [
+        "target_ref"
       ],
       "properties": {
         "target_ref": {
           "$ref": "#/$defs/cross_object_redaction_target_ref"
-        },
-        "event_id": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "target_event_id": {
-          "$ref": "#/$defs/event_ref"
         },
         "reason": {
           "type": "string"
@@ -5143,6 +5152,11 @@
             "revoked"
           ]
         },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Stable machine-readable diagnostic for the terminal transition this Move carries. Required by zh/models/governance-objects.md section 5 for every non-pending state write. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
+        },
         "reason": {
           "type": "string"
         }
@@ -5177,6 +5191,11 @@
             "invalidated_by_rate_limit"
           ],
           "description": "Terminal invalidation of a pending invite, carried by an authorized writer's signed Control Move. send_failed and expired are observations the writer commits explicitly (third-party-invites.md 6.1); neither may be written by a local timer or delivery retry loop."
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Stable machine-readable diagnostic for the terminal transition this Move carries. Required by zh/models/governance-objects.md section 5 for every non-pending state write. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
         },
         "reason": {
           "type": "string"
@@ -6384,41 +6403,13 @@
     },
     "message_redact_payload": {
       "type": "object",
-      "description": "Payload for ak.message.redact, the object-scoped redact kind registered for Message. Message is the only object that enters state=redacted through its own kind rather than a cross-object ak.redaction, which is why message.schema.json materializes redaction_ref (models/common-fields.md 5.2).",
-      "anyOf": [
-        {
-          "required": [
-            "message_id"
-          ]
-        },
-        {
-          "required": [
-            "target_ref"
-          ]
-        },
-        {
-          "required": [
-            "event_id"
-          ]
-        },
-        {
-          "required": [
-            "target_event_id"
-          ]
-        }
+      "description": "Payload for ak.message.redact, the object-scoped redact kind registered for Message. Message is the only object that enters state=redacted through its own kind rather than a cross-object ak.redaction, which is why message.schema.json materializes redaction_ref (models/common-fields.md 5.2). message_id is the single target carrier, so the ak.component.object.redaction.v1 cell subject is always the Message typed ID.",
+      "required": [
+        "message_id"
       ],
       "properties": {
         "message_id": {
           "$ref": "#/$defs/message_id"
-        },
-        "target_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "event_id": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "target_event_id": {
-          "$ref": "#/$defs/event_ref"
         },
         "track_name": {
           "$ref": "#/$defs/track_name",
@@ -6445,26 +6436,10 @@
         ]
       },
       "description": "Payload for ak.message.revise. Revisions that introduce new direct mentions MAY generate mention notifications only when the implementation can compare against the previous accepted visible revision. Revisions that introduce an audience_mention AST node (including @all / @here mappings) MUST satisfy the same ak.message.mention.broadcast and policy gates as create.",
+      "required": [
+        "message_id"
+      ],
       "allOf": [
-        {
-          "anyOf": [
-            {
-              "required": [
-                "message_id"
-              ]
-            },
-            {
-              "required": [
-                "target_ref"
-              ]
-            },
-            {
-              "required": [
-                "revision_of"
-              ]
-            }
-          ]
-        },
         {
           "oneOf": [
             {
@@ -6494,15 +6469,9 @@
         "message_id": {
           "$ref": "#/$defs/message_id"
         },
-        "target_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "revision_of": {
-          "$ref": "#/$defs/message_id"
-        },
         "track_name": {
           "$ref": "#/$defs/track_name",
-          "description": "Active track_name of the target Strand. Optional on revise/redact: when omitted, reducers MUST resolve from the existing message identified by message_id / target_ref / revision_of. When present, MUST equal that resolved track_name."
+          "description": "Active track_name of the target Strand. Optional on revise/redact: when omitted, reducers MUST resolve from the existing message identified by message_id. When present, MUST equal that resolved track_name."
         },
         "content": {
           "$ref": "#/$defs/content_block"
@@ -8974,6 +8943,13 @@
             "any"
           ],
           "description": "Legal signer / endorser set for rebind Control Moves. Defaults to member_and_admin. See §6."
+        },
+        "handover_grace_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 604800,
+          "default": 86400,
+          "description": "Window, in seconds, during which the previous recipient_service_id MUST keep accepting late events that precede or are concurrent with the rebind frontier. After it elapses the old service MUST reject with delivery_binding_handed_over plus new_recipient_service_id. Omitted means the 86400 default. See zh/governance/member-delivery-binding.md section 6."
         },
         "expires_after_seconds": {
           "type": [

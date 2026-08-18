@@ -70,7 +70,7 @@
       "type": "object",
       "required": [
         "approve_actions",
-        "ghost_actors_allowed",
+        "ghost_actor_mode",
         "delegated_native_actors_allowed",
         "e2ee_join_allowed",
         "widget_allowed"
@@ -84,8 +84,14 @@
           "minItems": 1,
           "uniqueItems": true
         },
-        "ghost_actors_allowed": {
-          "type": "boolean"
+        "ghost_actor_mode": {
+          "type": "string",
+          "enum": [
+            "disallowed",
+            "controller_approved",
+            "policy_declared"
+          ],
+          "description": "Ghost actor admission intent echoed from the plan. It is the same three-valued field the commit carries as actor_policy.ghost_actor_mode; the preview MUST echo it verbatim so there is no second spelling to keep consistent."
         },
         "delegated_native_actors_allowed": {
           "type": "boolean"

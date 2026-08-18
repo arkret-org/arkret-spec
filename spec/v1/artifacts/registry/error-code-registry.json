@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-18.3",
+  "version": "2026-08-18.5",
   "codes": [
     {
       "code": "json_invalid",
@@ -1780,6 +1780,14 @@
       "description": "Awaiting moderator review."
     },
     {
+      "code": "account_binding_principal_mismatch",
+      "applies_to": [
+        "identity_creation",
+        "client_validation"
+      ],
+      "description": "The authenticated service account is already bound to a principal_id different from the DID locally derived from the frozen identity-creation draft. The client MUST fail closed, visibly disclose the conflict, and MUST NOT adopt the returned principal or silently regenerate a replacement identity."
+    },
+    {
       "code": "account_status_binding_rollback",
       "applies_to": [
         "account_status",
@@ -1945,14 +1953,6 @@
       "description": "The managed Agent PCR genesis for the declared principal_control_realm_id was accepted between abandonment-challenge issuance and the abandonment confirmation, so the Agent now exists and its provisioning MUST NOT be abandoned. The service decides this from the principal_control_realm_id and allocation pinned by the challenge, MUST return this stable terminal outcome with zero writes, and MUST NOT release the slug or realm-id claim, record a tombstone or consume the challenge. Retiring an established Agent is ak.self.agent.command.deactivate. See zh/identity/key-management.md §3.6.3."
     },
     {
-      "code": "agent_pcr_genesis_declaration_missing",
-      "applies_to": [
-        "pcr_genesis",
-        "event_envelope"
-      ],
-      "description": "A managed_agent_control ak.realm.create was submitted without an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). The genesis carries no ref to its provision, so this reverse look-up is the whole binding: no match MUST fail closed with zero writes, and the receiver MUST NOT materialize the Realm, the agent-status transition or any partial projection. See zh/identity/key-management.md §3.6.3."
-    },
-    {
       "code": "agent_pcr_genesis_declaration_conflict",
       "applies_to": [
         "service_call",
@@ -1961,11 +1961,20 @@
       "description": "A second ak.agent.provision declared a principal_control_realm_id that another accepted provision already claims. Inside one controller PCR the cas_register, bottom=reject claim cell rejects it; across controllers the Principal Server's local uniqueness index rejects it. Either way the write set is empty and the earlier claim is untouched. See zh/identity/key-management.md §3.6.3."
     },
     {
-      "code": "agent_provisioning_challenge_expired",
+      "code": "agent_pcr_genesis_declaration_missing",
       "applies_to": [
-        "service_call"
+        "pcr_genesis",
+        "event_envelope"
       ],
-      "description": "The persisted agent-provisioning abandonment challenge expired before first successful consumption. The service MUST reject before releasing any claim, and the controller must obtain a fresh challenge for the same provisioning. Distinct from prior consumption, which is a different terminal state. See zh/identity/key-management.md §3.6.3."
+      "description": "A managed_agent_control ak.realm.create was submitted without an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). The genesis carries no ref to its provision, so this reverse look-up is the whole binding: no match MUST fail closed with zero writes, and the receiver MUST NOT materialize the Realm, the agent-status transition or any partial projection. See zh/identity/key-management.md §3.6.3."
+    },
+    {
+      "code": "agent_pcr_recovery_not_ready",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A Native Personal Agent runtime pairing commit was attempted while its controller-owned managed-PCR recovery projection was pending, stale, missing, or unverifiable. The endpoint MUST leave the pairing handle and every existing key/grant unchanged. The controller E2EE client must publish a current recovery_public_key mls_history series tail whose managed binding covers the Agent PCR accepted Seal frontier and MLS epoch, then retry the identical pairing request. See zh/identity/key-management.md §3.6.1 / §7.5.6."
     },
     {
       "code": "agent_provisioning_challenge_already_consumed",
@@ -1975,12 +1984,11 @@
       "description": "The agent-provisioning abandonment challenge was already consumed and the request is not a replay of the same request_id whose canonical intent matches the stored successful outcome. The service MUST reject it before any state transition; an exact replay returns the recorded terminal outcome and never produces a second tombstone. See zh/identity/key-management.md §3.6.3."
     },
     {
-      "code": "agent_pcr_recovery_not_ready",
+      "code": "agent_provisioning_challenge_expired",
       "applies_to": [
-        "service_call",
-        "auth_decision"
+        "service_call"
       ],
-      "description": "A Native Personal Agent runtime pairing commit was attempted while its controller-owned managed-PCR recovery projection was pending, stale, missing, or unverifiable. The endpoint MUST leave the pairing handle and every existing key/grant unchanged. The controller E2EE client must publish a current recovery_public_key mls_history series tail whose managed binding covers the Agent PCR accepted Seal frontier and MLS epoch, then retry the identical pairing request. See zh/identity/key-management.md §3.6.1 / §7.5.6."
+      "description": "The persisted agent-provisioning abandonment challenge expired before first successful consumption. The service MUST reject before releasing any claim, and the controller must obtain a fresh challenge for the same provisioning. Distinct from prior consumption, which is a different terminal state. See zh/identity/key-management.md §3.6.3."
     },
     {
       "code": "agent_reply_not_permitted",
@@ -2725,6 +2733,14 @@
       "description": "Per-device rejection reason in ak.edge.push.command.notify: the receiver's delivery-binding frontier has advanced past the route this notify was built against. Terminal for this attempt; the caller MUST re-resolve the route rather than retry the same one. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
+      "code": "delivery_target_unreachable",
+      "applies_to": [
+        "event_envelope",
+        "service_call"
+      ],
+      "description": "Sub-reason carried by the ak.invite.revoke that moves a pending Invite to target_state=send_failed: the delivery service could not reach the private invite delivery target after its retry budget. It is a delivery diagnostic only and MUST NOT leak the 3PID plaintext, the invite token or a verification code. See zh/models/governance-objects.md section 5 and zh/sync/third-party-invites.md section 6.1."
+    },
+    {
       "code": "delta_contains_data_event",
       "applies_to": [
         "event_auth_state",
@@ -2755,6 +2771,14 @@
         "auth_decision"
       ],
       "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted. Dual-registered as a reason_code and a top-level service code (see codes[])."
+    },
+    {
+      "code": "device_message_id_conflict",
+      "applies_to": [
+        "event_envelope",
+        "client_sync"
+      ],
+      "description": "A to-device retry reused the same device_message_id with different canonical target content. The queue service MUST return duplicate_conflict with this reason_code and MUST NOT enqueue a replacement message. Scheduled-send plan convergence is keyed independently by scheduled_send_id and account-data CAS; durable ak.message.create identity conflicts are keyed only by the content-bound Event.event_id."
     },
     {
       "code": "device_reanchor_authorize_mismatch",
@@ -3121,6 +3145,14 @@
       "description": "Sub-reason for schema_violation when ak.realm.create is submitted through the self events surface with a created_at older than the deployment genesis submit window. The self surface never accepts federation peer wire, so a locally authored Realm genesis is always being created now; this bound does not and cannot apply to backfill."
     },
     {
+      "code": "genesis_seal_invalid",
+      "applies_to": [
+        "seal",
+        "state_resolution"
+      ],
+      "description": "The first Seal of a Realm did not atomically cover the complete registered bootstrap unit (create writes genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots), or used an empty covered set or empty control_event_set_root. MLS epoch-0 binding is checked on the first successor Seal covering ak.mls.genesis. See zh/authz/cba-profiles.md section 3."
+    },
+    {
       "code": "governance_binding_mismatch",
       "applies_to": [
         "event_envelope",
@@ -3230,19 +3262,12 @@
       "description": "An agent runtime requested a high-risk session scope that requires out-of-band controller approval. The top-level service error is claim_required; error.details carries this reason_code and an opaque approval_request_id. The runtime MUST NOT receive a CAPTCHA, OTP, or browser challenge. See zh/identity/key-management.md §3.2."
     },
     {
-      "code": "identity_creation_lease_fenced",
-      "applies_to": [
-        "identity_creation"
-      ],
-      "description": "The identity-creation lease fence is no longer current. A stale holder cannot publish or complete the frozen account/principal registration."
-    },
-    {
-      "code": "identity_creation_challenge_expired",
+      "code": "identity_creation_already_accepted",
       "applies_to": [
         "identity_creation",
         "service_call"
       ],
-      "description": "The persisted identity-binding challenge expired before first successful consumption. The Account Authority MUST reject before publishing the DID operation or relaying PCR genesis, and the client must obtain a fresh challenge for the same frozen draft. This code is distinct from the Policy Server challenge_expired reason."
+      "description": "The Principal Control Realm for the provisional identity was accepted between abandonment-challenge issuance and the abandonment confirmation, so the identity now exists and MUST NOT be abandoned. The Account Authority decides this from the did_version_id and identity-creation lease fence pinned by the challenge, MUST return this stable terminal outcome with zero writes, and MUST NOT record an orphan anchor tombstone, suppress the checkpoint or release the lease. Removing an established identity is the account deletion / erasure path, not provisional-identity abandonment. See zh/identity/key-management.md §5.0.2."
     },
     {
       "code": "identity_creation_challenge_already_consumed",
@@ -3253,20 +3278,19 @@
       "description": "The identity-binding challenge was already consumed and the request is not a byte-identical replay whose canonical request digest matches the stored successful outcome. The Account Authority MUST reject it before any state transition; an exact replay returns the recorded outcome instead of this code."
     },
     {
-      "code": "identity_creation_already_accepted",
+      "code": "identity_creation_challenge_expired",
       "applies_to": [
         "identity_creation",
         "service_call"
       ],
-      "description": "The Principal Control Realm for the provisional identity was accepted between abandonment-challenge issuance and the abandonment confirmation, so the identity now exists and MUST NOT be abandoned. The Account Authority decides this from the did_version_id and identity-creation lease fence pinned by the challenge, MUST return this stable terminal outcome with zero writes, and MUST NOT record an orphan anchor tombstone, suppress the checkpoint or release the lease. Removing an established identity is the account deletion / erasure path, not provisional-identity abandonment. See zh/identity/key-management.md §5.0.2."
+      "description": "The persisted identity-binding challenge expired before first successful consumption. The Account Authority MUST reject before publishing the DID operation or relaying PCR genesis, and the client must obtain a fresh challenge for the same frozen draft. This code is distinct from the Policy Server challenge_expired reason."
     },
     {
-      "code": "account_binding_principal_mismatch",
+      "code": "identity_creation_lease_fenced",
       "applies_to": [
-        "identity_creation",
-        "client_validation"
+        "identity_creation"
       ],
-      "description": "The authenticated service account is already bound to a principal_id different from the DID locally derived from the frozen identity-creation draft. The client MUST fail closed, visibly disclose the conflict, and MUST NOT adopt the returned principal or silently regenerate a replacement identity."
+      "description": "The identity-creation lease fence is no longer current. A stale holder cannot publish or complete the frozen account/principal registration."
     },
     {
       "code": "identity_link_no_longer_visible",
@@ -3373,14 +3397,6 @@
       "description": "Generic encoding violation (HLC format, UUIDv7 format, base64url alphabet, etc.) not otherwise classified."
     },
     {
-      "code": "genesis_seal_invalid",
-      "applies_to": [
-        "seal",
-        "state_resolution"
-      ],
-      "description": "The first Seal of a Realm did not atomically cover the complete registered bootstrap unit (create writes genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots), or used an empty covered set or empty control_event_set_root. MLS epoch-0 binding is checked on the first successor Seal covering ak.mls.genesis. See zh/authz/cba-profiles.md section 3."
-    },
-    {
       "code": "invalid_membership_transition",
       "applies_to": [
         "authz",
@@ -3456,20 +3472,20 @@
       "description": "A `ak.member.state{membership=join}` event's `join_authorisation` proof (the equivalent of Matrix `join_authorised_via_users_server`) does not verify against the cited reviewer's capability state at the citing frontier. See zh/governance/join-policy.md §6."
     },
     {
-      "code": "join_policy_duplicate_gate_id",
-      "applies_to": [
-        "schema_validation",
-        "state_resolution"
-      ],
-      "description": "Sub-reason for a schema_violation on ak.realm.join_policy where gates[] contains duplicate gate_id values. gate_id MUST be stable and unique within the policy so that audit refs in ak.member.state{gate_proofs[gate_id=…]} are unambiguous. Wire response uses code=schema_violation with reason_code=join_policy_duplicate_gate_id. See zh/governance/join-policy.md §3.1."
-    },
-    {
       "code": "join_policy_duplicate_answer_reference",
       "applies_to": [
         "schema_validation",
         "state_resolution"
       ],
       "description": "Sub-reason for a schema_violation on a join-policy application whose answers[] repeats a (gate_id, question_id) reference. question_id is only unique within one application_form gate, so the reference key is the pair; a repeated pair leaves the reviewer with two answers for one question and no rule to choose between them. Wire response uses code=schema_violation with reason_code=join_policy_duplicate_answer_reference. See zh/governance/join-policy.md 3.3."
+    },
+    {
+      "code": "join_policy_duplicate_gate_id",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for a schema_violation on ak.realm.join_policy where gates[] contains duplicate gate_id values. gate_id MUST be stable and unique within the policy so that audit refs in ak.member.state{gate_proofs[gate_id=…]} are unambiguous. Wire response uses code=schema_violation with reason_code=join_policy_duplicate_gate_id. See zh/governance/join-policy.md §3.1."
     },
     {
       "code": "join_policy_question_budget_exceeded",
@@ -3687,14 +3703,6 @@
       "description": "`ak.message.redact` / `ak.message.revise` / equivalent Message write rejected because the target Message is already in a terminal state (`redacted` or `deleted`). In particular, `ak.message.revise` targeting a terminal Message MUST be rejected with this reason_code."
     },
     {
-      "code": "device_message_id_conflict",
-      "applies_to": [
-        "event_envelope",
-        "client_sync"
-      ],
-      "description": "A to-device retry reused the same device_message_id with different canonical target content. The queue service MUST return duplicate_conflict with this reason_code and MUST NOT enqueue a replacement message. Scheduled-send plan convergence is keyed independently by scheduled_send_id and account-data CAS; durable ak.message.create identity conflicts are keyed only by the content-bound Event.event_id."
-    },
-    {
       "code": "metadata_encryption_floor_downgrade",
       "applies_to": [
         "state_resolution"
@@ -3803,20 +3811,20 @@
       "description": "Standard moderation reason: misleading / false information posing harm."
     },
     {
-      "code": "mls_governance_binding_stale",
-      "applies_to": [
-        "state_resolution",
-        "auth_decision"
-      ],
-      "description": "Current MLS epoch's security_frontier_digest does not cover key-access policy components the client wants to act on (for example media_service_decrypts and plaintext_visible_services for a decrypting media service). Receivers MUST refuse to act until a fresh Commit covers the rederived frontier. See zh/crypto-media/media-service-binding.md §8.2 and zh/crypto-media/encryption-and-audit.md §2.5."
-    },
-    {
       "code": "mls_genesis_already_exists",
       "applies_to": [
         "event_envelope",
         "state_resolution"
       ],
       "description": "An MLS genesis operation attempted to initialize a group whose genesis state is already durably accepted. Receivers MUST preserve the existing group state and reject the conflicting initialization."
+    },
+    {
+      "code": "mls_governance_binding_stale",
+      "applies_to": [
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "Current MLS epoch's security_frontier_digest does not cover key-access policy components the client wants to act on (for example media_service_decrypts and plaintext_visible_services for a decrypting media service). Receivers MUST refuse to act until a fresh Commit covers the rederived frontier. See zh/crypto-media/media-service-binding.md §8.2 and zh/crypto-media/encryption-and-audit.md §2.5."
     },
     {
       "code": "mls_send_pause_advisory_requires_e2ee_relaxed_profile",
@@ -4067,6 +4075,14 @@
       "description": "A recording or transcription backend could not obtain the required media permission."
     },
     {
+      "code": "pin_target_not_pinned",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when ak.pin.reorder addresses a (pin_scope, target_ref) that has no causally earlier surviving ak.pin.add assertion to inherit note and the remaining entry fields from. Reducers MUST NOT synthesize a rank-only entry that would put the target back into the roster. See zh/models/pins.md section 4."
+    },
+    {
       "code": "plane_cross_write",
       "applies_to": [
         "event_envelope",
@@ -4179,13 +4195,6 @@
         "schema_validation"
       ],
       "description": "A shared Realm View Event attempted to persist visibility=private. Private Views are encrypted holder account data under ak.views.private.<view_id> and MUST NOT enter the shared reducer. Carried under schema_violation. See zh/models/views.md."
-    },
-    {
-      "code": "unsupported_profile",
-      "applies_to": [
-        "push_notify_outcome"
-      ],
-      "description": "Per-device rejection reason in ak.edge.push.command.notify: the device has not opted in to the requested notification profile (for example a visible notification sent to a device without visible_notification_opt_in). Terminal; the caller falls back to the blind_wakeup form and MUST NOT resend the same shape. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
       "code": "profile_unavailable",
@@ -4797,7 +4806,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A grant or delegation set `scope_expansion_allowed=true`. v1 does not permit a child to expand beyond the parent's resources/actions; the reducer MUST reject (schema_violation) because the field directly conflicts with the §10.1 `resources MUST ⊆ parent` invariant. See zh/authz/constraint-schema.md §7 / zh/authz/capabilities.md §10.1."
+      "description": "A grant or delegation attempted to widen a child's actions[] or resources[] beyond its parent. v1 does not permit scope expansion: capabilities.md 10.1's narrowing invariant is unconditional and there is no wire switch that relaxes it. Reducers MUST reject with schema_violation."
     },
     {
       "code": "scope_incomparable",
@@ -4886,6 +4895,14 @@
       "description": "Governance-plane resource selector wildcard (e.g. policy:*, schema:*, or a governance object:* selector) was used without the required mitigation (denied by deployment policy, or constrained with max_authority_depth=0 plus bounded expiry plus admin approval). Receiver MUST reject."
     },
     {
+      "code": "selector_missing_realm_scope",
+      "applies_to": [
+        "authz",
+        "schema_validation"
+      ],
+      "description": "Sub-reason for schema_violation when a resource selector names a Realm-local kind without a realm_id, including the shorthand form where both the realm part and the object id are the wildcard. Parsers MUST reject the whole grant rather than silently treating the selector as global. See zh/authz/resource-selector-grammar.md sections 3.1 and 6."
+    },
+    {
       "code": "selector_too_complex",
       "applies_to": [
         "auth_decision",
@@ -4948,6 +4965,70 @@
         "service_call"
       ],
       "description": "A service did:webvh inception or rotation omitted the sole next-key commitment, supplied more than one update/next key, or failed to open the previous nextKeyHashes commitment. Providers and resolvers MUST fail closed as service_registration_denied."
+    },
+    {
+      "code": "service_resolution_mirror_response_gap",
+      "applies_to": [
+        "identity_resolution",
+        "federation_transaction"
+      ],
+      "description": "Internal peer-response diagnosis for a non-contiguous successor chain. It is a requester-local validation result and MUST NOT appear in the responder's wire error."
+    },
+    {
+      "code": "service_resolution_mirror_response_limit",
+      "applies_to": [
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "Internal peer-response diagnosis for the 32-record, 256-KiB or caller-selected budget limit. It MUST NOT be serialized by the blinded peer resolve surface, which uses the universal size failure."
+    },
+    {
+      "code": "service_route_fork",
+      "applies_to": [
+        "identity_resolution",
+        "federation_transaction"
+      ],
+      "description": "Internal anti-rollback diagnosis for distinct valid target-signed artifacts at the same sequence/revision; the service route is quarantined. It MUST NOT be serialized by the blinded peer resolve surface."
+    },
+    {
+      "code": "service_route_notice_basis_stale",
+      "applies_to": [
+        "identity_resolution",
+        "federation_transaction"
+      ],
+      "description": "Internal route evaluator diagnosis for a notice whose exact record basis is not the receiver's durable floor. It MUST NOT be serialized by ak.peer.service_resolution.read.resolve; the outward response is the blinded not_found/capability-denied or universal failure surface."
+    },
+    {
+      "code": "service_route_notice_cancelled",
+      "applies_to": [
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "Internal route evaluator diagnosis that a candidate belongs to an accepted cancelled notice. It MUST NOT be serialized by the blinded peer resolve surface."
+    },
+    {
+      "code": "service_route_notice_conflict",
+      "applies_to": [
+        "identity_resolution",
+        "federation_transaction"
+      ],
+      "description": "Internal route evaluator diagnosis for a notice revision/digest fork or duplicate-key conflict. It MUST NOT be serialized by the blinded peer resolve surface."
+    },
+    {
+      "code": "service_route_notice_expired",
+      "applies_to": [
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "Internal route evaluator diagnosis that the signed handover validity window has expired. It MUST NOT be serialized by the blinded peer resolve surface."
+    },
+    {
+      "code": "service_route_successor_unavailable",
+      "applies_to": [
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "Internal route evaluator diagnosis that no exact formal successor record is available at the candidate or authorized mirror. It MUST NOT be serialized by the blinded peer resolve surface."
     },
     {
       "code": "session_focus_already_committed",
@@ -5272,6 +5353,13 @@
       "description": "HPKE suite id on an application-layer sealed surface (key-backup recipient_method=recovery_public_key, ak.secret.send, member-application encryption_envelope, file-transfer key_envelope) is not an active row in artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/identity/key-management.md §7.5.2."
     },
     {
+      "code": "unsupported_profile",
+      "applies_to": [
+        "push_notify_outcome"
+      ],
+      "description": "Per-device rejection reason in ak.edge.push.command.notify: the device has not opted in to the requested notification profile (for example a visible notification sent to a device without visible_notification_opt_in). Terminal; the caller falls back to the blind_wakeup form and MUST NOT resend the same shape. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+    },
+    {
       "code": "unsupported_signature_alg",
       "applies_to": [
         "event_envelope",
@@ -5410,70 +5498,6 @@
         "federation_transaction"
       ],
       "description": "Confirmed fork/witness evidence: two distinct canonical Event preimages independently recompute to the same complete suite-tagged event_id (full-hash collision evidence); a validated per-actor sibling set exceeds the registered single-bucket or per-position limit; a profile declares the observed sibling combination non-joinable; or witnesses required to sign the same complete (realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count) attestation payload return inconsistent values. A carried event_id whose recomputed digest differs is only event_id_digest_mismatch and MUST be rejected before quarantine. Different valid event_id values at the same (realm_id, actor_id, actor_seq) are not by themselves disagreement: event-and-patch.md §2.6 permits a bounded legal sibling set, which peers MUST reconcile by validated set union. Raw frontier_root / heads / range-root differences across different replication, disclosure, or attestation scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay, an aligned same-scope quorum, or operator-approved fork resolution. See zh/sync/operations-sync.md §12 and zh/sync/federation.md §4.5.1."
-    },
-    {
-      "code": "service_route_notice_basis_stale",
-      "applies_to": [
-        "identity_resolution",
-        "federation_transaction"
-      ],
-      "description": "Internal route evaluator diagnosis for a notice whose exact record basis is not the receiver's durable floor. It MUST NOT be serialized by ak.peer.service_resolution.read.resolve; the outward response is the blinded not_found/capability-denied or universal failure surface."
-    },
-    {
-      "code": "service_route_notice_conflict",
-      "applies_to": [
-        "identity_resolution",
-        "federation_transaction"
-      ],
-      "description": "Internal route evaluator diagnosis for a notice revision/digest fork or duplicate-key conflict. It MUST NOT be serialized by the blinded peer resolve surface."
-    },
-    {
-      "code": "service_route_notice_cancelled",
-      "applies_to": [
-        "identity_resolution",
-        "service_call"
-      ],
-      "description": "Internal route evaluator diagnosis that a candidate belongs to an accepted cancelled notice. It MUST NOT be serialized by the blinded peer resolve surface."
-    },
-    {
-      "code": "service_route_notice_expired",
-      "applies_to": [
-        "identity_resolution",
-        "service_call"
-      ],
-      "description": "Internal route evaluator diagnosis that the signed handover validity window has expired. It MUST NOT be serialized by the blinded peer resolve surface."
-    },
-    {
-      "code": "service_route_successor_unavailable",
-      "applies_to": [
-        "identity_resolution",
-        "service_call"
-      ],
-      "description": "Internal route evaluator diagnosis that no exact formal successor record is available at the candidate or authorized mirror. It MUST NOT be serialized by the blinded peer resolve surface."
-    },
-    {
-      "code": "service_route_fork",
-      "applies_to": [
-        "identity_resolution",
-        "federation_transaction"
-      ],
-      "description": "Internal anti-rollback diagnosis for distinct valid target-signed artifacts at the same sequence/revision; the service route is quarantined. It MUST NOT be serialized by the blinded peer resolve surface."
-    },
-    {
-      "code": "service_resolution_mirror_response_gap",
-      "applies_to": [
-        "identity_resolution",
-        "federation_transaction"
-      ],
-      "description": "Internal peer-response diagnosis for a non-contiguous successor chain. It is a requester-local validation result and MUST NOT appear in the responder's wire error."
-    },
-    {
-      "code": "service_resolution_mirror_response_limit",
-      "applies_to": [
-        "identity_resolution",
-        "service_call"
-      ],
-      "description": "Internal peer-response diagnosis for the 32-record, 256-KiB or caller-selected budget limit. It MUST NOT be serialized by the blinded peer resolve surface, which uses the universal size failure."
     }
   ],
   "vocabulary": {
@@ -5525,5 +5549,5 @@
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
   },
-  "generated_at": "2026-08-18T16:30:00+08:00"
+  "generated_at": "2026-08-18T18:00:00+08:00"
 }

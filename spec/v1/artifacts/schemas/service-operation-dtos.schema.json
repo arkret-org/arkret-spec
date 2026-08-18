@@ -741,8 +741,7 @@
         "backend_token",
         "participant_identity",
         "participant_binding",
-        "expires_at",
-        "service_signature"
+        "expires_at"
       ],
       "properties": {
         "focus_id": {
@@ -825,23 +824,6 @@
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "service_signature": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "kid",
-            "sig"
-          ],
-          "properties": {
-            "kid": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-            },
-            "sig": {
-              "type": "string"
-            }
-          }
         },
         "backend_kind": {
           "type": "string",

@@ -266,7 +266,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
 | `ak.mls.welcome` | MLS Welcome ref |
 | `ak.mls.keypackage` | MLS KeyPackage publication |
-| `ak.realm_key.request` | Realm history key request to-device signal (receiver → key source) |
 | `ak.realm_key.share` | Realm key share（成员设备历史交付或 RRK 持久化封存） |
 | `ak.realm_key.withheld` | Realm key withheld notice |
 | `ak.realm_key.share_audit` | Auditable history key share marker |
@@ -330,4 +329,3 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 - 新增条目 MUST 以 `active`（或 `profile_extension`）登记进 canonical 真源（generated registry 一律经 `contract-registry.json` → pipeline 再生成，见 §1）。
 - schema registry 只包含当前标准面的条目；v1 不含 deprecated schema row、alias 或解析分支。
   历史快照不属于当前 schema registry 的输入，消费者 MUST 只接受当前 registry 声明的 shape。
-- 任何新增或修改的schema row都必须是`active`；lint必须拒绝其它status，不得通过扩展status重新引入兼容层。

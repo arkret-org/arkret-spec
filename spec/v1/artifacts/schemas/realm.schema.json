@@ -133,10 +133,10 @@
             "enum": [
               "realm",
               "space",
-              "board",
-              "global"
+              "board"
             ],
-            "default": "realm"
+            "default": "realm",
+            "description": "Cardinality and dedupe scope. realm is the default; space scopes to a Space and board is shorthand for a kind=board Space. There is no global scope: a Realm-local reducer has no cross-Realm state to enforce one against."
           },
           "cardinality": {
             "type": "string",

@@ -310,7 +310,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "2b0829f4e24796d93ca3fd6bd67a651b47a5970a9e22f29a3e264a371c5d0c85"
+      "sha256": "a9c8584482c303a2154d9a814e2d3cdcc4a59be61932ee5aa030df633d51ab23"
     },
     {
       "path": "spec/v1/artifacts/fixtures/reviewer-authority-pair-fixture.json",
@@ -322,7 +322,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "43c0a9ba0f8352e0a3c85cd62cc444c53a0eac53b993accc7bd5cd7c1a66e84b"
+      "sha256": "07b5619165f640dfcc55acfdabe2eacc2467cd7caa876484eec86f979c32435d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -362,7 +362,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",
-      "sha256": "5364e88ce9043b6d2f182d6093f270f32b39981bf4120a7e87841cc61c249141"
+      "sha256": "02159b45236ac2954f741e623e9ab05932fc19bfd87b96086895ccdeca3a88db"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-sequence-high-water-fixture.json",

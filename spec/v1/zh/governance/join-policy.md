@@ -317,7 +317,7 @@ reducer MUST：
 2. 按 `combinator` 选取需满足的 gate 子集；
 3. 对每个引用的 gate 调用对应 verifier（claim issuer revocation check、challenge provider signature check、parent membership snapshot 查询）；
 4. `cooldown` gate 独立评估，命中即拒绝（无视 `combinator`）；
-5. 全部通过则接受 `membership=join`；任一失败 `failed_precondition`，附带 `reason_code` 指明哪个 gate fail 与原因。
+5. 全部通过则接受 `membership=join`；任一失败 `failed_precondition`。**wire 响应统一 `reason_code=gate_check_failed`**（下方"外部 applicant 失败不可枚举"）；具体是哪个 gate fail 与原因只写入 reducer / audit log，MUST NOT 出现在 applicant 可见响应中。
 
 reducer MUST NOT 在自动解析路径上隐式生成 application / review Control Move——此路径绕过申请-审核状态机。
 

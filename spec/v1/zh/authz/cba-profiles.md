@@ -39,15 +39,23 @@ open-set vectors。
 | `security_barrier` | authority、membership、device revoke、MLS epoch 等；open-set 必须有相交 quorum。 |
 
 在 `single_did`、`threshold`、`mixed` 的单链中，Seal predecessor 顺序提供 barrier。
-`open_set` Realm MUST 有一个 protocol-singleton security-barrier control cell。每个
-`security_barrier` Move MUST：
+`open_set` Realm 没有单链顺序，barrier 由**目标 cell 自身的 CAS 加相交 quorum**提供；v1 **不**引入
+一个额外的 protocol-singleton barrier cell（那需要一个未登记的 cell family 与一个未登记的信封字段，
+两者都不存在，因此该形态无法被任何实现或门禁验证）。每个 `security_barrier` Move MUST：
 
-1. 以该 cell 当前 head 为 `barrier_parent_head`；
-2. 以既有 `head_eq` precondition 做 CAS；
-3. 携带同一 barrier authority set 的 k-of-n attestations，且 `2k > n`；
-4. 让每个 attestation 只签 `control_move_digest` 与 `barrier_parent_head`；
-5. 由 signer 持久化 `(authority_set_ref, barrier_parent_head, control_move_digest)`，并拒绝为
-   同一 parent 签第二个不同 digest。
+1. 对它写入的**每一个** cell 携带 `preconditions[]` 条目，`predicate.op="head_eq"`，`value` 是该 cell
+   在 Move 的 CBA basis 上的当前 head；缺少任一目标 cell 的 `head_eq` 即 `failed_precondition`；
+2. 携带同一 barrier authority set 的 k-of-n attestations，且 `2k > n`——任意两个并发 barrier
+   quorum 因此至少共享一个 signer；
+3. 让每个 attestation 只签 `control_move_digest` 与该 Move 的 `preconditions[]`（即 `(cell, expected_head)`
+   对的 canonical 序列），不引入第二套 parent 表达；
+4. 由 signer 持久化 `(authority_set_ref, cell, expected_head, control_move_digest)`，并拒绝为同一
+   `(authority_set_ref, cell, expected_head)` 签第二个不同 `control_move_digest`。
+
+第 2 条的 quorum 相交与第 4 条的 signer 单调性合起来给出与单链 predecessor 等价的效果：两个针对同一
+cell head 的并发 barrier Move 必然有一个共同 signer，而该 signer 只会为该 head 签一个 digest。不同 cell
+上的并发 barrier Move 本就互不相关，`security_barrier` 的登记语义（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)
+`concurrency_class_definitions`）也只要求它对**同一 signed scope** 内的并发 barrier 串行化。
 
 `authority_set_ref` 在所有 CBA authority/quorum 场景中统一为
 `{authority_set_id, authority_set_digest}`：id 是登记的 `ak.authority_set.*.v1` policy
@@ -243,7 +251,7 @@ Kernel 硬上限：
 - canonical bundle body ≤ 8 MiB；
 - `seals[]` ≤ 256；
 - `control_moves[]` ≤ 1,024；
-- 两类 proof 合计 ≤ 2,048；
+- 两类 proof（`inclusion_proofs` 与 `availability_proofs`）**合计** ≤ 2,048。[`cba-proof-bundle.schema.json`](../../artifacts/schemas/cba-proof-bundle.schema.json) 对每个数组单独声明 `maxItems: 2048` 只是粗过滤，合计上界由 receiver 按本条强制；
 - 从 target leaf 向 genesis 的单路径深度 ≤ 4,096；
 - dependency fetch 最多连续 8 轮；每轮必须使 missing set 严格缩小。
 

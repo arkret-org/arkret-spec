@@ -174,7 +174,7 @@ Reducer 校验顺序(MUST):
 
 Conformance fixture 见 `artifacts/fixtures/circle-scope-fixture.json`，覆盖 None→None / 同scope→同scope / None→Some / Some→None / Some(A)→Some(B) 五种 rebind transition 与 schema-violation negative case。
 
-### 6.3 Space 三个 scope 相关字段语义辨析
+### 6.3 Space 两个 scope 相关字段语义辨析
 
 | 字段 | 影响对象 | 强制性 | 说明 |
 | --- | --- | --- | --- |

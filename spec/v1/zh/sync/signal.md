@@ -182,9 +182,12 @@ MUST NOT 按字段名手工解析。新增 profile 只能新增登记行，不�
 
 - `expires_at` 必须晚于 `sent_at`，差值硬上限 120 seconds；
 - `setup` 最大 120 seconds，`moderation` 最大 60 seconds，`session` 最大 30 seconds；
-- canonical envelope ≤ 64 KiB，AEAD plaintext ≤ 48 KiB；AEAD tag 计入 `ciphertext`，
-  其 unpadded base64url 最大长度为 65,558 characters（按 16 字节 tag 计，v1 全部 active
-  ciphersuite 的 AEAD tag 均为 16 字节）；
+- canonical envelope ≤ 64 KiB（65,536 bytes），AEAD plaintext ≤ 46 KiB（47,104 bytes）。AEAD tag 计入
+  `ciphertext`（v1 全部 active ciphersuite 的 tag 均为 16 字节），因此 `ciphertext` 的 unpadded base64url
+  最大长度为 62,827 characters，与 envelope 上限之间留 2,709 bytes 承载其余 envelope 字段。
+  **两个上限必须自洽**：plaintext 上限 MUST 使 base64url 后的 `ciphertext` 加其余字段仍不超过 envelope
+  上限；把 plaintext 定成 48 KiB 会让单个 `ciphertext` 字符串（65,558 characters）就超过 envelope 上限，
+  使该组合永远不可满足；
 - relay 每次只允许一个 destination peer hop，不得形成 signal mesh 转发链；
 - receiver 在 proof/AAD/AEAD/plaintext schema 全部通过后，按 `(sender_device_id, canonical
   scope_ref)` 维护 `payload_sequence` high-water；新值 MUST 严格大于旧值，但任意正向 gap
@@ -451,7 +454,7 @@ Message create 所需授权；因为精确 kind 与 target 按 §1 强制加密�
 | consumer stalled 标记 | 30 s |
 | 单 device 同时展示 stream | 8 |
 
-16 KiB 是 §2 的 48 KiB Signal plaintext / 64 KiB canonical envelope 总上限之内的 profile
+16 KiB 是 §2 的 46 KiB Signal plaintext / 64 KiB canonical envelope 总上限之内的 profile
 子上限。conformance 必须覆盖 16,384 个 ASCII quote/backslash 的最坏 JSON 转义 keyframe；
 合法最大 keyframe 仍须装入两层 Signal 上限，不得把超限帧静默截短。service 不得解密以执行
 per-stream 限制；它只执行外层 envelope/rate/backpressure budget。producer 和 recipient 都

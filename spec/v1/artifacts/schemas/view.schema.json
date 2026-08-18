@@ -87,12 +87,6 @@
     "dashboard": {
       "$ref": "#/$defs/dashboard_config"
     },
-    "sort": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/sort_spec"
-      }
-    },
     "created_by": {
       "$ref": "#/$defs/did_core_id"
     },

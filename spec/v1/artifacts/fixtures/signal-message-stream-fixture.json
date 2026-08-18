@@ -90,7 +90,7 @@
             15001
           ],
           "worst_case_json_escape": true,
-          "signal_plaintext_limit_bytes": 49152,
+          "signal_plaintext_limit_bytes": 47104,
           "signal_envelope_limit_bytes": 65536
         }
       },

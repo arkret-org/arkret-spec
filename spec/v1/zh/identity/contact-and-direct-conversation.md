@@ -265,7 +265,7 @@ Message Signature只能额外叠加，不能替代其中任一项。实现 **MUS
 | `ak.peer.events.command.submit` | 其 `direct_conversation_founding` branch 是 §5.6 的唯一 DM founding 联邦入口 |
 
 `ak.self.direct_conversation.command.resolve` 的 untagged 多 phase create 入口 **MUST** 删除：创建由 §5 的
-`ak.realm.create` founding admission 承担，查询由上表的 `query.resolve` 承担，二者 **MUST NOT** 合并为一个
+`ak.realm.create` founding admission 承担，查询由上表的 `ak.self.direct_conversation.read.resolve` 承担，二者 **MUST NOT** 合并为一个
 带 `create=true` 的 operation。
 
 所有 transport binding **MUST** 逐字段等值，不能自行增加 `accepted`、兼容 consent shape、unsigned service row

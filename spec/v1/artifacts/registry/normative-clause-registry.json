@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.3",
+  "version": "2026-08-18.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-18T16:30:00+08:00",
+  "generated_at": "2026-08-18T18:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -68,7 +68,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:ef819238aa70a63c2dc3407136042d8376da29a6565a2e7964db8a2a01606b93",
+      "section_digest": "sha256:d6915ea97e3cd2b295383395ec7dcd1b9fa41294d0eeeaeb3d7d6e01ebd64623",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another. Section 6.0.2 fixes one construction for every registered proof context: the unsigned projection deletes the proof carrier member rather than nulling it and never defaults an absent optional, an absent optional binding field is omitted rather than written as null, audience is a single string or a duplicate-free array with the single-value form mandatory for one audience, and the context constant is a binding object member rather than a JWS header parameter, so a signature valid under one object family's context MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -86,7 +86,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#7-hlc",
-      "section_digest": "sha256:788a953caa23eee1287dc12528ea1a3cbea050518182a56ebc13a5ca1aad1f1c",
+      "section_digest": "sha256:a3ac08087d10fec743668f322c6078e6ba27cc1d3b4efec678ef4f31ca2bf5ae",
       "requirement": "HLC well-formedness, logical-counter overflow handling and the causal-first usage boundary: HLC breaks ties between causally incomparable items only and MUST NOT select a winner in shared protocol state.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -100,7 +100,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
-      "section_digest": "sha256:0774488c7167ef3cbc1f176bd44ef01c0d9b9ead8f3eb05941fd206a492c51f3",
+      "section_digest": "sha256:2641b0a828df1dfab48aafdcbd64a3a5be27a523e9f7a103093fe89b36cbcef2",
       "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -199,7 +199,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#3-realm-discoverability",
-      "section_digest": "sha256:1b35386bfdd3842e335fde93e39e9751066ccfb31b25e7fb28be8312662ff489",
+      "section_digest": "sha256:dcd830ed3f6c16c638bd224656baa060f45857b203fe599f5e8493a86521b0a4",
       "requirement": "Directory resolution failures are indistinguishable: unauthorized, non-existent and policy-denied targets MUST NOT be separable by error code, field set or timing.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -278,7 +278,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:43649de89b07a228ddd9603f74fdd5fba7f8aa20e473687ffdb2fdf509c53e27",
+      "section_digest": "sha256:484a1b108ac9a67b21ea53904c66677d70fb845426cfc6afe4f42bd8dacd677e",
       "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -328,7 +328,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:b77387bf445a4fb227a9a8494256a28002207796dbe0f908f3582184f5fed690",
+      "section_digest": "sha256:42cb2d6925b04416d252290f83ca9a062ba5b2cfdb61d86ee4c97080831f6ad9",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, replaying the same state is a no-op, and concurrent siblings resolve to bottom.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -343,7 +343,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:ed9270cf64c8bf483377fd4b64dccd1c699549452a8acbdc141e175173e04fc3",
+      "section_digest": "sha256:dd89cab19da3cf50f47d172ed2a4bf47b8df491142017cd9a39f579090dd471c",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -358,7 +358,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/models/account-data.md#5-并发写入与收敛契约normative",
-      "section_digest": "sha256:96f0ef334f8c98134adba70fe0ed96b8d4cfd16b894be0c79fdde3585e091cdb",
+      "section_digest": "sha256:75034c2a0067db8e2abff2d770af01e38204c9cc3368da050d0ad7c0b9fa789b",
       "requirement": "Account Data keys are server-versioned compare-and-set registers: a stale write MUST fail with cas_conflict, the revision high-water mark never goes backwards, and domain merge runs client-side on plaintext.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -395,7 +395,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/governance/member-delivery-binding.md#5-路由不可降级normative",
-      "section_digest": "sha256:6645bdb5ac9966cba7a28afc1779364cd26cca977ef088327b1ae42103d54262",
+      "section_digest": "sha256:7934233a53de08981f2066121a305c0a92ab5279c3573be0f4cdb90243f5abe9",
       "requirement": "Member delivery binding never silently downgrades: a stale binding frontier, an expired handover grace window or an unresolvable binding MUST fail closed instead of routing to the previous service.",
       "testability_grade": "vector",
       "evidence_refs": [

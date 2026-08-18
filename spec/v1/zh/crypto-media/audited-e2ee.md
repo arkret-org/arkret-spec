@@ -119,7 +119,9 @@ Binding policy 的后续变更通过新的 create Event 表达，并遵守同一
 - `requested_epoch_range` 或 `target_refs`
 - `requested_release_mode`
 - `occurred_at`
-- `request_digest`
+- `request_digest`：`sha256(canonical_json(payload))`，其中 `payload` 是**去掉 `request_digest` 自身**后的
+  完整 `ak.audit.session.request` payload。它是给 authorize / release 侧引用同一份请求内容的稳定句柄
+  （Event id 只在 Event 被接受后才存在），因此不能包含自己，也不能改用 Event digest 代替。
 
 Receiver MUST 校验 request 的 scope、purpose 和 release mode 均被 binding 允许，并且请求范围不早于 binding 的 `first_auditable_epoch` / `activation_frontier_digest`。Target-based request MUST 能证明每个 `target_ref` 在加密时的 eligibility snapshot 允许该 binding 和 release mode；不能证明时按不可审计处理。
 

@@ -179,7 +179,7 @@ Install preview request:
   },
   "approval_request": {
     "approve_actions": ["ak.message.create"],
-    "ghost_actors_allowed": false,
+    "ghost_actor_mode": "disallowed",
     "delegated_native_actors_allowed": false,
     "e2ee_join_allowed": false,
     "widget_allowed": false
@@ -237,12 +237,11 @@ Commit 响应 MUST 通过 [`schemas/applet-install-operations.schema.json#/$defs
 
 `effective_scope.kind="realm"` MUST 只包含 `kind` 与 `realm_id`。`effective_scope.kind="circle"` MUST 包含 `kind`、`realm_id` 与 `circle_id`。单次 install operation MUST 只作用于一个 effective_scope。recomputed plan `plan_digest` 不等于提交的 `plan_digest` 时 MUST fail closed，reason=`applet_install_plan_mismatch`。
 
-**preview `ghost_actors_allowed` 与 commit `actor_policy.ghost_actor_mode` 一致性(normative)**:preview 的 `approval_request.ghost_actors_allowed`(布尔)与 commit `actor_policy.ghost_actor_mode`(三值 `disallowed` / `controller_approved` / `policy_declared`)表达同一 ghost actor 准入意图,commit 时二者 MUST 语义一致，不一致 MUST fail closed:
-
-- `ghost_actors_allowed=false` ↔ `ghost_actor_mode="disallowed"`;
-- `ghost_actors_allowed=true` ↔ `ghost_actor_mode ∈ {controller_approved, policy_declared}`。
-
-即 `ghost_actors_allowed=false` 与 `ghost_actor_mode ∈ {controller_approved, policy_declared}` 冲突,`ghost_actors_allowed=true` 与 `ghost_actor_mode="disallowed"` 冲突；任一冲突组合 MUST 被 commit 拒绝(fail closed,reason=`applet_install_plan_mismatch` 或更细 ghost-policy reason),不得静默取其一。
+**preview 与 commit 的 ghost 准入意图是同一字段(normative)**:preview 的
+`approval_request.ghost_actor_mode` 与 commit 的 `actor_policy.ghost_actor_mode` 是**同一个三值字段**
+(`disallowed` / `controller_approved` / `policy_declared`)，preview MUST 逐字回显 plan 中的取值。v1 **没有**
+并行的布尔 `ghost_actors_allowed`：两种拼写会要求一条额外的一致性映射规则，而该规则本身就是漂移点。
+commit 时两处取值不逐字相等 MUST fail closed，reason=`applet_install_plan_mismatch`。
 
 ## 2. Namespace Pattern
 

@@ -49,7 +49,7 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 | `id` | yes | `id:sidecar` | Event-derived 44 字符 token；`retype(create_event.event_id,"sidecar")` |
 | `schema` | yes | const | `ak.schema.agent_sidecar.v1` |
 | `realm_id` | yes | `id:realm` | 从 create Event scope 派生，create-locked |
-| `controller_id` | yes | DID | 等于 create Event `actor_id`，create-locked |
+| `controller_id` | yes | `did_core_id` | 等于 create Event `actor_id`，create-locked |
 | `encryption_profile` | yes | const | `mls_rfc9420` |
 | `state` | yes | enum | `active | suspended | tombstoned`，reducer-derived |
 | `state_changed_at` | conditional | timestamp | 非 active 时必填 |
@@ -195,8 +195,11 @@ epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidec
 }
 ```
 
-`desired_agent_ids` 按 UTF-8 字节序排序去重。authority transcript 不包含 `effective_agent_ids`：effective 是
-当前 MLS reconciliation 的结果，不是参与者 authority 的输入。`control_frontier` 只能包含 Sidecar genesis、
+`desired_agent_ids` 按 UTF-8 字节序排序去重。authority transcript 恰为上方五个成员，不包含 `effective_agent_ids`：
+effective 是当前 MLS reconciliation 的结果，不是参与者 authority 的输入。`control_frontier` 同样**不是** transcript
+成员，它是 `mls_context` 中与 `participant_authority_digest` 并列的独立字段（见
+[`../sync/service-http-binding.md` §5](../sync/service-http-binding.md) 的 `AgentSidecarView`），承载派生 `desired_agent_ids`
+所依据的 accepted refs。它只能包含 Sidecar genesis、
 ownership、Agent lifecycle/runtime-key authorization 与 exact Realm membership 的 accepted refs；不得包含 Circle membership、
 Sidecar selection Event、action participation selection 或 MLS/key-readiness 结果。
 
@@ -213,10 +216,18 @@ Sidecar archive/restore/member Event：
 | --- | --- | --- |
 | active | suspended | controller 暂时失去 Realm active、policy 或 key readiness |
 | suspended | active | 所有暂时条件恢复 |
-| active/suspended | tombstoned | controller principal、parent Realm 或 Sidecar 不可逆 terminal，或显式 erase |
+| active/suspended | tombstoned | controller principal 或 parent Realm 进入不可逆 terminal |
 
 `tombstoned` 不可逆。Sidecar terminal 只终止 native Sidecar scope、MLS 与 private projection，不触发或
 修改任何 Circle lifecycle。
+
+**没有 actor-authored erase，也没有重建（normative）**：Sidecar state 是 accepted frontier 的纯函数，
+v1 **没有**注册任何 Sidecar erase / tombstone Event 或 operation；tombstone 只由上表右列的上游 terminal
+派生。§1 的「每个 `(realm_id, controller_id)` 至多一个 non-tombstoned Sidecar」因此是**永久 reservation**：
+一旦某个 `(realm_id, controller_id)` 的 Sidecar 进入 `tombstoned`，同一 key **MUST NOT** 再有新的
+`ak.sidecar.create` 被接受（§3.1 的 singleton reservation 按 key 而不是按 live 状态判定）。理由是
+tombstone 的两个触发条件本身都是上游终态：controller principal 或 parent Realm 已不可逆终止，重建
+Sidecar 没有可用的 controller authority。
 
 ## 8. Private view 与显式发布
 

@@ -243,7 +243,7 @@ Consent cell 是 or_set lattice（dot-based observed-remove，详见 [`event-aut
 - 不同consent ID是独立cell；查询`(holder,peer,scope)`时只有invite/非Contact action service遍历holder cells匹配。
 - 同一 CBA basis 内并发 grant 与 revoke 在 or_set join 后唯一确定（add dot 集合与 observed_dots 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / admin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。
 
-物化 `Consent` 对象由 holder client / admin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。Consent cell 的 schema 由本文与 [`identity-handles.md`](./identity-handles.md) 定义，未在 `models/` 提供 canonical-object schema。
+物化 `Consent` 对象由 holder client / admin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。Consent 没有 canonical-object schema：cell 的写入 payload 由 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `ak.consent.grant` / `ak.consent.revoke` 绑定，投影形态由 [`consent-operations.schema.json#/$defs/consent_cell_view`](../../artifacts/schemas/consent-operations.schema.json) 固定；本文只定义语义。
 
 ## 6. 与 Invite / Contact 流程的整合
 

@@ -211,7 +211,7 @@
       "type": "object",
       "description": "MIMI room binding effect payload. In CBA/Lattice state, the cell subject is payload.mimi_room_uri for ak.component.mimi.room_binding.v1.",
       "required": [
-        "receipt_kind",
+        "kind",
         "payload"
       ],
       "properties": {

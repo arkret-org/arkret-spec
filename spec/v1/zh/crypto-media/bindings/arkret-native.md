@@ -48,7 +48,18 @@ sidebar:
 }
 ```
 
-base64url-编码的 detached JWS，由 token issuer 用 service DID 的 `assertionMethod` key 签名。SFU 在每次 SDP 协商前 MUST 校验该 token：
+`sig` 是 base64url（无 padding）编码的 Ed25519 签名，由 token issuer 用 `kid` 指向的 service DID
+`assertionMethod` key 生成。**signing_input（normative）**：
+
+```text
+"ak.media.backend_token.v1" || 0x00 || canonical_json(payload)
+```
+
+`canonical_json` 按 [`../../conformance/encoding.md` §2](../../conformance/encoding.md) 的 JCS 规则序列化
+上面的 `payload` 对象本身（不含 `kid` / `sig` / `signature_algorithm`）。domain label 与
+[`../media-service-binding.md` §3.1](../media-service-binding.md) 表中其它媒体签名点互不相同，防止一把
+issuer key 的签名在另一条验证路径下被重解释。SFU 在每次 SDP 协商前 MUST 用该 signing_input 校验签名，
+并继续校验：
 
 该对象直接作为 token-exchange response 的 `backend_token`；不得先 JSON 编码成 string。它与同级 `backend_kind="arkret_native"` 构成一个 closed branch，任意未知 member、缺字段或 string 形态均须在进入 backend 前拒绝。
 
@@ -89,6 +100,17 @@ SFU response：
   }
 }
 ```
+
+`sfu_signature.sig` 同样是 base64url（无 padding）Ed25519 签名，由 SFU 用 `kid` 指向的 service DID
+`assertionMethod` key 生成。**signing_input（normative）**：
+
+```text
+"ak.media.sfu_answer.v1" || 0x00 || canonical_json({call_id, focus_id, participant_identity, realm_id, sdp})
+```
+
+`sdp` 取该响应 `offer.sdp`（或 `answer.sdp`，取决于该轮协商方向）的逐字节原值；其余四项取该轮
+handshake 的对应值。客户端 MUST 用同一 signing_input 验签，并 MUST 确认 `kid` 落在当前
+`ak.realm.media_service.service_id` 锚定的 DID 列表内。
 
 SFU MUST 在 response 中回显 token exchange 阶段已 issued 的同一 `participant_identity`；如果 SFU 派生了新的 internal participant id（如 RTP SSRC 或 LiveKit-style 短 ID），它 MUST 自己内部映射，不出 SFU API 边界。
 
@@ -139,7 +161,7 @@ Arkret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascad
 
 实现声明 `ak.profile.media_service_binding.arkret_native.v1` 时，至少通过：
 
-- 上游 `ak.profile.media_service_binding.v1` 的 9 个核心 vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_identity / recording_artifact）。
+- 上游 `ak.profile.media_service_binding.v1` 的全部 `ak.vector.media_binding.*` vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_identity / recording_artifact / recording_exporter_label）。数量与命名以 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json) 为准，本节不复述计数。
 - arkret_native-specific：实现自由附加，但 wire 不得引入 v1 周期内 unregistered 字段。
 
 具体向量编排见 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json)。

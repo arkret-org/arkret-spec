@@ -498,12 +498,12 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。
 - `has_more: boolean` MUST 出现：客户端 MUST 仅按 `has_more` 决定是否继续翻页；不得仅靠 `next_cursor` 是否存在做判断（实现可能在末尾仍返回 `next_cursor` 用作 long-poll resume token）。
 
-本小节的三字段合同适用于资源列表接口，不适用于双向 Event range scan。
-`ak.self.events.read.scan` / `ak.peer.events.read.scan` 按绝对方向分别返回
-`has_more_before` 与 `has_more_after`：沿 `before=<prev_cursor>` 补更旧历史时只看
-`has_more_before`，沿 `after=<next_cursor>` 追更新事件时只看 `has_more_after`。scan client
-不得把其中任一字段重命名为通用 `has_more`，也不得在向后补历史时用
-`has_more_after` 作为终止判据。
+本小节的三字段合同同样适用于双向 Event range scan，但 `has_more` 在那里只表达**更旧方向**：
+`ak.self.events.read.scan` / `ak.peer.events.read.scan` 的 `has_more` 回答"沿 `before=<prev_cursor>`
+是否还有更旧 Event"。更新方向没有对应布尔，因为 `next_cursor` 永远有效（朝未来推进），
+"暂时没有更新事件"不是分页终点。字段集以 `EventsQueryOutcome`
+（[`service-operation-dtos.schema.json`](../../artifacts/schemas/service-operation-dtos.schema.json)）为准；
+语义见 [`service-http-binding.md` §3.3](./service-http-binding.md)。
 
 **`prev_cursor`**（可选, 双向分页）：仅当接口支持向"更旧"方向翻页时返回。详见 §7.0；不支持双向翻页的接口 MUST NOT 返回 `prev_cursor`。
 

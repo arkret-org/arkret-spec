@@ -115,7 +115,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
 | `renderer` | no | `enum(board, list, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
 | `title` | no | `string` |  | View 名称。 |
-| `visibility` | no | `enum(private, shared)` |  | View 共享可见性。 |
+| `visibility` | no | `enum(private, shared)` | 省略时视为 `shared`：共享写入路径（`ak.view.create` / `ak.view.update`）本就拒绝 `private`（§3.2），因此缺省只有一种合法解释。 | View 共享可见性。 |
 | `state` | yes | `enum(active, tombstoned)` | 必须显式给出；`tombstoned` terminal。 | View lifecycle。 |
 | `state_changed_at` | conditional | `timestamp` | `state=tombstoned` 时 reducer-derived 必填。 | 终态 accepted 时间。 |
 | `query` | yes | `Query` | 见 [`../conformance/query-schema.md`](../conformance/query-schema.md)。 | 数据查询。 |
@@ -126,13 +126,12 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `graph` | conditional | `GraphConfig` | `kind="graph"` 时 MUST 设置。 | 图/树遍历配置。 |
 | `document` | conditional | `DocumentConfig` | `kind="document"` 时 MUST 设置。 | 文档 section 配置。 |
 | `dashboard` | conditional | `DashboardConfig` | `kind="composite"` 时 MUST 设置。命名说明：`composite` 是 response family（§2.2 五大 kind 之一），其 v1 唯一 typed config 是 `DashboardConfig`，故配置字段名取 `dashboard`（与 §4 表中 composite 的唯一 renderer `dashboard` 对齐）；composite 的非 dashboard 形态须由 profile-defined `custom` renderer 承载，v1 core 不再为 composite 引入第二个 typed config 字段。 | 仪表盘 widget 配置。 |
-| `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
 | `created_by` | yes | `did_core_id` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did_core_id` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
-**共享 View 终态（normative）**：共享 View 的协议级移除复用 `ak.view.update`：owner 或持有 `ak.view.update` capability 的 actor 提交 patch `set.state="tombstoned"`。Reducer MUST 以 accepted update 的 canonical lifecycle timestamp 写 `state_changed_at`；actor MUST NOT 自报该字段。`tombstoned` 是 terminal：后续任何 update / reconcile 或尝试恢复 `active` MUST `failed_precondition`，`reason_code="view_already_terminal"`。Query / projection MUST 默认排除 tombstoned View；审计或显式 `include_terminal=true` 查询 MAY 返回保留定义的 stub。Private View 可由 owner-private account-data 删除，但一旦以 shared View 发布，移除必须走上述 durable update，不能仅做带外删除。
+**共享 View 终态（normative）**：共享 View 的协议级移除复用 `ak.view.update`：owner 或持有 `ak.view.update` capability 的 actor 提交 patch `set.state="tombstoned"`。Reducer MUST 以 accepted update 的 canonical lifecycle timestamp 写 `state_changed_at`；actor MUST NOT 自报该字段。`tombstoned` 是 terminal：后续任何 update / reconcile 或尝试恢复 `active` MUST `failed_precondition`，`reason_code="view_already_terminal"`。Query / projection MUST 默认排除 tombstoned View；审计或显式 `include_terminal=true` 查询 MAY 返回保留定义的 stub。Private View 可由 owner-private account-data 删除，但一旦以 shared View 发布，移除必须走上述 durable update，不能仅做带外删除。 该接受面与 `state_changed_at` 的拒绝面由 `ak.vector.view.terminal_state_patch.v1` 固化。
 
 **Private View 承载（normative）**：`visibility="private"` 的 View MUST 作为
 `ak.views.private.<view_id>` 加密 account data 保存；其 plaintext value 仍按
@@ -182,6 +181,8 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
 | `display_fields` | no | `array<DisplayColumn>` | dot path。 | 展示字段与格式。 |
 | `grouping` | yes | `CollectionGrouping` |  | 分组/列/时间桶/矩阵配置。 |
 | `count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 集合级计数策略。 |
+
+**排序通道唯一（normative）**：View 只有两条排序通道，且互不重叠——`query.order_by` 决定**取哪些对象、按什么顺序取**，`collection.item_order_by` 决定 collection 内 item 的**展示稳定序**。v1 **没有**顶层 `sort`：它与 `query.order_by` 形态完全同构、作用面重叠，却没有定义优先级，两者同时出现时结果未定义。需要改排序的实现 MUST 改这两个字段之一。
 
 `selection_policy` 与 `page_size` 是终端/用户私有 presentation 偏好，不是 canonical `CollectionConfig` 字段；客户端 MUST 存入 actor-private account data 或仅保存在本地。Producer 不得把这两个键写入共享 View；closed schema 将其拒绝为 `schema_violation`。
 
@@ -405,8 +406,7 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Strand。实现 MUST �
           "state": {
             "discussion": {
               "enabled": true,
-              "visibility": "locked",
-              "lazy_link": true
+              "reference_projection": "lazy_link"
             }
           }
         }

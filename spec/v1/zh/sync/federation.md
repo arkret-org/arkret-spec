@@ -92,7 +92,7 @@ DID Document 仍负责 control key / delegation 证明，但不再充当从 `ser
 - `@method`
 - `@target-uri`
 - `@authority`
-- `content-digest`（仅针对有 body 的请求；编码遵循 RFC 9530。无 body 的 `GET` pull MUST NOT 携带 `Content-Digest`，`Signature-Input` 也 MUST NOT 绑定 `content-digest`）
+- `content-digest`（仅针对有 body 的请求；编码遵循 RFC 9530。无 body 的请求 MUST NOT 携带 `Content-Digest`，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。v1 的 peer surface 中，只有 `GET /_arkret/peer/snapshot/head` 是无 body 请求；`QUERY /_arkret/peer/events` 等一律带 JSON body 并 MUST 绑定 `content-digest`）
 - `source-service-id`（自定义 header `Source-Service-ID`）
 - `destination-service-id`（自定义 header `Destination-Service-ID`）
 - `destination-service-endpoint-digest`（自定义 header `Destination-Service-Endpoint-Digest`；shared ingress / 多租户 / allowlist endpoint 场景必填）
@@ -369,7 +369,7 @@ Signature-Input: ...
 Signature: ...
 ```
 
-GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 请求的最小 component 集：`@method`、`@target-uri`、`@authority`、`source-service-id`、`destination-service-id`、`source-trust-domain`、`destination-trust-domain`，以及签名 parameter `created` / `expires`（GET pull MUST NOT 携带或绑定 `content-digest`）。示例中的 `Signature-Input: ...` 为省略写法，实际 covered components 以 §3.2 为准。
+v1 的 peer pull **只有**这一种带 JSON body 的 `QUERY` 形态，没有无 body 的 `GET` pull。它因此 MUST 携带 `Content-Digest` 并把 `content-digest` 签入 covered components；示例中的 `Signature-Input: ...` 为省略写法，实际 covered components 以 §3.2 为准。
 
 请求字段（query；完整参数集与默认顺序规则见 [`service-http-binding.md` §3.3](./service-http-binding.md)）：
 
@@ -551,7 +551,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 
 1. Bob 发现 Realm S 的元数据（通过公开的 Realm Directory、链接或 `directory_hint`），并取得 `join_candidates[]`
 2. Bob 直接提交 `ak.member.state{membership="join", gate_proofs=[...]}` Control Move，附带 claim presentation / challenge proof
-3. Bob 的客户端 / Principal Server 将 join Control Move 推送至所选未过期 candidate；candidate MUST 是 Realm policy / service delegation 授权的 shared notary、Principal Server sync surface、federation peer 或参与方 Principal Server
+3. Bob 的客户端 / Principal Server 将 join Control Move 推送至所选未过期 candidate。**候选来源只有 §5.0 step 2 的两处**：signed invite，或 inviter 当前 joined-member delivery binding；部署已知 peer、shared notary、mirror、Directory / search projection 与裸 URL MUST NOT 成为候选
 4. 各参与方 reducer 加载当前 Join Policy candidate value，按 `combinator` 校验 `gate_proofs[]`；通过则收敛 `membership=join`
 5. 若 Realm 启用了 E2EE，Bob join 后由现有成员通过 MLS commit + welcome 引入
 
@@ -662,64 +662,24 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 | 跨域 snapshot-assisted bootstrap | `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.read.manifest_head`） | 同上；manifest 必须签名并绑定 authority_binding。 |
 | 跨域 actor / DID 验证 | `POST /_arkret/root/identity/resolve`（`ak.root.identity.read.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
 
-### 7.1 跨域 Event 推送
+### 7.1 跨域 Event 推送 / Backfill / 成员视图
 
-```
-POST /_arkret/peer/events
-Source-Service-ID: ak:did_core:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ
-Destination-Service-ID: ak:did_core:webvh:z94DeARq4Vqk5S1h3tFsxPnwq
-Destination-Service-Endpoint-Digest: sha256:<hex>
-Source-Trust-Domain: ak:trust_domain:did.webvh.acme.example
-Destination-Trust-Domain: ak:trust_domain:did.webvh.beta.example
+上表三行分别对应 `ak.peer.events.command.submit`、`ak.peer.events.read.scan`（`before=` 回填历史）与
+同一 scan 加 `ak.member.state` 过滤。**wire 形态、字段集、签名 transcript 与响应 shape 只有一处定义**：
+push 见 §4.1，pull / backfill 与成员视图见 §4.2，operation 行见
+[`service-http-binding.md` §4](./service-http-binding.md)，请求 / 响应 schema 见
+[`service-operation-dtos.schema.json`](../../artifacts/schemas/service-operation-dtos.schema.json)。本节
+**不重复**这些字段表与示例——此前的重复副本已与权威定义漂移（QUERY 示例的 covered components 漏掉
+`content-digest`，成员视图另给了一套顶层 `kinds` / `members[]` / `membership_frontier` 的响应 shape）。
 
-Idempotency-Key: <opaque-key>
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-id" "destination-service-id" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "idempotency-key");created=...;expires=...
-Signature: sig1=:<base64>:
-```
+两条仍然只在本节声明的约束：
 
-字段、签名 transcript、绑定与重放保护按 §3.2、§4.1 与 [`api-conventions.md` §3](./api-conventions.md) 与 [`service-http-binding.md` §3](./service-http-binding.md) 执行。事件以普通 CBA reducer-input Event 提交：DataEvent 使用签名 `kind + payload + scope_ref` / `seal_ref` / `auth_context`，Control Move 使用签名 `kind + payload + scope_ref` / `seal_basis` / 可选 `preconditions`；cell write 均由 receiver 按 registry 投影，与单域 client write 共享同一 schema（`ak.schema.event.v1`）。
+- 带 JSON body 的 `QUERY` MUST 携带并把 `content-digest` 签入 RFC 9421 covered components（上表"跨域
+  backfill / 拉取缺失历史"行）。covered components 缺 `content-digest` 的 QUERY MUST 拒绝。
+- 成员视图不是独立 operation：它就是 `ak.peer.events.read.scan` 加 `ak.member.state` kind 过滤，响应仍是
+  `EventsQueryOutcome`（`events` / `prev_cursor` / `next_cursor` / `has_more`）。实现 MUST NOT 为它引入
+  第二套顶层字段。
 
-### 7.2 跨域 Backfill
-
-```
-QUERY /_arkret/peer/events
-
-{"realms":["<id>"],"before":"<cursor>","limit":<n>}
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-id" "destination-service-id" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain");created=...;expires=...
-Signature: sig1=:<base64>:
-```
-
-字段定义见 §4.2；service operation id 为 `ak.peer.events.read.scan`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Realm policy 与 history visibility 过滤；snapshot bootstrap 通过 `/_arkret/peer/snapshot/head` 获取，或作为 `ak.peer.events.read.scan` 的 `snapshot_bootstrap` 加速字段返回。
-
-### 7.3 查询 Realm 成员
-
-跨域参与方查询某 Realm 成员视图时，使用 `ak.peer.events.read.scan` 并过滤 `kind=ak.member.state`：
-
-```
-QUERY /_arkret/peer/events
-
-{"realms":["<id>"],"filters":{"kinds":["ak.member.state"]},"after":"<cursor>","limit":<n>}
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-id" "destination-service-id" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain");created=...;expires=...
-Signature: sig1=:<base64>:
-```
-
-请求字段：
-
-| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
-| --- | --- | --- | --- | --- |
-| `realms` | query | `id[]` | required | 要查询成员的 Realm。 |
-| `kinds` | query | `string[]` | optional | 事件类型过滤；此处固定 `ak.member.state`。 |
-| `after` | query | `cursor` | optional | 分页 cursor（forward page）。与 [`api-conventions.md §6`](api-conventions.md) `after` / `before` 对齐。 |
-| `before` | query | `cursor` | optional | 分页 cursor（reverse page），与 `after` 互斥。 |
-| `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
-
-响应字段：
-
-| 字段 | 类型 | 必填 | 说明与约束 |
-| --- | --- | --- | --- |
-| `members` | `object[]` | required | 成员摘要数组；内容受 requester 可见性和 Realm policy 限制。 |
-| `membership_frontier` | `object` | required | 用于判断成员视图新鲜度的因果前沿。 |
-| `next_cursor` | `cursor` | optional | 下一页 cursor。 |
 
 ### 7.4 验证 Actor
 

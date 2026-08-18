@@ -194,9 +194,6 @@
     "payload": {
       "type": "object"
     },
-    "redacts": {
-      "$ref": "#/$defs/event_ref"
-    },
     "unsigned": {
       "type": "object",
       "description": "Local / transport-only metadata (server-derived hints, redaction reason, age). NOT covered by signature or event digest."

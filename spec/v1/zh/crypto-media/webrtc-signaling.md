@@ -117,7 +117,7 @@ Content-Type: application/json
 
 请求 schema 见 [`media-operations.schema.json#/$defs/media_ice_config_request_body`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
 
-客户端调用 `ice_config_endpoint` 前 MUST 读取当前 `ak.realm.media_service` state event，并校验该 event 被当前 epoch MLS governance binding 覆盖（见 [`media-service-binding.md` §2.1](./media-service-binding.md)）。覆盖校验失败 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential。
+客户端调用 `ice_config_endpoint` 前 MUST 从当前 accepted Seal view 验证 `ak.realm.media_service` 的该 exact cell value 与 Event proof（见 [`media-service-binding.md` §2.1](./media-service-binding.md)）。缺失或 stale 时 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential。endpoint 变更不进入 `security_frontier_digest`，因此这里 **MUST NOT** 额外要求该 event 被当前 epoch MLS governance binding 覆盖，也不得为它强制 rekey。
 
 **凭证缓存与日志脱敏（normative）**：ICE config 响应体携带短期 TURN `credential` / `username`（bearer 性质）。`POST /_arkret/self/rtc/ice-config` 响应 MUST 携带 `Cache-Control: private, no-store`；服务端 MUST NOT 在 access log / metrics / tracing 中记录响应体中的 `credential` 与 `username` 原文，客户端 MUST NOT 把 TURN credential 持久化到普通日志 / 浏览器历史 / analytics。这与 blob presign bearer URL（[`media-and-blob.md` §5.4.3](./media-and-blob.md)）同级:虽然媒体帧另有 SFrame E2EE 且 credential 短时效 per-call，被缓存 / 落日志的 credential 在 TTL 窗口内仍可被取用以滥用 TURN 中继资源。
 
@@ -224,8 +224,8 @@ Content-Type: application/json
   ```
 
   `nonce` MUST 对每个 `(call_id, actor_id, device_id)` fresh，media service MUST 在签名 ICE config 的内部审计记录中保留 nonce freshness evidence，且不得把 nonce 或其稳定派生值写入 TURN username 之外的可跨 Realm 关联字段。Refresh 时同一 active call leg MAY 复用 pseudonym 以避免 TURN 误判为不同会话，但新 call、new device leg、超过 `ttl_seconds + refresh grace` 的恢复、或 policy 要求匿名重置时 MUST 生成新 pseudonym。Pseudonym 不得仅由稳定 ID 确定性派生。
-- ICE config response MUST 由 media service 签名；`signature.alg` MUST 是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 中 `status=active` 且 `proof_kinds` 包含 `detached_jws` 的 `alg` 值。default v1 部署使用 `Ed25519`；高保证或部署特定 profile MAY 要求 registry 中的其它 active 算法，但签名 canonical bytes 与本节 domain label 不变。签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`issued_at_bucket`、`bucket_seconds`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
-  - **签名 domain label（normative，跨实现互通契约）**：ICE config response `signature.sig` MUST 是 issuer 私钥（对应 `signature.kid`）按 `signature.alg` 指定算法对下列字节串产生的签名；`signature.alg="Ed25519"` 时该签名为 Ed25519。`ES256`、`ML-DSA-65` 等其它允许 detached JWS 的 active `alg` 值只改变验签算法和 key type，不改变本 signing input、domain label 或 payload digest：
+- ICE config response MUST 由 media service 签名；`signature.signature_algorithm` MUST 是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 中 `status=active` 且 `proof_kinds` 包含 `detached_jws` 的 `raw_signature_algorithm` 值。default v1 部署使用 `Ed25519`；高保证或部署特定 profile MAY 要求 registry 中的其它 active 算法，但签名 canonical bytes 与本节 domain label 不变。签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`issued_at_bucket`、`bucket_seconds`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
+  - **签名 domain label（normative，跨实现互通契约）**：ICE config response `signature.sig` MUST 是 issuer 私钥（对应 `signature.kid`）按 `signature.signature_algorithm` 指定算法对下列字节串产生的签名；`signature.signature_algorithm="Ed25519"` 时该签名为 Ed25519。`ES256`、`ML-DSA-65` 等其它允许 detached JWS 的 active `signature_algorithm` 值只改变验签算法和 key type，不改变本 signing input、domain label 或 payload digest：
 
     ```text
     signing_input =
@@ -454,7 +454,7 @@ Candidate payload:
 
 规则：
 
-- `answer` signaling frame 只是候选应答，不是 winner 真相。winner 必须由接收方的 call admission 接受一条 durable `ak.call.state.roster_delta.op="join"` 后才成立。P2P / mesh 候选不取得 `participant_binding`；SFU / MCU 的每个候选设备 MAY 在提交 join 前兑换短期 `participant_binding` 与 media token，winner 仍由首条 accepted roster join 确立。非 winner 的 binding / token MUST 由 issuer 立即撤销，或在不超过 `answer_timeout_ms` 的短 TTL 后失效，不得据此进入 media roster。
+- `answer` signaling frame 只是候选应答，不是 winner 真相。winner 必须由接收方的 call admission 接受一条 durable `ak.call.state.roster_delta.op="join"` 后才成立。P2P / mesh 候选不取得 `participant_binding`；SFU / MCU 的每个候选设备 MAY 在提交 join 前兑换短期 `participant_binding` 与 media token，winner 仍由首条 accepted roster join 确立。非 winner 的 binding / token MUST 由 issuer 立即撤销，或在不超过 `ring_timeout_ms`（[`call-state.md` §5](./call-state.md) 的登记常量，默认且最大 60,000 ms）的短 TTL 后失效，不得据此进入 media roster。
 - Admission service MUST 按 `(call_id, actor_id)` 串行化 accepted participant entry：若当前 accepted call roster effective OR-Set 已存在同一 actor 的 active call leg，后续 answer MUST 拒绝 `call_already_answered`，并要求该设备停止响铃。
 - 若同一 actor 的多个设备基于同一 prior call-state basis 并发 answer，reducer / admission service MUST 使用确定性 tiebreak，而不是本地接收顺序：按 `(device_id, proof.event_digest)` 字典序最小的候选成为唯一 winner；其它候选返回 `call_already_answered` 或发送 `reject{reason="call_already_answered"}`。该 tiebreak 只处理真正并发 sibling；非并发场景仍由已 accepted durable participant entry 吸收后续请求。
 - 发起端、其它接收端与 SFU MUST 以 accepted `ak.component.call.roster.v1` effective OR-Set 中的 participant entry 为权威，停止同 actor 其它设备的 ringing / offer-answer 流程；它们 MUST NOT 因先收到某个通过签名验证的 answer 就本地承认 winner。

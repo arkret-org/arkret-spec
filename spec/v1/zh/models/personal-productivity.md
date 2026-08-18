@@ -28,7 +28,7 @@ see_also:
 账户数据 key 不得泄露原始目标引用、集合名称或字段路径。实现 MUST 使用 [`account-data.md` §2](./account-data.md) 定义的 `account_data_namespace_key` / `derive_account_data_key` 派生稳定、不透明的 key 片段：
 
 - `target_key = derive_account_data_key(canonical_target_ref)`
-- `collection_key = derive_account_data_key(normalized_collection_title)`
+- `collection_key = derive_account_data_key(normalized_collection_title)`，其中 `normalized_collection_title` = 对 title 先 NFC 归一化、再按 Unicode simple case folding 折叠、再去掉首尾空白并把内部连续空白折叠为单个 `U+0020` 的结果（与 [`../conformance/encoding.md` §2.2](../conformance/encoding.md) 的显示串归一化同一算法族）。两台设备 MUST 得到逐字节相同的输入，否则同一集合会分叉成两个 key。
 - saved item 的 `target_key = derive_account_data_key(collection_key || canonical_target_ref)`
 
 `canonical_target_ref` MUST 使用 canonical JSON / typed-id 规范化后的对象引用；同一目标在同一 principal 下必须得到同一 key，不同 principal 之间不得可链接。
@@ -84,7 +84,7 @@ Saved item 与 shared pin 不同：saved item 是 holder-private collection；sh
 - `kind=message` 时，`slot_key=compose`。
 - `kind=strand_field` 时，`slot_key=field_<sha256(canonical_field_path)>`。
 
-草稿 value MUST 加密，并至少包含 `target_ref`、`kind`、`draft_slot`、`content`、`updated_hlc`、`origin_device_id` 和 `retention_expires_at`。`origin_device_id` MUST 是完整 `ak:device:<uuid>` typed ID；原始 `target_ref` MUST NOT 出现在 account-data key 中。
+草稿 value MUST 加密，并至少包含 `target_ref`、`kind`、`draft_slot`、`content`、`updated_hlc`、`origin_device_id` 和 `retention_expires_at`。`origin_device_id` MUST 是完整 `ak:device:<uuidv7>` typed ID；原始 `target_ref` MUST NOT 出现在 account-data key 中。
 
 草稿写入 MUST 走 [`account-data.md` §5](./account-data.md) 的 compare-and-set 循环：服务端只比较 `expected_revision`，草稿冲突规则由客户端在解密明文上执行。冲突按 `(actor, target_key, draft_slot)` 做 last-writer-wins，`updated_hlc` 是比较源；收到 `cas_conflict` 时客户端 MUST 重新解密 `current_entry`、合并后以新的 `expected_revision` 重写一次。设备本地时钟不可信时，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与草稿合并。
 

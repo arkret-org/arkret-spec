@@ -135,8 +135,7 @@ Content-Type: application/json
     "issuer_kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
     "sig": "base64url..."
   },
-  "expires_at": "2026-05-27T12:34:56Z",
-  "service_signature": { "kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1", "sig": "base64url..." }
+  "expires_at": "2026-05-27T12:34:56Z"
 }
 ```
 
@@ -144,7 +143,7 @@ Content-Type: application/json
 
 - **Backend token branch**：`backend_kind` 与 `backend_token` 形状 MUST 逐项匹配。`arkret_native` branch 是 closed `{kid,payload,sig,signature_algorithm:"Ed25519"}` object，其中 `payload` 也是 closed typed object；其余 v1 branch 是非空 string。实现不得使用 `Value`、object-as-JSON-string、先尝试 string 再尝试 object，或任何未登记 fallback。
 - **TTL 短期化**：`backend_token` / `participant_binding` `expires_at` 的硬上限 MUST ≤ 600s（10 分钟）；推荐上限 SHOULD ≤ 300s。过期前客户端 MUST 重新兑换；backend token 一旦泄漏在 TTL 内通常不可吊销（除非 backend 提供 revocation list），短 TTL 是工程兜底。
-- **Token issuer DID 锚定**：`service_signature.kid` 与 `participant_binding.issuer_kid` 的 controller bare DID MUST 等于当前 epoch `ak.realm.media_service.service_id` 之一，具体 key MUST 命中该 epoch 已接受的 service key binding；验签不要求逐 token 在线解析 DID。出现新 service / key epoch、binding invalidation 或显式 freshness 失效时才进入 DID 权威验证。客户端 MUST 拒绝来自未授权 DID 的 token，错误码 `token_issuer_unauthorised`。该规则把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
+- **Token issuer DID 锚定**：`participant_binding.issuer_kid` 的 controller bare DID MUST 等于当前 epoch `ak.realm.media_service.service_id` 之一，具体 key MUST 命中该 epoch 已接受的 service key binding；验签不要求逐 token 在线解析 DID。出现新 service / key epoch、binding invalidation 或显式 freshness 失效时才进入 DID 权威验证。客户端 MUST 拒绝来自未授权 DID 的 token，错误码 `token_issuer_unauthorised`。该规则把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
   - **命名与类型（normative）**：`issuer_kid` 是 issuer **key identifier**，不是 issuer service identifier，因此该字段名不得改成 `issuer_id`。其值 MUST 是带 verification-method fragment 的 DID URL（例如 `did:web:media.example#key-1`）；去掉 `#fragment` 后得到的 service DID 才与当前 epoch 的 `service_id` 做锚定。`service_id` 标识服务主体，`issuer_kid` 标识该主体用于本次签名的具体密钥，二者不可互换。
   - **轮换语义（normative）**：`participant_binding` 只承诺六元组 + `expires_at`，**不**绑定签发时的 media_service epoch。issuer 锚定按**写入 `ak.call.state` 时的当前 epoch** `service_id` 判定（[`call-state.md` §4.1](./call-state.md)），因此一次 media_service 轮换（旧 `service_id` 被移出当前 epoch）即时作废由被移出 service 签发、尚在 TTL 内的在途 binding：reducer MUST 以 `token_issuer_unauthorised` 拒绝其落账，客户端 MUST 重新向当前 epoch service 兑换。这是已知的 ≤600s 活性窗口（与 TTL 上限一致），不引入跨 epoch binding 复用；实现 MUST NOT 为旧 epoch binding 增设 grace 接受。
 - **`participant_identity` 形态**：作为 SFU-local 短期随机 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) pairwise pseudonym 规则对齐），也不得由可公开重算的主体元组确定性派生。六元组绑定职责由下方 `participant_binding` 的签名承诺承担。
@@ -161,10 +160,6 @@ Content-Type: application/json
     ```
 
     第一段是固定 ASCII 域分隔 label（逐字节等于 `scheme` 值），随后单字节 `0x00` 分隔，再接 7 字段对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。**签名仅覆盖这 7 个权威字段**；binding 对象另带的 `scheme` / `issuer_kid` / `issued_at` 是**未签名元数据**，MUST NOT 进入 `signing_input`。接收方据 wire 上的 7 个权威字段值重建 `signing_input` 再验签——故篡改任一权威字段都会令验签失败。任何 media service（arkret_native / LiveKit / 第三方）MUST 按此构造，任何客户端 / reducer MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 把元数据字段并入签名输入，否则破坏跨 service 互通。
-  - **`service_signature`**：`service_signature.sig` 是 issuer 对**同一 `signing_input`**（label 与 7 元组与上完全一致）的 Ed25519 签名，承诺该次 token exchange 响应整体的 issuer 身份；`service_signature.kid` 与 `participant_binding.issuer_kid` 都 MUST 锚定当前 epoch `service_id`（见上「Token issuer DID 锚定」）。客户端在默认验证路径中 **MUST** 同时验 `service_signature.sig` 与 `participant_binding.sig` 通过后才使用该 token——二者任一验签失败即 `token_issuer_unauthorised` 拒绝，MUST NOT 把签名校验降级为可选的 SHOULD。
-
-Token issuer MUST 在签发前校验：
-
 - 调用者 device proof / bearer 有效，未 revoked。
 - Actor 在 `realm_id` 拥有 `ak.call.join` capability；`desired_media` 不超过授权（`ak.call.screen_share` 等子 capability 检查）。
 - Realm policy 允许该 `focus_id`（即 focus 出现在当前 `ak.realm.media_service.foci[]` 中）。
@@ -182,17 +177,17 @@ v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 | 签名点 | domain label 常量 | signing_input 覆盖 | 定义处 |
 | --- | --- | --- | --- |
 | `participant_binding.sig` | `ak.media.participant_binding.v1` | `label \|\| 0x00 \|\| canonical_json({actor_id, call_id, device_id, expires_at, focus_id, participant_identity, realm_id})`（7 元组，见 §3） | §3（已字节锁，本节仅引用，不改） |
-| `service_signature.sig` | `ak.media.participant_binding.v1`（**复用** participant_binding label 与同一 7 元组 signing_input） | 同上 | §3 |
 | ICE config response `signature` | `ak.media.ice_config.v1` | `label \|\| 0x00 \|\| canonical_json(ICE config response 去除 `signature` 字段后的权威字段：`realm_id, call_id, actor_id, device_id, issued_at, issued_at_bucket, bucket_seconds, ttl_seconds, ice_servers, 及策略字段`) | [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) |
+| `backend_token.sig`（`backend_kind="arkret_native"`） | `ak.media.backend_token.v1` | `label \|\| 0x00 \|\| canonical_json(backend_token.payload)` | [`bindings/arkret-native.md` §2](./bindings/arkret-native.md) |
+| `sfu_signature.sig`（`backend_kind="arkret_native"`） | `ak.media.sfu_answer.v1` | `label \|\| 0x00 \|\| canonical_json({call_id, focus_id, participant_identity, realm_id, sdp})` | [`bindings/arkret-native.md` §3](./bindings/arkret-native.md) |
 
 约束细则：
 
-- **`participant_binding` / `service_signature` 刻意共用同一 label 与 signing_input，且 v1 不赋予 `service_signature` 独立语义（normative，显式裁决）**：§3 已字节锁 `participant_binding.sig` 与 `service_signature.sig` 对**同一** `signing_input`（label = `ak.media.participant_binding.v1`、同一 7 元组）签名。这看似与本节"用途隔离"立论冲突，但 v1 的显式裁决是：二者**不是两个不同用途的签名**，而是**同一断言的冗余**——`service_signature` 与 `participant_binding` 承诺的是同一 7 元组 token-exchange 响应，前者表达"issuer 对该响应负责"、后者表达"该 participant 绑定有效"，二者覆盖完全相同的 canonical bytes，因此共用 label 不构成 cross-purpose confusion（不存在"另一种用途"可被混淆解释）。v1 **刻意保持复用**，**不为 `service_signature` 引入独立 label，也不赋予 `service_signature` 任何独立于 `participant_binding` 的语义**；该 label 常量已在 §3 字节锁并被 fixture / 向量固定，改 label 属 wire-breaking，故 v1 选择"明确声明冗余"而非拆分。任何把 `service_signature` 当作独立用途签名、或期望它覆盖与 `participant_binding` 不同 bytes 的实现，均违反本裁决。
 - **ICE config response 签名 MUST 用 distinct label `ak.media.ice_config.v1`（normative）**：ICE config 响应签名覆盖的字段集合（`realm_id` / `call_id` / `actor_id` / `device_id` / `issued_at` / `issued_at_bucket` / `bucket_seconds` / `ttl_seconds` / `ice_servers[]` 与策略字段）与 participant_binding 的 7 元组**不同用途、部分字段重叠**；若两者复用同一 label，则一个 issuer key 对 ICE config 的签名可能被在 participant_binding 验证路径下重解释（反之亦然）。因此 ICE config 签名 MUST 以 `ak.media.ice_config.v1` 前缀其 signing_input。canonical 定义见 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md)。
 - **不在本 label 体系内的媒体凭证**（据实说明各自的域，MUST NOT 强加 Ed25519 label）：
   - `backend_token`（LiveKit 部署）是 **LiveKit JWT**，自带 `alg` / `iss` 等 JOSE header 与 issuer 标识，其签名域由 JWT 标准与 LiveKit API Key/Secret 决定（见 [`bindings/livekit.md` §2](./bindings/livekit.md)），不进入本节 Ed25519 label 体系。
   - TURN REST 凭证不是 Ed25519 签名而是 **HMAC**：`credential = HMAC-SHA256(turn_shared_secret, username)`，其中 `username = "<expiry-unix>:<per-call-pairwise-pseudonym>"`（见 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md)）；pseudonym 本身亦由 HMAC 派生。HMAC 的域由其 `turn_shared_secret` 与 username 输入构造决定，不属于 Ed25519 签名 domain label 范畴。
-- 本节**只规定 Ed25519 签名类**（`participant_binding` / `service_signature` / ICE config）的 domain label 分离；MUST NOT 借此更改任何媒体密钥本身、MUST NOT 更改客户端对 issuer / service DID 公钥的锚定路径（§2.1 / §3 / §6 的公钥锚定保持不变）。新增 label 仅约束签名输入前缀，不引入新密钥派生。
+- 本节**只规定 Ed25519 签名类**（`participant_binding` / ICE config / arkret_native backend token 与 SFU answer）的 domain label 分离；MUST NOT 借此更改任何媒体密钥本身、MUST NOT 更改客户端对 issuer / service DID 公钥的锚定路径（§2.1 / §3 / §6 的公钥锚定保持不变）。新增 label 仅约束签名输入前缀，不引入新密钥派生。
 
 ## 4. SFU Service
 
@@ -231,7 +226,7 @@ SFU MUST verify:
 客户端 MUST 校验：
 
 - token issuer service DID 出现在当前 `ak.realm.media_service.service_id` / `foci[].token_endpoint` 锚定的 service DID 列表；
-- token exchange 响应的 `service_signature` 与 `participant_binding.sig` 通过；
+- token exchange 响应的 `participant_binding.sig` 通过；
 - backend 通知 "X 加入会议" 时携带的 `participant_identity` 与 call roster effective OR-Set 中的 participant value 一致（见 §7 cross-check）。
 
 ## 7. Participant Identity 交叉校验（normative）

@@ -180,7 +180,7 @@ MIMI facade provenance。它是 DataEvent，MUST 携带 `seal_ref + auth_context
 
 举报入口本身是可被滥用的写路径（举报洪水、超大 evidence_package 充塞、franking_proof 重放）。实现 MUST：
 
-- 对 `/_arkret/self/moderation/report` 按 [`../security/server-threat-model.md` §4.1](../security/server-threat-model.md) 的入口与服务面规则施加**分层限速**（至少按 signed payload reporter、source service、Realm、source IP hash、endpoint 维度），超阈值 MUST 返回 `rate_limited`；同一 Event 的 exact replay 不得被重写成新举报，同 reporter 对同一 target 的不同 Event 仍 MAY 被限速或抑制。
+- 对 `/_arkret/self/moderation/report` 按 [`../security/server-threat-model.md` §2.3](../security/server-threat-model.md) 的通用防护手段施加**分层限速**（至少按 signed payload reporter、source service、Realm、source IP hash、endpoint 维度），超阈值 MUST 返回 `rate_limited`；同一 Event 的 exact replay 不得被重写成新举报，同 reporter 对同一 target 的不同 Event 仍 MAY 被限速或抑制。
 - 对 `evidence_package` 施加大小上界：其总字节数 MUST 受一个 `max_total_blob_bytes` 等价上界约束（命名遵循 [`../models/common-fields.md` §3.0.1](../models/common-fields.md)），超限 MUST 拒绝而非静默截断。
 - 对 `franking_proof.replay_nonce` 的去重存储 MUST 有界：去重窗口 MUST 有限（时间或计数），过期 nonce MAY 被驱逐；实现 MUST NOT 假定无限去重存储，超出窗口的 nonce 复用按不可验证投递证明处理（见 §3.4）。
 - **target scope 绑定（normative）**：服务端 MUST 从 signed `payload.target_ref` 解析 accepted target 的真实治理边界，并校验它逐字等于 Event/payload Realm、signed `scope_ref` 与显式/默认 `effective_scope`。Circle target 不得省略 signed Circle scope。reporter 对 target 不可见时同样拒绝；目标不存在、不可见与任一 scope mismatch 全部返回同一 `not_found`，响应形态与时序不得形成对象/Circle 枚举 oracle。
@@ -420,15 +420,17 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
 
 `action` 取值：
 
-- `deny_join`
-- `deny_restricted_join`
-- `deny_invite`
-- `deny_write`
-- `deny_federation`
-- `quarantine_message`
-- `require_review`
-- `redact_on_accept`
-- `shadow_collapse`
+| `action` | 行为（normative） |
+| --- | --- |
+| `deny_join` | 拒绝该 target 的 `ak.member.state{join}`。 |
+| `deny_restricted_join` | 拒绝该 target 走 `restricted` / `knock_restricted` 的 gate 解析路径，普通 invite 路径不受影响。 |
+| `deny_invite` | 拒绝以该 target 为 inviter 或 invitee 的 `ak.invite.create` / `ak.invite.third_party`。 |
+| `deny_write` | 拒绝该 target 的全部 durable write（DataEvent 与 Control Move）。 |
+| `deny_federation` | 拒绝以该 target 为 `Source-Service-ID` 的 peer 请求。 |
+| `quarantine_message` | 目标 Message 进入 quarantine：仍在 timeline 上，但默认投影不展示内容。 |
+| `require_review` | 目标写入进入 review 队列，accepted 前不进入 effective state。 |
+| `redact_on_accept` | review accept 时**同时**提交一条指向该目标的 redaction（Message 走 `ak.message.redact`，其它对象走 `ak.redaction`）。 |
+| `shadow_collapse` | **仅影响默认投影排序，不改变 accepted state**：命中的对象在默认 timeline / roster 中折叠为单条可展开的摘要项，作者自己的视图不变（作者 MUST NOT 从可见性差异推断自己被折叠）。它不是 deny，也不是 redaction：对象仍完整存在、仍可被显式展开、仍进入审计视图与 `state_root`。实现 MUST NOT 用它静默删除内容或改变任何 cell 值。 |
 
 `target.kind` 取值至少包括：
 
@@ -527,7 +529,7 @@ Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/mod
 #### 5.5.2 Reducer 强制约束
 
 - **非法迁移错误**：除 §5.5.1 表与本节 appellant-withdraw 例外外，任何 from/to 不匹配、越序或从 `closed` 转出的 appeal Move MUST `failed_precondition`，`reason_code="invalid_appeal_fsm_transition"`；不得复用 task 专用的 `invalid_task_fsm_transition`，也不得静默纠正状态。
-- **Realm 绑定**：所有 `ak.moderation.appeal.*` payload MUST 携带 `realm_id`，且该值 MUST 等于 enclosing Event 的 `realm_id`。Reducer 还 MUST 解析 `decision_ref`，确认它引用同一 Realm 的 `ak.moderation.decision`；若 target / decision 属于另一 Realm，除非显式 cross-Realm moderation profile 授权，否则 MUST `schema_violation` 或 `capability_denied`。
+- **Realm 绑定**：所有 `ak.moderation.appeal.*` payload MUST 携带 `realm_id`，且该值 MUST 等于 enclosing Event 的 `realm_id`。Reducer 还 MUST 解析 `decision_ref`，确认它引用同一 Realm 的 `ak.moderation.decision`；若 target / decision 属于另一 Realm，除非显式 cross-Realm moderation profile 授权，否则 MUST `schema_violation`（形态 / 成员违例）或 `capability_denied`（形态合法但 actor 无该 action 权限）——二者按失败原因互斥，实现 MUST NOT 任选其一。
 - **separation of duties**：`ak.moderation.appeal.review` / `ak.moderation.appeal.decision` 的 `reviewer` MUST NOT 等于被上诉 `decision_ref` 对应 `ak.moderation.decision` event 的 issuer。违反时 reducer 用 `appeal_self_review_forbidden` 拒绝。
 - **overturn 与 lift 原子**：`ak.moderation.appeal.decision` `decision=overturn` MUST 与一条 `ak.moderation.decision.lift`（target 等于 `decision_ref`）在同一 ordered submit batch 或等价控制事务中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝。这关闭"上诉胜诉但原 decision 仍生效"的窗口。
 - **不可逆副作用边界**：overturn 只 observed-remove 被上诉的 moderation decision，不删除审计事实，也不复原已经 accepted 的 redaction tombstone、已经密码学销毁的 content key 或其它不可逆 effect。原 decision 若已触发 §5.1 redaction，上诉胜诉后 reducer MUST 保留 tombstone，并在 appeal / audit projection 标记 decision 已 overturn；需要恢复可见内容时只能由有权 actor 创建一个新的 replacement Event / object（重新执行当下 authz 与 content policy），绝不得伪造原 Event resurrection。UI MUST NOT 把此结果描述为“原文已恢复”。
@@ -582,7 +584,7 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
         {
           "target": {
             "kind": "service_id",
-            "did": "did:webvh:z5GPnjxXzWM85J3Kw6iMV4Tj2:spam-node.example"
+            "did_core_id": "ak:did_core:webvh:z5GPnjxXzWM85J3Kw6iMV4Tj2"
           },
           "action": "deny_federation",
           "reason_code": "abuse_network"
@@ -622,45 +624,49 @@ Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md
 
 Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核策略。该策略仅通过显式引用生效，不会隐式继承、自动级联或作为全局默认策略适用。
 
-推荐对象：
+该策略由 `ak.organization.moderation_policy` Event 承载。它的 payload 是
+[`event-payload.schema.json#/$defs/organization_moderation_policy_state_payload`](../../artifacts/schemas/event-payload.schema.json)：
+恰好一个 Organization 标识（`organization_principal_id` XOR `organization_id`，即 cell subject）加上
+whole-value `value`；策略内容全部位于 `value` 内，**不得**平铺到 payload 顶层——该 schema 是
+`additionalProperties:false`，平铺形态会被直接拒绝。Event 本身已由 Organization 治理密钥签名并进入
+accepted Seal state，因此 payload **不携带**独立的 detached `proof`：再签一次覆盖的是同一批 canonical
+bytes，只会多出一条可漂移的第二真相源。
 
 ```json
 {
   "kind": "ak.organization.moderation_policy",
-  "organization_principal_id": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
-  "policy_id": "ak:org-policy:abuse-v1",
-  "policy_scope": {
-    "realm_ids": ["ak:realm:AcNT448P7qPaGrcUoLXxUyutbNGE4ZXv8UN835EnK4Wp"],
-    "service_ids": [
-      "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
-      "did:webvh:z9hEFwrg1A6sjcDxhuzWJGKhe:policy.acme.example"
-    ],
-    "applies_to_owned_realms": true
-  },
-  "rules": [
-    {
-      "target": {
-        "kind": "organization",
-        "did": "did:webvh:z6zPnbtvkN7vxa9zUyCgGyX52:known-abuse.example"
+  "payload": {
+    "organization_principal_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+    "value": {
+      "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+      "policy_scope": {
+        "realm_ids": ["ak:realm:AcNT448P7qPaGrcUoLXxUyutbNGE4ZXv8UN835EnK4Wp"],
+        "service_ids": [
+          "ak:did_core:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ",
+          "ak:did_core:webvh:z9hEFwrg1A6sjcDxhuzWJGKhe"
+        ],
+        "applies_to_owned_realms": true
       },
-      "action": "deny_federation",
-      "reason_code": "abuse_network"
-    },
-    {
-      "target": {
-        "kind": "claim_selector",
-        "claim_kind": "org_membership",
-        "issuer": "ak:did_core:webvh:zCJLLNnZDTQJWQp7tztodmPUc"
-      },
-      "action": "deny_restricted_join"
+      "rules": [
+        {
+          "target": {
+            "kind": "organization",
+            "did": "did:webvh:z6zPnbtvkN7vxa9zUyCgGyX52:known-abuse.example"
+          },
+          "action": "deny_federation",
+          "reason_code": "abuse_network"
+        },
+        {
+          "target": {
+            "kind": "claim_selector",
+            "claim_kind": "org_membership",
+            "issuer": "ak:did_core:webvh:zCJLLNnZDTQJWQp7tztodmPUc"
+          },
+          "action": "deny_restricted_join"
+        }
+      ],
+      "not_before": "2026-04-26T00:00:00.000Z"
     }
-  ],
-  "not_before": "2026-04-26T00:00:00Z",
-  "expires_at": null,
-  "proof": {
-    "kind": "detached_jws",
-    "verification_method": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#governance-key-1",
-    "jws": "..."
   }
 }
 ```
@@ -704,16 +710,10 @@ Policy Server MAY 返回 `hard_deny`、`quarantine`、`require_review` 或 `soft
 
 ## 9. 服务端威胁借鉴
 
-在“去中心化服务治理”场景中，服务端常见风险的抗滥用经验如下：
-
-- **入口源身份强制**：任何外部服务联邦请求都先验 `service DID`。未签名或未被 allowlist 的源服务不得参与写路径（至少转入 `soft_deny` / `quarantine`）。
-- **多级限速**：Principal Server sync surface / Policy Server 和受托 search / projection 服务应至少按以下维度限速：`source DID`、`source IP`（或其哈希）、`service token`、`realm id`、`endpoint`。超阈值 MUST 返回 `rate_limited`。
-- **批量事件反滥用**：对短周期内的 `invite`、`join`、`message`、`media.upload` 进行突发抑制；出现异常突发可触发 `quarantine`。
-- **最小可观察性差异**：对未通过鉴权的目录/加入枚举请求，返回统一错误，不泄露对象可见性差异。
-- **可疑媒体隔离**：媒体 hash、MIME、扫描标签先入审计与审核，不应默认解密给 Principal Server sync surface 或受托 projection；必要时按 `snapshot`/`preview` 再二次放行。
-- **可追溯审计**：每次风控拦截、隔离、降级决策都要记录结构化审计事件，且不得仅依赖联邦来源的本地口头说明。
-
-上述抗滥用规则的威胁映射见 [`../security/server-threat-model.md`](../security/server-threat-model.md)；其在授权与联邦层的 normative enforcement 分别见 [`../authz/policy-server.md`](../authz/policy-server.md) 与 [`../sync/federation.md`](../sync/federation.md)。本节为借鉴性概览，约束力以上述文件的 normative 条款为准。
+服务端抗滥用经验（入口源身份强制、多级限速、批量事件反滥用、最小可观察性差异、可疑媒体隔离、
+可追溯审计）的单点承载是 [`../security/server-threat-model.md` §2.3](../security/server-threat-model.md)；
+其在授权与联邦层的 normative enforcement 分别见 [`../authz/policy-server.md`](../authz/policy-server.md)
+与 [`../sync/federation.md`](../sync/federation.md)。本节此前复述了同一份清单，现改为指针，避免两处各自演进。
 
 ## 10. v1 流程要求
 

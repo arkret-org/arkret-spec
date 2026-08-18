@@ -362,18 +362,22 @@ Presence / mention 语义补充：
 
 ```json
 {
-  "results": [
+  "users": [
     {
       "handle": "alice:example.com",
       "display_name": "Alice Chen",
-      "avatar_blob_ref": "ak:blob:sha256:a1b2c3...",
+      "avatar_blob_ref": "ak:blob:sha256:a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90",
       "membership": "joined"
     }
   ],
-  "has_more": false,
-  "next_cursor": null
+  "has_more": false
 }
 ```
+
+数组字段名是 `users`，不是 `results`（[`api-conventions.md` §7.1](../sync/api-conventions.md) 禁止 `results[]`）；
+每条 user 的字段集以
+[`directory-operations.schema.json#/$defs/user_search_outcome`](../../artifacts/schemas/directory-operations.schema.json)
+为准。`next_cursor` 是 optional，缺省即表示已到末尾，MUST NOT 写成 `null`。
 
 ### 4.2 搜索范围
 

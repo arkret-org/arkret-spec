@@ -987,7 +987,7 @@ grant subject = alice@google.com
 {
   "kind": "ak.identity.presentation_request",
   "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-  "verifier_service_id": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
+  "verifier_service_id": "ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n",
   "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "domain": "google.example",
   "challenge": "ak.chal_01J...",
@@ -1029,10 +1029,10 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
 {
   "kind": "ak.identity.disclosure_policy",
   "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
-  "holder_principal_id": "did:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5:holder.example.com",
+  "holder_principal_id": "ak:did_core:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5",
   "audience": {
     "org_did": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-    "verifier_service_ids": ["did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example"],
+    "verifier_service_ids": ["ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n"],
     "tsp_vids": ["did:webs:google.example:verifier"]
   },
   "allowed_claims": [
@@ -1094,8 +1094,8 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
   "kind": "ak.identity.disclosure_receipt",
   "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
   "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-  "holder_principal_id": "did:key:z6Mkgpairwise...",
-  "verifier_service_id": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
+  "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
+  "verifier_service_id": "ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n",
   "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "presentation_digest": "sha256:...",
   "proof_profile": "vc_di_bbs_2023",
@@ -1225,7 +1225,7 @@ Verifier MUST：
 
 ## 17. v1 互操作要求
 
-- Handle canonical wire form 是 `<localpart>:<domain>`。`<localpart>` MUST 是 [`encoding.md` §2.1](../conformance/encoding.md) `arkret_human_identifier` 的 RFC 8265 `UsernameCaseMapped` enforcement 结果：width mapping、Unicode lowercase 与 NFC 后，排除至少 `: @ / # ? \\`、空白、控制字符、noncharacter 与其它 PRECIS disallowed code point；结果 1..128 Unicode code points 且不超过 512 UTF-8 octets。`.`、`_`、`+`、`~`、`-` 保持可用。canonical equality 是 prepared localpart code point sequence + lowercase A-label domain 的精确相等，MUST NOT 使用 confusable skeleton 定义相等。
+- Handle canonical wire form 是 `<localpart>:<domain>`。`<localpart>` MUST 是 [`encoding.md` §2.2](../conformance/encoding.md) `arkret_human_identifier` 的 RFC 8265 `UsernameCaseMapped` enforcement 结果：width mapping、Unicode lowercase 与 NFC 后，排除至少 `: @ / # ? \\`、空白、控制字符、noncharacter 与其它 PRECIS disallowed code point；结果 1..128 Unicode code points 且不超过 512 UTF-8 octets。`.`、`_`、`+`、`~`、`-` 保持可用。canonical equality 是 prepared localpart code point sequence + lowercase A-label domain 的精确相等，MUST NOT 使用 confusable skeleton 定义相等。
 - `<domain>` MUST 使用 [`encoding.md` §2.2.1](../conformance/encoding.md) 的 UTS #46 Nontransitional profile；canonical wire 只接受 lowercase A-label。`domain.中国` 是合法 input / display domain，对应 canonical `domain.xn--fiqs8s`；因此 `@小明:domain.中国` 可准备为 `小明:domain.xn--fiqs8s`。canonical receiver 必须拒绝原始 U-label domain、uppercase A-label、trailing dot、无效 `xn--`、超 DNS 长度或 round-trip 失败。
 - 对应 conformance vectors 为 `ak.vector.identity.internationalized_identifier_profiles.v1` 与 `ak.vector.identity.authority_local_skeleton_collision.v1`；前者验证 preparation / canonical receiver 分层，后者验证 skeleton 只属于 authority-local、namespace-local 派生索引。
 - registrar MAY 在同一 issuing authority 的 handle namespace 内要求 UTS #39 `Highly Restrictive` 并建立 `(authority, skeleton)` collision index。skeleton 只用于注册冲突 / 风险提示：碰撞可返回 `failed_precondition` `reason="handle_homograph_forbidden"`，但不得写入 wire、proof 或 equality。不同 authority 的相同 skeleton 不冲突。Unicode / PRECIS / UTS #39 数据版本与升级规则由 [`string-profile-registry.json`](../../artifacts/registry/string-profile-registry.json) 钉定。

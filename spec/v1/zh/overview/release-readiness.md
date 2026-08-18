@@ -24,9 +24,9 @@ updated: 2026-07-30
 - 标准 Event kind、服务 operation、schema id、typed ID prefix 均有机器 registry
 - OpenAPI、非 HTTP binding、fixture 与中文规范均可回指这些 registry
 
-当前仓库维护单一 candidate v1 规范线，尚未发布 `v1.0.0`（`v1.0.0` 仅是通过 promotion gate 后使用的 release tag；它与 wire-level `protocol_version` 字段值 `"1.0"` 是不同维度，见 [`index.md` §5](../index.md)，两者 MUST NOT 互换）。`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + public catalog snapshot hash/count gate + fixture digest gate + `tools/lint_artifacts.py` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范才能共同晋升为正式 v1 发布契约。仓库不同时维护 candidate / stable 两套 public catalog；任何更新都只落在当前 v1 canonical catalog 与唯一 public v1 snapshot 上。
+当前仓库维护单一 candidate v1 规范线，尚未发布 `v1.0.0`（`v1.0.0` 仅是通过 promotion gate 后使用的 release tag；它与 wire-level `protocol_version` 字段值 `"1.0"` 是不同维度，见 [`index.md` §5](../index.md)，两者 MUST NOT 互换）。`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + public catalog snapshot hash/count gate + fixture digest gate + `tools/artifact_lint/` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范才能共同晋升为正式 v1 发布契约。仓库不同时维护 candidate / stable 两套 public catalog；任何更新都只落在当前 v1 canonical catalog 与唯一 public v1 snapshot 上。
 
-candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索引。**计数列由 `tools/lint_artifacts.py`（`check_release_readiness_counts`）对照各 Canonical registry 自动校验**：本表数字与 registry 不一致即为 drift，`artifact_pipeline.py check` 会失败，必须在合并前修复。引用本节时仍 MUST 以各 Canonical 文件为权威来源；本表是受 CI 校验的镜像快照，不得改为自由近似值，MUST NOT 写成 `~N` 等自由近似形态（否则 `check_release_readiness_counts` 无法解析）。
+candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索引。**计数列由 `tools/artifact_lint/`（`check_release_readiness_counts`）对照各 Canonical registry 自动校验**：本表数字与 registry 不一致即为 drift，`artifact_pipeline.py check` 会失败，必须在合并前修复。引用本节时仍 MUST 以各 Canonical 文件为权威来源；本表是受 CI 校验的镜像快照，不得改为自由近似值，MUST NOT 写成 `~N` 等自由近似形态（否则 `check_release_readiness_counts` 无法解析）。
 
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 `conformance-profiles.json` 另含一组 `profile_requirements` block（100）与 `profile_sets` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
-> `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / hardening 三类 profile 汇总可声明（claimable）profile；`vector-group`（第 16 组）只用于组织测试向量，不是可声明 profile。`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `ak.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
+> `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / hardening 三类 profile 汇总可声明（claimable）profile；`vector-group`（第 16 组）只用于组织测试向量，不是可声明 profile。`tools/artifact_lint/` 同时校验 registry graph 中所有 `ak.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
 执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或删除 registry 项，MUST 在同一变更中刷新本表。上表计数是当前 candidate v1 canonical tree 的受检快照；其权威性始终以 Canonical 文件与 `artifact_pipeline.py check` 输出为准。未发布阶段不维护历史迁移清单或兼容登记表。
 

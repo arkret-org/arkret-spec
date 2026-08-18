@@ -313,8 +313,9 @@
       "vector_id": "ak.vector.redaction.message_target_exclusive_kind.v1",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload",
       "expect_valid": false,
-      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "first_expected_error": "contains:Additional properties are not allowed ('message_id' was unexpected)",
       "instance": {
+        "target_ref": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
         "message_id": "ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
       }
     },
@@ -344,7 +345,7 @@
         "event_id",
         "created_at",
         "actor_id",
-        "redacts"
+        "kind"
       ]
     },
     {

@@ -1103,7 +1103,7 @@ event-time membership、history/retention policy 与本地 key availability 判�
 
 MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
-- `group_id`：目标 MLS group。
+- `mls_group_id`：目标 MLS group。
 - `base_epoch`：Commit 构造时读取的当前 epoch。
 - `base_epoch_ref`：本地认为当前 effective 的 `ak.mls.commit` Control Move 或 `ak.mls.genesis` Control Move / genesis group state ref；epoch 由 effective commit 机械派生，协议不定义独立的 `ak.mls.epoch` seal event。
 - `proposal_refs`：被该 Commit 消费的 `ak.mls.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。

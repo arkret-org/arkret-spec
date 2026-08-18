@@ -271,7 +271,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 `<sub_entity>` 只能出现在 `<entity>` 与 `<surface_class>` 之间（`ak.self.agent.grant.command.attach`），MUST NOT 占据 `<surface_class>` 槽。末段 MUST 是动词：`ak.self.snapshot.read.manifest_head` 的末段是名词，属**已登记的历史例外**，新增 action MUST NOT 沿用该形态。
 
-**C. 限定词位置**：作用域限定词 MUST 作为**后缀**出现（`.own` / `.others`，见 §5 后缀约定）。`ak.member.compensate.leave` / `ak.member.compensate.remove` 把限定词放在动词之前，属**已登记的历史例外**——`compensate` 在此是补偿事务的语义前缀而非作用域限定词；新增作用域限定 MUST 用后缀形态。
+**C. 限定词位置**：作用域限定词 MUST 作为**后缀**出现（`.own` / `.others`，见 §5.0 的 action 后缀约定）。`ak.member.compensate.leave` / `ak.member.compensate.remove` 把限定词放在动词之前，属**已登记的历史例外**——`compensate` 在此是补偿事务的语义前缀而非作用域限定词；新增作用域限定 MUST 用后缀形态。
 
 **D. 动宾分隔符**：同一动作的宾语 MUST 用点分层级表达（`ak.object.stage.set`），MUST NOT 用下划线把动宾粘成一段。`ak.object.read_content` / `read_history` / `read_metadata` 是**已登记的历史例外**（三者是 read 的三个封闭投影档位，不是 `read` 动作的三个宾语）；新增 action MUST NOT 沿用下划线动宾形态。
 
@@ -536,13 +536,12 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 - `allowed_data_labels`
 - `allowed_endpoints`
 
-**authority_control**（普通再授权控制求值规则见 [`constraint-schema.md` §7.4](./constraint-schema.md)：`authority_regrant_allowed=false` ⇒ child `max_authority_depth` MUST=0；`scope_expansion_allowed=true` 在 v1 MUST 被 reducer 拒绝（`schema_violation`，与 §10.1 收窄不变量矛盾）；`authority_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则；Applet grant 绑定见同文 §7.3）
+**authority_control**（普通再授权控制求值规则见 [`constraint-schema.md` §7.4](./constraint-schema.md)：`authority_regrant_allowed=false` ⇒ child `max_authority_depth` MUST=0；`authority_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则；Applet grant 绑定见同文 §7.3）
 
 - `max_authority_depth`
 - `authority_path`
 - `authority_regrant_allowed`
 - `authority_scope`
-- `scope_expansion_allowed`
 
 **quota**
 
@@ -640,7 +639,6 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `authority_path` | `authority_control` | — | `authority_path`（授权链 DID 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
 | `authority_regrant_allowed` | `authority_control` | — | `authority_regrant_allowed` |
 | `authority_scope` | `authority_control` | — | `authority_scope`（`narrowing_only` / `same_scope` / `custom`） |
-| `scope_expansion_allowed` | `authority_control` | — | `scope_expansion_allowed` |
 | `rate_limit` | `quota` | `rate` | `max_operations`, `period`, `constraint_scope`, `burst` |
 | `resource_limit` | `quota` | `resource` | `max_resources`, `resource_kind`, `constraint_scope`（scope 内累计资源数量上限） |
 | `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`, `constraint_scope`（scope 内累计字节上限） |
@@ -1087,7 +1085,7 @@ Arkret v1 固定：
 - 多个 grant 命中时，允许动作取并集，但约束按最严格规则相交：deny / quarantine / require_review 跨**全部**命中 grant 全局生效（全局 deny 优先），任一命中 grant 的 deny 不得被另一无 deny 命中 grant 绕过；allow 仍按"每个满足的依赖 grant 内 allow 全满足"判定。确定性跨 grant 入口算法见 [`constraint-schema.md` §15.4](./constraint-schema.md)。
 - Moderation policy MUST NOT 凭空授予 capability。
 - Approval proof 与 proposal 状态机由本文件、`event-auth-state-resolution.md` 和 conformance vectors 固定。
-- Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof、`../identity/identity-handles.md` 的 claim / VC 规则与 §16 的 presentation 规则。
+- Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof、`../identity/identity-handles.md` 的 claim / VC 规则与 [`../identity/identity-handles.md` §16](../identity/identity-handles.md) 的 presentation 规则。
 
 ## 附录 B. 与 UCAN / ZCAP 的关系与差异（informative）
 

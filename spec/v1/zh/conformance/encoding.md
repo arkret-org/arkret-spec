@@ -349,22 +349,6 @@ managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/pr
 
 自定义 profile 若新增 `ak:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `ak:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
 
-### 4.1 Field Naming: `_id` / `_ref` / `_did`（normative）
-
-Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/common-fields.md#21-identifier-字段命名约定normative)。本节只给出编码层摘要：字段后缀表达 wire value category，不表达授权、同步、retention 或 E2EE 级联语义。
-
-| 用途 | 命名后缀 | 说明 |
-| --- | --- | --- |
-| 对象自身 ID（primary key） | `id` | canonical object 的主 ID，无下划线前缀。例：`id`。 |
-| 单一具体 protocol object kind | `<role>_<kind>_id` | 例：`realm_id`、`parent_space_id`、`scope_circle_id`、`policy_id`。 |
-| 协议责任主体（`did_core_id` 作为主体 ID） | `<role>_id` | 例：`actor_id`、`principal_id`、`subject_id`；wire 为 `ak:did_core:<method>:<core>`。 |
-| 因果 / finality / proof / schema-profile reference | `<noun>_ref` / `<noun>_refs` | 例：`prev_refs`、`seal_ref`、`schema_refs`、`policy_event_ref`。 |
-| Blob / content-addressed / polymorphic reference | `<noun>_ref` / `<noun>_refs` | 例：`blob_ref`、`target_ref`、`from_ref`、`to_ref`。 |
-| Service identity（wire value 为 `did_core_id`） | `service_id` / `<role>_service_id` | 例：`service_id`、`recipient_service_id`、`source_service_id`、`verification_service_id`。 |
-| 其它原始 DID ecosystem material | `<role>_did` | 例：`pairwise_did`、`operator_principal_id`；v1 不再为跨 DID continuity 定义专用字段。 |
-
-`full_id` 是标准 bare DID，保留 method resolution material，用于注册、resolution 与 method-native operation；它不是通用 typed `ak:<kind>:` ID。`project(full_id) -> did_core_id` 与 DID URL canonicalization 都由已登记 method adapter 定义。实现 MUST NOT 把 `full_id` 当成 `did_core_id` 的字符串后缀，MUST NOT 把 DID URL fragment 拼到 `did_core_id`，也 MUST NOT 以字符串前缀判断 DID URL controller；比较前必须按 adapter 解析并验证其 base `full_id` 与目标 `did_core_id` 的投影关系。
-
 ### 4.2 Canonical 展示与序列化顺序（normative，producer-biased）
 
 `event_digest` 是 producer 可控内容的摘要。producer 要击败一个已知随机 digest，期望只需约两次尝试；要进入最高 `2^-k` 分位，期望约 `2^k` 次尝试。因此 digest 全序可以提供跨实现确定性，**不能提供中立、公平、先到或不可操纵的 winner**。
@@ -394,6 +378,22 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)，向量说明见
 [`conformance-vectors.md` 23.1](./conformance-vectors.md)）。向量覆盖 decoded digest octets 排序、跨 suite 第二键、producer grinding、禁止的语义 winner、collision quarantine，以及 proofs / reducer stamps 差异不误报 collision。`ordered_log` 向量独立验证所有 sibling 都进入 joined value，不能反向把本节顺序恢复成 slot winner。
 
+### 4.4 Field Naming: `_id` / `_ref` / `_did`（normative）
+
+Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/common-fields.md#21-identifier-字段命名约定normative)。本节只给出编码层摘要：字段后缀表达 wire value category，不表达授权、同步、retention 或 E2EE 级联语义。
+
+| 用途 | 命名后缀 | 说明 |
+| --- | --- | --- |
+| 对象自身 ID（primary key） | `id` | canonical object 的主 ID，无下划线前缀。例：`id`。 |
+| 单一具体 protocol object kind | `<role>_<kind>_id` | 例：`realm_id`、`parent_space_id`、`scope_circle_id`、`policy_id`。 |
+| 协议责任主体（`did_core_id` 作为主体 ID） | `<role>_id` | 例：`actor_id`、`principal_id`、`subject_id`；wire 为 `ak:did_core:<method>:<core>`。 |
+| 因果 / finality / proof / schema-profile reference | `<noun>_ref` / `<noun>_refs` | 例：`prev_refs`、`seal_ref`、`schema_refs`、`policy_event_ref`。 |
+| Blob / content-addressed / polymorphic reference | `<noun>_ref` / `<noun>_refs` | 例：`blob_ref`、`target_ref`、`from_ref`、`to_ref`。 |
+| Service identity（wire value 为 `did_core_id`） | `service_id` / `<role>_service_id` | 例：`service_id`、`recipient_service_id`、`source_service_id`、`verification_service_id`。 |
+| 其它原始 DID ecosystem material | `<role>_did` | 例：`pairwise_did`、`operator_principal_id`；v1 不再为跨 DID continuity 定义专用字段。 |
+
+`full_id` 是标准 bare DID，保留 method resolution material，用于注册、resolution 与 method-native operation；它不是通用 typed `ak:<kind>:` ID。`project(full_id) -> did_core_id` 与 DID URL canonicalization 都由已登记 method adapter 定义。实现 MUST NOT 把 `full_id` 当成 `did_core_id` 的字符串后缀，MUST NOT 把 DID URL fragment 拼到 `did_core_id`，也 MUST NOT 以字符串前缀判断 DID URL controller；比较前必须按 adapter 解析并验证其 base `full_id` 与目标 `did_core_id` 的投影关系。
+
 ## 5. Event Batch Receipt Hash
 
 ```json
@@ -419,7 +419,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 ## 6. Signature
 
-默认 proof（wire `proof` 对象；`actor_id` 与 `created_at` 不在 wire `proof` 对象内——`actor_id` 取自被签 Event envelope 的 `actor_id` 字段，`created_at` 取自 `proof.created_at`，二者均进入下方签名 transcript binding object）:
+默认 proof（wire `proof` 对象）。签名 transcript binding object 里的 `actor_id` **不是** proof 成员——它取自被签 Event envelope 的 `actor_id`；`created_at` **是** proof 成员，binding object 直接取 `proof.created_at`。两者都进入下方 transcript：
 
 ```json
 {
@@ -566,7 +566,7 @@ unsigned projection；这类行 MUST NOT 另行发明一个 payload digest 字�
 
 **(b) 可选 binding field（`field?`）的缺席形态**：`binding_fields` 中以 `?` 结尾的成员缺席时，
 binding object MUST **整体省略该 key**，MUST NOT 写入 `null`、空串或空数组。这与 §2.1.1 的
-presence 语义、§1.8.1 的 domain / audience 变体向量一致：写 `null` 占位会改变 canonical bytes。
+presence 语义、[`conformance-vectors.md` §1.8.1](./conformance-vectors.md) 的 domain / audience 变体向量一致：写 `null` 占位会改变 canonical bytes。
 接收方 MUST 按同一规则重建 binding object，MUST NOT 为求"形状齐整"补键。
 
 **(c) `audience` 的两种形态与选择规则**：`audience` 的 JSON 形态封闭为两种——单个非空字符串，或
@@ -665,12 +665,13 @@ v1 固定使用 4 位 `logical_hex`。该上限等价于单个 producer 每毫�
 发送事件：
 
 ```text
-hlc = max(current_hlc, current_unix_ms)
-if hlc.unix_ms == current_unix_ms:
-    hlc.logical += 1
+# §7.2 的单调性要求 unix_ms 只能前进，绝不因物理时钟回拨而后退。
+unix_ms = max(current_hlc.unix_ms, current_unix_ms)
+if unix_ms == current_hlc.unix_ms:
+    logical = current_hlc.logical + 1        # 同一 ms 内（含物理时钟落后的情形）继续递增
 else:
-    hlc.unix_ms = current_unix_ms
-    hlc.logical = 0
+    logical = 0                              # 物理时钟严格前进，logical 归零
+current_hlc = (unix_ms, logical)
 ```
 
 接收带 HLC `hlc_remote` 的事件：
@@ -750,24 +751,24 @@ cursor 是 v1 中**唯一**的不透明 token 类型，统一承担增量同步�
 
 Stream cursor body 示例：
 
-```json
+```json schema=schemas/cursor.schema.json
 {
   "v": "1",
   "purpose": "stream",
-  "t": "2026-04-26T00:00:00Z",
-  "x": 1714080000000,
+  "issued_at": "2099-12-30T23:59:59.000Z",
+  "expires_at": "2099-12-31T23:59:59.000Z",
   "h": "abcdefghijklmnopqrstuv"
 }
 ```
 
 Barrier cursor body 示例：
 
-```json
+```json schema=schemas/cursor.schema.json
 {
   "v": "1",
   "purpose": "barrier",
-  "t": "2026-04-26T00:00:00Z",
-  "x": 1714080000000,
+  "issued_at": "2099-12-30T23:59:59.000Z",
+  "expires_at": "2099-12-30T23:59:59.000Z",
   "h": "0123456789abcdefghijkl"
 }
 ```
@@ -776,8 +777,8 @@ Barrier cursor body 示例：
 |------|------|------|------|
 | `v` | string | 是 | cursor 版本，v1 固定 `"1"` |
 | `purpose` | enum(`stream`,`barrier`) | 是 | 用途鉴别 |
-| `t` | timestamp | 是 | 生成时间戳（RFC 3339 UTC,MUST 以 `Z` 结尾）。**canonical 精度固定为秒级、不带小数部分**（形如 `2099-12-30T23:59:59Z`，与 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json) 向量 `ak.vector.encoding.cursor_opaque.core.v1` 的 `t` 真源一致）：服务端生成 cursor 时 MUST NOT 写入毫秒小数（`.000Z` 等），以消除同一逻辑时刻产生两种 canonical 编码的二义；接收方对带毫秒小数的 `t` MUST reject `param_invalid`。 |
-| `x` | integer | 是 | 过期时间戳（Unix ms） |
+| `issued_at` | timestamp | 是 | 签发时刻，使用 §2 的 Arkret absolute instant 固定 `.sssZ` 形式（与 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json) 向量 `ak.vector.encoding.cursor_opaque.core.v1` 一致）。 |
+| `expires_at` | timestamp | 是 | 过期时刻，同一 `.sssZ` 形式。TTL 上界见 §8.3 规则 9。 |
 | `h` | string | 是 | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1。stream positions 或 barrier target 均由 `h` 在服务端绑定表中解析，MUST NOT 内联进 cursor body。 |
 
 服务端 MAY 添加其它 `_` 开头的私有字段（如 `_compression`）用于本地优化；这些字段必须先于 base64url 编码进入 canonical bytes。`_mac` 与 `_sig` 是保留字段，MUST NOT 出现在 v1 cursor body 中。
@@ -792,7 +793,7 @@ Barrier cursor body 示例：
 | `filter_digest` | `h` handle 绑定表 | 订阅 / 查询 filter 的 digest，防跨 filter 复用 |
 | `positions` | `h` handle 绑定表（`purpose=stream`） | stream cursor 的同步 / 分页位置 |
 | `target` | `h` handle 绑定表（`purpose=barrier`） | barrier cursor 等待的目标 event |
-| `expiry` | `h` handle 绑定表 | 与 body `x` 一致的服务端过期时间 |
+| `expiry` | `h` handle 绑定表 | 与 body `expires_at` 一致的服务端过期时间 |
 
 这些字段是服务端 handle 表的内容，**不是** cursor body 字段；详见 §8.3.1。
 
@@ -803,12 +804,12 @@ Barrier cursor body 示例：
 1. 前缀以 `ak:cursor:` 开头。
 2. 其余部分是合法 base64url。
 3. 解码后是合法 JSON。
-4. 解码后 body MUST 通过 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)：`v` / `purpose` / `t` / `x` / `h` 必填，未知非私有字段、`_mac`、`_sig` 以及任何内联位置 / target 字段均 MUST reject `param_invalid`。
+4. 解码后 body MUST 通过 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)：`v` / `purpose` / `issued_at` / `expires_at` / `h` 必填，未知非私有字段、`_mac`、`_sig` 以及任何内联位置 / target 字段均 MUST reject `param_invalid`。
 5. 解码后 `v` 是支持的版本。
 6. 解码后 `purpose` 是 `stream` 或 `barrier`。
-7. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
+7. 解码后 `expires_at` 在未来（允许 5 分钟时钟偏差）。
 8. cursor 被消费的 binding context MUST 与 `purpose` 一致；binding context 的具体 wire 位置由对应 transport / API binding 定义。若 `purpose=barrier` 的 cursor 出现在 stream context，或 `purpose=stream` 的 cursor 出现在 barrier context，接收方 MUST 返回 `param_invalid`。
-9. **TTL 硬上限**：先校验 `t` 的 well-formedness——`t` MUST 是合法 RFC 3339 UTC 时间戳（§8.2 要求 `Z` 结尾且为秒级、不带小数部分），且 `t` 解析得到的 Unix ms MUST ≤ `x` 解析得到的 Unix ms；`t` 非法（不可解析、非 UTC / 非 `Z` 结尾 / 带毫秒小数等非 canonical 精度）或 `t_ms > x` 的 cursor MUST reject `param_invalid`（否则 `x - t_ms` 为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。此外 `t` MUST NOT 位于未来：`t_ms` MUST ≤ 接收时刻的 Unix ms + 时钟偏差容忍（5 分钟，口径同规则 7）；超出 MUST reject `param_invalid`（否则 issuing 方可把 `t` 写成接近 `x` 的未来时间，令名义 TTL `x - t_ms` 通过下方硬上限校验，而实际剩余有效期 `x - now` 远超上限，绕过 TTL 硬上限）。随后以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `param_invalid`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
+9. **TTL 硬上限**：先校验 `issued_at` 的 well-formedness——它 MUST 是 §2 的 Arkret absolute instant（固定 `.sssZ`），且解析得到的 Unix ms MUST ≤ `expires_at` 解析得到的 Unix ms；`issued_at` 非法（不可解析、非 UTC / 非 `Z` 结尾 / 非三位小数）或 `issued_at_ms > expires_at_ms` 的 cursor MUST reject `param_invalid`（否则差值为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。此外 `issued_at` MUST NOT 位于未来：`issued_at_ms` MUST ≤ 接收时刻的 Unix ms + 时钟偏差容忍（5 分钟，口径同规则 7）；超出 MUST reject `param_invalid`（否则 issuing 方可把 `issued_at` 写成接近 `expires_at` 的未来时间，令名义 TTL 通过下方硬上限校验，而实际剩余有效期 `expires_at - now` 远超上限）。随后 `expires_at_ms - issued_at_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `param_invalid`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 
 非法 cursor MUST reject，错误 `param_invalid`；已过期 cursor MUST reject，错误 `cursor_expired`；完整性校验失败（见 §8.3.1）MUST reject，错误 `cursor_integrity_invalid`。
 

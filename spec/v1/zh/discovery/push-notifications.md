@@ -255,7 +255,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
 - **服务端 dispatch gate 决定是否发 coarse wakeup**：Principal Server sync surface 在派发前解析 receiver effective level；`muted` 必须抑制 wakeup。无法从 opaque E2EE Event 判断 `mentions_only` 是否命中时，按 §4.5 的 `wakeup_default` 批量/盲唤醒，不得猜测用户规则结果。
 - **客户端 push rule 决定用户可感知通知**：客户端被唤醒、同步并解密后，对完整链 first-match，决定提示音、高亮、DND 例外或 `dont_notify`。
 
-**`muted` 强约束的实现自由度**：`watch_state=muted` MUST 收敛到 `dont_notify`，但实现可以在以下三种等价路径中任选：
+**`muted` 强约束的实现自由度**：`watch_state=muted` MUST 收敛到 `dont_notify`，但实现可以在以下下列等价路径中任选：
 
 - (a) **Dispatch short-circuit**：在产生 wakeup 前直接判定 `dont_notify`；
 - (b) **Built-in dispatch deny**：在服务端内置 gate 链最高优先级位置注入不可写、不可禁用的 deny gate。
@@ -415,8 +415,8 @@ POST /_arkret/edge/push/notify
 | `notification.user_is_target` | boolean | visible-only | profile-gated：当前接收用户是否为定向目标。绝不进 blind。 |
 | `notification.priority` | string | visible-only | profile-gated 优先级提示（如 `low`）。绝不进 blind。 |
 | `notification.membership` | string | visible-only | profile-gated 接收用户的成员关系状态。绝不进 blind。 |
-| `event_kind` | string | optional | 顶层（与 `notification` 并列）：源 Event kind（如 `ak.message`），供 gateway 将 Phase-P2 `ak.agent.*` 生命周期 / actor-private kind 路由为 no-fanout ack。粗粒度路由选择器，不带 Realm / sender / event 识别字段。 |
-| `reason_code` | string | optional | 顶层：caller 提供的 wire-safe reason code。well-known 值 `historical_only` 标记诊断重放（非新事件），**MUST NOT** 触发新 push fanout（gateway 回 200 幂等式 ack）。其它取值仅在操作显式定义处被接受。 |
+| `event_kind` | string | optional | 顶层（与 `notification` 并列）：源 Event kind（如 `ak.message.create`），供 gateway 将 Phase-P2 `ak.agent.*` 生命周期 / actor-private kind 路由为 no-fanout ack。粗粒度路由选择器，不带 Realm / sender / event 识别字段。 |
+| `reason_code` | string | optional | 顶层：caller 提供的 wire-safe reason code。well-known 值 `historical_only` 标记诊断重放（非新事件），**MUST NOT** 触发新 push fanout。gateway 仍返回 200，且响应 **MUST 满足 §5.2 的逐项守恒**：`notification.devices[]` 的每个 `device_id` 恰好对应一条 `outcomes[]` 项，其 `gateway_status="duplicate"`（未产生新投递的幂等 ack），MUST NOT 返回空 `outcomes[]`。其它取值仅在操作显式定义处被接受。 |
 | `audit_envelope` | object | optional | 顶层：`ak.audit.accessed` 信封路由片段（`{access_kind, late_recovery_original_event_id?}`）。present 时该请求是审计管线事件（如 `e2ee_late_recovery` 访问通知）而非 push notify：gateway 写审计事件、回 200、跳过整条 push 管线。 |
 
 `blind_wakeup` 下上述最小化义务覆盖 `counts` 内的所有绝对活动计数，包括未读数与未接来电数；`badge` 与 `missed_call` 均只能使用布尔存在标志或 policy 声明的封闭 bucket 字符串，MUST NOT 发送明文绝对计数。`unread_increment` 是唯一允许的有界增量形态，不得被解释为累计总数。
@@ -568,7 +568,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
         { "start": "22:00", "end": "08:00" }
       ]
     },
-    "exceptions": ["override.keyword-urgent"]
+    "exceptions": ["content.keyword-urgent"]
   }
 }
 ```

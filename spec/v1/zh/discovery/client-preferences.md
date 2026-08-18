@@ -268,7 +268,7 @@ storage_key = "ak.contacts.actor." || principal_key
 - Contact accept 生效后，客户端 SHOULD 仅在该 key 从未存在时，以当时可验证的全局 `actor_profile.display_name` 同时初始化 `petname` 与 `global_display_name_at_save`，并保存 verified handle（若有）。不得以 Realm override、handle、DID、MemberIdentity display 或 OIDC `name` 代替全局 profile。已有记录的 `petname`、note、tags、pin、`saved_at` 与快照必须保留；并发初始化必须按 account-data whole-value CAS 做 read/decrypt → domain merge → encrypt/write，且保持幂等。
 - 备注初始化或同步失败 MUST NOT 回滚、拒绝或伪装成 Contact accept 失败；客户端 SHOULD 持久重试并可显示“备注尚未跨设备同步”。手工输入备注和备注写入成功都不得成为 request / respond / glare accepted 的协议前置，也不得成为 typing / presence 等可被对端观察的差异信号。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `petname` 与 `note`。服务端仍可能观察不透明 key 的数量、大小与更新时间；实现不得声称消除了这些流量 metadata。
-- 删除联系人备注 MUST 使用 `ak.self.account_data.resource.delete` 写入 §5.3 定义的有版本 physical-delete tombstone，不依赖客户端本地清理，也不得用无法通过本节字段验证的空对象冒充删除。
+- 删除联系人备注 MUST 使用 `ak.self.account_data.resource.delete` 写入 [`../models/account-data.md` §5.3](../models/account-data.md) 定义的有版本 physical-delete tombstone，不依赖客户端本地清理，也不得用无法通过本节字段验证的空对象冒充删除。
 
 不透明 key transcript、raw principal / Realm / service DID 负例与解密后 slot-binding 校验由 `ak.vector.account_data.contact_petname_binding.v1` 闭合；成对名称碰撞由 `ak.vector.encoding.confusable_check.v1` 闭合。
 
@@ -323,7 +323,7 @@ storage_key = "ak.contacts.actor." || principal_key
 - 当 Realm 公开 `title` 与 `verified_title_at_save` 不一致，或 `owning_organizations` 与 `verified_owning_organizations_at_save` 不一致时，客户端 SHOULD 在该 Realm 渲染处显示 title changed / org changed 标记，并提示用户复核备注；该机制与 §3.6 `verified_handle_at_save` 对称。
 - 当用户已加入的多个 Realm 的公开 `title` 字符串经 `arkret_display_confusable_v1` 判为碰撞时，UI MUST 优先按 `local_name` 区分；缺少 `local_name` 时 MUST 退化到 `owning_organizations` / source Realm / `ak:realm:` 短摘要等附加上下文，不得在仅显示 `title` 的情况下让用户做破坏性或不可逆操作。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
-- 删除 Realm 备注 MUST 通过 `ak.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理；用户离开或被踢出 Realm MAY 触发自动 tombstone（客户端策略，规范不强制）。
+- 删除 Realm 备注 MUST 使用 `ak.self.account_data.resource.delete` 写入 [`../models/account-data.md` §5.3](../models/account-data.md) 定义的有版本 physical-delete tombstone（与 §3.6 联系人备注同一机制），不依赖客户端本地清理，也不得用空对象冒充删除——空对象会被 `ak.self.account_data.resource.replace` 的 closed schema 当作普通值写入，删不掉任何东西。用户离开或被踢出 Realm MAY 触发自动 tombstone（客户端策略，规范不强制）。
 - `ak.contacts.realm.<realm_id>` 与 §3.1 `ak.tags.realm.<realm_id>` 并存：前者负责命名与笔记，后者负责分组与 `order` 排序；客户端 SHOULD 在本地 projection 中按 `realm_id` join 二者，规范上互不替代。
 
 ### 3.8 已读回执偏好 (Read Receipt Preferences)

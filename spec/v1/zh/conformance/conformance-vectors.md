@@ -297,11 +297,12 @@ ak.vector.encoding.reject_feff_injection.v1
 ak.vector.encoding.event_digest.v1
 ```
 
-输入事件，不含 `proofs` 和 `unsigned`，但包含稳定 `event_id`：
+digest preimage 是去除 `proofs`、`unsigned`、`actor_kind` 与 `event_id` 后的 Event Envelope
+（[`encoding.md` §3](./encoding.md)）。`event_id` 由该 digest 一次前向派生，因此 **MUST NOT** 出现在
+preimage 中：
 
 ```json
 {
-  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
   "kind": "ak.message.create",
   "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
   "scope_ref": {
@@ -316,7 +317,7 @@ ak.vector.encoding.event_digest.v1
   "refs": [],
   "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "auth_context": {
-    "did": "did:webvh:z6mkfixture:alice.example",
+    "actor_id": "ak:did_core:webvh:z6mkfixture",
     "key_id": "device-1",
     "key_epoch": 1
   },
@@ -334,18 +335,23 @@ ak.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"ak:did_core:webvh:z6mkfixture","actor_seq":1,"auth_context":{"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","event_id":"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","refs":[],"scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"ak:did_core:webvh:z6mkfixture","actor_seq":1,"auth_context":{"actor_id":"ak:did_core:webvh:z6mkfixture","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","refs":[],"scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
-期望 digest：
+期望 digest 与由它前向派生的 `event_id`：
 
 ```text
-sha256:f4d8a5c64697228753fa18e543d80722ee166a8fb7c9bc705935c87003c1e610
+sha256:25864e3bb5007e6b8bcda2142d1bfa5653725c8546e388f136a06988aae590f6
+ak:event:ASWGTju1AH5ri82iFC0b-lZTclyFRuOI8TagaYiq5ZD2
 ```
 
 判定规则：
 
-- event digest / proof `event_digest` MUST 从 redaction 前、去除 `proofs` 与 `unsigned` 后的 canonical event bytes 派生；`event_id` 是稳定 `ak:event:*` typed ID，必须进入 digest，但不替代 digest。
+- event digest / proof `event_digest` MUST 从 redaction 前、去除 `proofs` / `unsigned` / `actor_kind` /
+  `event_id` 后的 canonical event bytes 派生；`event_id` 是该 digest 的前向派生结果，把它放回 preimage
+  会造成不可解的自引用。
+- `event_id` 的 33 octets 为 `0x01`（sha256 suite code）拼接完整 32 字节 digest，再做无 padding base64url
+  （[`encoding.md` §4](./encoding.md)）。
 - 实现 MUST NOT 把 transport envelope、HTTP header、Principal Server sync surface metadata、local receive time 放入 event digest。
 - 同一事件在不同 Events API 或 Principal Server sync surface 上 MUST 得到相同 digest。
 
@@ -598,28 +604,29 @@ ak.vector.encoding.reject_malformed_hlc.v1
 ak.vector.encoding.cursor_opaque.core.v1
 ```
 
-输入 cursor（schema-valid v1 core wire 形态；body 是 stateful opaque handle `{v,purpose,t,x,h}`）：
+输入 cursor（schema-valid v1 core wire 形态；body 是 stateful opaque handle
+`{v, purpose, issued_at, expires_at, h}`）：
 
 ```text
-ak:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9
+ak:cursor:eyJleHBpcmVzX2F0IjoiMjA5OS0xMi0zMVQyMzo1OTo1OS4wMDBaIiwiaCI6ImFiY2RlZmdoaWprbG1ub3BxcnN0dXYiLCJpc3N1ZWRfYXQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5LjAwMFoiLCJwdXJwb3NlIjoic3RyZWFtIiwidiI6IjEifQ
 ```
 
 cursor base64url 解码后对应 canonical JSON：
 
 ```text
-{"h":"abcdefghijklmnopqrstuv","purpose":"stream","t":"2099-12-30T23:59:59Z","v":"1","x":4102444799000}
+{"expires_at":"2099-12-31T23:59:59.000Z","h":"abcdefghijklmnopqrstuv","issued_at":"2099-12-30T23:59:59.000Z","purpose":"stream","v":"1"}
 ```
 
 期望客户端行为：
 
 - 客户端 MUST 把 cursor 当作不透明字符串保存和回传。即使 cursor 的内部结构是 `encoding.md` §8.2 规定的合法 stateful handle 形态，客户端 SDK / 应用层 MUST NOT 解析它的内部字段来构造请求。
-- 客户端 MUST NOT 依赖 base64url 解码后的 `h` handle、`x` 过期字段或其它内部字段构造下一页请求；这些字段只属于 issuing service。
+- 客户端 MUST NOT 依赖 base64url 解码后的 `h` handle、`expires_at` 或其它内部字段构造下一页请求；这些字段只属于 issuing service。
 - 服务端 MAY 改变 cursor 内部编码或字段集合，只要同一 query/session 下 cursor 仍按 API contract 可用。
-- 服务端 MUST 在收到该 cursor 时，按 [`encoding.md`](./encoding.md) §8.3 校验 `v ∈ supported_versions`、`purpose`、`x`、core schema 形态和 `h` handle binding；语法失败返回顶层 `param_invalid`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
+- 服务端 MUST 在收到该 cursor 时，按 [`encoding.md`](./encoding.md) §8.3 校验 `v ∈ supported_versions`、`purpose`、`issued_at` / `expires_at`、core schema 形态和 `h` handle binding；语法失败返回顶层 `param_invalid`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
 
 失败条件：
 
-- 客户端解析 `h` / `x` 后自行构造下一页请求或修改 cursor 内容。
+- 客户端解析 `h` / `expires_at` 后自行构造下一页请求或修改 cursor 内容。
 - 客户端在 cursor 解码失败时拒绝整个协议，而不是按 opaque token 处理。
 - 服务端接受缺少 `h` 的 cursor body。
 
@@ -637,8 +644,8 @@ ak.vector.encoding.encrypted_envelope_digest.v1
 domain_separator = ak.aad-event-ref-v1
 event_id         = ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix
 realm_id         = ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5
-digest_input_hex = 616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d373030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d303030303030303030303030
-event_ref_digest = sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3
+digest_input_hex = 616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a41662d71697a5366564554634b696c69584730393356566e654f346e51463139345a58476b4d574a696a697800616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35
+event_ref_digest = sha256:3ab72c4d3b623df587fb5ecad008419379a312666c680f3c30d08f8987eb6dc1
 ```
 
 `digest_input_hex` 必须逐字节等于 `utf8(domain_separator) || 0x00 || utf8(event_id) || 0x00 || utf8(realm_id)`。机器向量另含“省略两个 `0x00`”“交换 `event_id` / `realm_id`”“追加尾部 `0x00`”三个 mutation case；三者都必须产生各自固定的不同摘要，不能被实现接受为有效输入。
@@ -646,7 +653,7 @@ event_ref_digest = sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71
 `payload_metadata` canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3","realm_id":"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"},"aad_visibility_event_id_kind":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"},"scheme":"mls_rfc9420","version":"1.0"}
+{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:3ab72c4d3b623df587fb5ecad008419379a312666c680f3c30d08f8987eb6dc1","realm_id":"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"},"aad_visibility_event_id_kind":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"},"scheme":"mls_rfc9420","version":"1.0"}
 ```
 
 `ciphertext` 的 base64url wire 值与解码后 UTF-8 测试表示：
@@ -1573,67 +1580,52 @@ ak.vector.snapshot.<scenario>.v1
 ak.vector.redaction.preserve_fields.v1
 ```
 
-输入：
+输入的目标事件（`ak.message.create`）：
 
 ```json
 {
-  "target_event": {
-    "event_id": "ak:event:ASwq0QFg8faJScGgZD2ETHGz8WhBMT09jmLQI16Q3Z-U",
-    "kind": "ak.message.create",
-    "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-    "actor_id": "ak:did_core:webvh:z6mkfixtureAlice",
-    "created_at": "2026-04-26T00:00:00Z",
-    "hlc": "01970e589d24-0001-aaaaaaaa",
-    "prev_refs": [],
-    "refs": [],
-    "payload": {
-      "strand_id": "ak:strand:Abk9ggNjpAEpSsrb-40s9VzVw635-qwEqGjQBvMdr5Wx",
-      "content": {
-        "kind": "ak.content.text",
-        "body": "private notes"
-      },
-      "mentions": [
-        "@bob"
-      ],
-      "attachments": [
-        "hash:img1",
-        "hash:img2"
-      ],
+  "event_id": "ak:event:ASwq0QFg8faJScGgZD2ETHGz8WhBMT09jmLQI16Q3Z-U",
+  "kind": "ak.message.create",
+  "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
+  "actor_id": "ak:did_core:webvh:z6mkfixtureAlice",
+  "created_at": "2026-04-26T00:00:00Z",
+  "hlc": "01970e589d24-0001-aaaaaaaa",
+  "prev_refs": [],
+  "refs": [],
+  "payload": {
+    "strand_id": "ak:strand:Abk9ggNjpAEpSsrb-40s9VzVw635-qwEqGjQBvMdr5Wx",
+    "content": {
+      "kind": "ak.content.text",
+      "body": "private notes"
+    },
+    "metadata": {
       "fields": {
         "rank": 10
       }
-    },
-    "client_generated": {
-      "draft_id": "d-001",
-      "ui_last_seen": "2026-04-26T00:00:01Z"
-    }
-  },
-  "redaction_event": {
-    "event_id": "ak:event:AVRqeKaVZkAqsTdzlqHhkhlOpz6hhmxOkZizc06Spg6N",
-    "kind": "ak.redaction",
-    "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-    "actor_id": "ak:did_core:webvh:z6mkfixtureAlice",
-    "created_at": "2026-04-26T00:00:02Z",
-    "hlc": "01970e589d24-0002-bbbbbbbb",
-    "prev_refs": [
-      "ak:event:ASwq0QFg8faJScGgZD2ETHGz8WhBMT09jmLQI16Q3Z-U"
-    ],
-    "refs": [
-      { "id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we", "role": "authorized_by", "critical": true }
-    ],
-    "payload": {
-      "redacts": "ak:event:ASwq0QFg8faJScGgZD2ETHGz8WhBMT09jmLQI16Q3Z-U",
-      "reason_code": "policy_recall"
     }
   }
 }
 ```
 
+输入的 redaction event payload（Message 目标，必须通过 `ak.message.redact` 注册的 `event-payload.schema.json#/$defs/message_redact_payload`）：
+
+```json schema=schemas/event-payload.schema.json#/$defs/message_redact_payload
+{
+  "message_id": "ak:message:ASwq0QFg8faJScGgZD2ETHGz8WhBMT09jmLQI16Q3Z-U",
+  "reason": "policy_recall"
+}
+```
+
+该 redaction event 的 envelope 取值：`event_id="ak:event:AVRqeKaVZkAqsTdzlqHhkhlOpz6hhmxOkZizc06Spg6N"`、
+`kind="ak.message.redact"`、`actor_id="ak:did_core:webvh:z6mkfixtureAlice"`、
+`created_at="2026-04-26T00:00:02Z"`。目标只由 `payload.message_id` 承载：Event Envelope 没有第二条目标通道，
+`ak:message:<T>` 与目标 create Event 的 `ak:event:<T>` 共享同一 33-octet token（[`../models/common-fields.md` §6.0](../models/common-fields.md)）。
+
 期望结果：
 
 ```json
 {
-  "event_id": "ak:event:ASwq0QFg8faJScGgZD2ETHGz8WhBMT09jmLQI16Q3Z-U",
+  "message_id": "ak:message:ASwq0QFg8faJScGgZD2ETHGz8WhBMT09jmLQI16Q3Z-U",
   "state": "redacted",
   "kept_envelope_fields": [
     "event_id",
@@ -1644,37 +1636,45 @@ ak.vector.redaction.preserve_fields.v1
     "hlc",
     "prev_refs",
     "refs",
-    "proofs",
-    "hashes",
-    "redacted_by",
-    "redaction_reason_code"
+    "proofs"
   ],
-  "removed_fields": [
+  "removed_payload_fields": [
     "content",
-    "client_generated",
-    "mentions",
-    "attachments"
-  ]
+    "metadata"
+  ],
+  "redaction_cell": {
+    "cell_family": "ak.component.object.redaction.v1",
+    "cell_subject": "ak:message:ASwq0QFg8faJScGgZD2ETHGz8WhBMT09jmLQI16Q3Z-U",
+    "or_set_members": [
+      {
+        "actor_id": "ak:did_core:webvh:z6mkfixtureAlice",
+        "reason": "policy_recall"
+      }
+    ]
+  }
 }
 ```
 
 判定要求：
 
-- `redacts` 目标事件必须在 reducer 可见集合中存在。
-- 重放前后事件必须保留 event_id/hash 的验证可追踪性。
-- 目标事件的 `content`、`mentions`、`attachments`、`client_generated` 不得再对外展示。
-
-`kept_envelope_fields` 中的 `redacted_by` / `redaction_reason_code` / `hashes` **不是 redaction event payload 的输入字段**，而是 reducer 在目标事件上派生写入的 tombstone-style 字段，映射规则如下（来源见 event-envelope schema 的对应 `$defs`）:
-
-- `redacted_by` = 该 redaction event 的 `actor_id`（执行 redact 的主体）。
-- `redaction_reason_code` = redaction event `payload.reason_code`（本例 `policy_recall`）。
-- `hashes` = 目标事件原 envelope 的 `hashes` 字段，在 redaction 后保留以维持 event_id / canonical digest 的验证可追踪性，不由 redaction payload 提供。
+- `payload.message_id` 指向的 Message 必须在 reducer 可见集合中存在；不存在时按
+  [`../models/common-fields.md` §5.1](../models/common-fields.md) 的「未知对象 pending / replay」保留待重放，
+  不得当作成功 no-op。
+- 重放前后目标事件的 `event_id` 与 canonical digest 必须保持可验证：redaction 只清空内容槽，不改写 envelope。
+- 目标 Message 的 `content` / `encrypted_content` 在 `state="redacted"` 后 MUST 同时缺席（判据见 §3.2.3）。
+- **attribution 不是目标事件上的新字段**：redaction 的执行者与理由只经
+  `ak.component.object.redaction.v1` cell 的 canonical projection 暴露——OR-Set 成员即 redaction Event 的
+  `payload`，归属主体是该 Event 的 `envelope.actor_id`。Event Envelope 是
+  [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json) 的 closed 对象，
+  实现 MUST NOT 在目标事件上新增 `redacted_by` / `redaction_reason_code` / `hashes` 一类的 tombstone 字段。
 
 失败判定：
 
 - 把事件当作 tombstone 并抹去事件本体。
-- 保留 `client_generated` 等不可验证字段。
+- 保留 `content` 等已被 redaction 清除的内容槽。
 - 修改 `event_id` 或 `hlc`。
+- 在目标事件 envelope 上物化 attribution 字段，或用 Envelope 而非 `payload.message_id` 承载 redaction 目标。
+
 
 ### 3.2.1 Vector: Space target redaction payload schema
 
@@ -1718,10 +1718,11 @@ MUST 只走该专属 kind，cross-object `ak.redaction` MUST NOT 指向它。v1 
 }
 ```
 
-负例 2（cross-object `ak.redaction` 试图携带 `message_id` 成员）：
+负例 2（cross-object `ak.redaction` 在合法 `target_ref` 之外试图携带 `message_id` 成员）：
 
-```json schema=schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload expect=invalid first_error="contains:is not valid under any of the given schemas"
+```json schema=schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload expect=invalid first_error="contains:Additional properties are not allowed ('message_id' was unexpected)"
 {
+  "target_ref": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
   "message_id": "ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
 }
 ```
@@ -1849,67 +1850,55 @@ ak.vector.redaction.policy_scope.v1
 
 输入序列（先后顺序如下）：
 
-1) 正常消息事件（可见策略允许）
-2) policy 屏蔽事件（mark quarantined）
-3) redaction（撤回）
-4) redaction 之后查询 / 回放
+1) 正常消息事件（可见策略允许）：`ak.message.create`，
+   `event_id="ak:event:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u"`，
+   `content.body="bad link: spam.example/phish"`。
+2) 屏蔽决定：`ak.moderation.decision`，payload 如下。
+3) 撤回：`ak.message.redact`，payload 如下。
+4) redaction 之后查询 / 回放。
 
-```json
+屏蔽决定 payload（必须通过 `ak.moderation.decision` 注册的 `event-payload.schema.json#/$defs/moderation_decision_payload`）：
+
+```json schema=schemas/event-payload.schema.json#/$defs/moderation_decision_payload
 {
-  "timeline": [
-    {
-      "event_id": "ak:event:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u",
-      "kind": "ak.message.create",
-      "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-      "created_at": "2026-04-26T00:00:00Z",
-      "hlc": "01970e589d25-0001-11111111",
-      "payload": {
-        "strand_id": "ak:strand:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u",
-        "content": {
-          "kind": "ak.content.text",
-          "body": "bad link: spam.example/phish"
-        }
-      }
-    },
-    {
-      "event_id": "ak:event:AWCBHolgh94DVOBlY429GqqQeht8KZeFy8s6MYF7uUuw",
-      "kind": "ak.policy.action",
-      "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-      "created_at": "2026-04-26T00:00:01Z",
-      "hlc": "01970e589d25-0001-22222222",
-      "actor_id": "ak:did_core:webvh:z6mkfixturePolicyBot",
-      "payload": {
-        "target_id": "ak:event:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u",
-        "policy_scope": "public",
-        "decision": "quarantine"
-      }
-    },
-    {
-      "event_id": "ak:event:AcUVVjcbKtBVp4-iT2lemOBe6JeEgEfWusYRwGMnyqbg",
-      "kind": "ak.redaction",
-      "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-      "actor_id": "ak:did_core:webvh:z6mkfixturePolicyAdmin",
-      "payload": {
-        "redacts": "ak:event:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u",
-        "reason_code": "policy_recall"
-      }
-    }
-  ]
+  "target_ref": "ak:message:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u",
+  "decision": "quarantine",
+  "issuer": "ak:did_core:webvh:z6mkfixturePolicyBot",
+  "request_canonical_digest": "sha256:5f8b3c2ad4e1907664bb2f0c9d1e3a57c48d6b02fe971a35c8d40b7e9a2f6c1d",
+  "action": "quarantine_message"
 }
 ```
 
+撤回 payload（必须通过 `ak.message.redact` 注册的 `event-payload.schema.json#/$defs/message_redact_payload`）：
+
+```json schema=schemas/event-payload.schema.json#/$defs/message_redact_payload
+{
+  "message_id": "ak:message:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u",
+  "reason": "policy_recall"
+}
+```
+
+两条 payload 用**同一个 typed Message ID** 定址两个不同的 cell family：
+`ak.component.moderation_state.v1`（subject = `payload.target_ref`）与
+`ak.component.object.redaction.v1`（subject = `payload.message_id`）。目标 Message 是
+`ak.message.create` 的 create Event 派生对象，`ak:message:<T>` 与 `ak:event:<T>` 共享同一 token
+（[`../models/common-fields.md` §6.0](../models/common-fields.md)）。
+
 期望：
 
-- Projection 不得展示已 redacted 的 `content`，但应保留 stripped 证据用于审计。
+- Projection 不得展示已 redacted 的 `content`，但 timeline 位置与 `event_id` 指纹必须保留用于审计。
 - 历史可见性为 `world_readable` 时，外部审计仍应看到 redaction 事实而不是原文。
 - 冻结空间（frozen realm）与历史归档（archived event）场景下，timeline 位置必须保留，不能物理删除。
-- policy 的 `quarantine` 仍需要保留 redaction 后事件的 `event_id` 指纹映射。
+- `quarantine` 与 redaction 是两条独立 cell 上的断言：redaction 进入不可逆终态后，moderation cell 的
+  `quarantine` 仍然可查询，不因 redaction 被折叠或清除。
 
 失败判定：
 
 - 在 redaction 后把事件从 timeline 移除。
 - 使用完整明文替代 redaction 保留字段。
 - 将 `quarantine` 解释为“删除”而非显示约束。
+- 用 `ak.redaction` 而不是 `ak.message.redact` 撤回 Message（§3.2.2），或把两个 cell 的 subject 合并成一个。
+
 
 ### 3.4 Vector: hard erasure receipt
 
@@ -1999,12 +1988,14 @@ ak.vector.capability.<scenario>.v1
 ak.vector.capability.authority_chain.v1
 ```
 
-输入事件链：
+输入事件链。`ak.capability.grant` 的 payload 是 closed `{grant: {...}}`：**顶层 `grant_id` 与
+`grant.id` 都被禁止**，durable GrantId 由该 Event 自己的 `event_id` retype 得到
+（[`common-fields.md` §6.0](../models/common-fields.md)），因此每一级 grant 的 id 必然互不相同，
+且 `issuer_authority_refs` 只能指向**上一级**的 grant，不能自指。
 
 ```json
 {
   "base": {
-    "kind": "ak.capability.grant",
     "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we",
     "subject": "ak:did_core:webvh:z6mkfixtureRootAdmin",
     "actions": [
@@ -2019,33 +2010,37 @@ ak.vector.capability.authority_chain.v1
       "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
       "actor_id": "ak:did_core:webvh:z6mkfixtureRootAdmin",
       "payload": {
-        "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we",
-        "issuer_authority_refs": [{"kind": "grant", "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we"}],
-        "subject": "ak:did_core:webvh:z6mkfixtureOps",
-        "resources": [
-          {
-            "kind": "realm",
-            "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-            "match_scope": "realm_wide"
-          }
-        ],
-        "actions": [
-          "ak.invite.create"
-        ],
-        "constraints": [
-          {
-            "constraint_kind": "temporal",
-            "effect": "allow",
-            "not_before": "2026-04-20T00:00:00Z",
-            "expires_at": "2026-05-20T00:00:00Z"
-          },
-          {
-            "constraint_kind": "quota",
-            "constraint_subkind": "rate",
-            "effect": "allow",
-            "rate_limit": "5/hour"
-          }
-        ]
+        "grant": {
+          "schema": "ak.schema.capability.v1",
+          "issuer": "ak:did_core:webvh:z6mkfixtureRootAdmin",
+          "subject": "ak:did_core:webvh:z6mkfixtureOps",
+          "issued_at": "2026-04-20T00:00:00.000Z",
+          "issuer_authority_refs": [{"kind": "grant", "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we"}],
+          "resources": [
+            {
+              "kind": "realm",
+              "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
+              "match_scope": "realm_wide"
+            }
+          ],
+          "actions": [
+            "ak.invite.create"
+          ],
+          "constraints": [
+            {
+              "constraint_kind": "temporal",
+              "effect": "allow",
+              "not_before": "2026-04-20T00:00:00.000Z",
+              "expires_at": "2026-05-20T00:00:00.000Z"
+            },
+            {
+              "constraint_kind": "quota",
+              "constraint_subkind": "rate",
+              "effect": "allow",
+              "rate_limit": "5/hour"
+            }
+          ]
+        }
       },
       "refs": [
         { "id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we", "role": "authorized_by", "critical": true }
@@ -2057,38 +2052,42 @@ ak.vector.capability.authority_chain.v1
       "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
       "actor_id": "ak:did_core:webvh:z6mkfixtureOps",
       "payload": {
-        "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we",
-        "issuer_authority_refs": [{"kind": "grant", "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we"}],
-        "subject": "ak:did_core:webvh:z6mkfixtureIntern",
-        "resources": [
-          {
-            "kind": "realm",
-            "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-            "match_scope": "realm_wide"
-          }
-        ],
-        "actions": [
-          "ak.invite.create"
-        ],
-        "constraints": [
-          {
-            "constraint_kind": "quota",
-            "constraint_subkind": "rate",
-            "effect": "allow",
-            "rate_limit": "2/day"
-          },
-          {
-            "constraint_kind": "scope_limitation",
-            "effect": "allow",
-            "allowed_audiences": [
-              "did:webvh:z6mkfixture:partner.example",
-              "did:webvh:z6mkfixture:vendor.example"
-            ]
-          }
-        ]
+        "grant": {
+          "schema": "ak.schema.capability.v1",
+          "issuer": "ak:did_core:webvh:z6mkfixtureOps",
+          "subject": "ak:did_core:webvh:z6mkfixtureIntern",
+          "issued_at": "2026-04-21T00:00:00.000Z",
+          "issuer_authority_refs": [{"kind": "grant", "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ"}],
+          "resources": [
+            {
+              "kind": "realm",
+              "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
+              "match_scope": "realm_wide"
+            }
+          ],
+          "actions": [
+            "ak.invite.create"
+          ],
+          "constraints": [
+            {
+              "constraint_kind": "quota",
+              "constraint_subkind": "rate",
+              "effect": "allow",
+              "rate_limit": "2/day"
+            },
+            {
+              "constraint_kind": "scope_limitation",
+              "effect": "allow",
+              "allowed_audiences": [
+                "did:webvh:z6mkfixture:partner.example",
+                "did:webvh:z6mkfixture:vendor.example"
+              ]
+            }
+          ]
+        }
       },
       "refs": [
-        { "id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we", "role": "authorized_by", "critical": true }
+        { "id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ", "role": "authorized_by", "critical": true }
       ]
     }
   ],
@@ -2096,21 +2095,21 @@ ak.vector.capability.authority_chain.v1
     "actor_id": "ak:did_core:webvh:z6mkfixtureIntern",
     "action": "ak.invite.create",
     "resource": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-    "request_time": "2026-04-26T01:00:00Z",
+    "request_time": "2026-04-26T01:00:00.000Z",
     "request_audience": "did:webvh:z6mkfixture:vendor.example"
   }
 }
 ```
 
-期望输出：
+期望输出（`valid_chain` 从 root 到 leaf，三个 id 互不相同）：
 
 ```json
 {
   "authorized": true,
   "valid_chain": [
     "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we",
-    "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we",
-    "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we"
+    "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+    "ak:grant:AfRvTwL9UUVlA868BCCvPbdzYVW8u3JC2w3JgU_Fixho"
   ],
   "constraints_checked": {
     "time": true,
@@ -2124,8 +2123,9 @@ ak.vector.capability.authority_chain.v1
 失败判定：
 
 - 忽略中间 authority grant 直接用 root 进行授权。
-- 忽略 `audiences` 约束。
+- 忽略 `allowed_audiences` 约束。
 - 时间边界过期仍返回 true。
+- 接受 payload 顶层 `grant_id` / `grant.id`，或接受自指的 `issuer_authority_refs`。
 
 ### 4.3 Vector: revoke 回滚
 
@@ -2540,9 +2540,7 @@ ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
     "object_kinds": [
       "strand"
     ],
-    "consistency": {
-      "wait_for": "barrier_cursor_from_write"
-    }
+    "wait_for": "ak:cursor:barrier_cursor_from_write"
   }
 }
 ```
@@ -3723,8 +3721,11 @@ Expected：
 
 - 对 closed `ak.session_grant.issuance.v1` preimage 执行 RFC 8785 JCS 与 SHA-256，前置 registry 中 active
   SHA-256 suite wire code 后生成 33-octet token；typed `ak:session_grant:` ID MUST 与 JWT `jti`
-  byte-identical。该 `suite_tagged_full_digest` 首字节是完整 uint8 suite code，不得套用 Realm 的高/低 nibble
-  derivation header。两个 issuer 使用相同 nonce 与其余 claims 时必须产生不同 ID。
+  byte-identical。首字节与 Event / Realm token 用**同一** `suite_tagged_full_digest` 布局
+  （[`encoding.md` §4.0](./encoding.md)：高 nibble 保留为零，低 nibble 是登记的 digest-suite wire code）；
+  区别只在 `D` 的来源——SessionGrant 的 `D` 来自 Account Authority 的 closed issuance preimage，
+  不是 Event digest preimage，因此不得把它当作某个 Event 的派生 ID 去解析。两个 issuer 使用相同 nonce
+  与其余 claims 时必须产生不同 ID。
 - `issuance_nonce` 必须是 32-octet unpadded Base64URL；`session_public_key` 的非 canonical public-JWK 输入
   必须先规约成同一 JCS string，private member、不能 round-trip 的 signed claim、乱序/重复 scopes、非
   canonical millisecond、显式 `null` optional 均必须拒绝或在签发前唯一规约。
@@ -4788,13 +4789,13 @@ Expected:
 Steps:
 
 1. Client POST `/_arkret/self/rtc/token` with the minimum required fields `(realm_id, call_id, actor_id, device_id, focus_id)`。
-2. Issuer 返回 200 with `backend_token` / `participant_identity` / `participant_binding` / `expires_at` / `service_signature`。
+2. Issuer 返回 200 with `backend_token` / `participant_identity` / `participant_binding` / `expires_at`。
 
 Expected:
 
 - `expires_at - now` MUST ≤ 600s（SHOULD ≤ 300s）。
 - `participant_binding.scheme` MUST = `ak.media.participant_binding.v1`。
-- `service_signature.kid` 与 `participant_binding.issuer_kid` MUST 解析到当前 epoch `ak.realm.media_service.service_id`。
+- `participant_binding.issuer_kid` MUST 解析到当前 epoch `ak.realm.media_service.service_id`。
 
 ### 12.4 Token Issuer — Unauthorised DID Rejected
 

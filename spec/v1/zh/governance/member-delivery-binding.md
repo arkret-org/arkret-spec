@@ -132,12 +132,13 @@ Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员�
 
 | 字段 | 类型 | 默认 | 语义 |
 | --- | --- | --- | --- |
-| `allowed_binding_sources` | `enum[]` | `["did_document_default"]` for 个人 / 公开 Realm；组织 Realm 必须显式收窄 | 允许出现在被接受 binding 中的 `binding_source` 子集。 |
+| `allowed_binding_sources` | `enum[]` | **policy event 缺席**时个人 / 公开 Realm 视为 `["did_document_default"]`，组织 Realm 必须显式收窄；policy event 存在时以写入值为准 | 允许出现在被接受 binding 中的 `binding_source` 子集。 |
 | `did_document_default_allowed` | `boolean` | `true` for 个人 / 公开 Realm；组织 / 合规 Realm 必须显式设为 `false` | 是否允许 binding_source=did_document_default。 |
-| `allowed_recipient_services` | `did_core_id[] \| ["*"]` | `["*"]` for 个人 / 公开 Realm；组织 / 合规 Realm 必须显式给出封闭集合 | 允许出现在 `recipient_service_id` 的稳定 service `did_core_id` 集合。显式空集 `[]` = 拒绝任意 recipient service（fail-closed）；`["*"]` 是 unrestricted 哨兵。普通成员 binding 仍必须满足 `binding_source` / 背书等其余 §2 准则；`["*"]` 只解除 recipient service allowlist 这一维度的限制，不豁免 `required_endorsers` 等其它校验。 |
+| `allowed_recipient_services` | `did_core_id[] \| ["*"]` | 三种情形分开：**policy event 缺席** → 个人 / 公开 Realm 视为 `["*"]`，组织 / 合规 Realm MUST 先显式写入本 policy；**policy event 存在但省略本字段** → `[]`（fail-closed）；**显式 `[]`** → 同样 fail-closed | 允许出现在 `recipient_service_id` 的稳定 service `did_core_id` 集合。`[]` = 拒绝任意 recipient service，MUST NOT 被解释为 unrestricted；unrestricted 只能由显式哨兵 `["*"]` 表达。普通成员 binding 仍必须满足 `binding_source` / 背书等其余 §2 准则；`["*"]` 只解除 recipient service allowlist 这一维度的限制，不豁免 `required_endorsers` 等其它校验。 |
 | `required_endorsers` | `did_core_id[]` | `[]` | 非空时，`recipient_service_id` 的 `service_acceptance_ref` MUST 由其中一个治理 `did_core_id` 背书；该要求独立于 `allowed_recipient_services` 与 `["*"]` 哨兵。空数组表示无强制背书要求。 |
 | `unroutable_membership_allowed` | `boolean` | `false` | 是否允许 `delivery_status="unroutable"` 成员。 |
 | `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Control Move 的合法签名 / 背书集合（见 §6）。 |
+| `handover_grace_seconds` | `int?` | 86400（省略时） | 更换 service core 后，旧 `recipient_service_id` 继续接受迟到 / 并发 event 的窗口；上限 604800。语义见 §6。 |
 | `expires_after_seconds` | `int?` | unset = 不过期 | 该 Realm 中所有 binding 的最大有效期；reducer MUST 在物化时把 `delivery_binding.expires_at = resolved_at + expires_after_seconds`，除非 binding 显式声明更短的 `expires_at`。 |
 
 `ak.component.realm.delivery_binding_policy.v1` 是 cas_register cell（`cell_subject=null`，每 Realm 一个）。变更走本节的 `ak.realm.delivery_binding_policy` facet event，与 [`models/realm-and-space.md` §2.3](../models/realm-and-space.md) 其它 per-facet Realm policy 事件同一路径；`ak.realm.policy_bundle` 只承载没有独立 facet event kind 的组件。
@@ -151,7 +152,7 @@ Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员�
 - MUST NOT 退路到该 actor 的 DID Document `ArkretPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_id` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（重试策略：quarantine + 指数退避，见 [`sync/federation.md`](../sync/federation.md) §4.1）；只有本节固定的同-core route recovery 序列耗尽后，才向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
 - MUST NOT 把"recipient_service_id 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_event_ref` 显式建立。
 
-`delivery_binding.expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并提示该成员客户端通过 §6 rebind 流程提交新 binding。route notice / mirror 只能恢复仍有效 binding 所指向的同一 service core，不能延长 binding 有效期；这里**未提供授权 fallback path**——这是设计约束。
+`delivery_binding.expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并以已登记的 `delivery_binding_stale` 回执，提示该成员客户端通过 §6 rebind 流程提交新 binding。route notice / mirror 只能恢复仍有效 binding 所指向的同一 service core，不能延长 binding 有效期；这里**未提供授权 fallback path**——这是设计约束。
 
 sender MAY 为高频投递保存 TTL `ServiceRouteCache`，key 必须是 `recipient_service_id: did_core_id`，value 至少包含已验证 `service_kind`、`full_id`、`method_history_head`、record sequence/digest、canonical `base_url`、route-binding digest、`current_record_url`、`verified_at`、`refresh_after`、signed record `expires_at` 与本地 `cache_expires_at`。`cache_expires_at` MUST `<= expires_at`；任一到期都使 cache miss，且本地 TTL 不得延长或覆盖 signed expiry。cache 是实现层优化，不是 Realm 授权状态，MUST NOT 写回 member cell 或改写 `binding_source`。`refresh_after` 可触发对 `current_record_url` 的异步刷新；任一 expiry 到达、收到 stale/handover 信号、method head / route-binding digest 改变或执行安全敏感操作时 MUST 取得最新 record 并重新验证。同一 `recipient_service_id` 下的 `full_id` / URL / method head 刷新不改变 member cell，不需要 rebind；`recipient_service_id` 改变才按 §6 rebind。刷新失败按本节 quarantine 规则处理，不得回退到域名推导、旧 `full_id` 或 actor DID Document。
 

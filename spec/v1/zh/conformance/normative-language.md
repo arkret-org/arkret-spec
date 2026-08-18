@@ -81,7 +81,7 @@ Schema 字段、event kind 与 map / 集合字段使用复数（`tracks`、`refs
 
 ## 8. 文档 frontmatter 词表
 
-`spec/v1/zh/**/*.md` 的 frontmatter 字段采用以下封闭词表，lint MUST 拒绝未知值：
+`spec/v1/zh/**/*.md` 的 frontmatter **取值**采用以下封闭词表，lint MUST 拒绝未知值。本节约束的是下列各字段的取值域，不是 frontmatter 的键集合——`title` / `see_also` 等其它键不受本词表限制：
 
 - `status`：`draft` / `candidate` / `stable` / `deprecated`；
 - `normative`：YAML boolean `true` / `false`；

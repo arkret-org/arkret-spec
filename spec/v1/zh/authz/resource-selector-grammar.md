@@ -273,8 +273,11 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 
 `space:ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5:*`
 
-- 匹配：指定 Realm 内所有可评估 Space。
-- 要求：MUST 携带 `realm_id`；SHOULD 配合 `allowed_space_kinds`、短有效期和审计理由。
+- 匹配：指定 Realm 内所有可评估 Space，**但只有在同一 selector 显式声明 `match_scope="realm_wide"` 时**。
+- 原因：shorthand 的 `*` 只表示"省略 `space_id`"（§3.1），而 `match_scope` 省略时的默认值是 `exact`；
+  §6 的匹配算法在 `space_id` 缺席时只对 `match_scope=="realm_wide"` 返回 true。因此不带
+  `match_scope` 的 `space:<realm>:*` **不匹配任何资源**，而不是匹配全部——实现 MUST NOT 把它当作通配放行。
+- 要求：MUST 携带 `realm_id` 与 `match_scope="realm_wide"`；SHOULD 配合 `allowed_space_kinds`、短有效期和审计理由。
 
 ### 4.3 Strand 选择器
 
