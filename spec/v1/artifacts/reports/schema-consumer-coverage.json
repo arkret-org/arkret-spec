@@ -203,6 +203,7 @@
           "ak.gate.account.read.onboarding",
           "ak.peer.account_status.command.submit",
           "ak.peer.account_status.read.resolve",
+          "ak.self.account.command.request_erasure",
           "ak.self.account.command.update_profile",
           "ak.self.account.read.viewer"
         ],

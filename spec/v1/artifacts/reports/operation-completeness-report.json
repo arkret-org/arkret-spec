@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.5",
+  "version": "2026-08-18.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-18T18:00:00+08:00",
+  "generated_at": "2026-08-18T21:55:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,18 +18,18 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 243,
+    "total_operations": 244,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 233
+      "typed_schema": 234
     },
     "by_surface_class_and_completeness_class": {
       "core": {
         "service_describe": 3,
         "streaming_frame_schema": 2,
-        "typed_schema": 38
+        "typed_schema": 39
       },
       "deployment_local": {
         "typed_schema": 17
@@ -1464,6 +1464,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.account.command.request_erasure",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/account/erasure-requests",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
+        "response": "../schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.account.command.revoke_cursor",

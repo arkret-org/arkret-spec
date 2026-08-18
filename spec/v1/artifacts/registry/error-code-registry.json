@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-18.5",
+  "version": "2026-08-18.6",
   "codes": [
     {
       "code": "json_invalid",
@@ -182,6 +182,12 @@
       "http_status": 401,
       "scope": "both",
       "description": "The principal account is in terminal erasure_pending state. Existing session grants are invalidated and protected requests MUST fail closed with this code instead of a generic unauthenticated response."
+    },
+    {
+      "code": "reauthentication_required",
+      "http_status": 401,
+      "scope": "endpoint",
+      "description": "A high-risk self-service action (for example ak.self.account.command.request_erasure) requires fresh high-risk action authentication — recent login, WebAuthn, recovery key or a deployment equivalent — and the presented session does not satisfy the deployment policy. The caller MUST re-authenticate and retry with new request material; the strength of the required proof is deployment governance. See zh/identity/account-lifecycle.md section 8.1 and section 10."
     },
     {
       "code": "did_proof_required",
@@ -3047,6 +3053,13 @@
       "description": "Retained erasure stub bytes do not match retained_stub_digest in the erasure receipt. Verifier MUST reject the receipt and treat the erasure as not completed (fail closed)."
     },
     {
+      "code": "erasure_request_already_pending",
+      "applies_to": [
+        "account_status"
+      ],
+      "description": "Sub-reason for failed_precondition on ak.self.account.command.request_erasure: the account already holds a live self-initiated erasure intent whose erasure_pending AccountStatusRecord has not yet been signed. The client MUST NOT submit a second distinct request; it either awaits the recorded intent or withdraws it inside the deployment-granted withdrawal window. Once the record is signed, requests fail at authentication with account_erased instead. See zh/identity/account-lifecycle.md section 8.1."
+    },
+    {
       "code": "event_id_digest_mismatch",
       "applies_to": [
         "event_envelope"
@@ -5549,5 +5562,5 @@
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
   },
-  "generated_at": "2026-08-18T18:00:00+08:00"
+  "generated_at": "2026-08-18T21:55:00+08:00"
 }

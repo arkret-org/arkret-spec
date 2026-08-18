@@ -1179,6 +1179,7 @@ components:
               - account_suspended
               - account_deactivated
               - account_erased
+              - reauthentication_required
               - did_proof_required
               - signature_invalid
               - http_signature_required
@@ -5294,6 +5295,49 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountUpdateProfileRequestBody'
+  /_arkret/self/account/erasure-requests:
+    post:
+      operationId: ak.self.account.command.request_erasure
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      summary: Record the authenticated holder's explicit account erasure request.
+      description: |
+        The only client entry point for self-initiated account erasure
+        (zh/identity/account-lifecycle.md section 8.1). The Account Authority
+        treats this as a high-risk action and requires fresh high-risk action
+        authentication (recent login, WebAuthn, recovery key or a deployment
+        equivalent); a session that does not satisfy the deployment policy is
+        rejected with reauthentication_required.
+
+        Success is an acceptance confirmation only: the erasure intent is
+        durably recorded and the Account Authority starts its existing
+        erasure_pending AccountStatusRecord issuance flow. The response proves
+        neither record issuance nor physical completion; the current status is
+        observed through the existing account-status read surface and physical
+        completion only through the erasure receipt rail. When the deployment
+        grants a withdrawal window the outcome echoes withdrawal_window_ends_at
+        and the record is not signed before that time; once the record is
+        signed the request is irreversible and no withdrawal is possible.
+
+        Replaying the same request_id returns the recorded acceptance outcome;
+        the same request_id with different canonical bytes is
+        duplicate_conflict with zero writes; a different request_id while a
+        live unsigned-record intent exists is failed_precondition with
+        reason_code erasure_request_already_pending.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body
+      responses:
+        '200':
+          description: Erasure request accepted and the intent durably recorded.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome
   /_arkret/self/account/cursor/revoke:
     post:
       operationId: ak.self.account.command.revoke_cursor

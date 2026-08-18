@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-18.1",
+  "version": "2026-08-18.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-18T06:45:00+08:00",
+  "generated_at": "2026-08-18T21:55:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -929,6 +929,16 @@
         "service_identity_provider_unavailable",
         "did_not_found"
       ]
+    },
+    {
+      "operation_id": "ak.self.account.command.request_erasure",
+      "http_alias": "POST /_arkret/self/account/erasure-requests",
+      "operation_specific": [
+        "reauthentication_required",
+        "failed_precondition",
+        "duplicate_conflict"
+      ],
+      "description": "Self-initiated account erasure entry (zh/identity/account-lifecycle.md section 8.1). reauthentication_required rejects a session that does not satisfy the deployment's fresh high-risk action authentication policy. failed_precondition with reason_code erasure_request_already_pending rejects a distinct request_id while a live intent whose erasure_pending AccountStatusRecord is unsigned already exists. duplicate_conflict rejects the same request_id replayed with different canonical bytes; exact replay returns the recorded acceptance outcome. Once the record is signed, session grants are already revoked and later calls fail at authentication with account_erased from the universal surface."
     },
     {
       "operation_id": "ak.self.account.command.revoke_cursor",

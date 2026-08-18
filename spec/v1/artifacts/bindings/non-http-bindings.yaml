@@ -341,6 +341,7 @@ grpc:
       Describe: ak.self.account.read.describe
       Viewer: ak.self.account.read.viewer
       UpdateProfile: ak.self.account.command.update_profile
+      RequestErasure: ak.self.account.command.request_erasure
       Subscribe: ak.self.account.stream.subscribe
       CursorRevoke: ak.self.account.command.revoke_cursor
     SelfSnapshot:
@@ -405,6 +406,7 @@ mq:
     self.account.stream.subscribe: ak.self.account.stream.subscribe
     self.account.query.viewer: ak.self.account.read.viewer
     self.account.command.update_profile: ak.self.account.command.update_profile
+    self.account.command.request_erasure: ak.self.account.command.request_erasure
     self.account.command.revoke_cursor: ak.self.account.command.revoke_cursor
     gate.account.command.register: ak.gate.account.command.register
     gate.account.command.revoke_session: ak.gate.account.command.revoke_session

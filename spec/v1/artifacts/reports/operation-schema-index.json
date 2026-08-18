@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.5",
+  "version": "2026-08-18.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-18T18:00:00+08:00",
+  "generated_at": "2026-08-18T21:55:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4320,6 +4320,39 @@
         ],
         "properties": [
           "profile"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.account.command.request_erasure",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id"
+        ],
+        "properties": [
+          "request_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "status",
+          "principal_id",
+          "recorded_at"
+        ],
+        "properties": [
+          "request_id",
+          "status",
+          "principal_id",
+          "recorded_at",
+          "withdrawal_window_ends_at"
         ],
         "closed": true
       }

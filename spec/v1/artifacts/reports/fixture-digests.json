@@ -310,7 +310,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "a9c8584482c303a2154d9a814e2d3cdcc4a59be61932ee5aa030df633d51ab23"
+      "sha256": "df2ec09abb6f2e09cc6c0294ddc881630181b259bd22fc90abb28c7c16b6e887"
     },
     {
       "path": "spec/v1/artifacts/fixtures/reviewer-authority-pair-fixture.json",

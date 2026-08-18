@@ -57,6 +57,12 @@
     },
     {
       "$ref": "#/$defs/session_revoke_outcome"
+    },
+    {
+      "$ref": "#/$defs/account_request_erasure_request_body"
+    },
+    {
+      "$ref": "#/$defs/account_request_erasure_outcome"
     }
   ],
   "$defs": {
@@ -2530,6 +2536,51 @@
         },
         "abandoned_at": {
           "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_request_erasure_request_body": {
+      "type": "object",
+      "description": "Record the authenticated account holder's explicit request to erase the account (ak.self.account.command.request_erasure; zh/identity/account-lifecycle.md section 8.1). Acceptance only records the intent and lets the Account Authority start its existing erasure_pending issuance flow; it is neither the signed AccountStatusRecord nor a completion receipt. The Account Authority MUST treat this as a high-risk action and require fresh high-risk action authentication (recent login, WebAuthn, recovery key or a deployment equivalent); re-authentication strength, risk checks and cooldown are deployment governance.",
+      "required": [
+        "request_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id",
+          "description": "Idempotency identity of the erasure request. Replaying it returns the recorded acceptance outcome and MUST NOT record a second intent; the same request_id with different canonical bytes is duplicate_conflict with zero writes. A different request_id while a live intent whose erasure_pending AccountStatusRecord is not yet signed exists is failed_precondition with reason_code erasure_request_already_pending."
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_request_erasure_outcome": {
+      "type": "object",
+      "description": "Acceptance confirmation of a self-initiated account erasure request. At most one live intent record exists per account while the erasure_pending AccountStatusRecord is unsigned. This outcome proves only that the intent is durably recorded; it MUST NOT be read as record issuance or physical erasure completion. Completion is observed through the existing account-status read surface, and physical completion through the erasure receipt rail (zh/identity/account-lifecycle.md section 8).",
+      "required": [
+        "request_id",
+        "status",
+        "principal_id",
+        "recorded_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "status": {
+          "const": "accepted"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "The authenticated principal whose account erasure intent was recorded."
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Time the intent was durably recorded; an exact replay returns the first recording's value."
+        },
+        "withdrawal_window_ends_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Present only when the deployment grants a withdrawal window. The Account Authority MUST NOT sign the erasure_pending AccountStatusRecord before this time; once the record is signed the request is irreversible (zh/identity/account-lifecycle.md section 3 rule 3) and no withdrawal is possible."
         }
       },
       "additionalProperties": false

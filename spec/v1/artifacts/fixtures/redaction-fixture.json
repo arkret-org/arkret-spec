@@ -335,6 +335,28 @@
       "instance": {
         "message_id": "ak:message:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw"
       }
+    },
+    {
+      "name": "cross_object_redaction_event_target_ref_accepted",
+      "vector_id": "ak.vector.redaction.event_target_does_not_drive_object_state.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload",
+      "instance": {
+        "target_ref": "ak:event:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+        "preserve": [
+          "created_at",
+          "actor_id"
+        ],
+        "reason": "privacy_cleanup"
+      }
+    },
+    {
+      "name": "cross_object_redaction_same_token_object_spelling_accepted",
+      "vector_id": "ak.vector.redaction.event_target_does_not_drive_object_state.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload",
+      "instance": {
+        "target_ref": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+        "reason": "privacy_cleanup"
+      }
     }
   ],
   "cases": [
@@ -457,6 +479,12 @@
       "vector_id": "ak.vector.redaction.message_target_exclusive_kind.v1",
       "input": "cross_object_redaction_payload_with_message_target",
       "expected": "schema_rejects_message_target_ref_and_message_id_member_accepts_message_redact"
+    },
+    {
+      "name": "event_target_does_not_drive_object_state",
+      "vector_id": "ak.vector.redaction.event_target_does_not_drive_object_state.v1",
+      "input": "event_targeted_redaction_on_strand_create_event",
+      "expected": "derived_object_state_stays_active_and_redaction_cells_stay_independent"
     },
     {
       "name": "policy_scope",

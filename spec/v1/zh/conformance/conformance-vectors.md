@@ -1840,6 +1840,50 @@ Strand / Morph 的终态经指向该对象的 `ak.redaction` 进入 `redacted`�
 - `state="archived"` MUST 仍允许内容槽存在——archive 是可逆软隐藏，不是内容清除；把 archive 也做成清空是实现越权。
 - 物化对象上 MUST NOT 出现 `redaction_ref` 一类的对象级 redaction 引用：Strand / Morph 走 cross-object `ak.redaction`，审计链接由 `ak.component.object.redaction.v1` cell 的事件索引提供（[`common-fields.md` §5.2](../models/common-fields.md)）。
 
+### 3.2.4 Vector: event-targeted redaction 不驱动派生对象 state
+
+向量名称：
+
+```text
+ak.vector.redaction.event_target_does_not_drive_object_state.v1
+```
+
+[`common-fields.md` §5.2](../models/common-fields.md) 的裁决：cross-object `ak.redaction` 的 `target_ref` 为 `ak:event:` 形态时，语义仅是按 `preserve[]` 对该 Event 自身做字段级裁剪，MUST NOT 改变任何对象的 `state`；对象进入 `redacted` 只能由对象 typed-id 形态的 `target_ref` 驱动。对 `id_source=event_derived` 的对象（[`common-fields.md` §6.0](../models/common-fields.md)），`ak:event:<T>` 与 `ak:<对象种类>:<T>` 共享同一 33-octet token，两种拼写都通过 schema，但按 [`encoding.md` §9.5.1](encoding.md) 单字段 subject 取逐字 scalar 的规则落进 `ak.component.object.redaction.v1` 的两个不同 cell，两个 cell 互不影响。
+
+正例 1（event 拼写：目标是 Strand 的 create Event 自身，做字段级裁剪）：
+
+```json schema=schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload expect=valid
+{
+  "target_ref": "ak:event:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+  "preserve": [
+    "created_at",
+    "actor_id"
+  ],
+  "reason": "privacy_cleanup"
+}
+```
+
+正例 2（对象拼写：同一 33-octet token 的派生对象）：
+
+```json schema=schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload expect=valid
+{
+  "target_ref": "ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw",
+  "reason": "privacy_cleanup"
+}
+```
+
+期望结果：
+
+- 两条 payload MUST 都通过 schema 校验，并 MUST 各自写入以逐字 `target_ref` 为 subject 的 cell：`ak:event:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw` 与 `ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw` 是两个不同 subject，OR-Set 不合并。
+- 只应用正例 1 时，由该 create Event 派生的 Strand（`ak:strand:AVEbR6LJe9T0RIh43YEQxR-vov-d4AbPcHIDId501TNw`）的 `state` MUST 仍为 `active`，内容槽 MUST 保持原样；redaction 的效果限于该 create Event 自身的字段级裁剪。
+- 两个 cell 独立：之后再应用正例 2，Strand 才进入 `state=redacted`；正例 1 是否已接受不影响该转换的 pre-state 校验，反之亦然。
+
+失败判定：
+
+- reducer 把 `ak:event:` 形态的 `target_ref` canonicalize 成派生对象 typed id（改 subject 或改语义）。
+- 对 create Event 应用 event-targeted redaction 后把派生对象置为 `redacted`。
+- 接受一种拼写后把另一种拼写当作同一 cell 的重复成员丢弃。
+
 ### 3.3 Vector: redaction 与 policy scope
 
 向量名称：

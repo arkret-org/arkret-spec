@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9829,
+    "total_properties": 9835,
     "total_schema_documents": 160,
     "by_presence_class": {
-      "optional": 2861,
+      "optional": 2862,
       "optional_defaulted": 71,
-      "required": 6499,
+      "required": 6504,
       "required_nullable": 133,
       "tristate": 265
     },
@@ -2259,6 +2259,12 @@
         "/$defs/account_registration_rate_limit_policy/properties/window_seconds": "required",
         "/$defs/account_registration_verification_policy/properties/code_digest": "optional",
         "/$defs/account_registration_verification_policy/properties/required": "optional_defaulted",
+        "/$defs/account_request_erasure_outcome/properties/principal_id": "required",
+        "/$defs/account_request_erasure_outcome/properties/recorded_at": "required",
+        "/$defs/account_request_erasure_outcome/properties/request_id": "required",
+        "/$defs/account_request_erasure_outcome/properties/status": "required",
+        "/$defs/account_request_erasure_outcome/properties/withdrawal_window_ends_at": "optional",
+        "/$defs/account_request_erasure_request_body/properties/request_id": "required",
         "/$defs/account_status_publication/oneOf/0/properties/record": "required",
         "/$defs/account_status_publication/oneOf/1/properties/account_status_receipts": "required",
         "/$defs/account_status_publication/oneOf/1/properties/record": "required",

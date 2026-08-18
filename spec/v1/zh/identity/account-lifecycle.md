@@ -3,7 +3,7 @@ title: Account Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-11
+updated: 2026-08-18
 ---
 
 ## 0. 规范语言
@@ -451,6 +451,47 @@ Account Authority 不新增第二条私有 peer erase command。它发布 `erasu
 - **UI 披露（normative）**：客户端 / admin UI MUST 在持有 `blocked_by_legal_hold` receipt 时向用户明确披露"该账号 / 数据擦除因 legal hold 暂被合法阻塞"（含 `legal_hold_ref`），MUST NOT 把它呈现为无限期 `pending` / "擦除进行中"或让用户以为流程卡死等待重试。注意它仍区别于 §8 fail-closed 校验失败（digest 不匹配 / stub 不可获取 / `proofs[]` 校验失败）导致的"擦除视为未完成"——后者 MUST 继续 fail-closed 并重试，前者是已结论的合法阻塞终态。
 
 **Fail-closed 校验（normative）**：verifier 在接受一份 `ak.schema.erasure_receipt.v1` 之前 MUST 重算 `hash(canonical_json(retained_stub))` 并与 receipt 的 `retained_stub_digest` 比对。当 stub（内联或经 endpoint 获取）与 `retained_stub_digest` **不一致** 时，verifier MUST 拒绝该 receipt（`erasure_receipt_stub_digest_mismatch`），并将该 erasure 视为 **未完成**（fail closed），不得据此把 subject 标记为已擦除、不得释放 legal hold、不得停止重试擦除流程。digest 不匹配意味着 stub 被替换、截断或与 receipt 不同源，无法证明声明的存储边界内删除已真正发生；默认结论是"擦除未完成"而非"擦除成功"。同理，receipt 缺失 `retained_stub_digest`、stub 无法获取，或 `proofs[]` 校验失败时，verifier MUST 同样 fail closed。
+
+### 8.1 用户自助擦除入口（normative）
+
+用户本人发起账号擦除的唯一客户端 operation 是 `ak.self.account.command.request_erasure`
+（`POST /_arkret/self/account/erasure-requests`）。它只做三件事：鉴权、durable 记录擦除
+意图、触发 Account Authority 本节既有的 `erasure_pending` 签发流程。它不创建第二套擦除
+语义，也不直接签发 AccountStatusRecord——按 §3，holder 自助请求只能提交 authenticated
+transition command，record 的签发者 MUST 是 Account Authority。
+
+- **请求与受理（normative）**：请求体是 closed object，只携带 `request_id` 幂等身份
+  （schema 见 [`account-operations.schema.json`](../../artifacts/schemas/account-operations.schema.json)
+  的 `account_request_erasure_request_body` / `account_request_erasure_outcome`）。成功响应是
+  **受理确认**：它只证明意图已 durable 记录，既不表示 `erasure_pending`
+  AccountStatusRecord 已签发，更不表示物理擦除完成。完成状态 MUST 经既有 account-status
+  查询面（`ak.self.account.read.viewer` 的 account lifecycle state、
+  `ak.self.account.stream.subscribe` 的 account-aggregate delta）观察；物理完成由本节既有
+  的 erasure receipt 表征。客户端与服务端 MUST NOT 把本操作的成功响应解释为 record 签发或
+  擦除完成的证据。
+- **高风险动作认证（normative）**：Account Authority MUST 把本操作作为高风险动作处理，
+  要求 fresh 高风险动作认证（recent login、WebAuthn、recovery key 或部署等价机制，与 §10
+  的认证要求同族）；认证强度、风控检查与冷却期属部署治理，本节不规定具体时长。session
+  不满足部署策略时 MUST 返回 `reauthentication_required` 且零写入，不得记录意图。
+- **幂等（normative）**：同一 `request_id` 的 exact replay MUST 返回首次记录的同一受理
+  outcome（含原 `recorded_at`），MUST NOT 产生第二条意图；同 `request_id` 不同 canonical
+  bytes MUST `duplicate_conflict` 且零写入。`request_id` 不同而本账号已存在 record 尚未签发
+  的 live 擦除意图时 MUST `failed_precondition`，`reason_code="erasure_request_already_pending"`。
+  `erasure_pending` record 一经签发，§8 的进入前置 fanout 已在同一状态事务撤销 session
+  grant，后续请求在认证层以 `account_erased` 失败。
+- **撤回窗口（normative）**：不可逆点是 Account Authority 签发 `erasure_pending`
+  AccountStatusRecord，而不是本操作的受理。Account Authority MAY 在受理与签发之间设置撤回
+  窗口；窗口时长与是否存在属部署治理，可以是零。配置窗口时受理 outcome MUST 携带
+  `withdrawal_window_ends_at`，且 Account Authority MUST NOT 在该时刻之前签发 record；未配置
+  时该字段 MUST 省略。撤回只对 record 尚未签发的 live 意图有意义；record 一经签发，§3
+  规则 3 的 terminal 语义生效，任何撤回 MUST fail closed。v1 不为撤回定义独立的 wire
+  operation；部署如提供撤回窗口，其撤回面（部署治理）的效力 MUST 终结于 record 签发，
+  MUST NOT 以任何形式复活已签发的 record。
+- **进入条件**：本操作只接受 current status 为 `active` / `soft_logged_out` / `suspended`
+  的请求；`locked` / `deactivated` / `erasure_pending` 下 session grant 已按 §3 矩阵失效，
+  请求在认证层以对应状态码失败。受理后 Account Authority 签发的 record、传播、异步执行与
+  回执完全复用 §8 既有流程；record 的 `reason_code` SHOULD 表达触发来源（如
+  `gdpr_request`）。
 
 ## 9. Session Revocation
 

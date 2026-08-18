@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.6",
+  "version": "2026-08-18.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-18T21:16:37+08:00",
+  "generated_at": "2026-08-18T22:40:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5873,6 +5873,20 @@
       "status": "active",
       "domain": "redaction",
       "description": "Message reaches state=redacted only through the object-scoped ak.message.redact. The cross-object ak.redaction payload class excludes Message mechanically: message_id is not a member and target_ref removes the ak:message: branch, so both spellings fail schema validation before any cell write, while a non-Message object target and the ak.message.redact positive both validate.",
+      "applies_to_fixtures": [
+        "redaction-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/models/common-fields.md",
+        "spec/v1/artifacts/fixtures/redaction-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.redaction.event_target_does_not_drive_object_state.v1",
+      "status": "active",
+      "domain": "redaction",
+      "description": "An event-targeted ak.redaction (target_ref in ak:event: form) only trims that Event's fields per preserve[] and MUST NOT change any object's state, including the event-derived object minted from a targeted create Event; object state=redacted is driven only by the object typed-id spelling of target_ref. The two spellings of one 33-octet token are both schema-valid and land in two distinct ak.component.object.redaction.v1 cells (verbatim scalar subject, encoding.md 9.5.1); the cells are independent OR-Sets and neither spelling canonicalizes into the other.",
       "applies_to_fixtures": [
         "redaction-fixture.json"
       ],
