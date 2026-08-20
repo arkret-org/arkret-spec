@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-06-19",
+  "version": "2026-08-20",
   "suite": "service_closure_hardening",
   "runner": {
     "kind": "named_suite",
@@ -353,7 +353,6 @@
       "vector_id": "ak.vector.push.wakeup_policy.v1",
       "assertions": [
         "no_notification_default_blocks_single_event_blind_wakeup",
-        "client_rule_digest_mismatch_uses_conservative_policy",
         "batch_wakeup_coalesces_unresolved_events"
       ],
       "steps": [
@@ -365,15 +364,6 @@
           },
           "expected": {
             "single_event_wakeup_sent": false
-          }
-        },
-        {
-          "name": "client_rule_digest_mismatch",
-          "registered_client_rule_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "server_client_rule_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "expected": {
-            "strategy": "conservative",
-            "rule_content_guessed": false
           }
         },
         {

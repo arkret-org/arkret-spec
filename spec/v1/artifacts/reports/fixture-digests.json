@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
-      "sha256": "6e799cfb885a33852cde79d5f0cb560220e202c71f5a8ebe03c5ea713ab202b7"
+      "sha256": "6fec21d899e48344f49b76aa2a710b10a2199cbde7811bf7ab55536afca8864d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",

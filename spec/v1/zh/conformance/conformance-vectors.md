@@ -3976,14 +3976,12 @@ Expected：gate 真相完全来自 durable proposal/Ack/decision/Seal store；�
 Steps：
 
 1. E2EE Realm 声明 `wakeup_default=no_notification`，server 无法评估 client-side mention rule。
-2. 设备注册 `client_rule_digest` 与服务端保存 digest 不一致。
-3. Realm 使用 `batch_wakeup`，一分钟内大量 client-side unresolved events 到达。
+2. Realm 使用 `batch_wakeup`，一分钟内大量 client-side unresolved events 到达。
 
 Expected：
 
 - 第 1 步 MUST NOT 发送单事件 blind wakeup。
-- 第 2 步 MUST 按更保守策略处理，不得猜测规则内容。
-- 第 3 步 MUST 合并为 batch wakeup，仍携带 `evaluation_locus_unresolved=true`。
+- 第 2 步 MUST 合并为 batch wakeup，仍携带 `evaluation_locus_unresolved=true`。
 
 ### 10.10.1 Vector: Hardened Realm Mention Routing Hint Disabled
 
