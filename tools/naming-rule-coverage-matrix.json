@@ -22,11 +22,11 @@
     "partial": "Some occurrences are decided mechanically and the remainder needs human judgement or a registry that is not yet complete."
   },
   "coverage_summary": {
-    "predicate": 16,
-    "registry_closure": 7,
+    "predicate": 17,
+    "registry_closure": 8,
     "schema_type": 3,
     "prose_only": 7,
-    "uncovered": 2
+    "uncovered": 0
   },
   "rules": [
     {
@@ -1026,17 +1026,22 @@
       "applies_to": [
         "wire_property"
       ],
-      "enforcement_kind": "uncovered",
+      "enforcement_kind": "predicate",
       "enforced_by": {
         "predicates": [],
-        "functions": [],
+        "functions": [
+          "naming_contracts.py:check_duration_field_units"
+        ],
         "registries": []
       },
-      "entry_points": [],
-      "tests": [],
+      "entry_points": [
+        "duration_field_units"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
       "coverage_level": "partial",
-      "manual_review_reason": "The prose fixes a closed two-row scale table, so the clause is mechanically decidable in principle: an integer duration field whose name ends in neither _ms nor _seconds could be rejected outright. Nothing implements it, so a unitless duration name can still be added silently. The row is uncovered, not prose_only, because there is no reason to accept the gap.",
-      "open_issue": "no predicate rejects a unitless integer duration field name"
+      "residual_gap": "The closed noun table of 3.0.2 (ttl / timeout / window / period / cooldown / age / staleness, plus the generic duration) decides every field whose final word is a duration noun: a noun-final integer terminal is exactly the unitless shape and fails, a string terminal must carry the single ISO 8601 duration pattern (a bare duration string and a homegrown compact mini-DSL both fail), and an enum/const label set such as on_timeout is not a duration carrier. The prose SHOULD is decided as reject-by-default; a noun-final field that is not a duration (the nth_of_period ordinal, the max_psi_queries_per_window rate count) or a reviewed refinement of the canonical pattern (the nonzero quota period) lives in the exact-path exception table inside the check, which fails closed the moment an exception stops matching a real violation. A field whose final word is not a duration noun is outside this surface."
     },
     {
       "rule_id": "NC-SLUG-001",
@@ -1049,17 +1054,24 @@
       "applies_to": [
         "wire_property"
       ],
-      "enforcement_kind": "uncovered",
+      "enforcement_kind": "registry_closure",
       "enforced_by": {
         "predicates": [],
-        "functions": [],
-        "registries": []
+        "functions": [
+          "naming_contracts.py:check_slug_field_closure"
+        ],
+        "registries": [
+          "tools/slug-field-registry.json"
+        ]
       },
-      "entry_points": [],
-      "tests": [],
+      "entry_points": [
+        "slug_field_closure"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
       "coverage_level": "partial",
-      "manual_review_reason": "This is the slug half of the same self-versus-reference distinction NC-IDSUFFIX-001 makes for identifiers, and the identifier half is at least partly closed by the classification registry while the slug half has nothing. The clause is decidable once each schema declares whether it is the owning object, which is the same input the identifier classification already needs.",
-      "open_issue": "no closure exists for owning-object versus referencing slug fields"
+      "residual_gap": "The slug field registry pins every bare `slug` occurrence to a declared owning context and the check closes the wire surface in both directions: a bare slug outside a registered context fails, a registered context whose pointer stops resolving fails, and a reference name must be `<entity>_slug` (with an optional role/time qualifier) for an entity that has a registered owning context. Whether a context genuinely is the owning object of its entity is the human judgement recorded per registry row, the same epistemic status as the identifier classification registry."
     }
   ]
 }

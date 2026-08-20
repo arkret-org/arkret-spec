@@ -2608,10 +2608,6 @@ components:
             type: string
             pattern: ^ak\.reducer(?:\.[a-z0-9][a-z0-9_.-]*)?\.v[0-9]+$
           uniqueItems: true
-        supported_schema_profiles:
-          type: array
-          items:
-            type: string
         limits:
           type: object
           additionalProperties: true
