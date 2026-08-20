@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.1",
+  "version": "2026-08-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-18T06:45:00+08:00",
+  "generated_at": "2026-08-20T10:25:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -91,11 +91,11 @@
       "scopes": "protocol_bytewise_sorted_unique_after_authorization_intersection",
       "timestamps": "utc_canonical_millisecond",
       "optional_fields": "omit_when_absent_never_null",
-      "credential_binding": "v1 fixes credential_class=standard and requires holder_binding"
+      "credential_binding": "v1 fixes credential_class=standard and requires holder_binding; device_binding is required for human_device and forbidden for agent_runtime"
     },
     "signed_claim_binding": "Every preimage field except fixed schema is a signed JWT claim, including the required standard holder_binding; kind is the fixed credential kind and jti is the derived typed ID. Verifiers MUST reconstruct the complete preimage from signed claims and recompute jti, so two different holder_binding values cannot share one valid ID.",
     "session_chain_rule": "session_id is independently allocated before first issuance, refresh inherits it, and it MUST NOT equal or derive from grant_id",
-    "device_id_rule": "No independent top-level device_id claim enters the preimage; device scope tokens, the required holder_binding, or optional device_binding carry the binding.",
+    "device_id_rule": "No independent top-level device_id claim enters the preimage; human holder_binding and its required complete device_binding carry the binding. Agent runtime holder_binding is independent and forbids device_binding.",
     "durable_replay": {
       "key": [
         "issuer_did",

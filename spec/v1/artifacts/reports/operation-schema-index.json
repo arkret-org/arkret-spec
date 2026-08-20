@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-20",
+  "version": "2026-08-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-20T05:55:00+08:00",
+  "generated_at": "2026-08-20T10:20:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1253,14 +1253,17 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
           "principal_id",
-          "proof"
+          "device_id"
         ],
         "properties": [
+          "request_id",
           "principal_id",
           "device_id",
+          "audience",
+          "accepted_device_possession_proof",
           "requested_scope",
           "agent_key_authorization_ref",
           "agent_scope_request",
@@ -1269,7 +1272,53 @@
           "applet_authority",
           "proof"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRequest",
+            "schema_kind": "object",
+            "required": [
+              "request_id",
+              "principal_id",
+              "device_id",
+              "audience",
+              "accepted_device_possession_proof"
+            ],
+            "properties": [
+              "request_id",
+              "principal_id",
+              "device_id",
+              "audience",
+              "accepted_device_possession_proof"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequest",
+            "schema_kind": "object",
+            "required": [
+              "principal_id",
+              "device_id",
+              "requested_scope",
+              "agent_key_authorization_ref",
+              "agent_scope_request",
+              "dpop_binding_proof",
+              "proof"
+            ],
+            "properties": [
+              "principal_id",
+              "device_id",
+              "requested_scope",
+              "agent_key_authorization_ref",
+              "agent_scope_request",
+              "requested_scope_disclosure",
+              "dpop_binding_proof",
+              "applet_authority",
+              "proof"
+            ],
+            "closed": true
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
@@ -1528,19 +1577,53 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
           "grant_jwt",
-          "device_id",
-          "proof"
+          "device_id"
         ],
         "properties": [
           "grant_jwt",
           "audience",
           "device_id",
-          "proof"
+          "accepted_device_possession_proof",
+          "agent_session_refresh_proof"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRefreshRequest",
+            "schema_kind": "object",
+            "required": [
+              "grant_jwt",
+              "device_id",
+              "accepted_device_possession_proof"
+            ],
+            "properties": [
+              "grant_jwt",
+              "audience",
+              "device_id",
+              "accepted_device_possession_proof"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRefreshRequest",
+            "schema_kind": "object",
+            "required": [
+              "grant_jwt",
+              "device_id",
+              "agent_session_refresh_proof"
+            ],
+            "properties": [
+              "grant_jwt",
+              "audience",
+              "device_id",
+              "agent_session_refresh_proof"
+            ],
+            "closed": true
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome",
@@ -1652,36 +1735,6 @@
         "properties": [
           "revoked_count",
           "revoked_session_grant_ids"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.exchange.complete_oidc",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "state",
-          "code"
-        ],
-        "properties": [
-          "state",
-          "code",
-          "nonce",
-          "redirect_uri"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
-        "schema_kind": "object",
-        "required": [
-          "redirect_url"
-        ],
-        "properties": [
-          "redirect_url"
         ],
         "closed": true
       }
@@ -3002,6 +3055,7 @@
           "expected_device_generation_ref",
           "action_class",
           "intent_digest",
+          "accepted_device_possession_proof",
           "requested_at"
         ],
         "closed": true

@@ -253,7 +253,7 @@
               "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
               "client_id": "example_client",
               "grant_exchange": {
-                "proof_kind": "oidc_code_exchange"
+                "kind": "account_handoff"
               }
             }
           ],
@@ -421,7 +421,7 @@
               "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
               "client_id": "example_client",
               "grant_exchange": {
-                "proof_kind": "oidc_code_exchange"
+                "kind": "account_handoff"
               }
             }
           ],
@@ -481,7 +481,7 @@
               "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
               "client_id": "example_client",
               "grant_exchange": {
-                "proof_kind": "oidc_code_exchange"
+                "kind": "account_handoff"
               }
             }
           ],

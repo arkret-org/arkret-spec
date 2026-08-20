@@ -95,6 +95,7 @@
     "gate_action_class": {
       "enum": [
         "session_grant_issue",
+        "returning_session_grant_issue",
         "session_grant_refresh",
         "keypackage_claim",
         "to_device_write",
@@ -315,7 +316,7 @@
     },
     "device_revocation_gate_check_request_body": {
       "type": "object",
-      "description": "Authenticated S2S request from an Account Authority or another registered issuer to the exact origin Principal Server. The request carries only selectors the issuer can itself verify; the exact authorization Event and PCR-local generation are derived by the origin from its own durable current device projection inside the gate transaction, under the same rule ak.device.revoke uses. expected_device_authorize_event_id and expected_device_generation_ref are the issuer's own previously verified durable binding, appear together or not at all, and MUST NOT be supplied by the client that called the issuer. They MAY be omitted only for action_class session_grant_issue, which is how a first ordinary human grant acquires its binding; every other action class MUST carry them. The intent digest identifies immutable prepared issuance or refresh bytes. A status read without this digest is not an issuance fence.",
+      "description": "Authenticated S2S request from an Account Authority or another registered issuer to the exact origin Principal Server. The exact authorization Event and PCR-local generation are derived from the origin's locked durable current device projection. expected selectors are issuer-verified, appear together or not at all, and MAY be omitted only for session_grant_issue or returning_session_grant_issue. returning_session_grant_issue and human session_grant_refresh require AcceptedDevicePossessionProof; registration/recovery session_grant_issue uses its already verified durable root/recovery evidence and forbids that proof. The intent digest identifies immutable prepared issuance or refresh bytes.",
       "required": [
         "principal_authority",
         "device_id",
@@ -343,6 +344,10 @@
           "$ref": "#/$defs/digest",
           "description": "Digest of the complete immutable issue or refresh intent, including the exact grant id, jti, subject, device, audience, scope, holder binding, issued_at and expiry. Session-grant introspection is read-only issuer-ledger verification and never consumes this receipt."
         },
+        "accepted_device_possession_proof": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof",
+          "description": "Required only for returning_session_grant_issue and human session_grant_refresh. The origin verifies it with the accepted device key from the same locked durable projection used to decide current authorization. Registration/recovery session_grant_issue and Agent runtime issuers MUST omit it."
+        },
         "requested_at": {
           "$ref": "#/$defs/timestamp"
         }
@@ -360,7 +365,10 @@
           "if": {
             "properties": {
               "action_class": {
-                "const": "session_grant_issue"
+                  "enum": [
+                    "session_grant_issue",
+                    "returning_session_grant_issue"
+                  ]
               }
             },
             "required": [
@@ -373,6 +381,33 @@
               "expected_device_authorize_event_id",
               "expected_device_generation_ref"
             ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action_class": {
+                "enum": [
+                  "returning_session_grant_issue",
+                  "session_grant_refresh"
+                ]
+              }
+            },
+            "required": [
+              "action_class"
+            ]
+          },
+          "then": {
+            "required": [
+              "accepted_device_possession_proof"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "accepted_device_possession_proof"
+              ]
+            }
           }
         }
       ],
@@ -413,6 +448,10 @@
         },
         "intent_digest": {
           "$ref": "#/$defs/digest"
+        },
+        "accepted_device_possession_proof_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Present for human SessionGrant issue/refresh allow or block after proof validation; SHA-256 of the exact canonical AcceptedDevicePossessionProof. It cryptographically binds the gate decision to the proof verified under the locked current accepted-device key."
         },
         "decision": {
           "enum": [

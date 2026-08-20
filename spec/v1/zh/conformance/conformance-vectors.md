@@ -3680,41 +3680,7 @@ Expected：
 - 所有 proof/schema/freshness/authority 变异都在读取 target inventory 或改变状态前失败；proof 不替代 sender-constrained transport authentication、当前 revoke/lifecycle 检查、target consent/policy 或后续 MLS claim envelope。
 - 首次到达的过期请求绝不创建 claim；已有 terminal ledger 只能向当前仍被授权的同一 requester/session binding 返回原 outcome，nonce 重放在任何时间都不能创建第二次 claim。
 
-### 10.4 Vector: Soft Logout DID Proof Required
-
-`vector_id`: `ak.vector.auth.soft_logout_did_proof.v1`
-
-Steps：
-
-1. Session 进入 `soft_logged_out`。
-2. Client 仅携带仍有效的 refresh token 请求恢复。
-3. Client 重新提交 refresh/OIDC/re-auth，并携带授权 DID/device key 对 challenge 的签名。
-
-Expected：
-
-- 第 2 步 MUST 返回 `did_proof_required`，不得签发 active session grant。
-- 第 3 步的 proof MUST 覆盖 principal、device、audience、challenge、request canonical hash 和 expiry；验证成功后才可恢复为 `active`。
-
-### 10.4.1 Vector: DID Proof Replay Window
-
-`vector_id`: `ak.vector.identity.did_proof_replay_window.v1`
-
-Steps：
-
-1. Auth Server 发出 DID proof challenge，绑定 `purpose="account_binding"`、`audience=did:webvh:z6mkfixture:auth.example`、`origin=https://auth.example`、随机 nonce、`issued_at=T0`、`expires_at=T0+300s`。
-2. Client 提交签名正确的 proof，服务器接受并 burn challenge。
-3. 攻击者第二次提交同一 proof。
-4. 攻击者把相同签名 transcript 用到另一 audience/origin，或提交 `expires_at - issued_at = 3600s` 的 proof。
-5. 攻击者提交 `issued_at` 超出接收端 skew 窗口的 proof。
-
-Expected：
-
-- 第 2 步 MUST 成功并把 challenge 进入 replay table。
-- 第 3 步 MUST fail closed，即使签名仍正确。
-- 第 4 步 MUST 因 audience/origin mismatch 或 freshness window 超限拒绝；服务端不得裁剪有效期后继续接受同一 proof。
-- 第 5 步 MUST 拒绝；默认 skew 上限 SHOULD ≤ 300s。
-
-### 10.4.2 Vector：国际化标识符 profile 与 authority-local 冲突索引
+### 10.4 Vector：国际化标识符 profile 与 authority-local 冲突索引
 
 `vector_id`: `ak.vector.identity.internationalized_identifier_profiles.v1`、`ak.vector.identity.authority_local_skeleton_collision.v1`
 
@@ -3722,7 +3688,7 @@ Runner 必须分别测试“用户输入 preparation”和“canonical receiver 
 
 UTS #39 skeleton 只在同一 authority、同一 namespace 的注册事务中作为派生冲突索引。同一 authority 的 handle skeleton 冲突返回 `failed_precondition` + `handle_homograph_forbidden`；不同 authority 或 handle/realm-alias 跨 namespace 不得冲突。Runner 必须断言 skeleton 不参与 canonical equality、签名或 wire 编码；Unicode/UTS #39 数据升级只重建派生索引，不得改写既有 canonical 标识符。DID 和 email local-part 的比较仍由各自 method/provider profile 决定，不得被 Arkret generic normalizer 合并。
 
-### 10.4.3 Vector：producer-allocated UUIDv7 身份冲突
+### 10.4.1 Vector：producer-allocated UUIDv7 身份冲突
 
 `vector_id`: `ak.vector.identity.producer_allocated_collision.v1`
 
@@ -3741,16 +3707,16 @@ Runner MUST 从 `id-kind-registry.id_kinds[]` 动态选择全部
 
 Steps：
 
-1. Auth Server 收到 `ak.gate.account.command.issue_session_grant`，proof 中 `audience` 与目标 resource server 不匹配。
-2. 请求缺少 `request_canonical_digest` 或 hash 不覆盖 `principal_id`、`device_id?`、`requested_scope` 与 `audience`。
-3. 请求的 `expires_at` 超过 Auth Server 声明的 session grant TTL 上限。
+1. Returning-human client 以 `Authorization: DPoP <account_handoff_grant>`、匹配 RFC 9449 DPoP 与闭合 `HumanSessionGrantRequest` 请求签发；请求中的 `audience` 与目标 resource server 不匹配。
+2. 攻击者篡改 accepted-device proof 绑定的 `request_id`、`account_subject`、`account_handoff_grant_digest`、principal、device、audience、holder JKT、verification method 或 session intent，或让 proof 窗口超过 300 秒。
+3. Client 尝试在 human body 中加入 `requested_scope`、客户端 challenge、`proof_kind`、`requested_ttl` 或 `expires_at`。
 4. Auth Server 在 `development_mode=true` 时尝试把 `ak.profile.auth_server.v1` 放入 `verified_profiles[]`。
 
 Expected：
 
 - 第 1 步 MUST 拒绝，reason_code 为 `audience_mismatch` 或等价稳定码。
-- 第 2 步 MUST 拒绝，reason_code 为 `invalid_proof_binding` 或等价稳定码。
-- 第 3 步 MUST 拒绝或收紧到服务器硬上限，并在响应中暴露实际 `expires_at`；不得签发跨多日 session grant。
+- 第 2 步 MUST 在 grant ledger 写入前拒绝；origin 必须以 durable current accepted-device key 在同一 current-authorization linearization 中验签，不得信任请求自报 key 或先验签后另行读授权状态。
+- 第 3 步 MUST schema reject；human scope 和 TTL 都是 issuer-fixed，不存在客户端请求后再 clamp 的分支。
 - 第 4 步 MUST 被 conformance / describe 校验拒绝；development mode 下 `verified_profiles[]` 必须为空。
 
 ### 10.5.1 Vector: SessionGrant Issuer Record 与 Exact Replay
@@ -3959,15 +3925,26 @@ Runner MUST 执行 `device-revocation-pending-fixture.json` 的全部 semantic c
 1. revoke 在 schema / proof / authority / exact current device+PCR generation / precondition / admission 与 mandatory canonical Ack 全部通过后，以单一事务持久化 accepted Event、Ack、derived record、pending index；无 Ack 零写入，不能套用 self-principal PCR Ack-less 例外。
 2. pending 时 base、E2EE 与 hardening profile 对 session issue/refresh、KeyPackage claim、to-device write、Event write、Principal Server admission-proof issuance 全部 fail closed 且零业务写；可区分本地主体操作使用 `device_revocation_pending`，KeyPackage anti-enumeration surface 保持 `claim_failed`，不得因 profile 改变 gate 结论。
 3. Account Authority 只可凭 `ak.peer.device_revocations.command.check` 的 fresh signed exact-intent receipt 铸造/刷新 grant；origin 在同一事务从自身 durable projection 派生 selector、同一 durable order 线性化、receipt 最长30秒且不能由 cache/private RPC 替代。introspection 不承载可复用 receipt；origin Principal Server 对每个 protected self request 在本地事务读取 durable gate。
-   - 首次 human issue 不携 expected binding，`allow` receipt 的 derived `target_device_authorize_event_id` / `target_device_generation_ref` 逐字成为 grant claims 与 introspection 的 `device_binding`；客户端提交的 Event/generation 无法进入 gate 请求或 grant。
-   - expected binding 两字段必须同时出现或同时缺省，且只有 `session_grant_issue` 可缺省；与 derived 值不等时 decision 为 `generation_mismatch`，receipt 不回携 derived binding，refresh MUST NOT 因此升到新 generation。
+   - returning human 使用 `returning_session_grant_issue`，不携 expected binding但强制 accepted-device proof；registration/recovery 使用 `session_grant_issue` 且禁带该 proof；两类 `allow` receipt 的 derived selectors 逐字成为 grant `device_binding`，客户端自报 Event/generation 无法进入。
+   - expected binding 两字段必须同时出现或同时缺省，且只有两个 issue action 可缺省；refresh 必须携 predecessor binding。与 derived 值不等时 decision 为 `generation_mismatch`，receipt 不回携新 binding。
    - 无权 caller、非本服务账号、未知设备与他人设备统一返回同形 `authority_mismatch`，且 caller 授权校验先于任何 device-private 读取。
-   - `authority_mismatch` 只允许签发 fresh-device restricted grant（无 `device_binding`，scope 限 `ak.key.verification.*` bootstrap）；`revocation_pending` / `revoked` / `generation_mismatch` 一律零签发，MUST NOT 退化为该 restricted grant。
+   - `authority_mismatch -> device_unauthorized`，`revocation_pending` / `revoked` / `generation_mismatch` 分别 typed block；全部零签发。任一 human success 都含完整 `device_binding`。
 4. restart、exact replay、同device/generation两个不同 proposal、只 reject 其中一个、错误 proposal/Ack/authority/device-generation decision、exact signed reject 清最后一项、overdue alert但不解封；达到128条 distinct gate record 后新 proposal `limit_exceeded` 零写入，exact replay仍成功。
 5. reject-first / Seal-first terminal CAS 两种竞态，以及未被 reject终结的 late valid Seal；任何执行次序只能产生一个 terminal winner。
 6. pending 只保留恢复所需最小客户端材料，Seal后才擦除 generation-specific material；pending前合法 admission proof 在pending/Seal后仍可离线验证。
 
 Expected：gate 真相完全来自 durable proposal/Ack/decision/Seal store；任一实现若以 timeout、管理员布尔值、cache eviction、进程内状态或 profile 分支解封，均不合格。账户 device summary 必须把 lifecycle `status` 与 `verification_state` 分维，并返回全部 gate-relevant records（canonical `(acceptance_seq, proposal_digest)` 顺序）；一条 sealed 与另一条 pending 并存时 status=`revoked`，数组仍同时表达两者，不得只返回任意一条。
+
+### 10.9.2.1 Vector: SessionGrant Returning Issue And Refresh Closed Proofs
+
+`vector_id`: `ak.vector.session_grant.accepted_device_possession.v1`
+
+1. bound AccountHandoff + 唯一旧 signer 构造 `HumanSessionGrantRequest`，proof 逐字段绑定 handoff digest、request id、principal/device/audience/holder JKT/intent 与窗口；origin 同一 device lock 验签并返回 allow。
+2. 分别替换上述任一字段、使用另一登录的 handoff、账号攻击者只提交泄露 device id、或在锁外读取旧 key 后让 generation 改变。
+3. human refresh 使用 predecessor DPoP + `purpose=session_grant_refresh` proof；分别测试 client `challenge`、OIDC/passkey/paired/Agent proof kind、issue-purpose proof、wrong predecessor id。
+4. Agent refresh 使用 `AgentSessionRefreshProof`；分别加入 human proof、遗漏 current runtime authorization、或要求 browser session。
+
+Expected：第 1 步只在 proof-valid + current `allow` 时签含完整 `device_binding` 的固定-scope Standard grant；第 2 步全部零 grant。第 3 步合法请求原子产生唯一 successor，所有旧枚举/挑战与 transplant 在 schema 或 proof gate 拒绝。第 4 步只按 Agent runtime lifecycle 决定，不接受 human proof。human issue/refresh 重放返回 byte-identical outcome；blocked decision 不得降级 pairing/recovery/fresh grant。
 
 ### 10.10 Vector: Push Wakeup Policy
 
@@ -5657,23 +5634,24 @@ Expected：
 - **Case C(a)**：MUST 因 raw-byte digest mismatch 拒绝；**Case C(b)** 即使 RFC 9530 digest 覆盖 raw bytes 也 MUST 因 wire 不是 Arkret canonical JSON 拒绝。两者都不得通过 parse-then-canonicalize 接受。
 - **Case D**：`sha256=:` 不是 `sha-256` alias，额外 member / member parameter、trailer placement 与 gzip content 也分别违反 §2.5.1 的单一无参数 Byte Sequence member、header-section-only 与无 content coding 规则；全部 MUST fail closed。
 
-### 18.2 Vector: Bare Bearer Rejected On Protected Endpoints
+### 18.2 Vector: SessionGrant Requires RFC 9449 DPoP Scheme
 
 `vector_id`: `ak.vector.session.bare_bearer_rejected_protected.v1`
 
-本向量固化 §3.2 / §2.5 的 sender-constrained 会话出示与 replay window MUST：生产 current-v1 受保护 endpoint MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 sender-constrained proof；纯 `Authorization: Bearer`（无 DPoP / PoP / mTLS 绑定）对受保护 endpoint MUST 被拒绝。`ak.profile.high_security_organization.v1` / `sovereign_deployment` 进一步要求所有受保护 `ak.self.*` operation 使用带 transcript/body 绑定的 RFC 9421 HTTP Message Signature。PoP 的 `created` / `expires` 超出 replay window 即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝（口径同 `federation.md` §3.2 / `encoding.md` §6 签名时效窗口）。
+本向量固化 RFC 9449 §7.1：`ak.session.grant` 的 Authorization scheme 唯一为 `DPoP`，必须同时携带匹配 proof。Bearer 不是可以靠旁边再加 proof 修复的别名。高安全 profile 在合法 DPoP presentation 上再叠加 RFC 9421 HTTP Message Signature。
 
 Steps：
 
-- **Case A — 高安全 profile 纯 bearer 写 / 受保护 `.read.`**：在 `ak.profile.high_security_organization.v1`（或 `sovereign_deployment`）下，对常规写（推进 actor_seq / Realm frontier）或返回受保护 projection 的 `.read.` operation 只用 `Authorization: Bearer <ak.session.grant>` 出示，无 `Signature` / `Signature-Input`，且无 DPoP / mTLS 绑定。
-- **Case B — 默认 profile 受保护 endpoint 纯 bearer**：默认 profile 下对任一受保护 current-v1 endpoint 只用 `Authorization: Bearer <ak.session.grant>` 出示，无 DPoP / PoP / mTLS 绑定。公开 metadata endpoint 若设计为无需认证的 public surface，MAY 返回公开响应，但 MUST NOT 把裸 bearer 当作认证成功的 session presentation。
-- **Case C — PoP 过窗**：携带合法签名的 PoP 出示，但 `created` / `expires` 超出 replay window（`expires - created` 超上限或 `created` 与本地时钟偏差超上限）。
+- **Case A**：`Authorization: DPoP <grant>` + matching DPoP proof，`ath` / `htu` / `htm` 均正确。
+- **Case B**：`Authorization: Bearer <grant>`，同时携带与 Case A 相同的合法 DPoP proof。
+- **Case C**：DPoP scheme 但缺 proof、错误 `ath`、或同时发送两个 Authorization method。
+- **Case D**：高安全 profile 使用合法 Case A，但缺 required RFC 9421 signature。
 
 Expected：
 
-- **Case A**：MUST 以 `unauthenticated` 拒绝；高安全 profile 对所有受保护 `ak.self.*` operation 要求 RFC 9421 PoP 出示（见 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 对应 profile 的 `additional_requirements`），纯 bearer 对这些操作 MUST 被拒绝。若 operation registry 明确允许匿名 public metadata projection，无有效 proof 只能返回该公开 projection，且不得授予 session / capability 语义。
-- **Case B**：受保护 endpoint MUST 以 `unauthenticated` 拒绝。若 endpoint 是公开 metadata surface，响应 MUST 按未认证 public request 处理，不得授予 session/capability 语义。
-- **Case C**：过窗签名即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝；时效窗口外的逐字节重放同样 MUST 拒绝。
+- **Case A**：默认 profile 认证成功后继续普通授权判定。
+- **Case B/C**：MUST 以 `unauthenticated` / RFC 9449 `invalid_request` 对应协议错误拒绝，零业务副作用。
+- **Case D**：因 profile 额外 PoP 缺失拒绝，但不得据此把 Bearer 当 fallback。
 
 ### 18.3 Vector: DPoP Target URI Binding
 

@@ -136,11 +136,19 @@ components:
       type: http
       scheme: bearer
       description: |
-        User-session bearer token (passkey / OIDC / device proof). Used for
-        operations called by an end-user client. NOT acceptable as the sole
-        auth material for S2S federation / inter-service calls — those MUST
+        Non-SessionGrant bearer used only by operations whose own contract
+        explicitly registers a bearer credential (primarily deployment S2S).
+        An ak.session.grant MUST NOT use this scheme, even when a DPoP proof
+        header is also present. S2S federation / inter-service calls MUST
         also satisfy the httpMessageSignature + sourceServiceId +
         destinationServiceId AND group (see service-http-binding.md §2.2).
+    sessionGrantAuth:
+      type: http
+      scheme: DPoP
+      description: |
+        The only current-v1 Authorization scheme for ak.session.grant. It MUST
+        co-occur with dpopProof; Bearer plus DPoP is invalid under RFC 9449
+        section 7.1 and MUST fail closed.
     accountHandoffAuth:
       type: http
       scheme: DPoP
@@ -229,10 +237,10 @@ components:
         issuance it establishes the cnf.jkt binding and omits ath because no
         credential exists yet. On account-handoff or session-grant use, it
         carries htm / htu for the exact endpoint and ath for the presented
-        credential. For grant-body operations the grant is grant_jwt in the
-        JSON body and DPoP is the sole transport authentication; for account
-        hard logout the grant is the Authorization bearer and DPoP MUST
-        co-occur with bearerAuth. See account-lifecycle §2.1.2 / §4.1 and
+        credential. SessionGrant issue uses AccountHandoff or Agent body proof;
+        refresh, revoke, logout and resource presentation use
+        Authorization: DPoP <ak.session.grant> plus this header. See
+        account-lifecycle §2.1.2 / §4.1 and
         device-lifecycle §3.3.
     mutualTls:
       type: mutualTLS
@@ -267,6 +275,8 @@ components:
       schema:
         type: string
   schemas:
+    AcceptedDevicePossessionProof:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof
     AccountDataDeleteOutcome:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome
     AccountDataDeleteRequestBody:
@@ -293,10 +303,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome
     AccountLogoutRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody
-    AccountOidcCallbackOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome
-    AccountOidcCallbackRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody
     AccountOnboardingSnapshot:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_onboarding_snapshot
     AccountRegisterOutcome:
@@ -379,6 +385,12 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome
     AgentRuntimeApprovalStatusRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body
+    AgentSessionGrantRefreshRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRefreshRequest
+    AgentSessionGrantRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequest
+    AgentSessionRefreshProof:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AgentSessionRefreshProof
     AgentSidecarEnsureOutcome:
       $ref: ../schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome
     AgentSidecarEnsureRequestBody:
@@ -1352,7 +1364,6 @@ components:
               - device_revocation_pending
               - discovery_failed
               - first_backup_gate_unsatisfied
-              - fresh_device_scope_violation
               - recovery_authorization_device_mismatch
               - recovery_authorization_principal_mismatch
               - recovery_authorization_session_mismatch
@@ -1621,6 +1632,10 @@ components:
       additionalProperties: false
     HandleClaim:
       $ref: ../schemas/handle-claim.schema.json
+    HumanSessionGrantRefreshRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRefreshRequest
+    HumanSessionGrantRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRequest
     IdentityAbandonmentChallengeOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_outcome
     IdentityAbandonmentChallengeRequestBody:
@@ -2572,17 +2587,16 @@ components:
                   grant_exchange:
                     type: object
                     required:
-                    - proof_kind
+                    - kind
                     additionalProperties: false
                     properties:
-                      proof_kind:
+                      kind:
                         type: string
-                        enum:
-                        - did_bound_signature
-                        - paired_device_proof
-                        - passkey_assertion
-                        - oidc_code_exchange
-                        - agent_key_proof
+                        const: account_handoff
+                        description: Every advertised interactive authentication method
+                          terminates in the AccountHandoff exchange. For OIDC,
+                          authentication-handoffs is the unique authorization-code consumer;
+                          SessionGrant issue never consumes the code.
             did_binding_methods:
               type: array
               items:
@@ -3840,7 +3854,8 @@ paths:
     post:
       operationId: ak.self.security_transaction.command.create
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -3861,7 +3876,8 @@ paths:
     get:
       operationId: ak.self.security_transaction.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -3883,7 +3899,8 @@ paths:
     post:
       operationId: ak.self.security_transaction.command.continue
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -3911,7 +3928,8 @@ paths:
     post:
       operationId: ak.self.control_proposal_acks.command.issue
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -3932,7 +3950,8 @@ paths:
     post:
       operationId: ak.self.control_proposal_decisions.command.submit
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -3954,7 +3973,8 @@ paths:
     post:
       operationId: ak.self.control_proposal_decisions.read.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -3976,7 +3996,8 @@ paths:
     post:
       operationId: ak.self.authorization_leases.command.issue
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       requestBody:
         required: true
         content:
@@ -3999,7 +4020,8 @@ paths:
     query:
       operationId: ak.self.events.read.scan
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -4029,7 +4051,8 @@ paths:
     post:
       operationId: ak.self.events.command.submit
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -4080,7 +4103,8 @@ paths:
       - - realms
       - - actors
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -4141,7 +4165,8 @@ paths:
     query:
       operationId: ak.self.events.read.delivery_status
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -4189,7 +4214,8 @@ paths:
     get:
       operationId: ak.self.events.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -4215,7 +4241,8 @@ paths:
     query:
       operationId: ak.self.events.read.resolve
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -4237,7 +4264,8 @@ paths:
     query:
       operationId: ak.self.events.read.frontier
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -4259,7 +4287,8 @@ paths:
     post:
       operationId: ak.self.events.command.submit_seal
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit a current-device-signed Seal for a visible Realm.
       requestBody:
         required: true
@@ -4278,7 +4307,8 @@ paths:
     query:
       operationId: ak.self.events.read.mls_governance_proof
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Materialize a verifiable full-profile MLS governance binding.
       requestBody:
         required: true
@@ -5037,7 +5067,8 @@ paths:
     post:
       operationId: ak.self.signal.command.send
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -5074,7 +5105,8 @@ paths:
     get:
       operationId: ak.self.signal.stream.subscribe
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -5100,7 +5132,8 @@ paths:
     post:
       operationId: ak.self.call.media.exchange.issue_token
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Exchange Arkret capability proof for a backend media token.
       description: |
         Media service token exchange operation defined by
@@ -5156,7 +5189,8 @@ paths:
     get:
       operationId: ak.self.account.read.viewer
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Holder-bound one-shot read of the current account projection.
       description: |
         Returns the authenticated principal's account projection: principal_id,
@@ -5185,7 +5219,8 @@ paths:
     get:
       operationId: ak.self.account.stream.subscribe
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Streaming push of account-aggregate deltas (NDJSON frames).
       description: |
         Long-lived streaming subscription that pushes cross-Realm
@@ -5259,7 +5294,8 @@ paths:
     post:
       operationId: ak.self.account.command.update_profile
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Update the authenticated principal's Actor Profile projection.
       description: |
         Carries exactly one holder-signed profile_event EventInitialSubmission.
@@ -5299,7 +5335,8 @@ paths:
     post:
       operationId: ak.self.account.command.revoke_cursor
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Revoke a previously issued cursor authority.
       description: |
         High-assurance optional endpoint. The issuing service records the cursor
@@ -5325,7 +5362,7 @@ paths:
     post:
       operationId: ak.self.contact.command.request
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Submit a contact request to another principal.
       description: |
@@ -5348,7 +5385,7 @@ paths:
     post:
       operationId: ak.self.contact.command.respond
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Accept an incoming contact request.
       description: |
@@ -5373,7 +5410,7 @@ paths:
     post:
       operationId: ak.self.contact.command.reject
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Reject an incoming contact request.
       description: |
@@ -5397,7 +5434,7 @@ paths:
     get:
       operationId: ak.self.contact.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: List the holder's contact projection.
       description: |
@@ -5454,7 +5491,7 @@ paths:
     post:
       operationId: ak.self.contact.command.tombstone
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Tombstone the holder's side of a contact relation.
       description: |
@@ -5477,7 +5514,7 @@ paths:
     post:
       operationId: ak.self.contact.command.checkpoint
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Compact an accepted Contact prefix into one bilateral checkpoint.
       description: |
@@ -5503,7 +5540,7 @@ paths:
     post:
       operationId: ak.self.contact.command.scope_update
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Replace the holder-granted directional Contact scope.
       description: |
@@ -5528,7 +5565,8 @@ paths:
     get:
       operationId: ak.self.circle.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: List Circles visible to the caller within one parent Realm.
       description: |
         Directory visibility is enforced per Circle; non-members of a
@@ -5550,7 +5588,8 @@ paths:
     post:
       operationId: ak.self.circle.command.create
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Create a Circle (ak.circle.create).
       description: |
         Builds a ak.circle.create Operation in the named parent Realm and routes
@@ -5573,7 +5612,8 @@ paths:
     get:
       operationId: ak.self.circle.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Read one Circle by id.
       description: |
         Returns not_found when the Circle is invisible to the caller rather than
@@ -5595,7 +5635,8 @@ paths:
     post:
       operationId: ak.self.circle.member.command.add
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Add or change a Circle member (ak.circle.member.state).
       description: |
         Activating another actor requires ak.circle.member.manage narrowed to
@@ -5624,7 +5665,8 @@ paths:
     delete:
       operationId: ak.self.circle.member.resource.delete
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Remove a Circle member (ak.circle.member.state -> removed).
       parameters:
       - in: path
@@ -5654,7 +5696,8 @@ paths:
     post:
       operationId: ak.self.circle.command.rotate_scope
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Rotate the Circle's bound MLS group.
       description: |
         MUST NOT acknowledge a rotation without actually changing the
@@ -5684,7 +5727,8 @@ paths:
     post:
       operationId: ak.self.circle.command.archive
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Archive a Circle (ak.circle.archive).
       parameters:
       - in: path
@@ -5709,7 +5753,8 @@ paths:
     post:
       operationId: ak.self.circle.command.restore
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Restore an archived Circle (ak.circle.restore).
       parameters:
       - in: path
@@ -5734,7 +5779,8 @@ paths:
     post:
       operationId: ak.self.circle.command.tombstone
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Tombstone a Circle (ak.circle.tombstone).
       parameters:
       - in: path
@@ -5759,7 +5805,8 @@ paths:
     get:
       operationId: ak.self.invite_receive_policy.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Get the authenticated subject's invite-receive policy.
       description: |
         Returns the subject's private invite-receive policy override, falling
@@ -5775,7 +5822,8 @@ paths:
     put:
       operationId: ak.self.invite_receive_policy.resource.replace
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Replace the authenticated subject's invite-receive policy.
       description: |
         The request body MUST set subject_id equal to the session actor. The
@@ -5798,7 +5846,7 @@ paths:
     post:
       operationId: ak.self.invites.command.dispatch
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Dispatch an already accepted invite through the inviter Principal Server.
       description: |
@@ -5824,7 +5872,7 @@ paths:
     post:
       operationId: ak.self.invite_locator.command.issue
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Issue an opaque online invite locator for the authenticated principal.
       requestBody:
@@ -5849,7 +5897,7 @@ paths:
     post:
       operationId: ak.self.invite_locator.command.rotate
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Atomically revoke an old locator and issue a fresh one.
       requestBody:
@@ -5874,7 +5922,7 @@ paths:
     post:
       operationId: ak.self.invite_locator.command.revoke
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Revoke an authenticated-principal-owned invite locator.
       requestBody:
@@ -5894,7 +5942,7 @@ paths:
     post:
       operationId: ak.self.direct_conversation.read.resolve
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Resolve the pair's single stable 1:1 DM coordinates.
       description: |
@@ -5925,7 +5973,7 @@ paths:
     post:
       operationId: ak.self.direct_conversation.command.repair_dispatch
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       summary: Persist and deliver one exact Direct Conversation replacement-repair trigger.
       description: |
@@ -5952,7 +6000,8 @@ paths:
     get:
       operationId: ak.self.snapshot.read.manifest_head
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6006,7 +6055,8 @@ paths:
     get:
       operationId: ak.self.space.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6054,7 +6104,8 @@ paths:
     get:
       operationId: ak.self.strand.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6101,7 +6152,8 @@ paths:
     get:
       operationId: ak.self.morph.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6148,7 +6200,8 @@ paths:
     post:
       operationId: ak.self.views.collection_projection.command.materialize
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6182,7 +6235,8 @@ paths:
     get:
       operationId: ak.self.morph.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6323,7 +6377,8 @@ paths:
     post:
       operationId: ak.self.blob.upload.create
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       responses:
         '200':
           description: Blob accepted
@@ -6347,7 +6402,8 @@ paths:
     head:
       operationId: ak.self.blob.resource.head
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6358,7 +6414,8 @@ paths:
     get:
       operationId: ak.self.blob.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6420,7 +6477,8 @@ paths:
     post:
       operationId: ak.self.blob.command.presign
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       requestBody:
         required: true
         content:
@@ -6520,7 +6578,8 @@ paths:
     post:
       operationId: ak.self.authz.read.check
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6542,7 +6601,8 @@ paths:
     get:
       operationId: ak.self.authz.grants.read.effective
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6581,7 +6641,8 @@ paths:
     post:
       operationId: ak.self.device_messages.command.send
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6608,7 +6669,8 @@ paths:
     get:
       operationId: ak.self.device_messages.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - name: after
         in: query
@@ -6634,7 +6696,8 @@ paths:
     post:
       operationId: ak.self.device_messages.command.ack
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Explicit to-device delivery acknowledgement.
       description: |
         Cumulative, monotonic, naturally idempotent acknowledgement bound to the
@@ -6660,7 +6723,8 @@ paths:
     post:
       operationId: ak.self.keys.upload.create
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       responses:
         '200':
           description: Key upload result
@@ -6678,7 +6742,8 @@ paths:
     post:
       operationId: ak.self.keys.read.lookup
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6700,7 +6765,8 @@ paths:
     post:
       operationId: ak.self.keys.command.claim
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6722,7 +6788,8 @@ paths:
     post:
       operationId: ak.self.actor_profile.read.resolve
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Resolve shared-Realm actor profiles with their signed evidence.
       description: |
         Only outward carrier for the Principal-Control-Realm-resident
@@ -6755,7 +6822,8 @@ paths:
     post:
       operationId: ak.self.agent_signer_evidence.read.resolve
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6777,7 +6845,8 @@ paths:
     post:
       operationId: ak.self.identity.read.resolution_audit
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Read authorized account-internal resolution audit evidence.
       description: |
         Returns the account's Principal Control Realm id, genesis Event and
@@ -6832,7 +6901,8 @@ paths:
     post:
       operationId: ak.self.keys.keypackages.upload.create
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       responses:
         '200':
           description: MLS KeyPackage upload result
@@ -6850,7 +6920,8 @@ paths:
     post:
       operationId: ak.self.keys.keypackages.command.claim
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6872,7 +6943,8 @@ paths:
     post:
       operationId: ak.self.keys.keypackages.command.consume
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -6894,7 +6966,8 @@ paths:
     post:
       operationId: ak.self.keys.keypackages.command.revoke
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       responses:
         '200':
           description: MLS KeyPackage revoke result
@@ -6912,7 +6985,8 @@ paths:
     put:
       operationId: ak.self.keys.backups.resource.replace
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: backup_id
@@ -6946,7 +7020,8 @@ paths:
     delete:
       operationId: ak.self.keys.backups.resource.delete
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
@@ -6976,7 +7051,8 @@ paths:
     post:
       operationId: ak.self.keys.backups.command.issue_delete_challenge
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: backup_id
@@ -7001,7 +7077,8 @@ paths:
     post:
       operationId: ak.self.keys.backups.command.unlock
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
@@ -7031,7 +7108,8 @@ paths:
     post:
       operationId: ak.self.keys.backup_series.command.erase
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -7052,7 +7130,8 @@ paths:
     get:
       operationId: ak.self.keys.backups.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: query
         name: series_id
@@ -7091,7 +7170,8 @@ paths:
         duplicate_conflict. routed_to is omitted unless the caller independently holds
         moderation/governance capability for the exact scope.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       requestBody:
         required: true
         content:
@@ -7941,7 +8021,8 @@ paths:
     get:
       operationId: ak.self.authz.invites.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: query
         name: subject
@@ -8194,7 +8275,8 @@ paths:
     post:
       operationId: ak.self.applet.install.command.preview
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       responses:
         '200':
           description: Applet install preview plan
@@ -8212,7 +8294,8 @@ paths:
     post:
       operationId: ak.self.applet.command.install
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: header
         name: Idempotency-Key
@@ -8249,7 +8332,8 @@ paths:
         `(applet_id, protocol, tenant, external_user_id)` MUST return the
         existing refs instead of minting duplicates.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         contentDigest: []
@@ -8283,7 +8367,8 @@ paths:
     post:
       operationId: ak.self.applet.command.revoke
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: applet_id
@@ -8319,7 +8404,8 @@ paths:
         canonical plan enumerates every active grant, managed membership,
         widget token, and delegated session that the commit saga must process.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: applet_id
@@ -8347,7 +8433,8 @@ paths:
         Canonical HTTP binding for `ak.self.policy.read.check`. The Policy Server returns
         a signed allow/deny/quarantine/require_review decision.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -8369,7 +8456,8 @@ paths:
     get:
       operationId: ak.self.realm_link.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: List typed cross-Realm links projected from ak.realm.link.
       parameters:
       - in: path
@@ -8401,7 +8489,8 @@ paths:
     post:
       operationId: ak.self.realm_link.command.create
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit a ak.realm.link Move.
       description: |
         Submits the caller-signed ak.realm.link from realm_id to
@@ -8432,7 +8521,8 @@ paths:
     delete:
       operationId: ak.self.realm_link.resource.delete
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Tombstone a ak.realm.link.
       description: |
         Submits the caller-signed tombstoning Move (payload.status=tombstoned).
@@ -8466,7 +8556,8 @@ paths:
     get:
       operationId: ak.self.realm_link.read.effective_policy
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Read the merged effective policy after walking inheritance.
       parameters:
       - in: path
@@ -8485,7 +8576,8 @@ paths:
     get:
       operationId: ak.self.realm_organization.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: List projected ak.realm.organization relationships for a Realm.
       parameters:
       - in: path
@@ -8504,7 +8596,8 @@ paths:
     get:
       operationId: ak.self.realm_policy_server.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Read the projected ak.realm.policy_server config.
       parameters:
       - in: path
@@ -8522,7 +8615,8 @@ paths:
     put:
       operationId: ak.self.realm_policy_server.resource.replace
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit a ak.realm.policy_server Move.
       parameters:
       - in: path
@@ -8546,7 +8640,8 @@ paths:
     delete:
       operationId: ak.self.realm_policy_server.resource.delete
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit a durable ak.realm.policy_server Move with payload {tombstone:true}.
       description: |
         The removal is a signed Event, so this DELETE carries a request body the
@@ -8573,7 +8668,8 @@ paths:
     get:
       operationId: ak.self.realm.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Read the Realm lifecycle projection.
       parameters:
       - in: path
@@ -8592,7 +8688,8 @@ paths:
     post:
       operationId: ak.self.realm.command.archive
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit a ak.realm.archive lifecycle Move.
       parameters:
       - in: path
@@ -8617,7 +8714,8 @@ paths:
     post:
       operationId: ak.self.realm.command.freeze
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit a ak.realm.freeze lifecycle Move.
       parameters:
       - in: path
@@ -8642,7 +8740,8 @@ paths:
     post:
       operationId: ak.self.realm.command.tombstone
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit a ak.realm.tombstone lifecycle Move.
       parameters:
       - in: path
@@ -8667,7 +8766,8 @@ paths:
     post:
       operationId: ak.self.realm.command.destroy
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit a ak.realm.destroy lifecycle Move.
       parameters:
       - in: path
@@ -8692,7 +8792,8 @@ paths:
     get:
       operationId: ak.self.realm.read.export
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Full event-log + operation dump for a Realm.
       parameters:
       - in: path
@@ -8711,7 +8812,8 @@ paths:
     get:
       operationId: ak.self.realm.moderation_policy.read.effective
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Read the organization-inherited effective moderation policy.
       parameters:
       - in: path
@@ -8730,7 +8832,8 @@ paths:
     put:
       operationId: ak.self.realm.moderation_policy.resource.replace
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Set a Realm moderation-policy override.
       description: |
         Carries exactly one caller-signed ak.realm.moderation_policy EventInitialSubmission
@@ -8764,7 +8867,8 @@ paths:
     post:
       operationId: ak.self.realm.join_application.command.submit
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit a profile-private signed join application.
       parameters:
       - in: path
@@ -8795,7 +8899,8 @@ paths:
     get:
       operationId: ak.self.realm.join_application.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: List viewer-scoped profile-private join applications.
       parameters:
       - in: path
@@ -8826,7 +8931,8 @@ paths:
     get:
       operationId: ak.self.realm.join_application.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Read one authorized profile-private join application.
       parameters:
       - in: path
@@ -8851,7 +8957,8 @@ paths:
     post:
       operationId: ak.self.realm.join_application.command.review
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit a reviewer-signed profile-private decision receipt.
       parameters:
       - in: path
@@ -8889,7 +8996,8 @@ paths:
     post:
       operationId: ak.self.realm.join_application.command.cancel
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Submit an applicant-signed cancellation receipt.
       parameters:
       - in: path
@@ -8927,7 +9035,8 @@ paths:
     get:
       operationId: ak.self.realm.join_application.audit.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Read the authorized audit trail for one join application.
       parameters:
       - in: path
@@ -8952,7 +9061,8 @@ paths:
     get:
       operationId: ak.self.consent.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: List consent cells where the caller is holder or peer.
       responses:
         '200':
@@ -8965,7 +9075,8 @@ paths:
     get:
       operationId: ak.self.consent.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Read one holder-private consent cell.
       parameters:
       - in: path
@@ -9001,7 +9112,8 @@ paths:
     post:
       operationId: ak.self.consent.command.grant
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Grant scoped consent to a peer DID.
       parameters:
       - in: path
@@ -9026,7 +9138,8 @@ paths:
     post:
       operationId: ak.self.consent.command.revoke
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Revoke scoped consent from a peer DID.
       parameters:
       - in: path
@@ -9051,7 +9164,8 @@ paths:
     post:
       operationId: ak.self.consent.command.request
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Open a scoped consent request.
       requestBody:
         required: true
@@ -9070,7 +9184,8 @@ paths:
     get:
       operationId: ak.self.account_data.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: List the authenticated actor's account_data entries.
       responses:
         '200':
@@ -9083,7 +9198,8 @@ paths:
     get:
       operationId: ak.self.account_data.resource.get
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Read one account_data entry.
       parameters:
       - in: path
@@ -9101,7 +9217,8 @@ paths:
     put:
       operationId: ak.self.account_data.resource.replace
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Set an account_data entry.
       parameters:
       - in: path
@@ -9125,7 +9242,8 @@ paths:
     delete:
       operationId: ak.self.account_data.resource.delete
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Delete an account_data entry.
       parameters:
       - in: path
@@ -9150,7 +9268,8 @@ paths:
     get:
       operationId: ak.self.read_cursor.read.list
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: List the authenticated actor's read markers.
       parameters:
       - name: realm_id
@@ -9168,7 +9287,8 @@ paths:
     post:
       operationId: ak.self.read_cursor.command.advance
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Set the authenticated actor's read marker for a Realm.
       requestBody:
         required: true
@@ -9192,7 +9312,8 @@ paths:
     post:
       operationId: ak.self.media.read.ice_config
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       responses:
         '200':
           description: Signed ICE server configuration
@@ -9522,37 +9643,25 @@ paths:
         proof_in_body: true
         proof_field: proof
         notes: |
-          DID/passkey/OIDC/device/agent branches authenticate in the body.
-          proof_kind=pre_registration_handoff instead requires `Authorization:
-          DPoP <account_handoff_grant>` plus matching DPoP; the handoff account
-          MUST already be bound to the required principal_id. Principal session
-          provisioning is internal.
+          HumanSessionGrantRequest requires `Authorization: DPoP
+          <account_handoff_grant>` plus matching DPoP and a closed accepted
+          device possession proof in the body; it forbids requested_scope and
+          a second holder body signature. AgentSessionGrantRequest uses the
+          independent agent_key_proof branch and requires requested_scope.
+          OIDC authorization codes are consumed only by authentication-handoffs.
       responses:
         '200':
-          description: Session grant issued from passkey/OIDC/device proof. This is the single client-visible login result.
+          description: Standard SessionGrant issued after authorized human-device or Agent-runtime admission.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionGrantOutcome'
         '403':
-          description: Agent high-risk scope requires out-of-band controller approval. Returns error.code=claim_required and closed error.details; no CAPTCHA, OTP, or browser challenge is exposed to the agent runtime.
+          description: Human device is unauthorized (device_unauthorized, zero grant) or Agent high-risk scope requires out-of-band controller approval (claim_required).
           content:
             application/json:
               schema:
-                allOf:
-                - $ref: '#/components/schemas/ErrorEnvelope'
-                - type: object
-                  properties:
-                    error:
-                      type: object
-                      required:
-                      - code
-                      - details
-                      properties:
-                        code:
-                          const: claim_required
-                        details:
-                          $ref: '#/components/schemas/AgentHumanApprovalProblem'
+                $ref: '#/components/schemas/ErrorEnvelope'
         '409':
           description: Conflicting canonical intent, terminal recorded replay, or replay record no longer decidable. A terminal replay carries closed session_grant_id/state details and never creates a replacement grant.
           content:
@@ -9568,7 +9677,7 @@ paths:
                         required: [code]
                         properties:
                           code:
-                            enum: [duplicate_conflict, session_grant_replay_indeterminate]
+                            enum: [duplicate_conflict, session_grant_replay_indeterminate, device_revocation_pending, device_revoked, device_generation_fenced]
                 - allOf:
                   - $ref: '#/components/schemas/ErrorEnvelope'
                   - type: object
@@ -9664,13 +9773,16 @@ paths:
     post:
       operationId: ak.gate.account.command.refresh_session_grant
       security:
-      - dpopProof: []
+      - sessionGrantAuth: []
+        dpopProof: []
       summary: Rotate a DPoP-bound session grant.
       description: |
-        Rotate a near-expiry, DPoP-bound session grant onto a fresh one without
-        re-running OIDC (account-lifecycle §4.1, device-lifecycle §3.3). The
-        caller MUST present a DPoP header proving possession of the key bound
-        into the grant's cnf.jkt (ath = the prior grant). The new grant keeps
+        Rotate a near-expiry DPoP-bound SessionGrant using a closed human or
+        Agent request variant. Both use Authorization: DPoP plus a DPoP proof
+        for the predecessor cnf.jkt (ath = prior grant), and neither accepts a
+        client challenge or generic proof_kind. Human additionally presents
+        accepted-device PoP verified with current authorization in one
+        linearization; Agent presents its current runtime-key proof. The successor keeps
         cnf.jkt, subject, scope and audience and gets a fresh minutes-to-hours
         expiry; the predecessor is atomically superseded by the successor. audience MUST NOT change
         across rotation (else audience_mismatch); a consumed grant returns
@@ -9698,7 +9810,7 @@ paths:
                         required: [code]
                         properties:
                           code:
-                            enum: [duplicate_conflict, session_grant_replay_indeterminate]
+                            enum: [duplicate_conflict, session_grant_replay_indeterminate, device_revocation_pending, device_revoked, device_generation_fenced]
                 - allOf:
                   - $ref: '#/components/schemas/ErrorEnvelope'
                   - type: object
@@ -9778,7 +9890,7 @@ paths:
       description: |
         Account Authority to Auth Server service-to-service sub-operation used
         by the single client-visible account logout. The Account Authority has
-        already validated Authorization: Bearer <ak.session.grant> plus DPoP on
+        already validated Authorization: DPoP <ak.session.grant> plus its matching DPoP proof on
         POST /_arkret/gate/account/logout. It calls this endpoint with the
         configured Account Authority -> Auth Server S2S bearer
         (session_grant_introspection_bearer) to log out the Auth-side
@@ -10032,7 +10144,8 @@ paths:
       operationId: ak.self.agent.read.list
       description: List native personal agents visible to the authenticated controller.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       responses:
         '200':
           description: Agent list
@@ -10044,7 +10157,7 @@ paths:
       operationId: ak.self.agent.command.provision
       description: Managed personal Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare requires the authenticated controller account's controller_principal_server_id, validates the pair against the current session, then verifies caller-supplied full_id and returns its exact accepted initial_resolution, controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       responses:
         '200':
@@ -10079,7 +10192,7 @@ paths:
         collection and every other automated path never fetch a challenge,
         which is what makes the abandonment structurally explicit.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       responses:
         '200':
@@ -10117,7 +10230,7 @@ paths:
         Event stays in the controller PCR history, and the abandoned realm id
         is never reused.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       responses:
         '200':
@@ -10137,7 +10250,8 @@ paths:
       operationId: ak.self.agent.resource.get
       description: Read one native personal agent projection.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: agent_id
@@ -10156,7 +10270,8 @@ paths:
       operationId: ak.self.agent.command.renew_pairing
       description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle, the unchanged requested_scope_digest DID commitment, and the current managed-PCR recovery projection. All previously issued handles stay permanently unresolvable. An Agent without an active accepted runtime-key authorization uses bootstrap; an Agent holding an active authorized key (lifecycle active or paused) uses replacement while lifecycle intent, existing keys and grants stay untouched until one controller-signed authorization atomically supersedes the prior keys. Generic views express the open branch through pairing_mode/handle fields and readiness blockers and never expose runtime_state; that diagnostic is pairing-poll-local. Neither branch creates, revokes, or re-issues Realm grants. Pair commit requires pcr_recovery.status=ready; deactivated rejects.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: agent_id
@@ -10181,7 +10296,8 @@ paths:
       operationId: ak.self.agent.command.pause
       description: Pause a native personal agent and reject new agent sessions.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: agent_id
@@ -10206,7 +10322,8 @@ paths:
       operationId: ak.self.agent.command.resume
       description: Resume a paused native personal agent after freshness and sidecar disclosure checks.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: agent_id
@@ -10231,7 +10348,8 @@ paths:
       operationId: ak.self.agent.command.deactivate
       description: Terminally deactivate a native personal agent with one controller-authorized lifecycle Event. Once accepted, the parent lifecycle AND gate makes every subordinate key, session, pairing handle, capability grant, KeyPackage, presence and future submission ineffective; client-authored revoke bundles are forbidden and asynchronous cleanup is not a success prerequisite.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: agent_id
@@ -10256,7 +10374,8 @@ paths:
       operationId: ak.self.agent.grant.command.attach
       description: Attach a complete controller-authored ak.capability.grant EventInitialSubmission to a native personal agent together with a controller-signed, verifier-bound private requested_scope disclosure. The closed CapabilityGrantBody has no inner proof; the Event envelope proof is the sole durable issuer signature, and the service submits the exact Event bytes through ordinary admission without signing or synthesis fallback. The verifier recomputes the accepted-at public DID commitment; grant actions and resources must be covered by the disclosed immutable ceiling, all provision constraints remain mandatory, no defaults are added, and the disclosure is never copied into Realm history.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: agent_id
@@ -10281,7 +10400,8 @@ paths:
       operationId: ak.self.agent.grant.resource.delete
       description: Detach or revoke a capability grant from a native personal agent.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: agent_id
@@ -10319,7 +10439,7 @@ paths:
         Source context is never part of the MLS control frontier or
         security-frontier digest.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       responses:
         '200':
@@ -10339,7 +10459,8 @@ paths:
       operationId: ak.self.agent.sidecar.resource.get
       description: Return one Agent Sidecar owned by the authenticated controller, including desired/effective Agent access and readiness. Foreign, unauthorized, and nonexistent IDs are indistinguishable.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: path
         name: sidecar_id
@@ -10359,7 +10480,8 @@ paths:
       operationId: ak.self.agent.sidecar.read.list
       description: List Agent Sidecars owned by the authenticated controller. An optional realm_id filter narrows the result without exposing other controllers' objects.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - in: query
         name: realm_id
@@ -10384,7 +10506,7 @@ paths:
       operationId: ak.self.agent.participation.resource.replace
       description: Replace one controller-private per-scope participation selection at its Account Authority. First write uses expected_version=0; successful writes increment by one. Selection grants no capability and is intersected with current target policy at action time.
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - in: path
@@ -10409,7 +10531,7 @@ paths:
       operationId: ak.self.agent.participation.resource.get
       description: Get the Account Authority's current versioned per-scope participation selections (controller-self only).
       security:
-      - bearerAuth: []
+      - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - in: path
@@ -10424,30 +10546,3 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentParticipationOutcome'
-  /_arkret/gate/account/oidc/callback:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ak.gate.account.exchange.complete_oidc
-      security: []
-      x-arkret-auth:
-        public_metadata: false
-        proof_in_body: true
-        proof_field: code
-        notes: Optional browser redirect landing only. It validates state/code/nonce for deployment handoff, but MUST NOT return SessionGrantOutcome, ak.session.grant, or Principal local session material; client-visible grant issuance is only via POST /_arkret/gate/account/session-grants with proof_kind=oidc_code_exchange.
-      responses:
-        '200':
-          description: OIDC browser handoff accepted; no session material is returned.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccountOidcCallbackOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AccountOidcCallbackRequestBody'

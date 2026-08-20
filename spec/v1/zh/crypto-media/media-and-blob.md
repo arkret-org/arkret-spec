@@ -327,7 +327,7 @@ Retention 与 erasure 规则：
 下载请求 SHOULD 支持：
 
 ```text
-Authorization: Bearer <ak.session.grant>
+Authorization: DPoP <ak.session.grant>
 X-Arkret-Wait-For: <cursor>
 Range: bytes=<start>-<end>
 ```

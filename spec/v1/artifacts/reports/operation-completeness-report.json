@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-20",
+  "version": "2026-08-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-20T05:55:00+08:00",
+  "generated_at": "2026-08-20T10:20:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,12 +18,12 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 244,
+    "total_operations": 243,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 234
+      "typed_schema": 233
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
         "typed_schema": 38
       },
       "deployment_local": {
-        "typed_schema": 18
+        "typed_schema": 17
       },
       "extension": {
         "binary_or_redirect": 2,
@@ -637,20 +637,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/SessionRevokeRequestBody",
         "response": "#/components/schemas/SessionRevokeOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.gate.account.exchange.complete_oidc",
-      "surface_class": "deployment_local",
-      "http": "POST /_arkret/gate/account/oidc/callback",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AccountOidcCallbackRequestBody",
-        "response": "#/components/schemas/AccountOidcCallbackOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

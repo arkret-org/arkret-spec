@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.7",
+  "version": "2026-08-20.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-18T22:40:00+08:00",
+  "generated_at": "2026-08-20T10:38:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -616,18 +616,6 @@
       "description": "Closed SessionGrant issuance preimage, typed ID/JWT jti derivation, holder/recovery binding, canonical public-JWK normalization, durable exact replay, conflict and terminal outcomes.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.auth.soft_logout_did_proof.v1",
-      "status": "active",
-      "domain": "auth",
-      "applies_to_fixtures": [
-        "auth-session-proof-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
       ]
     },
     {
@@ -3270,18 +3258,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.identity.did_proof_replay_window.v1",
-      "status": "active",
-      "domain": "identity",
-      "applies_to_fixtures": [
-        "auth-session-proof-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.identity.did_webvh_v1_adapter.v1",
       "status": "active",
       "domain": "identity",
@@ -4820,6 +4796,21 @@
       ]
     },
     {
+      "vector_id": "ak.vector.proof_context.transcript.agent_session_refresh_proof.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.agent-session-refresh-proof-v1: the Agent runtime key signs the closed refresh request digest, audience, validity window and verification method, and context substitution is rejected.",
+      "covers_proof_contexts": [
+        "ak.agent-session-refresh-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.proof_context.transcript.applet_package.v1",
       "status": "active",
       "domain": "proof_context",
@@ -5585,6 +5576,21 @@
       ]
     },
     {
+      "vector_id": "ak.vector.proof_context.transcript.session_grant_accepted_device_possession.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.session-grant-accepted-device-possession-proof-v1: the accepted device signs the closed issue-or-refresh intent binding and context substitution is rejected.",
+      "covers_proof_contexts": [
+        "ak.session-grant-accepted-device-possession-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.proof_context.transcript.signal_envelope.v1",
       "status": "active",
       "domain": "proof_context",
@@ -6339,7 +6345,7 @@
       "applies_to_fixtures": [
         "auth-session-proof-fixture.json"
       ],
-      "description": "Production current-v1 protected endpoints MUST reject bare Authorization: Bearer unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof; high-security profiles additionally require RFC 9421 PoP for every protected ak.self.* operation; a PoP signature whose created/expires falls outside the replay window MUST be rejected.",
+      "description": "Production current-v1 SessionGrant presentation has one wire scheme: Authorization: DPoP plus the matching DPoP proof. Authorization: Bearer carrying ak.session.grant is rejected even when another proof header is present; a DPoP proof outside its replay window is rejected.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
@@ -6383,6 +6389,21 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.session_grant.accepted_device_possession.v1",
+      "status": "active",
+      "domain": "session_grant",
+      "applies_to_fixtures": [
+        "device-revocation-pending-fixture.json",
+        "session-grant-issuance-fixture.json"
+      ],
+      "description": "Human returning-device issue and human refresh require a current accepted-device possession proof bound to the exact intent and verified in the same current-authorization linearization; non-current device states produce zero grants.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/device-revocation-pending-fixture.json",
+        "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json"
       ]
     },
     {

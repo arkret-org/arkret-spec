@@ -45,7 +45,17 @@ session 或业务关系；只有显式 current external claim、resolution succe
 
 Account Authority 必须使用 holder-bound handoff；普通 OAuth token、OIDC `id_token`、refresh token 或 browser cookie 不能直接成为 Arkret registration authority。固定流程如下：
 
-1. 客户端提交 OIDC code exchange proof 与 RFC 9449 DPoP；Account Authority 验 issuer/client/redirect/state/nonce/PKCE 并返回最多 1 hour 的 opaque `account_handoff_grant` 与 deployment-local `account_subject`。handoff 本身不是 SessionGrant、没有 refresh 语义，不能直接访问 `/_arkret/self/*`；其闭合权限集是 issue identity-binding challenge、issue DID-binding challenge、issue identity-abandonment challenge、abandon identity creation、register、issue session grant 与 issue recovery-completion grant。两个 identity-abandonment 成员在列，是因为 PCR 从未 accepted 时用户没有 principal，不可能有绑定 principal 的 session grant 来承载它们。对已绑定账号，pre-registration handoff 可以换取该账号 principal 的 Standard SessionGrant，因此 OIDC 凭据失陷会暴露服务端可见状态与 grant scope 内操作；但攻击者仍不能缺少 accepted device Event proof 而代表用户写 Event、取得 E2EE 明文或授权设备。
+1. 客户端只向 `POST /_arkret/gate/account/authentication-handoffs` 提交 OIDC code exchange proof 与 RFC 9449 DPoP；这是 current-v1 唯一 authorization-code consumer。Account Authority 验 issuer/client/redirect/nonce/PKCE 与账号绑定并返回最多 1 hour 的 opaque `account_handoff_grant` 与 deployment-local `account_subject`；外部 OP callback 的 `state` 由实际持有 redirect transaction 的客户端验证，只有 Account Authority 自己持有该 transaction 时才由它权威验证。handoff 本身不是 SessionGrant、没有 refresh 语义，不能直接访问 `/_arkret/self/*`；其闭合权限集是 issue identity-binding challenge、issue DID-binding challenge、issue identity-abandonment challenge、abandon identity creation、register、issue session grant 与 issue recovery-completion grant。两个 identity-abandonment 成员在列，是因为 PCR 从未 accepted 时用户没有 principal，不可能有绑定 principal 的 session grant 来承载它们。对已绑定账号，`account_handoff` 只有在调用方同时证明 accepted device 私钥持有且 origin current-device gate 返回 `allow` 时才能换取 Standard SessionGrant；仅窃取账号因子、handoff 与旧 `device_id` 必须得到零 grant。
+`binding.state="bound"` 后不得进入 identity onboarding，也不得从一个巨型 UI 状态机直接猜 continuation。客户端必须先执行不产生远程副作用的本地证据规范化：等待 account-scoped secure-store hydration 完成，验证 account/principal/device/key 一致性，仅从当前 transaction 输入删除已证明过期或 terminal 的临时 checkpoint；跨账号材料、长期 key、多个有效 candidate 与 storage error 只能隔离到 diagnostics，不得静默修剪成“无设备”。输出闭合为：
+
+- `ReturningDevice`：恰有一个与 bound principal 匹配且 private/public key 自证一致的 accepted-device candidate；
+- `NoReturningDevice`：hydration 已明确完成但没有可用旧 device key；
+- `LocalEvidenceUnavailable`：存储未就绪、读取失败或候选矛盾。
+
+只有 `ReturningDevice` 进入 `HumanSessionGrantRequest`。请求用 `Authorization: DPoP <account_handoff_grant>` 与匹配 DPoP，body 固定为 `{request_id,principal_id,device_id,audience,accepted_device_possession_proof}`，不得再携 handoff-holder body signature、客户端 challenge 或 `requested_scope`。accepted-device proof 使用 `ak.session-grant-accepted-device-possession-proof-v1`，绑定 `account_subject`、handoff grant digest、request id、principal、device、audience、holder JKT、canonical immutable session intent 与最多 300 秒时窗。origin Principal Server 必须在同一 current-device linearization 中用 durable accepted device key 验签并判定 authorization：`allow` 才签完整、含 `device_binding` 的 Standard grant；`authority_mismatch` 返回 `403 device_unauthorized` 且零 grant；`revocation_pending | revoked | generation_mismatch` 分别 typed block 且零 grant。current-v1 不存在 fresh-device restricted grant。
+
+`NoReturningDevice` 进入独立、pairing-first 的 Device Setup；Recovery 只在用户显式选择后打开。`LocalEvidenceUnavailable` 停在 retry/diagnostics，不能伪装成新设备或 Recovery。以下第 2 步起的 identity-creation lease 仅适用于 `identity_creation_active | identity_creation_busy`，不得由 `bound` 分支进入。
+
 2. Account Authority 原子取得最多 15 minutes 的 `identity_creation_lease`，持久化 `(service_account,audience,lease_id,holder_jkt,fence,expires_at,reserved_principal_id?,reserved_operation_digest?,state)`；同一账号同一 audience 同时只有一个 live holder。handoff 取得与同 holder 续租都必须按 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §6.1 限速并经过风险检查；busy 响应除 `retry_after_ms` 外必须回显冲突 live lease 的 `expires_at`，供客户端显示确定等待上界，不得披露 holder key 或原始账号 id。
 3. 客户端按已登记 adapter 生成并证明 registration anchor，连同 `FoundingDeviceDescriptor` 构造 ordered genesis unit；客户端 MUST 投影出 `principal_id=did_core_id`，并从 create Event 按 `retype(event_id)` 导出 PCR id。注册证据冻结 method-native `method_history_head`、`version_id`、control-key digest 与 adapter evidence：`did:webvh` 冻结 history entry，`did:web` 冻结 DNS/WebPKI 与 DID Document retrieval，`did:key` 冻结 deterministic expansion。客户端还必须生成独立的 `registration_did_evidence_draft`；其专用 control proof 以 `ak.registration-did-evidence-control-proof-v1` 签署 core/full、adapter version、history/version/key pins 与 `method_evidence_digest`，不得复用或转换 `identity_creation_control_proof`。`accepted_at` 在 draft 中禁止出现：Account Authority 只有在 registry 接受 exact DID operation 后才把 registry 返回的原始 acceptance time 加入完整 `registration_did_evidence`。客户端把 `{full_id,method_history_head,version_id}` 写入 genesis `initial_resolution`，并构造绑定同一 device 与 handoff DPoP key 的 `InitialSessionGrantIntent`。
 4. challenge 与 `identity_creation_control_proof` 必须承诺 `account_subject`、`principal_id`、`full_id`、PCR id、DID operation digest、`did_version_id`、`log_head_digest`、`control_key_digest`、create payload digest、founding authorize payload digest、`initial_session_request_digest`、closed unit kinds、lease/fence、DPoP JKT、audience/origin/trust-domain 与最多 300 秒窗口。DID operation digest 是完整 typed `DidOperationSubmitRequestBody` 的 canonical digest；它不是仅对 method-native log entry 计算的 event digest，验证方必须从已接受的 inception wrapper 字段重构并复算前者，并独立确认 `project(full_id) == principal_id`。对 did:webvh，proof key MUST 是 `did_version_id` 所钉的那个 entry 的 **current active update key**（`parameters.updateKeys[0]`），且其 canonical multikey 的 SHA-256 MUST 等于承诺的 `control_key_digest`；不能从 DID Document 的 authentication / service fragment 选择，也不得采信请求自带的 key。account-first inception 时该 entry 就是 entry 0，因此本规则与既有行为一致；对已发布且已轮换的 DID，它锚在建号时刻的当前控制权而不是创世代次——后者可能早已 spent 且不可再签。
@@ -81,7 +91,7 @@ lease/fence 授权当前 holder 冻结 reservation 并发起 holder-originated c
 
 6. Account Authority 发布 exact client-signed DID operation，使用 registry 返回且 exact replay 稳定的 `accepted_at` 完成 `registration_did_evidence`，并通过 `ak.peer.principal_genesis.command.submit` 原样 relay exact DID operation、完整 frozen evidence、genesis unit 与 root-signed pins。S2S signature 只认证 transport/correlation；Principal Server 必须从 relay 内的 method-native operation 独立验证 adapter projection、两个 root proof、method evidence、DID log pins、root/device Event proofs、descriptor/payload commitments、event-derived PCR id、empty frontier、账号维度 create-once 与 atomicity；MUST NOT 查询 current resolver、数据库最新 DID row 或当前 method head补材料。该 pre-grant genesis unit 不携带、也不得被持久层要求预签发的 Authorization Lease 或 Control Proposal Ack；Account Authority 的 S2S 身份只绑定账号协调与传输来源，不能成为 Event authority。
 7. Principal Server 返回 durable batch receipt，`scope.kind="pcr_genesis_unit"`，且 `scope.registration_evidence_digest` MUST 等于完整 `registration_did_evidence` 的 RFC 8785 JCS SHA-256。Account Authority 必须验证 receipt 的 principal/PCR、`initial_resolution`、三项 DID log pin、registration evidence digest、device/key/HPKE、两条 Event digest、accepted frontier/Seal basis 与 frozen registration 逐字一致，才可提交一账号一 principal binding。原子接受同时初始化 `ak.component.identity.resolution.v1`、PCR-local monotonic `current_device_generation_ref := 1` 与 `device_generation_status := active`；generation ref 不等于也不派生自 DID `versionId`，且这些投影不得在 unit 全部验证通过之前可见。
-8. Account Authority 随后从 issuer ledger 签发 `credential_class="standard"` grant。`InitialSessionGrantIntent.device_id` 必须等于 founding descriptor；public JWK thumbprint必须等于 handoff/control proof DPoP JKT；audience/scope必须在 handoff ceiling 内。`pcr_accepted` 前不得签发 principal grant；account binding commit 后签发超时只能 exact replay issuer ledger，不能重建 PCR。
+8. Account Authority 随后从 issuer ledger 签发 `credential_class="standard"` grant。`InitialSessionGrantIntent.device_id` 必须等于 founding descriptor；public JWK thumbprint必须等于 handoff/control proof DPoP JKT；audience 必须等于该部署的 Principal audience。Standard human scope 是规范固定的非空、排序、唯一 operation set，由 issuer 独立物化；`InitialSessionGrantIntent` 与其它 human request 均不得携 `requested_scope`。`pcr_accepted` 前不得签发 principal grant；account binding commit 后签发超时只能 exact replay issuer ledger，不能重建 PCR。
 
 整个 register 以 `(service_account,principal_id,operation_digest)` 与 idempotency key 做 exact replay：相同 bytes 返回同一 saga/receipt/grant outcome；同 key 不同 bytes、账号/principal 冲突或 genesis digest 变化必须零写入失败。一个 Account Authority 下一个 service account 只绑定一个 active principal，一个 principal 也只绑定一个 active account。
 
@@ -193,7 +203,7 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
 | 状态 | 触发方 | Session grant | DPoP grant 轮换 | Device trust | E2EE secret storage | Event history | 详细规则 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `active` | — | 有效 | 有效 | 保留 | 保留 | 保留 | — |
-| `soft_logged_out` | auth service / 用户 logout | 已撤销 | 可在 fresh account/passkey 或 PCR device/recovery proof 下 refresh；不要求 current DID | 保留 | 保留 | 保留 | §4 |
+| `soft_logged_out` | auth service / 用户 logout | 已撤销 | 拒绝 ordinary refresh；须完整重新认证取得 fresh AccountHandoff，或执行明确的账户控制动作 | 保留 | 保留 | 保留 | §4 |
 | `locked` | 安全风险检测 | 已撤销 | SHOULD 拒绝 | 保留 | 保留 | 保留 | §5 |
 | `suspended` | 治理 / 合规 | 拒新发 | 拒新发 | 保留 | 保留 | 保留 | §6 |
 | `deactivated` | 用户 / 管理员关账 | 已撤销 | 已撤销 | 标记 revoked | 客户端可清除 | 保留 | §7 |
@@ -208,7 +218,7 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
 | from \ to | `active` | `soft_logged_out` | `locked` | `suspended` | `deactivated` | `erasure_pending` |
 | --- | --- | --- | --- | --- | --- | --- |
 | `active` | —（同态重放） | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `soft_logged_out` | ✓（§4，须 fresh identity control proof） | — | ✓ | ✓ | ✓ | ✓ |
+| `soft_logged_out` | ✓（§4，须 fresh AccountHandoff 或明确账户控制授权） | — | ✓ | ✓ | ✓ | ✓ |
 | `locked` | ✓ | ✓ | — | ✓ | ✓ | ✓ |
 | `suspended` | ✓（appeal 解除，须 Account Authority 当前策略授权） | ✓ | ✓ | — | ✓ | ✓ |
 | `deactivated` | ✗（见下"重激活"） | ✗ | ✗ | ✗ | — | ✓ |
@@ -306,24 +316,18 @@ Current account status 是 ledger current head 的 `status`。该 ledger 是 Acc
 - 停止 sync。
 - 清除当前 session credential。
 - 保留 device keys 和 secret storage 本地密钥，除非用户选择清除。
-- 使用 session grant refresh、OIDC、re-auth、account auth、accepted device 或 PCR recovery policy 恢复；只有被选 authority 分支所需的 proof 必填。
+- `soft_logged_out` 已撤销 predecessor grant，因此不得把旧 grant、grant-binding key 或 accepted-device proof 组合成 ordinary refresh。账号/passkey 分支必须完整重新认证并产生 fresh AccountHandoff，再执行 returning-human SessionGrant issue；其它恢复只允许走协议明确登记的账户控制动作，例如专用 RecoveryTransaction completion。两条路径不得共享 refresh challenge 或通用 `proof_kind` 枚举。
 
 服务端返回 `401 soft_logged_out` 时 MUST NOT 要求客户端删除本地 E2EE 密钥。
 
-`soft_logged_out -> active` 的恢复 MUST 绑定所选 authority branch：授权 device、account auth key、
-passkey 或 accepted PCR recovery policy 对一次性 challenge 签名，并覆盖 `principal_id`、`principal_server_id`、`device_id?`、
-audience、request digest、challenge 与时窗。device 分支必须使用该 PCR current frontier；account/passkey
-分支只能恢复服务账号/session，不能授权 PCR device 或 E2EE secret。未显式启用 DID-root factor时，
-服务端 MUST NOT 取得 latest resolution 或返回 `did_proof_required`。
-
-**豁免判定的 frontier 新鲜度（normative，fail-closed）**：上述“无任何未撤销 device record”判定 MUST 基于 fresh PCR control-stream frontier。frontier stale/unknown 时保守要求 `device_id`，不得把暂时读不到记录解释为无设备。DID resolver degraded 不影响 device/account/passkey/PCR-policy 分支；只有 accepted policy 实际选择 DID-root factor 时才按 [`identity-did.md` §3.4](./identity-did.md) fail closed。`issued_at` 与 `expires_at` 必填，`expires_at - issued_at` MUST 不超过 300 秒；缺少所选 authority branch proof 返回对应 account/PCR error，未选择 DID-root factor 时 MUST NOT 返回 `did_proof_required`。
+`soft_logged_out -> active` 由 Account Authority 的 current-head CAS transaction 执行，不是 ordinary refresh 内的一种可选 proof。human refresh 只适用于 current status 仍为 `active` 且 predecessor 尚有效的轮换链；一旦 status 为 `soft_logged_out`，refresh 必须返回 `soft_logged_out` 且零 successor。账号/passkey 分支只能通过完整重新认证取得 fresh AccountHandoff；Account Authority 先原子提交被该 fresh authorization 支持的 status successor，再允许 closed returning-human issue。PCR recovery 只走专用 recovery operation。实现不得为 soft logout 新增 challenge endpoint、`did_proof_required` fallback、client-generated nonce 或恢复用 `proof_kind` 分支。
 
 ### 4.1 显式登出（hard logout）与跨服务吊销编排
 
 `soft_logged_out` 是当前 session grant 失效但凭证可恢复的软状态；用户主动「登出」是 **hard logout**——它 MUST 在所有持有该会话凭证的权威处终结会话，而非仅清本地。客户端可见的登出入口是 Principal describe 发布的 Account Authority；Account Authority 内部协调两个权威的状态:
 
 - **Auth Server(认证服务)**:`browser_session`(登录认证上下文)+ 它签发的 `ak.session.grant` 轮换链(及其 `cnf.jkt` 设备持有绑定，见 [`crypto-media/device-lifecycle.md` §3.2](../crypto-media/device-lifecycle.md))。
-- **Principal Server(资源服务)**:本地 account session 记录、设备会话记录、对该 grant 的 session-grant 内省缓存(TTL ≤120s)、待投递 to-device 队列。客户端可见登录凭据仍是 `ak.session.grant`，客户端以 `Bearer <ak.session.grant>` + `DPoP` 直接访问 `/_arkret/self/*`(见 [`../sync/api-conventions.md` §3.3](../sync/api-conventions.md));Principal Server **不**为客户端铸独立本地 bearer，**不**暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。
+- **Principal Server(资源服务)**:本地 account session 记录、设备会话记录、对该 grant 的 session-grant 内省缓存(TTL ≤120s)、待投递 to-device 队列。客户端可见登录凭据仍是 `ak.session.grant`，客户端以 `Authorization: DPoP <ak.session.grant>` + `DPoP` proof 直接访问 `/_arkret/self/*`(见 [`../sync/api-conventions.md` §3.3](../sync/api-conventions.md));Principal Server **不**为客户端铸独立本地 bearer，**不**暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。
 
 **编排(normative)**:hard logout 由 Account Authority 编排。客户端 MUST 从 `ServiceDescribe.auth_metadata.account_authority.gate_account_base` 派生并调用:
 
@@ -331,7 +335,7 @@ audience、request digest、challenge 与时窗。device 分支必须使用该 P
 POST /_arkret/gate/account/logout
 ```
 
-该请求 MUST 使用 `Authorization: Bearer <ak.session.grant>` 出示当前 grant，并带 `DPoP` proof；DPoP `ath` MUST 绑定该 grant，`htu` MUST 绑定由 `gate_account_base` 派生出的 `/logout` URL，使 Account Authority 能定位要终结的 grant chain 与 principal device session。客户端 MUST NOT 分别向 Auth Server 与 Principal Server 两个 origin 发起登出；部署内部的分权威调用是 Account Authority 的实现细节。普通客户端可见的 logout endpoint **只有** `POST /_arkret/gate/account/logout`。
+该请求 MUST 使用 `Authorization: DPoP <ak.session.grant>` 出示当前 grant，并带 `DPoP` proof；DPoP `ath` MUST 绑定该 grant，`htu` MUST 绑定由 `gate_account_base` 派生出的 `/logout` URL，使 Account Authority 能定位要终结的 grant chain 与 principal device session。客户端 MUST NOT 分别向 Auth Server 与 Principal Server 两个 origin 发起登出；部署内部的分权威调用是 Account Authority 的实现细节。普通客户端可见的 logout endpoint **只有** `POST /_arkret/gate/account/logout`。
 
 1. **客户端** MUST：停止 sync、清除本地 session credential / `session_grant` / OIDC 凭证；hard logout SHOULD 额外清除本设备的 grant-binding(DPoP)私钥，使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
 2. **Account Authority → Auth-side** MUST 登出当前 grant 所属的 Auth-side session / `browser_session`，在同一 issuer ledger 中幂等撤销该链的 active grant 并终结轮换链。若 Auth-side 不在同进程，Account Authority MUST 调用标准 S2S 子操作 `POST /_arkret/gate/account/auth-sessions/logout`(`ak.gate.account.command.logout_auth_session`)；该调用 MUST 使用 Account Authority → Auth Server 的部署内 S2S bearer（同 `session_grant_introspection_bearer` 认证族），MUST NOT 复用客户端为高层 `/logout` URL 铸造的 DPoP proof。此后 (i) 凭同一 `cnf.jkt` grant-binding proof 调 `refresh` MUST 被拒(`session_logged_out`)，整条轮换链不可再续；(ii) 该 Auth-side session 下任何 grant 的 introspection MUST 从同一 ledger 返回 inactive(即 grant-binding key 不能在登出后重建或维持会话)。该步骤不得发布 SessionGrant state Event。

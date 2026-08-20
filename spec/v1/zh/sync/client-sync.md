@@ -28,7 +28,7 @@ Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API
 
 ```http
 GET /_arkret/self/account/subscribe?catchup=true
-Authorization: Bearer <ak.session.grant>
+Authorization: DPoP <ak.session.grant>
 Accept: application/x-ndjson
 ```
 

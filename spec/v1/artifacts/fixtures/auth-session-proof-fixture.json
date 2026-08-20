@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.auth_server.v1",
-  "version": "2026-06-19",
+  "version": "2026-08-20",
   "suite": "auth_session_proof",
   "runner": {
     "kind": "named_suite",
@@ -8,8 +8,6 @@
   },
   "covers_vectors": [
     "ak.vector.auth.session_grant_audience_binding.v1",
-    "ak.vector.auth.soft_logout_did_proof.v1",
-    "ak.vector.identity.did_proof_replay_window.v1",
     "ak.vector.session.pop_presentation.v1",
     "ak.vector.session.bare_bearer_rejected_protected.v1",
     "ak.vector.session.dpop_target_uri_binding.v1",
@@ -20,96 +18,34 @@
       "name": "session_grant_audience_binding",
       "vector_id": "ak.vector.auth.session_grant_audience_binding.v1",
       "kind": "session_grant_request_binding",
+      "request_id": "ak:request:0196419b-0000-7000-8000-000000000002",
       "principal_id": "ak:did_core:webvh:z6mkfixture",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "target_audience": "ak:did_core:webvh:z6mkfixtureserviceexample",
       "mismatched_audience": "ak:did_core:webvh:z6mkfixtureotherexample",
-      "requested_scope": [
-        "ak.self.events.write"
-      ],
-      "challenge": "session-grant-challenge-0001",
+      "account_subject": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "account_handoff_grant_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "holder_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "session_intent_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "verification_method": "did:webvh:z6mkfixture:alice.example#device-key-1",
+      "issued_at": "2026-08-20T00:00:00.000Z",
+      "expires_at": "2026-08-20T00:05:00.000Z",
       "server_max_ttl_seconds": 900,
-      "requested_ttl_seconds": 86400,
       "attempted_verified_profiles": [
         "ak.profile.auth_server.v1"
       ],
       "expected": {
         "audience_mismatch_reason": "audience_mismatch",
         "invalid_binding_reason": "proof_invalid",
-        "ttl_behavior": "clamp_to_server_max",
+        "ttl_behavior": "issuer_fixed",
         "development_verified_profiles": []
       },
       "assertions": [
-        "proof.audience must match the target resource service audience",
-        "request_canonical_digest must cover principal_id, device_id, requested_scope, and audience",
-        "requested session grant lifetime is clamped to the Auth Server hard maximum",
+        "the AccountHandoff DPoP proof binds the holder to this exact issue endpoint and account_handoff_grant",
+        "the accepted-device proof binds request_id, account_subject, account_handoff_grant_digest, principal_id, device_id, audience, holder_jkt, verification_method, session intent, and a window no longer than 300 seconds",
+        "the origin verifies the accepted-device signature with the durable current accepted-device key in the same current-authorization linearization",
+        "human scope and lifetime are issuer-fixed and are not request fields",
         "development_mode=true must not advertise ak.profile.auth_server.v1 in verified_profiles"
-      ]
-    },
-    {
-      "name": "soft_logout_did_proof",
-      "vector_id": "ak.vector.auth.soft_logout_did_proof.v1",
-      "kind": "soft_logout_resume",
-      "principal_id": "ak:did_core:webvh:z6mkfixture",
-      "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
-      "audience": "ak:did_core:webvh:z6mkfixtureauthexample",
-      "origin": "https://auth.example",
-      "challenge": "soft-logout-challenge-0001",
-      "request": {
-        "operation": "resume_soft_logged_out_session",
-        "holder_key_id": "did:webvh:z6mkfixture:alice.example#device-key-1"
-      },
-      "proof_required_fields": [
-        "principal_id",
-        "device_id",
-        "audience",
-        "challenge",
-        "request_canonical_digest",
-        "issued_at",
-        "expires_at"
-      ],
-      "expected": {
-        "holder_only_reason": "did_proof_required",
-        "proof_restores_state": "active",
-        "max_replay_window_seconds": 300
-      },
-      "assertions": [
-        "a holder key alone cannot restore a soft_logged_out session",
-        "the DID proof transcript covers principal_id, device_id, audience, challenge, request digest, issued_at, and expires_at",
-        "verification burns the challenge and only then restores the session to active"
-      ]
-    },
-    {
-      "name": "did_proof_replay_window",
-      "vector_id": "ak.vector.identity.did_proof_replay_window.v1",
-      "kind": "did_proof_replay_window",
-      "principal_id": "ak:did_core:webvh:z6mkfixture",
-      "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
-      "purpose": "account_binding",
-      "audience": "ak:did_core:webvh:z6mkfixtureauthexample",
-      "other_audience": "ak:did_core:webvh:z6mkfixtureotherauthexample",
-      "origin": "https://auth.example",
-      "other_origin": "https://other-auth.example",
-      "challenge": "did-proof-challenge-0001",
-      "issued_at": "2026-06-19T00:00:00.000Z",
-      "expires_at": "2026-06-19T00:05:00.000Z",
-      "wide_expires_at": "2026-06-19T01:00:00.000Z",
-      "future_issued_at": "2026-06-19T00:10:01.000Z",
-      "max_replay_window_seconds": 300,
-      "skew_seconds": 300,
-      "expected": {
-        "first_use": "accepted",
-        "second_use_reason": "proof_invalid",
-        "audience_origin_reason": "audience_mismatch",
-        "window_reason": "did_proof_replay_window_exceeded",
-        "future_reason": "did_proof_replay_window_exceeded"
-      },
-      "assertions": [
-        "first valid proof burns the challenge",
-        "second use of the same challenge fails closed even with a valid signature",
-        "audience or origin mismatch fails closed",
-        "expires_at - issued_at greater than 300 seconds is rejected",
-        "issued_at outside receiver skew is rejected"
       ]
     },
     {

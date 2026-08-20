@@ -163,12 +163,12 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ## 3. 认证
 
-受保护 endpoint 的请求 MUST 携带可验证且 sender-constrained 的认证材料。会话出示方式按下列**推荐序**选择（越靠前越优先）。生产 current-v1 受保护 endpoint MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 proof-of-possession（PoP）绑定；裸 `Authorization: Bearer <ak.session.grant>` 只证明持有 token，不是合格的 current-v1 受保护 endpoint 会话出示。
+受保护 endpoint 的请求 MUST 携带可验证且 sender-constrained 的认证材料。`ak.session.grant` 是 RFC 9449 DPoP-bound token，current-v1 的唯一 HTTP Authorization scheme 固定为 `DPoP`；`Bearer` 不属于该 credential 的合法出示形态，即使请求同时携带 `DPoP` proof header 也 MUST 拒绝。高安全 profile 可在此基础上叠加 RFC 9421 HTTP Message Signature，但不得改回或协商其它 SessionGrant scheme。
 
 1. **`session_public_key` PoP（RFC 9421 HTTP Message Signature）—— 推荐默认**：请求用 `ak.session.grant` 委托的短期 `session_public_key`（私钥仅持有方掌握）对请求做 HTTP Message Signature。会话凭据与签名密钥绑定，仅截获 `ak.session.grant` 不足以重放。详见 §3.2 与 [`service-http-binding.md` §2.5](./service-http-binding.md)。
 2. **detached JWS request signature** 或等价 signed proof body：栈不便用 RFC 9421 时的等价 sender-constrained 出示。
 3. **mTLS**：用于受控企业或服务间通信。
-4. **`Authorization: Bearer <ak.session.grant>`（裸 bearer，仅可与 PoP 并存）**：可随 DPoP / RFC 9421 / JWS / mTLS 一起携带，用于让服务端定位 session grant；裸 bearer 本身不证明持有绑定密钥，凭据一旦泄露即可重放。生产 current-v1 受保护 endpoint MUST NOT 接受仅含裸 bearer 的请求作为认证成功。公开 metadata endpoint 若被定义为无需认证的 public surface，MAY 按未认证请求返回公开响应，但 MUST NOT 把裸 bearer 当作 session / capability 认证。
+4. **`Authorization: DPoP <ak.session.grant>` + `DPoP` proof header**：凡直接出示 SessionGrant 的端点均使用 §3.3 的这一固定形态。错误 scheme、缺 proof、`ath`/`htu`/`htm` 不符均 fail closed。公开 metadata endpoint 若定义为无需认证的 public surface，MAY 忽略无效 credential 并按未认证请求返回公开响应，但 MUST NOT 把它当作 session / capability 认证。
 
 无论采用哪种传输认证方式，协议层权限判断最终 MUST 回到：
 
@@ -208,11 +208,11 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
         "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
         "client_id": "ak.example-client",
         "scopes": ["openid", "profile"],
-        "grant_exchange": {"proof_kind": "oidc_code_exchange"}
+        "grant_exchange": {"kind": "account_handoff"}
       },
       {
         "method": "passkey",
-        "grant_exchange": {"proof_kind": "passkey_assertion"}
+        "grant_exchange": {"kind": "account_handoff"}
       }
     ],
     "did_binding_methods": ["session_grant", "did_http_signature"]
@@ -231,7 +231,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ### 3.2 Sender-constrained（proof-of-possession）会话出示
 
-`ak.session.grant` 已把短期 `session_public_key` 绑定到 principal / device / audience / origin（见 [`../crypto-media/device-lifecycle.md` §1 / §3](../crypto-media/device-lifecycle.md)）。若请求只用 `Authorization: Bearer <ak.session.grant>` 出示，凭据被窃即可在 audience 内重放，与 key 绑定设计脱节。按 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Arkret v1 对生产受保护 endpoint 要求 PoP。
+`ak.session.grant` 已把短期 `session_public_key` / `cnf.jkt` 绑定到 principal / device / audience（见 [`../crypto-media/device-lifecycle.md` §1 / §3](../crypto-media/device-lifecycle.md)）。按 RFC 9449 §7.1，DPoP-bound token 必须用 `Authorization: DPoP` 出示；把同一 token 放入 `Bearer` scheme 会绕开 token-type signal，不能因旁边另有 proof header 而合法化。
 
 客户端用 grant-binding key 签 DPoP / request proof；Account Authority 用 issuer key 签 JWT 与
 introspection/status。这两个签名域 MUST 分离：DPoP 证明当前 holder 持有会话 key，不签发 grant；issuer
@@ -240,9 +240,9 @@ introspection/status。这两个签名域 MUST 分离：DPoP 证明当前 holder
 
 **生产 current-v1 PoP 要求（normative）**：
 
-- `/_arkret/self/*` endpoint MUST 使用 §3.3 的 `Authorization: Bearer <ak.session.grant>` + DPoP 出示。该 bearer header 只是 DPoP 绑定的 grant 载体；缺少有效 DPoP proof 时 MUST 拒绝。
+- `/_arkret/self/*` 以及 Account Authority 的 refresh、revoke、logout 等直接出示 SessionGrant 的 endpoint MUST 使用 §3.3 的 `Authorization: DPoP <ak.session.grant>` + `DPoP` proof header；`Bearer` + DPoP、DPoP scheme 无 proof、错误 `ath` 均 MUST 拒绝。
 - 高安全 profile 对所有受保护的 `ak.self.*` operation MUST 要求 RFC 9421 HTTP Message Signature 会话出示并绑定 transcript/body。`ak.self.` 前缀是机器可判定的默认保护面；同一 operation 若在 registry 明确列为匿名 public metadata projection，无有效 proof 时只能返回该公开 projection，MUST NOT 把 bare bearer 当作 session / capability 认证。新增或未知 `ak.self.*` operation 默认 fail closed，除非 operation registry 与其规范性 contract 同时明确声明匿名 public projection。
-- 对其它受保护 current-v1 endpoint，实现仍 MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 sender-constrained proof。裸 `Authorization: Bearer <ak.session.grant>` MUST 以 `unauthenticated` 拒绝。
+- 对其它受保护 current-v1 endpoint，实现仍 MUST 使用其合同指定的 sender-constrained proof；只要 credential 是 `ak.session.grant`，Authorization scheme 仍固定为 `DPoP`。
 - 服务 SHOULD 通过 `auth_metadata.did_binding_methods` 公布支持的 sender-constrained 方法（如 `session_dpop`、`session_http_signature`），供客户端选择；未公布任何 sender-constrained 方法的服务 MUST NOT 声明通过 current-v1 production protected-endpoint conformance。
 - 在 §11.2 之外，PoP 出示不改变 §3 其余规则：协议层权限判断仍 MUST 回到 actor DID / capability / Realm policy；PoP 只把"持有 token"升级为"持有绑定密钥"。
 
@@ -265,7 +265,7 @@ Account Authority 以 `ak.session.grant` 作为客户端唯一可见的会话凭
 
 ```http
 POST /_arkret/self/events
-Authorization: Bearer <ak.session.grant>
+Authorization: DPoP <ak.session.grant>
 DPoP: <DPoP proof JWT>
 ```
 
@@ -321,7 +321,7 @@ one-shot proof 与 request identity 重新认证。account-first 恢复不得重
 
 [`account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 的 `account_handoff_grant` 是 Account Authority 的临时 sender-constrained 凭据，不是 `ak.session.grant` 或 OAuth bearer。创建 handoff 时尚无 credential 可计算 `ath`：客户端对 `POST /_arkret/gate/account/authentication-handoffs` 发送不带 Authorization 的 DPoP proof，proof JWT header 中的 public JWK 建立候选 holder；该 JWK MUST 是 Ed25519，body `AccountHandoffAuthenticationProof.signature` MUST 由同一 key 按 canonical schema transcript 签名。Account Authority 必须验证两处 key 一致后，才把其 RFC 7638 thumbprint写入 handoff `cnf.jkt`。
 
-后续 challenge、register 与 `proof_kind="pre_registration_handoff"` session-grant 请求使用：
+后续 challenge、register 与 returning-device `HumanSessionGrantRequest` 使用：
 
 ```http
 POST /_arkret/gate/account/identity-binding-challenges

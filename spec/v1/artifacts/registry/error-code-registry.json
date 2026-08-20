@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-20.1",
+  "version": "2026-08-20.4",
   "codes": [
     {
       "code": "json_invalid",
@@ -193,7 +193,7 @@
       "code": "did_proof_required",
       "http_status": 401,
       "scope": "both",
-      "description": "A soft-logout refresh, OIDC callback, re-auth, or sensitive account transition requires a fresh DID-bound or authorized-device proof; a refresh token alone is insufficient."
+      "description": "An explicitly selected DID-root authentication factor or sensitive account-control transition requires its operation-specific fresh DID proof. Soft logout does not use this code as a refresh challenge: it requires full reauthentication to a fresh AccountHandoff or an explicit account-control action."
     },
     {
       "code": "signature_invalid",
@@ -1465,12 +1465,6 @@
       "http_status": 409,
       "scope": "endpoint",
       "description": "The recovery-material gate requirements (first accepted Seal and genesis recovery policy) are not satisfied."
-    },
-    {
-      "code": "fresh_device_scope_violation",
-      "http_status": 403,
-      "scope": "endpoint",
-      "description": "A fresh device attempted an operation outside its permitted scope."
     },
     {
       "code": "recovery_authorization_device_mismatch",
@@ -2812,14 +2806,6 @@
         "service_call"
       ],
       "description": "The re-anchor pre_fence_basis is null despite an accepted Seal, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race. Dual-registered as a reason_code and a top-level service code (see codes[])."
-    },
-    {
-      "code": "did_proof_replay_window_exceeded",
-      "applies_to": [
-        "account_status",
-        "auth_decision"
-      ],
-      "description": "A soft-logout recovery DID proof was rejected because expires_at is missing or its freshness window exceeded the bound (expires_at - issued_at > 300s, or issued_at skew beyond tolerance); see account-lifecycle.md §4 and identity-did.md §5.1."
     },
     {
       "code": "direct_conversation_activation_author_invalid",
@@ -5562,5 +5548,5 @@
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
   },
-  "generated_at": "2026-08-20T06:10:00+08:00"
+  "generated_at": "2026-08-20T10:52:00+08:00"
 }

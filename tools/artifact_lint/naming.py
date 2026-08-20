@@ -43,6 +43,7 @@ FORBIDDEN_SYMBOLIC_LITERALS = frozenset(
 # a name ending in two stacked wrapper words (RequestBodyBody) is a rename
 # artifact, not a domain noun.
 STRUCTURAL_WRAPPER_WORDS = (
+    "Request",
     "RequestBody",
     "Outcome",
     "View",
@@ -319,7 +320,6 @@ DEFAULT_REJECTED_WRAPPER_WORDS = (
     "Item",
     "ResponseBody",
     "Response",
-    "Request",
     "Wrapper",
     "Info",
     "Details",

@@ -299,11 +299,11 @@ GET /_arkret/describe
         "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
         "client_id": "ak.example-client",
         "scopes": ["openid", "profile"],
-        "grant_exchange": {"proof_kind": "oidc_code_exchange"}
+        "grant_exchange": {"kind": "account_handoff"}
       },
       {
         "method": "passkey",
-        "grant_exchange": {"proof_kind": "passkey_assertion"}
+        "grant_exchange": {"kind": "account_handoff"}
       }
     ],
     "did_binding_methods": ["session_grant", "did_http_signature"]

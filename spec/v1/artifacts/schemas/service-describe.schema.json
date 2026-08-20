@@ -1256,39 +1256,7 @@
             "required": [
               "issuer",
               "openid_configuration"
-            ],
-            "properties": {
-              "grant_exchange": {
-                "properties": {
-                  "proof_kind": {
-                    "const": "oidc_code_exchange"
-                  }
-                }
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "method": {
-                "const": "passkey"
-              }
-            },
-            "required": [
-              "method"
             ]
-          },
-          "then": {
-            "properties": {
-              "grant_exchange": {
-                "properties": {
-                  "proof_kind": {
-                    "const": "passkey_assertion"
-                  }
-                }
-              }
-            }
           }
         }
       ]
@@ -1300,18 +1268,13 @@
         "^x_[a-z][a-z0-9_]{0,63}$": true
       },
       "required": [
-        "proof_kind"
+        "kind"
       ],
       "properties": {
-        "proof_kind": {
+        "kind": {
           "type": "string",
-          "enum": [
-            "did_bound_signature",
-            "paired_device_proof",
-            "passkey_assertion",
-            "oidc_code_exchange",
-            "agent_key_proof"
-          ]
+          "const": "account_handoff",
+          "description": "Every advertised interactive authentication method terminates in the AccountHandoff exchange. For OIDC, authentication-handoffs is the unique authorization-code consumer; SessionGrant issue never consumes the code."
         }
       }
     },

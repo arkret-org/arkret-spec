@@ -326,6 +326,15 @@ def _binding_error(preimage: dict[str, Any]) -> str | None:
         return f"unknown credential_class {credential_class!r}"
     if present != {expected}:
         return f"credential_class {credential_class!r} requires exactly {expected}; found {sorted(present)}"
+    holder_binding = preimage.get("holder_binding")
+    if not isinstance(holder_binding, dict):
+        return "holder_binding must be an object"
+    holder_kind = holder_binding.get("kind")
+    has_device_binding = "device_binding" in preimage
+    if holder_kind == "human_device" and not has_device_binding:
+        return "human_device holder requires complete device_binding"
+    if holder_kind == "agent_runtime" and has_device_binding:
+        return "agent_runtime holder forbids device_binding"
     return None
 
 

@@ -55,7 +55,6 @@ grpc:
       IssueSessionGrant: ak.gate.account.command.issue_session_grant
       SessionRevoke: ak.gate.account.command.revoke_session
       AgentKeyPair: ak.gate.account.command.pair_agent_key
-      OidcCallback: ak.gate.account.exchange.complete_oidc
       RequestErasure: ak.gate.account.command.request_erasure
     SelfAgent:
       Provision: ak.self.agent.command.provision

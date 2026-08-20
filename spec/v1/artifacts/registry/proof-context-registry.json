@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-18.1",
+  "version": "2026-08-20.1",
   "source_of_truth": true,
   "description": "Canonical security-domain contexts for Arkret detached proofs and non-Event cryptographic transcripts. Proof contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript: it MUST NOT be spelled as a proof context and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
@@ -139,6 +139,19 @@
       ],
       "defined_in": "zh/identity/key-management.md#362-runtime-request-binding审批竞态与账号通知normative",
       "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof"
+    },
+    {
+      "context": "ak.agent-session-refresh-proof-v1",
+      "object_family": "agent_session_refresh_proof",
+      "binding_fields": [
+        "request_canonical_digest",
+        "audience",
+        "issued_at",
+        "expires_at",
+        "verification_method"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md#4-soft-logout",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionRefreshProof"
     },
     {
       "context": "ak.agent-selector-claim-proof-v1",
@@ -981,6 +994,27 @@
       ],
       "defined_in": "zh/sync/service-surface.md",
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_route_handover_notice"
+    },
+    {
+      "context": "ak.session-grant-accepted-device-possession-proof-v1",
+      "object_family": "session_grant_accepted_device_possession",
+      "binding_fields": [
+        "purpose",
+        "request_id?",
+        "account_subject?",
+        "account_handoff_grant_digest?",
+        "predecessor_session_grant_id?",
+        "principal_id",
+        "device_id",
+        "audience",
+        "holder_jkt",
+        "session_intent_digest",
+        "issued_at",
+        "expires_at",
+        "verification_method"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md#212-account-handoffpcr-genesis-与首次-standard-grantnormative",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof"
     },
     {
       "context": "ak.signal-proof-v1",

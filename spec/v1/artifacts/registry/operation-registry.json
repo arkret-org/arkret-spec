@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-20.1",
+  "version": "2026-08-20.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-20T06:10:00+08:00",
+  "generated_at": "2026-08-20T10:25:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -466,8 +466,7 @@
         "ak.gate.account.command.introspect_session_grant",
         "ak.gate.account.command.logout",
         "ak.gate.account.command.request_erasure",
-        "ak.gate.account.command.revoke_session",
-        "ak.gate.account.exchange.complete_oidc"
+        "ak.gate.account.command.revoke_session"
       ],
       "surface_class": "deployment_local"
     },
@@ -1020,7 +1019,7 @@
       "http": "POST /_arkret/gate/account/session-grants",
       "grpc": "GateAccount/IssueSessionGrant",
       "mq": "gate.account.command.issue_session_grant",
-      "notes": "Account Authority single-call issuer-ledger session-grant exchange. Before issuer commit, the Account Authority MUST obtain a fresh allow receipt from ak.peer.device_revocations.command.check for the exact device and immutable grant intent, and MUST copy that receipt's derived authorization Event and generation verbatim into the grant device_binding; a first ordinary human issuance sends no expected binding and acquires it from the receipt, while recovery completion and refresh MUST send their own verified durable binding and fail closed on generation_mismatch. The request carries device_id only, and a client-supplied authorization Event or generation MUST NOT be accepted. Human issuance always runs the gate and branches three ways: allow issues the bound grant, authority_mismatch means the device has no accepted authorization yet and MAY issue only the fresh-device restricted grant scoped to ak.key.verification.* bootstrap with no device_binding, and revocation_pending, revoked or generation_mismatch issue nothing and never degrade into that restricted grant. revocation_pending returns device_revocation_pending and no grant record/JWT. After validating account-to-principal binding, authentication proof, holder DPoP, audience and scope ceiling, the issuer uses the proof-specific stable request identity and canonical intent digest to atomically persist one immutable issuance record and signed JWT before responding. The grant ID and JWT jti are recomputed from that record under id_kind_registry.issuer_record_identity_contract; no Principal Event is authored. Exact replay revalidates holder/DPoP/target/digest and returns the byte-identical recorded outcome. Same request identity with different canonical intent is duplicate_conflict with zero writes. A replay whose outcome is expired or revoked/superseded returns the registered terminal error and never issues a replacement; an evicted replay record fails closed as indeterminate. The response is the client-visible SessionGrantOutcome and the client presents ak.session.grant directly to /_arkret/self/* with DPoP. For proof_kind=oidc_code_exchange, the Account Authority exchanges and validates the code. For proof_kind=pre_registration_handoff, the DPoP-bound handoff account MUST already be bound to principal_id. The Account Authority never derives a principal DID from OIDC and never obtains or uses a principal/root/device/notary Event-signing key.",
+      "notes": "Account Authority single-call issuer-ledger SessionGrant issuance with a closed HumanSessionGrantRequest | AgentSessionGrantRequest request union. OIDC authorization code is never accepted here; authentication-handoffs is the unique code consumer. Human request is authenticated by Authorization: DPoP <account_handoff_grant> plus matching DPoP and carries request_id, principal_id, device_id, audience and AcceptedDevicePossessionProof, but no body holder signature or requested_scope. The origin Principal Server verifies that proof under the durable accepted device key in the same current-device linearization and returns a signed exact-intent receipt. Only allow issues a Standard human grant with the receipt-derived device_binding; authority_mismatch returns device_unauthorized and pending/revoked/generation_mismatch return their typed block, all with zero grant. Current-v1 has no fresh-device restricted grant. Agent request keeps required requested_scope and its independent agent_key_proof validator. The issuer uses the branch-specific stable request identity and canonical intent digest to atomically persist one immutable issuance record and signed JWT before responding. Exact replay returns the byte-identical recorded outcome; conflicting or terminal replay fails closed. The client presents ak.session.grant only as Authorization: DPoP plus matching DPoP proof. No Principal Event is authored.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -1159,7 +1158,7 @@
       "operation_id": "ak.gate.account.command.refresh_session_grant",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/session-grants/refresh",
-      "notes": "DPoP-bound issuer-ledger session-grant rotation. Before successor commit, the issuer MUST obtain a fresh exact-intent allow receipt from ak.peer.device_revocations.command.check; pending/revoked blocks refresh even when the predecessor grant and DPoP are otherwise valid. The stable request identity is (predecessor_grant_id, refresh_request_digest). Exact replay revalidates current holder/DPoP and returns the recorded successor outcome; conflicting canonical bytes are duplicate_conflict. One issuer transaction creates the active successor with a fresh issuance nonce, preserves the independently allocated session_id, and atomically marks the predecessor superseded with successor_session_grant_id. A replay whose recorded successor is expired or revoked/superseded returns the registered terminal error and never issues another successor. Account Authority-local op; no Principal Event is authored.",
+      "notes": "DPoP-bound issuer-ledger SessionGrant rotation with a closed HumanSessionGrantRefreshRequest | AgentSessionGrantRefreshRequest union. Both branches present the predecessor as Authorization: DPoP plus a matching DPoP proof and carry no client-generated challenge or generic proof_kind. Human refresh additionally carries AcceptedDevicePossessionProof purpose=session_grant_refresh; the origin verifies it under the locked current accepted-device key and applies the predecessor signed device_binding as expected binding in the same current-authorization linearization. Agent refresh carries only AgentSessionRefreshProof and revalidates current runtime-key authorization/lifecycle through its independent validator. The stable request identity is (predecessor_grant_id, refresh_request_digest). One issuer transaction creates the active successor with a fresh issuance nonce, preserves subject/scope/audience/cnf.jkt/session_id, and atomically supersedes the predecessor. Exact replay returns the recorded successor; conflicting or terminal replay never issues another. Account/passkey restoration uses a fresh AccountHandoff then issue, and PCR recovery uses its dedicated completion operation; neither is a refresh proof kind. No Principal Event is authored.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -1244,30 +1243,10 @@
       }
     },
     {
-      "operation_id": "ak.gate.account.exchange.complete_oidc",
-      "http": "POST /_arkret/gate/account/oidc/callback",
-      "grpc": "GateAccount/OidcCallback",
-      "mq": "gate.account.exchange.complete_oidc",
-      "notes": "Optional Account Authority browser redirect landing / handoff for deployments that use an OIDC redirect URI under /_arkret/gate/account. It MUST NOT issue or return SessionGrantOutcome, ak.session.grant, or Principal local session material; client-visible grant issuance remains ak.gate.account.command.issue_session_grant.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "manual_confirmation"
-      },
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
-    },
-    {
       "operation_id": "ak.gate.account.exchange.create_handoff",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/authentication-handoffs",
-      "notes": "Account Authority exchanges an OIDC authorization code for an opaque, short-lived account_handoff_grant bound to the request DPoP key and returns the deployment-local stable account_subject. The handoff is not ak.session.grant, has no refresh-token semantics, and its closed operation allowlist is issue_identity_binding_challenge, issue_did_binding_challenge, issue_identity_abandonment_challenge, abandon_identity_creation, register, issue_session_grant, and issue_recovery_completion_grant. The two abandonment operations are on that list because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can exist to carry them. It returns bound, identity_creation_active, or identity_creation_busy state and atomically acquires, renews, or fences a rate-limited identity-creation lease for the authenticated service account. Busy includes the conflicting live lease expires_at without holder identity. Repeating the same request_id returns the same live outcome. A different holder cannot take an unexpired lease; after expiry, a newly authenticated holder may fence it and must preserve all frozen checkpoints.",
+      "notes": "Unique current-v1 OIDC authorization-code consumer. Account Authority exchanges and validates the code and issues an opaque, short-lived account_handoff_grant bound to the request DPoP key plus the deployment-local stable account_subject. The external callback receiver that owns the redirect transaction validates state; Account Authority validates state only when it owns that transaction, and always validates issuer, token exchange/PKCE, redirect_uri and ID Token nonce. The handoff is not ak.session.grant, has no refresh-token semantics, and its closed operation allowlist is issue_identity_binding_challenge, issue_did_binding_challenge, issue_identity_abandonment_challenge, abandon_identity_creation, register, issue_session_grant, and issue_recovery_completion_grant. It returns bound, identity_creation_active, or identity_creation_busy. Bound clients normalize local evidence before choosing returning issue, pairing-first Device Setup or diagnostics; identity onboarding accepts only the other two states. Repeating the same request_id returns the same live outcome.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "request_id",
@@ -1713,7 +1692,7 @@
       "http": "POST /_arkret/peer/device-revocations/check",
       "grpc": "PeerDeviceRevocations/Check",
       "mq": "peer.device_revocations.command.check",
-      "notes": "Authenticated Account-Authority-to-origin-Principal-Server revocation gate, binding source and issuance fence. The request binds the exact PrincipalAuthorityKey, device, action class and immutable issuer intent digest; the authorization Event and PCR-local generation are derived by the origin from its own durable current device projection inside the gate transaction, under the same rule ak.device.revoke uses, and are never taken from the request or from client input. expected_device_authorize_event_id and expected_device_generation_ref are the issuer's own verified durable binding, appear together or not at all, MAY be omitted only for session_grant_issue, and are required for every other action class. The origin service authenticates the caller and confirms it is the Account Authority bound to that exact pair before any private device lookup, then atomically linearizes the request against its durable accepted revoke proposal/decision/Seal log and persists a signed decision receipt. A validated request always returns the typed 200 receipt (allow, revocation_pending, revoked, authority_mismatch or generation_mismatch); 409 gate errors belong to the blocked business operation. Only allow carries the derived target_device_authorize_event_id and target_device_generation_ref, and that pair is the sole source for the issued grant device_binding; withholding it from generation_mismatch is what stops a refresh from silently re-issuing at a replaced generation. An unauthorized caller, an account this service does not host, an unknown device and a device outside the named account are indistinguishable authority_mismatch. An allow receipt admits only those exact immutable bytes before any later revocation_pending transition; exact replay returns the byte-identical receipt. Receipt expiry is at most 30 seconds and is only a use-freshness bound; cache state is never authoritative. Session-grant issue/refresh MUST hold the matching fresh receipt. Introspection carries no reusable receipt; the origin Principal Server gates every protected self request locally in its request transaction.",
+      "notes": "Authenticated Account-Authority-to-origin-Principal-Server current-device and revocation gate. returning_session_grant_issue and human session_grant_refresh bind AcceptedDevicePossessionProof; registration/recovery session_grant_issue uses its separately verified durable evidence and forbids this proof. Under one device lock/serializable transaction the origin reads the durable current accepted-device projection, verifies any required proof with its key, derives authorization Event/generation, evaluates pending/revoked state and persists a signed decision receipt binding proof digest and intent. A lock-external key/status read followed by a second gate transaction is forbidden. expected selectors are required for refresh and may be omitted for both issue action classes. Only allow carries derived selectors and can produce complete human device_binding; authority_mismatch maps to device_unauthorized and every non-allow yields zero grant. Exact replay returns the byte-identical <=30 second receipt.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "canonical_hash",

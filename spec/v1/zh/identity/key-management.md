@@ -634,7 +634,7 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 推荐流程：
 
 1. 新设备本地生成 device key。
-2. 新设备先通过 `ak.gate.account.command.issue_session_grant` 获得 fresh-device restricted session grant，或通过二维码/手动码把同等 pairing payload 交给旧设备。该 grant 只能用于同 principal 的 `ak.key.verification.*` bootstrap；在 step 5 的 authorize Event 已 durable accepted 且新设备出现在 current durable device list 之前，MUST NOT 读取 E2EE history、解锁 key backup、发送或接收 `ak.secret.request/send`。SAS/QR 成功只允许进入授权确认，不构成 secret-transfer 例外。
+2. 新设备没有 accepted-device signer 时不得调用 `issue_session_grant`，也不会得到任何 restricted SessionGrant；它通过匿名 `ak.open.device_pairing.command.stage` 取得二维码/手动码，并把同一 pairing payload 交给旧设备。只有 step 5 的 authorize Event 已 durable accepted、新设备出现在 current durable device list，且重新认证取得 AccountHandoff 后，才能用 accepted-device proof 换取 Standard grant。在此之前 MUST NOT 读取 E2EE history、解锁 key backup、发送或接收 `ak.secret.request/send`。SAS/QR 成功只允许进入授权确认，不构成 secret-transfer 例外。
 3. 新设备通过 `POST /_arkret/self/device_messages` 向同 principal 的已授权设备发送 `ak.key.verification.request`。content MUST 至少包含 `transaction_id`、`from_device`、`methods`、`timestamp`、`expires_at`；用于设备授权时 SHOULD 带 `purpose="same_principal_device_authorization"`、`pairing_code`、`new_device_pubkey`（canonical `PublicKey`）、`challenge_proof`、`target_attestation`（`accepted_device` possession attestation，本路径下 `hpke_key` / `algorithms` 的唯一权威来源，见 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) §5.2.2）、`gate_audience`、`request_canonical_digest` 与 `device_metadata?`（wire 示例见 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md)）。
 4. 已授权设备的主接收路径是 `GET /_arkret/self/account/subscribe` 的 `delta.to_device.messages[]`；push 只能作为唤醒提示。若 `delta.to_device.limited=true`、本地 dispatcher 需要补洞，或旧设备当前没有完整 account subscribe，才使用 `GET /_arkret/self/device_messages?after=<cursor>&limit=n` 补拉。UI MUST 显示 requesting device metadata 与 pairing code，要求用户和新设备屏幕上的 code 比对。
 5. 用户在已授权设备上批准并完成 SAS/QR transcript 后，该设备先验签 `target_attestation`、从中取出 `hpke_key` 与 `algorithms`（MUST NOT 从服务端响应或 UI 输入取），据此对完整 `ak.device.authorize` payload 签署 Event Initial Submission，再调用 `POST /_arkret/gate/account/device-pair`，提交 transcript 绑定的 `pairing_code`、`new_device_pubkey`、`challenge_proof`、payload 内 exact `hpke_key`、exact `device_signature`、完整 `authorize_event` 与当前设备 fresh proof；`challenge_proof` 的 transcript 与验签规则见 [`device-lifecycle.md` §2.1.2](../crypto-media/device-lifecycle.md)，target `device_signature` 的 `accepted_device` possession domain 与签名对象见 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) §5.2.2。服务端必须按普通 Event admission 接受该 exact submission，不得自行 mint Event 或直接写 device projection。`/_arkret/self/devices/pairing-requests*` 不是 v1 core approval surface。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
@@ -703,7 +703,12 @@ Control Realm 不保存 grant genesis、grant state cell 或其任何投影。
     "kind": "human_device",
     "device_binding": "ak:device:019a0000-0000-7000-8000-000000000001"
   },
-  "proof_kind": "oidc_code_exchange"
+  "device_binding": {
+    "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+    "authorization_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "model_generation_ref": 1
+  },
+  "proof_kind": "account_handoff"
 }
 ```
 
@@ -729,7 +734,8 @@ issuance_preimage = JCS({
   session_id,
   cnf,
   credential_class,
-  holder_binding?,
+  device_binding?,
+  holder_binding,
   proof_kind?,
   scope_details?
 })
@@ -747,10 +753,13 @@ JWT jti = grant_id
 的无 padding Base64URL 作为 signed claim。`scopes` MUST 在授权求交后按协议 byte-wise 排序去重；时间
 MUST 使用 UTC canonical millisecond；optional 字段无值时 MUST 省略而非写 `null`。
 
-credential class 与 holder binding 都是 preimage 的身份材料：Arkret v1 的 `credential_class` 固定为
-`standard`，并且 MUST 携带 `holder_binding`。恢复完成在核验 replacement device 后直接签发同一种 Standard
-grant，不存在临时恢复凭据类。因而修改 holder binding 必须改变 canonical preimage、digest、grant ID 与
-`jti`；verifier 不得把 binding 当作不参与 ID 的附加 metadata。
+credential class、holder binding 与 human device authorization binding 都是 preimage 的身份材料：Arkret v1
+的 `credential_class` 固定为 `standard`，并且 MUST 携带 `holder_binding`。`holder_binding.kind="human_device"`
+时完整 `device_binding` 必填且只能逐字取自 origin current-device gate 的 `allow` receipt；
+`holder_binding.kind="agent_runtime"` 时 `device_binding` 禁带。current-v1 不存在缺 `device_binding` 的
+fresh-device human grant。恢复完成在核验 replacement device 后直接签发同一种 Standard grant，不存在临时
+恢复凭据类。因而修改任一 binding 必须改变 canonical preimage、digest、grant ID 与 `jti`；verifier 不得把
+binding 当作不参与 ID 的附加 metadata。
 
 `session_public_key` MUST 先解析为受支持且不含 private member 的 public JWK，再编码为 RFC 8785 JCS
 UTF-8 字符串；JWT claim 自身必须携带该 canonical 字符串。接收方重新解析并序列化后若不能逐字节得到

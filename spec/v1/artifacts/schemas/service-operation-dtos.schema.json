@@ -11,12 +11,6 @@
       "$ref": "#/$defs/AccountCursorRevokeOutcome"
     },
     {
-      "$ref": "#/$defs/AccountOidcCallbackRequestBody"
-    },
-    {
-      "$ref": "#/$defs/AccountOidcCallbackOutcome"
-    },
-    {
       "$ref": "#/$defs/AuthzCheckRequestBody"
     },
     {
@@ -258,45 +252,6 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {}
-    },
-    "AccountOidcCallbackOutcome": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "redirect_url"
-      ],
-      "properties": {
-        "redirect_url": {
-          "type": "string",
-          "format": "uri",
-          "description": "Deployment-controlled browser handoff URL. This outcome MUST NOT contain SessionGrantOutcome, ak.session.grant, or Principal local session material; client-visible grant issuance is only via SessionGrantRequestBody.proof.proof_kind=oidc_code_exchange."
-        }
-      }
-    },
-    "AccountOidcCallbackRequestBody": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "state",
-        "code"
-      ],
-      "properties": {
-        "state": {
-          "type": "string",
-          "minLength": 16
-        },
-        "code": {
-          "type": "string",
-          "minLength": 1
-        },
-        "nonce": {
-          "type": "string"
-        },
-        "redirect_uri": {
-          "type": "string",
-          "format": "uri"
-        }
-      }
     },
     "ActorAggregateFrontierView": {
       "type": "object",
@@ -3346,8 +3301,7 @@
       "required": [
         "device_id",
         "session_public_key",
-        "audience",
-        "requested_scope"
+        "audience"
       ],
       "properties": {
         "device_id": {
@@ -3361,15 +3315,6 @@
         },
         "audience": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "requested_scope": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
         }
       },
       "additionalProperties": false
@@ -5472,14 +5417,26 @@
         },
         "device_binding": {
           "$ref": "#/$defs/SessionGrantDeviceBinding",
-          "description": "Exact origin-derived device authorization preimage taken from the revocation gate's allow receipt. Required for every human grant except the fresh-device restricted grant, whose device has no accepted authorization yet and whose scope is limited to ak.key.verification.* bootstrap."
+          "description": "Exact origin-derived device authorization preimage taken from the revocation gate's allow receipt. Required for every human grant; current-v1 has no fresh-device restricted SessionGrant."
         }
       },
       "allOf": [
         {
           "if": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "const": "human_device"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
             "required": [
-              "device_id"
+              "holder_binding"
             ]
           },
           "then": {
@@ -5730,42 +5687,68 @@
         }
       }
     },
-    "SessionGrantRefreshProof": {
+    "AcceptedDevicePossessionProof": {
       "type": "object",
       "additionalProperties": false,
+      "description": "Accepted-device Ed25519 possession proof shared by human SessionGrant issue and refresh. The signature covers utf8('ak.session-grant-accepted-device-possession-proof-v1\\n') followed by RFC 8785 JCS of this complete object with signature omitted. It is not a server challenge: freshness comes from the <=300 second signed window, the one-time account handoff or predecessor grant, the issuer request identity, and issuer-ledger exact replay. The origin Principal Server MUST verify this proof with the durable current accepted-device key in the same linearization that evaluates current authorization.",
       "required": [
-        "proof_kind",
-        "challenge",
-        "request_canonical_digest",
+        "context",
+        "purpose",
+        "principal_id",
+        "device_id",
         "audience",
+        "holder_jkt",
+        "session_intent_digest",
         "issued_at",
         "expires_at",
+        "verification_method",
         "signature"
       ],
       "properties": {
-        "proof_kind": {
-          "type": "string",
-          "description": "Fresh proof kind for soft-logout recovery. Current Account Authority implementations MUST accept did_bound_signature or paired_device_proof and fail closed on unsupported kinds.",
+        "context": {
+          "const": "ak.session-grant-accepted-device-possession-proof-v1"
+        },
+        "purpose": {
           "enum": [
-            "did_bound_signature",
-            "paired_device_proof",
-            "passkey_assertion",
-            "oidc_code_exchange",
-            "agent_key_proof"
+            "session_grant_issue",
+            "session_grant_refresh"
           ]
         },
-        "challenge": {
+        "request_id": {
           "type": "string",
-          "minLength": 16
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "request_canonical_digest": {
+        "account_subject": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "account_handoff_grant_digest": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Digest of the soft-logout restore request transcript bound by the proof."
+          "description": "SHA-256 digest of the exact opaque DPoP-bound account_handoff_grant presented in Authorization; the credential itself MUST NOT enter the proof or logs."
+        },
+        "predecessor_session_grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
         "audience": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Stable resource-service did_core_id. MUST equal the session grant audience."
+          "description": "Stable resource-service did_core_id."
+        },
+        "holder_jkt": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "RFC 7638 thumbprint of the DPoP holder key for the handoff or predecessor SessionGrant."
+        },
+        "session_intent_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Digest of the complete canonical immutable issue or refresh intent."
         },
         "issued_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -5774,64 +5757,228 @@
           "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "MUST be after issued_at and no more than 300 seconds later."
         },
-        "signature": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Detached JWS over the soft-logout proof transcript."
-        },
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "Optional DID URL expected to match the detached JWS kid; the DID component MUST match the session grant subject."
+          "description": "DID URL of the accepted device key; its fragment MUST identify device_id and its bare full_id MUST project to principal_id."
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "64-byte raw Ed25519 signature encoded as canonical unpadded base64url."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "purpose": {
+                "const": "session_grant_issue"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          },
+          "then": {
+            "required": [
+              "request_id",
+              "account_subject",
+              "account_handoff_grant_digest"
+            ],
+            "not": {
+              "required": [
+                "predecessor_session_grant_id"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "predecessor_session_grant_id"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "request_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "account_subject"
+                  ]
+                },
+                {
+                  "required": [
+                    "account_handoff_grant_digest"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "AgentSessionRefreshProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Current Agent runtime-key proof for SessionGrant rotation. It is a distinct branch from accepted human-device PoP and carries no client-generated challenge or polymorphic proof_kind.",
+      "required": [
+        "context",
+        "request_canonical_digest",
+        "audience",
+        "issued_at",
+        "expires_at",
+        "verification_method",
+        "signature"
+      ],
+      "properties": {
+        "context": {
+          "const": "ak.agent-session-refresh-proof-v1"
+        },
+        "request_canonical_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "audience": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "MUST be after issued_at and no more than 300 seconds later."
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$"
         }
       }
     },
-    "SessionGrantRefreshRequestBody": {
+    "HumanSessionGrantRefreshRequest": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "grant_jwt",
         "device_id",
-        "proof"
+        "accepted_device_possession_proof"
       ],
       "properties": {
         "grant_jwt": {
           "type": "string",
-          "description": "The near-expiry DPoP-bound session grant to rotate. Presented with a DPoP holder proof for the key bound into the grant's cnf.jkt."
+          "minLength": 1,
+          "description": "Near-expiry human DPoP-bound SessionGrant presented as Authorization: DPoP plus a matching DPoP proof."
         },
         "audience": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Optional stable resource-service did_core_id; MUST equal the grant's bound audience if present (audience MUST NOT change across rotation, else audience_mismatch)."
+          "description": "If present, MUST equal the predecessor grant audience."
         },
         "device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id",
-          "description": "Concrete authorized device restoring the soft-logged-out grant chain. MUST match the persisted grant device binding."
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
-        "proof": {
-          "$ref": "#/$defs/SessionGrantRefreshProof"
+        "accepted_device_possession_proof": {
+          "$ref": "#/$defs/AcceptedDevicePossessionProof"
         }
       }
     },
-    "SessionGrantRequestBody": {
+    "AgentSessionGrantRefreshRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grant_jwt",
+        "device_id",
+        "agent_session_refresh_proof"
+      ],
+      "properties": {
+        "grant_jwt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Near-expiry Agent DPoP-bound SessionGrant presented as Authorization: DPoP plus a matching DPoP proof."
+        },
+        "audience": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "If present, MUST equal the predecessor grant audience."
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "agent_session_refresh_proof": {
+          "$ref": "#/$defs/AgentSessionRefreshProof"
+        }
+      }
+    },
+    "SessionGrantRefreshRequestBody": {
+      "description": "Closed human-versus-Agent SessionGrant rotation union. Neither branch accepts a client-generated challenge or a generic proof_kind enum.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/HumanSessionGrantRefreshRequest"
+        },
+        {
+          "$ref": "#/$defs/AgentSessionGrantRefreshRequest"
+        }
+      ]
+    },
+    "HumanSessionGrantRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Returning-human issuance from an already bound account. Authorization is the DPoP-bound account_handoff_grant plus matching per-request DPoP; the body deliberately carries neither a second holder signature nor requested_scope.",
+      "required": [
+        "request_id",
+        "principal_id",
+        "device_id",
+        "audience",
+        "accepted_device_possession_proof"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "audience": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "accepted_device_possession_proof": {
+          "$ref": "#/$defs/AcceptedDevicePossessionProof"
+        }
+      }
+    },
+    "AgentSessionGrantRequest": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "principal_id",
+        "device_id",
+        "requested_scope",
+        "agent_key_authorization_ref",
+        "agent_scope_request",
+        "dpop_binding_proof",
         "proof"
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Existing principal did_core_id the grant is requested for. REQUIRED for every proof_kind, including oidc_code_exchange and pre_registration_handoff. Account Authorities MUST NOT derive or mint a principal identity from an OIDC subject. A first-time OIDC flow may create only a DPoP-bound account_handoff_grant until the client has completed cold-root custody, submitted a client-signed inception through account register, and established the verified principal_id binding."
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
-          "type": "string",
-          "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
         "requested_scope": {
           "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
           "items": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           }
         },
         "agent_key_authorization_ref": {
@@ -5886,20 +6033,12 @@
             "challenge",
             "request_canonical_digest",
             "audience",
+            "verification_method",
             "signature"
           ],
           "properties": {
             "proof_kind": {
-              "type": "string",
-              "description": "`agent_key_proof` selects the `ak.profile.agent_auth.v1` overlay branch.\nImplementations MUST route `agent_key_proof` to an independent validator and MUST NOT\nfall back to password / OIDC / passkey validators for this branch.\n",
-              "enum": [
-                "did_bound_signature",
-                "paired_device_proof",
-                "passkey_assertion",
-                "oidc_code_exchange",
-                "pre_registration_handoff",
-                "agent_key_proof"
-              ]
+              "const": "agent_key_proof"
             },
             "challenge": {
               "type": "string",
@@ -5916,43 +6055,6 @@
             "expires_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"
             },
-            "issuer": {
-              "type": "string",
-              "format": "uri",
-              "description": "OIDC issuer selected from ServiceDescribe.auth_metadata.methods[].issuer. Required when proof_kind is oidc_code_exchange."
-            },
-            "client_id": {
-              "type": "string",
-              "pattern": "^(?!ak:)",
-              "minLength": 1,
-              "description": "OIDC public client id selected from the advertised auth method. Required when proof_kind is oidc_code_exchange."
-            },
-            "redirect_uri": {
-              "type": "string",
-              "format": "uri",
-              "description": "Redirect URI used in the authorization request. Required when proof_kind is oidc_code_exchange."
-            },
-            "state": {
-              "type": "string",
-              "minLength": 16,
-              "description": "OIDC authorization response state. Required when proof_kind is oidc_code_exchange."
-            },
-            "nonce": {
-              "type": "string",
-              "minLength": 16,
-              "description": "OIDC nonce bound to the authorization request and id_token. Required when proof_kind is oidc_code_exchange."
-            },
-            "authorization_code": {
-              "type": "string",
-              "minLength": 1,
-              "description": "OIDC authorization code. Account Authority exchanges this code at the issuer token_endpoint when proof_kind is oidc_code_exchange."
-            },
-            "code_verifier": {
-              "type": "string",
-              "minLength": 43,
-              "maxLength": 128,
-              "description": "PKCE code_verifier corresponding to the authorization request. Required when proof_kind is oidc_code_exchange."
-            },
             "verification_method": {
               "type": "string",
               "description": "`ak.profile.agent_auth.v1` overlay. Full DID URL of the runtime signing key. REQUIRED when `proof_kind=\"agent_key_proof\"`; the verifier MUST parse and adapter-validate its canonical bare full_id component, require project(full_id)=principal_id, and then validate the referenced key at the accepted method-history position. A did_core_id MUST NOT be used as a DID URL prefix or concatenated with a fragment. Projection mismatch returns `verification_method_principal_mismatch`. MUST be omitted for human proof kinds.",
@@ -5961,172 +6063,20 @@
             "signature": {
               "type": "string",
               "minLength": 1,
-              "description": "Proof-kind authority signature over the canonical request transcript. For pre_registration_handoff it MUST be produced by the same holder key as the Authorization credential's cnf.jkt and the request DPoP proof."
+              "description": "Current Agent runtime-key signature over the canonical request transcript."
             }
           }
         }
-      },
-      "allOf": [
+      }
+    },
+    "SessionGrantRequestBody": {
+      "description": "Closed returning-human versus Agent issuance union. OIDC authorization codes are consumed only by account_handoff_request_body and never by this operation.",
+      "oneOf": [
         {
-          "description": "Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is\n`agent_key_proof`, the request MUST carry stable `device_id` plus the `ak.profile.agent_auth.v1` overlay\nfields (`agent_key_authorization_ref`, `agent_scope_request`, `dpop_binding_proof`,\n`proof.verification_method`) and MAY carry a private requested_scope_disclosure\nwhen the verifier has no accepted cache; when it is any other enum value, agent-only fields\nMUST be absent. SDKs and server-side validators MUST reject violations at\nschema-validation time, not at proof-validator time.\n",
-          "if": {
-            "properties": {
-              "proof": {
-                "properties": {
-                  "proof_kind": {
-                    "const": "agent_key_proof"
-                  }
-                },
-                "required": [
-                  "proof_kind"
-                ]
-              }
-            },
-            "required": [
-              "proof"
-            ]
-          },
-          "then": {
-            "required": [
-              "device_id",
-              "agent_key_authorization_ref",
-              "agent_scope_request",
-              "dpop_binding_proof"
-            ],
-            "properties": {
-              "proof": {
-                "required": [
-                  "verification_method"
-                ]
-              }
-            }
-          },
-          "else": {
-            "allOf": [
-              {
-                "not": {
-                  "required": [
-                    "agent_key_authorization_ref"
-                  ]
-                }
-              },
-              {
-                "not": {
-                  "required": [
-                    "agent_scope_request"
-                  ]
-                }
-              },
-              {
-                "not": {
-                  "required": [
-                    "dpop_binding_proof"
-                  ]
-                }
-              },
-              {
-                "not": {
-                  "required": [
-                    "requested_scope_disclosure"
-                  ]
-                }
-              },
-              {
-                "properties": {
-                  "proof": {
-                    "not": {
-                      "required": [
-                        "verification_method"
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
+          "$ref": "#/$defs/HumanSessionGrantRequest"
         },
         {
-          "description": "Machine-enforceable OIDC code exchange branch. Account Authority, not the client, exchanges the authorization code at the issuer token_endpoint and validates issuer, state, nonce, redirect_uri, the REQUIRED existing principal_id binding, device binding and request canonical digest before issuing SessionGrantOutcome. OIDC identity alone never creates a principal DID. proof_kind=pre_registration_handoff instead authenticates with Authorization: DPoP <account_handoff_grant> plus a matching DPoP header; the body MUST omit all OIDC exchange fields, and grant issuance still requires the requested principal_id to be the handoff account's verified binding.",
-          "if": {
-            "properties": {
-              "proof": {
-                "properties": {
-                  "proof_kind": {
-                    "const": "oidc_code_exchange"
-                  }
-                },
-                "required": [
-                  "proof_kind"
-                ]
-              }
-            },
-            "required": [
-              "proof"
-            ]
-          },
-          "then": {
-            "properties": {
-              "proof": {
-                "required": [
-                  "issuer",
-                  "client_id",
-                  "redirect_uri",
-                  "state",
-                  "nonce",
-                  "authorization_code",
-                  "code_verifier"
-                ]
-              }
-            }
-          },
-          "else": {
-            "required": [
-              "principal_id"
-            ],
-            "properties": {
-              "proof": {
-                "not": {
-                  "anyOf": [
-                    {
-                      "required": [
-                        "issuer"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "client_id"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "redirect_uri"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "state"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "nonce"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "authorization_code"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "code_verifier"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          }
+          "$ref": "#/$defs/AgentSessionGrantRequest"
         }
       ]
     },
@@ -6254,11 +6204,7 @@
         "proof_kind": {
           "type": "string",
           "enum": [
-            "did_bound_signature",
-            "paired_device_proof",
-            "passkey_assertion",
-            "oidc_code_exchange",
-            "pre_registration_handoff",
+            "account_handoff",
             "agent_key_proof"
           ]
         },
@@ -6266,7 +6212,40 @@
           "type": "object"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "const": "human_device"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "holder_binding"
+            ]
+          },
+          "then": {
+            "required": [
+              "device_binding"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "device_binding"
+              ]
+            }
+          }
+        }
+      ]
     },
     "SnapshotBootstrap": {
       "type": "object",

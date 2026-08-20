@@ -7,7 +7,8 @@
   },
   "version": "2026-08-14",
   "covers_vectors": [
-    "ak.vector.device.revocation_pending_state.v1"
+    "ak.vector.device.revocation_pending_state.v1",
+    "ak.vector.session_grant.accepted_device_possession.v1"
   ],
   "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#22-设备吊销",
   "machine_contracts": [
@@ -74,28 +75,29 @@
       ]
     },
     {
-      "name": "first_human_issue_acquires_binding_from_the_allow_receipt",
-      "given": "an ordinary human completes OIDC code exchange or pre-registration handoff on a device that holds no session grant, so the Account Authority knows only the device id",
-      "action": "call the gate with action_class session_grant_issue and no expected binding, then issue",
+      "name": "initial_registration_or_recovery_issue_acquires_binding_from_the_allow_receipt",
+      "given": "a registration or dedicated recovery completion has established the account and device but has no predecessor SessionGrant binding",
+      "action": "call the gate with action_class session_grant_issue and no expected binding or accepted-device possession proof, then issue",
       "expected": "allow_carries_derived_binding_and_grant_uses_it_verbatim",
       "invariants": [
-        "the request is schema-valid without expected_device_authorize_event_id or expected_device_generation_ref",
+        "the request is schema-valid without expected_device_authorize_event_id, expected_device_generation_ref or accepted_device_possession_proof",
         "the allow receipt carries the origin-derived target_device_authorize_event_id and target_device_generation_ref",
         "grant claims and introspection device_binding equal the receipt values verbatim",
         "a client-supplied authorization Event or generation cannot reach the gate request or the grant",
-        "the gate is never skipped for want of a binding"
+        "the gate is never skipped for want of a binding",
+        "a returning AccountHandoff uses returning_session_grant_issue instead and requires accepted_device_possession_proof"
       ]
     },
     {
-      "name": "fresh_device_bootstrap_is_the_only_grant_without_a_binding",
+      "name": "unaccepted_device_gets_no_grant",
       "given": "a device that ak.device.authorize has not accepted yet, and separately a device whose accepted authorization is pending or revoked",
-      "action": "run the gate for each and issue whatever it admits",
-      "expected": "restricted_only_for_the_unaccepted_device",
+      "action": "run the gate for each and attempt issuance",
+      "expected": "zero_grants_for_every_non_current_device",
       "invariants": [
-        "the unaccepted device produces authority_mismatch and MAY receive only a fresh-device restricted grant with no device_binding, scoped to ak.key.verification.* bootstrap",
-        "that restricted grant grants no ak.secret.*, key backup unlock, KeyPackage publish or Realm E2EE history read",
-        "revocation_pending, revoked and generation_mismatch yield no grant at all and never degrade into a fresh-device restricted grant",
-        "a revoked or replaced generation cannot regain bootstrap capability by being treated as a new device"
+        "authority_mismatch, revocation_pending, revoked and generation_mismatch all yield no grant",
+        "an unaccepted device must complete the anonymous pairing flow and durable ak.device.authorize before authenticating again",
+        "no bootstrap scope or missing-device_binding SessionGrant exists",
+        "a revoked or replaced generation cannot regain authority by being treated as a new device"
       ]
     },
     {
@@ -107,7 +109,7 @@
         "the receipt decision is generation_mismatch and carries no target_device_authorize_event_id or target_device_generation_ref",
         "the issuer cannot upgrade a refresh to the replaced generation and must run a fresh session_grant_issue",
         "expected_device_authorize_event_id and expected_device_generation_ref are rejected unless both are present",
-        "every action class other than session_grant_issue is rejected when the expected binding is absent",
+        "expected binding is omitted for registration/recovery session_grant_issue and returning_session_grant_issue, and required for refresh and the remaining action classes",
         "recovery completion uses its verified terminal ledger evidence and never degrades to a client assertion"
       ]
     },

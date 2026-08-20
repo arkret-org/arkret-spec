@@ -691,7 +691,6 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
     expected = {
         "ak.root.identity.command.submit_did_operation": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
         "ak.gate.account.command.issue_session_grant": ("SessionGrantRequestBody", "SessionGrantOutcome"),
-        "ak.gate.account.exchange.complete_oidc": ("AccountOidcCallbackRequestBody", "AccountOidcCallbackOutcome"),
         "ak.find.directory.command.announce": ("DirectoryAnnounceRequestBody", "DirectoryAnnounceOutcome"),
         "ak.find.directory.command.withdraw": ("DirectoryWithdrawRequestBody", "DirectoryWithdrawOutcome"),
     }
@@ -738,14 +737,23 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
                         f"{operation_id} {label} must not reference account/DID dedicated schema {schema.get('$ref')}",
                     )
 
-    session_grant_proof_required = (
-        (resolve_openapi_component_schema(lint, openapi_path, components, "SessionGrantRequestBody") or {})
+    human_session_grant_required = set(
+        (resolve_openapi_component_schema(lint, openapi_path, components, "HumanSessionGrantRequest") or {})
+        .get("required", [])
+    )
+    if not {"audience", "accepted_device_possession_proof"}.issubset(human_session_grant_required):
+        lint.fail(
+            openapi_path,
+            "HumanSessionGrantRequest.required must include audience and accepted_device_possession_proof",
+        )
+    agent_session_grant_proof_required = set(
+        (resolve_openapi_component_schema(lint, openapi_path, components, "AgentSessionGrantRequest") or {})
         .get("properties", {})
         .get("proof", {})
         .get("required", [])
     )
-    if "audience" not in session_grant_proof_required:
-        lint.fail(openapi_path, "SessionGrantRequestBody.proof.required must include audience")
+    if "audience" not in agent_session_grant_proof_required:
+        lint.fail(openapi_path, "AgentSessionGrantRequest.proof.required must include audience")
 
     projection_components = {
         "ak.self.space.read.list": "ProjectionSpaceList",
@@ -891,7 +899,6 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
     proof_in_body_operations = {
         "ak.gate.account.command.register",
         "ak.gate.account.command.issue_session_grant",
-        "ak.gate.account.exchange.complete_oidc",
         "ak.open.invite_locator.read.resolve",
         "ak.open.agent_pairing.read.resolve",
         "ak.open.agent_pairing.command.submit_runtime_key_request",

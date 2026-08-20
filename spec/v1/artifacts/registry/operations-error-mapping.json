@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-20.1",
+  "version": "2026-08-20.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-20T06:10:00+08:00",
+  "generated_at": "2026-08-20T10:20:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -303,8 +303,10 @@
         "agent_key_authorization_expired",
         "accountability_grant_missing",
         "agent_requested_scope_commitment_invalid",
+        "device_unauthorized",
         "device_revocation_pending",
-        "device_revoked"
+        "device_revoked",
+        "device_generation_fenced"
       ],
       "description": "Account Authority issuer-ledger session grant issuance. `principal_unknown` is returned when the required principal_id has no verified account binding; the authority must not derive or mint a DID as a fallback. Exact replay returns the byte-identical recorded live outcome after current holder/DPoP/target/digest revalidation; conflicting canonical intent is duplicate_conflict. A recorded expired outcome returns session_grant_replay_expired; revoked/superseded returns session_grant_replay_terminal; an evicted replay record returns session_grant_replay_indeterminate. None may issue a replacement under the same request identity. Proof-kind-specific validation failures remain proof_invalid or the registered Agent lifecycle/authority codes."
     },
@@ -365,10 +367,10 @@
         "session_grant_replay_terminal",
         "session_grant_replay_indeterminate",
         "session_grant_not_found",
-        "did_proof_required",
         "proof_invalid",
         "device_revocation_pending",
-        "device_revoked"
+        "device_revoked",
+        "device_generation_fenced"
       ],
       "description": "DPoP-bound issuer-ledger rotation keyed by predecessor_grant_id plus refresh_request_digest. Exact replay returns the recorded successor after current proof revalidation; a conflicting request is duplicate_conflict. One transaction creates the successor and supersedes the predecessor. A recorded successor that is expired or terminal returns the corresponding session_grant_replay_* code and never causes a second successor. The audience remains locked; logged-out or invalid holder/fresh-proof paths retain their existing errors."
     },
@@ -404,12 +406,6 @@
         "session_grant_replay_indeterminate"
       ],
       "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or create an AccountStatusRecord. The issuer durably records the exact mutation outcome; exact request replay returns that outcome, while the same request identity with different canonical intent returns duplicate_conflict. If replay retention no longer proves whether the mutation committed, session_grant_replay_indeterminate fails closed with zero new state changes."
-    },
-    {
-      "operation_id": "ak.gate.account.exchange.complete_oidc",
-      "http_alias": "POST /_arkret/gate/account/oidc/callback",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
       "operation_id": "ak.gate.account.exchange.create_handoff",

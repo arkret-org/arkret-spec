@@ -46,7 +46,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
-      "sha256": "ab43fe970753b3763d9c44a311c0dfc13face56f621cc072edd366c9dbb24f4a"
+      "sha256": "9f0a4c287a5797644c287f05bc15c7b27610a7cfa9566cfb6dbec15307092fe9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/authorization-lease-issuance-fixture.json",
@@ -110,7 +110,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/device-revocation-pending-fixture.json",
-      "sha256": "b9434fd693ce224675de4aaf75625e2e32114e0f8b62537e437b67ed6d022786"
+      "sha256": "d0f8d9ea14c39db82a8beb81b820202aa70b5e1800697df513cb0ade6f268da6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
@@ -278,7 +278,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "fd30ba16a0e4854f5b6999786c9fb0f48c0ff147083809c1da0d825d871dc63a"
+      "sha256": "e2354b44a9d127dece4a7dc32c4a88c696e1d48d3fe5ac58ead4477105ab2ab9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -322,7 +322,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "90bdbd33cfe248344bd4c2527d5d25a9b1dc04b2a2bf397dcffabec78014b9b2"
+      "sha256": "2464f2d35277da15935e11352f491c31ebee1ad102efe90365f6bcb36619f206"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -354,7 +354,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
-      "sha256": "3594747b2c46c13173cff6e93dfba68ba6dbf26522f3e2a4bf80acf83dc5ed9a"
+      "sha256": "5e1d32e148da4e051c6ab3420503f0da5d55af05d785ea3a04b8be66095f2fa0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",

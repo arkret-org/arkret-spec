@@ -349,7 +349,7 @@ subject PCR authoring frontier 或依赖 grant Event/cell。客户端 DPoP
 
 `development_mode=true` 时，`verified_profiles[]` MUST 为 `[]`（见 `sync/service-surface.md` §3.0）；Conformance Verifier 在 verified-profile suite 通过后才能写入 verified entry。
 
-Release readiness MUST 至少覆盖：签发路径拒绝陌生 audience、session grant TTL 上限、proof 绑定 `challenge` / `audience` / `request_canonical_digest` / principal / device、issuer domain separation、canonical JWK、ID/JTI recomputation、exact replay/conflict/terminal outcomes、`soft_logged_out` 恢复需要 fresh DID proof，以及 development mode 下不得声明 verified profile。对应 conformance vector 为 `ak.vector.auth.session_grant_audience_binding.v1`、`ak.vector.auth.session_grant_issuer_record.v1` 与 `ak.vector.auth.soft_logout_did_proof.v1`。
+Release readiness MUST 至少覆盖：签发路径拒绝陌生 audience；returning-human issue 同时验证 AccountHandoff DPoP 与 accepted-device proof 的 request/account/handoff/principal/device/audience/holder/session-intent/时窗绑定；accepted-device key 读取、验签与 current authorization 判定处于同一 linearization；human scope 与 TTL 为 issuer-fixed；issuer domain separation、canonical JWK、ID/JTI recomputation、exact replay/conflict/terminal outcomes；`soft_logged_out` 只能经完整重新认证后的 fresh AccountHandoff 或明确的账户控制动作恢复，而不是 refresh challenge；以及 development mode 下不得声明 verified profile。对应 conformance vector 为 `ak.vector.auth.session_grant_audience_binding.v1`、`ak.vector.session_grant.accepted_device_possession.v1` 与 `ak.vector.auth.session_grant_issuer_record.v1`。
 
 ## 10. Blob Node
 
