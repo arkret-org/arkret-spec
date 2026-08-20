@@ -2,7 +2,7 @@
 # v1 core 互操作锁定 HTTP/JSON binding (artifacts/openapi/arkret-service-api.openapi.yaml)。
 # 本文件描述 WebSocket / SSE / gRPC / message queue / libp2p binding 的 frame / topic 形态，
 # 仅在显式声明对应 binding profile 的部署中适用；v1 core 实现不要求实现这些 binding。
-version: "2026-05-08"
+version: "2026-08-20"
 operation_registry: ../registry/operation-registry.json
 coverage: complete_except_http_only
 coverage_contract: >-
@@ -56,6 +56,7 @@ grpc:
       SessionRevoke: ak.gate.account.command.revoke_session
       AgentKeyPair: ak.gate.account.command.pair_agent_key
       OidcCallback: ak.gate.account.exchange.complete_oidc
+      RequestErasure: ak.gate.account.command.request_erasure
     SelfAgent:
       Provision: ak.self.agent.command.provision
       IssueProvisioningAbandonmentChallenge: ak.self.agent.command.issue_provisioning_abandonment_challenge
@@ -341,7 +342,6 @@ grpc:
       Describe: ak.self.account.read.describe
       Viewer: ak.self.account.read.viewer
       UpdateProfile: ak.self.account.command.update_profile
-      RequestErasure: ak.self.account.command.request_erasure
       Subscribe: ak.self.account.stream.subscribe
       CursorRevoke: ak.self.account.command.revoke_cursor
     SelfSnapshot:
@@ -406,9 +406,9 @@ mq:
     self.account.stream.subscribe: ak.self.account.stream.subscribe
     self.account.query.viewer: ak.self.account.read.viewer
     self.account.command.update_profile: ak.self.account.command.update_profile
-    self.account.command.request_erasure: ak.self.account.command.request_erasure
     self.account.command.revoke_cursor: ak.self.account.command.revoke_cursor
     gate.account.command.register: ak.gate.account.command.register
+    gate.account.command.request_erasure: ak.gate.account.command.request_erasure
     gate.account.command.revoke_session: ak.gate.account.command.revoke_session
     gate.account.command.pair_agent_key: ak.gate.account.command.pair_agent_key
     self.agent.command.provision: ak.self.agent.command.provision

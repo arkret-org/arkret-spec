@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-13.3",
+  "version": "2026-08-20.1",
   "source_of_truth": true,
   "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ak.account_data.set unless a row explicitly lists another actor-private event kind. Every row MUST declare its cross-device merge primitive (merge_strategy) and delete semantics (deletion_mode); see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
@@ -362,6 +362,24 @@
       "encrypted_at_rest": true,
       "description": "Actor-private quarantine inbox for invites held by consent gate default profile; MUST NOT expose contactability signals to the inviter.",
       "source_refs": [
+        "spec/v1/zh/sync/client-sync.md"
+      ]
+    },
+    {
+      "status": "active",
+      "scope": "actor_private",
+      "key_pattern": "ak.account.invite_delivery",
+      "storage": "plaintext_account_data",
+      "plaintext_schema": "ak.schema.invite_delivery.v1",
+      "write_event_kinds": [
+        "ak.account_data.set"
+      ],
+      "merge_strategy": "cas_register",
+      "deletion_mode": "physical_delete",
+      "encrypted_at_rest": false,
+      "description": "Actor-private holder-side carrier for delivered directed-invite credentials on the notify branch (invite-addressing.md section 7). Written by the recipient Principal Server through the delivery path, so the value is plaintext JSON (ak.schema.invite_delivery.v1), not a client-encrypted envelope; invite_token is a server-issued private locator that MUST NOT enter the Invite object or Realm history. Bounded CAS register: at most 200 entries, expired entries purged first, then oldest evicted; accepted writes fan out as ak.account_data.update actor-private device updates.",
+      "source_refs": [
+        "spec/v1/zh/sync/invite-addressing.md",
         "spec/v1/zh/sync/client-sync.md"
       ]
     }

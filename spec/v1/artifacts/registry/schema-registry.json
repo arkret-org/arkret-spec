@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-18.1",
+  "version": "2026-08-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-18T06:45:00+08:00",
+  "generated_at": "2026-08-20T06:07:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -329,6 +329,17 @@
       "file": "schemas/invite-delivery-request.schema.json",
       "status": "active",
       "description": "Private service-to-service invite delivery request carrying invite_address and introduction_evidence."
+    },
+    {
+      "schema_id": "ak.schema.invite_delivery.v1",
+      "file": "schemas/invite-delivery.schema.json",
+      "status": "active",
+      "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Principal Server on the notify branch. See zh/sync/invite-addressing.md section 7.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.account.invite_delivery",
+        "normative_ref": "zh/sync/invite-addressing.md"
+      }
     },
     {
       "schema_id": "ak.schema.invite_receive_policy.v1",

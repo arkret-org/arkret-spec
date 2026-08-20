@@ -3,7 +3,7 @@ title: Service API Schema（统一 OpenAPI）
 status: candidate
 normative: false
 stability: v1
-updated: 2026-06-24
+updated: 2026-08-20
 see_also:
   - service-http-binding.md
   - api-conventions.md
@@ -74,7 +74,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | Events | `ak.self.events.*` | `/_arkret/self/events/*` |
 | Federation peer events | `ak.peer.events.*` | `/_arkret/peer/events/*` |
 | 加密信号扩展 | `ak.self.signal.command.send`、`ak.self.signal.stream.subscribe`、可选 `ak.peer.signal.command.relay` | `/_arkret/self/signal*`、`/_arkret/peer/signal` |
-| 账号自服务与聚合同步 | `ak.self.account.read.viewer`、`ak.self.account.command.update_profile`、`ak.self.account.command.request_erasure`、`ak.self.account.stream.subscribe`、`ak.self.account.read.describe`、`ak.self.account.command.revoke_cursor` | `/_arkret/self/account/*` |
+| 账号自服务与聚合同步 | `ak.self.account.read.viewer`、`ak.self.account.command.update_profile`、`ak.self.account.stream.subscribe`、`ak.self.account.read.describe`、`ak.self.account.command.revoke_cursor` | `/_arkret/self/account/*` |
 | Realm snapshot 入口 | `ak.self.snapshot.*` | `/_arkret/self/snapshot/*` |
 | Federation peer snapshot 入口 | `ak.peer.snapshot.*` | `/_arkret/peer/snapshot/*` |
 | 目录发现 | `ak.find.directory.*` | `/_arkret/find/directory/*` |
@@ -388,10 +388,10 @@ paths:
 | `ak.peer.events.read.resolve` / `ak.peer.events.read.scan` / `ak.peer.events.read.frontier` | `QUERY` bindings | gRPC `PeerEvents/Resolve` / `PeerEvents/Scan` / `PeerEvents/Frontier` |
 | `ak.self.account.read.viewer` | `GET /_arkret/self/account/viewer` | gRPC `SelfAccount/Viewer` / MQ `self.account.query.viewer`；响应使用 signed handle claim / ref / digest，不返回未签名裸 handle 作为账号权威字段。 |
 | `ak.self.account.command.update_profile` | `POST /_arkret/self/account/profile` | gRPC `SelfAccount/UpdateProfile` / MQ `self.account.command.update_profile`；closed `{profile_event}` 只承载 holder-signed `ak.profile.create\|ak.profile.update`，create ID 从 Event 派生；Event preconditions 为空，update 并发只使用可选 signed `payload.expected_state_digest`，patch 仅限 display/avatar/profile_fields；exact replay 不重复 account-aggregate delta。 |
-| `ak.self.account.command.request_erasure` | `POST /_arkret/self/account/erasure-requests` | gRPC `SelfAccount/RequestErasure` / MQ `self.account.command.request_erasure`；closed `{request_id}` 只记录擦除意图并触发 Account Authority 既有 `erasure_pending` 签发流程；响应是受理确认（`status=accepted` + `recorded_at`，可选 `withdrawal_window_ends_at`），不是完成回执；record 签发后不可逆，完成状态经既有 account-status 查询面获得。 |
 | `ak.self.account.stream.subscribe` | `GET /_arkret/self/account/subscribe` | HTTP `Accept: application/x-ndjson` carries account-aggregate frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
 | `ak.self.account.command.revoke_cursor` | `POST /_arkret/self/account/cursor/revoke` | gRPC `SelfAccount/CursorRevoke` / MQ `self.account.command.revoke_cursor` |
 | `ak.gate.account.command.register` | `POST /_arkret/gate/account/register` | gRPC `GateAccount/Register` / MQ `gate.account.command.register`；request 字段为 `principal_id`，`handle` 经 signed claim 链路。 |
+| `ak.gate.account.command.request_erasure` | `POST /_arkret/gate/account/erasure-requests` | gRPC `GateAccount/RequestErasure` / MQ `gate.account.command.request_erasure`；由 Account Authority 在 gate 面直接受理，closed `{request_id}` 只记录擦除意图，Authority 在同一服务内继续其既有 `erasure_pending` 签发流程；响应是受理确认（`status=accepted` + `recorded_at`，可选 `withdrawal_window_ends_at`），不是完成回执；record 签发后不可逆，完成状态经既有 account-status 查询面获得。 |
 | `ak.gate.account.command.revoke_session` | `POST /_arkret/gate/account/session-grants/revoke` | gRPC `GateAccount/SessionRevoke` / MQ `gate.account.command.revoke_session` |
 | `ak.gate.account.command.logout_auth_session` | `POST /_arkret/gate/account/auth-sessions/logout` | Account Authority → Auth Server S2S 子操作；普通客户端不得调用；不提供 gRPC/MQ client binding |
 | `ak.gate.account.command.logout` | `POST /_arkret/gate/account/logout` | Account Authority hard logout 的唯一客户端入口；内部可调用 `logout_auth_session`，不提供 gRPC/MQ client binding |

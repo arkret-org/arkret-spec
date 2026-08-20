@@ -396,6 +396,8 @@ Realm 有两个终态 event，语义不同：
 
 被 `archived` 或 `frozen` facet 关闭普通写入的 Realm 收到非豁免普通写入时，reducer / 服务端 MUST 返回 `realm_frozen`（HTTP 403）。豁免集合是封闭集合，仅包括：(a) `ak.realm.archive` / `ak.realm.freeze` facet 自身的后继写（包括写 `false` 解锁）；(b) `ak.realm.tombstone` / `ak.realm.destroy` 终态升级；(c) `ak.audit.*` 与 `ak.audit.erasure_receipt`；(d) 撤权或主动退出写入：`ak.member.state{membership="leave"}`、`ak.capability.revoke`、delegation revoke、device / key revoke，以及这些动作必需的审计回执。豁免动作仍 MUST 通过其普通 capability、CAS basis、签名和 schema 校验；冻结/归档不授予额外权限。`ak.realm.policy_bundle`、新增成员、授权扩张和其它控制面写入不在豁免集合内。Circle 与其它子对象 MUST 直接回指本枚举，不得自行扩张豁免面。
 
+**Lifecycle 时刻字段 `effective_at` 与 `freeze_expires_at`（normative）**：Realm lifecycle Event（`ak.realm.archive` / `ak.realm.freeze` / `ak.realm.tombstone` / `ak.realm.destroy`）与 Strand / Circle / Morph 等 generic lifecycle payload MAY 携带 `effective_at`，表示该 lifecycle 变更的生效时刻。`effective_at` 缺席 = 立即生效，以该 Event 被 accepted 进入 frontier 的时刻为准；reducer 对缺席一律按「现在」处理，不得回退到签发时刻或服务端本地时钟之外的其他来源。仅 `ak.realm.freeze` MAY 额外携带 `freeze_expires_at`，表示本次冻结的到期时刻：到达该时刻后 freeze cell 自动解除（到期自动解冻），无需再显式写 `frozen=false`；缺席 = 无自动解冻，冻结只能由后继 `ak.realm.freeze{frozen=false}` 显式解除。二者均为信息性 / 调度性成员，只决定变更何时生效、何时自动解除，MUST NOT 改变 effect_projection 的既有判据：freeze 的投影字段仍是 `payload.frozen`，`ak.self.realm.lifecycle` 读视图（`realm_lifecycle_view`）的 `frozen` 判据不变，`freeze_expires_at` 仅作为独立只读成员在投影中暴露。
+
 #### 2.6.0.1 产品态"解散 Realm"映射（normative）
 
 产品层若给 Realm owner / admin 提供"不转让、直接解散 / 关闭这个 Realm"的选择，wire 层 MUST 映射为 `ak.realm.destroy`，而不是 `ak.realm.tombstone`：

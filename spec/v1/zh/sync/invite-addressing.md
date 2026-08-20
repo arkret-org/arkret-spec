@@ -354,6 +354,16 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Se
 8. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `denied_subjects`(命中 inviter 即 `drop` 且强制 opaque)与 `denied_principal_services`；再按 effective `holder_allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
 9. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `denied_subjects` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与“限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny”落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）。
 
+notify 分支的 holder-private 投递承载是 account-data 私有 cell，key 为 `ak.account.invite_delivery`（登记于 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)）。cell value 是**明文** JSON，MUST 符合 `ak.schema.invite_delivery.v1`（[`invite-delivery.schema.json`](../../artifacts/schemas/invite-delivery.schema.json)），不是 `ak.schema.account_data_encrypted_value.v1` envelope：该 cell 由接收方 Principal Server 在投递路径写入，服务端无法产出 holder 客户端加密的 envelope；`invite_token` 本就是服务端基础设施签发并持有的私有 locator，明文存储不改变其信任边界。value 外层为 `schema` / `updated_at` / `entries[]`，每个 entry 携带 `invite_id` / `realm_id` / `inviter` / `invite_token` / `received_at` / `expires_at`。
+
+写入语义是封闭的：
+
+- 该 cell 是 [`../models/account-data.md` §5](../models/account-data.md) 的 server-versioned CAS whole-value register：每次写入携带 `expected_revision`，冲突时写入方 MUST 重读当前值、按本节规则重新合并后重试，重试 MUST 有界（至多 3 次）；重试耗尽 MUST 放弃本次投递写入并以内部冲突失败，MUST NOT 以 stale revision 强行覆盖。
+- 每次写入 MUST 先清除 `expires_at <= now` 的过期 entry，再按 `invite_id` 去重（同一 `invite_id` 的重复投递替换旧 entry，不重复占位），随后 append 新 entry；结果超过 200 条上限时 MUST 从 `received_at` 最旧的 entry 开始逐出，直至不超过 200 条。
+- entry 的 `expires_at` MUST 取自 invite Event payload 的 `expires_at`；payload 未携带时服务端 MUST 以该 Event 的 `created_at` 加 7 天兜底。`expires_at <= now` 的 entry 是 stale 的：客户端 MUST NOT 用它执行 accept，并 MUST 在读取时按 `expires_at` 过滤。
+- 写入被 CAS 接受后，服务端 MUST 以 `ak.account_data.update` actor-private device update 把已接受的 revision 与完整 value fanout 到 holder 的各设备。fanout 只是实时加速路径；离线或错过 fanout 的设备 MUST 能直接回读该 CAS cell 补取（account-data 天然是可回读的 register），两条路径读到的 value 语义相同。
+- private delivery material（含 `invite_token`）MUST NOT 物化到 Invite 对象或任何 Realm state（[`../models/governance-objects.md` §5.3](../models/governance-objects.md)）；该 cell 是 directed invite token 送达被邀请方设备的唯一规范私有承载。
+
 ## 8. Describe Capabilities
 
 支持 invite addressing 的 Principal Server SHOULD 在 `ServiceDescribe.supported_operations` 中声明：

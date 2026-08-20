@@ -3,7 +3,7 @@ title: HTTP/JSON Binding 通用约定
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-16
+updated: 2026-08-20
 ---
 
 ## 0. 规范语言
@@ -268,6 +268,8 @@ POST /_arkret/self/events
 Authorization: Bearer <ak.session.grant>
 DPoP: <DPoP proof JWT>
 ```
+
+需要 fresh 高风险动作认证的操作（如用户自助擦除入口）不落在本面：它们 MUST 由 Account Authority 在 `/_arkret/gate/account/*` 直接受理。session grant introspection 刻意不投影 `auth_time` 或认证 proof kind，Principal Server MUST NOT 依据 introspection 或本地会话状态自行判定或近似认证新鲜度（见 [`../identity/account-lifecycle.md` §8.1 与 §10](../identity/account-lifecycle.md) 的认证新鲜度归属原则）。
 
 Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失败即 `unauthenticated`，fail closed）：
 

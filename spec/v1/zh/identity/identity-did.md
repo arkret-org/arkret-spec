@@ -3,7 +3,7 @@ title: DID Identity
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-11
+updated: 2026-08-20
 ---
 
 ## 0. 规范语言
@@ -603,6 +603,7 @@ DID hosting 位置或其它 resolution 成分变化，只要 adapter 仍投影�
 
 - 监控 hosting domain、`did.jsonl` 可达性、最近 entry head、SCID 一致性、controller proof 验证结果，以及 policy 声明的 trusted witness 的最新签名时间。
 - 健康状态 MUST 区分 `healthy`、`degraded_no_witness`、`degraded_hosting_unreachable`、`stale_history`、`write_unavailable` 和 `untrusted` 或等价状态。
+- **适用前提（normative）**：witness 证据本身是可选的（§3.4.1：`parameters.witness` 缺席表示该 DID 未声明 method witness）。本地托管且 DID log 未声明 witness policy、所属 deployment profile 也不要求 witness 证据的部署形态是合规形态，**不**进入 `degraded_no_witness`；该状态仅适用于"已声明 witness policy、或所属 profile 按 §3.4.2 要求 witness 证据"而证据缺失或过期的情形。
 - `degraded_no_witness`（**hosting 仍可达**但 witness evidence 缺失或过期）只能用于历史解析和低风险读取；新 DID 创建、key rotation、recovery、deactivation 和高风险 service delegation MUST 等待 witness evidence 恢复，或走部署 policy 明确允许的替代路径。该状态的 per-entry cache freshness 上限、超时后进入 `stale_history` / `write_unavailable` 并 fail closed 等不变量统一见 §3.4 cache-only degraded mode；本节不重复其阈值，只在 freshness 触发时驱动健康状态转换。
 - `degraded_hosting_unreachable`（**hosting domain 不可达**：`did.jsonl` 拉取失败 / 连接超时 / DNS 解析失败）是 §3.4 cache-only degraded mode 所对应的健康状态——此时 resolver 只能消费此前已验证的本地 cache,不得 live 解析。其 24h fallback 总时长上限、per-entry 7 天 cache age 上限、低风险只读封闭集合与超时后进入 `stale_history` / `write_unavailable` 并 fail closed 等不变量统一见 §3.4;本节不重复其阈值，只在该窗口或 freshness 触发时驱动健康状态转换。注意 `degraded_no_witness`（hosting 可达、缺 witness）与 `degraded_hosting_unreachable`（hosting 不可达）触发条件互斥，实现 MUST 据 hosting 可达性区分进入哪一状态。
 - `stale_history` 或 `untrusted` 时，resolver MUST fail closed；MUST NOT 用缓存 handle、DNS、Principal Server 声明或用户登录态替代 DID 历史链。

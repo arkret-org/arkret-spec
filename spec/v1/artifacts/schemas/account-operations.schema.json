@@ -2542,7 +2542,7 @@
     },
     "account_request_erasure_request_body": {
       "type": "object",
-      "description": "Record the authenticated account holder's explicit request to erase the account (ak.self.account.command.request_erasure; zh/identity/account-lifecycle.md section 8.1). Acceptance only records the intent and lets the Account Authority start its existing erasure_pending issuance flow; it is neither the signed AccountStatusRecord nor a completion receipt. The Account Authority MUST treat this as a high-risk action and require fresh high-risk action authentication (recent login, WebAuthn, recovery key or a deployment equivalent); re-authentication strength, risk checks and cooldown are deployment governance.",
+      "description": "Record the authenticated account holder's explicit request to erase the account (ak.gate.account.command.request_erasure; zh/identity/account-lifecycle.md section 8.1). The Account Authority accepts it directly on the gate surface; acceptance only records the intent and continues the Account Authority's existing erasure_pending issuance flow within the same service — it is neither the signed AccountStatusRecord nor a completion receipt. The Account Authority MUST treat this as a high-risk action and require fresh high-risk action authentication (recent login, WebAuthn, recovery key or a deployment equivalent), judged locally by the Account Authority; re-authentication strength, risk checks and cooldown are deployment governance.",
       "required": [
         "request_id"
       ],

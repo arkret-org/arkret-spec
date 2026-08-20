@@ -579,6 +579,7 @@ Handle claim 获取与刷新规则：
 - `ak.presence.preference`
 - `ak.read_receipt.preferences`
 - `ak.account.invite_quarantine`
+- `ak.account.invite_delivery`
 
 Account data MUST 按 principal/device 授权隔离。联邦节点不得向其他 principal 泄露 account data。
 

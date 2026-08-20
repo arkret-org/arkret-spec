@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-19",
+  "version": "2026-08-20",
   "source_of_truth": false,
-  "generated_at": "2026-08-19T06:55:00+08:00",
+  "generated_at": "2026-08-20T05:55:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -29,10 +29,10 @@
       "core": {
         "service_describe": 3,
         "streaming_frame_schema": 2,
-        "typed_schema": 39
+        "typed_schema": 38
       },
       "deployment_local": {
-        "typed_schema": 17
+        "typed_schema": 18
       },
       "extension": {
         "binary_or_redirect": 2,
@@ -609,6 +609,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountRegisterRequestBody",
         "response": "#/components/schemas/AccountRegisterOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.gate.account.command.request_erasure",
+      "surface_class": "deployment_local",
+      "http": "POST /_arkret/gate/account/erasure-requests",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
+        "response": "../schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1464,20 +1478,6 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ak.self.account.command.request_erasure",
-      "surface_class": "core",
-      "http": "POST /_arkret/self/account/erasure-requests",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
-      "openapi_component_refs": {
-        "request": "../schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
-        "response": "../schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.account.command.revoke_cursor",

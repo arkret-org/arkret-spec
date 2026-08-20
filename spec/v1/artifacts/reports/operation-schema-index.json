@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-19",
+  "version": "2026-08-20",
   "source_of_truth": false,
-  "generated_at": "2026-08-19T06:55:00+08:00",
+  "generated_at": "2026-08-20T05:55:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -208,10 +208,12 @@
         "schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome",
         "schema_kind": "object",
         "required": [
-          "ok"
+          "ok",
+          "push_target_id"
         ],
         "properties": [
           "ok",
+          "push_target_id",
           "registration_id",
           "expires_at"
         ],
@@ -1314,6 +1316,39 @@
         "properties": [
           "ok",
           "revoked"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.request_erasure",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id"
+        ],
+        "properties": [
+          "request_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "status",
+          "principal_id",
+          "recorded_at"
+        ],
+        "properties": [
+          "request_id",
+          "status",
+          "principal_id",
+          "recorded_at",
+          "withdrawal_window_ends_at"
         ],
         "closed": true
       }
@@ -4320,39 +4355,6 @@
         ],
         "properties": [
           "profile"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.account.command.request_erasure",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id"
-        ],
-        "properties": [
-          "request_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "status",
-          "principal_id",
-          "recorded_at"
-        ],
-        "properties": [
-          "request_id",
-          "status",
-          "principal_id",
-          "recorded_at",
-          "withdrawal_window_ends_at"
         ],
         "closed": true
       }
@@ -8557,7 +8559,8 @@
           "archived",
           "frozen",
           "terminal_state",
-          "successor_realm_id"
+          "successor_realm_id",
+          "freeze_expires_at"
         ],
         "closed": true
       }
@@ -8595,7 +8598,8 @@
           "archived",
           "frozen",
           "terminal_state",
-          "successor_realm_id"
+          "successor_realm_id",
+          "freeze_expires_at"
         ],
         "closed": true
       }
@@ -8633,7 +8637,8 @@
           "archived",
           "frozen",
           "terminal_state",
-          "successor_realm_id"
+          "successor_realm_id",
+          "freeze_expires_at"
         ],
         "closed": true
       }
@@ -8671,7 +8676,8 @@
           "archived",
           "frozen",
           "terminal_state",
-          "successor_realm_id"
+          "successor_realm_id",
+          "freeze_expires_at"
         ],
         "closed": true
       }
@@ -8929,7 +8935,8 @@
           "archived",
           "frozen",
           "terminal_state",
-          "successor_realm_id"
+          "successor_realm_id",
+          "freeze_expires_at"
         ],
         "closed": true
       }

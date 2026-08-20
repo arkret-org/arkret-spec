@@ -3,7 +3,7 @@ title: Account Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-18
+updated: 2026-08-20
 ---
 
 ## 0. 规范语言
@@ -409,6 +409,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 
   未识别的取值 MUST 按未知 policy 字段 fail closed（保守取 `retain_membership` 不主动改 membership，并标记 policy 解析告警），不得静默回退为默认值。注意本字段控制的是 membership state，与上表前 6 行无条件必停的本地投递撤销正交。
 - **本地投递必停**：无论 policy 是否 ban，上表前 6 行（session/device/applet/KeyPackage/push/to-device queue）必停 — 否则会出现"账户已停用但其 device 还能签名 / push gateway 还在投递"的不可解释窗口。
+- **Push route 行的完成判据（normative）**：push gateway 是独立主体，push route 行的完成判据是 push gateway 侧停止投递。当 gateway 独立持有注册 endpoint / 投递状态时，Principal Server MUST 通过已登记的内部通道通知 gateway 并取得处理结果；Principal Server 的本地存储 purge 不构成该行的完成。未取得 gateway 处理结果时该行按未完成计，适用下文 `deactivation_partial` 的标记与重试语义。
 - **MLS Remove**：若 Realm policy 决定 deactivate → leave，对应 MLS group MUST 在 grace window（默认 `mls_deactivation_grace_ms = 600,000 ms`）内 emit `ak.mls.commit` Remove；超时未 commit 则该 Realm 的成员客户端 MUST 在 verified timeline 中把该 principal 标 `unverifiable_member`，不再接受其新 epoch 消息。
 - Fanout 失败的 partial state：如果某条 fanout 因网络 / 服务不可达失败，server `account_status` MUST 标 `deactivation_partial` 并继续重试；客户端 UI MUST 显式标记 "停用未完成" 而不是显示已停用。
 - **跨 Principal Server 传播**：若该 principal 曾在其它 Principal Server 上持有 device / KeyPackage / to-device / push-route 状态，或通过 Realm membership delivery binding 使用过 peer 服务，首个接收 Principal Server MUST 按 §3.1 的 durable affected-service index 与 `ak.peer.account_status.command.submit` receipted fanout 分支主动推送原始 `AccountStatusRecord` 及其专用 `account_status_receipts[]`；不得塞入通用 Realm federation batch，不得广播给无关 peer。每个 destination 返回的 `accepted | duplicate` 才构成 ack。未在 `deactivation_propagation_window_ms` 内得到全部 ack 时，本地 `propagation_state` 转为 `incomplete`，服务侧投影 flag `deactivation_federation_incomplete=true`，并暂停新 Realm onboard、新 session/device grant 与新 KeyPackage 发布；该 flag 是可变的 outbox/projection 状态，MUST NOT 回写或重签 immutable record。后续全部 ack 到达后将 flag 清零并保留审计记录。
@@ -454,11 +455,23 @@ Account Authority 不新增第二条私有 peer erase command。它发布 `erasu
 
 ### 8.1 用户自助擦除入口（normative）
 
-用户本人发起账号擦除的唯一客户端 operation 是 `ak.self.account.command.request_erasure`
-（`POST /_arkret/self/account/erasure-requests`）。它只做三件事：鉴权、durable 记录擦除
-意图、触发 Account Authority 本节既有的 `erasure_pending` 签发流程。它不创建第二套擦除
-语义，也不直接签发 AccountStatusRecord——按 §3，holder 自助请求只能提交 authenticated
+用户本人发起账号擦除的唯一客户端 operation 是 `ak.gate.account.command.request_erasure`
+（`POST /_arkret/gate/account/erasure-requests`）。该入口由 Account Authority 在 gate 面
+直接受理（gate 面服务方与客户端路由规则见
+[`../sync/service-http-binding.md` §2.1.2](../sync/service-http-binding.md)），它只做
+的三件事——鉴权、durable 记录擦除意图、触发本节既有的 `erasure_pending` 签发流程——
+全部落在 Account Authority 内部，不存在跨服务移交：`erasure_pending` record 的签发者、
+状态转换合法性判定与进入前置 fanout 的编排方本来就是 Account Authority，受理与签发同侧，
+因此不出现"受理已 durable 而签发悬于另一服务"的中间态。它不创建第二套擦除语义，受理
+本身也不直接签发 AccountStatusRecord——按 §3，holder 自助请求只能提交 authenticated
 transition command，record 的签发者 MUST 是 Account Authority。
+
+**认证新鲜度的归属（normative）**：需要 fresh 高风险动作认证的操作 MUST 由 Account
+Authority 直接受理，认证新鲜度由 Account Authority 本地判定——它是唯一掌握 recent
+login、WebAuthn、recovery key 事实的一方。Principal Server MUST NOT 依据 session grant
+introspection 或本地会话状态自行判定或近似认证新鲜度：introspection 响应刻意不投影
+`auth_time` 或认证 proof kind，这是有意的闭合设计，任何试图在 Principal Server 侧绕过该
+闭合、重建新鲜度判定的做法都 MUST 视为协议违规。
 
 - **请求与受理（normative）**：请求体是 closed object，只携带 `request_id` 幂等身份
   （schema 见 [`account-operations.schema.json`](../../artifacts/schemas/account-operations.schema.json)
@@ -488,10 +501,11 @@ transition command，record 的签发者 MUST 是 Account Authority。
   operation；部署如提供撤回窗口，其撤回面（部署治理）的效力 MUST 终结于 record 签发，
   MUST NOT 以任何形式复活已签发的 record。
 - **进入条件**：本操作只接受 current status 为 `active` / `soft_logged_out` / `suspended`
-  的请求；`locked` / `deactivated` / `erasure_pending` 下 session grant 已按 §3 矩阵失效，
-  请求在认证层以对应状态码失败。受理后 Account Authority 签发的 record、传播、异步执行与
-  回执完全复用 §8 既有流程；record 的 `reason_code` SHOULD 表达触发来源（如
-  `gdpr_request`）。
+  的请求；current status 由 Account Authority 本地判定，它是 account status 的真相源，
+  无需向其它服务取证。`locked` / `deactivated` / `erasure_pending` 下 session grant 已按
+  §3 矩阵失效，请求在认证层以对应状态码失败。受理后 Account Authority 签发的 record、
+  传播、异步执行与回执完全复用 §8 既有流程；record 的 `reason_code` SHOULD 表达触发来源
+  （如 `gdpr_request`）。
 
 ## 9. Session Revocation
 
@@ -541,3 +555,9 @@ Native personal agent(`actor_kind="agent"`,`accountable_principal_ids` 指向 co
 - 提交 appeal。
 
 这些 API 必须使用高风险动作认证，例如 recent login、WebAuthn、recovery key 或管理员多方审批。
+
+**认证新鲜度的归属（normative）**：与 §8.1 同一原则——需要 fresh 高风险动作认证的操作
+MUST 由 Account Authority 直接受理，认证新鲜度由 Account Authority 本地判定。Principal
+Server MUST NOT 依据 session grant introspection 或本地会话状态自行判定或近似认证新鲜度；
+introspection 响应不投影 `auth_time` 或认证 proof kind 是有意的闭合设计，不得为绕过该闭合
+而在 Principal Server 侧重建新鲜度判定。

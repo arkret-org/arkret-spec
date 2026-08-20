@@ -961,7 +961,7 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
 
     seen: set[str] = set()
     allowed_status = {"active", "reserved", "deprecated"}
-    allowed_storage = {"encrypted_account_data", "local_only", "encrypted_account_data_or_local"}
+    allowed_storage = {"encrypted_account_data", "local_only", "encrypted_account_data_or_local", "plaintext_account_data"}
     # zh/models/account-data.md §5: the convergence primitive is declared per row,
     # never defaulted, so an implementation can never guess "CAS/LWW".
     allowed_merge_strategies = {"cas_register"}

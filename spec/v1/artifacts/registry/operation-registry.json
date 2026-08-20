@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-19",
+  "version": "2026-08-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-19T06:55:00+08:00",
+  "generated_at": "2026-08-20T06:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -118,7 +118,6 @@
         "ak.self.account.read.describe",
         "ak.self.account.read.viewer",
         "ak.self.account.command.update_profile",
-        "ak.self.account.command.request_erasure",
         "ak.self.actor_profile.read.resolve",
         "ak.self.account.stream.subscribe",
         "ak.self.account.command.revoke_cursor",
@@ -466,6 +465,7 @@
         "ak.gate.account.command.logout_auth_session",
         "ak.gate.account.command.introspect_session_grant",
         "ak.gate.account.command.logout",
+        "ak.gate.account.command.request_erasure",
         "ak.gate.account.command.revoke_session",
         "ak.gate.account.exchange.complete_oidc"
       ],
@@ -1060,6 +1060,23 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.request_erasure",
+      "http": "POST /_arkret/gate/account/erasure-requests",
+      "grpc": "GateAccount/RequestErasure",
+      "mq": "gate.account.command.request_erasure",
+      "notes": "The only client entry point for self-initiated account erasure (zh/identity/account-lifecycle.md section 8.1). The Account Authority accepts it directly on the gate surface: it authenticates the holder as a high-risk action, durably records the erasure intent and continues its existing erasure_pending AccountStatusRecord issuance flow within the same service — there is no cross-service handoff, because the record issuer, the status-transition legality oracle and the section-8 fanout orchestrator are all the Account Authority, so no 'accepted but issuance pending on another service' intermediate state exists. Authentication freshness is judged locally by the Account Authority, the only party holding recent login / WebAuthn / recovery key facts; a Principal Server MUST NOT determine or approximate it from session-grant introspection or local session state (introspection deliberately projects neither auth_time nor proof kind). The success response is an acceptance confirmation only: the current status is observed through the existing account-status read surface and physical completion only through the erasure receipt rail. The Account Authority MAY insert a deployment-governed withdrawal window (possibly zero) between acceptance and record signing, echoing withdrawal_window_ends_at when one exists; once the erasure_pending record is signed the request is irreversible and any withdrawal MUST fail closed. Replaying the same request_id returns the recorded acceptance outcome; the same request_id with different canonical bytes is duplicate_conflict with zero writes; a different request_id while a live unsigned-record intent exists is failed_precondition with reason_code erasure_request_already_pending. A session that does not satisfy the deployment's fresh high-risk action authentication policy is rejected with reauthentication_required.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "request_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "records_only_a_service_local_erasure_intent_no_event_is_authored"
       }
     },
     {
@@ -2254,27 +2271,6 @@
           "ak.profile.create",
           "ak.profile.update"
         ]
-      }
-    },
-    {
-      "operation_id": "ak.self.account.command.request_erasure",
-      "http": "POST /_arkret/self/account/erasure-requests",
-      "grpc": "SelfAccount/RequestErasure",
-      "mq": "self.account.command.request_erasure",
-      "notes": "The only client entry point for self-initiated account erasure (zh/identity/account-lifecycle.md section 8.1). It authenticates the holder as a high-risk action, durably records the erasure intent and lets the Account Authority start its existing erasure_pending AccountStatusRecord issuance flow; it never signs the record itself and never creates a second erasure semantics. The success response is an acceptance confirmation only: the current status is observed through the existing account-status read surface and physical completion only through the erasure receipt rail. The Account Authority MAY insert a deployment-governed withdrawal window (possibly zero) between acceptance and record signing, echoing withdrawal_window_ends_at when one exists; once the erasure_pending record is signed the request is irreversible and any withdrawal MUST fail closed. Replaying the same request_id returns the recorded acceptance outcome; the same request_id with different canonical bytes is duplicate_conflict with zero writes; a different request_id while a live unsigned-record intent exists is failed_precondition with reason_code erasure_request_already_pending. A session that does not satisfy the deployment's fresh high-risk action authentication policy is rejected with reauthentication_required.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "schema_resource",
-      "idempotency_mechanism": "request_id",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "records_only_a_service_local_erasure_intent_no_event_is_authored",
-        "cross_service_effects": [
-          "triggers_account_authority_erasure_pending_record_issuance_and_section_8_fanout"
-        ],
-        "irreversibility_note": "Acceptance records intent only; the irreversible point is the Account Authority signing the erasure_pending AccountStatusRecord, after which no withdrawal is possible. Physical completion is established only by a verified ErasureReceiptPackage."
       }
     },
     {

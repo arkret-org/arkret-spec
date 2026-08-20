@@ -83,9 +83,6 @@ POST /_arkret/edge/push/register-device
 | `platform` | string | SHOULD | `android`, `ios`, `web`, `desktop` |
 | `app_id` | string | SHOULD | 应用的包名 / Bundle ID |
 | `display_name` | string | MAY | 用户可读设备名 |
-| `client_rule_digest` | `sha256:<hex>` | optional | 客户端本地通知规则的 per-device keyed digest（见下方 normative 约束）。Principal Server sync surface 不读取规则明文，只可把该 digest 与 Realm policy 允许的 server-side hint 组合，用于减少无差别 wakeup。 |
-
-**`client_rule_digest` 派生与关联约束（normative）**：`client_rule_digest` MUST 经 per-`(device, salt_epoch)` 的 keyed HMAC 派生（例如 `HMAC-SHA256(device_local_rule_salt[salt_epoch], canonical_json(rules))`，salt 为设备本地私有、随 epoch 轮换），**MUST NOT** 直接使用规则 canonical JSON 的裸 hash。理由：裸 canonical hash 让持有相同规则集的不同设备产生相同 digest，使 Principal Server sync surface / 受托服务可据此跨设备、跨 route 关联同一用户的设备或推断规则集合。该 digest **MUST NOT** 被用于跨设备、跨 push route 或跨 Principal Server 上下文的关联；服务端只能在**同一 device 注册**范围内用它判断"规则是否变化"以避免重复 server-side hint 计算。
 
 Push registration 的作用域是接收该请求的 Principal Server sync surface / Principal Server service DID。客户端在个人 Principal Server 与组织 Principal Server 上同时登录同一 DID 时，MUST 分别注册互不相关的 push route / `push_target_id`；服务端不得把一个上下文中的 push token 或伪名复制到另一个上下文。实现若在请求中扩展携带 `recipient_service_id`，其值 MUST 与目标服务的 `ak.server.read.describe.service_id` 一致。
 
@@ -94,8 +91,11 @@ Push registration 的作用域是接收该请求的 Principal Server sync surfac
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `ok` | boolean | required | 注册是否被接受 |
+| `push_target_id` | `ak:pseudonym:push:<base64url>` | required | 服务端按 §2.2 派生 profile 生成的 pairwise pseudonym；见下方 normative 约束 |
 | `registration_id` | id | optional | 服务端分配的注册 ID |
 | `expires_at` | datetime | optional | 本 Sync / Principal Service 上该 push registration 记录的服务端有效期；不表示 APNs / FCM / WebPush provider token 自身过期时间 |
+
+**`push_target_id` 响应约束（normative）**：注册成功响应 MUST 携带服务端按 §2.2 派生的 `push_target_id`，这是调用方取得该伪名的唯一契约通路。`/_arkret/edge/push/notify` 的调用方 MUST 使用该值作为 `notification.push_target_id`，MUST NOT 自行推导、改造或复用其它标识；设备 MUST 以该值为准写入 / 核对 `ak.device.push_route` actor-private state（见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.6）。
 
 `expires_at` 若出现，MUST 只约束本次 Arkret push registration 记录。Provider token 的平台生命周期、撤销或轮换由 provider adapter 在实现内部处理，或通过新的注册请求提交新的 `push_key`；不得把 provider token 过期时间塞入 `expires_at`。客户端 SHOULD 在 `expires_at` 前主动重注册；到期后服务端 MUST 停止使用该 registration 投递 push，并在下一次注册 / describe / sync 投影中以等价的 `push_registration_expired` 状态或重新注册要求暴露给该 holder。`ak.device.push_route` 的轮换周期仍由 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.6.2 约束；若两者都存在，较早失效者控制实际投递。
 

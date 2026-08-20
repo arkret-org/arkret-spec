@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9835,
-    "total_schema_documents": 160,
+    "total_properties": 9852,
+    "total_schema_documents": 161,
     "by_presence_class": {
-      "optional": 2862,
+      "optional": 2869,
       "optional_defaulted": 71,
-      "required": 6504,
+      "required": 6514,
       "required_nullable": 133,
       "tristate": 265
     },
@@ -7296,6 +7296,7 @@
         "/$defs/notary_fault_equivocation_payload/properties/seal_a": "required",
         "/$defs/notary_fault_equivocation_payload/properties/seal_b": "required",
         "/$defs/notary_fault_equivocation_payload/properties/signer_id": "required",
+        "/$defs/object_lifecycle_payload/properties/effective_at": "optional",
         "/$defs/object_lifecycle_payload/properties/reason": "optional",
         "/$defs/object_lifecycle_payload/properties/target_ref": "required",
         "/$defs/object_lifecycle_payload/properties/target_state": "optional",
@@ -7395,6 +7396,7 @@
         "/$defs/realm_alias_declaration/properties/alias": "required",
         "/$defs/realm_alias_tombstone/properties/tombstone": "required",
         "/$defs/realm_archive_payload/properties/archived": "required",
+        "/$defs/realm_archive_payload/properties/effective_at": "optional",
         "/$defs/realm_archive_payload/properties/reason": "optional",
         "/$defs/realm_authority_basis_update_payload/properties/expected_state_digest": "required",
         "/$defs/realm_authority_basis_update_payload/properties/patch": "required",
@@ -7415,6 +7417,7 @@
         "/$defs/realm_delivery_binding_policy_payload/properties/rebind_authorization": "optional",
         "/$defs/realm_delivery_binding_policy_payload/properties/required_endorsers": "optional",
         "/$defs/realm_delivery_binding_policy_payload/properties/unroutable_membership_allowed": "optional",
+        "/$defs/realm_destroy_payload/properties/effective_at": "optional",
         "/$defs/realm_destroy_payload/properties/reason": "required",
         "/$defs/realm_destroy_payload/properties/retention_policy_id": "optional",
         "/$defs/realm_destroy_payload/properties/verification_stub_required": "optional_defaulted",
@@ -7422,6 +7425,8 @@
         "/$defs/realm_digest_suite_transition_payload/properties/snapshot_commitment": "required",
         "/$defs/realm_digest_suite_transition_payload/properties/to_digest_algorithm": "required",
         "/$defs/realm_digest_suite_transition_payload/properties/transition_snapshot_ref": "required",
+        "/$defs/realm_freeze_payload/properties/effective_at": "optional",
+        "/$defs/realm_freeze_payload/properties/freeze_expires_at": "optional",
         "/$defs/realm_freeze_payload/properties/frozen": "required",
         "/$defs/realm_freeze_payload/properties/reason": "optional",
         "/$defs/realm_inheritance_policy_payload/properties/inherits": "required",
@@ -7574,6 +7579,7 @@
         "/$defs/realm_set_default_strand_payload/properties/realm_id": "required",
         "/$defs/realm_set_default_strand_payload/properties/reason": "optional",
         "/$defs/realm_set_default_strand_payload/properties/strand_id": "required",
+        "/$defs/realm_tombstone_payload/properties/effective_at": "optional",
         "/$defs/realm_tombstone_payload/properties/reason": "required",
         "/$defs/realm_tombstone_payload/properties/replacement_event": "optional",
         "/$defs/realm_tombstone_payload/properties/successor_realm_id": "required",
@@ -8541,6 +8547,22 @@
         "/properties/invite_address": "required",
         "/properties/invite_event": "required",
         "/properties/schema": "required"
+      }
+    },
+    "invite-delivery.schema.json": {
+      "schema_ids": [
+        "ak.schema.invite_delivery.v1"
+      ],
+      "properties": {
+        "/$defs/delivery_entry/properties/expires_at": "required",
+        "/$defs/delivery_entry/properties/invite_id": "required",
+        "/$defs/delivery_entry/properties/invite_token": "required",
+        "/$defs/delivery_entry/properties/inviter": "required",
+        "/$defs/delivery_entry/properties/realm_id": "required",
+        "/$defs/delivery_entry/properties/received_at": "required",
+        "/properties/entries": "required",
+        "/properties/schema": "required",
+        "/properties/updated_at": "required"
       }
     },
     "invite-receive-policy.schema.json": {
@@ -10485,6 +10507,7 @@
         "/$defs/push_notify_request_body/properties/reason_code": "optional",
         "/$defs/push_register_device_outcome/properties/expires_at": "optional",
         "/$defs/push_register_device_outcome/properties/ok": "required",
+        "/$defs/push_register_device_outcome/properties/push_target_id": "required",
         "/$defs/push_register_device_outcome/properties/registration_id": "optional",
         "/$defs/push_register_device_request_body/properties/app_id": "optional",
         "/$defs/push_register_device_request_body/properties/device_id": "required",
@@ -10887,6 +10910,7 @@
         "/$defs/realm_lifecycle_event_submission/allOf/1/properties/event": "required_nullable",
         "/$defs/realm_lifecycle_view/properties/archived": "optional_defaulted",
         "/$defs/realm_lifecycle_view/properties/deleted": "required",
+        "/$defs/realm_lifecycle_view/properties/freeze_expires_at": "optional",
         "/$defs/realm_lifecycle_view/properties/frozen": "optional_defaulted",
         "/$defs/realm_lifecycle_view/properties/members": "required",
         "/$defs/realm_lifecycle_view/properties/ok": "required",

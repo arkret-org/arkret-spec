@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/invite-delivery.schema.json",
+  "title": "Arkret Invite Delivery",
+  "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private carrier that delivers directed-invite credential material to the invitee's devices on the notify branch (zh/sync/invite-addressing.md section 7). The cell is written by the recipient Principal Server, so it cannot be a client-encrypted envelope; invite_token is a server-issued private locator that MUST NOT enter the Invite object or Realm history (zh/models/governance-objects.md section 5.3).",
+  "type": "object",
+  "required": [
+    "schema",
+    "updated_at",
+    "entries"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.invite_delivery.v1"
+    },
+    "updated_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp",
+      "description": "Instant of the accepted CAS write that produced this value."
+    },
+    "entries": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "$ref": "#/$defs/delivery_entry"
+      },
+      "description": "Bounded register of delivered invite credentials, oldest first. At most one entry per invite_id; a redelivery of the same invite_id replaces the previous entry. Entries whose expires_at has passed are purged on the next write; overflow beyond 200 evicts the oldest entries."
+    }
+  },
+  "$defs": {
+    "delivery_entry": {
+      "type": "object",
+      "required": [
+        "invite_id",
+        "realm_id",
+        "inviter",
+        "invite_token",
+        "received_at",
+        "expires_at"
+      ],
+      "properties": {
+        "invite_id": {
+          "type": "string",
+          "pattern": "^ak:invite:[A-Za-z0-9_-]{44}$",
+          "description": "Invite ID derived from the accepted ak.invite.create Event; the deduplication key of this register."
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "inviter": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "did_core_id of the inviter as bound by the delivery verification chain."
+        },
+        "invite_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "Opaque server-issued private invite locator token used by the invitee's accept path. Clients MUST treat it as an opaque string and MUST NOT persist it anywhere outside this cell or equivalent holder-private state."
+        },
+        "received_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Instant the recipient Principal Server accepted this delivery into the cell."
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Expiry of the underlying invite credential; an entry with expires_at <= now is stale and MUST NOT be used to accept the invite."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

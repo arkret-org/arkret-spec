@@ -14,7 +14,7 @@ updated: 2026-07-29
 
 本文是 principal/actor-private Account Data 的存储、寻址、加密与 key 派生单一真相源。标准 data type 与产品语义仍由消费方文档定义，并登记在 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)。
 
-账户私有数据 SHOULD 作为 encrypted account data 或 actor-private Event 保存。只有 holder 的受信任设备有权读写；Sync / Principal Server 只存储闭合加密 envelope 或不透明 bytes，不解析明文。每次 `ak.account_data.set` 是对一个 data type + key 的全量覆盖。跨设备并发写入契约见 §5：每个 key 都是 **server-versioned compare-and-set whole-value register**，merge primitive 由 registry row 的 `merge_strategy` 显式声明，没有隐式默认，也不得猜测字段级 merge。
+账户私有数据 SHOULD 作为 encrypted account data 或 actor-private Event 保存。只有 holder 的受信任设备有权读写；Sync / Principal Server 只存储闭合加密 envelope 或不透明 bytes，不解析明文。唯一的例外形态是 registry 中 `storage="plaintext_account_data"` 的条目：这类 cell 由服务端在投递流程中写入（例如 `ak.account.invite_delivery`），其明文内容本就是服务端基础设施签发并持有的材料，服务端不因此获得任何超出其既有信任域的信息；客户端 MUST 按该条目的 `plaintext_schema` 校验后再使用。每次 `ak.account_data.set` 是对一个 data type + key 的全量覆盖。跨设备并发写入契约见 §5：每个 key 都是 **server-versioned compare-and-set whole-value register**，merge primitive 由 registry row 的 `merge_strategy` 显式声明，没有隐式默认，也不得猜测字段级 merge。
 
 ## 2. Namespace key 与不透明寻址（normative）
 

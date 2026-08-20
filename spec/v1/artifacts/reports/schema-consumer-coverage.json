@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 188,
+    "total_schemas": 189,
     "by_consumer": {
-      "declared_wire": 49,
+      "declared_wire": 50,
       "event_kind": 4,
       "inbound": 46,
       "outbound": 49,
-      "prose": 108,
+      "prose": 109,
       "prose_only": 2,
       "schema_reference": 113,
-      "startup_compile": 188,
+      "startup_compile": 189,
       "vectors": 120
     },
     "without_wire_consumer": 2,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 68,
+    "without_vector_coverage": 69,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -105,6 +105,7 @@
     "ak.schema.http_error_envelope.v1",
     "ak.schema.ice_config_response.v1",
     "ak.schema.inclusion_list.v1",
+    "ak.schema.invite_delivery.v1",
     "ak.schema.invite_delivery_request.v1",
     "ak.schema.invite_receive_policy.v1",
     "ak.schema.keypackage_operations.v1",
@@ -198,12 +199,12 @@
           "ak.gate.account.command.issue_identity_abandonment_challenge",
           "ak.gate.account.command.issue_identity_binding_challenge",
           "ak.gate.account.command.register",
+          "ak.gate.account.command.request_erasure",
           "ak.gate.account.command.revoke_session",
           "ak.gate.account.exchange.create_handoff",
           "ak.gate.account.read.onboarding",
           "ak.peer.account_status.command.submit",
           "ak.peer.account_status.read.resolve",
-          "ak.self.account.command.request_erasure",
           "ak.self.account.command.update_profile",
           "ak.self.account.read.viewer"
         ],
@@ -1088,6 +1089,7 @@
           "ak.schema.identity_resolution.v1",
           "ak.schema.inclusion_list.v1",
           "ak.schema.invite.v1",
+          "ak.schema.invite_delivery.v1",
           "ak.schema.invite_delivery_request.v1",
           "ak.schema.invite_receive_policy.v1",
           "ak.schema.join_policy_operations.v1",
@@ -1897,6 +1899,26 @@
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
+      }
+    },
+    {
+      "schema_id": "ak.schema.invite_delivery.v1",
+      "file": "schemas/invite-delivery.schema.json",
+      "consumers": {
+        "declared_wire": "account_data_plaintext",
+        "prose": "normative_text",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "runtime_dispatch_owned",
+        "owner": "account_data_plaintext",
+        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+      },
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.account.invite_delivery",
+        "normative_ref": "zh/sync/invite-addressing.md"
       }
     },
     {
@@ -3353,6 +3375,7 @@
           "ak.schema.identity_resolution.v1",
           "ak.schema.inclusion_list.v1",
           "ak.schema.invite.v1",
+          "ak.schema.invite_delivery.v1",
           "ak.schema.invite_delivery_request.v1",
           "ak.schema.key_backup.v1",
           "ak.schema.key_backup_active_series.v1",
