@@ -368,7 +368,7 @@ GET /_arkret/describe
 能力发现示例（normative 指引）：客户端判断服务端是否支持某项**可选传输能力**时，MUST 以 describe 的 `supported_features` / `supported_bindings` / `limits` 为权威发现面，而不是对猜测 endpoint 直接探测。以可续传 Blob 上传为例，服务端支持时 MUST 同时声明 `supported_features` 含 `ak.feature.blob.resumable_upload.tus.v1`、`supported_bindings` 含一条 `kind="tus"` 的 binding，并在 `limits` 暴露续传上限；客户端据此发现后再用 tus `OPTIONS`（`Tus-Resumable` / `Tus-Version` / `Tus-Extension`）做 endpoint 级线上确认。完整 binding 语义、内容寻址不变式与隐私约束见 [`crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)。
 
 本规范登记的标准 `supported_features` 还包括：`ak.feature.history_key_recovery.v1`（唯一 private exporter-history
-request/mailbox/S2S relay/RRK archive 合同）、`ak.feature.mls_exporter_aead.v1`（接受并同步
+request/response-stream/S2S relay/RRK archive 合同）、`ak.feature.mls_exporter_aead.v1`（接受并同步
 `content_scheme=mls_exporter_aead_v1` Realm/Circle；见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)
 §2.10）与 `ak.feature.agent_runtime_approval_notifications.v1`。声明 `history_key_recovery` 的服务 MUST 同时暴露
 `ak.self.seals.read.{frontier,resolve,mls_governance_proof,governance_dependencies}`、`ak.self.history_key_requests.{command.create,read.list}`、

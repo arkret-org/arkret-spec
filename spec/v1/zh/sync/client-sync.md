@@ -574,6 +574,8 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 存储模型、value 加密与跨设备并发写入契约的单一真源是 [`../models/account-data.md`](../models/account-data.md)：每个 key 是 server-versioned compare-and-set whole-value register，写入携带 `expected_revision`，领域 merge 规则在客户端明文上执行。
 
+`ak.account.invite_delivery` 与 `ak.account.invite_quarantine` 是 registry 声明的 `principal_server_cas` plaintext cell。它们的权威 revision/value 只由 account-data list/get 返回；CAS 被接受后的实时提示走本 sync frame 的 `to_device.messages[]`，使用受限 service sender 的 `ak.account_data.update`。它们不是 holder-authored Event，MUST NOT 出现在 `account_data.events[]`，也不得为了填充该 Event container 而合成 `ak.account_data.set`。
+
 ## 10. To-Device Delivery
 
 `to_device.messages` MUST 只包含当前 session credential 对应 device 的消息。
@@ -599,7 +601,7 @@ To-device 队列删除由**显式 ack** 驱动，与 stream cursor 解耦；acco
 1. **`ack_token` 签发**：服务端在每个携带非空 `to_device.messages` 的 `delta` frame 中 MUST 附带 `to_device.ack_token`；`GET /_arkret/self/device_messages` 的每个非空响应页同样 MUST 携带顶层 `ack_token`。`ack_token` 是 server-issued 不透明确认令牌，绑定 `(principal_id, device_id, 该批次的队列高水位)`，覆盖该批次及其之前所有已投递消息。它**不是 cursor**：不使用 `ak:cursor:` wire 形态，不进入 cursor schema / TTL / purpose 体系；客户端 MUST 把它当作不透明字符串原样回传。令牌 MUST 不可伪造：不可猜测（解码后熵 ≥ 128 bit）或等价的服务端查表绑定。**wire 形态（normative）**：`ack_token` MUST 是单个 UTF-8 字符串，且 MUST NOT 超过 1024 字节；客户端按不透明字符串原样回传、不解析其内部结构，服务端 MUST 拒绝超长或非 UTF-8 的 token（`param_invalid`）。该上界保证跨实现可移植，避免无界 token。
 2. **显式 ack**：客户端仅在该 `ack_token` 覆盖位置（含）之前的**所有已投递消息**都已持久化处理完成（密钥材料、verification transcript、secret 已落盘）后，MUST 调用 `ak.self.device_messages.command.ack`（`POST /_arkret/self/device_messages/ack`，body `{ack_token}`）。确认是**累计且单调**的：服务端删除该令牌覆盖位置（含）之前的全部已投递消息；ack 一个早于当前确认位置的令牌是合法 no-op，返回 `{ok: true}` 且 MUST NOT 回退确认位置。并行 dispatcher MUST 维护"最高已连续持久化队列位点"，MUST NOT ack 覆盖位置晚于任何未持久化消息的 token。该操作天然幂等，不需要 `Idempotency-Key`。
 3. **ack 校验**：服务端 MUST 校验 `ack_token` 绑定与当前 authenticated `(principal_id, device_id)` 匹配；unknown / 过期 / cross-binding 令牌 MUST 返回 `param_invalid`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。
-4. **cursor 只读与 envelope 幂等**：`/_arkret/self/account/subscribe` 与 `GET /_arkret/self/device_messages` 的 `after=` 都只决定读取 / 续传位置。客户端建立新的 subscribe 连接时（无论 `after=` 位置），服务端 MUST 重新投递所有未确认、未过期的 to-device 消息，并原样保留 `DeviceMessageEnvelope.message_id`。客户端 MUST 在执行 handler 副作用前查询 durable `(sender_principal_id, sender_device_id, message_id)` 去重记录；同 key 且已成功持久化的消息只恢复完成位点、不得再次执行 handler，随后仍可参与累计 ack。kind-specific `transaction_id` / `request_id` 只关联验证、secret 或其它业务 transcript，不得作为通用 envelope 去重键。相同 `message_id` 但 envelope canonical 内容不同视为协议冲突，MUST fail closed，不得覆盖既有去重记录。
+4. **cursor 只读与 envelope 幂等**：`/_arkret/self/account/subscribe` 与 `GET /_arkret/self/device_messages` 的 `after=` 都只决定读取 / 续传位置。客户端建立新的 subscribe 连接时（无论 `after=` 位置），服务端 MUST 重新投递所有未确认、未过期的 to-device 消息，并原样保留 `DeviceMessageEnvelope.device_message_id`。客户端 MUST 在执行 handler 副作用前查询 durable `(sender_principal_id, sender endpoint id, device_message_id)` 去重记录；endpoint id 按 closed sender XOR 分别取 `sender_device_id`、`sender_agent_id` 或 `sender_service_id`。同 key 且已成功持久化的消息只恢复完成位点、不得再次执行 handler，随后仍可参与累计 ack。kind-specific `transaction_id` / `request_id` 只关联验证、secret 或其它业务 transcript，不得作为通用 envelope 去重键。相同 `device_message_id` 但 envelope canonical 内容不同视为协议冲突，MUST fail closed，不得覆盖既有去重记录。
 5. **过期与丢失信号**：未确认消息仍受 `DeviceMessageEnvelope.expires_at` 与 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md) 队列 TTL 约束，过期 MUST 清除。服务端自该设备上次确认位置以来因过期或容量约束丢弃过未确认消息时，SHOULD 在下一个含 `to_device` 的响应中设置 `to_device.lost=true`；客户端收到后 SHOULD 触发密钥恢复路径（key backup / key re-request），MUST NOT 静默假设队列完整。**E2EE client profile 升级（normative）**：对声明 `ak.profile.e2ee_client.v1` 的客户端及其服务对端，由于丢弃的未确认 to-device 消息可能承载不可再生的 MLS Welcome / secret share / key material，上述两个 SHOULD 升为 **MUST**——服务端丢弃过该设备未确认消息时 **MUST** 设置 `to_device.lost=true`；客户端见到 `to_device.lost=true` 时 **MUST** 进入 key re-request / key backup 恢复路径，**MUST NOT** 静默把队列当作完整，以免 E2EE 密钥材料永久丢失而不被检出。
 6. **`ack_token` 独立于 stream cursor 生命周期（normative）**：`dropped` / `resync_required` frame、`cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized` 失效、以及任何清空本地 cursor 缓存的恢复动作，均 **MUST NOT** 使既有未确认的 `ack_token` 失效。`ack_token` 绑定的是 `(principal_id, device_id, to-device 队列高水位)`，与 stream cursor 的 wire 形态、TTL、purpose 和 revocation 体系完全独立（见 §10.1 第 1 条与 §12）。客户端在 cursor 失效 / dropped / resync 后重建订阅时，仍 MAY 用先前持有的有效 `ack_token` 确认已持久化处理的批次；服务端 MUST 仍按 §10.1 第 3 条校验该 token 的 `(principal_id, device_id)` 绑定并执行累计删除，不得仅因 stream cursor 已被重置就把该 token 当作 unknown / cross-binding 拒绝。该口径与 §12.2.1（cursor revoke 不影响已签发 `ack_token`）一致。
 
@@ -800,8 +802,8 @@ history-recovery scalability registry。
 
 Receiver 必须先 durable 保存 request private key/pending intent，再创建 request。source 必须先取得 manifest 的
 accepted/duplicate 小型 receipt；manifest 尚未 accepted 时提交 chunk，release service 必须以 dependency missing 零写入拒绝，
-不得建立 pending chunk、mailbox record 或 attestation。Receiver 只在 manifest descriptor、receipt-bound direct Seal replay、service record、
-release attestation 与 HPKE 全部验证后原子安装。每个 mailbox record 写入
+不得建立 pending chunk、response record 或 attestation。Receiver 只在 manifest descriptor、receipt-bound direct Seal replay、service record、
+release attestation 与 HPKE 全部验证后原子安装。每个 response record 写入
 `installed|cryptographically_rejected|superseded_duplicate|service_record_lost` disposition 后才可 ack；manifest 的
 `installed` 只表示 descriptor 已安装，不完成任何 epoch coverage，reject/lost 同样不完成 coverage。
 

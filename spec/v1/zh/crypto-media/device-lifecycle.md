@@ -459,10 +459,12 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `device_message_id` | `id:device_message` | required | 发送方为一个逻辑消息分配的稳定 UUIDv7 typed ID；服务端在重试、分页和重投时 MUST 原样保留。接收端统一按 `(sender_principal_id, sender_device_id, device_message_id)` 去重。 |
+| `device_message_id` | `id:device_message` | required | 发送方为一个逻辑消息分配的稳定 UUIDv7 typed ID；服务端在重试、分页和重投时 MUST 原样保留。接收端按 `(sender_principal_id, sender endpoint id, device_message_id)` 去重；endpoint id 由下述三分支分别取 `sender_device_id`、`sender_agent_id` 或 `sender_service_id`。 |
 | `kind` | `string` | required | 消息 kind，例如 `ak.key.verification.request`。标准 to-device kind 由 `device-message.schema.json` 的闭合 dispatch 定义，不得登记成 Event.kind。 |
 | `sender_principal_id` | `did` | required | 发送 principal。 |
-| `sender_device_id` | `id:device` | required | 发送设备。 |
+| `sender_device_id` | `id:device` | conditional | human device sender；与完整 `sender_agent_*` 三元组、`sender_service_id` 严格 XOR。 |
+| `sender_agent_id` / `sender_agent_verification_method` / `sender_agent_key_authorize_event_id` | `did` / `did_url` / `id:event` | conditional | Native Agent sender 的完整 signer-evidence 三元组；不得半填或与其它 sender 分支混填。 |
+| `sender_service_id` | `did_core_id` | conditional | 受限 Principal Server sender。只允许 `device-message.schema.json#/$defs/actor_private_update_kind` 闭集，且 `sender_principal_id == recipient_principal_id`；service id MUST 等于为该 recipient 提供当前 authenticated self/to-device surface 的 Principal Server service identity。 |
 | `recipient_principal_id` | `did` | required | 接收 principal；MUST 等于投递路径中的目标 principal。 |
 | `recipient_device_id` | `id:device` | required | 接收设备；MUST 等于投递路径中的目标设备。 |
 | `sent_at` | `datetime` | required | 发送时间。 |
@@ -471,7 +473,9 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 
 `device_message_id`、`recipient_principal_id` 和 `recipient_device_id` MUST 被签名、device proof 或加密 AAD 覆盖。发送接口使用 `messages.{principal_id}.{device_id}` 做批量路由时，服务端在入队前 MUST 把发送请求的 `device_message_id` 与路径目标复制进 `DeviceMessageEnvelope`，且接收端 MUST 拒绝 envelope 目标与当前登录设备不一致的消息。
 
-发送方 MUST 在第一次构造逻辑消息时分配 `device_message_id`，应用重试、HTTP batch 重试和服务端重投都 MUST 沿用该值；重新分配 ID 表示新的逻辑消息，接收端 MUST 独立处理。服务端 MUST 以 `(sender_principal_id, sender_device_id, device_message_id)` 维护至少覆盖队列 TTL 与短 grace period 的幂等记录：相同 canonical target intent 重试返回既有入队结果且不得新增队列项；同 key 但 `kind`、recipient、`expires_at` 或 `content` 不同，MUST 以 `duplicate_conflict`（reason `device_message_id_conflict`）拒绝整个发送请求且不得入队任一冲突版本。canonical target intent 是 `{device_message_id, kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, expires_at, content}` 的 canonical JSON；不含服务端物化的 `sent_at`、`unsigned` 或 HTTP `Idempotency-Key`。
+发送方 MUST 在第一次构造逻辑消息时分配 `device_message_id`，应用重试、HTTP batch 重试和服务端重投都 MUST 沿用该值；重新分配 ID 表示新的逻辑消息，接收端 MUST 独立处理。服务端 MUST 以 `(sender_principal_id, sender endpoint id, device_message_id)` 维护至少覆盖队列 TTL 与短 grace period 的幂等记录：human device、Native Agent、Principal Server service 的 endpoint id 分别是 `sender_device_id`、`sender_agent_id`、`sender_service_id`。相同 canonical target intent 重试返回既有入队结果且不得新增队列项；同 key 但 `kind`、recipient、`expires_at` 或 `content` 不同，MUST 以 `duplicate_conflict`（reason `device_message_id_conflict`）拒绝整个发送请求且不得入队任一冲突版本。canonical target intent 包含 `device_message_id`、`kind`、`sender_principal_id`、当前且仅当前 sender 分支的全部字段、`recipient_principal_id`、`recipient_device_id`、`expires_at` 与 `content`；不含服务端物化的 `sent_at`、`unsigned` 或 HTTP `Idempotency-Key`。
+
+`sender_service_id` 只表示 Principal Server 对 holder actor-private CAS cell 已接受 revision 的内部队列物化者，不把 service 冒充成 holder，也不授予任意 service 发送普通 to-device kind 的能力。该分支不走 holder device revocation gate，不排除所谓 origin device，而是 fanout 到 holder 的全部 active devices；service identity 由当前 authenticated Principal Server transport / service resolution 绑定，MUST NOT 作为可跨服务转交的 bearer delegation。`ak.self.device_messages.command.send` 是规范客户端 surface，MUST 拒绝任何试图提交或诱导物化 service sender 的请求；只有 Principal Server 内部 actor-private materializer 可以产生该分支。
 
 To-device 消息是短期队列对象，不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息。默认最大队列 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。标准验证请求仍受第 8.2 节约束，`request.expires_at` MUST be no later than `timestamp + 10m`。过期消息 MUST 从投递队列中清除，`GET /_arkret/self/device_messages` 不得返回；服务 MAY 仅保留最小幂等记录和脱敏审计摘要到 `expires_at` 后的短 grace period。
 
@@ -601,7 +605,7 @@ Content-Type: application/json
 
 `new_device_pubkey` MUST 是 canonical `PublicKey`（[`public-key.schema.json`](../../artifacts/schemas/public-key.schema.json) 的 `kty` / `kid` / `algorithm` / `key` 四字段）；旧的 `{kid, alg, public_key}` 写法不是 v1 wire，MUST `schema_violation`。`target_attestation` 是 §5.2.2 的 `device_pairing_target_attestation`，与路径 A 共享同一 schema 和同一 domain；它是本路径下 `hpke_key` 与 `algorithms` 的唯一权威来源，**只经该 to-device 消息到达**，MUST NOT 经免认证 stage / resolve 面回传给 server。接收旧设备 MUST 把 `purpose`、`pairing_code`、`new_device_pubkey.kid`、`challenge_proof.transcript_digest`、`gate_audience` 和 `request_canonical_digest` 纳入用户确认与 SAS/QR transcript 绑定，并 MUST 按 §2.1.2 的 `ak.device-pairing.challenge.to_device.v1` transcript 独立重算并验签 `challenge_proof`，**再按 §5.2.2 独立重建并验签 `target_attestation`**（`device_id` 等于 `new_device_pubkey.kid`、`device_public_key` 与 `new_device_pubkey.key` 解码为同一 Ed25519 key、`pairing_challenge_transcript_digest` 逐字节等于自己刚重算的 `transcript_digest`）后才可继续；不得只因收到该请求就把新设备标记为 trusted，也不得从消息中未经验签的字段取 `hpke_key` / `algorithms`。同一 pairing 向多台 sibling 广播时，每台收到的都是同一份 attestation：它不绑定任何 `authorized_by`，因此不需要预知 winner；实际成为 `authorized_by` 的是最终提交 gate 并被受理的那台设备。`pairing_code` MUST 是 8 位 Crockford-style 大写字母数字串（字符集 `[A-HJ-NP-Z2-9]`，拒绝易混字符），由 CSPRNG 的 40 个均匀随机 bit 直接编码；它只在短 TTL、单次使用、audience-bound transcript 内有效。用户确认后，旧设备通过 `ak.gate.account.command.pair_device` 完成授权落地；本规范不定义 `/_arkret/self/devices/pairing-requests*` 作为授权批准接口。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
-服务端 MUST 同时执行请求级 `(sender, Idempotency-Key)` 幂等与上述消息级 `(sender_principal_id, sender_device_id, device_message_id)` 幂等；前者识别同一批 HTTP command，后者识别跨批次、跨连接的同一逻辑消息。已投递消息的队列删除只由接收设备的显式确认（`ak.self.device_messages.command.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
+服务端 MUST 同时执行请求级 `(sender, Idempotency-Key)` 幂等与上述消息级 `(sender_principal_id, sender endpoint id, device_message_id)` 幂等；前者识别同一批 HTTP command，后者识别跨批次、跨连接的同一逻辑消息。规范客户端 send surface 上 endpoint 仍是当前 accepted `sender_device_id`（或已授权 Native Agent endpoint）；内部 service fanout 按 `(sender_service_id, device_message_id)` 的 endpoint 部分去重，不得读取不存在的 `sender_device_id`。已投递消息的队列删除只由接收设备的显式确认（`ak.self.device_messages.command.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导，以及 registry 明确为 Principal Server plaintext CAS 的 actor-private update 提示。
 
 若 `content` 已端到端加密，加密 AAD MUST 至少覆盖发送方在密封前已知且不可由队列服务物化的 `device_message_id`、`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id` 和 `expires_at`。`sent_at` 由队列服务入队时物化，不得进入发送方构造的通用 AAD；具体 kind MAY 增加发送前已知的业务关联字段。队列服务不得重写已进入 AAD 的字段。`Idempotency-Key` 是 HTTP 层语义，不进入 envelope，也不参与 AAD。
 
@@ -653,7 +657,7 @@ Content-Type: application/json
 | `ok` | `boolean` | required | 确认是否被接受（含旧令牌 no-op 的情况）。 |
 | `pruned_count` | `int` | optional | 本次实际删除的消息数。 |
 
-确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{ok: true}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `param_invalid`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / verification transcript / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端 MUST 先按 `(sender_principal_id, sender_device_id, message_id)` 查询 durable 去重记录：已成功持久化的消息不得再次执行副作用，但仍计入连续完成位点并允许累计 ack。kind-specific `transaction_id` / `request_id` 只用于业务 transcript 关联，不得替代 envelope 级去重键。
+确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{ok: true}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `param_invalid`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / verification transcript / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端 MUST 先按 `(sender_principal_id, sender endpoint id, device_message_id)` 查询 durable 去重记录：已成功持久化的消息不得再次执行副作用，但仍计入连续完成位点并允许累计 ack。kind-specific `transaction_id` / `request_id` 只用于业务 transcript 关联，不得替代 envelope 级去重键。
 
 ## 8. One-Time and Fallback Keys
 
@@ -1355,17 +1359,17 @@ DELETE /_arkret/self/keys/backups/{backup_id}
 
 - `POST /_arkret/self/history-key-requests` 创建 scope-private durable request；`POST /_arkret/self/history-key-requests/read` 执行无状态列表查询；
 - `POST /_arkret/self/history-key-responses` 发送 immutable manifest/chunk；
-- `POST /_arkret/self/history-key-responses/{reply_mailbox_id}/read` 与 `POST /_arkret/self/history-key-responses/{reply_mailbox_id}/ack` 仅凭 mailbox capability 读取/确认。
+- `POST /_arkret/self/history-key-responses/read` 与 `POST /_arkret/self/history-key-responses/ack` 仅凭 `Arkret-History-Capability` 呈递的 history response capability 读取/确认；URL、query 与 body 均不携 request locator。
 
 Requester 必须在发送前 durable 保存 HPKE private key、canonical request intent、closed
 `trusted_scope_anchor` 及使该 anchor 成为本地 trusted 的 verification checkpoint/material；create 返回后保存
-service receipt 和 sealed mailbox capability。相同 request id+intent 返回相同 bytes，不同 intent 冲突；retry 不得替换
+service receipt 和 sealed history response capability。相同 request id+intent 返回相同 bytes，不同 intent 冲突；retry 不得替换
 requester 选择的任何 authority anchor。
 Source 必须先 durable 保存完整 outbox 后发送；accepted/duplicate 只推进 exact record，重启后不得重封。
 
 Request、source response、service receipt 与 service response record 分别使用 proof-context registry 中的四个 closed
 context，全部复用标准 generic detached-JWS proof shape。Source proof 签入 actor/sender domain/scope/request/receipt/
-mailbox/expiry 与 content；不签服务生成的 sent_at 或 release attestation。Service record
+response stream/expiry 与 content；不签服务生成的 sent_at 或 release attestation。Service record
 proof 覆盖 sequence、cursor、source-record digest、exact response、sent_at 与条件式 release attestation。Ordinary human/Native Agent/minimal source sender domain
 按 exact historical active Leaf BasicCredential identity 校验；RRK holder 使用 archive 钉住的 holder signing binding，
 不得冒充 MLS leaf。

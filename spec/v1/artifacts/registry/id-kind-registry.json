@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.1",
+  "version": "2026-08-21.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-21T18:00:00+08:00",
+  "generated_at": "2026-08-21T23:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -301,14 +301,6 @@
       "status": "active",
       "storage_recommendation": "Store the complete typed content-addressed identifier together with the exact canonical signer-evidence bytes.",
       "description": "Content-addressed authenticated signer-resolution evidence reference. The suffix is the SHA-256 digest of the complete canonical evidence object under its registered digest rule."
-    },
-    {
-      "kind": "history_mailbox",
-      "wire_form": "ak:history_mailbox:<base64url-no-pad-16-byte-csprng>",
-      "payload_pattern": "[A-Za-z0-9_-]{22}",
-      "status": "active",
-      "storage_recommendation": "Store the full opaque locator and the mailbox capability commitment separately; the locator itself grants no access.",
-      "description": "Opaque locator for one capability-protected history reply mailbox. It is not an Event, DeviceMessage, request or response identity."
     }
   ],
   "id_kinds": [

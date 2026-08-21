@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.3",
+  "version": "2026-08-21.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-21T21:30:00+08:00",
+  "generated_at": "2026-08-21T23:56:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -9088,6 +9088,17 @@
         }
       },
       {
+        "schema_id": "ak.schema.invite_quarantine.v1",
+        "file": "schemas/invite-quarantine.schema.json",
+        "status": "active",
+        "description": "Actor-private plaintext account-data cell value of ak.account.invite_quarantine, written only by the recipient Principal Server CAS materializer. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
+        "consumer_binding": {
+          "kind": "account_data_plaintext",
+          "selector": "account_data key ak.account.invite_quarantine",
+          "normative_ref": "zh/identity/consent-model.md"
+        }
+      },
+      {
         "schema_id": "ak.schema.invite_receive_policy.v1",
         "file": "schemas/invite-receive-policy.schema.json",
         "status": "active",
@@ -9758,7 +9769,7 @@
         "schema_id": "ak.schema.history_key.v1",
         "file": "schemas/history-key.schema.json",
         "status": "active",
-        "description": "Closed private history-key request, mailbox, source relay, response, organization-recovery archive, and HPKE plaintext DTO family"
+        "description": "Closed private history-key request, response stream, source relay, response record, organization-recovery archive, and HPKE plaintext DTO family"
       },
       {
         "schema_id": "ak.schema.inclusion_list.v1",
@@ -10121,8 +10132,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-21.2",
-    "generated_at": "2026-08-21T21:00:00+08:00"
+    "version": "2026-08-21.4",
+    "generated_at": "2026-08-21T23:55:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -10422,14 +10433,6 @@
         "status": "active",
         "storage_recommendation": "Store the complete typed content-addressed identifier together with the exact canonical signer-evidence bytes.",
         "description": "Content-addressed authenticated signer-resolution evidence reference. The suffix is the SHA-256 digest of the complete canonical evidence object under its registered digest rule."
-      },
-      {
-        "kind": "history_mailbox",
-        "wire_form": "ak:history_mailbox:<base64url-no-pad-16-byte-csprng>",
-        "payload_pattern": "[A-Za-z0-9_-]{22}",
-        "status": "active",
-        "storage_recommendation": "Store the full opaque locator and the mailbox capability commitment separately; the locator itself grants no access.",
-        "description": "Opaque locator for one capability-protected history reply mailbox. It is not an Event, DeviceMessage, request or response identity."
       }
     ],
     "id_kinds": [
@@ -11092,8 +11095,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-21.1",
-    "generated_at": "2026-08-21T18:00:00+08:00"
+    "version": "2026-08-21.2",
+    "generated_at": "2026-08-21T23:50:00+08:00"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -15523,7 +15526,7 @@
         "http": "POST /_arkret/self/history-key-requests",
         "grpc": "SelfHistoryKey/RequestCreate",
         "mq": "self.history_key_requests.command.create",
-        "notes": "Create one immutable scope-private history request. The operation envelope may be at most 1 MiB, while the inner HistoryKeyRequest itself is independently capped at 64 KiB canonical bytes. Before success the service verifies the caller-pinned bootstrap/current bases and complete durable target cut, atomically pins every Seal, delta Control Move and registered dependency through request expiry, freezes the exact direct traversal intent, durably stores request/receipt bytes, and generates one opaque mailbox plus HPKE-sealed capability. Exact duplicate returns the first byte-identical accepted outcome; different intent under the same request_id conflicts.",
+        "notes": "Create one immutable scope-private history request. The operation envelope may be at most 1 MiB, while the inner HistoryKeyRequest itself is independently capped at 64 KiB canonical bytes. Before success the service verifies the caller-pinned bootstrap/current bases and complete durable target cut, atomically pins every Seal, delta Control Move and registered dependency through request expiry, freezes the exact direct traversal intent, durably stores request/receipt bytes, generates a 32-byte CSPRNG response capability and returns its byte-stable HPKE-sealed carrier. Exact duplicate returns the first byte-identical accepted outcome; different intent under the same request_id conflicts.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 1048576,
         "success_shape_kind": "typed_response",
@@ -15568,10 +15571,10 @@
       },
       {
         "operation_id": "ak.self.history_key_responses.read.list",
-        "http": "POST /_arkret/self/history-key-responses/{reply_mailbox_id}/read",
+        "http": "POST /_arkret/self/history-key-responses/read",
         "grpc": "SelfHistoryKey/ResponseList",
         "mq": "self.history_key_responses.read.list",
-        "notes": "Capability-protected sequence-ordered mailbox read. Authorization: Arkret-Mailbox carries the capability; unknown/wrong/expired capability is same-shape not_found. One merged stream contains normal records and signed lost descriptors; ack_token commits every ordered {sequence,kind,response_id,entry_digest} through the page high-water cursor.",
+        "notes": "Capability-addressed sequence-ordered response-stream read. Authorization: Arkret-History-Capability carries the only external locator and authorization value; unknown, expired, garbage-collected and unauthorized capabilities are same-shape not_found. One merged stream contains normal records and signed lost descriptors; ack_token commits every ordered {sequence,kind,response_id,entry_digest} through the page high-water cursor.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
@@ -15580,7 +15583,7 @@
       },
       {
         "operation_id": "ak.self.history_key_responses.command.ack",
-        "http": "POST /_arkret/self/history-key-responses/{reply_mailbox_id}/ack",
+        "http": "POST /_arkret/self/history-key-responses/ack",
         "grpc": "SelfHistoryKey/ResponseAck",
         "mq": "self.history_key_responses.command.ack",
         "notes": "Capability-protected contiguous high-water ack. Every covered sequence requires a durable installed, cryptographically_rejected, superseded_duplicate or signed service_record_lost disposition. Manifest installed means descriptor installation only; no reject/lost/manifest disposition completes epoch coverage.",
@@ -15719,8 +15722,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-21.1",
-    "generated_at": "2026-08-21T18:00:00+08:00"
+    "version": "2026-08-21.2",
+    "generated_at": "2026-08-21T23:50:00+08:00"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -17816,6 +17819,32 @@
           "ak.conflict.recovery"
         ],
         "profile": null,
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ak.consent.grant",
+        "category": "personal",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.consent.grant"
+        ],
+        "profile": "ak.profile.principal_control_realm.v1",
+        "root_control_only": true,
+        "notes": "Holder-private consent is authored only by the current controller of the holder Principal Control Realm; it is never grantable to a Realm co-owner or another principal.",
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ak.consent.revoke",
+        "category": "personal",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.consent.revoke"
+        ],
+        "profile": "ak.profile.principal_control_realm.v1",
+        "root_control_only": true,
+        "notes": "Holder-private consent revocation is authored only by the current controller of the holder Principal Control Realm and must remove caller-observed dots; it is never grantable.",
         "event_mapping_kind": "same_name"
       },
       {

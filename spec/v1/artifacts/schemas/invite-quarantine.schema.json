@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/invite-quarantine.schema.json",
+  "title": "Arkret Invite Quarantine",
+  "description": "Closed plaintext account-data cell value of ak.account.invite_quarantine. The recipient Principal Server is the sole CAS writer; the cell is a pending-review pointer inbox and grants no membership, contact, or consent authority.",
+  "type": "object",
+  "required": [
+    "schema",
+    "updated_at",
+    "entries"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.invite_quarantine.v1"
+    },
+    "updated_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp",
+      "description": "Instant of the accepted Principal Server CAS write that produced this value."
+    },
+    "entries": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "$ref": "#/$defs/quarantine_entry"
+      },
+      "description": "Bounded pending-review entries, oldest first. Expired entries are purged before a write and overflow evicts the oldest entries."
+    },
+    "last_invalidation": {
+      "$ref": "#/$defs/consent_revoke_invalidation",
+      "description": "Optional diagnostic for the latest accepted consent-revoke invalidation. It is holder-private and never disclosed to the requester."
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "introduction_kind": {
+      "type": "string",
+      "enum": [
+        "locator_ref",
+        "consent_grant",
+        "shared_realm",
+        "handle_claim",
+        "same_principal_server",
+        "explicit_address"
+      ]
+    },
+    "quarantine_entry": {
+      "type": "object",
+      "required": [
+        "entry_digest",
+        "status",
+        "subject_id",
+        "source_peer_principal_id",
+        "source_service_id",
+        "recipient_service_id",
+        "consent_scope",
+        "introduction_kind",
+        "effective_kind",
+        "trust_tier",
+        "invite_event_digest",
+        "request_digest",
+        "idempotency_key_digest",
+        "received_at",
+        "expires_at"
+      ],
+      "properties": {
+        "entry_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Recipient-service-local stable deduplication digest for this quarantined delivery."
+        },
+        "status": {
+          "const": "pending_review"
+        },
+        "subject_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Holder of this account-data cell."
+        },
+        "source_peer_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Requester/inviter principal used by consent review and revoke invalidation."
+        },
+        "source_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "recipient_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "consent_scope": {
+          "const": "invite"
+        },
+        "introduction_kind": {
+          "$ref": "#/$defs/introduction_kind",
+          "description": "Introduction evidence kind presented by the requester."
+        },
+        "effective_kind": {
+          "$ref": "#/$defs/introduction_kind",
+          "description": "Evidence kind after verification downgrade."
+        },
+        "trust_tier": {
+          "enum": [
+            "high",
+            "discovery",
+            "low"
+          ]
+        },
+        "invite_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Optional accepted invite Event identity when present in the delivery carrier."
+        },
+        "invite_event_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "idempotency_key_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "received_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Deployment-policy TTL. An expired entry is discarded and never converts to a grant."
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_revoke_invalidation": {
+      "type": "object",
+      "required": [
+        "reason",
+        "peer_principal_id",
+        "consent_scope",
+        "revoked_at",
+        "removed_entries"
+      ],
+      "properties": {
+        "reason": {
+          "const": "consent_revoke"
+        },
+        "peer_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "consent_scope": {
+          "enum": [
+            "invite",
+            "any"
+          ]
+        },
+        "revoked_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "removed_entries": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

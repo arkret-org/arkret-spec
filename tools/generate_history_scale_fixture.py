@@ -684,7 +684,6 @@ def build_source_agent_observation_digest_kat(schemas: SchemaSet) -> dict[str, A
         "source_sender_domain": "history.example",
         "request_digest": digest_marker(0x41),
         "request_receipt_digest": digest_marker(0x42),
-        "reply_mailbox_id": "ak:history_mailbox:AAAAAAAAAAAAAAAAAAAAAA",
         "expires_at": EXPIRES,
         "content": {
             "kind": "ak.history_key.response_manifest",
@@ -723,6 +722,35 @@ def build_source_agent_observation_digest_kat(schemas: SchemaSet) -> dict[str, A
     }
 
 
+def build_response_capability_kat() -> dict[str, Any]:
+    capability = base64.urlsafe_b64encode(bytes(range(32))).rstrip(b"=").decode("ascii")
+    preimage = {"response_capability_b64u": capability}
+    return {
+        "domain": "ak.history-response-capability-commitment-v1",
+        "decoded_length": 32,
+        "response_capability_b64u": capability,
+        "commitment_preimage": preimage,
+        "expected_response_capability_commitment": domain_digest(
+            b"ak.history-response-capability-commitment-v1", preimage
+        ),
+        "surface": {
+            "read": "POST /_arkret/self/history-key-responses/read",
+            "ack": "POST /_arkret/self/history-key-responses/ack",
+            "authorization_scheme": "Arkret-History-Capability",
+            "request_locator_in_path_query_or_body": False,
+        },
+        "negative_cases": [
+            "padded_base64url_rejected",
+            "decoded_length_not_32_rejected",
+            "unknown_expired_gc_and_unauthorized_same_not_found_shape",
+            "stream_a_capability_cannot_read_or_ack_stream_b",
+            "stream_a_capability_cannot_consume_stream_b_ack_token",
+            "commitment_collision_resampled_before_any_durable_write",
+            "exact_create_retry_returns_byte_identical_sealed_capability",
+        ],
+    }
+
+
 def build_sections() -> dict[str, Any]:
     schemas = SchemaSet()
     registry = build_registry_kat(schemas)
@@ -744,6 +772,7 @@ def build_sections() -> dict[str, Any]:
         "authenticated_signer_resolution_evidence_kat": signer,
         "governance_dependency_resolve_kat": dependency,
         "history_source_agent_observation_digest_kat": build_source_agent_observation_digest_kat(schemas),
+        "history_response_capability_kat": build_response_capability_kat(),
         "streaming_direct_traversal_scale_kats": scale,
         "streaming_direct_traversal_scale_negative_kats": [{
             "epoch_count": 65_537,
@@ -775,7 +804,8 @@ def render() -> str:
                     effective_scope["realm_id"] = REALM
     if "ak.vector.history_key.frontier_traversal_split.v1" not in fixture.get("covers_vectors", []):
         raise ValueError("history fixture does not register the direct-traversal split vector")
-    fixture["mailbox_cases"] = [
+    fixture.pop("mailbox_cases", None)
+    fixture["response_stream_cases"] = [
         {
             "name": "manifest_precedes_chunk_admission",
             "expected": "manifest admission completes direct traversal and T0 before the manifest record is accepted; a chunk without that exact admission is dependency_missing with zero writes",
@@ -790,7 +820,7 @@ def render() -> str:
         },
         {
             "name": "compact_exact_retry_ledger_until_expiry",
-            "expected": "the first accepted send freezes one small HistoryKeyResponseSendReceipt; exact retry returns byte-identical bytes and high-water ack removes the large mailbox record while retaining the compact receipt ledger through expiry",
+            "expected": "the first accepted send freezes one small HistoryKeyResponseSendReceipt; exact retry returns byte-identical bytes and high-water ack removes the large response record while retaining the compact receipt ledger through expiry",
         },
     ]
     fixture["rrk_registration_rotation_kat"] = {

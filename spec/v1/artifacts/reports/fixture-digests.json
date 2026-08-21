@@ -170,7 +170,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "b8177a7330a0fd3ed234cf7f4e97b5cc535ab1a97d8471083e8f758f459b2fc7"
+      "sha256": "a8492c1914f73ecc26a21dae9258a04b861a75b37da38de50d2bc1411eb99e5a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -274,11 +274,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "6f3b6b8747d8765e60d8679c8933d2ad508fb0524b2fc3fc57a3d69dc9b60bc8"
+      "sha256": "f0609d72937571feabbaf5135ef70b00d4d48ed25ddff17083294a14b43775ec"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "30137cc5f0b4ed770d44112be76778891832cd7b25c42ddb3b6d3cbd95cf27ca"
+      "sha256": "8a3a329457fa88423ab358033e39e9a59a4ea7a0b3f54368e4928e900e5f9277"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",

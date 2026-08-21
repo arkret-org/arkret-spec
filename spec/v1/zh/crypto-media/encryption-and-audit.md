@@ -541,7 +541,7 @@ Receiver 先按 EventId 折叠完全相同 Event，再执行 durable replay gate
 即使 AEAD 可开也拒绝。ordinary DeviceId 历史上不得重分配给另一 endpoint/principal。
 
 `history_secret[N]` 是 epoch 最小授权单元，不能执行 per-Event audience；各 epoch secret 必须独立，禁止正向或反向
-互推。交付授权、private mailbox、proof、backup、RRK 与 multi-candidate store 的唯一合同见
+互推。交付授权、per-request response stream、proof、backup、RRK 与 multi-candidate store 的唯一合同见
 [`history-visibility.md`](../governance/history-visibility.md)。Standard `mls_rfc9420` 没有可交付 secret，固定
 `history_access=since_join`。
 

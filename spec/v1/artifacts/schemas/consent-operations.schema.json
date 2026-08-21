@@ -164,7 +164,7 @@
               ]
             }
           ],
-          "description": "Closed ak.consent.grant Event authored and signed by the holder, or by a controller/agent whose authorization scope explicitly covers consent writes and whose payload carries replayable holder approval evidence; a general PCR write capability is never such an authorization. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event. Admission MUST verify that event.realm_id is the holder's principal control Realm and that the path holder is the consent holder; a grant submitted by any other actor is rejected unauthorized."
+          "description": "Closed ak.consent.grant Event whose actor_id and authenticated holder are the path holder Principal Control Realm's current authority-root controller. authorization_ref MUST bind the current authority-root authorization. This root_control_only action supports neither separate managed-behalf execution nor grants: controller/agent consent_write delegations, general PCR writes, co-owner grants, automation, or payload approval evidence do not substitute. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event. Admission MUST verify the authority-root binding, event.realm_id, and path holder; otherwise it rejects unauthorized."
         }
       },
       "additionalProperties": false
@@ -200,7 +200,7 @@
               ]
             }
           ],
-          "description": "Closed ak.consent.revoke Event authored and signed by the holder or an explicitly consent-write-authorized controller/agent. Its payload.consent_id MUST equal the consent_id of the ak.consent.grant being revoked. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event."
+          "description": "Closed ak.consent.revoke Event whose actor_id and authenticated holder are the path holder Principal Control Realm's current authority-root controller. authorization_ref MUST bind the current authority-root authorization. This root_control_only action supports neither separate managed-behalf execution nor a controller/agent consent_write delegation or general PCR/co-owner grant. Its payload.consent_id MUST equal the consent_id of the ak.consent.grant being revoked. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event."
         }
       },
       "additionalProperties": false

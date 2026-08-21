@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.2",
+  "version": "2026-08-21.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-21T21:00:00+08:00",
+  "generated_at": "2026-08-21T23:55:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -339,6 +339,17 @@
         "kind": "account_data_plaintext",
         "selector": "account_data key ak.account.invite_delivery",
         "normative_ref": "zh/sync/invite-addressing.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.invite_quarantine.v1",
+      "file": "schemas/invite-quarantine.schema.json",
+      "status": "active",
+      "description": "Actor-private plaintext account-data cell value of ak.account.invite_quarantine, written only by the recipient Principal Server CAS materializer. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "account_data key ak.account.invite_quarantine",
+        "normative_ref": "zh/identity/consent-model.md"
       }
     },
     {
@@ -1012,7 +1023,7 @@
       "schema_id": "ak.schema.history_key.v1",
       "file": "schemas/history-key.schema.json",
       "status": "active",
-      "description": "Closed private history-key request, mailbox, source relay, response, organization-recovery archive, and HPKE plaintext DTO family"
+      "description": "Closed private history-key request, response stream, source relay, response record, organization-recovery archive, and HPKE plaintext DTO family"
     },
     {
       "schema_id": "ak.schema.inclusion_list.v1",

@@ -34,7 +34,7 @@ Consent grant / revoke 表达的是 **holder 自己的决定**。它写入 holde
 
 > **术语**：principal control Realm 是 holder 个人控制下的 Realm（profile = `ak.profile.principal_control_realm.v1`，purpose = `principal_control`），用于承载 consent、device authorization、session grant、push registration 等 holder 私有状态。Realm 的创建、字段、生命周期与 device-key 引导见 [`identity/key-management.md` §4.1](./key-management.md)（bootstrap 见 §5.0）；下文凡是出现"holder principal control Realm"或"等价 actor-private 流"，含义均以此为准。
 
-- 写入方：holder 自己（或 holder 显式授权的 controller / agent）。
+- 写入方：Event actor 与认证 holder MUST 是 holder Principal Control Realm 当前 authority-root controller，且 `authorization_ref` MUST 绑定该 authority root。`ak.consent.grant` / `ak.consent.revoke` 是 `root_control_only` action，不支持独立 managed-behalf 执行，也不存在可授予 controller / agent 的 `consent_write` 委派。
 - 可见方：默认仅 holder；MAY 通过 holder 主动 disclose 给 peer 作为"green light"信号。
 - 不进入 Collaboration Realm：consent 状态不暴露 holder 的隐私偏好给 Realm 内的其他成员。
 
@@ -126,7 +126,7 @@ Payload-only schema 示例：
 }
 ```
 
-Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。被授权的 controller / agent 只有在其授权 scope 明确包含 `ak.consent.grant` / `consent_write` action，且本次 grant payload 携带可重放的 holder approval evidence（例如 holder 签名 approval、有效 approval Event ref 或等价审计证据）时，才可代 holder 写入 consent grant；通用 PCR 写权限、agent 自动化权限或 `ak.self.events.command.submit` 能力本身不得被解释为 consent-write 授权。Reducer MUST 在 holder principal control Realm 中验证该专用 action 与 approval evidence，缺失时 `unauthorized` reject。其他 actor 提交的 grant Control Move 在 holder 的 principal control Realm MUST `unauthorized` reject。
+Event `actor_id` 与认证 holder MUST 是 holder Principal Control Realm 当前 authority-root controller，且 `authorization_ref` MUST 绑定当前 authority-root 授权。`ak.consent.grant` / `ak.consent.revoke` 是 `root_control_only` action，不支持由不同主体独立 managed-behalf 执行，也不可作为 `consent_write` capability 授予 controller / agent；通用 PCR write、co-owner grant、agent 自动化权限、payload approval evidence 或 `ak.self.events.command.submit` 均不得替代 authority-root authorization。普通 Event admission MUST 验证上述约束，缺失或由其他 actor 提交时 MUST 以 `unauthorized` reject。
 
 `dot` 由 `ak:event:<enclosing event_id>:<write_index>` 派生，全局唯一。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or_set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
 
@@ -268,7 +268,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 §3.1 缺省判定与 §6.1 step 2 提到的 **quarantine inbox** 是 default profile 下"无 active consent 的 invite"既不直接拒绝、也不直接放行的暂存区，其最小定义如下：
 
-- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder principal control Realm 内一个 account-data scoped stream（key `ak.account.invite_quarantine`,sync 经 account subscribe 的 `account_data` 流投递，见 [`client-sync.md`](../sync/client-sync.md)）。每条暂存项记录待 review 的 invite 引用（invite event_id / 来源 peer DID / consent_scope / 收到时间）,**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。
+- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder 的 Principal Server CAS account-data cell（key `ak.account.invite_quarantine`，plaintext value 符合 `ak.schema.invite_quarantine.v1`）。权威状态只在该 cell；实时提示经 account subscribe 的 `to_device.messages[]` rail 以 `ak.account_data.update` service-sender envelope 投递，离线补取/重建经 `ak.self.account_data.read.list` 或 `ak.self.account_data.resource.get`。该 CAS-only cell **不会**出现在 `delta.account_data.events[]`，也不得被合成为 authorless 或 service-authored `ak.account_data.set` Event。每条暂存项记录待 review 的 invite 引用（invite event_id / 来源 peer DID / consent_scope / 收到时间）,**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。
 - **生命周期与 TTL**：暂存项停留在 `pending_review` 直到 holder 在 UI review;实现 SHOULD 为暂存项设置 deployment-policy 声明的 TTL（缺省建议 30 天）,超时后 MUST 按"丢弃"处理（等价 holder 未授权，不得自动转 grant）。
 - **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ak.consent.grant` Control Move 写入 consent cell（此后该 peer 的 invite 走正常 active-grant 路径）,并 MAY 接受原 invite;(b) **丢弃** → 删除暂存项，不产生任何 consent dot。review 动作本身不绕过 consent cell:授权始终经 grant Control Move 落入 consent cell,quarantine inbox 永远不是授权根。
 - **profile 边界**：quarantine inbox 仅在 default profile 生效;`require_explicit_consent` profile 下无 active grant 的 invite 直接 `failed_precondition` 拒绝(§6.1 step 2),不进入 quarantine inbox。
@@ -318,7 +318,7 @@ contact discovery / PSI 端点 MUST 按 `(requester, holder)` 维度限速，防
 
 MIMI 协议有 `request_consent` / `update_consent` 操作（`ak.open.mimi.command.request_consent` / `ak.open.mimi.command.update_consent`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
 
-- 接收 MIMI consent update：facade MUST 先验证 actor 是私有 request correlation 声明的 holder 或受授权 controller，并把调用方携带的 exact `ak.consent.grant` / `ak.consent.revoke` `EventInitialSubmission` 原样送入普通 Event admission；facade 不得构造、代签或重建该 Control Move。只有 accepted Event 才能写入 holder principal control Realm 的 consent cell。
+- 接收 MIMI consent update：facade MUST 先验证私有 request correlation 声明的 holder、Event actor 与认证主体均是该 holder Principal Control Realm 当前 authority-root controller，且 `authorization_ref` 绑定该 authority root；不同主体的 managed-behalf 执行不受支持。facade MUST 把调用方携带的 exact `ak.consent.grant` / `ak.consent.revoke` `EventInitialSubmission` 原样送入普通 Event admission，不得构造、代签或重建该 Control Move。只有 accepted Event 才能写入 holder principal control Realm 的 consent cell。
 - 发送 Arkret consent state 到 MIMI：facade MUST 把当前 consent cell or_set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
 - consent state 不暴露具体 evidence_ref / reason 跨 provider；只暴露最小 `(peer, scope, granted/revoked)` 三元组。
 

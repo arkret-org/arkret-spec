@@ -6528,7 +6528,7 @@ receipt reviewer pair 与 verification-method controller 投影必须逐字一�
 
 Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行三个 closed suite：
 
-- `ak.vector.history_key.closed_mailbox_delivery.v1`：request create/receipt、相等 TTL、manifest 全量 T0 admission、
+- `ak.vector.history_key.closed_response_delivery.v1`：request create/receipt、相等 TTL、manifest 全量 T0 admission、
   single-continuous-range chunk、source relay、honest release-service attestation、byte-identical exact retry、小型 send receipt、
   normal/lost 合并 sequence ack、attempt completed/expired 与 quota 边界；
 - `ak.vector.history_key.frontier_traversal_split.v1`：near-current `group_security_frontier` 的 bounded stateless 完整响应，与

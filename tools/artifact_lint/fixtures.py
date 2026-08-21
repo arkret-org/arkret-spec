@@ -966,6 +966,8 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
     # never defaulted, so an implementation can never guess "CAS/LWW".
     allowed_merge_strategies = {"cas_register"}
     allowed_deletion_modes = {"physical_delete", "value_tombstone"}
+    allowed_writer_authorities = {"holder_event", "principal_server_cas"}
+    allowed_holder_self_operations = {"put", "delete"}
     for index, row in enumerate(rows):
         label = f"account_data_key_patterns[{index}]"
         if not isinstance(row, dict):
@@ -993,13 +995,59 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
         if not isinstance(row.get("description"), str) or not row["description"].strip():
             lint.fail(path, f"{label}.description must be a non-empty string")
 
+        writer_authorities = row.get("writer_authorities")
+        if (
+            not isinstance(writer_authorities, list)
+            or not writer_authorities
+            or any(not isinstance(authority, str) for authority in writer_authorities)
+            or len(writer_authorities) != len(set(writer_authorities))
+            or any(authority not in allowed_writer_authorities for authority in writer_authorities)
+        ):
+            lint.fail(
+                path,
+                f"{label}.writer_authorities must be a non-empty unique array over "
+                f"{sorted(allowed_writer_authorities)}",
+            )
+            writer_authorities = []
+
+        holder_self_operations = row.get("holder_self_operations")
+        if (
+            not isinstance(holder_self_operations, list)
+            or any(not isinstance(operation, str) for operation in holder_self_operations)
+            or len(holder_self_operations) != len(set(holder_self_operations))
+            or any(operation not in allowed_holder_self_operations for operation in holder_self_operations)
+        ):
+            lint.fail(
+                path,
+                f"{label}.holder_self_operations must be a unique array over "
+                f"{sorted(allowed_holder_self_operations)}",
+            )
+            holder_self_operations = []
+
         write_event_kinds = row.get("write_event_kinds")
-        if not isinstance(write_event_kinds, list) or not write_event_kinds:
-            lint.fail(path, f"{label}.write_event_kinds must be a non-empty array")
+        if not isinstance(write_event_kinds, list):
+            lint.fail(path, f"{label}.write_event_kinds must be an array")
+            write_event_kinds = []
         else:
             for event_kind in write_event_kinds:
                 if not isinstance(event_kind, str) or event_kind not in known["event_kinds"]:
                     lint.fail(path, f"{label}.write_event_kinds contains unknown Event.kind: {event_kind!r}")
+
+        if "holder_event" in writer_authorities and not write_event_kinds:
+            lint.fail(path, f"{label} holder_event requires non-empty write_event_kinds")
+        if "holder_event" not in writer_authorities and write_event_kinds:
+            lint.fail(path, f"{label} write_event_kinds requires holder_event authority")
+        if holder_self_operations and "holder_event" not in writer_authorities:
+            lint.fail(path, f"{label} holder self operations require holder_event authority")
+        if "put" in holder_self_operations and "ak.account_data.set" not in write_event_kinds:
+            lint.fail(path, f"{label} holder self put requires ak.account_data.set")
+        if "delete" in holder_self_operations and row.get("deletion_mode") != "physical_delete":
+            lint.fail(path, f"{label} holder self delete requires deletion_mode=physical_delete")
+        if "principal_server_cas" in writer_authorities:
+            if row.get("storage") != "plaintext_account_data":
+                lint.fail(path, f"{label} principal_server_cas requires plaintext_account_data")
+            if not isinstance(row.get("plaintext_schema"), str) or not row["plaintext_schema"]:
+                lint.fail(path, f"{label} principal_server_cas requires plaintext_schema")
 
         source_refs = row.get("source_refs")
         if not isinstance(source_refs, list) or not source_refs:

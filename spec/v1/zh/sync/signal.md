@@ -40,7 +40,7 @@ nonce = I2OSP(counter, AEAD.Nn)
 
 Signal encrypted payload 的 closed pre-encryption header 必须绑定 scope/sender/seal/class/time/scheme/group/epoch/state/
 counter；AAD 是该 header 的 JCS bytes。Counter 回退/复用 fail closed，不得 prefix 或 random fallback。Signal 不得借
-history mailbox 交付 standard signal root，也不得把 Signal digest 注册为持久 ID。
+history response stream 交付 standard signal root，也不得把 Signal digest 注册为持久 ID。
 
 ### 1.1 Plaintext payload profile 通用最小集（normative）
 

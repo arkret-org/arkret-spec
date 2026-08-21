@@ -18,6 +18,7 @@ from .core import (
 from .foundation import (
     check_event_id_suite_registry,
     check_event_kind_verb_form_registration,
+    check_history_response_naming,
     check_id_form_wire_schema_alignment,
     check_pcr_exposure_registry,
     check_proof_context_registry,
@@ -236,6 +237,7 @@ def main(argv: list[str] | None = None) -> int:
         "基础文件与规范注册表",
         [
             ("text_encoding", lambda: check_text_files_utf8_no_nul(lint)),
+            ("history_response_naming", lambda: check_history_response_naming(lint)),
             ("registry_manifest", lambda: check_registry_manifest(lint)),
             ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
             ("proof_contexts", lambda: check_proof_context_registry(lint)),

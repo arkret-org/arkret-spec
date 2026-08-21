@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.3",
+  "version": "2026-08-21.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-21T21:30:00+08:00",
+  "generated_at": "2026-08-21T23:56:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -2606,7 +2606,7 @@
     {
       "operation_id": "ak.self.history_key_responses.command.ack",
       "surface_class": "extension",
-      "http": "POST /_arkret/self/history-key-responses/{reply_mailbox_id}/ack",
+      "http": "POST /_arkret/self/history-key-responses/ack",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_request",
       "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome",
@@ -2634,7 +2634,7 @@
     {
       "operation_id": "ak.self.history_key_responses.read.list",
       "surface_class": "extension",
-      "http": "POST /_arkret/self/history-key-responses/{reply_mailbox_id}/read",
+      "http": "POST /_arkret/self/history-key-responses/read",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_query",
       "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_outcome",

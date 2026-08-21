@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/history-key.schema.json",
   "title": "Arkret History Key Recovery",
-  "description": "Canonical private inbox, reply-mailbox, proof and packed-range wire for exporter-scheme history recovery.",
+  "description": "Canonical private request delivery, capability-addressed response stream, proof and packed-range wire for exporter-scheme history recovery.",
   "anyOf": [
     {
       "$ref": "#/$defs/history_key_request"
@@ -56,7 +56,7 @@
       "$ref": "#/$defs/history_chunk_plaintext"
     },
     {
-      "$ref": "#/$defs/mailbox_capability_plaintext"
+      "$ref": "#/$defs/history_response_capability_plaintext"
     },
     {
       "$ref": "#/$defs/organization_recovery_archive_plaintext"
@@ -83,9 +83,6 @@
     },
     "history_response_id": {
       "$ref": "./common-ids.schema.json#/$defs/history_response_id"
-    },
-    "history_mailbox_id": {
-      "$ref": "./common-ids.schema.json#/$defs/history_mailbox_id"
     },
     "digest": {
       "$ref": "./event-envelope.schema.json#/$defs/digest"
@@ -698,15 +695,15 @@
       "additionalProperties": false,
       "description": "The only HPKE plaintext for a history response chunk. Every opened secret globally deduplicates by HistoryCandidateMaterialKey, never origin, and gets a separate response_sender CandidateOriginAttribution; it never becomes local_authoritative. Success/failure EventCandidateBinding contains no origin and does not pin bytes. It contains history secrets only and cannot carry active MLS state, sender counters, snapshots, policy claims or source metadata."
     },
-    "mailbox_capability_plaintext": {
+    "history_response_capability_plaintext": {
       "type": "object",
-      "required": ["kind", "mailbox_capability_b64u"],
+      "required": ["kind", "response_capability_b64u"],
       "properties": {
-        "kind": {"const": "ak.history_key.mailbox_capability_plaintext"},
-        "mailbox_capability_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$", "description": "Unpadded base64url of exactly 32 opaque random bytes."}
+        "kind": {"const": "ak.history_key.response_capability_plaintext"},
+        "response_capability_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$", "description": "Canonical unpadded base64url of exactly 32 service-generated CSPRNG bytes."}
       },
       "additionalProperties": false,
-      "description": "The only plaintext admitted by SealedMailboxCapability. HPKE seals the RFC 8785 JCS UTF-8 bytes of this closed object; raw bytes, a bare base64url string and nested JSON text are forbidden."
+      "description": "The only plaintext admitted by SealedHistoryResponseCapability. HPKE seals the RFC 8785 JCS UTF-8 bytes of this closed object; raw bytes, a bare base64url string and nested JSON text are forbidden."
     },
     "organization_recovery_archive_plaintext": {
       "type": "object",
@@ -786,7 +783,7 @@
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Canonical request expiry. Accepted create admission requires byte-for-byte equality with receipt.expires_at, mailbox expiry and history_traversal_retention.traversal_intent.retention.expires_at."
+          "description": "Canonical request expiry. Accepted create admission requires byte-for-byte equality with receipt.expires_at, response-stream expiry and history_traversal_retention.traversal_intent.retention.expires_at."
         }
       },
       "allOf": [
@@ -860,9 +857,8 @@
       "required": [
         "kind",
         "request_digest",
-        "reply_mailbox_id",
-        "mailbox_capability_commitment",
-        "sealed_capability_digest",
+        "response_capability_commitment",
+        "sealed_response_capability_digest",
         "effective_scope",
         "requester_sender_domain",
         "requester_authorization_incarnation",
@@ -886,13 +882,10 @@
         "request_digest": {
           "$ref": "#/$defs/digest"
         },
-        "reply_mailbox_id": {
-          "$ref": "#/$defs/history_mailbox_id"
-        },
-        "mailbox_capability_commitment": {
+        "response_capability_commitment": {
           "$ref": "#/$defs/digest"
         },
-        "sealed_capability_digest": {
+        "sealed_response_capability_digest": {
           "$ref": "#/$defs/digest"
         },
         "effective_scope": {
@@ -914,7 +907,7 @@
         },
         "release_service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "The requester's authenticated current Principal Server selected as the unique honest release service for this mailbox."
+          "description": "The requester's authenticated current Principal Server selected as the unique honest release service for this request response stream."
         },
         "release_service_binding_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -943,7 +936,7 @@
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Byte-for-byte equal to request.expires_at, mailbox expiry and history_traversal_retention.traversal_intent.retention.expires_at."
+          "description": "Byte-for-byte equal to request.expires_at, response-stream expiry and history_traversal_retention.traversal_intent.retention.expires_at."
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
@@ -1082,7 +1075,7 @@
       ],
       "description": "Authenticated peer resolve authorization only for a pending organization-recovery archive replica. Member request replicas distribute request bytes but never authorize or promise a governance closure; the release service obtains and pins that cut through ordinary Realm governance sync before signing the request receipt. Unknown, unauthorized, outside-cut and missing selectors have one response shape."
     },
-    "sealed_mailbox_capability": {
+    "sealed_history_response_capability": {
       "type": "object",
       "required": [
         "enc",
@@ -1099,7 +1092,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Uses the single active history-mailbox-capability HPKE registry profile; algorithm fields are forbidden."
+      "description": "Uses the single active history-response-capability HPKE registry profile; algorithm fields are forbidden."
     },
     "history_key_request_accepted_outcome": {
       "type": "object",
@@ -1107,7 +1100,7 @@
         "kind",
         "request",
         "request_receipt",
-        "sealed_mailbox_capability"
+        "sealed_history_response_capability"
       ],
       "properties": {
         "kind": {"const": "ak.history_key.request_accepted"},
@@ -1117,8 +1110,8 @@
         "request_receipt": {
           "$ref": "#/$defs/history_key_request_receipt"
         },
-        "sealed_mailbox_capability": {
-          "$ref": "#/$defs/sealed_mailbox_capability"
+        "sealed_history_response_capability": {
+          "$ref": "#/$defs/sealed_history_response_capability"
         }
       },
       "additionalProperties": false
@@ -1614,7 +1607,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Deterministic service-authenticated T0 result written only after resolving the receipt-bound target-to-base Seal cut and replaying standard apply_seal in topological order. The traversal verifies notary authority, every predecessor edge, delta Control Move and registered dependency, target dominance, requester incarnation/join floor, the scope's current monotone history-access ratchet, every winning MLS transition and exact descriptor range. Any missing dependency, predecessor outside the exact cut, unconsumed base leaf, hidden branch, failed Seal/root/reducer check, profile/join failure or exact-range mismatch rejects the entire manifest with zero mailbox record/admission write."
+      "description": "Deterministic service-authenticated T0 result written only after resolving the receipt-bound target-to-base Seal cut and replaying standard apply_seal in topological order. The traversal verifies notary authority, every predecessor edge, delta Control Move and registered dependency, target dominance, requester incarnation/join floor, the scope's current monotone history-access ratchet, every winning MLS transition and exact descriptor range. Any missing dependency, predecessor outside the exact cut, unconsumed base leaf, hidden branch, failed Seal/root/reducer check, profile/join failure or exact-range mismatch rejects the entire manifest with zero response record/admission write."
     },
     "sealed_history_chunk": {
       "type": "object",
@@ -1653,7 +1646,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Minimal chunk wire. The exact accepted manifest descriptor and manifest_admission_digest reconstruct the continuous range and HPKE context. T0 is the receipt-bound direct Seal replay recorded by the accepted manifest admission; the chunk carries no independent proof, selector, segment or range-key duplicate. Source submit before that manifest admission is accepted is dependency_missing with zero pending state, zero mailbox record and zero release attestation. The complete canonical chunk source record MUST be at most 2 MiB."
+      "description": "Minimal chunk wire. The exact accepted manifest descriptor and manifest_admission_digest reconstruct the continuous range and HPKE context. T0 is the receipt-bound direct Seal replay recorded by the accepted manifest admission; the chunk carries no independent proof, selector, segment or range-key duplicate. Source submit before that manifest admission is accepted is dependency_missing with zero pending state, zero response record and zero release attestation. The complete canonical chunk source record MUST be at most 2 MiB."
     },
     "history_source_agent_observation_input": {
       "type": "object",
@@ -1664,7 +1657,6 @@
         "source_sender_domain",
         "request_digest",
         "request_receipt_digest",
-        "reply_mailbox_id",
         "expires_at",
         "content"
       ],
@@ -1675,7 +1667,6 @@
         "source_sender_domain": {"type": "string", "minLength": 1, "maxLength": 512},
         "request_digest": {"$ref": "#/$defs/digest"},
         "request_receipt_digest": {"$ref": "#/$defs/digest"},
-        "reply_mailbox_id": {"$ref": "#/$defs/history_mailbox_id"},
         "expires_at": {"$ref": "#/$defs/timestamp"},
         "content": {
           "oneOf": [
@@ -1698,7 +1689,6 @@
         "source_signer_evidence_digest",
         "request_digest",
         "request_receipt_digest",
-        "reply_mailbox_id",
         "expires_at",
         "content"
       ],
@@ -1729,9 +1719,6 @@
         },
         "request_receipt_digest": {
           "$ref": "#/$defs/digest"
-        },
-        "reply_mailbox_id": {
-          "$ref": "#/$defs/history_mailbox_id"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -1828,7 +1815,6 @@
         "response_id",
         "request_digest",
         "request_receipt_digest",
-        "reply_mailbox_id",
         "effective_scope",
         "manifest_admission_digest",
         "t0_pass",
@@ -1863,9 +1849,6 @@
         },
         "request_receipt_digest": {
           "$ref": "#/$defs/digest"
-        },
-        "reply_mailbox_id": {
-          "$ref": "#/$defs/history_mailbox_id"
         },
         "effective_scope": {
           "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
@@ -1918,7 +1901,7 @@
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "MUST be <= and normally byte-for-byte equal to request/mailbox expiry. The record is admitted only while unexpired; a receiver may install the immutable record after a later read if accepted_at was within this bound."
+          "description": "MUST be <= and normally byte-for-byte equal to request/response-stream expiry. The record is admitted only while unexpired; a receiver may install the immutable record after a later read if accepted_at was within this bound."
         },
         "accepted_authority_views": {
           "$ref": "#/$defs/accepted_authority_view_vector"
@@ -2239,7 +2222,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "The recipient mailbox retains this complete byte-identical source record and conditional attestation only until a valid durable high-water disposition acknowledges it. Ack before durable install/reject/lost handling is a client error. The ack transaction atomically removes the large record/attestation and releases active quota; only the compact source-facing HistoryKeyResponseSendReceipt ledger remains through request expiry for exact source retry."
+      "description": "The recipient response stream retains this complete byte-identical source record and conditional attestation only until a valid durable high-water disposition acknowledges it. Ack before durable install/reject/lost handling is a client error. The ack transaction atomically removes the large record/attestation and releases active quota; only the compact source-facing HistoryKeyResponseSendReceipt ledger remains through request expiry for exact source retry."
     },
     "history_key_response_lost_record": {
       "type": "object",
@@ -2286,9 +2269,9 @@
         }
       },
       "additionalProperties": false,
-      "description": "Signed descriptor for an unrecoverably lost accepted mailbox record. It permits only a durable service_record_lost disposition and never counts as manifest or epoch coverage."
+      "description": "Signed descriptor for an unrecoverably lost accepted response record. It permits only a durable service_record_lost disposition and never counts as manifest or epoch coverage."
     },
-    "history_mailbox_page_entry": {
+    "history_response_page_entry": {
       "oneOf": [
         {
           "type": "object",
@@ -2309,7 +2292,7 @@
           "additionalProperties": false
         }
       ],
-      "description": "One item in the single sequence-ordered mailbox stream. Pagination, limit, cursor, ack token and high-water all use this merged order; records and lost descriptors are never paginated separately."
+      "description": "One item in the single sequence-ordered response stream. Pagination, limit, cursor, ack token and high-water all use this merged order; records and lost descriptors are never paginated separately."
     },
     "history_key_response_list_outcome": {
       "type": "object",
@@ -2322,7 +2305,7 @@
         "ack_entries": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/history_mailbox_page_entry"
+            "$ref": "#/$defs/history_response_page_entry"
           },
           "description": "Strictly sequence-ascending merged record/lost entries. The verifier extracts each tuple {sequence,kind,response_id,entry_digest}, where entry_digest is record_digest or the digest of the complete signed lost descriptor."
         },
@@ -2381,7 +2364,7 @@
       },
       "additionalProperties": false
     },
-    "history_mailbox_ack_entry": {
+    "history_response_ack_entry": {
       "oneOf": [
         {
           "type": "object",
@@ -2421,7 +2404,7 @@
         "ack_token": {
           "type": "string",
           "minLength": 1,
-          "description": "Authenticated token whose semantic preimage binds reply_mailbox_id, the exact contiguous sequence interval, high_water_cursor and ordered tuples {sequence,kind,response_id,record_digest|lost_record_digest}."
+          "description": "Authenticated token whose semantic preimage binds the internally resolved request_id, the exact contiguous sequence interval, high_water_cursor and ordered tuples {sequence,kind,response_id,record_digest|lost_record_digest}."
         },
         "high_water_cursor": {
           "type": "string",
@@ -2431,7 +2414,7 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "#/$defs/history_mailbox_ack_entry"
+            "$ref": "#/$defs/history_response_ack_entry"
           },
           "description": "Canonical strictly sequence-ascending entries matching the list page/ack token. Every sequence through high_water_cursor must have exactly one durable disposition."
         }
@@ -2494,7 +2477,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Small immutable source-facing success receipt. It never echoes the recipient mailbox record, release authority locators, source record, request receipt or ciphertext."
+      "description": "Small immutable source-facing success receipt. It never echoes the recipient response record, release authority locators, source record, request receipt or ciphertext."
     },
     "history_key_response_send_outcome": {
       "$ref": "#/$defs/history_key_response_send_receipt"

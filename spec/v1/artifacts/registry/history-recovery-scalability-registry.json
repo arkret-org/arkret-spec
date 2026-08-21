@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-21.1",
+  "version": "2026-08-21.2",
   "source_of_truth": true,
   "units": "bytes unless explicitly named",
   "history_request": {
@@ -14,15 +14,15 @@
   "history_response": {
     "max_manifest_canonical_body_bytes": 262144,
     "max_source_chunk_record_bytes": 2097152,
-    "max_unfinished_attempts_per_mailbox_source_domain": 4,
-    "max_unacked_mailbox_bytes": 16777216,
+    "max_unfinished_attempts_per_request_source_domain": 4,
+    "max_unacked_response_bytes": 16777216,
     "max_source_outbox_bytes_per_attempt": 67108864,
     "expired_tombstone_retention_seconds": 2592000,
-    "rule": "Request, response, manifest and inner source-record limits are distinct. Manifest source record <=256 KiB; chunk source record <=2 MiB; every complete non-streaming send/relay/record/list-item/small-receipt JSON body <=8 MiB. All size admission uses final canonical bytes. Before durable high-water ack, complete mailbox records/attestations are charged to max_unacked_mailbox_bytes. Ack is valid only after durable disposition/install, atomically GC's the large record/attestation and releases active quota, while the compact exact HistoryKeyResponseSendReceipt ledger remains through request expiry for source retry. The compact ledger has independent mailbox/requester/service hard limits and cannot admit a receipt if it would exceed them. Expiry converts it to a 30-day minimal tombstone. A limit failure occurs before enqueue. Staged blobs become sendable only with an atomic ready marker.",
-    "max_unfinished_attempts_per_mailbox": 8,
+    "rule": "Request, response, manifest and inner source-record limits are distinct. Manifest source record <=256 KiB; chunk source record <=2 MiB; every complete non-streaming send/relay/record/list-item/small-receipt JSON body <=8 MiB. All size admission uses final canonical bytes. Before durable high-water ack, complete response records/attestations are charged to max_unacked_response_bytes. Ack is valid only after durable disposition/install, atomically GC's the large record/attestation and releases active quota, while the compact exact HistoryKeyResponseSendReceipt ledger remains through request expiry for source retry. The compact ledger has independent request/requester/service hard limits and cannot admit a receipt if it would exceed them. Expiry converts it to a 30-day minimal tombstone. A limit failure occurs before enqueue. Staged blobs become sendable only with an atomic ready marker.",
+    "max_unfinished_attempts_per_request": 8,
     "max_release_attestation_bytes": 65536,
-    "attempt_rule": "Attempt identity is exactly (reply_mailbox_id,source_sender_domain,manifest response_id,manifest_digest). It is completed only after every descriptor-named chunk has a durable HistoryKeyResponseSendReceipt. v1 has no abandon operation: an unfinished attempt becomes expired only at request expiry; a permanent chunk rejection requires a new manifest but does not silently complete the old attempt. completed/expired atomically GC staged blobs and outbox bytes while compact accepted receipts remain through their normal ledger horizon. Only unfinished attempts count against the 4-per-source and 8-per-mailbox concurrent limits. A request may create any number of sequential bounded manifests before expiry; there is no lifetime split/attempt cap.",
-    "max_compact_receipt_ledger_bytes_per_mailbox": 67108864,
+    "attempt_rule": "Attempt identity is exactly (request_id,source_sender_domain,manifest response_id,manifest_digest). It is completed only after every descriptor-named chunk has a durable HistoryKeyResponseSendReceipt. v1 has no abandon operation: an unfinished attempt becomes expired only at request expiry; a permanent chunk rejection requires a new manifest but does not silently complete the old attempt. completed/expired atomically GC staged blobs and outbox bytes while compact accepted receipts remain through their normal ledger horizon. Only unfinished attempts count against the 4-per-source and 8-per-request concurrent limits. A request may create any number of sequential bounded manifests before expiry; there is no lifetime split/attempt cap.",
+    "max_compact_receipt_ledger_bytes_per_request": 67108864,
     "max_compact_receipt_ledger_bytes_per_requester": 268435456,
     "min_advertised_compact_receipt_ledger_bytes_per_release_service": 268435456
   },
@@ -77,7 +77,7 @@
     "nh32_bytes_at_26298_epochs": 841536
   },
   "requested_epoch_budget_rule": "For canonical sorted, disjoint and non-adjacent requested_ranges, compute sum(to_epoch-from_epoch+1) with checked unsigned 64-bit arithmetic. Reject overflow or a sum above max_total_requested_epochs. Gaps between ranges are excluded.",
-  "global_identity_rule": "HistoryRequestId, HistoryResponseId and HistoryMailboxId are globally unique object identities. Reuse of an id under another mailbox, requester, service or scope is duplicate_conflict; mailbox_id plus sequence is only a pagination index and never an identity namespace.",
+  "global_identity_rule": "HistoryRequestId and HistoryResponseId are globally unique object identities. Reuse of a response_id under another request response stream, requester, service or scope is duplicate_conflict; request_id plus sequence is only an internal pagination index and never a second identity namespace.",
   "deployment_rule": "A deployment may reject a new request earlier only if the smaller advertised limit is checked before acceptance. It cannot lower retention/size guarantees for already accepted objects or silently discard them.",
   "unknown_input_behavior": "fail_closed"
 }

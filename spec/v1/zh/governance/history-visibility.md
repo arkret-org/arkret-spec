@@ -176,7 +176,7 @@ T1 release 不进入 governance proof query；它由 chunk 首次耐久入队事
 ## 6. Private history-key delivery
 
 Public Event timeline MUST NOT 承载 history request/response/withholding。唯一 carrier 是 scope-private
-durable request inbox 和 capability-protected reply mailbox：
+durable request delivery 和 capability-addressed per-request response stream：
 
 ```text
 ak.history_key.request
@@ -185,15 +185,28 @@ ak.history_key.response_manifest
 ak.history_key.response_chunk
 ```
 
-locator 是 `ak:history_request:<uuidv7>`、`ak:history_response:<uuidv7>` 和
-`ak:history_mailbox:<base64url_no_pad(16-byte CSPRNG)>`，不得互换或用 EventId 代替。Request
-是 immutable/idempotent；create 只能在字节已耐久保存后返回 accepted。Service 仅保存
-mailbox capability commitment，capability 用 request HPKE key 独立封装。Inbox 仅对 scope current
-active member endpoint 和与目标 archive 相交的 RRK holder 窄分支可见。Service 不选 source、不解密、
-不把 minimal actor 聚合到真实 route。
+wire object identity 只有 `ak:history_request:<uuidv7>` 与 `ak:history_response:<uuidv7>`，不得互换或用 EventId 代替。
+每个 request 恰有一个服务内部 `(request_id, sequence)` response stream；该 stream 没有第二个 wire id。Request
+是 immutable/idempotent；create 只能在 request、receipt、sealed capability 与 fanout bytes 已耐久保存后返回 accepted。
+Request delivery 仅对 scope current active member endpoint 和与目标 archive 相交的 RRK holder 窄分支可见。
+Service 不选 source、不解密、不把 minimal actor 聚合到真实 route。
 
-三种 locator 都是全局 object identity：`request_id`、`response_id`、`reply_mailbox_id` 各自全局唯一。
-同一 `response_id` 在另一 mailbox 重用仍是 `duplicate_conflict`；`(mailbox_id,sequence)` 只用于分页索引，绝不构成 identity namespace。
+`request_id` 与 `response_id` 各自全局唯一。同一 `response_id` 在另一 request response stream 重用仍是
+`duplicate_conflict`；`(request_id,sequence)` 只用于服务内部流顺序，绝不构成第二 identity namespace。
+
+Release service 在首次接受非重复 request 时 MUST 从系统 CSPRNG 生成恰 32 bytes，编码为 canonical unpadded
+base64url `response_capability_b64u`，并计算
+`Digest(domain="ak.history-response-capability-commitment-v1", preimage=JCS({response_capability_b64u}))`。
+服务 MUST 在任何 durable write 前以 commitment 唯一索引检查碰撞并透明重采样，只耐久保存
+`response_capability_commitment` 与 sealed bytes，MUST NOT 保存 capability 明文。Capability 使用 request HPKE key
+独立封装；exact create retry MUST 返回 byte-identical request、receipt 与 sealed capability bytes。
+
+读取与确认只使用 `POST /_arkret/self/history-key-responses/read` 和
+`POST /_arkret/self/history-key-responses/ack`，并呈递
+`Authorization: Arkret-History-Capability <response_capability_b64u>`。Path、query 与 body 均不得携带 request locator；
+服务从呈递值重算 commitment 并通过唯一索引定位 request/stream。缺失或错误 scheme、非 canonical shape、unknown、
+expired、已 GC 与 unauthorized 均返回同一 `not_found` wire shape；合法 shape 的 miss 仍执行固定 digest、dummy row material
+与 constant-time byte comparison。Capability、commitment 不得进入日志 key、trace 或 metrics label。
 
 Request MUST 签入 `requester_author_profile`、与该 profile 逐字匹配的 closed
 `requester_endpoint_authorization`、exact current `requester_authorization_incarnation`、requester 已完整验证并 durable pin 的
@@ -212,27 +225,27 @@ chunk 首次入队 T1 都重新解析同一签名 locator 并与 current Account
 fragment 或服务私有“默认设备”替换。
 
 Request create 返回成功前，release service 必须冻结并完整验证 request-expiring `HistoryGovernanceTraversalIntent`，在 receipt 的
-`history_traversal_retention` 中保存 intent 与 registered digest。`intent.retention.expires_at == request.expires_at == receipt.expires_at == mailbox expiry`
+`history_traversal_retention` 中保存 intent 与 registered digest。`intent.retention.expires_at == request.expires_at == receipt.expires_at == response stream expiry`
 必须逐字相等，否则同事务零写失败。服务到 expiry 保留 exact target→base accepted Seal cut、每个 Seal.delta 命中的 canonical Control Move bytes
 以及所有 registered `apply_seal` dependency；split-view 仍由既有 transparency/gossip 处理。object 丢失显式返回 `frontier_unavailable`
 （reason=`history_traversal_anchor_unreachable`）并要求新 request，不得在旧 receipt 下换 base/current/target/range。
 
 每个 Manifest descriptor 只列 `chunk_response_id,chunk_index,covered_epoch_range`。requester 凭 session/capability 及 exact
 `request_receipt_digest`，通过标准 self Seal/Event/dependency resolve 携 closed `TraversalAccess` 读取该 receipt target 反向 cut 内的 Seal、其 delta
-Control Move 及 registered replay dependencies。remote member source 只走普通 authenticated Realm/federation 治理可见性；request replica 只证明请求/mailbox bytes、authorization 与 TTL，不承诺 cut 且不扩张治理可见性。仅 RRK pending archive replica 可用 `pending_archive_replica_digest` 取得 peer retained-cut 窄访问。caller 不得自报 allowed ref 数组；服务从 retained intent/cut 机械判定。普通 timeline visibility 与
+Control Move 及 registered replay dependencies。remote member source 只走普通 authenticated Realm/federation 治理可见性；request replica 只证明请求/receipt bytes、authorization 与 TTL，不承诺 cut 且不扩张治理可见性。仅 RRK pending archive replica 可用 `pending_archive_replica_digest` 取得 peer retained-cut 窄访问。caller 不得自报 allowed ref 数组；服务从 retained intent/cut 机械判定。普通 timeline visibility 与
 TraversalAccess 互斥，unknown/unauthorized/out-of-cut 同形。旧 evidence-page read operation 与 descriptor-access branch 均不存在。
 
-Request create 时 requester 当前 delivery binding/authenticated Principal Server 是该 mailbox 唯一 `release_service_id`。Request
-receipt、sealed capability context 与 mailbox 都冻结该 service DID、binding/resolution refs 和 route digest；后续 retry 或路由变化
+Request create 时 requester 当前 delivery binding/authenticated Principal Server 是该 request response stream 唯一 `release_service_id`。Request
+receipt、sealed capability context 与 response stream 都冻结该 service DID、binding/resolution refs 和 route digest；后续 retry 或路由变化
 不得替换。固定 service DID 是该 request 的唯一 release authority；chunk 首次入队时仍必须确认 receipt 中的 delivery binding
 仍指向该 DID。同一 DID 的 ServiceResolution successor 允许成为新 route；只有 delivery binding 改绑另一 service DID 时
 fail closed 并由 requester 创建新 request；已经 accepted 的小型 `HistoryKeyResponseSendReceipt`
-仍由旧 idempotency ledger 保留并 byte-identical retry 到 expiry；recipient mailbox 的完整 record 则在有效 high-water ack
-事务中 GC。v1 不迁移 mailbox/idempotency ledger。Release service 通过
+仍由旧 idempotency ledger 保留并 byte-identical retry 到 expiry；recipient response stream 的完整 record 则在有效 high-water ack
+事务中 GC。v1 不迁移 response stream/idempotency ledger。Release service 通过
 `ak.peer.history_key_requests.command.replicate` 把 byte-identical request+receipt 私有 fanout 到 closed destinations：current member
 delivery-binding services，或其 archive tuple 与 requested ranges 相交的 exact RRK holder service。Destination authorization/TTL/idempotency
 受 S2S proof 覆盖；destination 只在本地 scope-private
-inbox 投影，不生成 Event 或 DeviceMessage。Create 事务必须先 durable 写入 initial target set 与 fanout outbox；重启从 outbox 重放，
+request 投影，不生成 Event 或 DeviceMessage。Create 事务必须先 durable 写入 initial target set 与 fanout outbox；重启从 outbox 重放，
 TTL 内 membership/service-binding 变化由 durable reconciliation 增加当前合法 target 并使失权 target 的 list gate 立即失效，不能因
 create accepted 后的崩溃永久漏掉远端 source。
 
@@ -269,7 +282,6 @@ history_chunk_context = JCS({
   purpose: "history_secret_chunk",
   request_digest,
   request_receipt_digest,
-  reply_mailbox_id,
   manifest_digest,
   manifest_admission_digest,
   chunk_response_id,
@@ -291,10 +303,10 @@ admission 必须从 receipt target 按 predecessor_refs 反向取得完整 close
 重放到 target basis，执行 join/profile floor、scope current monotone history-access ratchet 与 winning transition 校验；任一失败时整个 manifest 零 record、
 零 admission。成功事务耐久写 `HistoryManifestAdmission`，其 digest 绑定 manifest/request/receipt、exact `traversal_intent_digest`、
 authorized ranges 和 T0 pass marker。Source 必须先取得该首次 accepted manifest receipt；在此之前提交 chunk 或提交错误
-admission digest 必须 dependency reject 且零 pending、零 mailbox record、零 attestation。
+admission digest 必须 dependency reject 且零 pending、零 response record、零 attestation。
 Receiver 必须先 durable 取得并验证 manifest。Receiver 安装前必须独立执行同一 target→base 遍历与 base→target replay，核对 winner、
 join/incarnation、current monotone history-access ratchet 及 request/receipt/attestation 绑定。RRK archive 使用 archive-lifetime traversal profile，不伪造 recipient。Source 不生成、
-不签名也不携带 T1 authorization basis。Source proof 对 exact request/mailbox/ranges/content 归因。`history_response_signing_input` 必须同时携带
+不签名也不携带 T1 authorization basis。Source proof 对 exact request/ranges/content 归因。`history_response_signing_input` 必须同时携带
 `source_signer_evidence_ref` 与 `source_signer_evidence_digest`，两者逐字绑定 closed source-signer evidence union 的同一份对象：
 ordinary human、Native Agent 与 organization-recovery holder 使用 `AuthenticatedSignerResolutionEvidence`，minimal-metadata 使用
 `MinimalMetadataMlsLeafSignerEvidence`。Evidence 必须授权 `source_actor_id`、`source_proof.verification_method` 与
@@ -354,7 +366,7 @@ Response wire 只携 `request_digest+request_receipt_digest`；source service �
 destination release service 从自己的 durable request ledger 取原 receipt。未知/mismatch 是 dependency reject 且零写，完整 receipt 不在
 manifest/chunk wire 重复。Source-record digest 排除 service metadata、`sent_at`、release attestation 和 service proof。
 服务在每个 chunk 首次耐久入队事务中取得 profile-dispatched current accepted authority views、执行 T1，并生成独立
-`HistoryReleaseAttestation`；它绑定 source-record digest、request/receipt/mailbox/scope、exact continuous range、recipient/source
+`HistoryReleaseAttestation`；它绑定 source-record digest、request/receipt/scope、exact continuous range、recipient/source
 identity/profile 以及 profile-closed typed authority view locator/digest vector，但不进入 source record/proof、HPKE context 或 manifest。
 Release service 在该事务中通过各 authority 既有标准接口或本地 durable replica 机械验证 closed predicates；locator vector 只是
 service-signed 决定收据和审计坐标，不是 receiver 可独立重放的 portable 多 authority proof。v1 显式信任 release service 诚实执行 T1；
@@ -371,19 +383,19 @@ requester 通过 receipt-bound governance-dependency resolve 获取，不依赖 
 Manifest record MUST 不含 release attestation。
 Source MUST 先以 content-addressed staged blobs 保存 manifest、所有 sealed chunk bytes 和 ids，最后原子写 ready marker；
 marker 出现前不得发送。Retry 重发相同 bytes。Accepted chunk 是 secret release 线性化点；source 的 exact retry 只返回首次
-小型 `HistoryKeyResponseSendReceipt`，不以新 head 重验或重签；完整 record/attestation 只从 recipient mailbox 读取。
+小型 `HistoryKeyResponseSendReceipt`，不以新 head 重验或重签；完整 record/attestation 只从 recipient response stream 读取。
 
-Attempt identity 固定为 `(reply_mailbox_id,source_sender_domain,manifest response_id,manifest_digest)`。只有 manifest 命名的每个
+Attempt identity 固定为 `(request_id,source_sender_domain,manifest response_id,manifest_digest)`。只有 manifest 命名的每个
 chunk 都取得 durable send receipt 才是 `completed`；v1 不定义 abandon operation，未完成 attempt 仅在 request expiry 进入
 `expired`。Permanent chunk rejection 要求 source 建新 manifest，不能把旧 attempt 偷换为完成。`completed|expired` 后才能 GC 对应
-staged blobs/outbox，compact accepted receipt ledger 仍按下述期限保留。并发上限只计 unfinished：每 mailbox/source-domain 4、
-每 mailbox 8；同一 request 在 expiry 前可顺序创建任意多个满足单体上限的 manifest，不存在 lifetime split/attempt 总次数。
+staged blobs/outbox，compact accepted receipt ledger 仍按下述期限保留。并发上限只计 unfinished：每 request/source-domain 4、
+每 request 8；同一 request 在 expiry 前可顺序创建任意多个满足单体上限的 manifest，不存在 lifetime split/attempt 总次数。
 
 Release service 必须在有效 high-water ack 前保留完整 byte-identical record 与 conditional attestation。Receiver 只有在对应
 manifest descriptor 或 chunk 结果已 durable install/reject（或取得 signed lost descriptor）后才能 ack；未 durable 处理即 ack 是
-client error。Ack 事务原子记录 disposition、GC 大 record/attestation 并释放 active 16 MiB quota，不再承诺 ack 后重读 mailbox record。
+client error。Ack 事务原子记录 disposition、GC 大 record/attestation 并释放 active 16 MiB quota，不再承诺 ack 后重读 response record。
 Source exact retry 只依赖首次 enqueue 已冻结的小型 `HistoryKeyResponseSendReceipt` ledger；该 compact ledger 保留到 request expiry，
-按 mailbox 64 MiB、requester 256 MiB 与 service advertised finite floor 独立计费，不能由 ack 刷写绕过。Expiry 后才转为 30 天 light tombstone
+按 request 64 MiB、requester 256 MiB 与 service advertised finite floor 独立计费，不能由 ack 刷写绕过。Expiry 后才转为 30 天 light tombstone
 `{response_id,source_record_digest,terminal_status,expired_at}`；tombstone 只拒绝冲突/过期 retry，不再承诺返回完整 record。
 
 Receiver 对 list 的单一 sequence stream 逐项耐久记录 disposition。Normal record 允许
@@ -516,7 +528,7 @@ release attestation 复核，唯一 continuous released range 中的每个 epoch
 ## 9. Conformance
 
 Vectors MUST 覆盖 closed union、Realm/Circle 独立 group、ordinary/Native Agent/minimal sender、join/rejoin、
-endpoint replacement、history_access 单向收紧与禁止放宽、current frontier 拒绝、mailbox duplicate/reject/ack、多候选投毒、
+endpoint replacement、history_access 单向收紧与禁止放宽、response-stream duplicate/reject/ack、多候选投毒、
 RRK rotation、traversal target 不支配 base/current、隐藏 predecessor、secret-chain 负例和 26,298 epoch/Nh=32 packed-size 算例。
 至少两个独立 runner MUST 从原始输入重算 exporter、KDF、nonce、AAD、AEAD、HPKE、RRK 和 routing tag，
 并执行 negative mutations。

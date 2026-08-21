@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.6",
+  "version": "2026-08-21.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-21T23:56:00+08:00",
+  "generated_at": "2026-08-21T21:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2097,32 +2097,6 @@
         "ak.conflict.recovery"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.consent.grant",
-      "category": "personal",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.consent.grant"
-      ],
-      "profile": "ak.profile.principal_control_realm.v1",
-      "root_control_only": true,
-      "notes": "Holder-private consent is authored only by the current controller of the holder Principal Control Realm; it is never grantable to a Realm co-owner or another principal.",
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.consent.revoke",
-      "category": "personal",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.consent.revoke"
-      ],
-      "profile": "ak.profile.principal_control_realm.v1",
-      "root_control_only": true,
-      "notes": "Holder-private consent revocation is authored only by the current controller of the holder Principal Control Realm and must remove caller-observed dots; it is never grantable.",
       "event_mapping_kind": "same_name"
     },
     {

@@ -249,15 +249,15 @@ components:
         enclave operator surfaces). Not used by any registered v1 operation
         in this OpenAPI document; deployments MAY require it on product-local
         management APIs outside the Arkret protocol namespace.
-    historyMailboxAuth:
+    historyResponseCapabilityAuth:
       type: apiKey
       in: header
       name: Authorization
       description: |
-        Opaque reply-mailbox capability using the exact wire form
-        `Authorization: Arkret-Mailbox <reply_mailbox_capability>`. The service
-        stores only its commitment. Unknown mailbox, wrong/expired capability
-        and unauthorized access are the same-shape not_found result.
+        Opaque history response capability using the exact wire form
+        `Authorization: Arkret-History-Capability <response_capability_b64u>`. The service
+        stores only its commitment. Unknown, expired, garbage-collected and unauthorized
+        capabilities are the same-shape not_found result.
   headers:
     XArkretRequestId:
       description: Stable request identifier.
@@ -4433,7 +4433,7 @@ paths:
               $ref: '#/components/schemas/HistoryKeyRequest'
       responses:
         '200':
-          description: First durable accepted request receipt and sealed mailbox capability; exact retry returns the same bytes
+          description: First durable accepted request receipt and sealed history response capability; exact retry returns the same bytes
           content:
             application/json:
               schema:
@@ -4478,19 +4478,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HistoryKeyResponseSendOutcome'
-  /_arkret/self/history-key-responses/{reply_mailbox_id}/read:
-    parameters:
-    - name: reply_mailbox_id
-      in: path
-      required: true
-      schema:
-        type: string
-        pattern: ^ak:history_mailbox:[A-Za-z0-9_-]{22}$
+  /_arkret/self/history-key-responses/read:
     post:
       operationId: ak.self.history_key_responses.read.list
       security:
-      - historyMailboxAuth: []
-      summary: Read the ordered durable capability-protected response mailbox.
+      - historyResponseCapabilityAuth: []
+      summary: Read the ordered durable capability-addressed response stream.
       requestBody:
         required: false
         content:
@@ -4504,19 +4497,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HistoryKeyResponseListOutcome'
-  /_arkret/self/history-key-responses/{reply_mailbox_id}/ack:
-    parameters:
-    - name: reply_mailbox_id
-      in: path
-      required: true
-      schema:
-        type: string
-        pattern: ^ak:history_mailbox:[A-Za-z0-9_-]{22}$
+  /_arkret/self/history-key-responses/ack:
     post:
       operationId: ak.self.history_key_responses.command.ack
       security:
-      - historyMailboxAuth: []
-      summary: Advance the mailbox high-water only across durable record dispositions.
+      - historyResponseCapabilityAuth: []
+      summary: Advance the response-stream high-water only across durable record dispositions.
       requestBody:
         required: true
         content:

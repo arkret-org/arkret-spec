@@ -71,6 +71,50 @@ def text_contract_files() -> list[Path]:
     return sorted(path for path in files if path.is_file())
 
 
+HISTORY_RESPONSE_MACHINE_FORBIDDEN_RE = re.compile(
+    r"history[ _-]mailbox|reply[_-]mailbox|history[_-]reply|reply[_-]history"
+    r"|arkret-mailbox|closed[_-]mailbox[_-]delivery"
+    r"|(?:history[-_ ]?key|history response|history recovery).{0,100}\b(?:mailbox|inbox)\b",
+    re.IGNORECASE,
+)
+HISTORY_RESPONSE_PROSE_FORBIDDEN_RE = re.compile(r"\b(?:mailbox|inbox|reply)\b", re.IGNORECASE)
+
+
+def history_response_naming_violations(text: str, *, strict_prose: bool = False) -> list[tuple[int, str]]:
+    """Return forbidden retired history-response terms with one-based line numbers."""
+    pattern = (
+        HISTORY_RESPONSE_PROSE_FORBIDDEN_RE
+        if strict_prose
+        else HISTORY_RESPONSE_MACHINE_FORBIDDEN_RE
+    )
+    return [
+        (line_number, match.group(0))
+        for line_number, line in enumerate(text.splitlines(), 1)
+        for match in pattern.finditer(line)
+    ]
+
+
+def check_history_response_naming(lint: Lint) -> None:
+    """Prevent reintroduction of the retired second history stream identity."""
+    for directory in ("schemas", "registry", "openapi", "bindings", "profiles"):
+        root = ARTIFACTS / directory
+        for path in sorted(candidate for candidate in root.rglob("*") if candidate.is_file()):
+            for line_number, token in history_response_naming_violations(read_text(path)):
+                lint.fail(
+                    path,
+                    f"retired history response machine term {token!r} at line {line_number}",
+                )
+
+    prose_path = SPEC_ROOT / "zh" / "governance" / "history-visibility.md"
+    for line_number, token in history_response_naming_violations(
+        read_text(prose_path), strict_prose=True
+    ):
+        lint.fail(
+            prose_path,
+            f"retired history response prose term {token!r} at line {line_number}",
+        )
+
+
 
 def check_registry_manifest(lint: Lint) -> None:
     path = ARTIFACTS / "registry" / "registry-manifest.json"

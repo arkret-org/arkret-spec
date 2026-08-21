@@ -186,7 +186,7 @@ see_also:
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
 | `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
 | `governance/member-delivery-binding.md` | 成员 effective delivery binding：接受准则、`binding_source`、`ak.realm.delivery_binding_policy`、路由不可降级、rebind 过渡、单 binding + 多设备策略与隐私边界（与 join gate 正交）。 |
-| `governance/history-visibility.md` | `since_join` / `all_history_for_current_members` 二态、当前成员 gate、private history-key mailbox/relay 与 organization-recovery archive。 |
+| `governance/history-visibility.md` | `since_join` / `all_history_for_current_members` 二态、当前成员 gate、private history-key request/response stream/relay 与 organization-recovery archive。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则；物理位于 `security/` 安全分析专项目录。 |
 

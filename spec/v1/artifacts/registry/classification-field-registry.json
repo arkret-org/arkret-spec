@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-21.1",
+  "version": "2026-08-21.2",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
@@ -533,6 +533,20 @@
         "high"
       ],
       "comparison_semantics": "A greater risk_tier requires at least as strict freshness and authorization handling."
+    },
+    {
+      "field": "trust_tier",
+      "allowed_values": [
+        "low",
+        "discovery",
+        "high"
+      ],
+      "strict_order": [
+        "low",
+        "discovery",
+        "high"
+      ],
+      "comparison_semantics": "Invite quarantine trust increases from low through discovery to high; a higher tier may relax review handling only where the consent policy explicitly permits it."
     }
   ],
   "semantic_axis_declarations": [

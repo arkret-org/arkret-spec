@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-21.3",
+  "version": "2026-08-21.4",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -30,17 +30,16 @@
       "preimage": "no new digest is computed; each closed branch carries the already registered full-object digest named by its semantic field",
       "rule": "self request_receipt.request_receipt_digest uses request_receipt_digest; self archive_replica.archive_replica_digest and peer pending_archive_replica.pending_archive_replica_digest both use archive_replica_digest. Member request replicas never grant traversal access. A branch kind/field mismatch or an unknown digest fails closed."
     },
-    "mailbox_capability_commitment": {
-      "domain": "ak.history-mailbox-capability-commitment-v1",
+    "response_capability_commitment": {
+      "domain": "ak.history-response-capability-commitment-v1",
       "preimage_shape": [
-        "reply_mailbox_id",
-        "reply_mailbox_capability_b64u"
+        "response_capability_b64u"
       ],
-      "rule": "reply_mailbox_capability_b64u is the canonical unpadded base64url encoding of exactly 32 CSPRNG bytes"
+      "rule": "response_capability_b64u is the canonical unpadded base64url encoding of exactly 32 service-generated CSPRNG bytes"
     },
-    "sealed_capability_digest": {
-      "domain": "ak.history-mailbox-sealed-capability-v1",
-      "preimage": "the complete closed SealedMailboxCapability {enc,ciphertext}"
+    "sealed_response_capability_digest": {
+      "domain": "ak.history-response-sealed-capability-v1",
+      "preimage": "the complete closed SealedHistoryResponseCapability {enc,ciphertext}"
     },
     "manifest_digest": {
       "domain": "ak.history-response-manifest-v1",
@@ -237,25 +236,25 @@
         "result_expiry"
       ]
     },
-    "mailbox_cursor": {
-      "domain": "ak.history-mailbox-cursor-v1",
+    "response_cursor": {
+      "domain": "ak.history-response-cursor-v1",
       "primitive": "HMAC-SHA256",
       "jcs_preimage_fields": [
         "release_service_id",
-        "reply_mailbox_id",
+        "request_id",
         "last_sequence",
-        "mailbox_expiry"
+        "request_expires_at"
       ]
     },
     "ack_token": {
-      "domain": "ak.history-mailbox-ack-token-v1",
+      "domain": "ak.history-response-ack-token-v1",
       "primitive": "HMAC-SHA256",
       "jcs_preimage_fields": [
         "release_service_id",
-        "reply_mailbox_id",
+        "request_id",
         "ordered_ack_entries",
         "high_water_cursor",
-        "token_expiry"
+        "token_expires_at"
       ],
       "rule": "ordered_ack_entries is the exact strictly sequence-ascending array of {sequence,kind,response_id,entry_digest}, where entry_digest is record_digest for kind=record or the complete signed lost-record digest for kind=lost. service_record_lost is admitted only for a matching lost entry."
     },

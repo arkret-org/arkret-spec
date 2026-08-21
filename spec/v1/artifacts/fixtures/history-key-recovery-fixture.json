@@ -8,7 +8,7 @@
     "scale_generator": "tools/generate_history_scale_fixture.py"
   },
   "covers_vectors": [
-    "ak.vector.history_key.closed_mailbox_delivery.v1",
+    "ak.vector.history_key.closed_response_delivery.v1",
     "ak.vector.history_key.exporter_prejoin_t0_t1.v1",
     "ak.vector.history_key.frontier_traversal_split.v1",
     "ak.vector.history_key.sender_crypto.v1",
@@ -57,24 +57,6 @@
       "reject a different verified sender domain even when ciphertext and history_secret are unchanged"
     ]
   },
-  "mailbox_cases": [
-    {
-      "name": "manifest_precedes_chunk_admission",
-      "expected": "manifest admission completes direct traversal and T0 before the manifest record is accepted; a chunk without that exact admission is dependency_missing with zero writes"
-    },
-    {
-      "name": "manifest_all_or_nothing_t0_admission",
-      "expected": "the service replays the complete retained base-to-target Seal cut, Control Moves and registered dependencies, derives winners/current monotone history policy/join floor, and writes one manifest_admission_digest or nothing"
-    },
-    {
-      "name": "single_continuous_chunk_range",
-      "expected": "each chunk_index maps to exactly one manifest descriptor and one continuous epoch range already authorized by direct replay"
-    },
-    {
-      "name": "compact_exact_retry_ledger_until_expiry",
-      "expected": "the first accepted send freezes one small HistoryKeyResponseSendReceipt; exact retry returns byte-identical bytes and high-water ack removes the large mailbox record while retaining the compact receipt ledger through expiry"
-    }
-  ],
   "rrk_registration_rotation_kat": {
     "model": "register-or-rotate Event provenance plus holder_trusted_basis; reducer effectiveness is replay-derived",
     "required_replay": "archive-lifetime direct traversal derives the effective key tuple and exact winning archive transition from standard Seal/Event/dependency closure",
@@ -348,14 +330,14 @@
           "kind": "realm",
           "realm_membership_incarnation_ref": "ak:event:AWYr1ucW0vOccjnC8XMFGQK8PjKzaha_YpYb8B0uDY_y"
         },
-        "registry_snapshot_digest": "sha256:4150f3ddc4644ad417fd5ba0b9a54897e392de1d8e2534a738492d2c276a311d",
+        "registry_snapshot_digest": "sha256:5b1030b5ee0f7bc3269bd6963c536496fccb813961fc5c3bf11a85593ce387ba",
         "traversal_admission_registry_digest": "sha256:6262626262626262626262626262626262626262626262626262626262626262",
         "retention": {
           "kind": "request_expiring",
           "expires_at": "2026-08-28T00:00:00.000Z"
         }
       },
-      "traversal_intent_digest": "sha256:eacfc5e708969a2d93b54e9c7040b1d08d2ae329c9b792a171f9f0c3202d2622"
+      "traversal_intent_digest": "sha256:7a5ec3a04ce41b0f754d21fd20b1fd0a5b64daaa8f251f46f68ab1c18c284951"
     },
     "direct_cut": {
       "trusted_history_base_basis": {
@@ -593,7 +575,7 @@
         }
       },
       "container_event_ref": "ak:event:AcI5S18HY2W_EAN0jhRUQ6JrZHtyxz2jaBvOCrwS9D--",
-      "registry_snapshot_digest": "sha256:4150f3ddc4644ad417fd5ba0b9a54897e392de1d8e2534a738492d2c276a311d",
+      "registry_snapshot_digest": "sha256:5b1030b5ee0f7bc3269bd6963c536496fccb813961fc5c3bf11a85593ce387ba",
       "traversal_admission_registry_digest": "sha256:6262626262626262626262626262626262626262626262626262626262626262",
       "retention": {
         "kind": "archive_lifetime"
@@ -611,20 +593,20 @@
         {
           "artifact_kind": "contract_registry",
           "artifact_id": "registry/contract-registry.json",
-          "content_digest": "sha256:1ff36b8a2378090a8cc2fc3f9bcccda600c59dbac925f2dd66b0d24557782b8f"
+          "content_digest": "sha256:eb5e902ca87a9c2b4b7795d492e74b53260f052c7860002881e71dbb91adf0a4"
         },
         {
           "artifact_kind": "proof_context_registry",
           "artifact_id": "registry/proof-context-registry.json",
-          "content_digest": "sha256:87f5873a028e6158c86509064f413a88d2009995837b62d244d2d186ba3dcd2e"
+          "content_digest": "sha256:7871f43d246ef14ee2078479c57718c09c2c015fdd94529c45e5ac11e24c89d7"
         },
         {
           "artifact_kind": "replay_schema_manifest",
           "artifact_id": "governance-replay-schema-manifest",
-          "content_digest": "sha256:473a9519ac1355bdfa87dfb008b1f6df90e0cd3948645b4e41bebd4f4e30d5aa"
+          "content_digest": "sha256:00fb78d901d3846fe762144f34f942039208e70eaedd57e9f92065b51b3470a8"
         }
       ],
-      "snapshot_digest": "sha256:4150f3ddc4644ad417fd5ba0b9a54897e392de1d8e2534a738492d2c276a311d"
+      "snapshot_digest": "sha256:5b1030b5ee0f7bc3269bd6963c536496fccb813961fc5c3bf11a85593ce387ba"
     },
     "schema_manifest_summary": {
       "root_schema_artifact_ids": [
@@ -632,7 +614,7 @@
         "schemas/event-payload.schema.json"
       ],
       "artifact_count": 77,
-      "artifact_descriptor_aggregate_digest": "sha256:0f1a3746c7c146e19939d6a40a8194389619538ef367ae801934484fb65380df",
+      "artifact_descriptor_aggregate_digest": "sha256:29bfee638800e0b19b6882f6a42300f6c15625af65c78cd248f0ce7c9287f4cf",
       "largest_artifact_canonical_bytes": 251096
     },
     "sample_registry_artifact": {
@@ -844,7 +826,7 @@
         {
           "selector": {
             "kind": "governance_registry_snapshot",
-            "content_digest": "sha256:4150f3ddc4644ad417fd5ba0b9a54897e392de1d8e2534a738492d2c276a311d"
+            "content_digest": "sha256:5b1030b5ee0f7bc3269bd6963c536496fccb813961fc5c3bf11a85593ce387ba"
           },
           "governance_registry_snapshot": {
             "kind": "ak.governance.registry_snapshot",
@@ -852,20 +834,20 @@
               {
                 "artifact_kind": "contract_registry",
                 "artifact_id": "registry/contract-registry.json",
-                "content_digest": "sha256:1ff36b8a2378090a8cc2fc3f9bcccda600c59dbac925f2dd66b0d24557782b8f"
+                "content_digest": "sha256:eb5e902ca87a9c2b4b7795d492e74b53260f052c7860002881e71dbb91adf0a4"
               },
               {
                 "artifact_kind": "proof_context_registry",
                 "artifact_id": "registry/proof-context-registry.json",
-                "content_digest": "sha256:87f5873a028e6158c86509064f413a88d2009995837b62d244d2d186ba3dcd2e"
+                "content_digest": "sha256:7871f43d246ef14ee2078479c57718c09c2c015fdd94529c45e5ac11e24c89d7"
               },
               {
                 "artifact_kind": "replay_schema_manifest",
                 "artifact_id": "governance-replay-schema-manifest",
-                "content_digest": "sha256:473a9519ac1355bdfa87dfb008b1f6df90e0cd3948645b4e41bebd4f4e30d5aa"
+                "content_digest": "sha256:00fb78d901d3846fe762144f34f942039208e70eaedd57e9f92065b51b3470a8"
               }
             ],
-            "snapshot_digest": "sha256:4150f3ddc4644ad417fd5ba0b9a54897e392de1d8e2534a738492d2c276a311d"
+            "snapshot_digest": "sha256:5b1030b5ee0f7bc3269bd6963c536496fccb813961fc5c3bf11a85593ce387ba"
           }
         }
       ],
@@ -954,7 +936,6 @@
       "source_sender_domain": "history.example",
       "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
       "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
-      "reply_mailbox_id": "ak:history_mailbox:AAAAAAAAAAAAAAAAAAAAAA",
       "expires_at": "2026-08-28T00:00:00.000Z",
       "content": {
         "kind": "ak.history_key.response_manifest",
@@ -980,7 +961,6 @@
       "source_sender_domain": "history.example",
       "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
       "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
-      "reply_mailbox_id": "ak:history_mailbox:AAAAAAAAAAAAAAAAAAAAAA",
       "expires_at": "2026-08-28T00:00:00.000Z",
       "content": {
         "kind": "ak.history_key.response_manifest",
@@ -1008,7 +988,6 @@
       "source_sender_domain": "history.example",
       "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
       "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
-      "reply_mailbox_id": "ak:history_mailbox:AAAAAAAAAAAAAAAAAAAAAA",
       "expires_at": "2026-08-28T00:00:00.000Z",
       "content": {
         "kind": "ak.history_key.response_manifest",
@@ -1026,8 +1005,50 @@
       "source_signer_evidence_ref": "ak:signer_evidence:sha256:5252525252525252525252525252525252525252525252525252525252525252",
       "source_signer_evidence_digest": "sha256:5252525252525252525252525252525252525252525252525252525252525252"
     },
-    "expected_digest": "sha256:4d0a3b51031eba0b8ff5dbbc302e2461e9fe7968cf2a8fae3513833f23a4cc4d",
-    "mutating_only_evidence_coordinates_keeps_digest": "sha256:4d0a3b51031eba0b8ff5dbbc302e2461e9fe7968cf2a8fae3513833f23a4cc4d",
-    "mutating_content_changes_digest": "sha256:0ad5aae28c13d6a995e0b53627cbf5edb3c47ee83631b56066beeec5c64998ad"
+    "expected_digest": "sha256:cb67d2fb78a36a97eddad3e59db8106968b130917795626018e79af0ddd65c45",
+    "mutating_only_evidence_coordinates_keeps_digest": "sha256:cb67d2fb78a36a97eddad3e59db8106968b130917795626018e79af0ddd65c45",
+    "mutating_content_changes_digest": "sha256:c2e6398f18fccb2e30a7e2e0ab6a08366205a626c659246cb92b6257999535c4"
+  },
+  "response_stream_cases": [
+    {
+      "name": "manifest_precedes_chunk_admission",
+      "expected": "manifest admission completes direct traversal and T0 before the manifest record is accepted; a chunk without that exact admission is dependency_missing with zero writes"
+    },
+    {
+      "name": "manifest_all_or_nothing_t0_admission",
+      "expected": "the service replays the complete retained base-to-target Seal cut, Control Moves and registered dependencies, derives winners/current monotone history policy/join floor, and writes one manifest_admission_digest or nothing"
+    },
+    {
+      "name": "single_continuous_chunk_range",
+      "expected": "each chunk_index maps to exactly one manifest descriptor and one continuous epoch range already authorized by direct replay"
+    },
+    {
+      "name": "compact_exact_retry_ledger_until_expiry",
+      "expected": "the first accepted send freezes one small HistoryKeyResponseSendReceipt; exact retry returns byte-identical bytes and high-water ack removes the large response record while retaining the compact receipt ledger through expiry"
+    }
+  ],
+  "history_response_capability_kat": {
+    "domain": "ak.history-response-capability-commitment-v1",
+    "decoded_length": 32,
+    "response_capability_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+    "commitment_preimage": {
+      "response_capability_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+    },
+    "expected_response_capability_commitment": "sha256:14d790fb66c28cb85c6ba29b7e801ef995e6c56e21fae5076239dea4f2706dc6",
+    "surface": {
+      "read": "POST /_arkret/self/history-key-responses/read",
+      "ack": "POST /_arkret/self/history-key-responses/ack",
+      "authorization_scheme": "Arkret-History-Capability",
+      "request_locator_in_path_query_or_body": false
+    },
+    "negative_cases": [
+      "padded_base64url_rejected",
+      "decoded_length_not_32_rejected",
+      "unknown_expired_gc_and_unauthorized_same_not_found_shape",
+      "stream_a_capability_cannot_read_or_ack_stream_b",
+      "stream_a_capability_cannot_consume_stream_b_ack_token",
+      "commitment_collision_resampled_before_any_durable_write",
+      "exact_create_retry_returns_byte_identical_sealed_capability"
+    ]
   }
 }

@@ -709,7 +709,7 @@
         },
         "consent_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-          "description": "Exact EventInitialSubmission whose event.actor_id equals actor_id and whose payload.consent_id equals consent_id. A grant payload peer/scope, or the active cell and observed dots resolved by a revoke payload, MUST match the private consent-request correlation. An agent/controller actor requires an explicit consent_write delegation with replayable holder approval."
+          "description": "Exact EventInitialSubmission whose event.actor_id, actor_id, authenticated holder, and private-correlation holder are the same current Principal Control Realm authority-root controller, and whose payload.consent_id equals consent_id. authorization_ref MUST bind that authority root. A grant payload peer/scope, or the active cell and observed dots resolved by a revoke payload, MUST match the correlation. The root_control_only consent action supports neither separate managed-behalf execution nor consent_write delegation to a controller/agent; general PCR/co-owner grants or payload approval evidence do not substitute."
         },
         "signature": {
           "$ref": "#/$defs/signature"
