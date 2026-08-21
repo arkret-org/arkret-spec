@@ -1,0 +1,1033 @@
+{
+  "profile": "ak.feature.history_key_recovery.v1",
+  "version": "2026-08-21",
+  "suite": "history_key_recovery",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.crypto.history_key_recovery.v1",
+    "scale_generator": "tools/generate_history_scale_fixture.py"
+  },
+  "covers_vectors": [
+    "ak.vector.history_key.closed_mailbox_delivery.v1",
+    "ak.vector.history_key.exporter_prejoin_t0_t1.v1",
+    "ak.vector.history_key.frontier_traversal_split.v1",
+    "ak.vector.history_key.sender_crypto.v1",
+    "ak.vector.history_key.organization_recovery_registration.v1",
+    "ak.vector.history_access.direct_conversation_scope_local.v1",
+    "ak.vector.mls.scope_derived_group_identity.v1",
+    "ak.vector.mls.content_scheme_group_immutable.v1",
+    "ak.vector.mls.history_secret_epoch_entry_retention.v1",
+    "ak.vector.mls.portable_history_active_state_separation.v1",
+    "ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1"
+  ],
+  "predicate_registry_digest_kat": {
+    "registry": "history-release-attestation-registry.json",
+    "hash": "sha256",
+    "canonicalization": "RFC8785_JCS",
+    "excluded_top_level_members": [
+      "wire_registry_binding"
+    ],
+    "domain_framing": null,
+    "expected_digest": "sha256:6f15f4f177393607346615b3f5eb8233763db1582c996322aaed99b5d1c4042e",
+    "negative_mutations": [
+      "include_wire_registry_binding",
+      "exclude_any_additional_member",
+      "add_domain_separator",
+      "use_non_sha256_wire_suite"
+    ]
+  },
+  "sender_crypto_kats": {
+    "authoritative_fixture": "arkret-private-kdf-fixture.json",
+    "cases": [
+      {
+        "name": "ordinary_device_sender_domain",
+        "case_ref": "content_key_derivation_ordinary_sender_sha256_aes128gcm",
+        "expected_content_key_hex": "5ac66929b497ce870e9a660a5e98d9f5"
+      },
+      {
+        "name": "minimal_metadata_pairwise_actor_sender_domain",
+        "case_ref": "content_key_derivation_minimal_metadata_sender_sha256_aes128gcm",
+        "expected_content_key_hex": "b24575e661dad2670ae25d57a826c55c"
+      }
+    ],
+    "requirements": [
+      "derive sender_domain from the verified outer producer proof and exact historical leaf; no sender_domain wire field",
+      "derive exporter nonce prefix and full nonce only from history_secret plus registered KDF context and durable counter",
+      "reconstruct AAD from the outer Event, exact group state and minimal encryption_context",
+      "reject a different verified sender domain even when ciphertext and history_secret are unchanged"
+    ]
+  },
+  "mailbox_cases": [
+    {
+      "name": "manifest_precedes_chunk_admission",
+      "expected": "manifest admission completes direct traversal and T0 before the manifest record is accepted; a chunk without that exact admission is dependency_missing with zero writes"
+    },
+    {
+      "name": "manifest_all_or_nothing_t0_admission",
+      "expected": "the service replays the complete retained base-to-target Seal cut, Control Moves and registered dependencies, derives winners/current monotone history policy/join floor, and writes one manifest_admission_digest or nothing"
+    },
+    {
+      "name": "single_continuous_chunk_range",
+      "expected": "each chunk_index maps to exactly one manifest descriptor and one continuous epoch range already authorized by direct replay"
+    },
+    {
+      "name": "compact_exact_retry_ledger_until_expiry",
+      "expected": "the first accepted send freezes one small HistoryKeyResponseSendReceipt; exact retry returns byte-identical bytes and high-water ack removes the large mailbox record while retaining the compact receipt ledger through expiry"
+    }
+  ],
+  "rrk_registration_rotation_kat": {
+    "model": "register-or-rotate Event provenance plus holder_trusted_basis; reducer effectiveness is replay-derived",
+    "required_replay": "archive-lifetime direct traversal derives the effective key tuple and exact winning archive transition from standard Seal/Event/dependency closure",
+    "forbidden_members": [
+      "service_selected_effectiveness_locator",
+      "history_proof_transport_object"
+    ],
+    "negative_cases": [
+      "register_before_realm_create",
+      "holder_trusted_basis_replaced_by_service",
+      "archive_evidence_event_not_reducer_effective",
+      "rrk_requested_range_not_singleton",
+      "closure_outside_holder_authorized_control_metadata"
+    ]
+  },
+  "candidate_store_kat": {
+    "candidate_digest_formula": "sha256(raw history secret bytes)",
+    "dedupe_key": [
+      "effective_scope",
+      "mls_group_id",
+      "epoch",
+      "candidate_digest"
+    ],
+    "limits": {
+      "received_candidates_per_scope_group_epoch": 8,
+      "origin_attributions_per_candidate": 4,
+      "origin_attributions_per_scope_group_epoch": 256,
+      "origin_attributions_per_scope_group_epoch_quota_domain": 64,
+      "origin_attribution_ttl_seconds": 2592000,
+      "event_candidate_bindings_per_scope_group_epoch": 256,
+      "event_candidate_binding_ttl_seconds": 2592000
+    },
+    "origin_domain_variants": [
+      {
+        "kind": "response_sender",
+        "origin_quota_domain_fields": [
+          "source_sender_domain"
+        ],
+        "origin_ref_fields": [
+          "response_id",
+          "source_record_digest"
+        ]
+      },
+      {
+        "kind": "rrk_archive",
+        "origin_quota_domain_fields": [
+          "holder_principal_id",
+          "holder_service_id",
+          "recovery_key_id",
+          "accepted_key_evidence_ref"
+        ],
+        "origin_ref_fields": [
+          "container_event_ref",
+          "archive_digest"
+        ]
+      },
+      {
+        "kind": "portable_backup",
+        "origin_quota_domain_fields": [
+          "backup_series_id",
+          "producer_actor_id"
+        ],
+        "origin_ref_fields": [
+          "backup_origin_id"
+        ],
+        "backup_origin_id_rule": "backup:<canonical BackupId>; when absent use backup:sha256:<hex of exact envelope bytes>; never encode it as sender_domain"
+      }
+    ],
+    "cases": [
+      {
+        "name": "local_export_is_authoritative",
+        "origin": "direct export from locally verified MLS state",
+        "result": "local_authoritative, separately accounted, consumes no received slot, and is never evictable"
+      },
+      {
+        "name": "remote_and_rrk_material_remain_candidates",
+        "origins": [
+          "history_response",
+          "organization_recovery_archive"
+        ],
+        "result": "candidate_only"
+      },
+      {
+        "name": "fake_candidate_matching_fake_ciphertext_is_event_local",
+        "preconditions": [
+          "outer producer proof verifies",
+          "scope/group/epoch/sender domain/AAD/schema/replay checks pass"
+        ],
+        "result": "bind exact {event_id,event_digest} to candidate_digest metadata; do not pin candidate bytes, promote the candidate for the epoch, or evict another sender candidate as an immediate verification side effect"
+      },
+      {
+        "name": "failed_candidate_attribution",
+        "result": "record the exact attempted event and candidate digest as failed metadata without pinning candidate bytes or poisoning the epoch"
+      },
+      {
+        "name": "portable_backup_excludes_candidates",
+        "result": "only local_authoritative entries may be serialized; restore on another endpoint creates received candidate material under portable_backup origin and does not transfer authority"
+      }
+    ],
+    "negative_mutations": [
+      "wrong_effective_scope",
+      "wrong_mls_group_id",
+      "wrong_epoch",
+      "wrong_outer_event_digest",
+      "wrong_transition_event_or_mls_digest",
+      "wrong_verified_sender_domain",
+      "wrong_reconstructed_aad",
+      "wrong_group_ciphersuite",
+      "replayed_counter"
+    ],
+    "material_key": [
+      "effective_scope",
+      "mls_group_id",
+      "epoch",
+      "candidate_digest"
+    ],
+    "material_instance_rule": "Origin is excluded from material identity. Assign immutable material_received_sequence when bytes first become resident; same bytes from a new origin do not refresh it; refetch after byte eviction creates a new resident instance and sequence.",
+    "origin_attribution_key": [
+      "material_key",
+      "origin_domain",
+      "origin_ref"
+    ],
+    "origin_attribution_row_fields": [
+      "material_key",
+      "origin_domain",
+      "origin_quota_domain",
+      "origin_ref",
+      "first_observed_at",
+      "expires_at"
+    ],
+    "origin_attribution_rule": "origin_ref is retrieval-only and never selects quota identity. Exact duplicate is a no-op. Keep at most 4 rows per candidate, 64 per exact scope/group/epoch/origin_domain/origin_quota_domain and 256 total per epoch. expires_at is immutable first_observed_at+2592000 seconds. Prune expired first, then retain the minimum (expires_at,candidate_digest,origin_domain,JCS(origin_quota_domain),JCS(origin_ref)) tuples. Origin attribution never duplicates bytes or changes material_received_sequence.",
+    "event_candidate_binding_key": [
+      "event_binding_key",
+      "candidate_digest",
+      "outcome"
+    ],
+    "event_attribution_rule": "A success or failure EventCandidateBinding contains no origin and origin cannot be inferred from it. It stores exact Event attribution, candidate_digest, outcome and bounded timestamps only; it never pins candidate secret bytes.",
+    "deterministic_eviction": {
+      "tier_order": [
+        "received material with no success binding, including unbound and failure-only",
+        "success-bound received material"
+      ],
+      "tie_break": [
+        "material_received_sequence ascending",
+        "candidate_digest UTF-8 ascending"
+      ],
+      "effect": "Success/failure bindings choose only the tier and never pin bytes. Delete candidate secret bytes and the resident sequence only; retain bounded origin/Event-binding tombstones so refetch can restore material with a new sequence. local_authoritative is never a victim and does not count against received slots."
+    },
+    "event_candidate_binding_ledger": {
+      "row_fields": [
+        "event_binding_key",
+        "candidate_digest",
+        "outcome",
+        "first_observed_at",
+        "expires_at"
+      ],
+      "outcomes": [
+        "success",
+        "failure"
+      ],
+      "expiry_rule": "expires_at equals immutable first_observed_at plus 2592000 seconds",
+      "prune_order": [
+        "expired rows first",
+        "expires_at ascending",
+        "event_id ascending",
+        "event_digest ascending",
+        "verified_sender_domain ascending",
+        "candidate_digest ascending",
+        "outcome ascending"
+      ],
+      "independence": "Pruning attribution metadata never mutates the ciphertext replay ledger, local_authoritative material, or epoch authority."
+    }
+  },
+  "scope_and_endpoint_kats": [
+    {
+      "name": "circle_independent_group",
+      "realm": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
+        },
+        "effective_scope_key_hex": "616b3a7265616c6d3a4141414141414141414141414141414141414141414141414141414141414141414141414141414141414141",
+        "expected_mls_group_id": "YWs6cmVhbG06QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUE"
+      },
+      "circle": {
+        "effective_scope": {
+          "kind": "circle",
+          "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e",
+          "circle_id": "ak:circle:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+        },
+        "effective_scope_key_hex": "616b3a636972636c653a4242424242424242424242424242424242424242424242424242424242424242424242424242424242424242",
+        "expected_mls_group_id": "YWs6Y2lyY2xlOkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+      },
+      "expected": "different immutable group ids and independent monotonic epoch lineages"
+    },
+    {
+      "name": "standard_fresh_endpoint_floor",
+      "content_scheme": "mls_rfc9420",
+      "seed_hex": "7374616e646172642d66726573682d656e64706f696e742d7631",
+      "inputs": {
+        "pre_admission_epochs": [
+          0,
+          1,
+          2
+        ],
+        "winning_add_epoch": 3,
+        "post_admission_commit_epochs": [
+          4,
+          5
+        ]
+      },
+      "expected": {
+        "decryptable_epochs": [
+          3,
+          4,
+          5
+        ],
+        "rejected_pre_admission_epochs": 3,
+        "history_key_requests_allowed": 0,
+        "foreign_active_mls_state_imports_allowed": 0,
+        "rule": "decrypt only after the endpoint's winning Add/Welcome and sequential Commit application"
+      }
+    }
+  ],
+  "forbidden_legacy_terms": [
+    "realm_key_share",
+    "realm_key_withheld",
+    "history_sharing_policy",
+    "homogeneous_segment",
+    "complete_control_state_v1",
+    "proof_result_set_id",
+    "foreign_active_mls_snapshot",
+    "to_device_history_key_request"
+  ],
+  "direct_traversal_kat": {
+    "member_retention": {
+      "traversal_intent": {
+        "kind": "ak.history_governance.traversal_intent",
+        "profile": "member_history_delivery",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
+        },
+        "mls_group_id": "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI",
+        "trusted_history_base_basis": {
+          "leaves": [
+            "ak:seal:sha256:213637127a85071dc883b8c4e02b128a09e134a49551fff1e5d51d4e3d86bba8",
+            "ak:seal:sha256:df4e503e1b03a35a83492fde99f377baf8f9d5d861e1afb2f660dff00cca103e"
+          ]
+        },
+        "trusted_current_basis": {
+          "leaves": [
+            "ak:seal:sha256:6796b8b6f488a87acd1026c367c5eaa48103c0052234bfb036e6c51dd5e05663",
+            "ak:seal:sha256:c97b14e04379c0f4363f9462b573642c9ef8cfa5c6fd43bab25a748cd218ffbb"
+          ]
+        },
+        "target_basis": {
+          "leaves": [
+            "ak:seal:sha256:272847e37a778e5a559a9d39a039350d544051b28227f016a5f4248ffec154a6",
+            "ak:seal:sha256:a299c49172875d5dc859af690c8de8a9355ece491c8327088ebc178f0a4f76f1"
+          ]
+        },
+        "request_digest": "sha256:6161616161616161616161616161616161616161616161616161616161616161",
+        "requested_ranges": [
+          {
+            "from_epoch": 0,
+            "to_epoch": 1
+          }
+        ],
+        "authorization_incarnation": {
+          "kind": "realm",
+          "realm_membership_incarnation_ref": "ak:event:AWYr1ucW0vOccjnC8XMFGQK8PjKzaha_YpYb8B0uDY_y"
+        },
+        "registry_snapshot_digest": "sha256:3cde4ae839da07c9737cf0619d6aa32aee886912d119a11198da07834994e6f5",
+        "traversal_admission_registry_digest": "sha256:6262626262626262626262626262626262626262626262626262626262626262",
+        "retention": {
+          "kind": "request_expiring",
+          "expires_at": "2026-08-28T00:00:00.000Z"
+        }
+      },
+      "traversal_intent_digest": "sha256:b571bde2585fd9008f4f67cdde61c1a7233780c36969ba227f95bb98a698d5e2"
+    },
+    "direct_cut": {
+      "trusted_history_base_basis": {
+        "leaves": [
+          "ak:seal:sha256:213637127a85071dc883b8c4e02b128a09e134a49551fff1e5d51d4e3d86bba8",
+          "ak:seal:sha256:df4e503e1b03a35a83492fde99f377baf8f9d5d861e1afb2f660dff00cca103e"
+        ]
+      },
+      "trusted_current_basis": {
+        "leaves": [
+          "ak:seal:sha256:6796b8b6f488a87acd1026c367c5eaa48103c0052234bfb036e6c51dd5e05663",
+          "ak:seal:sha256:c97b14e04379c0f4363f9462b573642c9ef8cfa5c6fd43bab25a748cd218ffbb"
+        ]
+      },
+      "target_basis": {
+        "leaves": [
+          "ak:seal:sha256:272847e37a778e5a559a9d39a039350d544051b28227f016a5f4248ffec154a6",
+          "ak:seal:sha256:a299c49172875d5dc859af690c8de8a9355ece491c8327088ebc178f0a4f76f1"
+        ]
+      },
+      "seals": [
+        {
+          "seal_ref": "ak:seal:sha256:213637127a85071dc883b8c4e02b128a09e134a49551fff1e5d51d4e3d86bba8",
+          "predecessor_refs": [],
+          "delta_event_refs": [
+            "ak:event:Acj6U-RncK_874Fqg5G92m-RTUDoHDuFvgvGKctFCZBe"
+          ]
+        },
+        {
+          "seal_ref": "ak:seal:sha256:df4e503e1b03a35a83492fde99f377baf8f9d5d861e1afb2f660dff00cca103e",
+          "predecessor_refs": [],
+          "delta_event_refs": [
+            "ak:event:AZc5yUQiAVSI3hquJ6vb24B9nBqhiONzxJK6xPKc-IQ9"
+          ]
+        },
+        {
+          "seal_ref": "ak:seal:sha256:6796b8b6f488a87acd1026c367c5eaa48103c0052234bfb036e6c51dd5e05663",
+          "predecessor_refs": [
+            "ak:seal:sha256:213637127a85071dc883b8c4e02b128a09e134a49551fff1e5d51d4e3d86bba8"
+          ],
+          "delta_event_refs": [
+            "ak:event:AbIrZN4jft7Fjs2JH-3IcwjI_o-5MlSHaTIN1Dq_Y_zi"
+          ]
+        },
+        {
+          "seal_ref": "ak:seal:sha256:c97b14e04379c0f4363f9462b573642c9ef8cfa5c6fd43bab25a748cd218ffbb",
+          "predecessor_refs": [
+            "ak:seal:sha256:df4e503e1b03a35a83492fde99f377baf8f9d5d861e1afb2f660dff00cca103e"
+          ],
+          "delta_event_refs": [
+            "ak:event:AaDhdv-ZXFF_BFoRFd0wDaCk_iEjsbNYRgnubpgUwTGC"
+          ]
+        },
+        {
+          "seal_ref": "ak:seal:sha256:272847e37a778e5a559a9d39a039350d544051b28227f016a5f4248ffec154a6",
+          "predecessor_refs": [
+            "ak:seal:sha256:6796b8b6f488a87acd1026c367c5eaa48103c0052234bfb036e6c51dd5e05663"
+          ],
+          "delta_event_refs": [
+            "ak:event:Aa5iC1k8qBhLViQvgYBaDDu8kW0AZcwnQyf3uwwBrOPh"
+          ]
+        },
+        {
+          "seal_ref": "ak:seal:sha256:a299c49172875d5dc859af690c8de8a9355ece491c8327088ebc178f0a4f76f1",
+          "predecessor_refs": [
+            "ak:seal:sha256:c97b14e04379c0f4363f9462b573642c9ef8cfa5c6fd43bab25a748cd218ffbb"
+          ],
+          "delta_event_refs": [
+            "ak:event:ASmikVTqZVHXrc7W_v34KTlnAXhVdm_rVRzstrRVXbL6"
+          ]
+        }
+      ]
+    },
+    "negative_cases": [
+      {
+        "name": "hidden_predecessor",
+        "expected_error": "dependency_missing",
+        "actual_errors": [
+          "base_leaf_not_consumed",
+          "dependency_missing",
+          "surplus_descriptor"
+        ]
+      },
+      {
+        "name": "target_does_not_dominate_current",
+        "expected_error": "trusted_current_not_dominated",
+        "actual_errors": [
+          "trusted_current_not_dominated"
+        ]
+      },
+      {
+        "name": "branch_stops_before_base",
+        "expected_error": "interval_stops_before_base",
+        "actual_errors": [
+          "base_leaf_not_consumed",
+          "interval_stops_before_base",
+          "surplus_descriptor",
+          "trusted_current_not_dominated"
+        ]
+      },
+      {
+        "name": "base_leaf_not_consumed",
+        "expected_error": "base_leaf_not_consumed",
+        "actual_errors": [
+          "base_leaf_not_consumed"
+        ]
+      },
+      {
+        "name": "surplus_descriptor",
+        "expected_error": "surplus_descriptor",
+        "actual_errors": [
+          "surplus_descriptor"
+        ]
+      }
+    ],
+    "history_access_ratchet": [
+      {
+        "from": null,
+        "to": "all_history_for_current_members",
+        "actual": "accepted_create"
+      },
+      {
+        "from": "all_history_for_current_members",
+        "to": "since_join",
+        "actual": "accepted_narrow"
+      },
+      {
+        "from": "since_join",
+        "to": "since_join",
+        "actual": "duplicate_noop"
+      },
+      {
+        "from": "since_join",
+        "to": "all_history_for_current_members",
+        "actual": "failed_precondition"
+      }
+    ],
+    "requester_endpoint_authorization": {
+      "positive_cases": [
+        {
+          "profile": "ordinary_human",
+          "endpoint": {
+            "kind": "ordinary_human",
+            "requester_device_id": "ak:device:019c0000-0000-7000-8000-000000000001",
+            "requester_device_authorize_event_id": "ak:event:ActKNpQoBY5133HYLw23Q6pnSKUv5nQdJt80Sk2UNyAx",
+            "requester_device_generation_ref": 7
+          }
+        },
+        {
+          "profile": "native_agent",
+          "endpoint": {
+            "kind": "native_agent",
+            "requester_agent_id": "ak:did_core:key:z6MkfixtureService",
+            "requester_agent_verification_method": "did:key:z6MkfixtureService#key-1",
+            "requester_agent_key_authorize_event_id": "ak:event:AblBwcOzpalf0YZW7kxPD121SOXTiD6yF1HDslTM5dWQ"
+          }
+        },
+        {
+          "profile": "minimal_metadata",
+          "endpoint": {
+            "kind": "minimal_metadata"
+          }
+        }
+      ],
+      "profile_mismatch_negative": {
+        "expected": "schema_violation",
+        "actual_error_count": 1
+      },
+      "t1_rule": "resolve the exact requester-signed endpoint locator at first enqueue; never substitute the current session endpoint"
+    },
+    "since_join_lineage": {
+      "membership_incarnation_ref": "ak:event:AWYr1ucW0vOccjnC8XMFGQK8PjKzaha_YpYb8B0uDY_y",
+      "add_proposal_ref": "ak:event:AbNAprqpf8plo9xcY8bDOmf3mEUhUCZbN63erkPaxN_8",
+      "add_target_authorization_incarnation": {
+        "kind": "realm",
+        "realm_membership_incarnation_ref": "ak:event:AWYr1ucW0vOccjnC8XMFGQK8PjKzaha_YpYb8B0uDY_y"
+      },
+      "winning_commit_ref": "ak:event:ARrXzX07X_prHPMAeOGPMrI4_sUFneJW2aYSvHN_-9aQ",
+      "winning_commit_proposal_refs": [
+        "ak:event:AbNAprqpf8plo9xcY8bDOmf3mEUhUCZbN63erkPaxN_8"
+      ],
+      "winning_commit_next_epoch": 1,
+      "expected_join_epoch": 1,
+      "forbidden_derivations": [
+        "joined_at",
+        "received_at",
+        "latest_epoch",
+        "current_session_device"
+      ]
+    },
+    "organization_recovery_intent": {
+      "kind": "ak.history_governance.traversal_intent",
+      "profile": "organization_recovery_archive",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
+      },
+      "mls_group_id": "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI",
+      "trusted_history_base_basis": {
+        "leaves": [
+          "ak:seal:sha256:213637127a85071dc883b8c4e02b128a09e134a49551fff1e5d51d4e3d86bba8",
+          "ak:seal:sha256:df4e503e1b03a35a83492fde99f377baf8f9d5d861e1afb2f660dff00cca103e"
+        ]
+      },
+      "trusted_current_basis": {
+        "leaves": [
+          "ak:seal:sha256:6796b8b6f488a87acd1026c367c5eaa48103c0052234bfb036e6c51dd5e05663",
+          "ak:seal:sha256:c97b14e04379c0f4363f9462b573642c9ef8cfa5c6fd43bab25a748cd218ffbb"
+        ]
+      },
+      "target_basis": {
+        "leaves": [
+          "ak:seal:sha256:272847e37a778e5a559a9d39a039350d544051b28227f016a5f4248ffec154a6",
+          "ak:seal:sha256:a299c49172875d5dc859af690c8de8a9355ece491c8327088ebc178f0a4f76f1"
+        ]
+      },
+      "requested_ranges": [
+        {
+          "from_epoch": 1,
+          "to_epoch": 1
+        }
+      ],
+      "archive_authorization_tuple": {
+        "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000001",
+        "key_agreement_ref": "did:key:z6MkfixtureService#x25519-1",
+        "holder_principal_id": "ak:did_core:key:z6MkfixtureService",
+        "holder_service_id": "ak:did_core:key:z6MkfixtureService",
+        "holder_signing_ref": "did:key:z6MkfixtureService#key-1",
+        "accepted_key_evidence_ref": "ak:event:AfI3eW3WyahZE-5NKEBHN5JjQQ1-f6MgSy6Tn02UmQUi",
+        "holder_trusted_basis": {
+          "leaves": [
+            "ak:seal:sha256:213637127a85071dc883b8c4e02b128a09e134a49551fff1e5d51d4e3d86bba8",
+            "ak:seal:sha256:df4e503e1b03a35a83492fde99f377baf8f9d5d861e1afb2f660dff00cca103e"
+          ]
+        }
+      },
+      "container_event_ref": "ak:event:AcI5S18HY2W_EAN0jhRUQ6JrZHtyxz2jaBvOCrwS9D--",
+      "registry_snapshot_digest": "sha256:3cde4ae839da07c9737cf0619d6aa32aee886912d119a11198da07834994e6f5",
+      "traversal_admission_registry_digest": "sha256:6262626262626262626262626262626262626262626262626262626262626262",
+      "retention": {
+        "kind": "archive_lifetime"
+      }
+    },
+    "rrk_non_singleton_negative": {
+      "expected": "schema_violation",
+      "actual_error_count": 1
+    }
+  },
+  "governance_registry_artifact_kat": {
+    "snapshot": {
+      "kind": "ak.governance.registry_snapshot",
+      "artifacts": [
+        {
+          "artifact_kind": "contract_registry",
+          "artifact_id": "registry/contract-registry.json",
+          "content_digest": "sha256:a4641666dd0e130e2d55ff014eb5708101b077de5231a0402820b9889354281e"
+        },
+        {
+          "artifact_kind": "proof_context_registry",
+          "artifact_id": "registry/proof-context-registry.json",
+          "content_digest": "sha256:d040bbf90a7264f357fb8a28ea7e1381fb87ec7b12be475733354f66a373e85b"
+        },
+        {
+          "artifact_kind": "replay_schema_manifest",
+          "artifact_id": "governance-replay-schema-manifest",
+          "content_digest": "sha256:a8f5af52de0729e3ca9d09377b6b1448c33e8a2d23cbad9aa894d9ffb982505b"
+        }
+      ],
+      "snapshot_digest": "sha256:3cde4ae839da07c9737cf0619d6aa32aee886912d119a11198da07834994e6f5"
+    },
+    "schema_manifest_summary": {
+      "root_schema_artifact_ids": [
+        "schemas/event-envelope.schema.json",
+        "schemas/event-payload.schema.json"
+      ],
+      "artifact_count": 77,
+      "artifact_descriptor_aggregate_digest": "sha256:52e71fbdee1a2480dfd5d900b72e90dea549f7e0431b1d695b506fecb522a5dc",
+      "largest_artifact_canonical_bytes": 251096
+    },
+    "sample_registry_artifact": {
+      "descriptor": {
+        "artifact_kind": "replay_json_schema",
+        "artifact_id": "schemas/realm-profile.schema.json",
+        "content_digest": "sha256:c5a22991239bdf3d18512abb17cc12c366c6fcab1ffcb38d6c6cc2cf43935061"
+      },
+      "canonical_bytes_b64u": "eyIkaWQiOiJodHRwczovL2Fya3JldC5vcmcvdjEvc2NoZW1hcy9yZWFsbS1wcm9maWxlLnNjaGVtYS5qc29uIiwiJHNjaGVtYSI6Imh0dHBzOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LzIwMjAtMTIvc2NoZW1hIiwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlLCJwcm9wZXJ0aWVzIjp7ImF2YXRhcl9ibG9iX3JlZiI6eyIkcmVmIjoiLi9jb21tb24taWRzLnNjaGVtYS5qc29uIy8kZGVmcy9ibG9iX3JlZiJ9LCJzY2hlbWEiOnsiY29uc3QiOiJhay5zY2hlbWEucmVhbG1fcHJvZmlsZS52MSJ9LCJzdW1tYXJ5Ijp7IiRyZWYiOiIuL3N0cmluZy1wcm9maWxlcy5zY2hlbWEuanNvbiMvJGRlZnMvc2hvcnRfdGV4dCIsIm1heExlbmd0aCI6MjA0OH0sInRpdGxlIjp7IiRyZWYiOiIuL3N0cmluZy1wcm9maWxlcy5zY2hlbWEuanNvbiMvJGRlZnMvZGlzcGxheV90ZXh0XzI1NiJ9fSwicmVxdWlyZWQiOlsic2NoZW1hIiwidGl0bGUiXSwidGl0bGUiOiJBcmtyZXQgUmVhbG0gUHJvZmlsZSIsInR5cGUiOiJvYmplY3QifQ"
+    }
+  },
+  "authenticated_signer_resolution_evidence_kat": {
+    "evidence": {
+      "kind": "service",
+      "signer_id": "ak:did_core:key:z6MkfixtureService",
+      "verification_method": "did:key:z6MkfixtureService#key-1",
+      "authenticated_resolution": {
+        "service_resolution_record": {
+          "record": {
+            "service_id": "ak:did_core:key:z6MkfixtureService",
+            "service_kind": "principal_server",
+            "full_id": "did:key:z6MkfixtureService",
+            "method_history_head": "did-key-head-fixture",
+            "version_id": "did-key-v1",
+            "resolution_event_ref": "did-key-full-id-sha256:3131313131313131313131313131313131313131313131313131313131313131",
+            "record_sequence": 0,
+            "previous_record_digest": null,
+            "current_record_url": "https://service.example/_arkret/open/services/service/resolution",
+            "base_url": "https://service.example/",
+            "describe_digest": "sha256:3232323232323232323232323232323232323232323232323232323232323232",
+            "issued_at": "2026-08-21T00:00:00.000Z",
+            "refresh_after": "2026-08-22T00:00:00.000Z",
+            "expires_at": "2026-08-29T00:00:00.000Z"
+          },
+          "proof": {
+            "verification_method": "did:key:z6MkfixtureService#key-1",
+            "created_at": "2026-08-21T00:00:00.000Z",
+            "jws": "c2ln"
+          }
+        },
+        "method_history_evidence": {
+          "adapter_version": "did:key:1",
+          "evidence_kind": "did_key_expansion",
+          "boundary": {
+            "from_method_history_head": "did-key-head-fixture",
+            "from_version_id": "did-key-v1",
+            "to_method_history_head": "did-key-head-fixture",
+            "to_version_id": "did-key-v1"
+          },
+          "evidence": {
+            "kind": "ak.did.binding_evidence.v1",
+            "method": "key",
+            "document_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
+            "method_proofs": []
+          }
+        },
+        "normalized_did_document": {
+          "id": "did:key:z6MkfixtureService",
+          "verificationMethod": [
+            {
+              "id": "did:key:z6MkfixtureService#key-1",
+              "controller": "did:key:z6MkfixtureService"
+            }
+          ]
+        }
+      }
+    },
+    "evidence_ref": "ak:signer_evidence:sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
+    "evidence_digest": "sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
+    "canonical_bytes": 1620
+  },
+  "governance_dependency_resolve_kat": {
+    "accepted_event_without_unsigned": {
+      "event_id": "ak:event:AU1TAyWRo30Lk4M5FGDcNkl7_2du1eprqsRNp9-5RvIC",
+      "actor_kind": "principal",
+      "proofs": [
+        {
+          "kind": "producer_event",
+          "event_digest": "sha256:5151515151515151515151515151515151515151515151515151515151515151"
+        }
+      ]
+    },
+    "availability_event_bytes_digest": "sha256:981713bbbf6695cbd1ca936eb397a6a8b89f8435c720f24f3366f3266eb5e6eb",
+    "availability_receipt": {
+      "receipt": {
+        "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e",
+        "event_id": "ak:event:AU1TAyWRo30Lk4M5FGDcNkl7_2du1eprqsRNp9-5RvIC",
+        "bytes_digest": "sha256:981713bbbf6695cbd1ca936eb397a6a8b89f8435c720f24f3366f3266eb5e6eb",
+        "holder_id": "ak:did_core:key:z6MkfixtureService",
+        "retention_expires_at": "2026-08-28T00:00:00.000Z",
+        "holder_signer_evidence_ref": "ak:signer_evidence:sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
+        "holder_signer_evidence_digest": "sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:key:z6MkfixtureService#key-1",
+          "payload_digest": "sha256:d210814a0825e17241acda8f2c5d86a4f45e70945631c809e4ff70d139a8d94c",
+          "created_at": "2026-08-21T00:00:00.000Z",
+          "jws": "e30..c2ln"
+        }
+      },
+      "receipt_digest": "sha256:922f0f90ae7f96a11e2f86d8ee1a11762944335863022cbed80f9745257dbdee"
+    },
+    "resolve_outcome": {
+      "items": [
+        {
+          "selector": {
+            "kind": "authenticated_signer_resolution_evidence",
+            "content_digest": "sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f"
+          },
+          "authenticated_signer_resolution_evidence": {
+            "kind": "service",
+            "signer_id": "ak:did_core:key:z6MkfixtureService",
+            "verification_method": "did:key:z6MkfixtureService#key-1",
+            "authenticated_resolution": {
+              "service_resolution_record": {
+                "record": {
+                  "service_id": "ak:did_core:key:z6MkfixtureService",
+                  "service_kind": "principal_server",
+                  "full_id": "did:key:z6MkfixtureService",
+                  "method_history_head": "did-key-head-fixture",
+                  "version_id": "did-key-v1",
+                  "resolution_event_ref": "did-key-full-id-sha256:3131313131313131313131313131313131313131313131313131313131313131",
+                  "record_sequence": 0,
+                  "previous_record_digest": null,
+                  "current_record_url": "https://service.example/_arkret/open/services/service/resolution",
+                  "base_url": "https://service.example/",
+                  "describe_digest": "sha256:3232323232323232323232323232323232323232323232323232323232323232",
+                  "issued_at": "2026-08-21T00:00:00.000Z",
+                  "refresh_after": "2026-08-22T00:00:00.000Z",
+                  "expires_at": "2026-08-29T00:00:00.000Z"
+                },
+                "proof": {
+                  "verification_method": "did:key:z6MkfixtureService#key-1",
+                  "created_at": "2026-08-21T00:00:00.000Z",
+                  "jws": "c2ln"
+                }
+              },
+              "method_history_evidence": {
+                "adapter_version": "did:key:1",
+                "evidence_kind": "did_key_expansion",
+                "boundary": {
+                  "from_method_history_head": "did-key-head-fixture",
+                  "from_version_id": "did-key-v1",
+                  "to_method_history_head": "did-key-head-fixture",
+                  "to_version_id": "did-key-v1"
+                },
+                "evidence": {
+                  "kind": "ak.did.binding_evidence.v1",
+                  "method": "key",
+                  "document_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
+                  "method_proofs": []
+                }
+              },
+              "normalized_did_document": {
+                "id": "did:key:z6MkfixtureService",
+                "verificationMethod": [
+                  {
+                    "id": "did:key:z6MkfixtureService#key-1",
+                    "controller": "did:key:z6MkfixtureService"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "selector": {
+            "kind": "availability_receipt",
+            "content_digest": "sha256:922f0f90ae7f96a11e2f86d8ee1a11762944335863022cbed80f9745257dbdee"
+          },
+          "availability_receipt": {
+            "receipt": {
+              "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e",
+              "event_id": "ak:event:AU1TAyWRo30Lk4M5FGDcNkl7_2du1eprqsRNp9-5RvIC",
+              "bytes_digest": "sha256:981713bbbf6695cbd1ca936eb397a6a8b89f8435c720f24f3366f3266eb5e6eb",
+              "holder_id": "ak:did_core:key:z6MkfixtureService",
+              "retention_expires_at": "2026-08-28T00:00:00.000Z",
+              "holder_signer_evidence_ref": "ak:signer_evidence:sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
+              "holder_signer_evidence_digest": "sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
+              "signature": {
+                "kind": "detached_jws",
+                "verification_method": "did:key:z6MkfixtureService#key-1",
+                "payload_digest": "sha256:d210814a0825e17241acda8f2c5d86a4f45e70945631c809e4ff70d139a8d94c",
+                "created_at": "2026-08-21T00:00:00.000Z",
+                "jws": "e30..c2ln"
+              }
+            },
+            "receipt_digest": "sha256:922f0f90ae7f96a11e2f86d8ee1a11762944335863022cbed80f9745257dbdee"
+          }
+        },
+        {
+          "selector": {
+            "kind": "governance_registry_artifact",
+            "descriptor": {
+              "artifact_kind": "replay_json_schema",
+              "artifact_id": "schemas/realm-profile.schema.json",
+              "content_digest": "sha256:c5a22991239bdf3d18512abb17cc12c366c6fcab1ffcb38d6c6cc2cf43935061"
+            }
+          },
+          "governance_registry_artifact": {
+            "descriptor": {
+              "artifact_kind": "replay_json_schema",
+              "artifact_id": "schemas/realm-profile.schema.json",
+              "content_digest": "sha256:c5a22991239bdf3d18512abb17cc12c366c6fcab1ffcb38d6c6cc2cf43935061"
+            },
+            "canonical_bytes_b64u": "eyIkaWQiOiJodHRwczovL2Fya3JldC5vcmcvdjEvc2NoZW1hcy9yZWFsbS1wcm9maWxlLnNjaGVtYS5qc29uIiwiJHNjaGVtYSI6Imh0dHBzOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LzIwMjAtMTIvc2NoZW1hIiwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlLCJwcm9wZXJ0aWVzIjp7ImF2YXRhcl9ibG9iX3JlZiI6eyIkcmVmIjoiLi9jb21tb24taWRzLnNjaGVtYS5qc29uIy8kZGVmcy9ibG9iX3JlZiJ9LCJzY2hlbWEiOnsiY29uc3QiOiJhay5zY2hlbWEucmVhbG1fcHJvZmlsZS52MSJ9LCJzdW1tYXJ5Ijp7IiRyZWYiOiIuL3N0cmluZy1wcm9maWxlcy5zY2hlbWEuanNvbiMvJGRlZnMvc2hvcnRfdGV4dCIsIm1heExlbmd0aCI6MjA0OH0sInRpdGxlIjp7IiRyZWYiOiIuL3N0cmluZy1wcm9maWxlcy5zY2hlbWEuanNvbiMvJGRlZnMvZGlzcGxheV90ZXh0XzI1NiJ9fSwicmVxdWlyZWQiOlsic2NoZW1hIiwidGl0bGUiXSwidGl0bGUiOiJBcmtyZXQgUmVhbG0gUHJvZmlsZSIsInR5cGUiOiJvYmplY3QifQ"
+          }
+        },
+        {
+          "selector": {
+            "kind": "governance_registry_snapshot",
+            "content_digest": "sha256:3cde4ae839da07c9737cf0619d6aa32aee886912d119a11198da07834994e6f5"
+          },
+          "governance_registry_snapshot": {
+            "kind": "ak.governance.registry_snapshot",
+            "artifacts": [
+              {
+                "artifact_kind": "contract_registry",
+                "artifact_id": "registry/contract-registry.json",
+                "content_digest": "sha256:a4641666dd0e130e2d55ff014eb5708101b077de5231a0402820b9889354281e"
+              },
+              {
+                "artifact_kind": "proof_context_registry",
+                "artifact_id": "registry/proof-context-registry.json",
+                "content_digest": "sha256:d040bbf90a7264f357fb8a28ea7e1381fb87ec7b12be475733354f66a373e85b"
+              },
+              {
+                "artifact_kind": "replay_schema_manifest",
+                "artifact_id": "governance-replay-schema-manifest",
+                "content_digest": "sha256:a8f5af52de0729e3ca9d09377b6b1448c33e8a2d23cbad9aa894d9ffb982505b"
+              }
+            ],
+            "snapshot_digest": "sha256:3cde4ae839da07c9737cf0619d6aa32aee886912d119a11198da07834994e6f5"
+          }
+        }
+      ],
+      "missing_selectors": []
+    },
+    "negative_cases": [
+      {
+        "name": "selector_branch_mismatch",
+        "mutation": "pair an authenticated_signer_resolution_evidence selector with availability_receipt",
+        "expected": "schema_violation"
+      },
+      {
+        "name": "registry_artifact_digest_mismatch",
+        "mutation": "change decoded canonical artifact bytes without changing descriptor.content_digest",
+        "expected": "dependency_missing"
+      },
+      {
+        "name": "signer_evidence_digest_mismatch",
+        "mutation": "change complete signer evidence while preserving selector.content_digest",
+        "expected": "dependency_missing"
+      }
+    ]
+  },
+  "streaming_direct_traversal_scale_kats": [
+    {
+      "epoch_count": 26298,
+      "verified_epoch_count": 26298,
+      "visited_seal_count": 26299,
+      "resolved_control_event_count": 26298,
+      "resolved_availability_receipt_count": 26298,
+      "registry_snapshot_count": 1,
+      "signer_evidence_distinct_count": 2,
+      "streaming_storage": "temporary_sqlite_work_queue_and_visited",
+      "max_live_descriptor_bytes": 282,
+      "descriptor_canonical_bytes": 7416182,
+      "descriptor_stream_aggregate_digest": "sha256:c702bba991ec05314014566a763db2c99aeecba920b02fb58cbd0347277aed45",
+      "journal_rows_written": 52598,
+      "outbox_write_count": 0
+    },
+    {
+      "epoch_count": 65536,
+      "verified_epoch_count": 65536,
+      "visited_seal_count": 65537,
+      "resolved_control_event_count": 65536,
+      "resolved_availability_receipt_count": 65536,
+      "registry_snapshot_count": 1,
+      "signer_evidence_distinct_count": 2,
+      "streaming_storage": "temporary_sqlite_work_queue_and_visited",
+      "max_live_descriptor_bytes": 282,
+      "descriptor_canonical_bytes": 18481298,
+      "descriptor_stream_aggregate_digest": "sha256:1d1377c13c8b58b688f887be4d7df282b12aa0597424360d57b74fd06e78da19",
+      "journal_rows_written": 131074,
+      "outbox_write_count": 0
+    }
+  ],
+  "streaming_direct_traversal_scale_negative_kats": [
+    {
+      "epoch_count": 65537,
+      "expected": "max_total_requested_epochs exceeded",
+      "actual_reason": "max_total_requested_epochs exceeded: 65537>65536",
+      "rejected_before_staging": true,
+      "journal_rows": 0,
+      "resolved_objects": 0,
+      "outbox_writes": 0
+    }
+  ],
+  "direct_traversal_scale_generator_contract": {
+    "generator": "tools/generate_history_scale_fixture.py",
+    "traversal_intent_digest": "SHA256(UTF8('ak.history-governance-traversal-intent-v1')||0x00||JCS(intent))",
+    "registry_snapshot_digest": "SHA256(UTF8('ak.governance-registry-snapshot-v1')||0x00||JCS({kind,artifacts}))",
+    "registry_artifact_digest": "SHA256(UTF8('ak.governance-registry-artifact-v1')||0x00||decoded canonical bytes)",
+    "streaming_storage": "temporary SQLite work queue plus visited set; one canonical descriptor is live at a time",
+    "fixture_storage": "small replayable open-set cut, dependency objects and aggregate scale summaries only",
+    "proof_transport": "none; standard Event, Seal and governance-dependency resolve carry retained objects",
+    "prewrite_budget": 65536
+  },
+  "history_source_agent_observation_digest_kat": {
+    "domain": "ak.history-source-agent-observation-v1",
+    "preimage": {
+      "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000001",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
+      },
+      "source_actor_id": "ak:did_core:key:z6MkfixtureService",
+      "source_sender_domain": "history.example",
+      "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+      "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
+      "reply_mailbox_id": "ak:history_mailbox:AAAAAAAAAAAAAAAAAAAAAA",
+      "expires_at": "2026-08-28T00:00:00.000Z",
+      "content": {
+        "kind": "ak.history_key.response_manifest",
+        "chunks": [
+          {
+            "chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000002",
+            "chunk_index": 0,
+            "covered_epoch_range": {
+              "from_epoch": 0,
+              "to_epoch": 0
+            }
+          }
+        ]
+      }
+    },
+    "signing_input_a": {
+      "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000001",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
+      },
+      "source_actor_id": "ak:did_core:key:z6MkfixtureService",
+      "source_sender_domain": "history.example",
+      "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+      "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
+      "reply_mailbox_id": "ak:history_mailbox:AAAAAAAAAAAAAAAAAAAAAA",
+      "expires_at": "2026-08-28T00:00:00.000Z",
+      "content": {
+        "kind": "ak.history_key.response_manifest",
+        "chunks": [
+          {
+            "chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000002",
+            "chunk_index": 0,
+            "covered_epoch_range": {
+              "from_epoch": 0,
+              "to_epoch": 0
+            }
+          }
+        ]
+      },
+      "source_signer_evidence_ref": "ak:signer_evidence:sha256:5151515151515151515151515151515151515151515151515151515151515151",
+      "source_signer_evidence_digest": "sha256:5151515151515151515151515151515151515151515151515151515151515151"
+    },
+    "signing_input_b": {
+      "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000001",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
+      },
+      "source_actor_id": "ak:did_core:key:z6MkfixtureService",
+      "source_sender_domain": "history.example",
+      "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+      "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
+      "reply_mailbox_id": "ak:history_mailbox:AAAAAAAAAAAAAAAAAAAAAA",
+      "expires_at": "2026-08-28T00:00:00.000Z",
+      "content": {
+        "kind": "ak.history_key.response_manifest",
+        "chunks": [
+          {
+            "chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000002",
+            "chunk_index": 0,
+            "covered_epoch_range": {
+              "from_epoch": 0,
+              "to_epoch": 0
+            }
+          }
+        ]
+      },
+      "source_signer_evidence_ref": "ak:signer_evidence:sha256:5252525252525252525252525252525252525252525252525252525252525252",
+      "source_signer_evidence_digest": "sha256:5252525252525252525252525252525252525252525252525252525252525252"
+    },
+    "expected_digest": "sha256:4d0a3b51031eba0b8ff5dbbc302e2461e9fe7968cf2a8fae3513833f23a4cc4d",
+    "mutating_only_evidence_coordinates_keeps_digest": "sha256:4d0a3b51031eba0b8ff5dbbc302e2461e9fe7968cf2a8fae3513833f23a4cc4d",
+    "mutating_content_changes_digest": "sha256:0ad5aae28c13d6a995e0b53627cbf5edb3c47ee83631b56066beeec5c64998ad"
+  }
+}

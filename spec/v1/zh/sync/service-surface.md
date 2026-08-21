@@ -146,17 +146,17 @@ Deployment profile 的 canonical 机器真源是 [`conformance-profiles.json`](.
 
 首跳 carrier 可携带 inline signed record，也可携带
 `current_record_url` 与可选 `pinned_record_digest`。该 URL 指向稳定的
-`GET /_arkret/open/services/{service_id}/resolution`（`service_id` 按 RFC 3986 percent-encode），canonical
-operation 是 `ak.open.service.read.resolution`。响应是当前完整签名 `ServiceResolutionRecord`；旧
+`GET /_arkret/open/services/{service_id}/resolution`（`service_id` 按 RFC 3986 percent-encode）返回完整 `AuthenticatedServiceResolution`，canonical
+operation 是 `ak.open.service.read.resolution`。响应以当前完整签名 `ServiceResolutionRecord` 为核心，并携带验证该版本所需的 exact method-history evidence 与 normalized DID document。对于 `did:webvh`，evidence **MUST** 携带从 inception 到 record 所钉位置的完整无缺口 native log，以及该区间所有 witness policy 所要求的完整 witness records；resolver 生成的摘要、部分区间或仅当前 DID Document 均不构成历史验证材料。旧
 `pinned_record_digest` 只锁定它所属的旧版本，不得用来拒绝在同一 `current_record_url`
 上取得的新版本。新版本 MUST 重新验证完整 record digest、service proof、method history、
-`project(full_id) == service_id`、`service_kind`、时间序和 endpoint 绑定后才能入 cache。
+`project(full_id) == service_id`、`service_kind`、document digest、时间序和 endpoint 绑定后才能入 cache。
 验证成功后，下一次刷新 URL MUST 从新 record 的 canonical `base_url` 加
-`_arkret/open/services/{percent-encoded service_id}/resolution` 重新派生；只有新 record 已验签时才能用该派生值替换 cache 中的旧 `current_record_url`。这是服务换 URL 的过渡路径，不依赖 HTTP redirect。
+`_arkret/open/services/{percent-encoded service_id}/resolution` 重新派生；只有响应中的新 record、完整 method-history evidence 与 normalized DID document 已联合验证时，才能用该派生值替换 cache 中的旧 `current_record_url`。这是服务换 URL 的过渡路径，不依赖 HTTP redirect。裸 record、history summary 或未独立验证的 current DID Document 均不足以冻结 notary signer 或验证历史签名。
 
 调用 `GET /_arkret/describe` 已经需要候选 URL，因此 describe 是**二跳确认面**，不是从 `did_core_id` 得到 URL 的首跳 resolver。调用方 MUST 先验证 record，再以 canonical `base_url` 派生 role-scoped describe URL，并确认 describe 的 `route_binding_projection` 与 `describe_digest` 一致。resolution 和 describe 请求 MUST NOT 自动跟随 redirect；如果收到 redirect，调用方只能在另行取得的新签名 record 已绑定新 URL 后重新发起，不得依赖同域名、TLS 或 redirect 自身建立身份。
 
-对 `current_record_url` 的自动抓取属于服务端网络输入，MUST 在 DNS 前后执行 SSRF 防护：默认拒绝 loopback、link-local、private / reserved address、userinfo、非 HTTPS 和 DNS rebinding；只有部署 policy 显式列入的 private service 可例外。解析后地址 MUST 钉住到当次请求，禁止 redirect 与 `Content-Encoding`，响应 canonical bytes MUST 不超过 64 KiB，从连接到读完的总 deadline MUST 不超过 5 秒。超限、超时或地址分类改变均 fail closed。
+对 `current_record_url` 的自动抓取属于服务端网络输入，MUST 在 DNS 前后执行 SSRF 防护：默认拒绝 loopback、link-local、private / reserved address、userinfo、非 HTTPS 和 DNS rebinding；只有部署 policy 显式列入的 private service 可例外。解析后地址 MUST 钉住到当次请求，禁止 redirect 与 `Content-Encoding`，响应 canonical bytes MUST 不超过 1 MiB，从连接到读完的总 deadline MUST 不超过 5 秒。超限、超时或地址分类改变均 fail closed。
 
 `ServiceResolutionRecord` 只表达**当前已经生效**的 route；`refresh_after` 只是刷新提示，MUST NOT 被解释为未来激活时间。计划迁移使用与 current record 分离的 closed、portable、由同一 service control identity 签名的 `ServiceRouteHandoverNotice`：
 
@@ -256,9 +256,7 @@ GET /_arkret/describe
     "invite_addressing",
     "notifications",
     "ak.feature.blob.resumable_upload.tus.v1",
-    "ak.feature.realm_key.peer_relay.v1",
-    "ak.feature.realm_key.backup_retrieval.v1",
-    "ak.feature.realm_key.archive_retrieval.v1",
+    "ak.feature.history_key_recovery.v1",
     "ak.feature.mls_exporter_aead.v1"
   ],
   "x_invite_addressing": {
@@ -369,7 +367,19 @@ GET /_arkret/describe
 
 能力发现示例（normative 指引）：客户端判断服务端是否支持某项**可选传输能力**时，MUST 以 describe 的 `supported_features` / `supported_bindings` / `limits` 为权威发现面，而不是对猜测 endpoint 直接探测。以可续传 Blob 上传为例，服务端支持时 MUST 同时声明 `supported_features` 含 `ak.feature.blob.resumable_upload.tus.v1`、`supported_bindings` 含一条 `kind="tus"` 的 binding，并在 `limits` 暴露续传上限；客户端据此发现后再用 tus `OPTIONS`（`Tus-Resumable` / `Tus-Version` / `Tus-Extension`）做 endpoint 级线上确认。完整 binding 语义、内容寻址不变式与隐私约束见 [`crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)。
 
-本规范登记的标准 `supported_features` 还包括：`ak.feature.realm_key.peer_relay.v1`（中继 to-device `ak.realm_key.request`）、`ak.feature.realm_key.backup_retrieval.v1`（托管 `mls_history` key backup unlock）、`ak.feature.realm_key.archive_retrieval.v1`（archive node 历史 key 取回）、`ak.feature.mls_exporter_aead.v1`（接受并同步 `content_scheme=mls_exporter_aead_v1` Realm；见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10）与 `ak.feature.agent_runtime_approval_notifications.v1`（通过 account subscribe 的闭合 notification delta 投递 Agent runtime 审批；见 [`client-sync.md` §3.1](./client-sync.md)）。客户端依赖这些能力时 MUST 以 describe 声明为准，未声明时 fail closed 或选择规范明确允许的 fallback。
+本规范登记的标准 `supported_features` 还包括：`ak.feature.history_key_recovery.v1`（唯一 private exporter-history
+request/mailbox/S2S relay/RRK archive 合同）、`ak.feature.mls_exporter_aead.v1`（接受并同步
+`content_scheme=mls_exporter_aead_v1` Realm/Circle；见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)
+§2.10）与 `ak.feature.agent_runtime_approval_notifications.v1`。声明 `history_key_recovery` 的服务 MUST 同时暴露
+`ak.self.seals.read.{frontier,resolve,mls_governance_proof,governance_dependencies}`、`ak.self.history_key_requests.{command.create,read.list}`、
+`ak.self.history_key_responses.{command.send,read.list,command.ack}`、
+`ak.self.organization_recovery_archives.read.list`、`ak.peer.seals.read.{mls_governance_proof,governance_dependencies}`、
+`ak.peer.history_key_requests.command.replicate`、`ak.peer.history_key_responses.command.relay` 与
+`ak.peer.organization_recovery_archives.command.replicate`，并支持 `history-key.schema.json`、near-current frontier proof schema 与
+receipt-bound direct Seal traversal 及 typed dependency resolve；
+不能只声明其中一个旧 relay/backup/archive 子能力。创建或处理 `mls_exporter_aead_v1 +
+history_access=all_history_for_current_members` scope 的 client/server MUST 声明该 feature；任一端缺失时 fail closed，不能回退到
+to-device request、foreign active MLS state 或公开 Event。其它客户端依赖能力时仍以 describe 声明为准。
 
 服务类型命名规则：
 
@@ -697,7 +707,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 - `events`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Realm policy 明确委托的 Principal Server。
 - Directory、Push Gateway、Blob preview、Policy preview，以及任何协议外 search / projection 服务，若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Realm policy 中声明为 `plaintext_visible_services`。
 - shared notary / Principal Server sync surface 若可见明文，必须在 Realm policy 中作为明文可见方列出。
-- `encryption_profile="none"` 只说明 content 未使用 E2EE；它不自动授权任意服务保存、索引、导出或生成可逆派生内容。只有 Realm 同时把内容声明为 public content（例如 `history_visibility=world_readable` 且 preview / export policy 允许 public processing）时，服务才 MAY 按公开内容处理；否则仍按私有明文执行 `plaintext_visible_services` 检查。
+- `encryption_profile="none"` 只说明 content 未使用 E2EE；它不自动授权任意服务保存、索引、导出或生成可逆派生内容。只有 Realm 同时把内容声明为 public content（例如 `history_access=all_history_for_current_members` 且 preview / export policy 允许 public processing）时，服务才 MAY 按公开内容处理；否则仍按私有明文执行 `plaintext_visible_services` 检查。
 - 接收方 Principal Server 可以看到投递给该接收方的非加密内容；客户端和 Realm policy MUST 把这视为内容可见边界，而不是透明中继。
 - 非受信服务只能接收公开内容、密文 envelope 或不可解析 payload。
 

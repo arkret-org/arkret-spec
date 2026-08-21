@@ -38,7 +38,7 @@ authority_set_ref, verification_method, created_at, domain?, audience?})`；proo
 等于 lease `issued_at`。proof 条数与唯一 issuer 数必须满足 basis 中已接受的 authority-set policy，
 数组长度本身不等于 quorum。
 
-`basis_ref` 在普通 `single_did` / `threshold` / `mixed` 发布下是单个 accepted Seal ref；在
+`basis_ref` 在普通 `single_signer` / `threshold` / `mixed` 发布下是单个 accepted Seal ref；在
 `open_set` 下必须是只含 canonical sorted `leaves[]` 的完整 `seal_basis`，不能用任一单 leaf 冒充 joined view。issuer 与 verifier 均须解析这些 Seal 并重算 union covered set、joined state 与 roots。lease 只能收窄该 basis 中已存在的
 authorization。verifier MUST 从 accepted CBA basis
 验证 issuer/delegation、actor/device、scope、action、risk 与有效期；lease 不能创建 capability，
@@ -245,7 +245,7 @@ cache清除由`ak.vector.authz.authorization_lease_issuance.v1`固定，至少�
 
 | profile/保障 | issuer 要求 |
 | --- | --- |
-| `single_did` 基础 | 当前 authority 或 basis 中明确委托的 admission signer；允许单 ingress，但必须广告 `single_ingress_censorship_risk=true`。 |
+| `single_signer` 基础 | 当前 authority actor 或 basis 中明确委托的 admission signer；允许单 ingress，但必须广告 `single_ingress_censorship_risk=true`。 |
 | `threshold` / `mixed` | Realm policy 指定 admission quorum。 |
 | `open_set` low/medium | basis-bound issuer policy；joined view 补齐后重验。 |
 | 任意 profile high | 与 barrier revoke authority 相交的 quorum。 |

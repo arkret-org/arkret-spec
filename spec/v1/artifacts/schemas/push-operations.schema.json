@@ -136,10 +136,6 @@
         "platform": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "target_route_token": {
-          "$ref": "#/$defs/push_route_token",
-          "description": "Gateway-internal mention-redirect routing token for this device route. Paired with notification.route_tokens.mention_redirect_target_route_tokens to drive the fail-closed per-device routing gate. MUST be stripped before any provider call; MUST NOT be forwarded to a provider. See push-notifications.md §4.5 / §5.1."
-        },
         "visible_notification_opt_in": {
           "type": "boolean",
           "default": false,
@@ -159,14 +155,6 @@
         "scope_route_token": {
           "$ref": "#/$defs/push_route_token",
           "description": "Opaque token for the effective Realm or Circle scope of this wakeup."
-        },
-        "mention_redirect_target_route_tokens": {
-          "type": "array",
-          "description": "Mention-redirect routing allow-list. When non-empty, each device's device_route.target_route_token MUST appear here or that device is failed closed (no provider call, no body decryption). Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §4.5.",
-          "items": {
-            "$ref": "#/$defs/push_route_token"
-          },
-          "uniqueItems": true
         },
         "delivery_binding_frontier_token": {
           "$ref": "#/$defs/push_route_token",

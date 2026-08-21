@@ -1,203 +1,522 @@
 ---
-title: History Visibility and Preview Policy
+title: History Access and Recovery
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-08-20
 see_also:
-  - ../discovery/discovery-directory.md
-  - ../discovery/object-addressing.md
   - ../crypto-media/encryption-and-audit.md
   - ../crypto-media/device-lifecycle.md
+  - ../sync/client-sync.md
+  - ../sync/service-http-binding.md
 ---
 
 ## 0. 规范语言
 
-本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按
-[conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+本文中的规范关键字按 [`normative-language.md`](../conformance/normative-language.md) 解释。
 
-## 1. 目标与边界
+## 1. 唯一历史 policy
 
-`history_visibility` 只回答一个问题：某个 reader 对某个历史 Event range 是否具备读取资格。它不决定资源能否被发现、不决定能否加入，也不替代 capability、redaction、retention、E2EE key material 或 `plaintext_visible_services`。
+每个 Realm 和 Circle 都是独立的 effective scope，并在任一 accepted view 中 MUST 恰有一个 current 值：
 
-实现 MUST 对每次历史读取、backfill、preview、search / projection 展开、key share 和 federation fanout 分别执行下列 gate：
+```text
+history_access = since_join | all_history_for_current_members
+```
 
-1. **Discoverability / reference disclosure**：caller 是否可以知道目标存在。
-2. **Read capability / current service authority**：caller 或服务是否能调用对应读取 surface。
-3. **Event-time history visibility**：目标 Event 在其 CBA basis `T0` 下是否对该 reader class 可见。
-4. **Current safety policy**：当前 redaction、erasure、retention、ban/remove、legal hold、plaintext-visible service 和 anti-enumeration policy 是否允许继续披露。
-5. **Cryptographic availability**：E2EE scope 下是否存在被 policy 授权的 Welcome、epoch state 或 history key share。
+scope create 必须初始化该唯一治理 cell。它是单向安全 ratchet：唯一合法更新是
+`all_history_for_current_members → since_join`；重复 `since_join` 可作为幂等 duplicate/no-op，任何
+`since_join → all_history_for_current_members` 或其它写入都必须在 schema/reducer admission 永久拒绝。它是非公开 Event projection 的
+唯一历史 range policy；对 `content_scheme=mls_exporter_aead_v1` 的 scope，它也是 history-secret delivery 的唯一 range policy。
+Realm 和 Circle 互不继承；创建 UI 可复制父 Realm 当时值，accepted 后即为 Circle 自己的 cell。
 
-通过 `history_visibility` 不授予解密密钥。E2EE Realm 中，reader 即使在第 3 步通过，也只能得到密文、stripped metadata、`decryption_pending` 或 `decryption_failed` 占位；只有第 5 步通过后才能显示明文。
+`history_access` 不决定 discoverability、invite preview、public content、redaction 或 retention。
+Public content 由显式 public schema/projection 授权；invite 只能发放有界 preview；需要密码学
+隔离的 role/admin/restricted 正文 MUST 使用独立 MLS-backed Circle。已获得的 secret
+不能被后续 policy、remove、redaction 或 retention 撤回。
 
-## 2. 时点模型
+## 2. 可选 MLS group 与 closed union
 
-历史可见性按 Event 的 CBA basis `T0` 判定。DataEvent 的 `T0` 是其 `seal_ref` 指向的控制面 Seal view；Control Move 的 `T0` 是其 `seal_basis` 指向的控制面 view。实现 MUST NOT 使用本地到达顺序、wall clock 或 pending Control Move 判定历史可见性。
+未选 MLS 的 Realm/Circle MUST NOT 生成 `mls_group_id`、epoch、leaf、snapshot、Welcome、counter、
+history secret、history delivery、MLS backup 或 RRK archive。每个 MLS-backed Realm/Circle 有完全独立
+的 group、epoch、leaf、counter 和 history store，不得回退到父 Realm。
 
-Reader 的成员时点：
+Circle 创建对象 MUST 满足：
 
-| 名称 | 定义 |
-| --- | --- |
-| `invite_frontier(reader)` | 与 reader 当前生效成员资格**因果相连**的那次把 `ak.component.member.state.v1:<reader>` 推进到 `invite` 的 accepted Control Move 所确立的 accepted Seal view。**产生该 frontier 的唯一 wire event kind 是 `ak.invite.create` 的定向分支**——它在同一 Move 内同时写 `ak.component.invite.lifecycle.v1` 与该 member cell 的 `leave -> invite`（见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)、[`../models/common-fields.md` §4.5](../models/common-fields.md)）。invite 被 revoke / expire / reject 时，同一条终态 Move MUST 原子把 member cell 推回 `leave`，该 frontier 随之失效——因此不存在"invite 已终态但 reader 仍保有 invite-frontier 读取与 key share 资格"的悬挂窗口。reader 历史上若有多次 invite / revoke，`invite_frontier(reader)` 取**导致其当前 invited / joined 状态的那一次** invite 的 frontier，而非任意一次历史 invite——已失效或与当前成员资格无因果链的旧 invite frontier MUST NOT 被采用。 |
-| `join_frontier(reader)` | 与 reader 当前生效成员资格**因果相连**的那次有效 `ak.member.state{membership=join}`（使 reader 成为 active member）所确立的 accepted Seal view。leave→rejoin 场景下 reader 可能有多次 join，`join_frontier(reader)` MUST 取**确立其当前 active 成员资格的那一次** join 的 frontier，而非任意一次历史 join——与当前成员资格无因果链的旧 join frontier MUST NOT 被采用（与 `invite_frontier` 同口径，避免并行分叉下放宽 join 前历史）。 |
-| `remove_frontier(reader)` | 与 reader 当前非成员状态**因果相连**的那次有效 leave / ban / remove / account deactivation cascade（使 reader 不再是 active member）所确立的 accepted Seal view；取导致其当前状态的那一次，已被后续 rejoin 取代而与当前状态无因果链的旧 remove frontier MUST NOT 被采用。 |
-
-一个 Event `E` 的 `T0` 如果包含 `join_frontier(reader)` 且不包含之后的 `remove_frontier(reader)`，则 reader 在 `E` 的 `T0` 为 joined。类似地，`T0` 包含有效 invite frontier 且未包含撤销 frontier，则为 invited。
-
-Current read-time member state 只决定服务是否可以继续提供 server-mediated backfill / key share。它不要求客户端删除已合法同步、已验证且未被 redaction / erasure 覆盖的本地历史。
-
-### 2.1 T0 / T1 / T2 三时点合同（normative）
-
-历史授权必须显式区分三个时点，不得把 current gate追溯写回 event-time事实：
-
-- **T0（目标 Event）**只固定该 Event 当时的 effective visibility、history policy、scope与允许的
-  Event/range。wire visibility值恰为 `world_readable|shared|invited|joined|restricted`；T0不得硬编码“必须
-  joined”，也不得放入接收者当前 lifecycle、当前 ban或后来 share结果。
-- **T1（history share acceptance）**固定接收者的 current eligibility与因果 basis。
-  `receiver_eligibility_basis`是closed union：`active_member`、`invited`、`removed_t0_visible`、
-  `world_readable_requester`、`shared_authorized{share_authority_ref}`、
-  `restricted_authorized{policy_authority_ref}`；另须绑定invite/join/remove causal frontiers与source share
-  authority。`removed_t0_visible`必须联合T0 visibility/range、current history policy及current
-  membership/account/device gate机械派生；preview-only永不发key。T1时current ban一律拒绝；合法
-  unban/rejoin后按新current basis重算，不自动恢复旧交付。
-- **T2（接收后）**只治理verified timeline/display、受控cache与后续share。T2的current redaction、erasure、
-  expiry或remove可停止新share、清理受控cache并记录audit，但协议不得声称能阻止recipient使用已经合法持有的
-  key继续本地解密。T2也不得倒推T0/T1从未成立。
-
-history service、key source与客户端必须保留这三个basis的typed证据。缺任一依赖时进入pending/backfill，
-不得以wall clock、到达顺序或current state替代历史因果证明。
-
-## 3. `history_visibility` 语义表
-
-下表是 v1 的规范语义。每个 Event 使用其 `T0` 下 effective `ak.realm.history_visibility` 值；Circle（[`../models/circle.md`](../models/circle.md)）scope 使用父 Realm **floor** 与 Circle visibility 的更严格者。这里的 **floor** 指父 Realm 在该 `T0` 下 effective `history_visibility` 所确立的**最严格下界**——按本表从宽到严的序 `world_readable > shared > invited > joined > restricted`，Circle effective visibility MUST NOT 宽于该下界；Circle 只能取等于或更严格的值，绝不能借自身设置放宽父 Realm 的历史可见性。
-
-| 值 | Event-time eligibility | 加入前历史 | invitee preview / read | server-mediated removal 后 backfill | E2EE key material |
-| --- | --- | --- | --- | --- | --- |
-| `world_readable` | 任何通过 discoverability / reference disclosure 的 reader MAY 读取该 Event 的授权视图。 | 允许读取该值生效期间的历史。 | MAY 按 preview policy 返回 stripped state 或历史 stub；MUST NOT 自动披露成员列表 / policy 原文。 | removal 后仍 MAY 读公开 projection（该可见性不依赖成员资格，故 remove_frontier 不收回该读取资格）：默认 MAY 返回 redacted / public projection；明文 backfill 受 current safety policy。 | 不自动发 key。`ak.realm.history_sharing_policy` 的 `allowed_receiver_states` 中可用于本行的只有 `world_readable_requester`；**preview token holder 不是可表达的 key-share receiver state**（`preview_token_holder` 只属读取类，见 §3.1 / §4 / §6），因此仅凭 preview token MUST withhold key material，只返回密文或占位。 |
-| `shared` | 当前 active Realm member MAY 读取该值生效期间的历史，即使 Event 早于其 `join_frontier`。 | joined 后可读 join 前历史。 | invited 但未 joined 的 reader 默认不能读正文历史；只能按 preview policy 看 stripped state。 | 默认 DENY 给非 active member；policy MAY 允许对 T0 可见历史作受审计恢复。 | joined 后可按 history sharing policy 获得旧 epoch key；无 policy 时不能靠 visibility 自动补 key。 |
-| `invited` | reader 在 Event 的 `T0` 已处于 invited 或 joined 状态时 MAY 读取。 | joined 后最多回到与当前成员资格因果相连的那次 invite frontier（§2 定义）；不能读该 invite 前历史。 | invited reader MAY 读取 invite frontier 之后、policy 允许的 stripped state / history range。 | 默认 DENY；policy MAY 允许 T0 可见历史恢复。 | key share range MUST 从 invite frontier 起算，且必须写入 membership frontier digest。 |
-| `joined` | reader 在 Event 的 `T0` 已处于 joined 状态时 MAY 读取。 | 不允许读 join 前历史。 | invitee 未 joined 时不能读正文历史，只能看 preview policy 允许的 stripped metadata。 | 默认 DENY；policy MAY 允许 T0 joined 且 current policy 仍允许的恢复。 | Welcome 只授予 join 后 future epoch；join 前 key share MUST 被拒。 |
-| `restricted` | 不由 enum 自身定义；MUST 由 effective `ak.realm.history_sharing_policy` 中的 `restricted_rules[]` 显式判定。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule；命中 read rule **不自动授予 key**——key share 还要求本次请求所用的 key 来源在该 rule 的 `key_sources` 内（见 §3.1 / §6）。任一判定失败的 fail-closed 行为见 §3.1 末尾集中声明。 |
-
-Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `restricted`，除非同一 CBA basis 或同一 ordered submit batch 的前序 Event 已接受一个有效 `ak.realm.history_sharing_policy`。拒绝原因 SHOULD 使用 `history_sharing_policy_missing`。policy 存在但未覆盖目标 scope / audience / range 时的 fail-closed 行为见 §3.1 末尾「`restricted` fail-closed 集中声明」。
-
-**profile-fixed baseline 的两个例外（normative）**：v1 恰有两个 profile 用 `history_sharing_policy_fixed_baseline.value` 供给 effective `ak.realm.history_sharing_policy`——`ak.profile.principal_control_realm.v1` 与 `ak.profile.direct_conversation_realm.v1`。两者的共同判定纪律是：该字面值**就是**该 Realm 的 effective policy，key source 与 reducer MUST 按它执行本文 §3.1 / §6 的判定，MUST NOT 因"没有 accepted policy Event"而报 `history_sharing_policy_missing`；反向也 MUST 成立——这两类 Realm 的 Realm object 都 MUST NOT 声明 `history_sharing_policy`。除这两个 profile 外，其余普通 Collaboration Realm **没有**隐含 policy，必须显式发出该 Event。
-
-**例外一，Principal Control Realm**：PCR 必须 `history_visibility="restricted"`，但结构上无法发出 `ak.realm.history_sharing_policy`——该 kind 不在 `ak.profile.principal_control_realm.v1` 的 event-kind allowlist 内，且 PCR genesis 与 `recovery_material_pending` gate 都是封闭写入集合（见 [`../models/realm-and-space.md` §2.8.1](../models/realm-and-space.md#281-principal-control-realmpcr)）。对 PCR，本节上文那条"effective `restricted` 必须有已接受 policy Event"的前置条件由 profile 的 `history_sharing_policy_fixed_baseline.value` 满足。向 PCR 提交 `ak.realm.history_sharing_policy` MUST `principal_control_event_kind_forbidden`。本条的规范执行向量是 `ak.vector.history_sharing.principal_control_profile_baseline.v1`。
-
-**例外二，Direct Conversation Realm**：DC 的 `history_visibility` 是 `joined` 而非 `restricted`，但本文 §6 条件 2 对**每一次** `ak.realm_key.share` 都无条件要求一份 effective `ak.realm.history_sharing_policy`，并不限于 `restricted` 可见性；DC 却在结构上永远拿不到这份 policy，理由有三条，且三条同时封死了创世与事后两条补救路径：
-
-1. [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md) 把 founding unit 封闭为恰好四条 Event（`ak.realm.create` → peer `ak.member.state{join}` → main `ak.strand.create` → founder `ak.member.state{join}`），出现第五条 Event MUST 以 `direct_conversation_founding_unit_invalid` 整组零写入拒绝，创世时塞不进 policy Event；
-2. `ak.authority.direct_conversation_bootstrap_participant.v1` 与 `ak.authority.direct_conversation_participant.v1` 的 `action_allowlist` 内没有任何能 author policy Event 的 action，binding 前后都无人有权发出它；
-3. [`../identity/contact-and-direct-conversation.md` §8.3](../identity/contact-and-direct-conversation.md) 禁止 `found` 后恢复 owner / admin authority，已建成的 DC 事后也补不上。
-
-因此 DC 的 effective 值由 `ak.profile.direct_conversation_realm.v1` 的 `history_sharing_policy_fixed_baseline.value` 提供。该字面值的 `allowed_receiver_states=["active_member"]` 就是 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 散文 "exact-peer-only history sharing" 的机器表达——profile 锁死 exact-two participants，active member 只可能是那两个；`allowed_key_sources` 排除 `archive_node` / `recovery_service` 以维持两人独占。producer MUST NOT 在 founding unit 后追加 `ak.realm.history_sharing_policy`：founding 期该形态命中上述第 1 条整组拒绝，stable 期因无任何 allowlist action 承载它而 MUST `unauthorized`。
-
-**DC 的 `pre_join_history` 消歧（normative）**：`pre_join_history` 里的 pre-join 指**成为 Realm 成员之前**。DC 中 peer 的 `join_frontier` 就是 Realm Genesis 本身，Realm 内不存在任何 `T0` 早于它的 Event，故该字段在 DC 中结构性不会被触发，设 `deny` 与设放行值行为完全等价，取 `deny` 只是如实陈述本 profile 从不释放加入前历史。[`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 散文里的 "pre-join" 指的是另一件事——peer 尚未成为 MLS leaf；那段 generation-0 历史 MUST 共享，实现 MUST NOT 因 `pre_join_history="deny"` 拒发 generation-0 provisional history key share。本条的规范执行向量是 `ak.vector.history_sharing.direct_conversation_profile_baseline.v1`。
-
-**`world_readable` removal 后 backfill 与 §2 "current read-time member state" 的关系（normative，消歧）**：§3 表 `world_readable` 行声明"removal 后仍 MAY 读公开 projection，remove_frontier 不收回该读取资格"，这与 §2 "current read-time member state 只决定服务是否可以继续提供 server-mediated backfill / key share" 不冲突，二者作用面不同：
-
-- **reference / 公开 projection 读取资格**：`world_readable` 的 event-time eligibility 不依赖成员资格（任何通过 discoverability / reference disclosure 的 reader 即可读授权视图），故被 remove 的 reader 对该公开 projection 的读取资格**不被 `remove_frontier(reader)` 收回**——这是 enum 语义层面的可见性。
-- **server-mediated backfill 仍受 current safety policy 独立 gate**：上述读取资格成立**不**等于服务必须继续提供 server-mediated 明文 backfill。§1 gate 4（current safety policy）对每次 backfill 独立求值——即便 `world_readable` 使 event-time eligibility 与 reference disclosure 通过，当前 ban / remove / redaction / erasure / retention / legal-hold safety policy 仍 MAY 独立拒绝继续向该已 remove reader 提供 server-mediated 明文 backfill（返回 redacted / public projection 或 `policy_denied`）。即：可见性 gate（gate 3）放行 ≠ safety policy gate（gate 4）放行；被 ban/remove 的 reader 仍可读已落库公开 projection，但服务的明文 backfill 交付可被 gate 4 收紧。这与 §2 "current read-time member state 决定服务是否继续 server-mediated backfill" 完全一致。
-
-### 3.1 `restricted_rules[]` 结构
-
-`restricted` 的判定语义由 effective `ak.realm.history_sharing_policy` 的 `restricted_rules[]` 显式承载；其 canonical wire schema 为 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `$defs/history_sharing_restricted_rule`（`additionalProperties:false`）。本节给出 v1 normative 字段约束：
-
-| 字段 | 必填 | 类型 | 语义 |
+| profile | `encryption_profile` | `content_scheme` | `mls_group_id` |
 | --- | --- | --- | --- |
-| `rule_id` | yes | `string`（`^[a-z][a-z0-9_]{0,63}$`） | 规则稳定 id；同一 `restricted_rules[]` 内 MUST 唯一，供审计与 key share diagnostic 关联。 |
-| `receiver_classes` | yes | `array<enum>`（≥1，唯一） | 本 rule 的**读取资格匹配类**，取 `active_member` / `invited` / `removed_t0_visible` / `world_readable_requester` / `preview_token_holder`。它不是 key-share receiver state allow-list；尤其 `preview_token_holder` 只能命中受限 preview / history-stub 读取规则，永远不因此取得历史密钥。 |
-| `allowed_history_visibility_values` | yes | `array<history_visibility_value>`（≥1，唯一） | 命中本 rule 时允许的 history visibility 取值集（取自 §3 五值）。 |
-| `range` | yes | `enum(all_visible_at_t0, since_invite, since_join, bounded_epoch_range)` | reader 可读 / 可获 key 的历史下界范围；`bounded_epoch_range` 配合 `max_epoch_span` 限定 epoch 跨度。 |
-| `max_epoch_span` | no | `integer`（≥1） | 仅 `range=bounded_epoch_range` 时有意义，限定允许的最大 epoch 跨度。 |
-| `key_sources` | yes | `array<enum>`（≥1，唯一） | 允许的 history key 来源，取 `own_device` / `verified_member_device` / `key_backup` / `archive_node` / `recovery_service`。read 与 key share 的区分由本字段（是否含可交付 key 的来源）+ §6 流程承载，而非单独的布尔开关。 |
-| `history_scope` | no | `object`（`{ kind: realm\|circle, circle_id? }`） | 限定本 rule 适用的 scope（整 Realm 或具体 Circle）。 |
-| `audit_required` | no | `boolean`（默认 `true`） | 命中本 rule 的读取 / key share 是否要求审计留痕。 |
+| plaintext | `none` | absent | absent |
+| standard MLS | `mls_rfc9420` | `mls_rfc9420` | derived |
+| exporter MLS | `mls_rfc9420` | `mls_exporter_aead_v1` | derived |
 
-匹配语义：reader 对某 Event 的 restricted 资格按 `restricted_rules[]` 逐条求值——rule 的 `receiver_classes` 命中 reader 的类别（`removed_t0_visible` 一类要联合 `T0` 时点状态与 current gate 一起派生，不是单看 `T0`）、Event 落在该 rule 的 `range`（及可选 `history_scope`）界定的历史范围内、且请求的 visibility 落在 `allowed_history_visibility_values` 内即视为通过；key share 还要求本次请求所用的 key 来源在该 rule 的 `key_sources` 内（见 §6）。无任何 rule 命中时 MUST fail closed（见下方集中声明）。多条 rule 命中时取并集（最宽 `range` / `allowed_history_visibility_values` / `key_sources`），但仍受 §3 表与父 Realm floor 约束，绝不放宽到比 enclosing scope 更宽。
+MLS-backed Realm 也 MUST 在 Genesis 显式提供并冻结 `content_scheme`；
+`encryption_profile=none|external` 时该字段和 Arkret MLS group 均 absent。Actor 不得提交
+`mls_group_id`；reducer 按下式派生：
 
-**读取类与 key-share state 是两个正交轴（normative）**：`restricted_rules[].receiver_classes` 用于判断“允许返回哪类授权投影”，因此包含 `preview_token_holder`；`history_sharing_policy.value.allowed_receiver_states` 用于 baseline **历史密钥交付**，只允许 `{ active_member, invited, removed_t0_visible, world_readable_requester }`，有意不包含 preview token。实现 MUST 先分别完成读取类匹配与 key-share state gate，再对允许的 key source 求交；MUST NOT 通过把 `preview_token_holder` 同时写入某条 `restricted_rules[]` 的 `receiver_classes` 与 `key_sources` 来绕过 key-share state gate。若 caller 只有 preview token 而不属于另一个被 `allowed_receiver_states` 接受的 state，key source MUST withhold，reason 使用 `history_not_visible` 或 `policy_denied`。
+```text
+canonical_effective_scope_key_bytes(Realm(r))  = utf8(canonical RealmId r)
+canonical_effective_scope_key_bytes(Circle(c)) = utf8(canonical CircleId c)
+mls_group_id = base64url_no_pad(canonical_effective_scope_key_bytes(effective_scope))
+```
 
-**`restricted` fail-closed 集中声明（normative）**：上述所有 `restricted` 判定的校验主体是执行读取 / key share 的服务（reducer 或 key source）；校验时点为每次读取 / backfill / key share 请求。任一判定失败 MUST fail closed——无匹配 rule 时返回 `history_not_visible`，policy 未覆盖目标 scope / audience / range 时返回 `policy_denied`，缺少 key share rule 或 proof 时 MUST withhold key material。本节其它处（§3 语义表 `restricted` 行、§3 末尾段落）对 restricted 的描述均引用本声明，不再各自重述 fail-closed 行为。
+`mls_rfc9420` scope MUST 固定 `history_access=since_join`，且不得进入 history request、backup 或
+RRK archive。仅 exporter scope 可进入这三条路径。Sidecar 保持现有 standard MLS profile，v1
+不为 Sidecar 定义可交付 history secret。
 
-## 4. Preview
+## 3. Incarnation 与 endpoint floor
 
-Preview 是读取授权的一种受限投影，不是加入、写入或完整历史读取。Arkret v1 区分四类 preview：
+`join_activation(principal, scope)` 是当前 membership incarnation 从 non-active 转为 active 的 winning
+membership Event 及 accepted activation Seal。MLS-backed scope 的 `ak.mls.proposal{proposal_type=add}` MUST
+把 `target_authorization_incarnation` 逐字绑定到该 exact winning Realm incarnation；Circle Add 则同时绑定
+parent-Realm 与 Circle incarnation。消费该 Add 的 winning Commit 的 `next_epoch` 是该 incarnation 唯一的
+`join_epoch`。非 Add proposal 禁带该字段；实现不得按本地 `received_at`、`joined_at` 或当前最新 epoch 猜测。
+Genesis 初始成员的 `join_epoch=0` 只在完整 replay 同时证明 exact founding membership incarnation 与 Genesis
+初始 leaf 时成立。
+已 active principal 的设备变化不改变 principal incarnation/join epoch；remove 后 rejoin 产生新值。
 
-| 类别 | 典型 surface | 可披露内容 |
-| --- | --- | --- |
-| directory card | Directory search / organization listing | title、summary、avatar、owning organization、join rule、bucketed member count 等最小字段。 |
-| stripped state | invite / restricted proof / exact resolve | join 前渲染所需的 stripped metadata，不含正文历史。 |
-| history stub | preview token / invited preview | Event id、kind、timestamp bucket、redaction reason、payload digest、必要 sender display stub；不含正文。 |
-| history snippet | 明文 Realm 且 preview policy 显式允许 | 有界数量的最近消息或摘要；MUST NOT 用于 E2EE plaintext，除非独立 audited plaintext-visible service profile 明确声明。 |
+Standard MLS 对每个认证 endpoint 维护 `endpoint_admission`：从该 endpoint incarnation 的 initial
+winning Add/Welcome activation 开始，以 Remove 结束。保持同一 BasicCredential identity 和
+signature key 的 ordinary self-update MUST NOT 重置；Remove+Add、credential/signature-key replacement
+或 reinstall 建立新 incarnation 并重置。Exporter response MUST NOT 套用 endpoint floor。
 
-`ak.realm.preview_policy` 是 v1 active Realm policy component，用于声明 preview 的 audience、字段、历史范围和 token 要求。Directory `ak.realm.discovery.preview` 只表达目录卡片与 stripped state 的最小形态；一旦 preview 会返回历史 stub、history snippet、object preview 或 token-scoped preview，resolver MUST 同时验证 effective `ak.realm.preview_policy`。
+Minimal-metadata 的服务端授权主体是 Realm-local pairwise endpoint actor。每个
+`(Realm, endpoint incarnation)` MUST 生成唯一 pairwise did:key `ActorId` 和 signing key；同一
+Realm 不同 endpoint 不得复用，同一 endpoint 可在该 Realm 及其 Circles 中复用。Event actor、
+Leaf BasicCredential identity、proof key、sender KDF/counter domain 和 request sender domain MUST
+逐字节相同。服务端 MUST NOT 将其聚合为真实 principal/device。该 profile 不承诺 Realm
+内 endpoint、request range 或 timing 不可关联。
 
-Preview policy MUST 满足：
+Pairwise identity 的生命周期是 Realm-global endpoint incarnation：任何 replacement 都同时终结该旧 actor 在 Realm
+及全部 Circle 中的 authorization，Circle-local actor rotation MUST 拒绝。每个 MLS group 随后独立执行 Remove/Add 收敛；
+Realm rejoin 或 replacement Add 不自动恢复任一 Circle 的旧 actor/leaf，仍需该 Circle 显式 reactivation 和 winning Add。
 
-- `history_snippet` 只允许在 `encryption_profile="none"` 或对应 content 明确为 plaintext public content 时返回正文片段。
-- E2EE Realm 的 preview MUST NOT 返回 decrypted message body、attachment plaintext、可逆 search token 或 emoji / reaction 明文；只能返回 stripped metadata、密文 envelope、不可逆 digest 或 policy 明确允许的 redacted stub。
-- Preview token 不是成员凭证、history-sharing grant 或 key-delivery proof。仅持 `preview_token_holder` 类的 reader MUST NOT 接收 Welcome、epoch state、`history_secret` 或任何可把 preview stub 还原为正文的 key material；即使某条 `restricted_rules[]` 同时列出该类与一个可用 `key_sources` 值也不例外。
-- preview token MUST audience-bound、target-bound、短 TTL、可撤销；目标绑定规则见 [object-addressing.md](../discovery/object-addressing.md) §4.2。
-- 未授权 preview、不可发现 target、token mismatch、过期 token 和不存在 target 对外 MUST 返回不可区分的 `not_found`。
-- Preview MUST NOT 披露 `join_candidates[]`，除非同一 caller 已按 discovery / invite / restricted proof 获得 join routing 权限。
+## 4. Current ratchet、join floor 与 T2
 
-## 5. Public Plaintext Realm
+```text
+allow_event(all_history_for_current_members, E, join) = true
+allow_event(since_join, E, join) = T0(E) causally covers exact join
+allow_epoch(all_history_for_current_members, N, join_epoch) = true
+allow_epoch(since_join, N, join_epoch) = N >= join_epoch
+```
 
-协议允许 `encryption_profile="none"`、`discoverability=public`、`join_rule=public`、`history_visibility=world_readable` 的 Realm。该组合表示“公开可发现、可自助加入、历史授权视图可世界读取”，但仍不表示：
+```text
+readable_by_scope(E, recipient) =
+  allow_event(current_history_access, E, recipient.current_join_activation)
+  AND recipient authorization subject is currently active
+  AND scope is readable and not tombstoned
 
-- 任意服务可以保存、索引、导出或再分发私有正文。
-- 成员列表、policy 原文、hidden relation、Circle、delivery binding、设备列表或组织治理链自动公开。
-- 受托 search / projection / push / blob preview 服务可以绕过 `plaintext_visible_services`。
+readable_standard_mls(E, endpoint) =
+  readable_by_scope(E, endpoint.authorization_subject)
+  AND T0(E) causally covers endpoint.current_endpoint_admission
 
-当 Realm 的 content 被声明为 public content（例如 `history_visibility=world_readable` 且 preview/export policy 允许 public content processing）时，服务 MAY 在其公开服务描述中声明 public indexing；否则即使 Realm 是 plaintext，服务接收正文、全文索引、embedding、notification summary 或 attachment preview 仍 MUST 满足 [service-surface.md](../sync/service-surface.md) §5.4 / §6.5 的 `plaintext_visible_services` 边界。
+deliverable(N, recipient) =
+  allow_epoch(current_history_access, N, recipient.current_join_epoch)
+  AND current membership/device/account/source/scope/safety/audit gates pass
+```
 
-实现和 UI MUST 分别展示：
+由于 ratchet 永不放宽，current policy 本身就是历史最窄值，不需要 event/epoch ceiling、activation-policy witness 或 policy meet。
+direct Seal replay 仍验证 winning MLS transition、epoch continuity、requester incarnation 与 join floor，但不在 activation Seal 采样
+history policy。MLS Genesis 只校验 content scheme 与 initial policy 兼容，不复制或选择 `history_access`；后续 Commit 和 MLS security frontier
+也不绑定该 cell。T1 使用 current ratchet 值与 current membership/device/account/source/scope gates。T2 是已交付、已备份或已由 RRK 解出的
+不可撤回能力；因此收紧只禁止未来读取/交付，不宣称回收既有能力。
 
-- “公开可发现”（discoverability）
-- “公开可加入”（join rule）
-- “历史公开可读”（history visibility）
-- “未端到端加密 / 服务可能接触明文”（encryption profile）
+Circle current gate 同时要求 Circle 和父 Realm membership active。父 Realm 成员失效后，
+MLS-backed Circle 停止发送直到自身 Remove Commit 生效；plaintext Circle 立即按
+`active Circle members ∩ active Realm members` 收紧 read/write，不生成伪 Commit。
+该失效同时终结 current effective Circle membership incarnation。后来父 Realm rejoin 不得复活旧 Circle row 或旧 leaf；
+重新进入必须由因果覆盖新 Realm join 的显式 Circle membership reactivation 建立新 incarnation，MLS-backed Circle 还必须
+在自身独立 group 的 winning Commit 中 Add 该 endpoint。
 
-实现和 UI MUST NOT 把其中任一项简写成其它项。
+## 5. Exporter secret 与 proof
 
-## 6. E2EE 历史共享
+```text
+history_secret[N] = MLS-Exporter(
+  "ak.history-v1",
+  canonical_effective_scope_key_bytes(effective_scope),
+  KDF.Nh
+)
+```
 
-`ak.realm.history_visibility` 只判定 Event 是否可见；`ak.realm.history_sharing_policy` 判定是否可以交付旧 epoch key / history key share。发送 `ak.realm_key.share` 前，key source MUST 同时满足：
+每个 epoch secret 独立；MUST NOT 互相派生。本机从已经完整验证并实际应用的 MLS epoch state 直接导出的 secret 标为
+`local_authoritative`。通过 history response、RRK archive 或任何其它外部 carrier 收到的 secret 永远只是 `candidate`；v1 不存在
+远端 epoch promotion 或“首个成功候选”语义。AEAD 成功只建立 exact Event attribution，不能把 candidate
+升级为该 epoch 的唯一真相，也不能淘汰其它 candidate。
 
-1. 目标 Event range 在 `T0` 下通过 §3 visibility 判定。
-2. effective `ak.realm.history_sharing_policy` 的 `default_key_share` 与 `allowed_receiver_states` 允许该 key-share receiver state，并允许该 scope、epoch range 和 key source。**对 `restricted` scope，命中的 `restricted_rules[]` rule 还 MUST 在其 `key_sources` 中列出本次请求所用的 key 来源（见 §3.1）——`key_sources` 未覆盖该来源时只放行读取、不授予 key**；仅满足 §3 read 判定不足以放行 key share。`preview_token_holder` 只属于读取类，不属于 `allowed_receiver_states`，因此仅凭 preview token 必须 withhold key material。
-3. 交付侧机制校验——对 `share_kind="member_device"`，device 未撤销且通过要求的验证、current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续交付、audit profile 要求的留痕、`key_scope` / `sender_device_signature` 绑定，按 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §13 的 canonical key-share 校验执行；对 `share_kind="realm_recovery_key"`，按 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10.8 的 RRK DID service 与 durability policy 校验执行。本节不再重述。
+`ak.self.seals.read.mls_governance_proof` 的无状态 query 只保留近端 `group_security_frontier`：它投影 frontier registry 登记的
+cell singleton/prefix ranges，并为每个 range 携连续 leaf indices、左右 boundary inclusion/nonmembership 或 state-edge witness；空 range
+也必须有相邻边界证明，不能把省略当 Bottom。query 的 Seal 坐标都是 canonical `seal_basis.leaves[]` antichain：`proof_target_basis`
+必须支配 `proof_base_basis`，即每个 base leaf 仍是 target leaf 或是某 target leaf 的 ancestor；open_set 不得缩成单一 head。
 
-上述 1–2 是 history-visibility 本身的判定；3 引用 device-lifecycle §13 的 canonical 列表。**ban / remove / legal-hold 后 key withhold 已被该 canonical 列表覆盖**：[`../crypto-media/device-lifecycle.md` §13](../crypto-media/device-lifecycle.md) 的 current safety policy 校验项明确含 "redaction / erasure / retention / **ban·remove** / **legal hold**"（见该节 `current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续向该 principal / device 交付` 条），且 §13.1 把"接收 principal/device 已处于 ban / leave / removed / account 失权态"列为**主体级拒绝**的终态 fail-closed（`not_member` / `history_not_visible`）。因此本文不重复定义这些项的扣留逻辑，以 device-lifecycle §13 / §13.1 为 canonical 真源。如果任一条件不满足，key source MUST 发送 `ak.realm_key.withheld` 或等价诊断，并使用 `history_not_visible`、`not_member`、`policy_denied` 或更具体 reason。Key source MUST NOT 因为自己持有 backup、Archive Node 副本或 service operator 权限而跳过这些检查。
+批量/旧 epoch 历史不得使用独立 stateless activation-range page、proof package 或第二套 witness wire。Request receipt 只冻结 closed
+`HistoryGovernanceTraversalIntent`：profile、scope/group、caller 签名并已独立验证的完整 `trusted_history_base_basis`、独立
+`trusted_current_basis` anti-rollback frontier、release service 当次 verified durable view 的完整 `target_basis`、canonical ranges、
+incarnation 或 RRK tuple、registry digests 与 retention。`traversal_intent_digest = SHA-256(UTF8("ak.history-governance-traversal-intent-v1")
+||0x00||JCS(traversal_intent))`。服务不得替换 caller 的 base/current、缩成单一 head 或在 retry 中换 target。
 
-### 6.1 `history_sharing_policy.value` 的三个基线字段（normative）
+v1 member history recovery 的 `trusted_history_base_basis` 必须是 caller 独立验证、T3 crash-safe durable pin 的完整 predecessor-free Realm
+bootstrap cut；它不是服务自报的“全局唯一 Genesis Seal”，但不能使用缺少 pre-base provenance/joined-state 的 later checkpoint 冒充。
+从每个 target leaf 反向沿 signed `predecessor_refs[]` 遍历，只能在 exact base leaf 终止；每个区间 Seal 的每个 direct predecessor 必须仍在
+区间或恰为 base leaf，每个 base leaf 至少被一条 target 路径消费，且 target 必须支配 trusted current 的每个 leaf。隐藏 predecessor、无法从
+base 到达的并发 branch、missing object 或 fork-quarantine 均 fail closed。
 
-`value` 的 required 成员里有两个此前只在 schema 中出现、正文未定义的判据，本节给出它们的规范语义；
-`post_removal_recovery` 是同一族的 optional 成员，一并定义。三者的取值域以
-[`event-payload.schema.json#/$defs/history_sharing_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为准。
+客户端/服务使用 SQLite 或等价 disk-backed work queue+visited set，从 target 反向发现完整 cut，再按拓扑 base→target 运行标准 `apply_seal`。
+Seal 本身的 `delta[]` 唯一发现 Control Move digest；resolve 必须返回该 accepted Seal 当时 pin 的 exact canonical Event bytes，并同时提供
+registered `apply_seal` 所需的历史 DID key、AvailabilityReceipt 及其它 CBA 依赖。每个 Seal 的 notary、predecessor、delta、
+control_event_set_root、completeness_root、state_root、frozen-predecessor admission、Bottom/recovery 与 joined state 都按核心规则重算。
+digest collision/quarantine 时不得任选另一 variant 重放。内存只需当前对象与有界队列 buffer；visited/work state 可 durable 恢复。
 
-| 字段 | 取值 | 语义 |
-| --- | --- | --- |
-| `default_key_share` | `deny`（无默认，必须显式声明） | 在 `restricted_rules[]` 被求值**之前**的基线：一律不交付 history key。此时只有命中某条 `restricted_rules[]` 的请求才可能取得 key。 |
-| `default_key_share` | `event_time_visibility` | 基线按 §3 的 `T0` event-time 判定放行：请求者在目标 Event range 的 `T0` 上可见即可取得对应 epoch key。它**不**豁免上文第 1、3 条，也不豁免 `allowed_receiver_states` 与 `allowed_key_sources`。 |
-| `post_removal_recovery` | `deny`（默认） | 曾被 remove / leave 的 principal 重新加入后，**MUST NOT** 取得其离开期间的 history key，即使那段 range 在当前 `T0` 判定下可见。 |
-| `post_removal_recovery` | `t0_visibility_with_current_policy_allowed` | 重新加入者按当前 policy 与 §3 `T0` 判定取 key，不因曾经离开而额外扣留。 |
+Replay intent 绑定一个小型 `GovernanceRegistrySnapshot` manifest digest。manifest 的 descriptor 集合固定为
+`registry/contract-registry.json`、`registry/proof-context-registry.json` 与一个 replay-schema manifest descriptor：前者是 reducer profile、lattice/FSM、active Event-kind contract 与 dependency extractor 的现有机器真相源，第二项冻结 detached proof transcript；schema manifest 从 `event-envelope.schema.json` 与 `event-payload.schema.json` 两个根开始，按每个本地 `$ref` 递归求出 every-and-only transitive schema closure，并按 artifact id 字节序列出 descriptor。外层 manifest 与 schema manifest 都不内联 artifact bytes；每个 artifact 按 descriptor digest 经同一 governance-dependency surface 分批取得，单 artifact canonical bytes 不超过 1 MiB，完整一次响应不超过 8 MiB。缺少、重复、多余、乱序、越界 `$ref`、不可解析 schema 或 artifact digest 不符均 fail closed。
 
-`audit` 是 required 对象，两个 boolean 子字段的语义分别是：`share_audit_event_required=true` 时 key source
-MUST 为每次 `ak.realm_key.share` 留下 audit 事件；`access_audit_required=true` 时接收方对交付所得 key
-的每次使用 MUST 留痕（[`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md)）。两者都为 false
-表示该 Realm 不要求 key-share 层面的额外审计，**不**表示可以跳过上文第 3 条的机制校验。
+winning MLS transition、requester join/incarnation 和 scope 当前单向收紧的 history access 均由这次 replay 派生；同一 Move 被多个并发 Seal 覆盖不产生可选的
+singular activation Seal。普通 Message/reaction 等 DataEvent 只携既有 accepted `seal_ref` authorization view，不携 `seal_basis`、不进入 Seal.delta、不推进 epoch。
+T1 release 不进入 governance proof query；它由 chunk 首次耐久入队事务生成 `HistoryReleaseAttestation`。旧
+`HistoryGovernanceEvidenceChain`、page/root/ownership/selection/activation/auth witness、`epoch_activation_range`、
+`complete_control_state_v1` 与 proof result/snapshot carrier 均不存在。
 
-本节只规定**被选中的 source 交付前必须满足的条件**；接收方如何**发现、选择并请求**一个具体 key source（policy 允许的 `key_sources` ∩ `ServiceDescribe` 声明可用的途径，按优先级，经 `ak.realm_key.request` 发起或 `key_backup` unlock 取回），见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §13.2。
+## 6. Private history-key delivery
 
-## 7. 测试向量要求
+Public Event timeline MUST NOT 承载 history request/response/withholding。唯一 carrier 是 scope-private
+durable request inbox 和 capability-protected reply mailbox：
 
-实现声明支持 `ak.profile.e2ee_client.v1`、Directory preview、或 `ak.realm.preview_policy` 时，MUST 覆盖以下行为：
+```text
+ak.history_key.request
+ak.history_key.request_receipt
+ak.history_key.response_manifest
+ak.history_key.response_chunk
+```
 
-- `ak.vector.history_visibility.joined_prejoin_denied.v1`
-- `ak.vector.preview.token_scoped_stripped_state.v1`
-- `ak.vector.history_sharing.e2ee_prejoin_key_share_policy.v1`
+locator 是 `ak:history_request:<uuidv7>`、`ak:history_response:<uuidv7>` 和
+`ak:history_mailbox:<base64url_no_pad(16-byte CSPRNG)>`，不得互换或用 EventId 代替。Request
+是 immutable/idempotent；create 只能在字节已耐久保存后返回 accepted。Service 仅保存
+mailbox capability commitment，capability 用 request HPKE key 独立封装。Inbox 仅对 scope current
+active member endpoint 和与目标 archive 相交的 RRK holder 窄分支可见。Service 不选 source、不解密、
+不把 minimal actor 聚合到真实 route。
 
-这些向量定义见 [conformance-vectors.md](../conformance/conformance-vectors.md)。
+三种 locator 都是全局 object identity：`request_id`、`response_id`、`reply_mailbox_id` 各自全局唯一。
+同一 `response_id` 在另一 mailbox 重用仍是 `duplicate_conflict`；`(mailbox_id,sequence)` 只用于分页索引，绝不构成 identity namespace。
+
+Request MUST 签入 `requester_author_profile`、与该 profile 逐字匹配的 closed
+`requester_endpoint_authorization`、exact current `requester_authorization_incarnation`、requester 已完整验证并 durable pin 的
+canonical `trusted_history_base_basis.leaves[]` 以及独立的 canonical `trusted_current_basis.leaves[]`。前者是历史 DAG 重放的显式首 trust
+cut，并且必须是完整 predecessor-free Realm bootstrap cut；accepted traversal intent 的 base 必须与其逐字相等。后者是 scope Realm 的 current anti-rollback frontier，Account/PCR/Agent
+T1 facts 不进入它，
+open_set 也不得只签一条 leaf。Release service 只能接受一个完整 target basis 支配该 trusted basis 的 request；无法证明支配、bootstrap
+base 不可验证或 target 存在并发未纳入 leaf 时，create 零写失败。`requester_authorization_incarnation`
+是 closed scope union：Realm 为 exact `realm_membership_incarnation_ref`；Circle 同时携 exact parent-Realm 与 Circle membership
+incarnation refs。Circle reactivation/Add 必须因果覆盖该 parent incarnation，join epoch 只取 Circle 独立 group 内的显式 Add
+activation；禁止跨 Realm/Circle group epoch 取最大值。Request retry 必须保留原 trusted basis 及其本地 verification material，不能只保存裸 ID。
+`ordinary_human` endpoint 分支签入 exact `requester_device_id`、accepted `requester_device_authorize_event_id`
+与 PCR-local monotonic `requester_device_generation_ref`；`native_agent` 分支签入 exact Agent id、runtime verification
+method 与 `requester_agent_key_authorize_event_id`；`minimal_metadata` 分支不得携 principal/device locator。Create 与每个
+chunk 首次入队 T1 都重新解析同一签名 locator 并与 current Account/PCR/Agent authority 逐字比较，禁止从当前 session、proof
+fragment 或服务私有“默认设备”替换。
+
+Request create 返回成功前，release service 必须冻结并完整验证 request-expiring `HistoryGovernanceTraversalIntent`，在 receipt 的
+`history_traversal_retention` 中保存 intent 与 registered digest。`intent.retention.expires_at == request.expires_at == receipt.expires_at == mailbox expiry`
+必须逐字相等，否则同事务零写失败。服务到 expiry 保留 exact target→base accepted Seal cut、每个 Seal.delta 命中的 canonical Control Move bytes
+以及所有 registered `apply_seal` dependency；split-view 仍由既有 transparency/gossip 处理。object 丢失显式返回 `frontier_unavailable`
+（reason=`history_traversal_anchor_unreachable`）并要求新 request，不得在旧 receipt 下换 base/current/target/range。
+
+每个 Manifest descriptor 只列 `chunk_response_id,chunk_index,covered_epoch_range`。requester 凭 session/capability 及 exact
+`request_receipt_digest`，通过标准 self Seal/Event/dependency resolve 携 closed `TraversalAccess` 读取该 receipt target 反向 cut 内的 Seal、其 delta
+Control Move 及 registered replay dependencies。remote member source 只走普通 authenticated Realm/federation 治理可见性；request replica 只证明请求/mailbox bytes、authorization 与 TTL，不承诺 cut 且不扩张治理可见性。仅 RRK pending archive replica 可用 `pending_archive_replica_digest` 取得 peer retained-cut 窄访问。caller 不得自报 allowed ref 数组；服务从 retained intent/cut 机械判定。普通 timeline visibility 与
+TraversalAccess 互斥，unknown/unauthorized/out-of-cut 同形。旧 evidence-page read operation 与 descriptor-access branch 均不存在。
+
+Request create 时 requester 当前 delivery binding/authenticated Principal Server 是该 mailbox 唯一 `release_service_id`。Request
+receipt、sealed capability context 与 mailbox 都冻结该 service DID、binding/resolution refs 和 route digest；后续 retry 或路由变化
+不得替换。固定 service DID 是该 request 的唯一 release authority；chunk 首次入队时仍必须确认 receipt 中的 delivery binding
+仍指向该 DID。同一 DID 的 ServiceResolution successor 允许成为新 route；只有 delivery binding 改绑另一 service DID 时
+fail closed 并由 requester 创建新 request；已经 accepted 的小型 `HistoryKeyResponseSendReceipt`
+仍由旧 idempotency ledger 保留并 byte-identical retry 到 expiry；recipient mailbox 的完整 record 则在有效 high-water ack
+事务中 GC。v1 不迁移 mailbox/idempotency ledger。Release service 通过
+`ak.peer.history_key_requests.command.replicate` 把 byte-identical request+receipt 私有 fanout 到 closed destinations：current member
+delivery-binding services，或其 archive tuple 与 requested ranges 相交的 exact RRK holder service。Destination authorization/TTL/idempotency
+受 S2S proof 覆盖；destination 只在本地 scope-private
+inbox 投影，不生成 Event 或 DeviceMessage。Create 事务必须先 durable 写入 initial target set 与 fanout outbox；重启从 outbox 重放，
+TTL 内 membership/service-binding 变化由 durable reconciliation 增加当前合法 target 并使失权 target 的 list gate 立即失效，不能因
+create accepted 后的崩溃永久漏掉远端 source。
+
+Source 仍调用自己 local PS 的 self send；local PS 先验 source current account/device、Agent、minimal membership 或 RRK holder
+authority，再签 `SourceRelayAttestation`，绑定 source-record digest、request/receipt、source current authority locator 和冻结的
+destination release service，经 `ak.peer.history_key_responses.command.relay` 私有投递。Destination 必须证明 relay service 等于
+source 当前 delivery/authority binding，随后才执行 recipient/current scope T1 并签最终 attestation。该双服务 cut 不声称全局原子；
+v1 依赖诚实 service、短 TTL 和 exact durable retry，恶意/延迟 peer 不在密码学保证内。Local source service 第一次验证 self send
+时即以 `(response_id,source_record_digest)` 原子保存 byte-identical relay envelope/outbox；`relayed_at` 与 proof 不得在 retry 或重启时
+重生成。最终首次 accepted 的小型 send receipt 耐久回填同一 row，client exact retry 返回原 bytes；transport 不另签 duplicate
+variant，同 response_id 异 digest 为永久冲突。
+
+Native Agent authority locator 逐字为
+`{agent_id, verification_method, agent_key_authorize_event_id, active_lifecycle_event_id, control_basis, agent_signer_evidence_digest, observed_at, expires_at}`；
+其中 `control_basis` 是完整 accepted PCR Seal antichain，`agent_signer_evidence_digest = SHA-256(JCS(complete current AgentSignerEvidence))`。
+不得退化为 singular control Seal、含糊的 control/evidence Event ref 或未定义 digest。RRK source locator 内联完整
+`RrkHolderAuthorityObservation`，而不是裸 observation digest；该 object 绑定 holder principal/service、current signing method、accepted key evidence Event、
+archive tuple digest、完整 holder trusted basis 与有效期。外层 `SourceRelayAttestation.service_proof` 已签完整 locator，所以 observation 不再嵌套第二份 proof。
+接收端必须把 observation 与 source actor/service、外层 proof method/expiry 及 exact archive tuple 逐字交叉核对。
+其中 immutable archive tuple 只通过 holder principal/service 与 `archive_authorization_tuple_digest` 逐字绑定；`current_holder_signing_ref`、
+`accepted_key_evidence_ref` 和 `holder_trusted_basis` 证明 current holder authority，不得被错误要求等于 archive 创建时冻结的历史 signing/evidence coordinates。
+
+Source 先分配全部 chunk response ids，再冻结 descriptors
+`{chunk_response_id,chunk_index,covered_epoch_range}`。每个 chunk 恰覆盖一条连续 inclusive epoch range，且该 range 是 request 已授权 ranges 的
+canonical subset；manifest 不枚举 proof bytes 或 `CbaProofBundle`，也不得用一个 descriptor 代表离散 range。
+Manifest 不得承诺 chunk
+ciphertext、enc、最终 size 或 release proof。每个 chunk 使用 request 中的同一 recipient public key 但独立 HPKE
+encapsulation。唯一 info/AAD context 是下面的 canonical bytes；发送方必须把同一份 bytes 同时作为 RFC 9180
+`SetupBaseS` 的 `info` 与单次 AEAD `Seal` 的 `aad`，接收方必须把同一份 bytes 同时作为 `SetupBaseR` 的
+`info` 与 `Open` 的 `aad`。不得把空值、仅 purpose、额外 wrapper 或两次独立序列化的不同 bytes 分别传入：
+
+```text
+history_chunk_context = JCS({
+  purpose: "history_secret_chunk",
+  request_digest,
+  request_receipt_digest,
+  reply_mailbox_id,
+  manifest_digest,
+  manifest_admission_digest,
+  chunk_response_id,
+  chunk_index,
+  effective_scope,
+  source_actor_id,
+  source_sender_domain,
+  requester_actor_id,
+  requester_sender_domain,
+  covered_epoch_range,
+  expires_at
+})
+```
+
+recipient 字段来自已签 request 而不是 transport route。manifest descriptor 只绑定 `chunk_response_id,chunk_index,covered_epoch_range`；
+不存在 selection digest、range key 或 page root。sealed chunk wire 仅携
+`{kind,manifest_digest,manifest_admission_digest,chunk_index,enc,ciphertext}`，不得重复 range。Manifest 首次
+admission 必须从 receipt target 按 predecessor_refs 反向取得完整 closed cut 和 registered dependencies，再从 base basis 按拓扑 `apply_seal`
+重放到 target basis，执行 join/profile floor、scope current monotone history-access ratchet 与 winning transition 校验；任一失败时整个 manifest 零 record、
+零 admission。成功事务耐久写 `HistoryManifestAdmission`，其 digest 绑定 manifest/request/receipt、exact `traversal_intent_digest`、
+authorized ranges 和 T0 pass marker。Source 必须先取得该首次 accepted manifest receipt；在此之前提交 chunk 或提交错误
+admission digest 必须 dependency reject 且零 pending、零 mailbox record、零 attestation。
+Receiver 必须先 durable 取得并验证 manifest。Receiver 安装前必须独立执行同一 target→base 遍历与 base→target replay，核对 winner、
+join/incarnation、current monotone history-access ratchet 及 request/receipt/attestation 绑定。RRK archive 使用 archive-lifetime traversal profile，不伪造 recipient。Source 不生成、
+不签名也不携带 T1 authorization basis。Source proof 对 exact request/mailbox/ranges/content 归因。`history_response_signing_input` 必须同时携带
+`source_signer_evidence_ref` 与 `source_signer_evidence_digest`，两者逐字绑定 closed source-signer evidence union 的同一份对象：
+ordinary human、Native Agent 与 organization-recovery holder 使用 `AuthenticatedSignerResolutionEvidence`，minimal-metadata 使用
+`MinimalMetadataMlsLeafSignerEvidence`。Evidence 必须授权 `source_actor_id`、`source_proof.verification_method` 与
+`source_proof.created_at`。Release service admission 必须完整验证 authenticated branch 及其递归 attester evidence closure；对于只有 receiver
+持有 verified local MLS tree 的 minimal-metadata branch，release service 只验证 content address、closed shape、source relay binding 并原样 pin，
+不得声称自己已验证本地 MLS tree 与加密 IdentityLink 的 authority。两种 branch 的 exact canonical bytes 均随 request retention 保留至 request expiry；
+receiver 使用 `request_receipt` history traversal access 从标准
+governance-dependency resolve surface 按 digest 分页取得。不得查询 current DID document 代替历史 evidence，也不得把最多 1 MiB 的
+evidence bytes 重复内联到每个 manifest/chunk。
+Native Agent 使用 CurrentAdmission branch 时，`current_observation.request_digest` 必须等于：
+
+```text
+history_source_agent_observation_digest = H(
+  UTF8("ak.history-source-agent-observation-v1") || 0x00 ||
+  JCS(history_response_signing_input 去掉 source_signer_evidence_ref 与 source_signer_evidence_digest)
+)
+```
+
+该独立 digest 域固定其 history response send 用途，并打破 evidence content digest 与 observation request digest 之间的自引用；
+`source_proof` 仍覆盖包含两项 evidence 坐标的完整 signing input。`current_observation.operation_id` 仍是本次操作的
+`ak:operation:<uuidv7>`，不得把 HTTP service operation id 填进 `ProtocolOperationId`。
+Ordinary human、Native Agent 与 organization-recovery holder source 使用 `AuthenticatedSignerResolutionEvidence`；其中 ordinary human 与
+organization-recovery holder 的 root evidence 必须是 Principal branch，Native Agent 的 root evidence 必须是 NativeAgent branch；Service branch
+只能作为递归 attester leaf，不得作为 source root。Minimal-metadata source 不得冒充
+Principal，而必须使用 `MinimalMetadataMlsLeafSignerEvidence`。后者绑定 effective scope、canonical MLS group id、epoch、leaf index、
+pairwise/source actor、verification method、独立 Ed25519 response-signing public key/digest、端到端加密取得的 IdentityLink canonical bytes/digest、
+exact RFC MLS LeafNode canonical bytes/digest、winning group-state transition Event ref、
+outer Event digest、MLS transition digest、完整 target Seal basis 与 authorization incarnation。Receiver 只有将这些坐标与独立验证并耐久保存的
+winning MLS state、active LeafNode 与本地加密取得的 IdentityLink 逐字对齐后，才能使用该独立 Ed25519 response key 验证 source proof；MLS ciphersuite 的
+LeafNode signature key 不得被冒充为 generic PayloadProof key，因此 MLDSA44 hybrid group 不会被暗中禁用。该 evidence 使用独立
+`minimal_metadata_mls_leaf_signer_evidence` governance-dependency selector，canonical bytes 同样不得超过 1 MiB。
+IdentityLink 的 closed shape 必须携带并由其既有 proof transcript 签入
+`response_signing_verification_method,response_signing_algorithm,response_signing_public_key_b64u,response_signing_public_key_digest`；
+其中 algorithm 必须为 `Ed25519`，method controller 必须投影为 `pairwise_actor_id`，digest 必须等于 decoded 32-byte key 的 SHA-256。
+Minimal-metadata evidence 中的四项 response-signing 坐标必须与接收端通过同一 MLS group 端到端加密取得并和 exact active LeafNode
+绑定的 canonical IdentityLink 逐字相等；仅让
+evidence 自己携带并 self-consistently hash 一把未被 IdentityLink 签入的 key 必须拒绝。
+IdentityLink 通过 `content_type=application/vnd.arkret.identity-link+json` 的加密 MLS application message 或等价 MLS private extension
+承载；解密后的 plaintext 必须恰好是 `ak.schema.identity_link.v1` 的 RFC 8785 canonical bytes。接收端只有在该消息的已验证 sender domain
+逐字等于 `pairwise_actor_id`、其 `(realm_id,mls_group_id,mls_epoch,mls_leaf_index)` 与本机已验证 winning MLS state 的 exact active
+BasicCredential LeafNode 对齐、`trust_domain` 等于当前连接的已验证 trust domain 后，才可把 IdentityLink canonical bytes、digest、exact
+LeafNode TLS bytes、digest 与 winning transition ref 写入 E2EE secure cache。该接收步骤只证明 MLS delivery 与本地 tree 绑定；IdentityLink
+自身的 Principal proof 必须在 history response 验证时由
+`identity_link_signer_evidence_ref + identity_link_signer_evidence_digest` 解析出的 exact
+`AuthenticatedSignerResolutionEvidence::Principal` 及其递归 attester closure 验证，禁止把 evidence 内嵌 IdentityLink bytes 当作自证来源。
+Source record 的唯一 digest 为：
+
+```text
+source_record_digest = H(
+  UTF8("ak.history-source-record-v1") || 0x00 ||
+  JCS({history_response_signing_input, source_proof})
+)
+```
+
+其中 `history_response_signing_input.content.kind` 是 manifest/chunk 的唯一 discriminator；不存在重复的 outer kind。
+Response wire 只携 `request_digest+request_receipt_digest`；source service 从已验证的本地 request replica/list 按 digest 取 receipt，
+destination release service 从自己的 durable request ledger 取原 receipt。未知/mismatch 是 dependency reject 且零写，完整 receipt 不在
+manifest/chunk wire 重复。Source-record digest 排除 service metadata、`sent_at`、release attestation 和 service proof。
+服务在每个 chunk 首次耐久入队事务中取得 profile-dispatched current accepted authority views、执行 T1，并生成独立
+`HistoryReleaseAttestation`；它绑定 source-record digest、request/receipt/mailbox/scope、exact continuous range、recipient/source
+identity/profile 以及 profile-closed typed authority view locator/digest vector，但不进入 source record/proof、HPKE context 或 manifest。
+Release service 在该事务中通过各 authority 既有标准接口或本地 durable replica 机械验证 closed predicates；locator vector 只是
+service-signed 决定收据和审计坐标，不是 receiver 可独立重放的 portable 多 authority proof。v1 显式信任 release service 诚实执行 T1；
+恶意或 stale service 不在本 profile 的密码学保证内，不能用 Merkle 包装伪装成已解决。manifest 未完成上述 T0 admission 时
+chunk 必须 dependency reject 且零写；只有 manifest、descriptor、完整 traversal closure、release attestation 与 service record 全部验证后才可安装。
+Service proof 的 transcript 是移除 `service_proof` 后完整 closed response record 的 RFC 8785 JCS bytes；chunk record 中的
+完整 release attestation（含 typed authority locator/digest vector）因此逐字节受 service proof 覆盖，attestation 不再有第二条独立签名或
+不完整的外层摘要。每条 normal record 与 lost descriptor 都 MUST 携带
+`release_service_signer_evidence_ref + release_service_signer_evidence_digest`；该坐标必须解析为
+`AuthenticatedSignerResolutionEvidence::Service`，其 signer id 和 verification method 分别逐字等于 receipt 冻结的
+`release_service_id` 与该条 `service_proof.verification_method`，并按 `service_proof.created_at` 验证完整 method history。
+Release service 必须在首次写入 record/lost 的同一事务中把该 evidence 及其递归依赖按 request-receipt access 保留到 request expiry；
+requester 通过 receipt-bound governance-dependency resolve 获取，不依赖 current DID document 或另建 resolution-chain surface。
+Manifest record MUST 不含 release attestation。
+Source MUST 先以 content-addressed staged blobs 保存 manifest、所有 sealed chunk bytes 和 ids，最后原子写 ready marker；
+marker 出现前不得发送。Retry 重发相同 bytes。Accepted chunk 是 secret release 线性化点；source 的 exact retry 只返回首次
+小型 `HistoryKeyResponseSendReceipt`，不以新 head 重验或重签；完整 record/attestation 只从 recipient mailbox 读取。
+
+Attempt identity 固定为 `(reply_mailbox_id,source_sender_domain,manifest response_id,manifest_digest)`。只有 manifest 命名的每个
+chunk 都取得 durable send receipt 才是 `completed`；v1 不定义 abandon operation，未完成 attempt 仅在 request expiry 进入
+`expired`。Permanent chunk rejection 要求 source 建新 manifest，不能把旧 attempt 偷换为完成。`completed|expired` 后才能 GC 对应
+staged blobs/outbox，compact accepted receipt ledger 仍按下述期限保留。并发上限只计 unfinished：每 mailbox/source-domain 4、
+每 mailbox 8；同一 request 在 expiry 前可顺序创建任意多个满足单体上限的 manifest，不存在 lifetime split/attempt 总次数。
+
+Release service 必须在有效 high-water ack 前保留完整 byte-identical record 与 conditional attestation。Receiver 只有在对应
+manifest descriptor 或 chunk 结果已 durable install/reject（或取得 signed lost descriptor）后才能 ack；未 durable 处理即 ack 是
+client error。Ack 事务原子记录 disposition、GC 大 record/attestation 并释放 active 16 MiB quota，不再承诺 ack 后重读 mailbox record。
+Source exact retry 只依赖首次 enqueue 已冻结的小型 `HistoryKeyResponseSendReceipt` ledger；该 compact ledger 保留到 request expiry，
+按 mailbox 64 MiB、requester 256 MiB 与 service advertised finite floor 独立计费，不能由 ack 刷写绕过。Expiry 后才转为 30 天 light tombstone
+`{response_id,source_record_digest,terminal_status,expired_at}`；tombstone 只拒绝冲突/过期 retry，不再承诺返回完整 record。
+
+Receiver 对 list 的单一 sequence stream 逐项耐久记录 disposition。Normal record 允许
+`installed|cryptographically_rejected|superseded_duplicate`；`service_record_lost` 只允许匹配同 sequence/response_id 与 signed
+lost-descriptor digest 的 lost entry。`ack_token` 绑定每项 `{sequence,kind,response_id,entry_digest}` 和 high-water，不能把 lost
+与 normal record 分页或确认到不同顺序。四者都释放 processing quota；manifest 的
+`installed` 只安装 descriptor，chunk 的 `installed` 也只表示 candidate material 已耐久落入 history-only store。后续 AEAD 成功仅建立
+exact Event→candidate digest binding，不得把 candidate 或整个 epoch 标成 verified/authoritative coverage。High-water ack 只能跨过已有 durable
+disposition 的 sequence。尚未 durable ack 的 accepted record 不得默默驱逐；不可恢复损坏必须返回
+`lost_records[{sequence,cursor,response_id,record_digest}]`，不得用裸 `lost=true` 解除 ack 死锁。资源常量以 scalability registry 为唯一机读真源。
+
+## 7. History-only store 与终态
+
+候选 secret bytes 全局按 material key `(effective_scope,mls_group_id,epoch,candidate_digest)` 去重；`candidate_digest` 是 exact secret bytes
+的 SHA-256，origin 不参与 material identity。每个 resident material instance 在 bytes 首次落盘时取得不可变、单调递增的
+`material_received_sequence`；同 bytes 从新 origin 到达只增加 origin attribution，不刷新 sequence。bytes 被驱逐后再次 refetch 才建立新
+resident instance 并取得新 sequence。每 `(scope,group,epoch)` 最多 8 份 received material；槽位只计算 resident secret bytes。
+本机从 verified MLS state 直接导出的 secret 是独立 `local_authoritative` 项，使用分离账本，不占 received 槽位，永不被驱逐或 received bytes 覆盖。Portable backup
+只允许序列化源设备的 `local_authoritative`；在另一 endpoint restore 后，该 material 仍按 `portable_backup` origin 进入 received candidate
+槽位而不继承源设备 authority。received candidate 只能留在 device-bound multi-candidate store，RRK open 也不例外。
+
+`CandidateOriginAttribution` 使用独立 key `(material_key,origin_domain,origin_ref)`，另存不可由 retrieval coordinate 替代的稳定
+`origin_quota_domain`。三分支为：
+
+- `response_sender`：quota domain=`{source_sender_domain}`，origin ref=`{response_id,source_record_digest}`；
+- `rrk_archive`：quota domain=`{holder_principal_id,holder_service_id,recovery_key_id,accepted_key_evidence_ref}`，其中 accepted
+  evidence EventId 就是 rotation identity 且不存在独立 key version；origin ref=
+  `{container_event_ref,archive_digest}`；
+- `portable_backup`：quota domain=`{backup_series_id,producer_actor_id}`，origin ref=`{backup_origin_id}`。
+
+`backup_origin_id` 必须为 `backup:<BackupId>`；无 canonical BackupId 时为 `backup:sha256:<hex of exact envelope bytes>`。
+origin ref 只用于 refetch，换 response/archive/envelope 不得换 quota domain 或伪装 sender。每 material key 最多 4 条、每 exact
+`(scope,group,epoch,origin_domain,origin_quota_domain)` 最多 64 条、每 `(scope,group,epoch)` 总计最多 256 条。
+`expires_at=first_observed_at+2592000` 秒，且 duplicate/refetch 不可刷新。先删过期项；仍超任一 cap 时仅保留 canonical tuple
+`(expires_at,candidate_digest,origin_domain,JCS(origin_quota_domain),JCS(origin_ref))` 最小集合。origin ledger 不得复制 secret bytes 或改变 material sequence。
+
+使用 candidate 前必须先验证外层 Event proof、scope/group/epoch、verified sender domain、重构 AAD、schema 与 replay gate。AEAD
+成功/失败都只向独立 `EventCandidateBinding` 账本写
+`(event_binding_key,candidate_digest,outcome)`；`event_binding_key=(scope,group,epoch,event_id,event_digest,verified_sender_domain)`，
+`outcome=success|failure`。该 key 不含 origin，也不得从 binding 反推 origin。binding 只保存 digest、结果与 attribution，**不得 pin secret bytes**；
+两者均不得 epoch-level promote、隔离或删除其它候选。
+恶意作者的 fake secret 加 fake ciphertext 至多影响其自身签名 Event，不能锁死另一 sender。插入超配额时按两级确定性驱逐 received bytes：
+先从无 success binding 的 material（unbound 与 failure-only）中选择，再从 success-bound material 中选择；每级均取
+（`material_received_sequence` 升序，`candidate_digest` 按 UTF-8 升序）最小者。success/failure binding 只决定 tier，绝不 pin bytes。
+驱逐只删除 secret bytes 与该 resident sequence，保留可供 refetch 的有界 origin attribution/Event binding tombstone；
+只有 `local_authoritative` 永不成为 victim，且它不阻塞 received 槽位。
+
+`EventCandidateBinding` 每 `(scope,group,epoch)` 最多 256 条，`expires_at=first_observed_at+2592000` 秒，且不可延长。超限先删已过期项，
+再按 `(expires_at,event_id,event_digest,verified_sender_domain,candidate_digest,outcome)` 升序确定性裁剪。binding 到期或裁剪不得改写独立 ciphertext replay ledger、
+`local_authoritative` 或 epoch authority。恢复 material 只进 decrypt store，不恢复 leaf signer、ratchet、proposal 或 counter。
+
+终态 reason 只有 `decryption_unavailable_by_policy` 和 `decryption_unavailable_by_profile_floor`，
+key 至少包含 `(effective_scope,epoch,authorization_incarnation,endpoint_incarnation,reason)`。T1 失权、
+source 离线、proof/chunk 缺失是暂时状态，MUST NOT 进入终态。
+
+## 8. Backup 与 organization recovery key
+
+Human `mls_history` backup 每个 object 只属于一个 exporter effective scope，只保存：
+
+```text
+HistorySecretRange = { from_epoch, to_epoch, secrets_b64u }
+```
+
+解码长度 MUST 等于 `(to_epoch-from_epoch+1) * KDF.Nh`。Suite 从 exact winning transition/activation
+proof 解析，wire 不自报。多 scope 拆为多 object，backup series 负责 anti-rollback 和替代。
+
+每个 Realm authority 同一时点最多登记一把逻辑 organization recovery public key。该 key 不能塞入 Realm create：固定顺序是
+Realm create → accepted create Seal → `ak.realm.organization_recovery_key.register`（含 holder acceptance，锚定 create Seal 或 holder
+已 pin 的 prior evidence Seal）→ accepted key-evidence Seal → 之后才允许任何选择
+`organization_recovery_key` durability 的 Realm/Circle MLS Genesis。Rotate 使用
+`ak.realm.organization_recovery_key.rotate` 对唯一 active cell CAS，并以 prior trusted evidence Seal 锚定新 holder acceptance；旧 tuple
+保留作历史验证。Circle 不登记独立 key。同一个 Realm key 只服务显式 opt-in scopes。每个
+exporter Realm/Circle 独立选择 `none|organization_recovery_key`，不继承父 scope，不复制
+holder/custody tuple。选择后，每个 winning Genesis/Commit Event MUST 在同一签名 Event 中携带
+恰一份本 scope/epoch archive，否则 transition 拒绝。RRK tuple 固定
+`hpke_suite=ak.hpke_x25519_aead_chacha20poly1305.v1`，`frozen_public_key_b64u` 必须是 exact 32-byte X25519 raw key 的
+43 字符 unpadded base64url。Admission 必须解析 current `key_agreement_ref` 并逐字匹配 raw key/controller，解析 current
+`holder_signing_ref`，并要求 holder proof verification_method 逐字等于该 signing ref、controller 同 holder principal。
+Archive 绑定 `effective_scope + derived
+mls_group_id + epoch + mls_transition_digest + recovery_key_tuple + registered HPKE profile`，不绑定尚未产生的
+container EventId。Rotation 只影响后续 transition，旧 archive 按历史 key id 可读，不自动
+backfill/revoke。Custody 复制、HSM、Shamir 或 threshold 不上 Realm/Circle wire。
+
+跨服务 holder 可达性只用私有 `ak.peer.organization_recovery_archives.command.replicate`：source scope service 将 exact
+archive、container Event ref、archive-lifetime `HistoryGovernanceTraversalRetention` 复制到 tuple 冻结的
+`holder_service_id`。Archive tuple 保留声明 key provenance 的 `accepted_key_evidence_ref` EventId 与 holder acceptance 已 pin 的 prior
+`holder_trusted_basis` 完整 Seal antichain；没有 singular activation Seal selector。每个 ArchiveListItem 的 traversal intent 只有一个 singleton
+`requested_ranges=[{from_epoch:epoch,to_epoch:epoch}]`，base 逐字等于该 tuple 的 holder trusted basis，target basis 经完整 replay 证明
+key-evidence Event 已成为 effective tuple 且 container Event 是该 epoch winning transition。不同 item 逻辑独立，服务可按 digest 物理复用
+retained Event/Seal/dependency bytes。Holder service 由此投影 archive read/list；不创建 ArchiveId、proof package/result object 或 `ak:snapshot`，
+也不存在 request 式临时 expiry/renewal 状态。
+跨服务 replica 可先 durable 进入 `pending_traversal` 并以 exact replica digest 授权拉取 missing objects；只有完整 cut 与全部 registered dependencies
+验证通过，才能在一个事务中转为 `accepted` 并分配 archive sequence。Source outbox 只重放同一 pending replica bytes/digest，
+不得因部分下载或重启生成新对象。
+
+Winning Genesis/Commit 被 accepted Seal 激活时，activation consumer 必须在同一个 durable checkpoint 事务中按
+`(effective_scope,mls_group_id,epoch,container_event_ref,archive_tuple_digest)` upsert replication obligation 与 exact-byte
+outbox。启动、重连和 projection checkpoint 恢复都必须扫描已激活 archive 并补建遗漏 obligation。Replica 首次生成后不得重新
+HPKE、换 base/current/target 或改 intent；失败/receipt 丢失只重放原 bytes，exact duplicate 返回首次 accepted receipt。Archive、其
+完整 Seal cut、Control Move bytes 与 registered replay dependencies 作为 Realm history recovery material 长期同寿命；旧 key rotation
+不缩短寿命。v1 不定义 RRK 远端 GC、renewal 或双方销毁协调 surface；部署在规范外本地销毁后不得再声称对应历史可恢复。
+
+effective epoch cell 明确分开：`transition_ref` 是 Genesis/Commit EventId，`transition_event_digest` 是 outer Event digest，
+`mls_transition_digest` 才是 MLS transition 内容摘要。Conflict recovery 选择前两者；state leaf 同时绑定三者。Archive 的
+`transition_digest` 必须逐字等于 `mls_transition_digest`。Commit 使用 `payload.commit_digest`。Genesis 使用
+`SHA-256(UTF8("ak.mls-genesis-transition-v1") || 0x00 || JCS(closed mls_genesis_payload core after removing
+organization_recovery_archive))`；outer EventId、Event proof 与 archive 本身均排除。Genesis/Commit 的
+`governance_binding.content_scheme` 与 conditional `durability_policy` 机械决定 archive 必填/禁止，producer 不得漏 archive 后继续。
+
+RRK holder 唯一读取面是 recipient-bound、按 canonical bytes 分页的
+`ak.self.organization_recovery_archives.read.list`。Query 必须给 exact effective scope、`recovery_key_id`、
+`key_agreement_ref`、`accepted_key_evidence_ref`、`holder_trusted_basis` 与可选单一 epoch range；每行直接返回匹配 archive、container Event ref、
+archive-lifetime traversal retention。holder 从 target 反向取得完整 Seal cut 并拓扑重放；
+不存在 `ArchiveId` 或第二个 archive-get surface。服务只返回历史 tuple 中
+`holder_principal_id` 与当前认证 holder authority 逐字节相符的行；unknown scope、无匹配、tuple 失配、过期/无权 holder
+均使用同形 `not_found`。Organization Recovery holder 是显式全历史高权限恢复主体：为独立验证 notary、state root 与 activation，它被授权
+读取从 `holder_trusted_basis` 到 exact archive target 所必需的完整 Control Move 与 Seal closure；这可能披露 membership、policy 及其它 control
+metadata。该披露不能用伪稀疏证明或 service attestation 代替。若部署不能接受，MUST NOT 启用 `organization_recovery_key` durability。
+Traversal access 仍只允许 target→base cut 的 Seal、其 delta Control Move 与 registered dependencies：不得读取无关 DataEvent、执行 generic timeline scan、获得 membership 或 send 权。
+Holder service 首次 durable accept replica 时分配严格单调
+`archive_sequence`；list 按 `(archive_sequence,container_event_ref)` 升序，cursor 绑定 holder principal/service、完整 query digest
+（含 Event provenance 与 Seal trusted anchor）及最后 ordering tuple。延迟到达的旧 epoch 只能取得更大 sequence，不会插入旧 cursor 前。
+
+同一 holder 可复用 history request list 的窄授权分支，但必须显式给 scope，且只返回 requested range 与该 holder exact
+historical key tuple 下至少一个 archive 相交的未过期 request；无交集 request 不得出现。读取 archive 本身不授予 membership。
+holder 作为 response source 时，每个 chunk 只能覆盖同一个 byte-identical RRK tuple，source proof 必须使用 current
+holder signing authority；archive 历史 `holder_signing_ref` 只作 provenance。当前 holder lifecycle/signing authority 仍由首次入队
+release attestation 复核，唯一 continuous released range 中的每个 epoch 都必须绑定实际 archive ref。
+
+## 9. Conformance
+
+Vectors MUST 覆盖 closed union、Realm/Circle 独立 group、ordinary/Native Agent/minimal sender、join/rejoin、
+endpoint replacement、history_access 单向收紧与禁止放宽、current frontier 拒绝、mailbox duplicate/reject/ack、多候选投毒、
+RRK rotation、traversal target 不支配 base/current、隐藏 predecessor、secret-chain 负例和 26,298 epoch/Nh=32 packed-size 算例。
+至少两个独立 runner MUST 从原始输入重算 exporter、KDF、nonce、AAD、AEAD、HPKE、RRK 和 routing tag，
+并执行 negative mutations。

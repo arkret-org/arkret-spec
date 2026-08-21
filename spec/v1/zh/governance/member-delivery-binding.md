@@ -102,7 +102,7 @@ creator membership 是 [`../models/realm-and-space.md` §2.5](../models/realm-an
 
 ## 4. Policy 事件：`ak.realm.delivery_binding_policy`
 
-Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员投递绑定的强约束。该事件写入 `ak.component.realm.delivery_binding_policy.v1` cell（cas_register, cell_subject=null, bottom=reject），与 `ak.realm.join_rule` / `ak.realm.history_visibility` 等其它 realm policy 事件并列。该 cell 在当前 Seal basis 下有非 `⊥` 值后 reducer 即强制其约束；它**不**在 `ak.realm.policy_bundle` payload 内重复声明，也不存在额外的 bundle-side "active set" 开关。
+Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员投递绑定的强约束。该事件写入 `ak.component.realm.delivery_binding_policy.v1` cell（cas_register, cell_subject=null, bottom=reject），与 `ak.realm.join_rule` / `ak.realm.history_access` 等其它 realm policy 事件并列。该 cell 在当前 Seal basis 下有非 `⊥` 值后 reducer 即强制其约束；它**不**在 `ak.realm.policy_bundle` payload 内重复声明，也不存在额外的 bundle-side "active set" 开关。
 
 ```json
 {

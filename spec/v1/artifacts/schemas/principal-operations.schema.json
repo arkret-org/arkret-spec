@@ -135,7 +135,7 @@
       ],
       "properties": {
         "visibility": {
-          "$ref": "#/$defs/history_visibility"
+          "$ref": "#/$defs/history_access"
         },
         "history_policy_ref": {
           "$ref": "#/$defs/event_id"
@@ -226,14 +226,11 @@
       },
       "additionalProperties": false
     },
-    "history_visibility": {
+    "history_access": {
       "type": "string",
       "enum": [
-        "world_readable",
-        "shared",
-        "invited",
-        "joined",
-        "restricted"
+        "since_join",
+        "all_history_for_current_members"
       ]
     },
     "keypackage_terminal_command": {

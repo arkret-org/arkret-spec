@@ -6,12 +6,10 @@
     "ak.vector.contact.next_prepare_input.v1",
     "ak.vector.contact.pending_incoming_request_receipt.v1",
     "ak.vector.direct_conversation.realm_shape.v1",
-    "ak.vector.direct_conversation.repair_dispatch.v1",
     "ak.vector.direct_conversation.founding_authoring_material.v1",
     "ak.vector.direct_conversation.founder_loss_terminality.v1",
     "ak.vector.direct_conversation.founding_unit.v1",
     "ak.vector.direct_conversation.founding_admission.v1",
-    "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
     "ak.vector.direct_conversation.send_blocker_authority.v1",
     "ak.vector.direct_conversation.suspend_rejoin.v1"
   ],
@@ -25,7 +23,7 @@
     "spec/v1/artifacts/schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
     "spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements"
   ],
-  "description": "Schema and semantic vectors for one stable Direct Conversation per pair: the caller-authored four-Event founding unit with explicit peer and founder membership and its self/peer carrier branches, first-valid-unit slot admission across same-server, dual-server and multi-device concurrency, suspend/rejoin, MLS-generation separation, participant authority and root masking, plus the Contact list next_prepare_input successor cursor and the pending_incoming request_receipt that author the respond, reject, scope_update and tombstone prepare phases the same Contact lineage feeds, the sixteen-candidate active-generation fanout cap, and the server-verifiable narrowing of the resolver send blocker set.",
+  "description": "Schema and semantic vectors for one stable Direct Conversation per pair with one immutable scope-derived MLS group and monotonic epoch lineage. Repair uses an ordinary Commit in that group; total private-state loss makes the old Realm terminal.",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -114,7 +112,7 @@
         },
         "created_at": "2026-08-02T00:00:00.000Z",
         "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "initial_exact_pair_generation_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y"
+        "initial_exact_pair_group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y"
       }
     },
     {
@@ -142,7 +140,7 @@
         "created_at": "2026-08-02T00:00:00.000Z",
         "binding_state": "active",
         "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "initial_exact_pair_generation_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y"
+        "initial_exact_pair_group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y"
       }
     },
     {
@@ -159,8 +157,8 @@
           "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc"
         },
         "send_blockers": [],
-        "active_mls_generation_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
-        "active_mls_generation_value_digest": "sha256:abababababababababababababababababababababababababababababababab"
+        "group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+        "group_state_digest": "sha256:abababababababababababababababababababababababababababababababab"
       }
     },
     {
@@ -179,8 +177,8 @@
         "blockers": [
           "contact_scope_stale"
         ],
-        "active_mls_generation_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
-        "active_mls_generation_value_digest": "sha256:abababababababababababababababababababababababababababababababab"
+        "group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+        "group_state_digest": "sha256:abababababababababababababababababababababababababababababababab"
       }
     },
     {
@@ -773,45 +771,6 @@
       }
     }
   ],
-  "member_repair_target_snapshot_kat": {
-    "description": "Byte-level KAT for the two member-repair target snapshot transcripts of contact-and-direct-conversation.md 8.2.1. Preimage is the ASCII domain separator, exactly one 0x0A, then RFC 8785 JCS of the snapshot value. The Native Agent branch pins the closed recipient endpoint triple: no opaque endpoint reference is an admitted preimage member, so a renamed, missing or substituted authorization coordinate changes the digest.",
-    "human_principal": {
-      "domain_separator": "ak.member-repair-target-snapshot-human-v1\n",
-      "targets_as_enqueued": [
-        {
-          "recipient_device_id": "ak:device:01970e58-0002-7000-8000-0000000000b2",
-          "device_message_id": "ak:device_message:01970e58-0003-7000-8000-0000000000c2"
-        },
-        {
-          "recipient_device_id": "ak:device:01970e58-0001-7000-8000-0000000000b1",
-          "device_message_id": "ak:device_message:01970e58-0003-7000-8000-0000000000c1"
-        }
-      ],
-      "targets_device_id_sorted": [
-        {
-          "recipient_device_id": "ak:device:01970e58-0001-7000-8000-0000000000b1",
-          "device_message_id": "ak:device_message:01970e58-0003-7000-8000-0000000000c1"
-        },
-        {
-          "recipient_device_id": "ak:device:01970e58-0002-7000-8000-0000000000b2",
-          "device_message_id": "ak:device_message:01970e58-0003-7000-8000-0000000000c2"
-        }
-      ],
-      "canonical_jcs": "[{\"device_message_id\":\"ak:device_message:01970e58-0003-7000-8000-0000000000c1\",\"recipient_device_id\":\"ak:device:01970e58-0001-7000-8000-0000000000b1\"},{\"device_message_id\":\"ak:device_message:01970e58-0003-7000-8000-0000000000c2\",\"recipient_device_id\":\"ak:device:01970e58-0002-7000-8000-0000000000b2\"}]",
-      "target_snapshot_digest": "sha256:6f269f72b1170dd89526586289f98686ba932de07266237ce9c61bdfd6848e4d"
-    },
-    "native_agent": {
-      "domain_separator": "ak.member-repair-target-snapshot-native-agent-v1\n",
-      "target": {
-        "recipient_agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-        "recipient_agent_verification_method": "did:webvh:z6mkfixture:agent.example#ed25519-2026-05-fixture",
-        "recipient_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "device_message_id": "ak:device_message:01970e58-0003-7000-8000-0000000000d1"
-      },
-      "canonical_jcs": "{\"device_message_id\":\"ak:device_message:01970e58-0003-7000-8000-0000000000d1\",\"recipient_agent_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\",\"recipient_agent_key_authorize_event_id\":\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"recipient_agent_verification_method\":\"did:webvh:z6mkfixture:agent.example#ed25519-2026-05-fixture\"}",
-      "target_snapshot_digest": "sha256:f2c278f6978d89461a51ac3133c07b24c33a176b7cd7a712a2b701d72180cd42"
-    }
-  },
   "semantic_cases": [
     {
       "name": "existing_offline_agent_is_found",
@@ -823,75 +782,6 @@
         "same Realm and main Strand are returned",
         "no KeyPackage claim occurs",
         "the query-only resolver performs no create phase"
-      ]
-    },
-    {
-      "name": "repair_dispatch_is_a_non_authorizing_durable_trigger",
-      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
-      "precondition": "the pair has an accepted binding, one participant has an accepted ak.member.rejoin.own, the MLS group needs a replacement generation, and the peer participant is offline",
-      "action": "submit one exact device-or-Native-Agent authorized request through ak.self.direct_conversation.command.repair_dispatch and let the source relay it through ak.peer.direct_conversation.command.repair_relay",
-      "semantic_outcome": "accept",
-      "assertions": [
-        "the self request and peer relay use their registered closed operation DTOs; only the destination's internal human-device branch creates DeviceMessageEnvelope values, while a Native Agent branch targets its accepted current runtime endpoint without inventing an ak:device id",
-        "the request is not carried on the Signal rail, whose 120 second live envelope cannot reach an offline peer",
-        "the request carries no Event bytes, no MLS material and no authority: the peer re-verifies requester identity, the accepted rejoin, both directional Contact heads and generation staleness from the signed event log before authoring anything",
-        "the resolver supplies active_mls_generation_ref and sha256(RFC8785_JCS(current accepted active-generation cell whole value)) as one pair in found and in every repairable suspended state",
-        "the request copies observed_active_generation_value_digest byte for byte from that resolver value and never hashes the Event ref or scans for a maximum generation",
-        "a request whose observed_active_generation_value_digest differs from the peer current whole-value digest is dropped instead of producing a second replacement generation",
-        "the source transaction freezes request digest, current destination binding, exact relay bytes and outbox before network delivery; retry and restart never rebuild from newer state",
-        "the destination transaction chooses exactly one recipient_target branch: human_principal atomically fans identical canonical content to every current-authorized-device snapshot with distinct stable message ids, or native_agent atomically targets the one current active accepted runtime endpoint",
-        "the exact KeyPackage claim uses one closed target selector: a human has exactly one target_device_ids entry; an Agent has target_agent_id, target_agent_verification_method and target_agent_key_authorize_event_id and forbids target_device_ids; both consume exactly requester_keypackage_ref",
-        "there is no ack, receipt or refusal code: the durable Commit, Welcome and activation are the only response, and refusal is simply a generation that never advances",
-        "concurrent repairers are resolved by the existing candidate fanout cap and security_barrier CAS, with no repair-specific winner rule"
-      ]
-    },
-    {
-      "name": "repair_relay_destination_atomic_replay",
-      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
-      "precondition": "one destination accepted the first relay under (Source-Service-ID, request_id) and persisted its terminal outcome",
-      "action": "redeliver the exact canonical relay body, then reuse request_id with one changed content byte",
-      "semantic_outcome": "accept_then_reject",
-      "assertions": [
-        "the exact replay returns the original byte-identical outcome without resnapshotting targets or allocating another message id",
-        "the changed digest returns duplicate_conflict and writes zero queue entries",
-        "a crash before the atomic commit leaves neither the request ledger nor any target queue item; a crash after commit exposes the complete original batch and outcome"
-      ]
-    },
-    {
-      "name": "repair_relay_human_recipient_snapshot_is_all_or_zero",
-      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
-      "precondition": "the accepted peer participant is human with three current authorized devices and the third queue write fails",
-      "action": "process the peer repair relay",
-      "semantic_outcome": "reject",
-      "assertions": [
-        "recipient_target.kind is human_principal",
-        "zero messages and zero terminal ledger outcome are committed",
-        "a retry may take one new authoritative snapshot only because no first transaction committed; once committed, later device authorization or revocation never mutates the frozen snapshot"
-      ]
-    },
-    {
-      "name": "repair_relay_native_agent_uses_runtime_not_device",
-      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
-      "precondition": "the accepted peer participant is a Native Agent with one current active runtime endpoint in accepted Agent key/session binding",
-      "action": "process the peer repair relay",
-      "semantic_outcome": "accept",
-      "assertions": [
-        "recipient_target.kind is native_agent and enqueued_target_count is exactly one",
-        "the target snapshot transcript binds exactly recipient_agent_id, recipient_agent_verification_method, recipient_agent_key_authorize_event_id and the stable device_message_id; an opaque endpoint reference is not an admitted preimage member",
-        "no ak:device id, device projection or per-device queue is synthesized",
-        "missing, ambiguous, stale or inactive runtime binding fails closed with zero enqueue"
-      ]
-    },
-    {
-      "name": "repair_exact_keypackage_target_xor",
-      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
-      "precondition": "claim_purpose is direct_conversation_repair",
-      "action": "attempt human, Native Agent, mixed and stale exact selectors",
-      "semantic_outcome": "mixed",
-      "assertions": [
-        "human accepts only target_keypackage_ref plus exactly one target_device_ids and returns exactly that ref with matching device evidence",
-        "Native Agent accepts only target_keypackage_ref plus target_agent_id, target_agent_verification_method and target_agent_key_authorize_event_id and returns exactly that ref with matching AgentSignerEvidence",
-        "mixed human and Agent selectors, absent exact ref, another current package, last-resort, consumed, revoked, wrong signer or stale authority all return opaque claim_failed with zero consumption"
       ]
     },
     {
@@ -958,7 +848,7 @@
       "action": "derive and create a Direct Conversation for the new stable participant pair",
       "semantic_outcome": "accept",
       "assertions": [
-        "the new stable participant tuple naturally derives a different pair_key without salt, generation or a versioned successor coordinate",
+        "the new stable participant tuple naturally derives a different pair_key without salt or a versioned successor coordinate",
         "the new Contact and Direct Conversation do not inherit old history, MLS state, keys, audit identity, founding receipt or authority",
         "a product may show the old local transcript read-only but must label the cryptographic lineage as distinct"
       ]
@@ -1069,7 +959,7 @@
       "semantic_outcome": "accept",
       "assertions": [
         "same binding Realm and main Strand are used",
-        "new active MLS generation is projected",
+        "the unique MLS group current state is projected",
         "old epoch keys and history secret are not automatically delivered"
       ]
     },
@@ -1085,7 +975,7 @@
     },
     {
       "name": "participant_authority_is_symmetric",
-      "precondition": "stable binding active membership current authorization basis and active MLS generation are exact",
+      "precondition": "stable binding, active membership, current authorization basis and unique MLS group state are exact",
       "action": "both participants create own messages",
       "semantic_outcome": "accept",
       "assertions": [
@@ -1172,43 +1062,6 @@
       ]
     },
     {
-      "name": "sixteenth_generation_candidate_is_admitted",
-      "vector_id": "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
-      "precondition": "fifteen not-yet-active candidate MLS groups already reference the same active-generation predecessor whole value",
-      "action": "submit the sixteenth ak.direct_conversation.mls_generation.activate candidate through ak.self.events.command.submit",
-      "semantic_outcome": "accept",
-      "assertions": [
-        "the sixteenth candidate is admitted because the cap is sixteen and not fifteen",
-        "no candidate is activated by admission alone; the singleton cell still selects exactly one",
-        "the pair coordinates, binding, membership and current active generation are unchanged"
-      ]
-    },
-    {
-      "name": "seventeenth_generation_candidate_is_refused_with_exact_code",
-      "vector_id": "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
-      "precondition": "sixteen not-yet-active candidate MLS groups already reference the same active-generation predecessor whole value",
-      "action": "submit the seventeenth candidate through ak.self.events.command.submit and again through ak.peer.events.command.submit",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "mls_generation_proposal_fanout_exceeded",
-      "assertions": [
-        "both entry points refuse with that exact registered code at HTTP 409 and write nothing",
-        "the refusal is never reported as rate_limited and carries no retry_after_ms window, because activating or expiring an existing candidate is the only way forward",
-        "a generic failed_precondition or conflict is not an acceptable substitute once the code is registered"
-      ]
-    },
-    {
-      "name": "generation_candidate_fanout_refusal_does_not_quarantine_the_pair",
-      "vector_id": "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
-      "precondition": "the seventeenth candidate was just refused with mls_generation_proposal_fanout_exceeded",
-      "action": "resolve the pair and send an ordinary Message on the current active generation",
-      "semantic_outcome": "accept",
-      "assertions": [
-        "the pair is not quarantined and the resolver still returns the same coordinates, active_mls_generation_ref and active_mls_generation_value_digest",
-        "the resolver state does not become suspended and no send blocker is added for the refusal",
-        "the sixteen existing candidates are retained; the refusal removes none of them"
-      ]
-    },
-    {
       "name": "resolver_send_blockers_are_server_verifiable_only",
       "vector_id": "ak.vector.direct_conversation.send_blocker_authority.v1",
       "precondition": "the holder blocked the peer in ak.account.blocklist and one historical epoch secret was never installed on this device",
@@ -1281,20 +1134,20 @@
       "assertions": [
         "the exact signed Event and its complete payload are returned from the Contact verified mirror, so the client can recompute event_digest and check the receipt binding itself",
         "the returned message field is the original plaintext rather than the delivery stub, because the stub rule constrains delivery surfaces and not the exact target holder",
-        "seals is empty and no covering Seal of the requester Principal Control Realm is disclosed through this branch",
+        "the Event-only outcome has no seals member and discloses no covering Seal of the requester Principal Control Realm",
         "no Event other than the exact requested one is returned and no Realm membership is implied"
       ]
     },
     {
-      "name": "contact_mirror_branch_refuses_seal_refs_and_unverified_rows",
+      "name": "contact_mirror_branch_has_no_seal_selector_and_refuses_unverified_rows",
       "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
       "precondition": "the same pending_incoming mirror, plus a second holder-local row that was stored without completing receipt verification at ingest",
-      "action": "call ak.self.events.read.resolve with seal_refs selecting the covering Seal, and separately for the Event backed only by the unverified local row",
+      "action": "confirm ak.self.events.read.resolve has no seal_refs selector, and separately request the Event backed only by the unverified local row",
       "semantic_outcome": "reject",
       "assertions": [
-        "the seal_refs selector is never satisfied through the Contact mirror branch and is accounted into missing",
+        "the Event-only request schema rejects a seal_refs member before handler execution",
         "the unverified local row does not open the branch, so a row stored without ingest-time receipt verification cannot be used as an independent authority",
-        "neither refusal reveals whether the underlying Event or Seal exists"
+        "the unverified-row refusal does not reveal whether the underlying Event exists"
       ]
     },
     {

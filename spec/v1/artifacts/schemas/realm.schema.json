@@ -11,10 +11,9 @@
     "schema_refs",
     "default_discoverability",
     "default_join_rule",
-    "history_visibility",
+    "history_access",
     "reducer_profile",
     "encryption_profile",
-    "notary_profile",
     "notary",
     "capability_action_registry_digest",
     "created_at"
@@ -37,7 +36,7 @@
         "required": [
           "history_sharing_policy"
         ],
-        "$comment": "forbidden Realm policy field; the E2EE history sharing policy is the ak.realm.history_sharing_policy facet cell, and the two profiles that can never emit that Event take a profile-fixed baseline instead: ak.profile.principal_control_realm.v1 and ak.profile.direct_conversation_realm.v1. See zh/governance/history-visibility.md section 3, zh/models/realm-and-space.md section 2.8.1 and zh/identity/contact-and-direct-conversation.md section 6.2."
+        "$comment": "Obsolete forbidden field. v1 has one scope-local history_access facet; history_sharing_policy and profile-fixed history baselines do not exist. See zh/governance/history-visibility.md."
       },
       {
         "required": [
@@ -221,15 +220,13 @@
         "closed"
       ]
     },
-    "history_visibility": {
+    "history_access": {
       "type": "string",
       "enum": [
-        "world_readable",
-        "shared",
-        "invited",
-        "joined",
-        "restricted"
-      ]
+        "since_join",
+        "all_history_for_current_members"
+      ],
+      "description": "Scope-local history range ratchet initialized by Realm create. Only all_history_for_current_members to since_join may change state; widening back to all_history is permanently forbidden. Standard MLS requires since_join."
     },
     "reducer_profile": {
       "type": "string",
@@ -250,7 +247,7 @@
         "mls_rfc9420",
         "mls_exporter_aead_v1"
       ],
-      "description": "Content-envelope encryption scheme for MLS-backed Realms (crypto-media/encryption-and-audit.md §2.10). Orthogonal to encryption_profile, which only declares whether an MLS group exists. mls_rfc9420 = MLS PrivateMessage (per-message forward secrecy, NOT shareable to later joiners; only valid with history_visibility=joined/restricted on MLS-backed Realms). mls_exporter_aead_v1 = MLS-Exporter-derived per-epoch history_secret AEAD (history shareable to authorized later joiners via ak.realm_key.share; per-epoch forward secrecy; does not itself force pre-join delivery). Because it changes historical key access, it MUST enter security_frontier_digest so receivers can determine, per epoch T0, which scheme applies. Absent: mls_rfc9420 for encryption_profile=mls_rfc9420 Realms; not applicable when encryption_profile=none/external."
+      "description": "MLS content scheme, required exactly for encryption_profile=mls_rfc9420 and frozen by the accepted group Genesis. Allowed values are mls_rfc9420 and mls_exporter_aead_v1. It is never mutable policy state."
     },
     "content_encryption_floor": {
       "type": "string",
@@ -282,122 +279,12 @@
       "additionalProperties": false
     },
     "durability_policy": {
-      "type": "object",
-      "description": "Realm Recovery Key (RRK) durability policy (models/realm-and-space.md §2.3.1, crypto-media/encryption-and-audit.md §2.10.8). Declares who can recover Realm history after all member devices are lost or all members leave. Confidentiality-axis durability, orthogonal to notary / notary.recovery_* (finality axis: who signs Seals). Recovery recipients are offline HPKE public keys, NOT MLS members. Only effective (mode != none) when content_scheme=mls_exporter_aead_v1; declaring mode != none on an mls_rfc9420 Realm MUST failed_precondition (durability_scheme_incompatible). Granularity = organization composition (point a sensitive Realm's owning_organizations at a finer org), not a per-Realm knob; parent-org retention = list the parent org RRK in recovery_recipients (explicit, member-visible). Written via Event kind ak.realm.policy_bundle.",
-      "required": [
-        "mode"
-      ],
-      "properties": {
-        "mode": {
-          "type": "string",
-          "enum": [
-            "none",
-            "org_recovery_key",
-            "threshold"
-          ],
-          "description": "none = no organizational recovery path (total member loss = permanent loss). org_recovery_key = single org RRK. threshold = k-of-n recovery recipients."
-        },
-        "recovery_recipients": {
-          "type": "array",
-          "description": "Recovery recipients (RRK holders). MUST be non-empty when mode != none. Each verification_method MUST point to a verification method designated by an active ArkretRealmHistoryRecoveryKey service entry published by principal_id, domain-separated from the principal's backup-HPKE key (key-management.md §3.3 backup_hpke_ikm, wire name recovery_public_key).",
-          "items": {
-            "$ref": "#/$defs/recovery_recipient"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "threshold": {
-          "type": "object",
-          "description": "k-of-n threshold parameters, required when mode=threshold. k <= n and n MUST equal len(recovery_recipients).",
-          "required": [
-            "k",
-            "n"
-          ],
-          "properties": {
-            "k": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "n": {
-              "type": "integer",
-              "minimum": 1
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "mode": {
-                "const": "none"
-              }
-            },
-            "required": [
-              "mode"
-            ]
-          },
-          "then": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "recovery_recipients"
-                  ]
-                },
-                {
-                  "required": [
-                    "threshold"
-                  ]
-                }
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "mode": {
-                "const": "org_recovery_key"
-              }
-            },
-            "required": [
-              "mode"
-            ]
-          },
-          "then": {
-            "required": [
-              "recovery_recipients"
-            ],
-            "not": {
-              "required": [
-                "threshold"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "mode": {
-                "const": "threshold"
-              }
-            },
-            "required": [
-              "mode"
-            ]
-          },
-          "then": {
-            "$comment": "The arithmetic rule 1 <= k <= n == len(recovery_recipients) is reducer/conformance validation because JSON Schema cannot compare threshold.n to array length portably.",
-            "required": [
-              "recovery_recipients",
-              "threshold"
-            ]
-          }
-        }
-      ],
-      "additionalProperties": false
+      "type": "string",
+      "description": "Exporter durability policy frozen by the accepted group Genesis. Required exactly when content_scheme=mls_exporter_aead_v1; otherwise absent. Allowed values are none and organization_recovery_key. It is never mutable policy state.",
+      "enum": [
+        "none",
+        "organization_recovery_key"
+      ]
     },
     "federation_policy": {
       "type": "string",
@@ -408,19 +295,9 @@
         "quarantine"
       ]
     },
-    "notary_profile": {
-      "enum": [
-        "single_did",
-        "threshold",
-        "open_set",
-        "mixed"
-      ],
-      "description": "Create-locked Seal finality profile. single_did and threshold deployments require signed Seal single-chain uniqueness; open_set deployments allow multiple Seal leaves and deterministic joined control views; mixed deployments use a primary notary plus fallback recovery notary.",
-      "kind": "string"
-    },
     "availability_policy": {
       "type": "object",
-      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Every holder MUST be an effective joined member Principal Server or an explicit joined service actor; this policy never creates an out-of-membership replication target. Absent means {min_holders:1, holder_roles:['joined_member_principal_server'], applies_to:['seal_include']}. A self-asserted role is insufficient.",
+      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Every holder MUST be an effective joined member Principal Server or an explicit joined service actor; this policy never creates an out-of-membership replication target. Absent means {min_holders:1,holder_roles:['joined_member_principal_server'],applies_to:['seal_include'],minimum_retention_ms:86400000}. A self-asserted role is insufficient.",
       "required": [
         "min_holders",
         "holder_roles",
@@ -508,68 +385,8 @@
       "description": "Digest suite (canonicalization x hash tuple) used for DataEvent ids, Control Move ids, Seal ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; migration uses the control-plane transition Move and dual-root Seal defined by event-auth-state-resolution.md §9.3.2."
     },
     "notary": {
-      "description": "Genesis value for the Realm notary cell. Subsequent changes are Control Moves finalized by the previous notary. For single_did profiles, recovery_members and controller organization evidence are required so reducer/authz can reject single-organization recovery setups.",
-      "required": [
-        "kind"
-      ],
-      "properties": {
-        "actor_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "members": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did_core_id"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "threshold": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "forensic_attribution": {
-          "type": "string",
-          "enum": [
-            "quorum_intersection",
-            "waived"
-          ],
-          "$comment": "Required for type=threshold (enforced by allOf below). MUST be quorum_intersection when 2*threshold > members.length (two conflicting quorums then intersect in at least one attributable double-signer; see authz/event-auth-state-resolution.md section 7.1 and BFT Protocol Forensics). MUST be waived when 2*threshold <= members.length, declaring that automatic culprit attribution is unavailable. JSON Schema cannot compare threshold against members.length, so the arithmetic side is reducer/conformance validation (ak.vector.cba_lattice.threshold_forensic_attribution.v1).",
-          "description": "Equivocation culprit-attribution mode for threshold notary committees: quorum_intersection (2k>n, automatic attribution available) or waived (k<=n/2, deployment explicitly waives automatic attribution and relies on committee-level handling)."
-        },
-        "recovery_members": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did_core_id"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "controller_organization": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "DID of the organization controlling the primary notary, when the resolver or deployment policy can derive it. Required for single_did profile so recovery diversity can be verified."
-        },
-        "recovery_controller_organizations": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did_core_id"
-          },
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Organization DIDs controlling recovery_members. Reducer MUST verify at least one differs from controller_organization for single_did profile."
-        },
-        "kind": {
-          "type": "string",
-          "enum": [
-            "single_did",
-            "threshold",
-            "open_set",
-            "mixed"
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "kind": "object"
+      "$ref": "#/$defs/notary_configuration",
+      "description": "Closed notary configuration. Every signer slot freezes actor, DID URL and exact public key. Successor changes are authorized by predecessor-state frozen descriptors before replacement is installed; current DID resolution is never substituted."
     },
     "capability_action_registry_digest": {
       "type": "string",
@@ -625,7 +442,7 @@
       "minimum": 300000,
       "maximum": 604800000,
       "default": 86400000,
-      "description": "Structural obligation, not advisory: maximum interval between compaction Seals (Seals carrying covered_event_digests[] or an equivalent verifiable full-coverage manifest). Because the cumulative control-plane covered set is defined recursively from predecessor_refs + delta, compaction Seals are the only bounded bootstrap points for new verifiers; a notary that exceeds this interval degrades bootstrap to walking the chain to genesis. open_set deployments MUST use <= 86400000 (24h); threshold deployments MUST use <= 604800000 (7d); single_did SHOULD use <= 86400000. Receivers SHOULD raise governance health alarms when the live chain exceeds the declared interval. See authz/event-auth-state-resolution.md section 6.2 and conformance vector ak.vector.cba_lattice.seal_compaction_interval_enforced.v1."
+      "description": "Structural obligation, not advisory: maximum interval between compaction Seals (Seals carrying covered_event_digests[] or an equivalent verifiable full-coverage manifest). Because the cumulative control-plane covered set is defined recursively from predecessor_refs + delta, compaction Seals are the only bounded bootstrap points for new verifiers; a notary that exceeds this interval degrades bootstrap to walking the chain to genesis. open_set deployments MUST use <= 86400000 (24h); threshold deployments MUST use <= 604800000 (7d); single_signer SHOULD use <= 86400000. Receivers SHOULD raise governance health alarms when the live chain exceeds the declared interval. See authz/event-auth-state-resolution.md section 6.2 and conformance vector ak.vector.cba_lattice.seal_compaction_interval_enforced.v1."
     },
     "max_authority_lifetime_ms": {
       "type": "integer",
@@ -696,15 +513,16 @@
       }
     },
     {
-      "$comment": "single_did notary profiles bind one DID as the primary notary. controller_organization / recovery_controller_organizations / recovery_members are required ONLY when the deployment can derive a controlling organization (see notary.controller_organization 'when ... can derive it'; decisions/0003 §7 — personal / orgless Realms legitimately omit them and fall back to per-user recovery). When a controller_organization IS declared, an explicit recovery-notary diversity path MUST accompany it. The distinct-controller arithmetic stays semantic/reducer validation because JSON Schema cannot compare DID-controller derivations across resolver evidence.",
+      "$comment": "single_signer notary profiles bind one frozen signer descriptor. controller_organization / recovery_controller_organizations / recovery_members are required ONLY when the deployment can derive a controlling organization (see notary.controller_organization 'when ... can derive it'; decisions/0003 §7 — personal / orgless Realms legitimately omit them and fall back to per-user recovery). When a controller_organization IS declared, an explicit recovery-notary diversity path MUST accompany it. The distinct-controller arithmetic stays semantic/reducer validation because JSON Schema cannot compare DID-controller derivations across resolver evidence.",
       "if": {
         "properties": {
-          "notary_profile": {
-            "const": "single_did"
+          "notary": {
+            "properties": {"kind": {"const": "single_signer"}},
+            "required": ["kind"]
           }
         },
         "required": [
-          "notary_profile"
+          "notary"
         ]
       },
       "then": {
@@ -712,16 +530,16 @@
           "notary": {
             "required": [
               "kind",
-              "actor_id"
+              "signer"
             ],
             "properties": {
               "kind": {
-                "const": "single_did"
+                "const": "single_signer"
               }
             },
             "allOf": [
               {
-                "$comment": "Org-controlled single_did Realms MUST declare the recovery-notary diversity path alongside the controlling organization.",
+                "$comment": "Org-controlled single_signer Realms MUST declare the recovery-notary diversity path alongside the controlling organization.",
                 "if": {
                   "required": [
                     "controller_organization"
@@ -781,13 +599,16 @@
       }
     },
     {
-      "$comment": "Principal control Realms are ordinary ak.schema.realm.v1 objects, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together, the Realm MUST be MLS-backed, and both encryption floors MUST be pinned to e2ee_required (key-management §4.1 / §5.0.1, realm-and-space §2.8.1). There is no plaintext-floor PCR in v1.",
+      "$comment": "Principal-control and managed-Agent-control Realms share the ak.profile.principal_control_realm.v1 materialized guard. fields.purpose and schema_refs must appear together, the Realm MUST be MLS-backed, history_access MUST be permanently pinned to since_join, and both encryption floors MUST be pinned to e2ee_required (key-management §4.1 / §5.0.1, realm-and-space §2.8.1). There is no plaintext-floor PCR in v1.",
       "if": {
         "properties": {
           "fields": {
             "properties": {
               "purpose": {
-                "const": "principal_control"
+                "enum": [
+                  "principal_control",
+                  "managed_agent_control"
+                ]
               }
             },
             "required": [
@@ -801,11 +622,16 @@
       },
       "then": {
         "required": [
+          "content_scheme",
           "content_encryption_floor",
-          "metadata_encryption_floor"
+          "metadata_encryption_floor",
+          "history_access"
         ],
         "properties": {
           "encryption_profile": {
+            "const": "mls_rfc9420"
+          },
+          "content_scheme": {
             "const": "mls_rfc9420"
           },
           "content_encryption_floor": {
@@ -813,6 +639,9 @@
           },
           "metadata_encryption_floor": {
             "const": "e2ee_required"
+          },
+          "history_access": {
+            "const": "since_join"
           },
           "schema_refs": {
             "contains": {
@@ -823,7 +652,7 @@
       }
     },
     {
-      "$comment": "The inverse guard prevents a profile-tagged Realm from omitting the machine-readable purpose discriminator, and pins the encryption floors symmetrically with the forward guard.",
+      "$comment": "The inverse guard prevents a profile-tagged Realm from omitting the machine-readable principal-control or managed-Agent-control purpose discriminator, and pins history_access and both encryption floors symmetrically with the forward guard.",
       "if": {
         "properties": {
           "schema_refs": {
@@ -839,12 +668,17 @@
       "then": {
         "required": [
           "encryption_profile",
+          "content_scheme",
           "fields",
           "content_encryption_floor",
-          "metadata_encryption_floor"
+          "metadata_encryption_floor",
+          "history_access"
         ],
         "properties": {
           "encryption_profile": {
+            "const": "mls_rfc9420"
+          },
+          "content_scheme": {
             "const": "mls_rfc9420"
           },
           "content_encryption_floor": {
@@ -853,10 +687,16 @@
           "metadata_encryption_floor": {
             "const": "e2ee_required"
           },
+          "history_access": {
+            "const": "since_join"
+          },
           "fields": {
             "properties": {
               "purpose": {
-                "const": "principal_control"
+                "enum": [
+                  "principal_control",
+                  "managed_agent_control"
+                ]
               }
             },
             "required": [
@@ -867,7 +707,7 @@
       }
     },
     {
-      "$comment": "Direct Conversation Realms are ordinary Collaboration Realms with a closed machine role. The discriminator and profile must appear together; create-locked Realm security fields are pinned here while the exact-two membership, participant identity, no-Space and main-Strand rules are reducer/profile invariants.",
+      "$comment": "Direct Conversation Realms are ordinary Collaboration Realms with a closed machine role. The discriminator and profile must appear together; history_access is permanently pinned to since_join and create-locked Realm security fields are pinned here while the exact-two membership, participant identity, no-Space and main-Strand rules are reducer/profile invariants.",
       "if": {
         "properties": {
           "fields": {
@@ -887,8 +727,10 @@
       },
       "then": {
         "required": [
+          "content_scheme",
           "content_encryption_floor",
-          "metadata_encryption_floor"
+          "metadata_encryption_floor",
+          "history_access"
         ],
         "properties": {
           "schema_refs": {
@@ -899,6 +741,9 @@
           "encryption_profile": {
             "const": "mls_rfc9420"
           },
+          "content_scheme": {
+            "const": "mls_exporter_aead_v1"
+          },
           "default_join_rule": {
             "const": "closed"
           },
@@ -907,12 +752,15 @@
           },
           "metadata_encryption_floor": {
             "const": "e2ee_required"
+          },
+          "history_access": {
+            "const": "since_join"
           }
         }
       }
     },
     {
-      "$comment": "The inverse Direct Conversation guard prevents a profile-tagged ordinary Realm from omitting its collaboration role discriminator.",
+      "$comment": "The inverse Direct Conversation guard prevents a profile-tagged ordinary Realm from omitting its collaboration role discriminator or materializing an impossible all-history state.",
       "if": {
         "properties": {
           "schema_refs": {
@@ -928,14 +776,19 @@
       "then": {
         "required": [
           "encryption_profile",
+          "content_scheme",
           "default_join_rule",
           "fields",
           "content_encryption_floor",
-          "metadata_encryption_floor"
+          "metadata_encryption_floor",
+          "history_access"
         ],
         "properties": {
           "encryption_profile": {
             "const": "mls_rfc9420"
+          },
+          "content_scheme": {
+            "const": "mls_exporter_aead_v1"
           },
           "default_join_rule": {
             "const": "closed"
@@ -945,6 +798,9 @@
           },
           "metadata_encryption_floor": {
             "const": "e2ee_required"
+          },
+          "history_access": {
+            "const": "since_join"
           },
           "fields": {
             "properties": {
@@ -976,22 +832,175 @@
       }
     },
     {
-      "$comment": "content_scheme is only meaningful for MLS-backed Realms. Plaintext or external encryption Realms MUST NOT declare an MLS content envelope scheme.",
       "if": {
+        "properties": {
+          "encryption_profile": {
+            "const": "mls_rfc9420"
+          }
+        },
+        "required": [
+          "encryption_profile"
+        ]
+      },
+      "then": {
+        "required": [
+          "content_scheme"
+        ]
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "content_scheme"
+              ]
+            },
+            {
+              "required": [
+                "durability_policy"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "content_scheme": {
+            "const": "mls_rfc9420"
+          }
+        },
         "required": [
           "content_scheme"
         ]
       },
       "then": {
         "properties": {
-          "encryption_profile": {
-            "const": "mls_rfc9420"
+          "history_access": {
+            "const": "since_join"
+          }
+        },
+        "not": {
+          "required": [
+            "durability_policy"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "durability_policy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content_scheme": {
+            "const": "mls_exporter_aead_v1"
           }
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "content_scheme": {
+            "const": "mls_exporter_aead_v1"
+          }
+        },
+        "required": [
+          "content_scheme"
+        ]
+      },
+      "then": {
+        "required": [
+          "durability_policy"
+        ]
       }
     }
   ],
   "$defs": {
+    "notary_signer_descriptor": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["actor_id", "verification_method", "key_kind", "jose_algorithm", "frozen_public_key_b64u", "frozen_public_key_digest"],
+          "properties": {
+            "actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+            "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
+            "key_kind": {"const": "ed25519_raw32"},
+            "jose_algorithm": {"const": "Ed25519"},
+            "frozen_public_key_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"},
+            "frozen_public_key_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["actor_id", "verification_method", "key_kind", "jose_algorithm", "frozen_public_key_b64u", "frozen_public_key_digest"],
+          "properties": {
+            "actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+            "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
+            "key_kind": {"const": "p256_sec1_compressed33"},
+            "jose_algorithm": {"const": "ES256"},
+            "frozen_public_key_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{44}$"},
+            "frozen_public_key_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Historical Seal signer truth. verification_method controller must project to actor_id; frozen_public_key_digest is SHA-256 of decoded frozen_public_key_b64u, while key_kind and jose_algorithm determine exact parsing and signature verification. Genesis freezes the first descriptors. A successor ak.realm.notary Move is authorized by predecessor-state descriptors and then installs new descriptors."
+    },
+    "notary_configuration": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "signer"],
+          "properties": {
+            "kind": {"const": "single_signer"},
+            "signer": {"$ref": "#/$defs/notary_signer_descriptor"},
+            "recovery_members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/notary_signer_descriptor"}},
+            "controller_organization": {"$ref": "#/$defs/did_core_id"},
+            "recovery_controller_organizations": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/did_core_id"}}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "members", "threshold", "forensic_attribution"],
+          "properties": {
+            "kind": {"const": "threshold"},
+            "members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/notary_signer_descriptor"}},
+            "threshold": {"type": "integer", "minimum": 1},
+            "forensic_attribution": {"enum": ["quorum_intersection", "waived"]}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "members"],
+          "properties": {
+            "kind": {"const": "open_set"},
+            "members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/notary_signer_descriptor"}}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "signer", "recovery_members"],
+          "properties": {
+            "kind": {"const": "mixed"},
+            "signer": {"$ref": "#/$defs/notary_signer_descriptor"},
+            "recovery_members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/notary_signer_descriptor"}},
+            "controller_organization": {"$ref": "#/$defs/did_core_id"},
+            "recovery_controller_organizations": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/did_core_id"}}
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "notary.kind is the sole profile discriminator. Across members, recovery_members, and their union, actor_id, verification_method, and frozen_public_key_digest are each duplicate-free; signer and recovery slots are disjoint on all three axes. threshold must not exceed members.length. Admission enforces these field-wise invariants in addition to JSON structural uniqueness."
+    },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
@@ -1001,34 +1010,6 @@
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
-    },
-    "recovery_recipient": {
-      "type": "object",
-      "required": [
-        "recipient_id",
-        "principal_id",
-        "verification_method"
-      ],
-      "properties": {
-        "recipient_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "description": "Realm-unique stable id for this recovery recipient."
-        },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Principal holding the RRK private key. SHOULD resolve to an Organization Principal for org_recovery_key/threshold; MAY be a personal principal for personal Realms."
-        },
-        "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Reference to a verification method in principal_id's DID Document designated by an active ArkretRealmHistoryRecoveryKey service entry (identity/identity-did.md §8.3). The RRK HPKE public key; history-recovery domain, separate from the backup-HPKE key derived per key-management.md §3.3."
-        },
-        "controller_organization": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Organization DID controlling this recovery recipient, when derivable; receiver MAY use it to verify org attribution."
-        }
-      },
-      "additionalProperties": false
     },
     "cell_lattice": {
       "type": "object",

@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/authenticated-signer-resolution-evidence.schema.json",
+  "title": "Arkret Authenticated Signer Resolution Evidence",
+  "description": "Content-addressed immutable signer-key resolution material retained for historical verification. The evidence ref is derived from the SHA-256 digest of the complete RFC 8785 JCS object; callers never substitute a current resolver result.",
+  "oneOf": [
+    {"$ref": "#/$defs/service_signer_evidence"},
+    {"$ref": "#/$defs/principal_signer_evidence"},
+    {"$ref": "#/$defs/native_agent_signer_evidence"}
+  ],
+  "$defs": {
+    "signer_evidence_ref": {
+      "type": "string",
+      "pattern": "^ak:signer_evidence:sha256:[0-9a-f]{64}$",
+      "description": "ak:signer_evidence:sha256:<hex>, where hex is SHA-256(RFC8785-JCS(complete evidence object))."
+    },
+    "service_signer_evidence": {
+      "type": "object",
+      "required": ["kind", "signer_id", "verification_method", "authenticated_resolution"],
+      "properties": {
+        "kind": {"const": "service"},
+        "signer_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
+        "authenticated_resolution": {"$ref": "./agent-signer-evidence-operations.schema.json#/$defs/authenticated_service_resolution"}
+      },
+      "allOf": [
+        {
+          "properties": {
+            "authenticated_resolution": {
+              "properties": {
+                "service_resolution_record": {
+                  "properties": {
+                    "record": {
+                      "properties": {
+                        "full_id": {
+                          "oneOf": [
+                            {"$ref": "./common-ids.schema.json#/$defs/did_key_full_id"},
+                            {"$ref": "./common-ids.schema.json#/$defs/webvh_full_id"}
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false,
+      "description": "The signed ServiceResolutionRecord, method-native history evidence and normalized DID document are retained together. signer_id equals record.service_id and verification_method is authorized by the retained normalized document at the signed record history position. Durable historical signer evidence permits only did:key or a complete did:webvh history; did:web is forbidden because a mutable web document cannot close historical verification. Record route expiry is checked at admission time but does not retroactively invalidate retained evidence. Complete canonical evidence is at most 1 MiB."
+    },
+    "principal_signer_evidence": {
+      "type": "object",
+      "required": ["kind", "signer_id", "verification_method", "public_resolution", "normalized_did_document", "attester_signer_evidence_ref", "attester_signer_evidence_digest"],
+      "properties": {
+        "kind": {"const": "principal"},
+        "signer_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
+        "public_resolution": {"$ref": "./identity-resolution.schema.json#/$defs/public_principal_resolution"},
+        "normalized_did_document": {
+          "type": "object",
+          "description": "Exact normalized DID document whose digest and history position are authenticated by public_resolution.method_history_evidence."
+        },
+        "attester_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"},
+        "attester_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false,
+      "description": "attester_signer_evidence_ref/digest resolves to a service-kind leaf that historically verifies the Principal Server projection attestation. Current route or DID expiry is not a retrospective validity input."
+    },
+    "native_agent_signer_evidence": {
+      "type": "object",
+      "required": ["kind", "signer_id", "verification_method", "agent_signer_evidence", "attester_signer_evidence_ref", "attester_signer_evidence_digest", "controller_signer_evidence_ref", "controller_signer_evidence_digest", "account_authority_signer_evidence_ref", "account_authority_signer_evidence_digest", "receiver_signer_evidence_ref", "receiver_signer_evidence_digest"],
+      "properties": {
+        "kind": {"const": "native_agent"},
+        "signer_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
+        "agent_signer_evidence": {"$ref": "./agent-signer-evidence.schema.json"},
+        "attester_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"},
+        "attester_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "controller_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"},
+        "controller_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "account_authority_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"},
+        "account_authority_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "receiver_signer_evidence_ref": {"$ref": "#/$defs/signer_evidence_ref"},
+        "receiver_signer_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false,
+      "description": "The four required ref/digest pairs resolve the Agent Authority, controller, Account Authority and receiver historical signer leaves selected by the exact methods in agent_signer_evidence. Each ref content digest equals its paired digest. Current route or DID expiry is not a retrospective validity input."
+    }
+  }
+}

@@ -222,13 +222,19 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       ],
       "default_discoverability": "unlisted",
       "default_join_rule": "restricted",
-      "history_visibility": "joined",
+      "history_access": "since_join",
       "encryption_profile": "mls_rfc9420",
       "federation_policy": "restricted",
-      "notary_profile": "single_did",
       "notary": {
-        "kind": "single_did",
-        "did": "did:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example"
+        "kind": "single_signer",
+        "signer": {
+          "actor_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example",
+          "verification_method": "did:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example#notary-1",
+          "key_kind": "ed25519_raw32",
+          "jose_algorithm": "Ed25519",
+          "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
+        }
       },
       "revocation_freshness_window_ms": 86400000,
       "created_at": "2026-04-26T00:00:00Z"
@@ -237,13 +243,13 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 }
 ```
 
-Sovereign 部署默认采用 **single_did Notary profile**：每个 Realm 由组织自己的 Principal Server（service DID）作为 genesis notary，负责控制面 Seal 的签发与问责（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。DataEvent 仍按签名、`seal_ref`、capability 与 Lattice/CRDT 本地接受；membership、policy、capability、notary、lifecycle、MLS epoch 等 Control Move 必须被该 notary 的 Seal 覆盖后才 `sealed`。这与 sovereign 部署"组织拥有自己的服务器，且服务器是 Realm 的治理真相源"的事实结构一致。组织间共享 Realm（多个 `owning_organizations`）可以使用 `threshold` 或 `mixed` Notary profile；notary 变更是 Control Move，由旧控制面 basis 授权并由后续 Seal finality，fallback recovery 由 Realm create 固定。需要开放联邦协作时，create event 显式声明 `federation_policy="open"` 与 `notary_profile="open_set"`。
+Sovereign 部署默认采用 **`notary.kind=single_signer`**：每个 Realm create 冻结一个 did_core actor、完整 DID URL verification method、exact key bytes/digest 与 JOSE 算法；后续 Seal 始终按 predecessor-state frozen descriptor 验签，不依赖 current DID 解析。Principal Server 可托管 actor，但 service DID 本身不是 notary wire identity（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。DataEvent 仍按签名、`seal_ref`、capability 与 Lattice/CRDT 本地接受；membership、policy、capability、notary、lifecycle、MLS epoch 等 Control Move 必须被该 notary 的 Seal 覆盖后才 `sealed`。组织间共享 Realm 可以使用 `notary.kind=threshold|mixed`；notary 变更是 Control Move，由旧控制面 basis 授权并由后续 Seal finality，fallback recovery 由 Realm create 固定。需要开放联邦协作时，create event 显式声明 `federation_policy="open"` 与 `notary.kind="open_set"`。
 
 推荐 policy：
 
 - `discoverability=unlisted` 或 `invite_only`
 - `default_join_rule=restricted` 或 `knock_restricted`
-- `history_visibility=joined`
+- `history_access=since_join`
 - `encryption_profile=mls_rfc9420`，并按 Realm policy 设置 `content_encryption_floor`
 - `federation_policy=restricted`；允许的外部 peer 由 [`federation.md`](./federation.md) §3.4 的部署本地 peer policy / allowlist 控制
 - `ak.realm.discovery.directory_visibility.public_directory=false`

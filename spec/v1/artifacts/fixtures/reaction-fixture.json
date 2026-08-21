@@ -212,13 +212,10 @@
       }
     },
     {
-      "name": "e2ee_routing_digest_dedup",
-      "notes": "In an E2EE realm the plaintext key is the v1 keyed-HMAC routing tag: HMAC-SHA256(key = MLS-Exporter(\"arkret-reaction-routing-v1\", context = realm_id), data = NFC(canonical_emoji)); see zh/crypto-media/encryption-and-audit.md §2.9. The 32-byte tag is carried in `key` as a 256-bit hex digest (the sha256: prefix below denotes the digest wire-encoding, not the derivation). Two adds with the same routing tag from the same actor in the same epoch collapse to one OR-Set membership; the tag differs in a different epoch because the MLS exporter secret rotates on every commit, so it does not dedup across epochs. realm_id is bound via the exporter context, providing defense-in-depth even if mls_group_id is reused across deployments.",
+      "name": "e2ee_routing_window_dedup",
+      "notes": "In an E2EE scope the plaintext key is the v1 keyed-HMAC routing tag derived from the epoch routing root plus JCS({effective_scope,target_ref,routing_window}); routing_window=floor(unix_ms(outer Event.created_at)/3600000). The 32-byte tag is carried in `key` as a 256-bit digest and in encryption_context.routing_context.routing_tag as its unpadded base64url bytes. Two adds with the same target, emoji, actor, epoch root and routing window collapse to one OR-Set membership. The fixed one-hour window never requires an MLS Commit.",
       "context": {
         "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
-        "aad_visibility": {
-          "event_id_kind": "routing_digest"
-        },
         "mls_group_id": "Zm9vYmFy",
         "epoch": 7
       },
@@ -227,29 +224,22 @@
           "event_id": "ak:event:AUtzHR4G9bSwLz3EzNQ0CON1Wr1uL7fpC6nYUvJpP_zd",
           "kind": "ak.reaction.add",
           "actor_id": "ak:did_core:webvh:z6mkfixture",
+          "created_at": "2026-08-20T10:05:00.000Z",
           "payload": {
             "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
-              "scheme": "mls_rfc9420",
               "version": "1.0",
-              "group_id": "Zm9vYmFy",
-              "epoch": 7,
               "content_type": "application/json",
-              "ciphertext": "reactionAlpha",
-              "aad_visibility_event_id_kind": "routing_digest",
-              "aad": {
-                "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
-                "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
-                "event_kind": "ak.reaction.add",
-                "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+              "encryption_context": {
+                "epoch": 7,
+                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+                "routing_context": {
+                  "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
+                  "routing_tag": "EREREREREREREREREREREREREREREREREREREREREao"
+                }
               },
-              "key_ref": {
-                "algorithm": "MLS",
-                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
-              },
-              "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
-              "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+              "ciphertext": "reactionAlpha"
             }
           }
         },
@@ -257,29 +247,22 @@
           "event_id": "ak:event:AaIAXJ4uHhAQKSRb9ktqvm5RSMqQBaqMI7_UW6nuV1C_",
           "kind": "ak.reaction.add",
           "actor_id": "ak:did_core:webvh:z6mkfixture",
+          "created_at": "2026-08-20T10:45:00.000Z",
           "payload": {
             "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
-              "scheme": "mls_rfc9420",
               "version": "1.0",
-              "group_id": "Zm9vYmFy",
-              "epoch": 7,
               "content_type": "application/json",
-              "ciphertext": "reactionAlphaDup",
-              "aad_visibility_event_id_kind": "routing_digest",
-              "aad": {
-                "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
-                "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
-                "event_kind": "ak.reaction.add",
-                "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+              "encryption_context": {
+                "epoch": 7,
+                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+                "routing_context": {
+                  "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
+                  "routing_tag": "EREREREREREREREREREREREREREREREREREREREREao"
+                }
               },
-              "key_ref": {
-                "algorithm": "MLS",
-                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
-              },
-              "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
-              "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+              "ciphertext": "reactionAlphaDup"
             }
           }
         }
@@ -300,44 +283,36 @@
       }
     },
     {
-      "name": "e2ee_epoch_rotation_breaks_dedup",
-      "notes": "Same canonical emoji yields a different routing hash after MLS epoch rotation; the new add is a fresh OR-Set entry, not a duplicate of the pre-rotation one.",
+      "name": "e2ee_routing_window_change_breaks_dedup_without_commit",
+      "notes": "The same canonical emoji under the same epoch routing root yields a different tag after the signed outer Event crosses the one-hour routing window. The new add is a fresh OR-Set entry; no hourly MLS Commit or self-update is required.",
       "context": {
         "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
-        "aad_visibility": {
-          "event_id_kind": "hidden"
-        },
         "mls_group_id": "Zm9vYmFy",
-        "old_epoch": 7,
-        "new_epoch": 8
+        "epoch": 7,
+        "old_routing_window": 496450,
+        "new_routing_window": 496451
       },
       "events": [
         {
           "event_id": "ak:event:AV6hyUZOXOouTOW6R1l5DrVQTrYqiQL2_ay5zJ7zIvRU",
           "kind": "ak.reaction.add",
           "actor_id": "ak:did_core:webvh:z6mkfixture",
+          "created_at": "2026-08-20T10:55:00.000Z",
           "payload": {
             "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
-              "scheme": "mls_rfc9420",
               "version": "1.0",
-              "group_id": "Zm9vYmFy",
-              "epoch": 7,
               "content_type": "application/json",
-              "ciphertext": "reactionEpoch7",
-              "aad_visibility_event_id_kind": "hidden",
-              "aad": {
-                "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
-                "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
-                "event_kind": "ak.reaction.add"
+              "encryption_context": {
+                "epoch": 7,
+                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+                "routing_context": {
+                  "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
+                  "routing_tag": "EREREREREREREREREREREREREREREREREREREREREao"
+                }
               },
-              "key_ref": {
-                "algorithm": "MLS",
-                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
-              },
-              "payload_digest": "sha256:cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333",
-              "aad_digest": "sha256:dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444"
+              "ciphertext": "reactionEpoch7"
             }
           }
         },
@@ -345,28 +320,22 @@
           "event_id": "ak:event:AefVwdo4QXWyQpDPe0xNTZt8YPExzBxckc7ZLvKlJmiM",
           "kind": "ak.reaction.add",
           "actor_id": "ak:did_core:webvh:z6mkfixture",
+          "created_at": "2026-08-20T11:05:00.000Z",
           "payload": {
             "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:222222222222222222222222222222222222222222222222222222222222222b",
             "encrypted_payload": {
-              "scheme": "mls_rfc9420",
               "version": "1.0",
-              "group_id": "Zm9vYmFy",
-              "epoch": 8,
               "content_type": "application/json",
-              "ciphertext": "reactionEpoch8",
-              "aad_visibility_event_id_kind": "hidden",
-              "aad": {
-                "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
-                "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
-                "event_kind": "ak.reaction.add"
+              "encryption_context": {
+                "epoch": 7,
+                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+                "routing_context": {
+                  "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
+                  "routing_tag": "IiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIis"
+                }
               },
-              "key_ref": {
-                "algorithm": "MLS",
-                "group_state_ref": "ak:event:AYiqYUPqcfS5F7GWp1FwCOLhlvApOKQLYgruaNIjzAn9"
-              },
-              "payload_digest": "sha256:eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555",
-              "aad_digest": "sha256:ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666"
+              "ciphertext": "reactionEpoch8"
             }
           }
         }

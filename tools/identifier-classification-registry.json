@@ -26,9 +26,9 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "registry_catalog_symbol": 19,
-    "responsibility_did": 491,
-    "typed_object_id": 866
+    "registry_catalog_symbol": 20,
+    "responsibility_did": 516,
+    "typed_object_id": 877
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -44,7 +44,7 @@
       "name": "account_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "unregistered_object_identifier",
-      "occurrences": 5,
+      "occurrences": 6,
       "example_path": "account-operations.schema.json#/$defs/account_status_record/properties/account_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
@@ -149,12 +149,52 @@
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
     {
+      "name": "artifact_id",
+      "terminal_signature": "[[\"const\", \"governance-replay-schema-manifest\"]]",
+      "category": "registry_catalog_symbol",
+      "occurrences": 1,
+      "example_path": "governance-registry-snapshot.schema.json#/$defs/replay_schema_manifest_descriptor/properties/artifact_id",
+      "reason": "Names an exact registered governance replay artifact in the content-addressed registry snapshot closure."
+    },
+    {
+      "name": "artifact_id",
+      "terminal_signature": "[[\"const\", \"registry/contract-registry.json\"]]",
+      "category": "registry_catalog_symbol",
+      "occurrences": 1,
+      "example_path": "governance-registry-snapshot.schema.json#/$defs/contract_registry_descriptor/properties/artifact_id",
+      "reason": "Names an exact registered governance replay artifact in the content-addressed registry snapshot closure."
+    },
+    {
+      "name": "artifact_id",
+      "terminal_signature": "[[\"const\", \"registry/proof-context-registry.json\"]]",
+      "category": "registry_catalog_symbol",
+      "occurrences": 1,
+      "example_path": "governance-registry-snapshot.schema.json#/$defs/proof_context_registry_descriptor/properties/artifact_id",
+      "reason": "Names an exact registered governance replay artifact in the content-addressed registry snapshot closure."
+    },
+    {
+      "name": "artifact_id",
+      "terminal_signature": "[[\"pattern\", \"^schemas/[a-z0-9][a-z0-9-]*\\\\.schema\\\\.json$\"]]",
+      "category": "registry_catalog_symbol",
+      "occurrences": 1,
+      "example_path": "governance-registry-snapshot.schema.json#/$defs/replay_schema_artifact_descriptor/properties/artifact_id",
+      "reason": "Names an exact registered governance replay artifact in the content-addressed registry snapshot closure."
+    },
+    {
       "name": "authorization_rule_id",
       "terminal_signature": "[[\"pattern\", \"^[a-z][a-z0-9_]{0,63}$\"]]",
       "category": "document_local_symbol",
       "occurrences": 2,
       "example_path": "offline-publication.schema.json#/$defs/authorization_lease/properties/authorization_rule_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
+    },
+    {
+      "name": "backup_origin_id",
+      "terminal_signature": "[[\"pattern\", \"^backup:(?:ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|sha256:[0-9a-f]{64})$\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 1,
+      "example_path": "history-key.schema.json#/$defs/history_candidate_origin_attribution/oneOf/2/properties/origin_ref/properties/backup_origin_id",
+      "reason": "Stable backup-origin quota-domain correlation value; the backup: envelope is not itself an Arkret typed object identity."
     },
     {
       "name": "challenge_id",
@@ -384,14 +424,6 @@
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
     {
-      "name": "event_ids",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody/properties/event_ids",
-      "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
-    },
-    {
       "name": "exchange_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._~=-]{22,128}$\"]]",
       "category": "opaque_correlation",
@@ -466,14 +498,6 @@
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     },
     {
-      "name": "group_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
-      "category": "external_system_identifier",
-      "occurrences": 1,
-      "example_path": "encrypted-envelope.schema.json#/properties/group_id",
-      "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
-    },
-    {
       "name": "id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
       "category": "opaque_correlation",
@@ -494,7 +518,7 @@
       "terminal_signature": "[[\"pattern\", \"^[1-9][0-9]*-[^\\\\s]+$\"]]",
       "category": "external_system_identifier",
       "occurrences": 1,
-      "example_path": "event-envelope.schema.json#/allOf/122/then/properties/refs/contains/properties/id",
+      "example_path": "event-envelope.schema.json#/allOf/123/then/properties/refs/contains/properties/id",
       "reason": "did:webvh DID Log coordinate copied verbatim; its lexical space belongs to the external method."
     },
     {
@@ -525,8 +549,8 @@
       "name": "id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
       "category": "typed_object_id",
-      "occurrences": 3,
-      "example_path": "event-envelope.schema.json#/$defs/semantic_ref/properties/id",
+      "occurrences": 2,
+      "example_path": "mimi-operations.schema.json#/$defs/consent_target/properties/id",
       "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
     },
     {
@@ -638,16 +662,16 @@
       "name": "mls_group_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "external_system_identifier",
-      "occurrences": 9,
-      "example_path": "event-payload.schema.json#/$defs/direct_conversation_mls_generation_activate_payload/properties/mls_group_id",
+      "occurrences": 8,
+      "example_path": "event-payload.schema.json#/$defs/mls_commit_failed_payload/properties/mls_group_id",
       "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
     },
     {
       "name": "mls_group_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
       "category": "external_system_identifier",
-      "occurrences": 4,
-      "example_path": "key-backup-plaintext.schema.json#/$defs/plaintext_item/properties/mls_group_id",
+      "occurrences": 11,
+      "example_path": "circle-operations.schema.json#/$defs/circle_view/properties/mls_group_id",
       "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
     },
     {
@@ -804,28 +828,12 @@
       "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
     },
     {
-      "name": "recipient_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "document_local_symbol",
-      "occurrences": 1,
-      "example_path": "realm.schema.json#/$defs/recovery_recipient/properties/recipient_id",
-      "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
-    },
-    {
       "name": "recording_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._-]{1,128}$\"]]",
       "category": "external_system_identifier",
       "occurrences": 5,
       "example_path": "call-recording-artifact.schema.json#/properties/recording_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
-    },
-    {
-      "name": "recovery_recipient_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "document_local_symbol",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/realm_key_share_payload/properties/recovery_recipient_id",
-      "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     },
     {
       "name": "registration_id",
@@ -872,9 +880,9 @@
       "name": "request_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 6,
-      "example_path": "direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_dispatch_request/properties/request_id",
-      "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
+      "occurrences": 3,
+      "example_path": "keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body/properties/request_id",
+      "reason": "Caller/service request correlation token scoped to its operation and not an Arkret object identity."
     },
     {
       "name": "resource_id",
@@ -927,6 +935,14 @@
       "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
     },
     {
+      "name": "root_schema_artifact_ids",
+      "terminal_signature": "[[\"pattern\", \"^schemas/[a-z0-9][a-z0-9-]*\\\\.schema\\\\.json$\"]]",
+      "category": "registry_catalog_symbol",
+      "occurrences": 1,
+      "example_path": "governance-registry-snapshot.schema.json#/$defs/governance_replay_schema_manifest/properties/root_schema_artifact_ids",
+      "reason": "Names an exact registered governance replay artifact in the content-addressed registry snapshot closure."
+    },
+    {
       "name": "rule_id",
       "terminal_signature": "[[\"const\", \"threshold_recovery\"]]",
       "category": "registry_catalog_symbol",
@@ -946,8 +962,8 @@
       "name": "rule_id",
       "terminal_signature": "[[\"pattern\", \"^[a-z][a-z0-9_]{0,63}$\"]]",
       "category": "document_local_symbol",
-      "occurrences": 4,
-      "example_path": "event-payload.schema.json#/$defs/history_sharing_restricted_rule/properties/rule_id",
+      "occurrences": 3,
+      "example_path": "event-payload.schema.json#/$defs/policy_rule_state_payload/properties/rule_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     },
     {
@@ -975,19 +991,11 @@
       "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
     },
     {
-      "name": "seal_id",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/RealmSealFrontierView/properties/seal_id",
-      "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
-    },
-    {
       "name": "secret_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_.-]+$\"]]",
       "category": "opaque_correlation",
       "occurrences": 2,
-      "example_path": "key-backup-plaintext.schema.json#/$defs/plaintext_item/properties/secret_id",
+      "example_path": "key-backup-plaintext.schema.json#/$defs/secret_storage_item/properties/secret_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
     {

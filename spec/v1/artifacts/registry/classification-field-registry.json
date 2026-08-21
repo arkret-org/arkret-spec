@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-14.1",
+  "version": "2026-08-21.1",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
@@ -114,6 +114,15 @@
       "external_standard": "RFC 9420 Messaging Layer Security",
       "external_field_path": "ProposalType",
       "round_trip_requirement": "Preserve the MLS proposal type value and dispatch semantics.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/mls_proposal_payload/allOf/0/if/properties/proposal_type",
+      "external_standard": "RFC 9420 Messaging Layer Security",
+      "external_field_path": "ProposalType",
+      "round_trip_requirement": "Apply the Add-only conditional without remapping the external MLS proposal type value.",
       "dispatch_authority": "external_standard",
       "arkret_extensions_allowed": false
     },
@@ -442,15 +451,6 @@
     }
   ],
   "closed_class_fields": [
-    {
-      "context": "fixtures/history-crypto-closure-fixture.json#/cases/*/scenarios/*/receiver_class",
-      "allowed_values": [
-        "joined_member",
-        "preview_token_holder",
-        "non_member"
-      ],
-      "semantic_axis": "history_receiver_class"
-    },
     {
       "context": "fixtures/protocol-edge-cases-fixture.json#/cases/*/expected_confusable_classes",
       "allowed_values": [

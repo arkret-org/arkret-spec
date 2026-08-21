@@ -54,7 +54,7 @@ updated: 2026-07-02
 | User / client | Arkret principal DID + device id，可按 Realm policy 使用 pairwise DID 或 room-scoped pseudonym。 |
 | Room | Arkret Strand discussion track 的 MIMI room 投影，可附带所在 Realm 的最小上下文。 |
 
-MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 signed DataEvent、Control Move、Seal coverage、Lattice cell state、capability refs 与 MLS Security Frontier Binding（`governance_binding.security_frontier_digest` + active generation projection）。MIMI room state 是对这些状态的互操作投影。
+MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 signed DataEvent、Control Move、Seal coverage、Lattice cell state、capability refs 与 MLS Security Frontier Binding（`governance_binding.security_frontier_digest` + current winning group-state projection）。MIMI room state 是对这些状态的互操作投影。
 
 ## 3. Provider Discovery
 
@@ -230,7 +230,7 @@ mimi://mimi.example.com/rooms/01JSMIMI
 
 - `ak.mimi.room_binding.mls_group_id`、MIMI groupInfo 中的 group id、Arkret `governance_binding.mls_group_id` 必须一致；
 - `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 必须存在且被本 facade 支持；未知或缺失时不得用 MIMI draft 字段、provider 目录或本地配置补齐；
-- active MLS generation 的 `security_frontier_digest` 必须等于从当前 accepted key-access state 重算的值；
+- current winning MLS group state 的 `security_frontier_digest` 必须等于从当前 accepted key-access state 重算的值；
 - MIMI 未知字段仍按 §9.2 安全惰性处理，不得提升 provider role、放宽 `policy_root` 或改变 MLS epoch / group state 判定。
 
 `ak.profile.e2ee_relaxed.v1` 不得被 facade 对外表述为等价 full MLS Governance Binding。若本地 Realm 是 relaxed 降级，facade 只有在双方都显式声明 Arkret relaxed 语义、且满足 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.4.1 的 federation guard 时，才可投影 relaxed 窗口内的消息；否则 MUST reject / quarantine，reason 使用 `mimi_room_state_incompatible`、`mimi_governance_binding_missing` 或 `mimi_governance_binding_mismatch`。
@@ -377,7 +377,7 @@ Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致
 
 1. 验证 provider signature、room binding、destination、body digest 和重放窗口。同时 MUST 校验本 binding 的 `local_provider_role ∈ { hub, follower }`;`local_provider_role=observer` 的 binding 不得代表本地参与方提交 writes(见 §4),facade MUST 拒绝该 submit_message,reason=`mimi_observer_write_forbidden`。
 2. 验证 MLS epoch 与 `ak.mimi.room_binding.mls_group_id` 匹配。
-3. 按 MLS Security Frontier Binding 验证：Commit 携带的 `governance_binding.security_frontier_digest` 与从 accepted key-access state 重算的值相同，消息 group/epoch 指向该 active generation；普通 Event `seal_ref` 另行通过 admission。
+3. 按 MLS Security Frontier Binding 验证：Commit 携带的 `governance_binding.security_frontier_digest` 与从 accepted key-access state 重算的值相同，消息 group/epoch 指向该 current winning group state；普通 Event `seal_ref` 另行通过 admission。
 4. 将 MIMI content container 映射为 `ak.message.create`、`ak.message.revise`、`ak.message.redact`、`ak.reaction.add`、`ak.reaction.remove` 或 `ak.relation.*`。
 5. 保留原始 MIMI envelope hash、provider id、message id 和 accepted timestamp 作为 interop metadata。
 6. 对无法确认授权、epoch、content 或 policy 的消息返回 `temporarily_unavailable`、`dependency_missing`、`capability_denied` 或 `quarantine`。
@@ -430,12 +430,11 @@ Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered cell proj
 | --- | --- | --- |
 | `ak.component.realm.policy.v1` | `ak.realm.policy` | （Arkret 专属；映射时合并入 `operational`） |
 | `ak.component.realm.join_rule.v1` | `ak.realm.join_rule` | `participation` 中 `join_policy` 子字段（粗粒度入口枚举） |
-| `ak.component.realm.history_visibility.v1` | `ak.realm.history_visibility` | `history_sharing` 的 visibility 子字段 |
+| `ak.component.realm.history_access.v1` | `ak.realm.history_access` | MIMI 若能表达等价的 current-member history range 则映射；否则 fail closed，不臆造旧五档 visibility |
 | `ak.component.realm.discovery.v1` | `ak.realm.discovery` | `participation` 中 `discoverability` 子字段 |
 | `ak.component.realm.alias.v1` | `ak.realm.alias` | （Arkret 专属；MIMI 的 room URI / hub-local name 不是可映射 policy component） |
 | `ak.component.realm.policy_server.v1` | `ak.realm.policy_server` | （Arkret 专属，与 MIMI hub provider 概念解耦） |
 | `ak.component.realm.policy_bundle.v1` | `ak.realm.policy_bundle` | 没有独立 facet event kind 的 Realm policy 组件集合（`join_policy` / `agent_participation` / `account_deactivation` / `availability_policy` / `audit_policy` / `preauth` / 加密 floor 与 scheme 等）；对应 MIMI 的 `participation.join_policy`、`preauth` 与 `bot` 子字段 |
-| `ak.component.realm.history_sharing_policy.v1` | `ak.realm.history_sharing_policy` | `history_sharing` |
 | `ak.component.realm.asset_privacy_policy.v1` | `ak.realm.asset_privacy_policy` | `asset` |
 | `ak.component.realm.moderation_policy.v1` | `ak.realm.moderation_policy` | `logging` 的 abuse-report 子字段 + 自定义 `moderation` extension |
 | `ak.component.realm.plaintext_visible_services.v1` | `ak.realm.plaintext_visible_services` | （Arkret 专属隐私透明度机制；MIMI 侧无对应） |

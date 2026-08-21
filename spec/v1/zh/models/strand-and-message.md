@@ -441,7 +441,7 @@ Wire 形态：`ak.strand.watch.set` durable event 写入下文 §8.3 描述的 c
 
 | `level` | 含义 | 通知行为 |
 | --- | --- | --- |
-| `mentions_only` | 默认（≡ 无 watch 记录） | 仅当 push rule 引擎 `mentions_actor` condition 为本人命中（mention 通过 content AST 解析 / `mentions` Relation / E2EE mention sidecar 派生，见 [push-notifications.md §4.3 / §4.5](../discovery/push-notifications.md)），或本人在 `assigned_to` Relation `to_ref` 上时通知 |
+| `mentions_only` | 默认（≡ 无 watch 记录） | 仅当客户端解密后由 content AST / `mentions` Relation 判定 `mentions_actor` 为本人，或本人在 `assigned_to` Relation `to_ref` 上时通知；E2EE wire 不含 mention sidecar/token，server 只作 blind/batch wakeup，见 [push-notifications.md §4.3 / §4.5](../discovery/push-notifications.md) |
 | `participating` | 在我参与过的 thread 之上叠加订阅 | 上面那些 + 本人发过 Message 后该 thread 的新回复 + 与本人 `replies_to` 链相连的更新 |
 | `all` | 全量订阅 | 该 Strand 任何 `ak.message.create` / `ak.reaction.add` / `ak.reaction.remove` / Strand synthesis 字段变更 |
 | `muted` | 显式静音 | 一律不通知，**覆盖** `mentions_only` 的定向通知；显式声明"即使被 @ 也不要打扰" |

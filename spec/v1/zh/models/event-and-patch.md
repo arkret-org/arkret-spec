@@ -156,7 +156,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": ["ak:event:AQuJKOT-cW0pWsEr_gaQ5xFAv7BkJgCVolUYAgYYkHM3"],
   "refs": [
-    { "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ", "role": "authorized_by", "critical": true }
+    { "id": "ak:event:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": [
     "sha256:3333333333333333333333333333333333333333333333333333333333333333"
@@ -177,6 +177,8 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
     {
       "kind": "detached_jws",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
+      "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00.000Z",
       "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
@@ -195,13 +197,13 @@ Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State converge
 - Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ak:strand:` 等）即对象种类，不写单独的 `payload.object.type`。
 - `actor_id` 是该 Event 归属的 principal of record。**当 `executed_by` 存在时**(act-on-behalf),实际签发该 Event 的是 `executed_by` 表示的 agent / applet / delegated service principal,proof.verification_method 解析到 `executed_by`;`actor_id` 仍是 accountable principal,用于审计 / 渲染 / accountable_principal_ids 链。Receiver MUST 同时校验 `executed_by`、`authorization_ref` 指向的 active grant / delegation，以及对应 native agent key authorization 或 Applet registration / registration_epoch 绑定之间的一致性，否则 fail closed。物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`,但不得替代 Event proof、capability 或 CBA basis 校验。
 - `actor_kind` 是 reducer-stamped 投影，由 reducer 在接受 Event 时从 `actor_id` 的 Actor Profile 解析得到 immutable 值；它让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断该 Event 是 agent 行为(`actor_kind="agent"`) 还是 controller 行为。Actor 提交侧 MUST NOT 携带该字段。
-- 启用 `ak.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Strand track scoped pairwise DID 投影得到的 `did_core_id`；其与真实 principal `did_core_id` 的映射必须通过加密的 `ak.schema.identity_link.v1` payload（`ak.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 `did_core_id` pseudonym 写入 `actor_id`。
+- 启用 `ak.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` 必须是 canonical pairwise `did_core_id`：每个 `(Realm,endpoint incarnation)` 唯一，同一 endpoint 可在该 Realm-default group 与其 Circles 中复用，禁止 Circle-local rotation 或跨 Realm 复用。其与真实 principal 的可选映射只存在于成员可解密的 `identity_link`/claim；服务端不得聚合推断，也不得把非 `did_core_id` pseudonym 写入 `actor_id`。Realm-level endpoint replacement 使 Realm 及全部 Circle 的旧 actor incarnation 失效；父 Realm rejoin 不复活旧 Circle incarnation。
 
 #### 2.4.1 Signer regime 分派与 Agent delegated transcript（normative）
 
 Receiver MUST 在解析任何验签 key 前先确定唯一 signer regime，不得把“上一种 key 解析失败”作为进入下一种 regime 的条件。分派输入只能是 Realm profile、Event envelope、已验证 actor/principal 类型与已登记 registration evidence：
 
-1. `ak.profile.mls.minimal_metadata_realm.v1` 只进入 minimal-metadata regime；按 Event 所引 `(group_id, epoch, group_state_ref)` 的唯一 active BasicCredential leaf 验证，禁止 principal-scoped directory、Agent evidence 或 device directory query。
+1. `ak.profile.mls.minimal_metadata_realm.v1` 只进入 minimal-metadata regime；`Event.actor_id`、active BasicCredential identity、KDF/counter sender domain 必须是同一 canonical pairwise `did_core_id` UTF-8 bytes。proof `verification_method` 是完整 DID URL，其 controller/base 经 registered adapter 投影后必须逐字等于 actor，且 key 等于 leaf signature key。禁止 principal-scoped directory、Agent evidence 或 device directory query。
 2. ordinary device proof 的 method MUST 是 signer 已验证 `full_id` 下的 DID URL：取 bare `full_id` 经已登记 method adapter 验证后，其投影 MUST 逐字等于 `signer_id`（稳定 `did_core_id`），fragment MUST 是完整 `ak:device:<uuidv7>`；不得从 `signer_id` core 拼接 fragment。该 regime 只走 device-set / `keys/query` 的 cross-signed 或 enrollment-authority evidence。
 3. ordinary Native Agent 必须由已验证 Agent principal 类型和 `ak.schema.agent_signer_evidence.v1` 共同确定；不得以 method fragment “不是 `ak:device:*`”推断。该分支禁止读取 device record。
 4. Applet、service 与 integration 必须走各自 registration epoch / service DID evidence，永不落入 Agent 分支。
@@ -536,14 +538,16 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
   "producer_proof_digest": "sha256:<complete producer proof object digest>",
   "producer_verification_method": "did:webvh:example.com:alice#ak:device:0198a2f0-7e52-7a31-9fa2-5cb02b26da1f",
   "producer_signing_key": "did:key:z<multibase public key>",
+  "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:<service evidence digest>",
+  "signer_resolution_evidence_digest": "sha256:<service evidence digest>",
   "accepted_at": "2026-08-13T13:38:00.000Z",
   "jws": "<detached JWS>"
 }
 ```
 
-admission proof 使用独立 `context="ak.principal-server-admission-proof-v1"`。其 `verification_method` controller **MUST** 投影为 `event.principal_server_id`；`event_digest` 必须同时等于 producer proof 与重算 Event digest；其余三个 producer 字段必须逐字/逐对象绑定 origin 实际验证的 exact producer proof 与公钥。`accepted_at` 只进入 admission transcript，不进入 Event digest、Event ID 或 reducer。
+admission proof 使用独立 `context="ak.principal-server-admission-proof-v1"`。其 `verification_method` controller **MUST** 投影为 `event.principal_server_id`；`event_digest` 必须同时等于唯一 producer proof 与重算 Event digest；`producer_proof_digest` 固定为完整 producer proof object 的 SHA-256；producer verification method/signing key 与两项 service signer evidence 字段必须逐字/逐对象绑定 origin 实际验证的唯一 producer proof 及服务历史签名证据。`proofs[]` 恰有一个 producer proof，最多一个 admission proof。`accepted_at` 只进入 admission transcript，不进入 Event digest、Event ID 或 reducer。
 
-exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 只转发完整 Event，receiver 重算 Event、producer proof 与 admission proof 即可验证，**MUST NOT** 接收 signer-key evidence sidecar、回放 PCR genesis/完整 control history/Seal/range-completeness，也不得删除、替换或由 replica 重签 origin proof。origin Principal Server MUST 在追加 admission proof 的同一 serializable gate 中读取 exact `(actor_id, principal_server_id, device_id, current_device_generation_ref)` 的 durable `ak.schema.device_revocation_state.v1`；任一未终结 `revocation_pending` 或 `revoked` record 都拒绝新 Event且不得追加 proof，缓存只能加速。只有精确绑定 proposal/Ack/device/generation 的有效 `signed_reject` 能清除对应 pending record；overdue、restart、cache eviction 或管理员布尔值均不能。此前在 pending 线性化点之前合法产生的 proof 继续仅按其签名 `accepted_at` 验证，不因后来 revoke 而追溯失效。
+exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 只转发完整 Event，receiver 重算 Event、producer proof 与 admission proof 即可验证；signer evidence 只允许按 proof 内 required content-addressed ref/digest 通过标准 governance-dependency resolve 取得，**MUST NOT** 接收重复内嵌或 ad-hoc signer-key evidence sidecar、回放 PCR genesis/完整 control history/Seal/range-completeness，也不得删除、替换或由 replica 重签 origin proof。origin Principal Server MUST 在追加 admission proof 的同一 serializable gate 中读取 exact `(actor_id, principal_server_id, device_id, current_device_generation_ref)` 的 durable `ak.schema.device_revocation_state.v1`；任一未终结 `revocation_pending` 或 `revoked` record 都拒绝新 Event 且不得追加 proof，缓存只能加速。只有精确绑定 proposal/Ack/device/generation 的有效 `signed_reject` 能清除对应 pending record；overdue、restart、cache eviction 或管理员布尔值均不能。此前在 pending 线性化点之前合法产生的 proof 继续仅按其签名 `accepted_at` 验证，不因后来 revoke 而追溯失效。
 
 这把 Principal Server 明确纳入账号设备 authority 的信任边界：服务 DID 签名提供可验证归责，但不能密码学阻止恶意服务虚假准入。若未来要抵抗恶意 Principal Server，应另行设计 principal-root/device certificate transparency，且不得把 account-local PCR 状态重新暴露为跨服务身份选择器。
 
@@ -733,7 +737,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": ["ak:event:AQuJKOT-cW0pWsEr_gaQ5xFAv7BkJgCVolUYAgYYkHM3"],
   "refs": [
-    { "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ", "role": "authorized_by", "critical": true }
+    { "id": "ak:event:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -753,6 +757,8 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     {
       "kind": "detached_jws",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
+      "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00.000Z",
       "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"

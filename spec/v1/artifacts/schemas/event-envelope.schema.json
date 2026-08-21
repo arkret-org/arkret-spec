@@ -210,7 +210,8 @@
           "contains": {
             "$ref": "#/$defs/producer_event_proof"
           },
-          "minContains": 1
+          "minContains": 1,
+          "maxContains": 1
         },
         {
           "contains": {
@@ -259,6 +260,74 @@
     ]
   },
   "allOf": [
+    {
+      "$comment": "Machine-closed producer signer-evidence regime. The unique admission proof owns historical producer-key validation when present; otherwise the unique producer proof carries its own content-addressed signer evidence pair.",
+      "if": {
+        "properties": {
+          "proofs": {
+            "contains": {
+              "$ref": "#/$defs/principal_server_admission_proof"
+            },
+            "minContains": 1
+          }
+        },
+        "required": [
+          "proofs"
+        ]
+      },
+      "then": {
+        "properties": {
+          "proofs": {
+            "contains": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/producer_event_proof"
+                },
+                {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "signer_resolution_evidence_ref"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "signer_resolution_evidence_digest"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "minContains": 1,
+            "maxContains": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "proofs": {
+            "contains": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/producer_event_proof"
+                },
+                {
+                  "required": [
+                    "signer_resolution_evidence_ref",
+                    "signer_resolution_evidence_digest"
+                  ]
+                }
+              ]
+            },
+            "minContains": 1,
+            "maxContains": 1
+          }
+        }
+      }
+    },
     {
       "$comment": "A patch-bearing DataEvent is identified by its required seal_ref and payload.patch. It needs at least one causal base; exact per-target-cell matching remains a reducer check.",
       "if": {
@@ -570,417 +639,6 @@
             "$ref": "./event-payload.schema.json#/$defs/account_blocklist_payload"
           }
         }
-      }
-    },
-    {
-      "$comment": "Signal payload type names are not Event kinds and MUST NOT appear in durable history. They exist only inside encrypted Signal payload. To-device kinds use device-message.schema.json.",
-      "not": {
-        "properties": {
-          "kind": {
-            "enum": [
-              "ak.call.signal",
-              "ak.message.stream",
-              "ak.presence",
-              "ak.typing",
-              "ak.receipt.read",
-              "ak.key.verification.request",
-              "ak.key.verification.ready",
-              "ak.key.verification.start",
-              "ak.key.verification.accept",
-              "ak.key.verification.key",
-              "ak.key.verification.mac",
-              "ak.key.verification.done",
-              "ak.key.verification.cancel",
-              "ak.secret.request",
-              "ak.secret.send",
-              "ak.realm_key.request"
-            ]
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      }
-    },
-    {
-      "$comment": "Known active reducer-input event kinds MUST carry exactly one CBA basis shape: DataEvent (seal_ref + auth_context, no preconditions/seal_basis), Control Move (seal_basis, no seal_ref/auth_context), the ak.realm.create genesis bootstrap shape, OR a Realm bootstrap follow-up shape (same submit batch after create; batch context is enforced by admission, not JSON Schema). Reducer writes are derived from kind+payload and the registry contract. Unknown extension kinds must declare their own critical extension requirements and are not matched by this branch.",
-      "if": {
-        "properties": {
-          "kind": {
-            "enum": [
-              "ak.actor.discovery",
-              "ak.agent.key.authorize",
-              "ak.agent.key.revoke",
-              "ak.agent.provision",
-              "ak.agent.selector_claim",
-              "ak.agent.sidecar.exchange.control",
-              "ak.applet.bridge_error",
-              "ak.applet.discovery",
-              "ak.applet.registration",
-              "ak.audit.accessed",
-              "ak.audit.applet_binding.create",
-              "ak.audit.applet_binding.state",
-              "ak.audit.release",
-              "ak.audit.session.authorize",
-              "ak.audit.session.close",
-              "ak.audit.session.notice",
-              "ak.audit.session.request",
-              "ak.call.create",
-              "ak.call.recording.start",
-              "ak.call.state",
-              "ak.call.summary",
-              "ak.capability.derived",
-              "ak.capability.grant",
-              "ak.capability.relinquish",
-              "ak.capability.revoke",
-              "ak.circle.archive",
-              "ak.circle.create",
-              "ak.circle.member.state",
-              "ak.circle.restore",
-              "ak.circle.tombstone",
-              "ak.circle.update",
-              "ak.consent.grant",
-              "ak.consent.revoke",
-              "ak.contact.accepted",
-              "ak.contact.rejected",
-              "ak.contact.requested",
-              "ak.contact.scope.update",
-              "ak.contact.tombstone",
-              "ak.container.move_item",
-              "ak.container.rebalance",
-              "ak.device.authorize",
-              "ak.device.list_update",
-              "ak.device.reanchor",
-              "ak.device.revoke",
-              "ak.direct_conversation.bound",
-              "ak.direct_conversation.mls_generation.activate",
-              "ak.handle.discovery",
-              "ak.identity.accountability_grant",
-              "ak.identity.disclosure_policy",
-              "ak.identity.disclosure_receipt",
-              "ak.identity.presentation_request",
-              "ak.identity.presentation_response",
-              "ak.identity.resolution.update",
-              "ak.invite.accept",
-              "ak.invite.cancel",
-              "ak.invite.claim",
-              "ak.invite.create",
-              "ak.invite.revoke",
-              "ak.invite.third_party",
-              "ak.key_backup.active_series",
-              "ak.member.identity.update",
-              "ak.member.state",
-              "ak.message.create",
-              "ak.message.redact",
-              "ak.message.revise",
-              "ak.mimi.room_binding",
-              "ak.mls.commit",
-              "ak.mls.commit_failed",
-              "ak.mls.genesis",
-              "ak.mls.keypackage",
-              "ak.mls.proposal",
-              "ak.mls.welcome",
-              "ak.moderation.appeal.close",
-              "ak.moderation.appeal.decision",
-              "ak.moderation.appeal.review",
-              "ak.moderation.appeal.submit",
-              "ak.moderation.decision",
-              "ak.moderation.decision.lift",
-              "ak.moderation.franking_proof",
-              "ak.morph.archive",
-              "ak.morph.create",
-              "ak.morph.restore",
-              "ak.morph.schema_migrate",
-              "ak.morph.stage.set",
-              "ak.morph.update",
-              "ak.notary.fault.censorship",
-              "ak.notary.fault.equivocation",
-              "ak.organization.discovery",
-              "ak.organization.moderation_policy",
-              "ak.pin.add",
-              "ak.pin.remove",
-              "ak.pin.reorder",
-              "ak.policy.action",
-              "ak.policy.rule",
-              "ak.policy.set",
-              "ak.profile.create",
-              "ak.profile.realm_override",
-              "ak.profile.update",
-              "ak.reaction.add",
-              "ak.reaction.remove",
-              "ak.realm.alias",
-              "ak.realm.archive",
-              "ak.realm.asset_privacy_policy",
-              "ak.realm.authority.basis_update",
-              "ak.realm.authority.reset",
-              "ak.realm.create",
-              "ak.realm.delivery_binding_policy",
-              "ak.realm.destroy",
-              "ak.realm.digest_suite_transition",
-              "ak.realm.discovery",
-              "ak.realm.freeze",
-              "ak.realm.history_sharing_policy",
-              "ak.realm.history_visibility",
-              "ak.realm.inheritance_policy",
-              "ak.realm.join_rule",
-              "ak.realm.link",
-              "ak.realm.media_service",
-              "ak.realm.moderation_policy",
-              "ak.realm.notary",
-              "ak.realm.organization",
-              "ak.realm.owner.transfer",
-              "ak.realm.plaintext_visible_services",
-              "ak.realm.policy",
-              "ak.realm.policy_bundle",
-              "ak.realm.preview_policy",
-              "ak.realm.read_receipt_policy",
-              "ak.realm.schema",
-              "ak.realm.search_policy",
-              "ak.realm.set_default_strand",
-              "ak.realm.tombstone",
-              "ak.realm.profile",
-              "ak.realm.upgrade",
-              "ak.realm_key.share",
-              "ak.realm_key.share_audit",
-              "ak.realm_key.withheld",
-              "ak.redaction",
-              "ak.relation.create",
-              "ak.relation.tombstone",
-              "ak.relation.update",
-              "ak.rsvp.set",
-              "ak.schema.define",
-              "ak.schema.update",
-              "ak.self.agent.deactivate",
-              "ak.self.agent.pause",
-              "ak.self.agent.resume",
-              "ak.self.moderation.report",
-              "ak.sidecar.context.attach",
-              "ak.sidecar.create",
-              "ak.sovereign.did_policy",
-              "ak.space.archive",
-              "ak.space.create",
-              "ak.space.parent",
-              "ak.space.restore",
-              "ak.space.tombstone",
-              "ak.space.update",
-              "ak.strand.archive",
-              "ak.strand.create",
-              "ak.strand.move",
-              "ak.strand.reorder",
-              "ak.strand.restore",
-              "ak.strand.stage.set",
-              "ak.strand.tracks.update",
-              "ak.strand.update",
-              "ak.strand.watch.set",
-              "ak.view.create",
-              "ak.view.reconcile",
-              "ak.view.update"
-            ]
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "oneOf": [
-          {
-            "required": [
-              "seal_ref",
-              "auth_context"
-            ],
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "preconditions"
-                  ]
-                },
-                {
-                  "required": [
-                    "seal_basis"
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "required": [
-              "seal_basis"
-            ],
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "seal_ref"
-                  ]
-                },
-                {
-                  "required": [
-                    "auth_context"
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "properties": {
-              "kind": {
-                "const": "ak.realm.create"
-              }
-            },
-            "required": [
-              "kind"
-            ],
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "seal_ref"
-                  ]
-                },
-                {
-                  "required": [
-                    "auth_context"
-                  ]
-                },
-                {
-                  "required": [
-                    "seal_basis"
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "properties": {
-              "kind": {
-                "const": "ak.device.reanchor"
-              }
-            },
-            "required": [
-              "kind"
-            ],
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "seal_ref"
-                  ]
-                },
-                {
-                  "required": [
-                    "auth_context"
-                  ]
-                },
-                {
-                  "required": [
-                    "seal_basis"
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "$comment": "ak.strand.create may be the third item of the exact Direct Conversation founding unit, where it is that Realm's main Strand and no accepted Seal exists yet to reference. JSON Schema permits the no-basis shape; batch admission MUST reject it anywhere else, so every ordinary Strand still carries seal_ref and auth_context.",
-            "properties": {
-              "kind": {
-                "const": "ak.strand.create"
-              }
-            },
-            "required": [
-              "kind"
-            ],
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "seal_ref"
-                  ]
-                },
-                {
-                  "required": [
-                    "auth_context"
-                  ]
-                },
-                {
-                  "required": [
-                    "seal_basis"
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "$comment": "ak.device.authorize may be the second item of the exact PCR bootstrap or device re-anchor atomic unit. JSON Schema permits the no-basis shape; batch admission MUST reject it anywhere else.",
-            "properties": {
-              "kind": {
-                "const": "ak.device.authorize"
-              }
-            },
-            "required": [
-              "kind"
-            ],
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "seal_ref"
-                  ]
-                },
-                {
-                  "required": [
-                    "auth_context"
-                  ]
-                },
-                {
-                  "required": [
-                    "seal_basis"
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "properties": {
-              "kind": {
-                "enum": [
-                  "ak.member.state",
-                  "ak.realm.alias",
-                  "ak.realm.delivery_binding_policy",
-                  "ak.realm.discovery",
-                  "ak.realm.history_sharing_policy",
-                  "ak.realm.history_visibility",
-                  "ak.realm.join_rule",
-                  "ak.realm.plaintext_visible_services",
-                  "ak.realm.policy_bundle"
-                ]
-              }
-            },
-            "required": [
-              "kind"
-            ],
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "seal_ref"
-                  ]
-                },
-                {
-                  "required": [
-                    "auth_context"
-                  ]
-                },
-                {
-                  "required": [
-                    "seal_basis"
-                  ]
-                }
-              ]
-            }
-          }
-        ]
       }
     },
     {
@@ -1347,7 +1005,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.realm.history_visibility"
+            "const": "ak.realm.history_access"
           }
         },
         "required": [
@@ -1357,7 +1015,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/history_visibility_payload"
+            "$ref": "./event-payload.schema.json#/$defs/history_access_payload"
           }
         }
       }
@@ -1366,7 +1024,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.realm.history_sharing_policy"
+            "const": "ak.realm.organization_recovery_key.register"
           }
         },
         "required": [
@@ -1376,7 +1034,26 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/history_sharing_policy_payload"
+            "$ref": "./event-payload.schema.json#/$defs/organization_recovery_key_register_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.organization_recovery_key.rotate"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/organization_recovery_key_rotate_payload"
           }
         }
       }
@@ -1681,6 +1358,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/notary_fault_censorship_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.circle.history_access"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/circle_history_access_payload"
           }
         }
       }
@@ -3586,25 +3282,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.direct_conversation.mls_generation.activate"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/direct_conversation_mls_generation_activate_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.device.revoke"
           }
         },
@@ -3749,63 +3426,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/mls_keypackage_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.realm_key.share"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_key_share_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.realm_key.withheld"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_key_withheld_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.realm_key.share_audit"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_key_share_audit_payload"
           }
         }
       }
@@ -4757,7 +4377,7 @@
     "direct_conversation_bootstrap_authority_ref": {
       "type": "string",
       "const": "ak.authority.direct_conversation_bootstrap_participant.v1",
-      "description": "The pre-binding profile-scoped non-grant authorization source accepted by Event.authorization_ref, meaningful solely in ak.profile.direct_conversation_realm.v1 between an accepted founding unit and the first legal binding endorsement. It requires one critical refs[] role=direct_conversation_founding_unit Event reference pointing at the accepted ak.realm.create of that unit. The verifier recomputes which of the two mutually exclusive phases applies from accepted facts and MUST NOT let the producer choose: provisional_history_send applies only to the founder while the active-generation cell has not passed generation 0, and exact_pair_founding_completion applies once the selected group state holds exactly the pair's authorized leaves and no legal endorsement exists yet. Both phases permanently retire once the first legal ak.direct_conversation.bound endorsement is accepted, after which only direct_conversation_participant_authority_ref remains. Neither phase authorizes policy, grant, a third participant, another Strand or ordinary membership writes. See zh/identity/contact-and-direct-conversation.md section 7.2."
+      "description": "Pre-binding profile-scoped non-grant authority for a Direct Conversation between accepted founding unit and first legal binding endorsement. It requires one critical founding-unit ref. provisional_history_send authorizes only founder actions in the one scope-derived group; exact_pair_founding_completion applies once that same group holds exact authorized pair leaves. Both retire after the first binding. Neither phase authorizes a second Genesis/group, policy, grant, a third participant, another Strand or ordinary membership writes."
     },
     "membership_compensation_delegation_ref": {
       "type": "string",
@@ -4846,55 +4466,45 @@
       "additionalProperties": false
     },
     "semantic_ref": {
-      "type": "object",
-      "required": [
-        "id",
-        "role"
-      ],
-      "properties": {
-        "id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "role": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Common roles include authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof, did_inception, and did_recovery_anchor. did_recovery_anchor is reserved to ak.device.reanchor by kind dispatch."
-        },
-        "critical": {
-          "type": "boolean",
-          "default": true
-        },
-        "proof": {
+      "oneOf": [
+        {
           "type": "object",
-          "description": "Optional inline proof material. Used for inclusion_proof role: carries the Merkle audit path defined by event-auth-state-resolution.md §6.2.1 / §6.2.2 that proves a leaf belongs to a witness state_root. May be omitted when id alone is a content-addressed reference to a separately stored proof object.",
+          "required": ["id", "role", "critical", "proof"],
           "properties": {
-            "kind": {
-              "type": "string",
-              "enum": [
-                "rfc6962_merkle"
-              ]
+            "id": {"$ref": "#/$defs/seal_ref"},
+            "role": {"enum": ["state_witness", "inclusion_proof"]},
+            "critical": {"const": true},
+            "proof": {"$ref": "#/$defs/semantic_ref_merkle_proof"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["id", "role", "critical"],
+          "properties": {
+            "id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+            "role": {
+              "enum": ["authorized_by", "attestation", "parent_event", "after", "audit_pair", "recovery_capability", "did_inception", "did_recovery_anchor", "accountability"]
             },
-            "leaf_digest": {
-              "$ref": "#/$defs/digest"
-            },
-            "audit_path": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/digest"
-              }
-            },
-            "leaf_index": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "leaf_count": {
-              "type": "integer",
-              "minimum": 1
-            }
+            "critical": {"type": "boolean"}
           },
           "additionalProperties": false
         }
+      ],
+      "description": "Closed typed locator union. State witnesses use a SealRef plus inline typed Merkle proof; grant/event roles use the exact provenance EventId. Signer-resolution evidence is carried exactly once by each producer/principal_server proof's required signer_resolution_evidence_ref and signer_resolution_evidence_digest, never as a SemanticRef. Unknown critical roles fail closed."
+    },
+    "semantic_ref_merkle_proof": {
+      "type": "object",
+      "required": ["kind", "root_field", "root_digest", "leaf_canonical_preimage_b64u", "leaf_digest", "audit_path", "leaf_index", "leaf_count"],
+      "properties": {
+        "kind": {"const": "rfc6962_merkle"},
+        "root_field": {"enum": ["state_root", "control_event_set_root"]},
+        "root_digest": {"$ref": "#/$defs/digest"},
+        "leaf_canonical_preimage_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "leaf_digest": {"$ref": "#/$defs/digest"},
+        "audit_path": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/digest"}},
+        "leaf_index": {"type": "integer", "minimum": 0},
+        "leaf_count": {"type": "integer", "minimum": 1}
       },
       "additionalProperties": false
     },
@@ -4962,7 +4572,7 @@
     },
     "principal_server_admission_proof": {
       "type": "object",
-      "description": "Origin Principal Server admission proof over canonical_json({context:'ak.principal-server-admission-proof-v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,accepted_at,verification_method}). It attests that the service completed local author/session/device-generation admission at accepted_at; it is not a content signature and later device revocation does not invalidate a proof lawfully created before revocation_pending.",
+      "description": "Origin Principal Server admission proof over canonical_json({context:'ak.principal-server-admission-proof-v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,signer_resolution_evidence_ref,signer_resolution_evidence_digest,accepted_at,verification_method}). It attests that the service completed local author/session/device-generation admission at accepted_at. Historical verification uses the retained content-addressed signer evidence rather than current resolver state.",
       "required": [
         "kind",
         "verification_method",
@@ -4970,6 +4580,8 @@
         "producer_proof_digest",
         "producer_verification_method",
         "producer_signing_key",
+        "signer_resolution_evidence_ref",
+        "signer_resolution_evidence_digest",
         "accepted_at",
         "jws"
       ],
@@ -4985,7 +4597,8 @@
           "$ref": "#/$defs/digest"
         },
         "producer_proof_digest": {
-          "$ref": "#/$defs/digest",
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
           "description": "SHA-256 digest of the complete producer_event_proof object actually verified by the origin service."
         },
         "producer_verification_method": {
@@ -4996,6 +4609,14 @@
           "type": "string",
           "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
           "description": "Public signing key that verifies the exact producer proof at admission time."
+        },
+        "signer_resolution_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        },
+        "signer_resolution_evidence_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Must equal the digest encoded by signer_resolution_evidence_ref and resolve to the exact Principal Server verification method used by this proof."
         },
         "accepted_at": {
           "$ref": "#/$defs/canonical_event_timestamp"
@@ -5022,7 +4643,7 @@
           "enum": [
             "detached_jws"
           ],
-          "description": "Actor, device or service signature over canonical_json({context:'ak.event-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?})."
+          "description": "Actor, device or service signature over the registered producer-proof transcript. When the Event has no principal_server_admission proof, signer_resolution_evidence_ref and signer_resolution_evidence_digest are required and included. When a valid admission proof exists, both fields are forbidden and that proof's producer_signing_key is the historical producer-key truth."
         },
         "verification_method": {
           "type": "string",
@@ -5034,6 +4655,14 @@
         },
         "created_at": {
           "$ref": "#/$defs/canonical_event_timestamp"
+        },
+        "signer_resolution_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Required only for the direct/DID-root/native producer regime without principal_server_admission; forbidden otherwise."
+        },
+        "signer_resolution_evidence_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
         },
         "domain": {
           "type": "string"
@@ -5065,7 +4694,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Producer Event proof. The signer maps to executed_by when present or actor_id otherwise. Its event_digest covers canonical producer Event bytes including principal_server_id and excluding proofs, unsigned and reducer-stamped actor_kind."
+      "description": "Producer Event proof. The signer maps to executed_by when present or actor_id otherwise. Its event_digest covers canonical producer Event bytes including principal_server_id and excluding proofs, unsigned and reducer-stamped actor_kind. The event-level proof-regime validator enforces exactly one branch: a valid principal_server_admission proof means producer signer evidence fields are absent and the admission-bound producer_signing_key verifies this proof; without such admission both signer evidence fields are present and resolve to this exact verification_method."
     },
     "event_proof": {
       "description": "Closed Event proof union. Callers submit producer_event_proof only; the origin Principal Server may append one principal_server_admission proof after successful local admission.",

@@ -2,79 +2,50 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/availability-receipt.schema.json",
   "title": "Arkret AvailabilityReceipt",
-  "description": "Signed holder commitment that Event bytes are available until retention_expires_at. Digest membership roots do not prove byte availability; CBA models availability independently.",
+  "description": "Content-addressed signed holder commitment that exact Event bytes remain available until retention_expires_at. receipt_digest is the full canonical content digest of the nested receipt, including its signature; no Merkle-root surrogate replaces the receipt bytes.",
   "type": "object",
-  "required": [
-    "realm_id",
-    "event_id",
-    "bytes_digest",
-    "holder_id",
-    "retention_expires_at",
-    "signature"
-  ],
+  "required": ["receipt", "receipt_digest"],
   "properties": {
-    "realm_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_id"
-    },
-    "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
-    "bytes_digest": {
-      "$ref": "#/$defs/digest"
-    },
-    "holder_id": {
-      "$ref": "#/$defs/did_core_id"
-    },
-    "retention_expires_at": {
-      "$ref": "#/$defs/timestamp"
-    },
-    "signature": {
-      "$ref": "#/$defs/proof"
+    "receipt": {"$ref": "#/$defs/availability_receipt_content"},
+    "receipt_digest": {
+      "$ref": "#/$defs/digest",
+      "description": "Realm-suite digest over RFC 8785 JCS of the complete nested receipt, including signature. It is never computed over this wrapper."
     }
   },
   "additionalProperties": false,
   "$defs": {
-    "timestamp": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
-    },
-    "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-    },
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
-    "proof": {
+    "availability_receipt_content": {
       "type": "object",
       "required": [
-        "kind",
-        "verification_method",
-        "payload_digest",
-        "created_at",
-        "jws"
+        "realm_id",
+        "event_id",
+        "bytes_digest",
+        "holder_id",
+        "retention_expires_at",
+        "holder_signer_evidence_ref",
+        "holder_signer_evidence_digest",
+        "signature"
       ],
       "properties": {
-        "kind": {
-          "const": "detached_jws"
-        },
-        "verification_method": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-        },
-        "payload_digest": {
+        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+        "event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "bytes_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Hash of canonical AvailabilityReceipt bytes with signature omitted."
+          "description": "Realm-suite digest of UTF8('ak.availability-event-bytes-v1') || 0x00 || JCS(the complete accepted EventEnvelope with only unsigned removed). event_id, actor_kind and all accepted producer/principal-server proofs remain in the preimage."
         },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "jws": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        "holder_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "retention_expires_at": {"$ref": "./time.schema.json#/$defs/timestamp"},
+        "holder_signer_evidence_ref": {"$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"},
+        "holder_signer_evidence_digest": {"$ref": "#/$defs/sha256_digest"},
+        "signature": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "x-arkret-proof-context": "ak.availability-receipt-proof-v1"
         }
       },
-      "additionalProperties": false
-    }
+      "additionalProperties": false,
+      "description": "The signature-free core is {realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}. bytes_digest binds the complete accepted Event bytes except unsigned and is not event_id; verifier separately recomputes event_digest/event_id and every accepted proof. signature.payload_digest is the Realm-suite digest of RFC 8785 JCS(core). signature signs RFC 8785 JCS({context:'ak.availability-receipt-proof-v1',payload_digest,...core,verification_method,created_at}). holder_signer_evidence_digest equals the digest encoded by holder_signer_evidence_ref. The resolved evidence authorizes signature.verification_method for holder_id at signing time; current DID state is not a historical-key substitute."
+    },
+    "digest": {"type": "string", "pattern": "^(sha256|blake3):[0-9a-f]{64}$"},
+    "sha256_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
   }
 }

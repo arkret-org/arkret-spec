@@ -28,11 +28,11 @@
     },
     "sender_device_id": {
       "$ref": "#/$defs/device_id",
-      "description": "Authoring human device. Exactly one sender endpoint branch is present: this field, or the complete sender_agent_* triple. A Native Agent runtime has no device identity and MUST NOT be disguised as an ak:device (identity/contact-and-direct-conversation.md section 8.2.1, crypto-media/device-lifecycle.md section 9.0.1), which is why the two are a closed XOR rather than one nullable device slot. Receivers deduplicate by (sender_principal_id, sender_device_id, device_message_id) for a device sender and by (sender_principal_id, sender_agent_id, device_message_id) for a Native Agent sender."
+      "description": "Authoring human device. Exactly one sender endpoint branch is present: this field, or the complete sender_agent_* triple. A Native Agent runtime has no device identity and MUST NOT be disguised as an ak:device (crypto-media/device-lifecycle.md section 9.0.1), which is why the two are a closed XOR rather than one nullable device slot. Receivers deduplicate by (sender_principal_id, sender_device_id, device_message_id) for a device sender and by (sender_principal_id, sender_agent_id, device_message_id) for a Native Agent sender."
     },
     "sender_agent_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "Native Agent principal that authored this message. Present exactly when the sender is an Agent runtime, together with sender_agent_verification_method and sender_agent_key_authorize_event_id. It equals sender_principal_id; carrying it explicitly is what makes the endpoint branch decidable from the envelope alone, matching the requester XOR of member_repair_request_content and the consume / claim_envelope XORs of crypto-media/device-lifecycle.md section 9.0.1."
+      "description": "Native Agent principal that authored this message. Present exactly when the sender is an Agent runtime, together with sender_agent_verification_method and sender_agent_key_authorize_event_id. It equals sender_principal_id; carrying it explicitly is what makes the endpoint branch decidable from the envelope alone, matching the consume / claim_envelope XORs of crypto-media/device-lifecycle.md section 9.0.1."
     },
     "sender_agent_verification_method": {
       "$ref": "./common-ids.schema.json#/$defs/did_url",
@@ -57,10 +57,6 @@
     },
     "content": {
       "type": "object"
-    },
-    "device_proof": {
-      "type": "object",
-      "description": "Optional per-device transport proof block (typical sub-fields: device_authorize_event_id, sender_device_key_fingerprint, signature_over_content_digest). It MUST NOT replace MLS authentication of the enclosing envelope and MUST NOT be trusted in isolation."
     },
     "unsigned": {
       "type": "object",
@@ -339,44 +335,6 @@
           }
         }
       }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.realm_key.request"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "$ref": "#/$defs/realm_key_request_content"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.member.repair.request"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "$ref": "#/$defs/member_repair_request_content"
-          }
-        }
-      }
     }
   ],
   "$defs": {
@@ -403,10 +361,6 @@
     "realm_id": {
       "type": "string",
       "pattern": "^ak:realm:[A-Za-z0-9_-]{44}$"
-    },
-    "circle_id": {
-      "type": "string",
-      "pattern": "^ak:circle:[A-Za-z0-9_-]{44}$"
     },
     "digest": {
       "type": "string",
@@ -490,241 +444,6 @@
         }
       },
       "additionalProperties": true
-    },
-    "realm_key_request_content": {
-      "type": "object",
-      "description": "ak.realm_key.request to-device content (device-lifecycle.md §13.2). A read-eligible receiver asks a concrete key source to evaluate policy and, if authorized, deliver historical history_secret material via durable ak.realm_key.share or an equivalent policy-authorized recovery path. Carries no key material itself.",
-      "required": [
-        "key_scope",
-        "recipient_principal_id",
-        "recipient_device_id",
-        "recipient_hpke_public_key",
-        "requested_source_kind",
-        "target_source_ref",
-        "target_principal_id",
-        "created_at"
-      ],
-      "properties": {
-        "key_scope": {
-          "$ref": "#/$defs/realm_key_request_scope"
-        },
-        "recipient_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "recipient_device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "recipient_hpke_public_key": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Recipient device HPKE public key (KeyPackage init key or equivalent) the key source MUST verify as an authorized device key for recipient_principal_id before sealing history_secret."
-        },
-        "requested_source_kind": {
-          "type": "string",
-          "enum": [
-            "own_device",
-            "verified_member_device",
-            "archive_node",
-            "recovery_service"
-          ],
-          "description": "Source class this request targets. key_backup is intentionally excluded because it is retrieved via ak.self.keys.backups.command.unlock."
-        },
-        "target_source_ref": {
-          "description": "Concrete source this request is routed to: a device_id for own_device / verified_member_device, or a service DID for archive_node / recovery_service. Service-targeted reuse of this to-device kind is valid only when ServiceDescribe exposes a concrete recipient_device_id / queue target for the service DID; otherwise the service MUST expose a dedicated operation.",
-          "oneOf": [
-            {
-              "$ref": "#/$defs/device_id"
-            },
-            {
-              "$ref": "#/$defs/did_core_id"
-            }
-          ]
-        },
-        "target_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Principal that owns target_source_ref (the to-device queue is addressed by (principal, device_id)). Carried so the relay routes directly without scanning Realm members to reverse-lookup the device's principal."
-        },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_key_request_scope": {
-      "type": "object",
-      "required": [
-        "effective_scope",
-        "from_epoch",
-        "to_epoch"
-      ],
-      "properties": {
-        "effective_scope": {
-          "$ref": "#/$defs/effective_scope",
-          "description": "Tagged scope of the requested key material. Realm-default history uses {kind:'realm', realm_id}; Circle history uses {kind:'circle', realm_id, circle_id}."
-        },
-        "policy_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Optional requester-observed policy digest hint. The key source MUST recompute the effective policy from accepted history before sharing."
-        },
-        "membership_frontier_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Optional requester-observed membership frontier hint. The key source MUST recompute recipient eligibility from accepted history before sharing."
-        },
-        "from_epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "to_epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "history_visibility": {
-          "type": "string",
-          "enum": [
-            "world_readable",
-            "shared",
-            "invited",
-            "joined",
-            "restricted"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "effective_scope": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "realm_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "realm"
-            },
-            "realm_id": {
-              "$ref": "#/$defs/realm_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "realm_id",
-            "circle_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "circle"
-            },
-            "realm_id": {
-              "$ref": "#/$defs/realm_id"
-            },
-            "circle_id": {
-              "$ref": "#/$defs/circle_id"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "member_repair_request_content": {
-      "type": "object",
-      "description": "ak.member.repair.request to-device content (contact-and-direct-conversation.md 8.2.1). A participant that has rejoined membership asks the current peer participant to author the MLS Remove/re-add Commit and Welcome that a replacement generation needs, because no actor may sign for another. Same non-authorizing trigger shape as ak.realm_key.request: it carries no Event bytes, no MLS material and no authority, and the peer MUST re-verify every gate from the signed event log before authoring anything.",
-      "required": [
-        "realm_id",
-        "requester_principal_id",
-        "requester_keypackage_ref",
-        "observed_active_generation_value_digest",
-        "rejoin_event_id",
-        "created_at"
-      ],
-      "oneOf": [
-        {
-          "required": [
-            "requester_device_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "requester_agent_id"
-                ]
-              },
-              {
-                "required": [
-                  "requester_agent_verification_method"
-                ]
-              },
-              {
-                "required": [
-                  "agent_key_authorize_event_id"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "requester_agent_id",
-            "requester_agent_verification_method",
-            "agent_key_authorize_event_id"
-          ],
-          "not": {
-            "required": [
-              "requester_device_id"
-            ]
-          }
-        }
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "#/$defs/realm_id",
-          "description": "The pair's immutable Direct Conversation Realm. Repair never creates a successor Realm, Strand or binding."
-        },
-        "requester_principal_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "MUST equal the principal bound by the selected device or Native-Agent authorization/evidence branch: no actor may ask for repair on another participant's behalf."
-        },
-        "requester_device_id": {
-          "$ref": "#/$defs/device_id",
-          "description": "Human-device branch only. MUST equal the detached repair authorization and portable device evidence device_id, and the exact KeyPackage selected by requester_keypackage_ref MUST belong to this current authorized device."
-        },
-        "requester_agent_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Native-Agent branch only. MUST equal requester_principal_id and the actor/subject of the accepted rejoin Event."
-        },
-        "requester_agent_verification_method": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$",
-          "description": "Native-Agent runtime verification method that signed the repair authorization and the exact KeyPackage. It MUST match current AgentSignerEvidence byte for byte."
-        },
-        "agent_key_authorize_event_id": {
-          "type": "string",
-          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
-          "description": "Native-Agent branch current accepted ak.agent.key.authorize Event. It MUST match the current AgentSignerEvidence and the exact KeyPackage claim record."
-        },
-        "requester_keypackage_ref": {
-          "type": "string",
-          "minLength": 1,
-          "description": "The single KeyPackage the peer claims for the re-add, so exactly one KeyPackage is consumed and the peer never has to guess which of the requester's packages to use."
-        },
-        "observed_active_generation_value_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 of RFC 8785 JCS for the complete accepted ak.component.direct_conversation.active_mls_generation.v1 cell value the requester observed, copied byte for byte from active_mls_generation_value_digest returned by the resolver. It is never derived from or replaced by active_mls_generation_ref. A peer that sees a different current whole-value digest MUST drop the request instead of authoring a second replacement."
-        },
-        "rejoin_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "description": "The requester's accepted ak.member.rejoin.own Event. The peer MUST verify it is accepted and subject-matched; an unaccepted or absent rejoin means there is nothing to repair yet."
-        },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
     },
     "key_verification_content": {
       "type": "object",

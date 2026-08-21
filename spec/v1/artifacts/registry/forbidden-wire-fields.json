@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 19,
+  "version": 20,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -1494,24 +1494,24 @@
       "context": "realm_object",
       "since_revision": "2026-07-30",
       "rejection_level": "hard_reject",
-      "replacement": "ak.realm.history_sharing_policy",
+      "replacement": "ak.realm.history_access",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "The Realm E2EE history sharing policy is a mutable policy facet cell (ak.component.realm.history_sharing_policy.v1), never a create-locked property of the closed realm.schema.json object. Two profiles do not declare it at all because they can never emit that Event: ak.profile.principal_control_realm.v1 fixes the effective baseline value for a Principal Control Realm (zh/models/realm-and-space.md §2.8.1) and ak.profile.direct_conversation_realm.v1 fixes it for a Direct Conversation Realm (zh/identity/contact-and-direct-conversation.md §6.2)."
+      "notes": "This obsolete parallel key-sharing policy is never accepted on v1 wire. Each Realm/Circle instead has exactly one current two-state history_access facet; exporter key delivery and non-public history projection evaluate that same facet without aliases or profile-fixed baselines."
     },
     {
-      "id": "history_visibility",
+      "id": "history_access",
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ak.realm.history_visibility",
+      "replacement": "ak.realm.history_access",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "History visibility is Realm-scoped. Space payloads MUST NOT carry history_visibility."
+      "notes": "History visibility is Realm-scoped. Space payloads MUST NOT carry history_access."
     },
     {
       "id": "icon_blob",
@@ -1621,18 +1621,6 @@
         "negative_test"
       ],
       "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
-    },
-    {
-      "id": "mention_sidecar_hash",
-      "context": "all_arkret_owned_wire_contexts",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "mention_sidecar_digest",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "message_id",

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-18.2",
+  "version": "2026-08-21.1",
   "source_of_truth": true,
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
@@ -43,6 +43,30 @@
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical machine contract for projecting and hashing the accepted key-access state bound into MLS epochs."
+    },
+    {
+      "name": "history_key_canonical_bindings",
+      "file": "registry/history-key-canonical-binding-registry.json",
+      "kind": "history_key_canonical_binding_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical domain-separated JCS preimages, ordering rules, and digest projections for private history-key delivery."
+    },
+    {
+      "name": "history_recovery_scalability",
+      "file": "registry/history-recovery-scalability-registry.json",
+      "kind": "history_recovery_scalability_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Closed size, range, active-mailbox, compact-receipt-ledger, and expiry limits for private history recovery."
+    },
+    {
+      "name": "history_release_attestation",
+      "file": "registry/history-release-attestation-registry.json",
+      "kind": "history_release_attestation_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Closed honest-release-service predicate and authority-locator contract for first durable history-chunk enqueue."
     },
     {
       "name": "exporter_labels",

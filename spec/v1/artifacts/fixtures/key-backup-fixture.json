@@ -404,40 +404,6 @@
       }
     },
     {
-      "name": "managed_agent_pcr_plaintext_valid",
-      "schema_ref": "schemas/key-backup-plaintext.schema.json",
-      "expect_valid": true,
-      "instance": {
-        "schema": "ak.schema.key_backup_plaintext.v1",
-        "backup_id": "ak:backup:01964143-0000-7000-8000-000000000001",
-        "backup_kind": "mls_history",
-        "series_id": "ak:backup_series:01964143-1000-7000-8000-000000000001",
-        "series_seq": 0,
-        "items": [
-          {
-            "item_kind": "mls_group_state",
-            "secret_id": "managed_agent_pcr_state",
-            "secret_b64u": "c2VjcmV0",
-            "secret_generation": 1,
-            "realm_id": "ak:realm:AbRH5VNppa6baudrpAVEtQYNVsG67tHPyLLI8y5SRAAv",
-            "managed_principal_binding": {
-              "managed_principal_id": "ak:did_core:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9",
-              "controller_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
-              "principal_control_realm_id": "ak:realm:AbRH5VNppa6baudrpAVEtQYNVsG67tHPyLLI8y5SRAAv",
-              "authorization_ref": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example#controller-alice",
-              "managed_frontier_ref": {
-                "frontier_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
-                "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                "mls_epoch": 3
-              }
-            },
-            "mls_group_id": "managed-agent-pcr-group",
-            "epoch": 3
-          }
-        ]
-      }
-    },
-    {
       "name": "key_backup_unlock_proof_valid",
       "schema_ref": "schemas/key-backup-unlock-proof.schema.json",
       "expect_valid": true,

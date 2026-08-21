@@ -113,61 +113,6 @@
       ]
     },
     {
-      "name": "hardened_realm_disables_recipient_registered_mention_routing",
-      "vector_id": "ak.vector.push.mention_routing_hint_disabled_on_hardened_realm.v1",
-      "runner": "cotest::conformance::push_rule_core::run_hardened_mention_routing_hint_vector",
-      "variants": [
-        {
-          "realm_profiles": [
-            "ak.profile.mls.minimal_metadata_realm.v1"
-          ],
-          "declared_mention_routing_hint": "recipient_registered_token",
-          "expected_effective_hint": "disabled"
-        },
-        {
-          "realm_profiles": [
-            "ak.profile.attested_audit.e2ee.v1"
-          ],
-          "declared_mention_routing_hint": "recipient_registered_token",
-          "expected_effective_hint": "disabled"
-        },
-        {
-          "realm_profiles": [
-            "ak.profile.disclosed_audit.e2ee.v1"
-          ],
-          "declared_mention_routing_hint": "recipient_registered_token",
-          "expected_effective_hint": "disabled"
-        },
-        {
-          "realm_profiles": [
-            "ak.profile.e2ee_client.v1"
-          ],
-          "declared_mention_routing_hint": "recipient_registered_token",
-          "expected_effective_hint": "recipient_registered_token"
-        },
-        {
-          "realm_profiles": [
-            "ak.profile.mls.minimal_metadata_realm.v1"
-          ],
-          "declared_mention_routing_hint": "unknown_hint",
-          "expected_effective_hint": "disabled"
-        }
-      ],
-      "expected_hardened_behavior": {
-        "register_sidecar_token": false,
-        "compare_sidecar_token": false,
-        "persist_sidecar_token": false,
-        "fallback": "blind_or_batch_wakeup"
-      },
-      "assertions": [
-        "minimal-metadata and both audited E2EE profiles force disabled",
-        "explicit recipient_registered_token cannot weaken a hardened profile",
-        "unknown hint values fail closed as disabled",
-        "ordinary non-hardened E2EE remains the positive control",
-        "no registration comparison or persistence occurs before blind or batch fallback"
-      ]
-    },
-    {
       "name": "participating_plain_non_participant_is_filtered",
       "watch_level": "participating",
       "event": {},
@@ -334,7 +279,6 @@
   ],
   "covers_vectors": [
     "ak.vector.push.broadcast_mention_controls.v1",
-    "ak.vector.push.strand_engaged_mention.v1",
-    "ak.vector.push.mention_routing_hint_disabled_on_hardened_realm.v1"
+    "ak.vector.push.strand_engaged_mention.v1"
   ]
 }

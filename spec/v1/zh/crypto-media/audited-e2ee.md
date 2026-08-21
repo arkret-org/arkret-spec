@@ -200,9 +200,6 @@ Session close 后不得追加新的 `ak.audit.release`；需要更多材料必�
 
 **与 `mls_exporter_aead_v1` per-epoch `history_secret` 的交叉约束（normative）**：在采用 [`encryption-and-audit.md` §2.10](./encryption-and-audit.md) `mls_exporter_aead_v1` 内容 scheme 的 Realm 上，`sealed_epoch_key_release` 释放的 sealed-epoch material 与该 epoch 的 `history_secret[N]` 是**同一把根**（`sealed_epoch_key_release` 释放的即是对该 epoch 内容解密所需的 epoch root）。两条治理门（§2.10 的历史共享门 与本 profile 的 audit binding release 门）因此 MUST 交叉约束，不得各自独立放行而互相绕过：
 
-- `ak.realm_key.share` 经 [`encryption-and-audit.md` §2.10.4](./encryption-and-audit.md) 向接收主体交付 `history_secret` 时，其接收主体资格（key-share-source / recipient eligibility，见 [`device-lifecycle.md` §13](./device-lifecycle.md)）MUST 与 audit binding 的 release 限制**不冲突**——历史共享路径 MUST NOT 被用作绕过 audit binding `allowed_release_modes` / release window / `first_auditable_epoch` 限制、把本应经 audit session 才可释放的 epoch root 私下交付给审计相关主体的旁路。
-- 反向地，audit `sealed_epoch_key_release` 释放 `history_secret`（或其等价 sealed-epoch material）时 MUST 仍满足 [`encryption-and-audit.md` §2.10.5](./encryption-and-audit.md) 的 retention 边界（该 epoch root 已按 retention policy 删除时不存在可释放 material，release MUST 失败而非要求成员重新派生）与本 profile 的 `first_auditable_epoch` 边界（§4：`sealed_epoch_range.first_epoch < first_auditable_epoch` MUST 拒绝 `audit_release_retroactive_scope_forbidden`）。即"该 epoch 的 `history_secret` 仍被保留"不等于"该 epoch 对审计可释放"——两个条件 MUST 同时成立，缺一即拒绝。
-
 ## 6. RYW Receipt 与 Attestation
 
 `ak.audit.ryw_receipt` 是 read-your-writes receipt object / durable event，用于证明某个 `ak.audit.release` 或需要先留痕的 `ak.audit.accessed` 已进入 accepted history。Receipt schema 见 [`audit-ryw-receipt.schema.json`](../../artifacts/schemas/audit-ryw-receipt.schema.json)。

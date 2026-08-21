@@ -4,6 +4,28 @@
   "title": "Arkret Service Operation DTOs",
   "description": "Canonical request and response DTOs for service operations. OpenAPI components reference this artifact so SDK and conformance tooling use one schema source.",
   "anyOf": [
+    {"$ref": "#/$defs/HistoryKeyRequest"},
+    {"$ref": "#/$defs/HistoryKeyRequest_create_outcome"},
+    {"$ref": "#/$defs/HistoryKeyRequest_list_query"},
+    {"$ref": "#/$defs/HistoryKeyRequest_list_outcome"},
+    {"$ref": "#/$defs/HistoryKeyResponseSendRequest"},
+    {"$ref": "#/$defs/HistoryKeyResponseSendOutcome"},
+    {"$ref": "#/$defs/HistoryKeyResponseListQuery"},
+    {"$ref": "#/$defs/HistoryKeyResponseListOutcome"},
+    {"$ref": "#/$defs/HistoryKeyResponseAckRequest"},
+    {"$ref": "#/$defs/HistoryKeyResponseAckOutcome"},
+    {"$ref": "#/$defs/OrganizationRecoveryArchiveListQuery"},
+    {"$ref": "#/$defs/OrganizationRecoveryArchiveListOutcome"},
+    {"$ref": "#/$defs/HistoryKeyRequest_replica"},
+    {"$ref": "#/$defs/HistoryKeyRequest_replica_outcome"},
+    {"$ref": "#/$defs/HistoryKeySourceRelay"},
+    {"$ref": "#/$defs/OrganizationRecoveryArchiveReplica"},
+    {"$ref": "#/$defs/OrganizationRecoveryArchiveReplica_outcome"},
+    {"$ref": "#/$defs/MlsGovernanceProofRequest"},
+    {"$ref": "#/$defs/MlsGovernanceProofOutcome"},
+    {"$ref": "#/$defs/SelfGovernanceDependencyResolveRequest"},
+    {"$ref": "#/$defs/PeerGovernanceDependencyResolveRequest"},
+    {"$ref": "#/$defs/GovernanceDependencyResolveOutcome"},
     {
       "$ref": "#/$defs/AccountCursorRevokeRequestBody"
     },
@@ -189,6 +211,162 @@
     }
   ],
   "$defs": {
+    "HistoryKeyRequest": {"$ref": "./history-key.schema.json#/$defs/history_key_request"},
+    "HistoryKeyRequestCreateOutcome": {"$ref": "./history-key.schema.json#/$defs/history_key_request_create_outcome"},
+    "HistoryKeyRequestListQuery": {"$ref": "./history-key.schema.json#/$defs/history_key_request_list_query"},
+    "HistoryKeyRequestListOutcome": {"$ref": "./history-key.schema.json#/$defs/history_key_request_list_outcome"},
+    "HistoryKeyResponseSendRequest": {"$ref": "./history-key.schema.json#/$defs/history_key_response_send_request"},
+    "HistoryKeyResponseSendOutcome": {"$ref": "./history-key.schema.json#/$defs/history_key_response_send_outcome"},
+    "HistoryKeyResponseListQuery": {"$ref": "./history-key.schema.json#/$defs/history_key_response_list_query"},
+    "HistoryKeyResponseListOutcome": {"$ref": "./history-key.schema.json#/$defs/history_key_response_list_outcome"},
+    "HistoryKeyResponseAckRequest": {"$ref": "./history-key.schema.json#/$defs/history_key_response_ack_request"},
+    "HistoryKeyResponseAckOutcome": {"$ref": "./history-key.schema.json#/$defs/history_key_response_ack_outcome"},
+    "OrganizationRecoveryArchiveListQuery": {"$ref": "./history-key.schema.json#/$defs/organization_recovery_archive_list_query"},
+    "OrganizationRecoveryArchiveListOutcome": {"$ref": "./history-key.schema.json#/$defs/organization_recovery_archive_list_outcome"},
+    "HistoryKeyRequestReplica": {"$ref": "./history-key.schema.json#/$defs/history_key_request_replica"},
+    "HistoryKeyRequestReplicaOutcome": {"$ref": "./history-key.schema.json#/$defs/history_key_request_replica_outcome"},
+    "HistoryKeySourceRelay": {"$ref": "./history-key.schema.json#/$defs/history_key_source_relay"},
+    "OrganizationRecoveryArchiveReplica": {"$ref": "./history-key.schema.json#/$defs/organization_recovery_archive_replica"},
+    "OrganizationRecoveryArchiveReplicaOutcome": {"$ref": "./history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome"},
+    "MlsGovernanceProofRequest": {"$ref": "./mls-governance-proof-bundle.schema.json#/$defs/read_request"},
+    "MlsGovernanceProofOutcome": {"$ref": "./mls-governance-proof-bundle.schema.json#/$defs/read_outcome"},
+    "AvailabilityReceiptSelector": {
+      "type": "object",
+      "required": ["kind", "content_digest"],
+      "properties": {
+        "kind": {"const": "availability_receipt"},
+        "content_digest": {"$ref": "./event-envelope.schema.json#/$defs/digest"}
+      },
+      "additionalProperties": false
+    },
+    "SignerResolutionEvidenceSelector": {
+      "type": "object",
+      "required": ["kind", "content_digest"],
+      "properties": {
+        "kind": {"const": "authenticated_signer_resolution_evidence"},
+        "content_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "MinimalMetadataMlsLeafSignerEvidenceSelector": {
+      "type": "object",
+      "required": ["kind", "content_digest"],
+      "properties": {
+        "kind": {"const": "minimal_metadata_mls_leaf_signer_evidence"},
+        "content_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "GovernanceRegistrySnapshotSelector": {
+      "type": "object",
+      "required": ["kind", "content_digest"],
+      "properties": {
+        "kind": {"const": "governance_registry_snapshot"},
+        "content_digest": {"$ref": "./governance-registry-snapshot.schema.json#/$defs/sha256_digest"}
+      },
+      "additionalProperties": false
+    },
+    "GovernanceRegistryArtifactSelector": {
+      "type": "object",
+      "required": ["kind", "descriptor"],
+      "properties": {
+        "kind": {"const": "governance_registry_artifact"},
+        "descriptor": {"$ref": "./governance-registry-snapshot.schema.json#/$defs/registry_artifact_descriptor"}
+      },
+      "additionalProperties": false
+    },
+    "GovernanceDependencySelector": {
+      "oneOf": [
+        {"$ref": "#/$defs/AvailabilityReceiptSelector"},
+        {"$ref": "#/$defs/SignerResolutionEvidenceSelector"},
+        {"$ref": "#/$defs/MinimalMetadataMlsLeafSignerEvidenceSelector"},
+        {"$ref": "#/$defs/GovernanceRegistrySnapshotSelector"},
+        {"$ref": "#/$defs/GovernanceRegistryArtifactSelector"}
+      ]
+    },
+    "SelfGovernanceDependencyResolveRequest": {
+      "type": "object",
+      "required": ["realm_id", "selectors", "byte_limit"],
+      "properties": {
+        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+        "selectors": {"type": "array", "minItems": 1, "maxItems": 1024, "uniqueItems": true, "items": {"$ref": "#/$defs/GovernanceDependencySelector"}},
+        "byte_limit": {"type": "integer", "minimum": 1, "maximum": 8388608},
+        "history_traversal_access": {"$ref": "./history-key.schema.json#/$defs/self_history_traversal_access"}
+      },
+      "additionalProperties": false,
+      "description": "Resolve exact typed non-Event governance dependencies. history_traversal_access is required only when ordinary visibility would not expose a dependency in the retained history cut."
+    },
+    "PeerGovernanceDependencyResolveRequest": {
+      "type": "object",
+      "required": ["realm_id", "selectors", "byte_limit"],
+      "properties": {
+        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+        "selectors": {"type": "array", "minItems": 1, "maxItems": 1024, "uniqueItems": true, "items": {"$ref": "#/$defs/GovernanceDependencySelector"}},
+        "byte_limit": {"type": "integer", "minimum": 1, "maximum": 8388608},
+        "history_traversal_access": {"$ref": "./history-key.schema.json#/$defs/peer_history_traversal_access"}
+      },
+      "additionalProperties": false,
+      "description": "Without history_traversal_access this is ordinary authenticated federation dependency resolution for apply_seal. The optional pending-archive traversal branch is only the narrow retained-cut exception; member request replicas never grant it."
+    },
+    "GovernanceDependency": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["selector", "availability_receipt"],
+          "properties": {
+            "selector": {"$ref": "#/$defs/AvailabilityReceiptSelector"},
+            "availability_receipt": {"$ref": "./availability-receipt.schema.json"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["selector", "authenticated_signer_resolution_evidence"],
+          "properties": {
+            "selector": {"$ref": "#/$defs/SignerResolutionEvidenceSelector"},
+            "authenticated_signer_resolution_evidence": {"$ref": "./authenticated-signer-resolution-evidence.schema.json"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["selector", "minimal_metadata_mls_leaf_signer_evidence"],
+          "properties": {
+            "selector": {"$ref": "#/$defs/MinimalMetadataMlsLeafSignerEvidenceSelector"},
+            "minimal_metadata_mls_leaf_signer_evidence": {"$ref": "./history-key.schema.json#/$defs/minimal_metadata_mls_leaf_signer_evidence"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["selector", "governance_registry_snapshot"],
+          "properties": {
+            "selector": {"$ref": "#/$defs/GovernanceRegistrySnapshotSelector"},
+            "governance_registry_snapshot": {"$ref": "./governance-registry-snapshot.schema.json"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["selector", "governance_registry_artifact"],
+          "properties": {
+            "selector": {"$ref": "#/$defs/GovernanceRegistryArtifactSelector"},
+            "governance_registry_artifact": {"$ref": "./governance-registry-snapshot.schema.json#/$defs/governance_registry_artifact"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "GovernanceDependencyResolveOutcome": {
+      "type": "object",
+      "required": ["items", "missing_selectors"],
+      "properties": {
+        "items": {"type": "array", "maxItems": 1024, "items": {"$ref": "#/$defs/GovernanceDependency"}},
+        "missing_selectors": {"type": "array", "maxItems": 1024, "uniqueItems": true, "items": {"$ref": "#/$defs/GovernanceDependencySelector"}}
+      },
+      "additionalProperties": false,
+      "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object; governance_registry_snapshot computes SHA-256(UTF8('ak.governance-registry-snapshot-v1') || 0x00 || JCS({kind,artifacts})) and therefore excludes snapshot_digest; governance_registry_artifact decodes canonical_bytes_b64u, requires canonical JSON, computes SHA-256(UTF8('ak.governance-registry-artifact-v1') || 0x00 || decoded canonical bytes), and compares selector.descriptor.content_digest. The first four compare selector.content_digest. Each signer-evidence or registry-artifact object is at most 1 MiB; the small snapshot manifest has no separate 1 MiB promise. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
+    },
     "AccountCursorRevokeOutcome": {
       "type": "object",
       "required": [
@@ -1807,9 +1985,9 @@
         }
       ]
     },
-    "EventSealSubmitOutcome": {
+    "SealSubmitOutcome": {
       "type": "object",
-      "description": "Result of ak.self.events.command.submit_seal after full Seal and active-device verification.",
+      "description": "Result of ak.self.seals.command.submit after full Seal and active-device verification. A Seal is not an Event and never uses EventInitialSubmission.",
       "required": [
         "seal_id",
         "accepted_event_digests",
@@ -1971,19 +2149,13 @@
     },
     "EventsFrontierAccountClientState": {
       "type": "object",
-      "description": "Account-client ak.self.events.read.frontier response. For a managed Agent PCR whose accepted Events are ahead of its accepted Seal, frontier remains the last accepted controller-device-signed Seal and receipts includes `{kind: ak.managed_agent_pcr.seal_head.v1, seal: Seal}` so the controller can author the successor; the service must never synthesize that device Seal.",
+      "description": "Account-client ak.self.events.read.frontier response for actor/data Event causal frontiers only. Realm Seal discovery is exclusively ak.self.seals.read.frontier.",
       "required": [
         "frontier"
       ],
       "properties": {
         "frontier": {
           "$ref": "#/$defs/EventsFrontierView"
-        },
-        "receipts": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/ManagedAgentPcrSealHeadReceipt"
-          }
         }
       },
       "additionalProperties": false
@@ -2049,19 +2221,8 @@
     },
     "EventsFrontierRequestBody": {
       "type": "object",
-      "description": "QUERY content for ak.self.events.read.frontier.",
-      "anyOf": [
-        {
-          "required": [
-            "actor_id"
-          ]
-        },
-        {
-          "required": [
-            "realm_id"
-          ]
-        }
-      ],
+      "description": "QUERY content for ak.self.events.read.frontier. actor_id is mandatory because this surface exposes only actor/data Event causal frontiers; use ak.self.seals.read.frontier for a Realm Seal frontier.",
+      "required": ["actor_id"],
       "properties": {
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -2075,13 +2236,72 @@
     "EventsFrontierState": {
       "$ref": "#/$defs/EventsFrontierAccountClientState"
     },
+    "SealFrontierRequestBody": {
+      "type": "object",
+      "required": ["realm_id"],
+      "properties": {"realm_id": {"$ref": "#/$defs/RealmId"}},
+      "additionalProperties": false,
+      "description": "Canonical self/peer Realm Seal-frontier query. It never selects Event actor heads."
+    },
+    "SealFrontierState": {
+      "type": "object",
+      "required": ["frontier"],
+      "properties": {
+        "frontier": {"$ref": "#/$defs/RealmSealFrontierView"},
+        "receipts": {"type": "array", "items": {"$ref": "#/$defs/ManagedAgentPcrSealHeadReceipt"}}
+      },
+      "additionalProperties": false,
+      "description": "Self Seal discovery result. Managed Agent PCR successor-authoring receipts live here, never on the Event frontier surface."
+    },
+    "PeerSealFrontierState": {
+      "type": "object",
+      "required": ["frontier", "service_proof"],
+      "properties": {
+        "frontier": {"$ref": "#/$defs/RealmSealFrontierView"},
+        "service_proof": {"$ref": "./event-envelope.schema.json#/$defs/proof", "x-arkret-proof-context": "ak.peer-seal-frontier-proof-v1"}
+      },
+      "additionalProperties": false,
+      "description": "Authenticated peer Seal discovery result. The proof covers the complete frontier including its observation coordinate."
+    },
+    "SealResolveRequestCore": {
+      "type": "object",
+      "required": ["realm_id", "seal_refs"],
+      "properties": {
+        "realm_id": {"$ref": "#/$defs/RealmId"},
+        "seal_refs": {"type": "array", "minItems": 1, "maxItems": 256, "uniqueItems": true, "items": {"$ref": "./event-envelope.schema.json#/$defs/seal_ref"}}
+      },
+      "description": "Exact Seal-only resolve core. Event ids/digests are forbidden and remain on Event resolve."
+    },
+    "SelfSealResolveRequestBody": {
+      "allOf": [
+        {"$ref": "#/$defs/SealResolveRequestCore"},
+        {"type": "object", "properties": {"history_traversal_access": {"$ref": "./history-key.schema.json#/$defs/self_history_traversal_access"}}}
+      ],
+      "unevaluatedProperties": false,
+      "description": "Self Seal resolve. Optional history_traversal_access is the only history-recovery exception to ordinary visibility. Every selected Seal must lie in the retained target-to-base cut derived from the named durable request receipt or archive replica."
+    },
+    "PeerSealResolveRequestBody": {
+      "allOf": [
+        {"$ref": "#/$defs/SealResolveRequestCore"},
+        {"type": "object", "properties": {"history_traversal_access": {"$ref": "./history-key.schema.json#/$defs/peer_history_traversal_access"}}}
+      ],
+      "unevaluatedProperties": false,
+      "description": "Authenticated peer Seal resolve. Optional history_traversal_access is checked against the exact retained request/archive-replica cut before lookup. Unknown, unauthorized, outside-cut and missing are indistinguishable."
+    },
+    "SealResolveOutcome": {
+      "type": "object",
+      "required": ["seals", "missing_seal_refs"],
+      "properties": {
+        "seals": {"type": "array", "items": {"$ref": "./seal.schema.json"}},
+        "missing_seal_refs": {"type": "array", "uniqueItems": true, "items": {"$ref": "./event-envelope.schema.json#/$defs/seal_ref"}}
+      },
+      "additionalProperties": false,
+      "description": "Every canonical input selector is accounted for exactly once by a verified Seal or same-shape missing ref. Returned Seals are sorted by seal_ref. Unknown and unauthorized are indistinguishable; no Event is returned."
+    },
     "EventsFrontierView": {
       "oneOf": [
         {
           "$ref": "#/$defs/RealmActorFrontierView"
-        },
-        {
-          "$ref": "#/$defs/RealmSealFrontierView"
         },
         {
           "$ref": "#/$defs/ActorAggregateFrontierView"
@@ -2233,7 +2453,7 @@
       "x-arkret-pcr-outward-event-kinds": [
         "ak.contact.requested"
       ],
-      "description": "ak.self.events.read.resolve result. `events[]`, optional `seals[]`, and `missing[]` plus optional `unauthorized[]` form a partition of the requested selectors.",
+      "description": "ak.self.events.read.resolve result. events[] and missing[] plus optional unauthorized[] form a partition. This surface returns Event bytes only. Control-Move effectiveness is established separately from the complete current Seal frontier/resolve closure; no covering or first-activation Seal is attached. DataEvents carry their accepted seal_ref, never enter Seal.delta and never require a covering Seal.",
       "required": [
         "events",
         "missing"
@@ -2244,13 +2464,6 @@
           "items": {
             "$ref": "./event-envelope.schema.json"
           }
-        },
-        "seals": {
-          "type": "array",
-          "items": {
-            "$ref": "./seal.schema.json"
-          },
-          "description": "Accepted Seals covering the returned Events: for each Event, the Seal whose delta[] contains that Event's event_digest. Deduplicated and sorted by Seal id; an Event that is accepted but not yet sealed contributes nothing and the service MUST NOT substitute a later descendant Seal. Supplying a Seal here is not an assertion of trust: a client bootstrapping an MLS governance anchor still has to verify the candidate itself under zh/crypto-media/encryption-and-audit.md section 2.5.4."
         },
         "missing": {
           "type": "array",
@@ -2271,35 +2484,43 @@
     },
     "EventsResolveRequestBody": {
       "type": "object",
-      "description": "ak.self.events.read.resolve request body. At least one of event_ids, event_digests, or seal_refs MUST be non-empty.",
+      "description": "ak.self.events.read.resolve request body. At least one of event_ids or event_digests must be non-empty. Standalone Seal selectors and Control-Move effectiveness checks belong only to the Seal frontier/resolve surfaces; this operation never attaches activation Seals.",
       "properties": {
         "event_ids": {
           "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "uniqueItems": true,
           "items": {
-            "type": "string"
+            "$ref": "#/$defs/EventId"
           }
         },
         "event_digests": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "seal_refs": {
-          "type": "array",
           "minItems": 1,
-          "maxItems": 64,
+          "maxItems": 1024,
           "uniqueItems": true,
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
-          },
-          "description": "Exact Seal references needed to verify control state and construct publication evidence."
+            "$ref": "./event-envelope.schema.json#/$defs/digest"
+          }
         },
         "include_payload": {
           "type": "boolean",
           "default": true
+        },
+        "history_traversal_access": {
+          "$ref": "./history-key.schema.json#/$defs/self_history_traversal_access",
+          "description": "Optional narrow access to Control Moves and registered apply_seal dependencies in the exact retained target-to-base traversal cut. It never authorizes unrelated DataEvents or timeline scanning; unknown, unauthorized, outside-cut and missing remain same-shape."
+        },
+        "max_response_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 8388608,
+          "default": 8388608,
+          "description": "Caller response budget, bounded by the service-advertised and 8 MiB canonical response ceilings."
         }
       },
+      "anyOf": [{"required": ["event_ids"]}, {"required": ["event_digests"]}],
       "additionalProperties": false
     },
     "AgentMembershipCascadeSubmission": {
@@ -2851,13 +3072,6 @@
             "$ref": "#/$defs/RealmActorFrontierView"
           },
           "description": "Post-submit authoring frontiers for accepted or duplicate Events, sorted and unique by (realm_id, actor_id)."
-        },
-        "realm_frontiers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/RealmSealFrontierView"
-          },
-          "description": "Visible post-submit Realm Seal frontiers sorted and unique by realm_id."
         },
         "cursor": {
           "type": "string",
@@ -3971,13 +4185,11 @@
     },
     "PeerEventsResolveOutcome": {
       "type": "object",
-      "description": "Read-only federation dependency response. The response has no Event/Seal/frontier write effect. Every request selector MUST be fully accounted for by a matching returned Event/bundle or the same-type missing bucket; one returned object MAY satisfy both an ID and digest selector. Nonexistent and undisclosable selectors share canonical-bytewise sorted typed missing buckets. Returned bundles MAY be bounded verifiable supersets. If complete accounting cannot fit the response budget, the operation returns limit_exceeded instead of this partial success shape.",
+      "description": "Read-only federation Event dependency response. Every Event selector is fully accounted for by a matching Event or same-type missing bucket. Event proof signer evidence is resolved through the typed governance-dependency surface; Control-Move effectiveness is checked through the separate Seal frontier/resolve closure. This response never duplicates CBA proof bundles or covering/first-activation Seal evidence.",
       "required": [
         "events",
-        "cba_proof_bundles",
         "missing_event_ids",
-        "missing_event_digests",
-        "missing_seal_refs"
+        "missing_event_digests"
       ],
       "properties": {
         "events": {
@@ -3986,14 +4198,6 @@
           "uniqueItems": true,
           "items": {
             "$ref": "./event-envelope.schema.json"
-          }
-        },
-        "cba_proof_bundles": {
-          "type": "array",
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
           }
         },
         "missing_event_ids": {
@@ -4011,21 +4215,13 @@
           "items": {
             "$ref": "./event-envelope.schema.json#/$defs/digest"
           }
-        },
-        "missing_seal_refs": {
-          "type": "array",
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
-          }
         }
       },
       "additionalProperties": false
     },
     "PeerEventsResolveRequestBody": {
       "type": "object",
-      "description": "Read-only federation dependency resolution request. At least one of event_ids, event_digests, or seal_refs MUST be non-empty. All selectors are scoped to exactly one Realm and each selector array is semantically required to be canonical-bytewise sorted as well as duplicate-free.",
+      "description": "Read-only federation Event dependency resolution request. At least one of event_ids or event_digests must be non-empty. Standalone Seal selectors belong only to ak.peer.seals.read.resolve. All selectors are scoped to exactly one Realm and canonical-bytewise sorted/duplicate-free.",
       "required": [
         "realm_id"
       ],
@@ -4051,15 +4247,6 @@
             "$ref": "./event-envelope.schema.json#/$defs/digest"
           }
         },
-        "seal_refs": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
-          }
-        },
         "include_payload": {
           "type": "boolean",
           "default": true
@@ -4070,6 +4257,10 @@
           "maximum": 8388608,
           "default": 8388608,
           "description": "Caller response budget. The responder MUST also enforce its advertised max_body_bytes and the 8 MiB Kernel ceiling, using the smallest of the three."
+        },
+        "history_traversal_access": {
+          "$ref": "./history-key.schema.json#/$defs/peer_history_traversal_access",
+          "description": "Optional narrow direct-traversal access. event_ids/event_digests may select only Control Moves or registered apply_seal dependencies in the exact retained target-to-base cut; Seal refs remain on ak.peer.seals.read.resolve. The authenticated peer and retained request/archive-replica basis are checked before lookup."
         }
       },
       "anyOf": [
@@ -4081,11 +4272,6 @@
         {
           "required": [
             "event_digests"
-          ]
-        },
-        {
-          "required": [
-            "seal_refs"
           ]
         }
       ],
@@ -4170,7 +4356,7 @@
         "membership_frontier_digest": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Membership / role frontier digest used when producing the decision."
+          "description": "Membership, role, account-lifecycle, and device-authorization frontier digest used when producing the decision."
         },
         "next_retry_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -4690,14 +4876,13 @@
     },
     "RealmSealFrontierView": {
       "type": "object",
-      "description": "Current accepted Realm Seal head used only for seal_basis and seal_ref authoring.",
+      "description": "The serving service's verified durable current accepted Realm Seal frontier used for seal_basis and seal_ref authoring. current is this observation coordinate, not a claim about global wall-clock latest state. open_set returns the complete canonical non-quarantined leaf antichain; single_signer and threshold return exactly one leaf. Consumers resolve and verify every Seal and recompute the joined control view; no service-derived root hint is an authority.",
       "required": [
         "kind",
         "realm_id",
-        "seal_id",
-        "control_event_set_root",
-        "state_root",
-        "governance_health"
+        "seal_basis",
+        "governance_health",
+        "observation_coordinate"
       ],
       "properties": {
         "kind": {
@@ -4706,24 +4891,23 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "seal_id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "control_event_set_root": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-        },
-        "state_root": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+        "seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Canonical bytewise-sorted, duplicate-free complete accepted Seal leaf antichain. This exact object can be copied into a newly authored Control Move only after resolving and verifying every leaf."
         },
         "governance_health": {
           "$ref": "#/$defs/ControlGovernanceHealth",
           "description": "Readiness projection derived only from verified Control Proposal Acks/decisions and accepted Seals. It is not a second control-plane truth source."
         },
-        "hlc": {
-          "type": "string"
+        "observation_coordinate": {
+          "type": "object",
+          "required": ["service_id", "sequence", "observed_at"],
+          "properties": {
+            "service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+            "sequence": {"type": "integer", "minimum": 0},
+            "observed_at": {"$ref": "./time.schema.json#/$defs/timestamp"}
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

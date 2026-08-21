@@ -78,7 +78,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | hash / transcript 域分隔标签 | `ak.agent_sidecar_circle.v1`、`ak.invite.claim.binding_proof.v1`、`ak.invite.claim.subject_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
 | feature id（`supported_features` / `experimental_features` 值） | `ak.feature.identity.webvh_native_log.v1`、`ak.feature.mls_governance_binding.full.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值，未识别值按各 describe 消费方规则忽略或 fail closed |
 | DID Document / 外部生态 profile 值 | `ak.org.governance.v1` | identity-did.md 示例上下文 |
-| E2EE application message kind | `ak.identity_link` | 定义文档（encryption-and-audit.md）；其 payload schema（`ak.schema.identity_link.v1`）仍 MUST 注册，kind 本身不进 durable event registry（不经 reducer / Seal 路径） |
+| E2EE MLS content type | `application/vnd.arkret.identity-link+json` | 定义文档（history-visibility.md）；其 plaintext schema（`ak.schema.identity_link.v1`）仍 MUST 注册，content type 本身不进 durable event registry（不经 reducer / Seal 路径） |
 | Signal plaintext payload kind | `ak.presence`、`ak.typing`、`ak.receipt.read`、`ak.call.signal`、`ak.message.stream` | [`../sync/signal.md` §1.1](../sync/signal.md) 的封闭登记表；每个 kind 的 closed plaintext schema 仍 MUST 注册（`ak.schema.signal_presence.v1` / `ak.schema.signal_typing.v1` / `ak.schema.read_receipt.v1` / `ak.schema.call_signal_plaintext.v1` / `ak.schema.signal_message_stream.v1`），kind 本身位于 ciphertext、不进 event-kind registry，也不分配 `wire_scope` |
 | 标准 account-data tag 词表 | `ak.favorite` | client-preferences.md §3.1（标准 tag 词表；tag 是加密 account data 内的私有分组标签，不进 wire registry） |
 
@@ -183,8 +183,7 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.realm.link` | Typed Realm link graph edge |
 | `ak.realm.inheritance_policy` | Policy inheritance declaration from a source Realm (subject=`payload.source_realm_id`) |
 | `ak.realm.join_rule` | Join rule state |
-| `ak.realm.history_visibility` | History visibility state |
-| `ak.realm.history_sharing_policy` | E2EE history key share policy |
+| `ak.realm.history_access` | History visibility state |
 | `ak.realm.discovery` | Discoverability state |
 | `ak.realm.preview_policy` | Preview / peek policy state |
 | `ak.realm.policy` | Realm policy state |
@@ -257,22 +256,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.device.list_update` | Device list update |
 
 ### 4.4 加密、协作与扩展
-
-| event type | payload |
-| --- | --- |
-| `ak.mls.proposal` | MLS proposal |
-| `ak.mls.genesis` | MLS group genesis |
-| `ak.mls.commit` | MLS commit |
-| `ak.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
-| `ak.mls.welcome` | MLS Welcome ref |
-| `ak.mls.keypackage` | MLS KeyPackage publication |
-| `ak.realm_key.share` | Realm key share（成员设备历史交付或 RRK 持久化封存） |
-| `ak.realm_key.withheld` | Realm key withheld notice |
-| `ak.realm_key.share_audit` | Auditable history key share marker |
-| `ak.applet.bridge_error` | Bridge failure |
-| `ak.applet.registration` | Applet registration |
-| `ak.mimi.room_binding` | MIMI room binding state |
-| `ak.redaction` | Generic redaction envelope |
 
 ## 5. Extension 约定
 

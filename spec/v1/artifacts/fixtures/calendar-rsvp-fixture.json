@@ -658,25 +658,13 @@
             "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
           ],
           "encrypted_response": {
-            "scheme": "mls_rfc9420",
             "version": "1.0",
-            "group_id": "Zm9vYmFy",
-            "epoch": 7,
             "content_type": "application/vnd.arkret.calendar-rsvp-response+json",
-            "ciphertext": "rsvpAlpha",
-            "aad_visibility_event_id_kind": "routing_digest",
-            "aad": {
-              "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-              "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
-              "event_kind": "ak.rsvp.set",
-              "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-            },
-            "key_ref": {
-              "algorithm": "MLS",
+            "encryption_context": {
+              "epoch": 7,
               "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
             },
-            "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
-            "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+            "ciphertext": "rsvpAlpha"
           }
         }
       }
@@ -718,25 +706,13 @@
             "status": "accepted"
           },
           "encrypted_response": {
-            "scheme": "mls_rfc9420",
             "version": "1.0",
-            "group_id": "Zm9vYmFy",
-            "epoch": 7,
             "content_type": "application/vnd.arkret.calendar-rsvp-response+json",
-            "ciphertext": "rsvpAlpha",
-            "aad_visibility_event_id_kind": "routing_digest",
-            "aad": {
-              "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-              "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
-              "event_kind": "ak.rsvp.set",
-              "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-            },
-            "key_ref": {
-              "algorithm": "MLS",
+            "encryption_context": {
+              "epoch": 7,
               "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
             },
-            "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
-            "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+            "ciphertext": "rsvpAlpha"
           }
         }
       }
@@ -1099,25 +1075,13 @@
             "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
           ],
           "encrypted_response": {
-            "scheme": "mls_rfc9420",
             "version": "1.0",
-            "group_id": "Zm9vYmFy",
-            "epoch": 7,
             "content_type": "application/json",
-            "ciphertext": "rsvpAlpha",
-            "aad_visibility_event_id_kind": "routing_digest",
-            "aad": {
-              "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-              "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
-              "event_kind": "ak.rsvp.set",
-              "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-            },
-            "key_ref": {
-              "algorithm": "MLS",
+            "encryption_context": {
+              "epoch": 7,
               "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
             },
-            "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
-            "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+            "ciphertext": "rsvpAlpha"
           }
         }
       }

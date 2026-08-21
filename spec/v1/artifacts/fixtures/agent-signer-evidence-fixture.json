@@ -27,6 +27,15 @@
   },
   "cases": [
     {
+      "name": "query_success_returns_cas_frozen_authenticated_root",
+      "success_item_kind": "native_agent",
+      "contains_complete_agent_signer_evidence": true,
+      "contains_four_recursive_evidence_pairs": true,
+      "issuer_atomically_persists_root_and_recursive_dependencies": true,
+      "client_constructs_wrapper": false,
+      "expected": "verified"
+    },
+    {
       "name": "current_exact_request_and_three_active_gates_verified",
       "verification_mode": "current_admission",
       "key_status": "active",

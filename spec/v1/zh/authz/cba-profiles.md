@@ -15,11 +15,11 @@ updated: 2026-07-30
 
 ## 1. Finality profile
 
-Realm genesis MUST 签名并 create-lock `notary_profile`：
+Realm genesis MUST 签名并 create-lock `notary.kind`；不存在并行的 `notary_profile` 字段：
 
 | profile | Seal 形态 | conformance |
 | --- | --- | --- |
-| `single_did` | 单 signer、单 predecessor 链 | Kernel 基础 profile，MUST 支持 |
+| `single_signer` | 单 did_core actor/current authorized verification method、单 predecessor 链 | Kernel 基础 profile，MUST 支持 |
 | `threshold` | k-of-n、单 predecessor 链 | 可选独立 profile |
 | `mixed` | primary authority 加独立 recovery authority、单 predecessor 链 | 可选独立 profile |
 | `open_set` | 多 leaf Seal DAG | 高成本可选 profile |
@@ -38,7 +38,7 @@ open-set vectors。
 | `exclusive` | 单值 policy/lifecycle；并发不可比较写进入 `⊥`，依赖方 fail closed，随后走显式 recovery。 |
 | `security_barrier` | authority、membership、device revoke、MLS epoch 等；open-set 必须有相交 quorum。 |
 
-在 `single_did`、`threshold`、`mixed` 的单链中，Seal predecessor 顺序提供 barrier。
+在 `single_signer`、`threshold`、`mixed` 的单链中，Seal predecessor 顺序提供 barrier。
 `open_set` Realm 没有单链顺序，barrier 由**目标 cell 自身的 CAS 加相交 quorum**提供；v1 **不**引入
 一个额外的 protocol-singleton barrier cell（那需要一个未登记的 cell family 与一个未登记的信封字段，
 两者都不存在，因此该形态无法被任何实现或门禁验证）。每个 `security_barrier` Move MUST：
@@ -79,7 +79,7 @@ submitted、pending、receipt、transparency entry、availability receipt、snap
 均不改变控制状态。只有 Control Move 进入一个密码学有效、其 covered set 与 `state_root`
 重算一致的 accepted Seal 后才生效。
 
-空 genesis Seal 非法。首 Seal MUST 原子覆盖完整 Realm bootstrap unit。该 unit 内的 `ak.realm.create` MUST 物化**五条 registered write**，
+空 genesis Seal 非法。首 Seal MUST 原子覆盖完整 Realm bootstrap unit。该 unit 内的 `ak.realm.create` MUST 物化**五条无条件 registered write**，并执行所有命中的 registered purpose-conditional write，
 逐条与 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)
 的注册投影一致（该节是唯一权威来源，本清单不得与其漂移）：
 
@@ -91,7 +91,7 @@ submitted、pending、receipt、transparency entry、availability receipt、snap
    `controller_id` / `controller_epoch` / `authority_generation` / `capability_action_registry_digest`
    分别由 create envelope 的 `actor_id` 与 create payload 确定性派生。
 
-profile、policy bundle、join rule、history visibility、条件 sharing/discovery/alias/plaintext/delivery 与 creator membership 是同一 bootstrap registry 中按序签名的显式 facet；它们不是 create reducer 的隐式写入。缺槽、错序或条件槽不闭合时整个 unit MUST 原子拒绝。
+普通 Collaboration 的 policy bundle、join rule、history access、discovery、alias/plaintext/delivery 与 creator membership 是同一 bootstrap registry 中按序签名的显式 facet。`direct_conversation`、`principal_control`、`managed_agent_control` 不携该普通 history facet；create reducer 分别按 `payload.object.purpose` 命中的注册条件原子写入 `ak.component.realm.history_access.v1: null -> since_join`。另有 `initial_resolution` 与 managed-Agent status 条件写。缺槽、错序、漏写或条件路径不闭合时整个 unit MUST 原子拒绝。
 
 对 MLS-backed scope，首 Seal 还 MUST 声明将由后续 `ak.mls.genesis` 建立 epoch-0 binding 的
 bootstrap requirement；epoch-0 binding 本身由首个覆盖 `ak.mls.genesis` 的 Seal 验证。
@@ -163,7 +163,7 @@ authority、reanchor、recovery 或普通 Control Move 不得使用第二条例�
 
 **authority-authored self-principal PCR Move**：human PCR genesis 已由 accepted Seal 建立后，若
 Control Move 同时满足 `realm_id=principal_control_realm_id(actor_id)`、current notary profile 为
-`single_did(actor_id)`、唯一 producer proof method 精确为该 principal 当前 active accepted device 的 canonical DID URL（该 URL
+`single_signer(actor_id)`、唯一 producer proof method 精确为该 principal 当前 active accepted device 的 canonical DID URL（该 URL
 由 principal 当前 `full_id` 构成且 fragment 等于 `device_id`，不得把 `principal_id` 直接拼接 fragment），并通过 generation/fence、current Seal basis 与完整 Event signature 校验，
 则该 device 就是 proposal authority 且已经 author exact Move；这不是需要另一个 authority 签收的
 proposal。此类 Move **MUST** 省略独立 Control Proposal Ack，admitting service 仍须原子持久化
@@ -219,7 +219,7 @@ CbaProofBundle {
 
 bundle 不签名、不创建新身份，也不是真相源。receiver MUST 独立验证对象 digest、签名、
 profile、predecessor/leaf closure、inclusion proof、state root 与 reducer 输出。
-`single_did`/`threshold`/`mixed` 按 predecessor digest/range 补齐；`open_set` 按 target leaves
+`single_signer`/`threshold`/`mixed` 按 predecessor digest/range 补齐；`open_set` 按 target leaves
 补 ancestry closure。sender MAY 发送完整、可验证的有界超集；receiver 不得要求字节相同的
 “最小 bundle”。
 

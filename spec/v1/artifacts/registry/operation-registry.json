@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-20.2",
+  "version": "2026-08-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-20T10:25:00+08:00",
+  "generated_at": "2026-08-21T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -108,13 +108,16 @@
         "ak.self.events.read.describe",
         "ak.self.events.read.delivery_status",
         "ak.self.events.command.submit",
-        "ak.self.events.command.submit_seal",
+        "ak.self.seals.command.submit",
         "ak.self.events.resource.get",
         "ak.self.events.read.resolve",
         "ak.self.events.read.scan",
         "ak.self.events.stream.subscribe",
         "ak.self.events.read.frontier",
-        "ak.self.events.read.mls_governance_proof",
+        "ak.self.seals.read.frontier",
+        "ak.self.seals.read.resolve",
+        "ak.self.seals.read.mls_governance_proof",
+        "ak.self.seals.read.governance_dependencies",
         "ak.self.account.read.describe",
         "ak.self.account.read.viewer",
         "ak.self.account.command.update_profile",
@@ -124,6 +127,23 @@
         "ak.self.snapshot.read.manifest_head"
       ],
       "surface_class": "core"
+    },
+    {
+      "surface": "history_key_recovery",
+      "operations": [
+        "ak.self.history_key_requests.command.create",
+        "ak.self.history_key_requests.read.list",
+        "ak.self.history_key_responses.command.send",
+        "ak.self.history_key_responses.read.list",
+        "ak.self.history_key_responses.command.ack",
+        "ak.self.organization_recovery_archives.read.list",
+        "ak.peer.history_key_requests.command.replicate",
+        "ak.peer.history_key_responses.command.relay",
+        "ak.peer.seals.read.mls_governance_proof",
+        "ak.peer.seals.read.governance_dependencies",
+        "ak.peer.organization_recovery_archives.command.replicate"
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "peer_federation",
@@ -139,9 +159,10 @@
         "ak.peer.events.read.resolve",
         "ak.peer.events.read.scan",
         "ak.peer.events.read.frontier",
+        "ak.peer.seals.read.frontier",
+        "ak.peer.seals.read.resolve",
         "ak.peer.invites.command.submit",
         "ak.peer.contacts.command.submit",
-        "ak.peer.direct_conversation.command.repair_relay",
         "ak.peer.keys.keypackages.command.claim",
         "ak.peer.keys.keypackages.read.claim",
         "ak.peer.snapshot.read.manifest_head",
@@ -190,8 +211,7 @@
         "ak.self.invite_locator.command.issue",
         "ak.self.invite_locator.command.rotate",
         "ak.self.invite_locator.command.revoke",
-        "ak.self.direct_conversation.read.resolve",
-        "ak.self.direct_conversation.command.repair_dispatch"
+        "ak.self.direct_conversation.read.resolve"
       ],
       "surface_class": "extension"
     },
@@ -494,6 +514,27 @@
       "surface_class": "extension"
     }
   ],
+  "feature_bindings": {
+    "ak.feature.history_key_recovery.v1": {
+      "required_surface": "history_key_recovery",
+      "required_operations": [
+        "ak.self.seals.read.mls_governance_proof",
+        "ak.self.seals.read.governance_dependencies",
+        "ak.self.history_key_requests.command.create",
+        "ak.self.history_key_requests.read.list",
+        "ak.self.history_key_responses.command.send",
+        "ak.self.history_key_responses.read.list",
+        "ak.self.history_key_responses.command.ack",
+        "ak.self.organization_recovery_archives.read.list",
+        "ak.peer.history_key_requests.command.replicate",
+        "ak.peer.history_key_responses.command.relay",
+        "ak.peer.seals.read.mls_governance_proof",
+        "ak.peer.seals.read.governance_dependencies",
+        "ak.peer.organization_recovery_archives.command.replicate"
+      ],
+      "claim_rule": "A service claiming this feature exposes every operation byte-for-byte; partial claims fail closed. exporter plus all_history_for_current_members requires this feature."
+    }
+  },
   "operations": [
     {
       "operation_id": "ak.edge.applet.actor.read.resolve",
@@ -1369,10 +1410,10 @@
       "http": "GET /_arkret/open/services/{service_id}/resolution",
       "grpc": "OpenService/Resolution",
       "mq": "open.service.query.resolution",
-      "notes": "Returns the current signed ServiceResolutionRecord at the stable current_record_url carried by bootstrap material. TLS is transport only. Consumers verify the record proof, method history, project(full_id)=service_id, time ordering, record_sequence/previous_record_digest and describe binding. Same-core successors refresh route caches without Realm rebind; a changed did_core_id requires a new authorized service binding.",
+      "notes": "Returns the current AuthenticatedServiceResolution at the stable current_record_url carried by bootstrap material. TLS is transport only. For did:webvh, method_history_evidence includes the complete gap-free native log from inception through the signed record position and every required witness record; a resolver summary or partial segment is invalid. Consumers independently verify the complete method-native history, terminal DID document, record proof, project(full_id)=service_id, time ordering, record_sequence/previous_record_digest and describe binding. Same-core successors refresh route caches without Realm rebind; a changed did_core_id requires a new authorized service binding.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
-      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record"
+      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/authenticated_service_resolution"
     },
     {
       "operation_id": "ak.open.invite_locator.read.resolve",
@@ -1644,23 +1685,6 @@
       }
     },
     {
-      "operation_id": "ak.peer.direct_conversation.command.repair_relay",
-      "http": "POST /_arkret/peer/direct-conversations/repair-relay",
-      "grpc": "PeerDirectConversation/RepairRelay",
-      "mq": "peer.direct_conversation.command.repair_relay",
-      "notes": "Service-authenticated relay for an exact requester-authorized ak.member.repair.request. The source copies request_id, content and detached requester authorization byte for byte from the accepted self dispatch, appends exactly one portable device or Native Agent current-authority evidence branch, and covers the complete body with Content-Digest and RFC 9421. The destination independently binds requester identity, accepted rejoin actor and subject, authorization Event, current evidence and exact requester_keypackage_ref signer. In one transaction keyed by (Source-Service-ID, request_id), it freezes request_digest, resolves the peer participant from the accepted Direct Conversation binding, and atomically chooses one closed recipient branch: snapshot every currently authorized human device and enqueue all stable distinct message ids, or enqueue one stable message id to the Native Agent's current active runtime endpoint from accepted agent-key/session binding. Exact replay returns the stored byte-identical outcome; a different digest is duplicate_conflict. Success proves only durable enqueue, never business repair acceptance.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "idempotency_key",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_relay_request",
-      "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "atomically_freezes_one_closed_recipient_target_snapshot_and_queue_batch_without_authoring_an_event"
-      }
-    },
-    {
       "operation_id": "ak.peer.erasure_receipt.command.submit",
       "http": "POST /_arkret/peer/erasure-receipts",
       "grpc": "PeerErasureReceipts/Submit",
@@ -1742,7 +1766,7 @@
       "http": "QUERY /_arkret/peer/events/frontier",
       "grpc": "PeerEvents/Frontier",
       "mq": "peer.events.read.frontier",
-      "notes": "Federation peer frontier probe. Requires service-to-service authentication, Source/Destination service DID headers, trust-domain headers, and Realm federation_peer authorization. It returns the federation peer frontier response shape on the dedicated peer trust surface.",
+      "notes": "Federation peer actor/data Event causal frontier probe. It never returns a Realm Seal frontier; use ak.peer.seals.read.frontier.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody",
@@ -1753,11 +1777,33 @@
       "http": "QUERY /_arkret/peer/events/resolve",
       "grpc": "PeerEvents/Resolve",
       "mq": "peer.events.read.resolve",
-      "notes": "Read-only federation dependency resolution for canonical-bytewise sorted exact Event IDs, Event digests, and Seal refs in one Realm. Returns visible Events and receiver-relative CbaProofBundle values under a caller-selected response budget capped at 8 MiB. It never accepts an Event or Seal and never advances a frontier. Every selector is fully accounted for by a returned object or an indistinguishable same-type missing entry; if complete accounting cannot fit the budget, the whole operation returns limit_exceeded rather than a partial success.",
+      "notes": "Read-only federation dependency resolution for canonical-bytewise sorted exact Event IDs/digests in one Realm. It never attaches covering or first-activation Seals; Control-Move effectiveness uses the separate Seal frontier/resolve closure. Ordinary DataEvents are authorized by their signed existing seal_ref and never enter Seal.delta. Optional peer history_traversal_access accepts only a pending_archive_replica_digest and authorizes delta Control Moves in that exact target-to-base cut; request replicas never grant it.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome"
+    },
+    {
+      "operation_id": "ak.peer.seals.read.frontier",
+      "http": "QUERY /_arkret/peer/seals/frontier",
+      "grpc": "PeerSeals/Frontier",
+      "mq": "peer.seals.read.frontier",
+      "notes": "Authenticated peer Realm Seal frontier discovery using the same RealmSealFrontierView as self.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState"
+    },
+    {
+      "operation_id": "ak.peer.seals.read.resolve",
+      "http": "QUERY /_arkret/peer/seals/resolve",
+      "grpc": "PeerSeals/Resolve",
+      "mq": "peer.seals.read.resolve",
+      "notes": "Authenticated exact Seal-only resolve by canonical seal_refs; no Event envelope is returned. Optional peer history_traversal_access accepts only a pending_archive_replica_digest and authorizes Seal refs in its exact retained cut; request replicas never grant traversal.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome"
     },
     {
       "operation_id": "ak.peer.events.read.scan",
@@ -2879,7 +2925,7 @@
       "http": "POST /_arkret/self/circles",
       "grpc": "SelfCircle/Create",
       "mq": "self.circle.command.create",
-      "notes": "Submits the caller-signed ak.circle.create Event carried in create_event through ordinary Event admission; the parent Realm is create_event.event.realm_id. The Circle id is retype(create_event.event.event_id), so the service MUST NOT mint it, and MUST NOT co-sign, rebuild or synthesize the Event. Reducer-locked fields (mls_group_ref, state) MUST NOT be actor-supplied; encryption_profile='none' is allowed only when the parent Realm policy floor permits plaintext.",
+      "notes": "Submits the caller-signed ak.circle.create Event carried in create_event through ordinary Event admission; the parent Realm is create_event.event.realm_id. The Circle id is retype(create_event.event.event_id), so the service MUST NOT mint it, and MUST NOT co-sign, rebuild or synthesize the Event. Reducer-locked fields (mls_group_id, state) MUST NOT be actor-supplied; encryption_profile='none' is allowed only when the parent Realm policy floor permits plaintext.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
@@ -3331,28 +3377,11 @@
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "grpc": "SelfDirectConversation/Resolve",
       "mq": "self.direct_conversation.query.resolve",
-      "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates: a Direct Conversation Realm is created solely by the founder derived from the pair's root Contact round (normal branch takes the responder, glare branch takes the requests[0] issuer) through the direct_conversation_genesis admission variant of ak.realm.create. Outcomes are evaluated in a fixed order and expose creation_required, creation_blocked, awaiting_founder, provisional, found, suspended or temporarily_unavailable. Whenever an accepted active-generation singleton exists the response carries active_mls_generation_ref and sha256(RFC8785_JCS(current accepted cell whole value)) as one pair; found always carries both, and a repairable suspended state never hides them. Waiting never grants create authority to the non-founder and there is no timeout fallback, takeover, Direct Conversation-specific recovery authority, founder succession, versioned successor coordinate or founder_unrecoverable wire state. Recovered control is valid only when the same (principal_id, principal_server_id) again satisfies the ordinary current authority proof.",
+      "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates. An encrypted DC has one immutable scope-derived MLS group and monotonic epoch lineage; the response carries exact current group_state_ref+digest. Repair is an ordinary Commit in that group. If all private group state is lost, the old DC Realm is terminal and a new conversation requires a new Realm id. No second group, epoch reset or timeout takeover exists.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
       "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
-    },
-    {
-      "operation_id": "ak.self.direct_conversation.command.repair_dispatch",
-      "http": "POST /_arkret/self/direct-conversations/repair-dispatch",
-      "grpc": "SelfDirectConversation/RepairDispatch",
-      "mq": "self.direct_conversation.command.repair_dispatch",
-      "notes": "Authenticated requester command for durable Direct Conversation replacement-repair delivery. The caller supplies one request_id, exact non-authorizing repair content and a closed device-or-Native-Agent detached authorization, but never recipient targets. In one source transaction keyed by the authenticated requester and request_id, the service validates current participant/rejoin/contact/generation gates, freezes request_digest plus the current destination Principal Server binding, persists the byte-identical peer-relay body and outbox state, and returns only after the destination has durably atomically enqueued its frozen closed human-device-fanout or Native-Agent-runtime target. Exact replay returns the original byte-identical outcome; a changed digest is duplicate_conflict. No Event or repair acknowledgement is synthesized.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "request_id",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_dispatch_request",
-      "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "persists_a_byte_identical_service_local_peer_relay_outbox_without_authoring_an_event"
-      }
     },
     {
       "operation_id": "ak.self.events.command.submit",
@@ -3378,18 +3407,18 @@
       }
     },
     {
-      "operation_id": "ak.self.events.command.submit_seal",
-      "http": "POST /_arkret/self/events/seals",
-      "grpc": "SelfEvents/SubmitSeal",
-      "mq": "self.events.command.submit_seal",
-      "notes": "Submit a client-signed Seal. Except for the canonical genesis exception, the signature MUST satisfy the predecessor governance state's ak.component.notary.v1 membership and threshold rules; Realm visibility or device ownership is insufficient. The receiver recomputes the Seal id, recursive coverage, completeness_root, state_root, signer authority and signature.",
+      "operation_id": "ak.self.seals.command.submit",
+      "http": "POST /_arkret/self/seals",
+      "grpc": "SelfSeals/Submit",
+      "mq": "self.seals.command.submit",
+      "notes": "Submit one client-signed Seal directly. A Seal is not an Event and never uses EventInitialSubmission. Except for the canonical genesis exception, the signature MUST satisfy predecessor governance notary actor/threshold rules. The receiver recomputes Seal id, recursive coverage, completeness_root, state_root, signer authority and signature.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "canonical_hash",
       "canonical_hash_input": "/id",
       "retry_safe": true,
       "request_schema_ref": "schemas/seal.schema.json",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealSubmitOutcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "commits_a_seal_not_an_event"
@@ -3420,28 +3449,64 @@
       "http": "QUERY /_arkret/self/events/frontier",
       "grpc": "SelfEvents/Frontier",
       "mq": "self.events.read.frontier",
+      "notes": "Actor/data Event causal frontier only. actor_id is required; Realm Seal discovery is exclusively ak.self.seals.read.frontier.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState"
     },
     {
-      "operation_id": "ak.self.events.read.mls_governance_proof",
-      "http": "QUERY /_arkret/self/events/mls-governance-proof",
-      "grpc": "SelfEvents/MlsGovernanceProof",
-      "mq": "self.events.read.mls_governance_proof",
-      "notes": "Return one bounded, manifest-committed chunk of a complete_control_state_v1 proof bundle for one authenticated, caller-visible Realm/scope. The request MUST name an exact locally trusted_anchor_seal_id and chunk_index; later chunks pin expected_bundle_digest. The service MUST build from that anchor and return mls_governance_anchor_unreachable instead of substituting another anchor. From one accepted Seal view it supplies enough complete state to rederive the closed key-access projection in mls-security-frontier-registry.json; callers cannot supply roots or choose frontier members. Responses bind canonical acquisition identity with proof_request_digest, commit all chunks under chunks_root, and use bundle_digest rather than accepted_seal_id as the logical content address. Each response is at most 4 MiB; the logical bundle is at most 256 MiB, 1024 chunks, 4096 Seals, 1048576 covered digests, 262144 control leaves and 128 frontier Events. Exceeding a total bound returns mls_governance_proof_bounds_exceeded with no partial output. Implementations MUST enforce Realm/scope visibility before materialization and MUST fail closed when any covered Event, control state, Seal path, chunk commitment, signature authority, or reducer profile cannot be reconstructed.",
+      "operation_id": "ak.self.seals.read.frontier",
+      "http": "QUERY /_arkret/self/seals/frontier",
+      "grpc": "SelfSeals/Frontier",
+      "mq": "self.seals.read.frontier",
+      "notes": "Realm Seal frontier discovery. Returns the complete canonical accepted Seal antichain, governance health and observation coordinate.",
       "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierState"
+    },
+    {
+      "operation_id": "ak.self.seals.read.resolve",
+      "http": "QUERY /_arkret/self/seals/resolve",
+      "grpc": "SelfSeals/Resolve",
+      "mq": "self.seals.read.resolve",
+      "notes": "Exact Seal-only resolve by seal_refs. Event selectors are forbidden. Optional self history_traversal_access names one retained request receipt/archive replica basis digest and authorizes only Seal refs in its exact target-to-base traversal cut; unknown and unauthorized remain indistinguishable.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome"
+    },
+    {
+      "operation_id": "ak.self.seals.read.mls_governance_proof",
+      "http": "POST /_arkret/self/seals/mls-governance-proof",
+      "grpc": "SelfSeals/MlsGovernanceProof",
+      "mq": "self.seals.read.mls_governance_proof",
+      "notes": "Near-current stateless group_security_frontier query only. The caller binds exact proof_base_basis and proof_target_basis antichains plus the closed frontier selector. Bulk or old history uses receipt-bound direct accepted-Seal traversal through standard Event/Seal/dependency resolve.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 1048576,
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request",
-      "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json"
+      "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/read_request",
+      "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/read_outcome"
+    },
+    {
+      "operation_id": "ak.self.seals.read.governance_dependencies",
+      "http": "POST /_arkret/self/seals/governance-dependencies",
+      "grpc": "SelfSeals/GovernanceDependencies",
+      "mq": "self.seals.read.governance_dependencies",
+      "notes": "Resolve a caller-split batch of exactly four content-addressed dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, GovernanceRegistrySnapshot manifest, and GovernanceRegistryArtifact bytes. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 8388608,
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfGovernanceDependencyResolveRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome"
     },
     {
       "operation_id": "ak.self.events.read.resolve",
       "http": "QUERY /_arkret/self/events/resolve",
       "grpc": "SelfEvents/Resolve",
       "mq": "self.events.read.resolve",
-      "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use ak.self.events.read.scan for selector-based reads.",
+      "notes": "Dereference exact event_id/event_digest selectors. Optional self history_traversal_access authorizes only delta Control Moves in one retained target-to-base direct traversal cut and is mutually exclusive with ordinary timeline visibility. Point lookup is not a range scan and never attaches covering/first-activation Seals; Control-Move effectiveness uses Seal frontier/resolve.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
@@ -4356,6 +4421,187 @@
       "retry_safe": true,
       "request_schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
       "response_schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_requests.command.create",
+      "http": "POST /_arkret/self/history-key-requests",
+      "grpc": "SelfHistoryKey/RequestCreate",
+      "mq": "self.history_key_requests.command.create",
+      "notes": "Create one immutable scope-private history request. The operation envelope may be at most 1 MiB, while the inner HistoryKeyRequest itself is independently capped at 64 KiB canonical bytes. Before success the service verifies the caller-pinned bootstrap/current bases and complete durable target cut, atomically pins every Seal, delta Control Move and registered dependency through request expiry, freezes the exact direct traversal intent, durably stores request/receipt bytes, and generates one opaque mailbox plus HPKE-sealed capability. Exact duplicate returns the first byte-identical accepted outcome; different intent under the same request_id conflicts.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 1048576,
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "request_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_create_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_requests.read.list",
+      "http": "POST /_arkret/self/history-key-requests/read",
+      "grpc": "SelfHistoryKey/RequestList",
+      "mq": "self.history_key_requests.read.list",
+      "notes": "List immutable current-member-only requests for the exact Realm/Circle scope. realm_id is required; circle_id absence selects Realm scope. The RRK-holder branch returns only requests whose ranges intersect an archive sealed to the caller's exact historical key.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 8388608,
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_list_query",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_list_outcome"
+    },
+    {
+      "operation_id": "ak.self.history_key_responses.command.send",
+      "http": "POST /_arkret/self/history-key-responses",
+      "grpc": "SelfHistoryKey/ResponseSend",
+      "mq": "self.history_key_responses.command.send",
+      "notes": "Durably enqueue one immutable manifest or independently sealed chunk. Manifest admission first resolves and replays the receipt-retained direct Seal/Event/dependency cut, derives current requester incarnation, join floor, winning MLS transitions and current monotone history_access, and atomically writes the all-ranges admission or nothing. A chunk requires that accepted admission, then enforces current T1 and writes the recipient record plus attestation. Premature/mismatched chunks are dependency_missing with zero pending state. Exact duplicate returns the first byte-identical small accepted HistoryKeyResponseSendReceipt.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 8388608,
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_request",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_responses.read.list",
+      "http": "POST /_arkret/self/history-key-responses/{reply_mailbox_id}/read",
+      "grpc": "SelfHistoryKey/ResponseList",
+      "mq": "self.history_key_responses.read.list",
+      "notes": "Capability-protected sequence-ordered mailbox read. Authorization: Arkret-Mailbox carries the capability; unknown/wrong/expired capability is same-shape not_found. One merged stream contains normal records and signed lost descriptors; ack_token commits every ordered {sequence,kind,response_id,entry_digest} through the page high-water cursor.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 8388608,
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_query",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_outcome"
+    },
+    {
+      "operation_id": "ak.self.history_key_responses.command.ack",
+      "http": "POST /_arkret/self/history-key-responses/{reply_mailbox_id}/ack",
+      "grpc": "SelfHistoryKey/ResponseAck",
+      "mq": "self.history_key_responses.command.ack",
+      "notes": "Capability-protected contiguous high-water ack. Every covered sequence requires a durable installed, cryptographically_rejected, superseded_duplicate or signed service_record_lost disposition. Manifest installed means descriptor installation only; no reject/lost/manifest disposition completes epoch coverage.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 1048576,
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_request",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.self.organization_recovery_archives.read.list",
+      "http": "POST /_arkret/self/organization-recovery-archives/read",
+      "grpc": "SelfHistoryKey/OrganizationRecoveryArchiveList",
+      "mq": "self.organization_recovery_archives.read.list",
+      "notes": "Recipient-bound byte-paged archive list. Query and cursor bind scope/key tuple, accepted evidence Event, complete holder_trusted_basis, holder authority and last ordering tuple. Every row carries archive-lifetime direct traversal retention for its singleton epoch. The holder may resolve every Control Move/Seal/dependency required by that replay, including membership/policy/control metadata; unrelated DataEvents and generic timeline scan remain forbidden. Unknown/unauthorized/tuple mismatch is same-shape not_found.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 8388608,
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.peer.history_key_requests.command.replicate",
+      "http": "POST /_arkret/peer/history-key-requests/replicate",
+      "grpc": "PeerHistoryKey/RequestReplicate",
+      "mq": "peer.history_key_requests.command.replicate",
+      "notes": "Private S2S fanout of one byte-identical request+receipt to a closed exact current member delivery-binding service or exact RRK holder service with intersecting archive tuple. Destination authorization, TTL and bytes are signed; no public Event/DeviceMessage.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 1048576,
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.peer.history_key_responses.command.relay",
+      "http": "POST /_arkret/peer/history-key-responses/relay",
+      "grpc": "PeerHistoryKey/ResponseRelay",
+      "mq": "peer.history_key_responses.command.relay",
+      "notes": "Private S2S relay of the immutable source record plus SourceRelayAttestation from the source's authenticated current local Principal Server to request_receipt.release_service_id. Destination validates the relay service against current source delivery/authority binding and performs the only final T1/release linearization. The two-service cut is not globally atomic; v1 assumes honest services and bounded TTL observation.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 8388608,
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_source_relay",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.peer.seals.read.mls_governance_proof",
+      "http": "POST /_arkret/peer/seals/mls-governance-proof",
+      "grpc": "PeerSeals/MlsGovernanceProof",
+      "mq": "peer.seals.read.mls_governance_proof",
+      "notes": "Near-current S2S group_security_frontier query only. It binds exact base/target Seal antichains and the closed selector; bulk or old history uses receipt/replica-bound direct Seal traversal through standard Event, Seal and governance-dependency resolve.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 1048576,
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/read_request",
+      "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/read_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.peer.seals.read.governance_dependencies",
+      "http": "POST /_arkret/peer/seals/governance-dependencies",
+      "grpc": "PeerSeals/GovernanceDependencies",
+      "mq": "peer.seals.read.governance_dependencies",
+      "notes": "Authenticated S2S exact resolve of exactly four content-addressed dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, GovernanceRegistrySnapshot manifest, and GovernanceRegistryArtifact bytes. Omitted history_traversal_access uses ordinary Realm/federation visibility; the optional pending_archive_replica branch is the sole retained-cut exception. Member request replicas never authorize traversal. Unknown, unauthorized, outside-cut and missing selectors are same-shape; complete bounds failure returns no partial items or cursor.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 8388608,
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.peer.organization_recovery_archives.command.replicate",
+      "http": "POST /_arkret/peer/organization-recovery-archives/replicate",
+      "grpc": "PeerHistoryKey/OrganizationRecoveryArchiveReplicate",
+      "mq": "peer.organization_recovery_archives.command.replicate",
+      "notes": "Private immutable RRK archive replica to exact holder_service_id. It binds exact archive bytes, container Event, accepted evidence Event, complete holder_trusted_basis and archive-lifetime direct traversal retention for one epoch. First durable acceptance assigns one archive_sequence per semantic key; changing replicated_at cannot add a row. Exact duplicate returns the first byte-identical accepted receipt. Archive and replay closure are retained for the Realm recovery-material lifetime; v1 defines no remote GC/renewal.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 1048576,
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"

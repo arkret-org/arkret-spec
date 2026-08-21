@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/governance-registry-snapshot.schema.json",
+  "title": "Arkret Governance Registry Snapshot",
+  "description": "Small content-addressed manifest for exact historical apply_seal registry artifacts. Artifact bytes are independent dependency items and are never inlined in this manifest.",
+  "$ref": "#/$defs/governance_registry_snapshot",
+  "$defs": {
+    "sha256_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "contract_registry_descriptor": {
+      "type": "object",
+      "required": ["artifact_kind", "artifact_id", "content_digest"],
+      "properties": {
+        "artifact_kind": {"const": "contract_registry"},
+        "artifact_id": {"const": "registry/contract-registry.json"},
+        "content_digest": {"$ref": "#/$defs/sha256_digest"}
+      },
+      "additionalProperties": false
+    },
+    "proof_context_registry_descriptor": {
+      "type": "object",
+      "required": ["artifact_kind", "artifact_id", "content_digest"],
+      "properties": {
+        "artifact_kind": {"const": "proof_context_registry"},
+        "artifact_id": {"const": "registry/proof-context-registry.json"},
+        "content_digest": {"$ref": "#/$defs/sha256_digest"}
+      },
+      "additionalProperties": false
+    },
+    "replay_schema_manifest_descriptor": {
+      "type": "object",
+      "required": ["artifact_kind", "artifact_id", "content_digest"],
+      "properties": {
+        "artifact_kind": {"const": "replay_schema_manifest"},
+        "artifact_id": {"const": "governance-replay-schema-manifest"},
+        "content_digest": {"$ref": "#/$defs/sha256_digest"}
+      },
+      "additionalProperties": false
+    },
+    "replay_schema_artifact_descriptor": {
+      "type": "object",
+      "required": ["artifact_kind", "artifact_id", "content_digest"],
+      "properties": {
+        "artifact_kind": {"const": "replay_json_schema"},
+        "artifact_id": {
+          "type": "string",
+          "pattern": "^schemas/[a-z0-9][a-z0-9-]*\\.schema\\.json$"
+        },
+        "content_digest": {"$ref": "#/$defs/sha256_digest"}
+      },
+      "additionalProperties": false
+    },
+    "registry_artifact_descriptor": {
+      "oneOf": [
+        {"$ref": "#/$defs/contract_registry_descriptor"},
+        {"$ref": "#/$defs/proof_context_registry_descriptor"},
+        {"$ref": "#/$defs/replay_schema_manifest_descriptor"},
+        {"$ref": "#/$defs/replay_schema_artifact_descriptor"}
+      ]
+    },
+    "governance_replay_schema_manifest": {
+      "type": "object",
+      "required": ["kind", "root_schema_artifact_ids", "artifacts"],
+      "properties": {
+        "kind": {"const": "ak.governance.replay_schema_manifest"},
+        "root_schema_artifact_ids": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {"const": "schemas/event-envelope.schema.json"},
+            {"const": "schemas/event-payload.schema.json"}
+          ],
+          "items": {
+            "type": "string",
+            "pattern": "^schemas/[a-z0-9][a-z0-9-]*\\.schema\\.json$"
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/replay_schema_artifact_descriptor"},
+          "description": "Canonical artifact_id UTF-8 byte order. Starting with both root_schema_artifact_ids, recursively parse every local JSON Schema $ref, resolve it relative to the referring artifact, and include every-and-only reachable local schema exactly once. Missing, duplicate, surplus, non-canonical order, an escaped path, an unresolved ref, or a descriptor whose digest does not match the separately fetched canonical artifact bytes fails closed."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Closed transitive schema closure required to parse accepted Event envelopes and payloads during historical apply_seal replay. It is fetched as the replay_schema_manifest registry artifact and is not inlined in GovernanceRegistrySnapshot."
+    },
+    "governance_registry_artifact": {
+      "type": "object",
+      "required": ["descriptor", "canonical_bytes_b64u"],
+      "properties": {
+        "descriptor": {"$ref": "#/$defs/registry_artifact_descriptor"},
+        "canonical_bytes_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "Unpadded base64url of exact RFC 8785 JCS bytes; decoded canonical bytes MUST be at most 1 MiB."
+        }
+      },
+      "additionalProperties": false,
+      "description": "descriptor.content_digest = SHA-256(UTF8('ak.governance-registry-artifact-v1') || 0x00 || decoded canonical_bytes_b64u). replay_schema_manifest bytes MUST validate as GovernanceReplaySchemaManifest; replay_json_schema bytes MUST parse as the named Draft 2020-12 JSON Schema. Other branches parse under their registered artifact contract."
+    },
+    "governance_registry_snapshot": {
+      "type": "object",
+      "required": ["kind", "artifacts", "snapshot_digest"],
+      "properties": {
+        "kind": {"const": "ak.governance.registry_snapshot"},
+        "artifacts": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {"$ref": "#/$defs/contract_registry_descriptor"},
+            {"$ref": "#/$defs/proof_context_registry_descriptor"},
+            {"$ref": "#/$defs/replay_schema_manifest_descriptor"}
+          ],
+          "items": false,
+          "description": "Exact closed set and order. contract-registry owns reducer profile, lattice/FSM, active Event-kind contract and dependency extractor; proof-context-registry freezes detached proof transcripts; replay_schema_manifest commits the deterministic transitive local-schema closure rooted at event-envelope and event-payload. Missing, duplicate or surplus descriptors fail closed."
+        },
+        "snapshot_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "SHA-256(UTF8('ak.governance-registry-snapshot-v1') || 0x00 || JCS({kind,artifacts}))."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

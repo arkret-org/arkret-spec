@@ -509,8 +509,7 @@
           "type": "string",
           "enum": [
             "realm_membership",
-            "direct_conversation",
-            "direct_conversation_repair"
+            "direct_conversation"
           ]
         },
         "required_capabilities": {
@@ -533,7 +532,7 @@
         },
         "target_keypackage_ref": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Optional exact ordinary KeyPackage selector. It is mandatory for claim_purpose=direct_conversation_repair and forbidden as a best-effort hint: the owner authority atomically claims exactly this current, unconsumed package or returns the same opaque claim_failed result as every other target-side failure."
+          "description": "Optional exact ordinary KeyPackage selector for a normal same-group Direct Conversation Add/Welcome after accepted member rejoin. When present, the owner authority atomically claims exactly this current, unconsumed package or returns the same opaque claim_failed result as every other target-side failure; it is never a best-effort hint."
         },
         "target_agent_id": {
           "$ref": "#/$defs/did_core_id",
@@ -570,10 +569,7 @@
           "if": {
             "properties": {
               "claim_purpose": {
-                "enum": [
-                  "direct_conversation",
-                  "direct_conversation_repair"
-                ]
+                "const": "direct_conversation"
               }
             },
             "required": [
@@ -594,13 +590,8 @@
         },
         {
           "if": {
-            "properties": {
-              "claim_purpose": {
-                "const": "direct_conversation_repair"
-              }
-            },
             "required": [
-              "claim_purpose"
+              "target_keypackage_ref"
             ]
           },
           "then": {
@@ -651,6 +642,9 @@
               }
             ],
             "properties": {
+              "claim_purpose": {
+                "const": "direct_conversation"
+              },
               "last_resort_allowed": {
                 "const": false
               }
@@ -721,8 +715,7 @@
           "type": "string",
           "enum": [
             "realm_membership",
-            "direct_conversation",
-            "direct_conversation_repair"
+            "direct_conversation"
           ]
         },
         "required_capabilities": {
@@ -745,7 +738,7 @@
         },
         "target_keypackage_ref": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Exact ordinary KeyPackage selector for replacement repair. The destination KeyPackage authority MUST reject last-resort, stale, consumed, revoked, wrong-principal, wrong-device and non-matching refs through the same opaque claim_failed surface."
+          "description": "Exact ordinary KeyPackage selector for a normal same-group Add/Welcome after accepted member rejoin. The destination KeyPackage authority MUST reject last-resort, stale, consumed, revoked, wrong-principal, wrong-device and non-matching refs through the same opaque claim_failed surface."
         },
         "target_agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -785,10 +778,7 @@
           "if": {
             "properties": {
               "claim_purpose": {
-                "enum": [
-                  "direct_conversation",
-                  "direct_conversation_repair"
-                ]
+                "const": "direct_conversation"
               }
             },
             "required": [
@@ -809,13 +799,8 @@
         },
         {
           "if": {
-            "properties": {
-              "claim_purpose": {
-                "const": "direct_conversation_repair"
-              }
-            },
             "required": [
-              "claim_purpose"
+              "target_keypackage_ref"
             ]
           },
           "then": {
@@ -866,6 +851,9 @@
               }
             ],
             "properties": {
+              "claim_purpose": {
+                "const": "direct_conversation"
+              },
               "last_resort_allowed": {
                 "const": false
               }

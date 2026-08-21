@@ -195,7 +195,7 @@ v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm d
 
 `state_root`、Seal `id`、Event `event_digest` / `event_id` 引用、receipt digest 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `digest_algorithm` 字段固定（默认 `sha256`）。`digest_algorithm` 的取值是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 **active suite id**——它锁定的不只是 hash 算法，而是完整 digest 定义（canonicalization × hash）。Control Move 是 reducer-input Event 的控制面协议视图；Control Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。
 
-**Realm 级 suite 排他（normative）**：一个 Realm 同一时刻 MUST 只有一个 live digest suite；Realm 内所有后续 Seal / Event digest / state_root / receipt digest MUST 使用同一 suite。接收方在 Realm 上下文中遇到 suite 前缀与该 Realm 声明不符的 digest（Transition Seal 的 `previous_state_root` 除外）MUST 按 schema_violation 拒绝，即使该 suite 本身是 receiver 支持的 active suite——这条排他规则消除"同一语义对象在同一 Realm 内拥有两个合法 digest"的去重 / 重放二义性（`duplicate_conflict` 配对、`prev_refs` 解析、幂等键均依赖单一 digest 定义）。跨 Realm 引用按 digest 值自带的 suite 前缀验证，无需上下文。
+**Realm 级 suite 排他（normative）**：一个 Realm 同一时刻 MUST 只有一个 live digest suite；Realm 内所有后续 Seal / Event digest / state_root / receipt digest MUST 使用同一 suite。接收方在 Realm 上下文中遇到 suite prefix 与该 Realm 声明不符的 digest MUST 按 `schema_violation` 拒绝，即使该 suite 本身是 receiver 支持的 active suite——这条排他规则消除“同一语义对象在同一 Realm 内拥有两个合法 digest”的去重 / 重放二义性（`duplicate_conflict` 配对、`prev_refs` 解析、幂等键均依赖单一 digest 定义）。桥接例外由 [`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md) 完整定义：固定 SHA-256 身份布局的 Realm create Event 可被声明初始 suite 的首 Seal 原样引用；Transition Move Event、其 receipt 与 snapshot commitment 仍用旧 suite，Transition Seal 的 id、notary payload、累计 Merkle roots 与 post-state root 已用新 suite；Transition Seal 内对旧 Event、receipt 与 predecessor 的 typed 引用保留原值。跨 Realm 引用按 digest 值自带的 suite prefix 验证，无需上下文。
 
 切换 suite（hash 分量升级，或归一化编码分量切换）需要通过 `ak.profile.hash_transition.v1` snapshot commitment + signed compaction Seal 在 frontier 上做一次 suite transition Seal，新旧 suite 都能在 transition Seal 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.2（digest suite transition）。
 
@@ -437,8 +437,11 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 - `event_digest = canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`
 - `actor_id`
 - `verification_method`
+- `signer_resolution_evidence_ref` / `signer_resolution_evidence_digest`（仅无 `principal_server_admission` 的 direct/DID-root/native producer 分支）
 - `created_at`
 - `domain` / `audience` where applicable
+
+Event-level proof regime 只有两个互斥分支：若 Event 含一份合法 `principal_server_admission` proof，则 producer proof MUST 省略两个 signer evidence 字段，历史 device/Agent producer key 由 admission 签入的 `producer_signing_key` 验证，而 Principal Server 自身的历史 key 由 admission 携带的 service signer evidence 验证；若没有 admission，则 producer proof MUST 同时携带 ref+digest，二者进入上述 binding object 并解析为该 `verification_method` 的 exact 历史证据。不得同时携带 admission 与 producer external evidence，也不得两者都省略。
 
 Durable Realm Event 是可由多个合规 Realm host 保存和复验的原始事实，因此其 proof 不能绑定某一台 authoring Principal Server 的 service DID。会经 federation、backfill、snapshot recovery 或多 host replay 的 Event，其 `proof.domain` / `proof.audience` MUST 省略，或绑定一个由相关 profile 明确定义且对所有合法 receiver 恒定的 Realm 语义值；MUST NOT 写入当前提交端、来源端或目标端 Principal Server DID。HTTP 目的服务、trust domain、delivery binding 与 replay 隔离由外层 RFC 9421 service signature 和 federation request binding 承担，不得通过改写原 Event proof 实现。接收方 MUST 对原 Event bytes 验签，MUST NOT 为本地 service DID 重签或补写 `domain` / `audience`。
 
@@ -466,6 +469,11 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 把"被排除"读成"不重要"是错的：`event_id` 的完整性由 §4.0 的重算比对保证，并在完整 digest 已知后一次前向派生。`prev_refs` 中完整 Event ID、语义 refs、事前 `seal_ref` / `seal_basis`、`created_at` 与 payload 均未排除，必须逐字进入 preimage；事后覆盖本 Event 的 Seal / receipt 只能单向承诺该 Event identity，不得反向加入原 Event。
 
 非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族 MUST 在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 登记唯一 context、binding fields、规范定义点与 schema；schema description 只可作镜像注解，不是常量真相源。MUST NOT 复用其它对象族（尤其 `ak.event-proof-v1`）的 context，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。用错误对象族 context 生成的签名即使密码学验签通过也 MUST 拒绝。
+
+AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability-event-bytes-v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / principal-server proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}`，令 `payload_digest=H(JCS(core))`；再签
+`JCS({context:"ak.availability-receipt-proof-v1",payload_digest,...core,verification_method,created_at})` 并得到完整
+`receipt={...core,signature}`；最后 `receipt_digest=H(JCS(receipt))`。Seal 只签入最后这个 full canonical digest。
+任何实现若把外层 `receipt_digest` 放回其自身 preimage、从 digest 中排除 signature，或省略 signer evidence 绑定都必须拒绝。
 
 **Realm 与 scope 绑定（normative）**：`event_digest = canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)` 同时覆盖 `realm_id` 与 `scope_ref`；改写二者都会使 proof 失败。实现 MUST 在验证 proof 后确认 `scope_ref.realm_id == realm_id`、处理上下文 Realm 相等，并由 payload/accepted references 重算 scope；不得仅凭签名有效就跨 Realm/Circle 接受。
 
@@ -944,25 +952,7 @@ rank_between(left, right):
 
 ### 9.5.2 标准复合 Subject
 
-| Cell family / Event kind | components_array 顺序（来源字段） |
-| --- | --- |
-| `ak.component.device.authorization.v1` / `ak.device.authorize` | `[payload.principal_id, payload.device_id]` |
-| `ak.component.device.authorization.v1` / `ak.device.revoke` | `[payload.principal_id, payload.device_id]` |
-| `ak.component.realm_key.delivery.v1` / `ak.realm_key.share`、`ak.realm_key.withheld` | `[payload.share_kind, payload.recipient_principal_id, select(payload.share_kind), select(payload.key_scope.effective_scope.kind)]` |
-| `ak.component.calendar.rsvp.v1` / `ak.rsvp.set` | `[payload.event_ref, payload.occurrence, envelope.actor_id]` |
-| `ak.component.identity.accountability.v1` / `ak.identity.accountability_grant` | `[payload.issuer, payload.subject, string_set_digest(payload.accountability_scope, "ak.accountability-scope-set-v1")]` |
-| `ak.component.call.recording.v1` / `ak.call.recording.start`（`capture_kind="recording"`）、`ak.call.state` | `[payload.call_id, payload.recording_id]` / `[payload.call_id, payload.recording_result.recording_id]` |
-| `ak.component.call.transcript.v1` / `ak.call.recording.start`（`capture_kind="transcript"`）、`ak.call.state` | `[payload.call_id, payload.recording_id]` / `[payload.call_id, payload.transcript_result.recording_id]` |
-
 `principal_id` MUST 是 §4 定义的稳定 `did_core_id`（`ak:did_core:<method>:<core>`），并以该完整、不透明字符串参与 composite subject；实现不得把对应 `full_id`、DID URL 或从 `did_core_id` 截断出的片段代入 subject。`device_id` MUST 是完整 `id:device` typed ID（`ak:device:<uuidv7>`）。
-
-`ak.component.realm_key.delivery.v1` 的四元组固定 arity 4，两个 Event kind 使用**逐字相同**的 registry descriptor，其中后两个 component 是 §9.5.1 的 `select`：
-
-- `share_kind` 直接取 `payload.share_kind`。它 MUST 进入 components 做**目标类型域分隔**：`recovery_recipient_id` 只是 Realm-local 非空字符串，可被构造成与某个 `ak:device:*` typed ID 相同的文本；缺少该 component 时 RRK recipient 与 member device 会落入同一 delivery cell。
-- `recipient_target_id` 按 `payload.share_kind` 选择：`member_device` → `payload.recipient_device_id`；`realm_recovery_key` → `payload.recovery_recipient_id`。`recipient_verification_method` 是可轮换的 RRK 密钥引用，MUST NOT 进入 subject（它由 `sender_device_signature` 与接收方校验覆盖，见 [`../crypto-media/device-lifecycle.md` §13](../crypto-media/device-lifecycle.md)）；把它纳入定址会在 RRK 轮换后拆分同一 recovery recipient 的 ordered log。
-- `effective_scope_id` 按 `payload.key_scope.effective_scope.kind` 选择：`realm` → `realm_id`；`circle` → `circle_id`。完整 `key_scope`（`policy_digest`、membership frontier、epoch 区间）是单次交付/拒绝决定的证据，随策略与 epoch 变化，MUST NOT 进入稳定 subject。
-- `recovery_recipient_id` 作为 component 时 MUST 使用 payload 中经 JSON 解码得到的原始 Unicode scalar sequence，由 canonical JSON 负责转义；MUST NOT 做 NFKC / NFC、case folding 或 trim。
-- receiver MUST 独立校验 `effective_scope.realm_id` 等于 Event `realm_id`，Circle 分支还 MUST 校验该 `circle_id` 属于该 Realm。
 
 `ak.component.calendar.rsvp.v1` 的三元组固定 arity 3；`envelope.actor_id` 是 accountable responder，delegated execution 下不得改用 `executed_by`。实例级 RSVP 的 `payload.occurrence` 是 [`calendar-event.md` §8](../models/calendar-event.md) 的 canonical string——all-day 为 `YYYY-MM-DD`，timed 为整秒 `YYYY-MM-DDTHH:mm:ss[Zone]`，其中 Zone 是已签名的 canonical IANA Zone name。v1 的 timed local anchor 与 occurrence key 都收窄到整秒，因此不存在两个不同 subsecond occurrence 折叠到同一 key 的情况；实现 MUST NOT 接受带小数秒、offset 或 `Z` 的 occurrence，也 MUST NOT 在 receiver 侧把非 canonical 值改写后再派生 subject——cell 地址来自**已签名的原值**，非 canonical 输入 MUST 以 `rsvp_occurrence_not_canonical` 拒绝。series 级 RSVP 的 digest preimage 固定保留 JSON null，例如 `["ak:strand:<44-char-suite-tagged-full-digest-token>",null,"did:..."]`。实现 MUST NOT 把 null 改写成字符串 `"null"`、空串或 `"series"` sentinel。payload 中即使出现同名 `actor_id` 也不得遮蔽 `envelope.actor_id`。`payload.entry` 是该 cell 的 lattice value（见 [`calendar-event.md` §8.3](../models/calendar-event.md)），不参与 subject 派生。
 
@@ -986,82 +976,53 @@ _Informative._ 本小节只做导航锚，不搬迁任何 normative 内容；各
 | Hash wire 形态(`<suite>:<hex>`)与 Digest Suite registered set | 本文 §3.1 / §3.2 |
 | Cell tuple 引用形态(`ak:cell:<component>:<subject>`) | 本文 §4(special forms) |
 
-## 10. Encrypted Envelope Digest
+## 10. Encrypted Envelope AEAD
 
-加密 payload 的 digest MUST 覆盖密文和明文路由元数据：
+Inline encrypted Event 不携 `aad_digest`、`payload_digest`、`key_ref.algorithm` 或可由 group state 推出的算法/profile
+副本。Ciphertext 由外层 Event proof 覆盖；外置 content-addressed blob 的检索 digest 不受此规则影响。
 
-```text
-aad_bytes = canonical_json(aad)
-aad_digest = sha256(aad_bytes)
-payload_metadata_bytes = canonical_json(payload_metadata)
-encrypted_payload_bytes = base64url_decode(ciphertext)
-payload_digest = sha256(payload_metadata_bytes || encrypted_payload_bytes)
-```
+### 10.1 Exporter content nonce（normative）
 
-上式产出 32 字节 raw digest；其 wire 形态 MUST 为 `sha256:<lowercase_hex>`，与 §3.1 一致。`payload_metadata` 的字段集合、缺失字段处理、`mls_rfc9420` 下不得携带 `authentication_tag` 的规则，以 [`crypto-media/encryption-and-audit.md` §2.3.3](../crypto-media/encryption-and-audit.md) 为唯一真源。
-
-`payload_metadata` 至少覆盖 `scheme`、`version`、`group_id`、`epoch`、`content_type`、`aad_visibility_event_id_kind`、`aad` 与 `key_ref` 中实际出现在 envelope 的字段；字段缺失时必须省略，不得写入 `null`。实现 MUST NOT 使用明文 payload 作为 `payload_digest` 输入，也不得把 base64url ciphertext 字符串本身作为密文字节输入。
-
-### 10.1 AEAD nonce uniqueness（normative）
-
-任何在 v1 wire 上承载 AEAD 加密内容的 envelope（`encrypted_payload`、blob attachment、`to_device` payload 等）MUST 满足 AEAD nonce 唯一性 contract。下列公式是 v1 的 canonical nonce 派生定义；领域文档只声明各自的 `purpose` 取值和 envelope 字段位置。
-
-下文 `N_AEAD` 指所选 AEAD algorithm 的 nonce 字节长度：XChaCha20-Poly1305 为 24，AES-GCM 为 12。
+对 `mls_exporter_aead_v1`：
 
 ```text
-sender_nonce_prefix = MLS-Exporter(
-    label   = "arkret-aead-sender-nonce-prefix-v1",
-    context = canonical-bytes({
-      "key_ref": <key_ref-canonical>,
-      "epoch": <mls-epoch>,
-      "device_id": <sender-device-id>,
-      "purpose": <aead-purpose>,
-      "aead_profile": <aead-profile-id>
-    }),
-    length  = N_AEAD - 8
-)
-
-nonce = sender_nonce_prefix || device_nonce_counter_be64
+counter_domain = (mls_group_id, epoch, exact_active_leaf_basic_credential_identity)
+nonce = I2OSP(durable_sender_counter, AEAD.Nn)
 ```
 
-- **Nonce 唯一性**：实现 MUST NOT 在同一 `key_ref` 下重用 nonce。AEAD 在 nonce 复用时机密性与完整性同时被打破。
-- **Counter 规则**：`device_nonce_counter_be64` 是 8 字节 unsigned big-endian 单调计数器；同一 `(key_ref, epoch, device_id, purpose, aead_profile)` 下 MUST 单调递增且不得复用。设备 MUST 持久化 counter；若无法恢复该 epoch 的本地 counter，设备 MUST 先发起 MLS Commit 推进到新 epoch，并在新 epoch 从 0 初始化 counter。
-- **跨设备域分离**：nonce 唯一性按实际 AEAD key 判断。共享同一 raw AEAD key 的 domain MUST 在 epoch/admission 建立时枚举 active sender prefix，发现碰撞即 fail closed / rotate epoch；仅按声明 sender 重算 prefix 不能发现两个合法 device 的 32-bit 碰撞。domain MAY 改为按 sender 派生独立 raw AEAD key，此时相同 prefix/counter 位于不同 key 下，不构成 nonce reuse，但 receiver 仍 MUST 按 sender `device_id` 重算并校验 prefix。Signal 明确选择后一合同：`K_signal[epoch,device] = ExpandWithLabel(history_secret[epoch], "ak.signal-v1", JCS({sender_device_id:device}), AEAD.Nk)`；不得使用 group-shared Signal key。prefix 与声明 sender 不匹配时 MUST fail closed (`aead_nonce_sender_domain_collision`)。
-- **不回退到 random**：实现 MUST NOT fallback 到 random nonce。96-bit AEAD (AES-GCM) 在 ~2^48 次操作上有显著 birthday-bound 碰撞率；Arkret MLS application key 跨多设备共享，naive random nonce 不满足 v1 normative。
-- **接收方 replay 防护**：接收方 MUST 维护 per-`(key_ref, epoch, device_id, purpose, aead_profile)` 已见 counter 集合或等价无误判结构，重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
-- **AAD binding（normative，§10.2）**：AEAD AAD MUST 是该 domain 的 **pre-encryption immutable header** 的 canonical bytes，见 §10.2。任何依赖 AEAD 输出的字段（覆盖 authentication tag 的 ciphertext digest、payload digest、content digest、receipt 等）MUST NOT 进入同一次 AEAD 的 AAD。
-- **不同 AEAD 用途独立 nonce 域**：`purpose` MUST 写入 exporter context。标准 purpose 取值由消费域文档声明；未声明 purpose 的 AEAD envelope MUST fail closed。
+`counter` 是 exporter `encryption_context` 内唯一 wire carrier；nonce 不上 wire。Producer 必须用原子 CAS 耐久预留、只增不减；
+崩溃可留下 gap。回退、丢失、耗尽或无法证明下一值未使用时必须先推进 epoch，不得 random fallback。Receiver 从 exact
+historical active leaf 取得 sender domain，重算 full-width nonce，并耐久保存
+`(mls_group_id,epoch,sender_domain,counter)->EventId/ciphertext digest`。相同 Event 折叠；同 tuple 的不同 Event/digest
+拒绝。其它 AEAD domain 使用各自登记的 nonce contract，不得把本节改写成通用 nonce-prefix 要求。
 
-**Registry 真源（normative）**：上式使用的 MLS-Exporter label `arkret-aead-sender-nonce-prefix-v1` 是 wire-breaking 的安全域分隔参数，MUST 登记于 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)（该 registry 是全部 normative MLS-Exporter label 的 canonical source of truth，`defined_in` 回指本节）；实现 MUST 使用与该 registry 行完全一致的 label 字符串与 `context_fields` 形状（`{key_ref, epoch, device_id, purpose, aead_profile}`），MUST NOT 以空 context 派生，未登记 label MUST fail closed。其中 `aead_profile` 标识所选 AEAD 算法 suite；**其合法取值 enum 的权威 registry 由各消费 domain 显式声明**，MUST NOT 一律指向 HPKE registry：应用层 HPKE sealing surface（key backup / to-device / file-transfer key envelope 等）取 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)（§6.1）；由 MLS exporter 派生 key 的 domain（`mls_exporter_aead_v1` 内容加密、ephemeral signal AEAD）取 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json) 的 `canonical_id`，并 MUST 等于 `key_ref.group_state_ref` 所指 MLS group 实际协商的 active ciphersuite。未登记 suite、或与该 group 实际 ciphersuite 不符的 `aead_profile` MUST fail closed。实现 MUST NOT 再发明第三层会漂移的 AEAD 映射名。
+### 10.2 Exporter content AAD（normative）
 
-### 10.2 AEAD AAD = pre-encryption immutable header（normative）
+```text
+pre_encryption_header = {
+  purpose: "arkret_event_content",
+  envelope_version: EncryptedEnvelope.version,
+  content_type: EncryptedEnvelope.content_type,
+  scheme: content_scheme(exact group_state_ref),
+  effective_scope: effective_scope_from_outer_signed_event,
+  event_kind: outer_signed_event.kind,
+  mls_group_id: derive(effective_scope),
+  epoch: encryption_context.epoch,
+  group_state_ref: encryption_context.group_state_ref,
+  sender_domain: derive_from_frozen_producer_verification_method_and_verified_leaf,
+  counter: encryption_context.counter,
+  routing_context: derived_routing_context
+}
+content_aad = JCS(pre_encryption_header)
+```
 
-每个在 v1 wire 上使用 AEAD 的 domain MUST 定义一个 closed、JCS canonical 的 **immutable header**。该 header 的全部字段 MUST 在调用 AEAD seal 之前已确定，至少绑定 `key_ref`、`nonce`（或 `nonce_prefix` 与其确定性后缀分量）、`purpose` 与 `aead_profile`，并绑定该 domain 的 routing / identity / epoch 字段。AEAD AAD MUST 是该 header 的 canonical bytes。
-
-任何依赖 AEAD 输出的字段——包括覆盖 authentication tag 的 `ciphertext_digest`、`payload_digest`、content digest 或 receipt——MUST NOT 进入同一次 AEAD 的 AAD。此类 **post-encryption commitment** MUST 由该 domain 指定的外层 authentication（已签名 Event / encrypted descriptor / upload receipt / envelope proof）覆盖；某条路径若没有任何外层认证，MUST 补齐认证，MUST NOT 把 digest 塞回 AEAD AAD。
-
-**Anti-pattern：以“防止 AAD 配对替换”为由把 ciphertext digest 绑进 AAD（normative）**：任何 scheme MUST NOT 把该次 AEAD 自身输出的派生值（ciphertext digest、payload digest、tag 或覆盖它们的 receipt）写入同一次 AEAD 的 AAD，也 MUST NOT 用“否则 `(key, nonce)` 下的 ciphertext 会被与另一 AAD 配对解密”这一理由要求该绑定。该理由不成立：AEAD tag 本身就是对 `(key, nonce, AAD, ciphertext)` 四元组的认证，在 `AAD₁` 下产生的密文改用 `AAD₂` 验证必然失败，这是 AEAD 的定义性质。这样定义会破坏两条不变量：AAD MUST 在调用 seal 之前完全确定（§10.2），而该绑定要求先得到 seal 输出才能构造 AAD，形成无解的循环依赖；同时它把一个零收益字段写入认证输入，使 receiver 无法按本节定义唯一重算 AAD。不绑定 ciphertext digest **不损失任何安全属性**：ciphertext↔AAD 绑定由 tag 提供；ciphertext↔key domain 绑定由实际使用的 key 与 AAD 中已认证的 `key_ref` 共同提供；ciphertext↔nonce 绑定由 nonce 参与 seal/open 提供；AEAD 非 key-committing 的已知问题由 `key_ref` 与域分离处理，ciphertext digest 对此从无帮助。post-encryption commitment 的正确位置是外层认证，见上一段。
-
-**明确否决的替代构造**：
-
-1. digest 字段先置零、seal 后替换；
-2. 固定点迭代到稳定值；
-3. 把 digest 重定义为“排除 tag 的 ciphertext body”从而可在 tag 之前计算——它能解开循环，但保留一个零收益字段，并制造“完整 digest”与“body digest”两个易混淆概念；
-4. 为通过测试而让 receiver 忽略 AAD 中的 digest；
-5. 删除 post-encryption digest 却不确认外层 proof 覆盖 ciphertext；
-6. 每个实现自选 AAD 字段集合；
-7. 新增 v2 scheme 而保留错误的 v1 定义。
-
-**逐 domain 登记义务**：每个消费 domain MUST 登记 `purpose`、`aead_profile` 的权威 registry、immutable header schema、ciphertext/tag 编码、post-encryption digest 的覆盖范围、认证该 digest 的外层 proof，以及逐字节 KAT。v1 各 domain 的结论：
-
-| domain | immutable header（AAD） | post-encryption digest | 认证该 digest 的外层 |
-|---|---|---|---|
-| `mls_exporter_aead_v1`（[`../crypto-media/encryption-and-audit.md` §2.10.2](../crypto-media/encryption-and-audit.md)） | `aead_aad_bytes` = JCS(`{scheme, key_ref, epoch, nonce, purpose, aead_profile, aad}`) | `payload_digest`（§10 / §2.3.3） | Event proof |
-| `ak.signal_exporter_aead.v1`（[`../sync/signal.md` §1](../sync/signal.md)） | `aad_digest` 覆盖 JCS(`{realm_id, scope_ref, sender_actor_id, sender_device_id, seal_ref, signal_class, sent_at, expires_at, scheme, key_ref, purpose, aead_profile, epoch, nonce}`)；`purpose` = `ak.signal.v1`，`aead_profile` 取 `mls-ciphersuite-registry.json` | `envelope_digest`（覆盖移除 `proof` 后的完整 envelope，因而承诺 ciphertext 与 `aad_digest`） | `SignalEnvelope.proof`（device detached JWS，context `ak.signal-proof-v1`） |
-| `ak.blob.whole_file_aead.v1` / `ak.blob.stream_aead.v1`（[`../crypto-media/media-and-blob.md` §3.1 / §3.3.3](../crypto-media/media-and-blob.md)） | 见该节列举的 pre-encryption 字段 | `ciphertext_digest` | 引用它的已签名 Event / encrypted descriptor / upload receipt |
-| account data（[`../models/account-data.md`](../models/account-data.md)） | envelope `aad`（`{actor_id, account_data_key, schema, version}`） | `ciphertext_digest` | account-data envelope 自身的已认证写入路径 |
-| key backup（[`../identity/key-management.md` §7.2](../identity/key-management.md)） | 已固化于 KAT 的 `aead_aad_canonical_json` | `ciphertext_digest` | `auth_data.signed_fields` 设备签名 |
-
-`aad_digest` 是**对 AAD bytes 自身**的摘要，与本节无冲突，可由 domain 保留，但 MUST 位于 header/AAD 之外、由外层 proof 覆盖；receiver MUST 重算 AAD 而不是采信调用方自报的 `aad_digest`。domain 之间 MUST NOT 被误写成“统一必须携带”或“统一必须删除”。
-
-**AAD 组成唯一性（normative）**：每个 domain 的 immutable header 与 AAD 组成 MUST 唯一。实现 MUST NOT 为同一 domain 保留第二套 AAD 组成或平行解密分支；无法按本节定义重算 AAD 的密文 MUST 被视为不可读，而不得改用另一套组成尝试解密。
+`derived_routing_context` 是 `{kind:"none"}` 或
+`{kind:"reaction",target_ref,routing_window,routing_tag}`。Wire envelope 只有
+`{version,content_type,encryption_context,ciphertext}`；context 只含
+`{epoch,group_state_ref,counter?,routing_context?}`。仅 reaction kind 携
+`routing_context={target_ref,routing_tag}`；kind 与 routing_window 分别由外层已签 kind、created_at 派生，非 reaction
+必须省略。counter absent/required 分别是 standard/exporter closed branch，
+并与 exact group-state scheme 交叉校验。Header 必须在 seal 前完全冻结，并与 outer signed Event、
+exact historical group state、derived group id、active leaf 与 current history frontier 逐字段对齐。Envelope 不
+重复 purpose/scheme/scope/kind/group/nonce。当前 EventId、ciphertext/tag、由当前 payload 派生的 digest 或 receipt 不得进入
+同一次 AAD。构造顺序是 header→AAD→ciphertext→Event→EventId→proof；不存在置零、固定点或兼容解密分支。

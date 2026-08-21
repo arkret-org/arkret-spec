@@ -1,0 +1,83 @@
+{
+  "version": "2026-08-21.1",
+  "source_of_truth": true,
+  "units": "bytes unless explicitly named",
+  "history_request": {
+    "max_ttl_seconds": 604800,
+    "max_canonical_body_bytes": 65536,
+    "requested_ranges_min": 1,
+    "requested_ranges_max": 64,
+    "max_total_requested_epochs": 65536,
+    "max_unexpired_per_scope_sender_domain": 16,
+    "list_limit_max": 100
+  },
+  "history_response": {
+    "max_manifest_canonical_body_bytes": 262144,
+    "max_source_chunk_record_bytes": 2097152,
+    "max_unfinished_attempts_per_mailbox_source_domain": 4,
+    "max_unacked_mailbox_bytes": 16777216,
+    "max_source_outbox_bytes_per_attempt": 67108864,
+    "expired_tombstone_retention_seconds": 2592000,
+    "rule": "Request, response, manifest and inner source-record limits are distinct. Manifest source record <=256 KiB; chunk source record <=2 MiB; every complete non-streaming send/relay/record/list-item/small-receipt JSON body <=8 MiB. All size admission uses final canonical bytes. Before durable high-water ack, complete mailbox records/attestations are charged to max_unacked_mailbox_bytes. Ack is valid only after durable disposition/install, atomically GC's the large record/attestation and releases active quota, while the compact exact HistoryKeyResponseSendReceipt ledger remains through request expiry for source retry. The compact ledger has independent mailbox/requester/service hard limits and cannot admit a receipt if it would exceed them. Expiry converts it to a 30-day minimal tombstone. A limit failure occurs before enqueue. Staged blobs become sendable only with an atomic ready marker.",
+    "max_unfinished_attempts_per_mailbox": 8,
+    "max_release_attestation_bytes": 65536,
+    "attempt_rule": "Attempt identity is exactly (reply_mailbox_id,source_sender_domain,manifest response_id,manifest_digest). It is completed only after every descriptor-named chunk has a durable HistoryKeyResponseSendReceipt. v1 has no abandon operation: an unfinished attempt becomes expired only at request expiry; a permanent chunk rejection requires a new manifest but does not silently complete the old attempt. completed/expired atomically GC staged blobs and outbox bytes while compact accepted receipts remain through their normal ledger horizon. Only unfinished attempts count against the 4-per-source and 8-per-mailbox concurrent limits. A request may create any number of sequential bounded manifests before expiry; there is no lifetime split/attempt cap.",
+    "max_compact_receipt_ledger_bytes_per_mailbox": 67108864,
+    "max_compact_receipt_ledger_bytes_per_requester": 268435456,
+    "min_advertised_compact_receipt_ledger_bytes_per_release_service": 268435456
+  },
+  "governance_proof": {
+    "min_exact_response_bytes": 65536,
+    "max_exact_response_bytes": 1048576,
+    "rule": "The stateless governance operation is only the near-current group_security_frontier selector. Its response is complete, independently verifiable, cursor-free and at most max_exact_response_bytes. Bulk or old history is reconstructed through receipt-bound direct accepted-Seal traversal and standard object/dependency resolve."
+  },
+  "history_governance_traversal": {
+    "max_member_history_epochs": 65536,
+    "organization_recovery_archive_epochs_per_item": 1,
+    "dependency_resolve_max_canonical_bytes": 8388608,
+    "signer_resolution_evidence_max_canonical_bytes": 1048576,
+    "rule": "Member request ranges total at most 65,536 epochs; each RRK ArchiveListItem traversal has one singleton archive epoch. Before accepting a member request receipt or an organization-recovery archive replica, the service atomically pins the complete target-to-base accepted Seal cut, base Seal bodies, delta Control Moves, AvailabilityReceipts, signer-resolution evidence, external semantic dependencies and exact governance registry plus transitive replay-schema closure for the retention horizon. A member request replica does not promise or authorize governance traversal retention. Event/Seal resolve and governance-dependency resolve are caller-split point reads; dependency resolve is cursor-free and returns zero partial items on bounds failure. Disk-backed work queues and CAS dedupe bound memory without introducing a page/package/result-set wire."
+  },
+  "archive_projection": {
+    "max_archive_public_object_bytes": 32768,
+    "min_page_byte_limit": 65536,
+    "max_page_bytes": 1048576,
+    "rule": "The fixed HPKE suite seals one closed single-secret plaintext. enc<=2048 base64url characters, ciphertext<=16384 characters and the complete public archive object<=32768 canonical bytes. Recipient-bound archive rows are canonical-byte paged and independently verifiable. A byte_limit below min_page_byte_limit is limit_exceeded; every admitted page limit can hold at least one maximum legal item plus framing, so limited pages cannot make zero progress."
+  },
+  "history_store": {
+    "max_received_candidates_per_scope_group_epoch": 8,
+    "max_origin_attributions_per_candidate": 4,
+    "max_origin_attributions_per_scope_group_epoch": 256,
+    "max_origin_attributions_per_scope_group_epoch_quota_domain": 64,
+    "origin_attribution_ttl_seconds": 2592000,
+    "max_event_candidate_bindings_per_scope_group_epoch": 256,
+    "event_candidate_binding_ttl_seconds": 2592000,
+    "quota_keys": {
+      "scope_epoch": "(effective_scope,mls_group_id,epoch)",
+      "material_key": "(effective_scope,mls_group_id,epoch,candidate_digest)",
+      "origin_attribution_key": "(material_key,origin_domain,origin_ref); origin_quota_domain is a separately persisted stable quota projection",
+      "event_candidate_binding_key": "(effective_scope,mls_group_id,epoch,event_id,event_digest,verified_sender_domain,candidate_digest,outcome)"
+    },
+    "candidate_digest": "sha256 over exact history-secret bytes",
+    "material_dedupe_rule": "Received secret bytes are globally deduplicated by material_key; origin never participates in material identity. A material instance receives one immutable monotonic material_received_sequence when bytes first become resident. The same bytes from a new origin add only CandidateOriginAttribution and never refresh that sequence. After bytes are evicted, a later refetch creates a new resident material instance and receives a new sequence.",
+    "origin_domain": "Closed enum response_sender|rrk_archive|portable_backup. Stable origin_quota_domain is respectively {source_sender_domain}, {holder_principal_id,holder_service_id,recovery_key_id,accepted_key_evidence_ref}, or {backup_series_id,producer_actor_id}. For RRK the accepted evidence EventId is the rotation identity; no independent key-version field exists. origin_ref is retrieval-only: {response_id,source_record_digest}, {container_event_ref,archive_digest}, or {backup_origin_id}; backup_origin_id is backup:<BackupId> or backup:sha256:<hex exact envelope bytes> and never a sender identity.",
+    "origin_attribution_rule": "CandidateOriginAttribution key is exactly (material_key,origin_domain,origin_ref), while quotas use the separately persisted stable origin_quota_domain. The ledger admits at most 4 rows per material_key, 64 rows per exact (scope,group,epoch,origin_domain,origin_quota_domain), and 256 rows total per (scope,group,epoch). first_observed_at is immutable and expires_at=first_observed_at+2592000 seconds cannot be extended by duplicate/refetch. Exact duplicate is a no-op. Before admission prune expired rows, then when any cap remains exceeded retain the minimum canonical tuple (expires_at,material_key.candidate_digest,origin_domain,JCS(origin_quota_domain),JCS(origin_ref)) and reject/prune larger rows. Origin attribution never duplicates bytes or changes material_received_sequence.",
+    "material_quota_rule": "The 8-slot limit counts only resident received candidate material instances under material_key. local_authoritative material is stored in a separate accounting class, consumes no received slot, and is never evicted. CandidateOriginAttribution and EventCandidateBinding metadata consume no material slot and never pin bytes.",
+    "material_eviction_rule": "Before inserting resident received material over quota, deterministically evict secret bytes in two tiers: first material with no success EventCandidateBinding, including unbound and failure-only; then success-bound material. Within a tier choose (material_received_sequence ascending,candidate_digest UTF-8 ascending). Success/failure bindings only select the tier and never pin bytes. Eviction deletes bytes plus the resident sequence only, preserves bounded origin attribution/Event binding tombstones for refetch, and never selects local_authoritative.",
+    "event_candidate_binding_rule": "EventCandidateBinding key is exactly (event_binding_key,candidate_digest,outcome), where event_binding_key=(effective_scope,mls_group_id,epoch,event_id,event_digest,verified_sender_domain) and outcome is success|failure. It contains no origin and origin cannot be inferred from it. The independent ledger is capped at 256 rows per (scope,group,epoch); expires_at equals immutable first_observed_at plus 2592000 seconds. Prune expired rows first, then (expires_at,event_id,event_digest,verified_sender_domain,candidate_digest,outcome) canonical ascending. Pruning never changes the ciphertext replay ledger, material authority, or local_authoritative.",
+    "rule": "Every received history secret remains a candidate; neither AEAD success nor failure promotes an epoch-wide winner. Candidate bytes and bounded Event attribution metadata are separate stores. A malicious sender's fake secret/ciphertext can affect only its signed Event attribution and cannot pin received material or exhaust all slots permanently. Portable backup writes only local_authoritative secrets."
+  },
+  "backup": {
+    "max_encrypted_object_bytes": 8388608,
+    "rule": "Each object belongs to one exporter effective scope and is split by final encrypted bytes, never by guessed epoch count."
+  },
+  "stress_vectors": {
+    "large_realistic_epoch_count": 26298,
+    "maximum_request_epoch_count": 65536,
+    "nh32_bytes_at_26298_epochs": 841536
+  },
+  "requested_epoch_budget_rule": "For canonical sorted, disjoint and non-adjacent requested_ranges, compute sum(to_epoch-from_epoch+1) with checked unsigned 64-bit arithmetic. Reject overflow or a sum above max_total_requested_epochs. Gaps between ranges are excluded.",
+  "global_identity_rule": "HistoryRequestId, HistoryResponseId and HistoryMailboxId are globally unique object identities. Reuse of an id under another mailbox, requester, service or scope is duplicate_conflict; mailbox_id plus sequence is only a pagination index and never an identity namespace.",
+  "deployment_rule": "A deployment may reject a new request earlier only if the smaller advertised limit is checked before acceptance. It cannot lower retention/size guarantees for already accepted objects or silently discard them.",
+  "unknown_input_behavior": "fail_closed"
+}

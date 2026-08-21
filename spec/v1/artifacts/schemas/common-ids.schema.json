@@ -17,6 +17,25 @@
       "type": "string",
       "pattern": "^ak:circle:[A-Za-z0-9_-]{44}$"
     },
+    "history_request_id": {
+      "type": "string",
+      "pattern": "^ak:history_request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Globally unique history-request object identity; it is never scoped by mailbox, requester, service or effective scope."
+    },
+    "history_response_id": {
+      "type": "string",
+      "pattern": "^ak:history_response:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Globally unique history-response object identity; reuse under another mailbox is duplicate_conflict."
+    },
+    "history_mailbox_id": {
+      "type": "string",
+      "pattern": "^ak:history_mailbox:[A-Za-z0-9_-]{22}$",
+      "description": "Globally unique 128-bit random history-mailbox object identity."
+    },
+    "recovery_key_id": {
+      "type": "string",
+      "pattern": "^ak:recovery_key:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "sidecar_id": {
       "type": "string",
       "pattern": "^ak:sidecar:[A-Za-z0-9_-]{44}$"

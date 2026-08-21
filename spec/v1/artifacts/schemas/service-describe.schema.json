@@ -180,37 +180,13 @@
       "properties": {
         "mls_governance_proof": {
           "type": "object",
-          "description": "Required with these exact v1 interoperability bounds when supported_operations contains ak.self.events.read.mls_governance_proof.",
+          "description": "Required with these exact v1 interoperability bounds when supported_operations contains ak.self.seals.read.mls_governance_proof.",
           "required": [
-            "max_response_bytes",
-            "max_total_item_bytes",
-            "max_chunks",
-            "max_seal_path_items",
-            "max_covered_event_digests",
-            "max_control_state_items",
-            "max_frontier_events"
+            "max_exact_response_bytes"
           ],
           "properties": {
-            "max_response_bytes": {
-              "const": 4194304
-            },
-            "max_total_item_bytes": {
-              "const": 268435456
-            },
-            "max_chunks": {
-              "const": 1024
-            },
-            "max_seal_path_items": {
-              "const": 4096
-            },
-            "max_covered_event_digests": {
+            "max_exact_response_bytes": {
               "const": 1048576
-            },
-            "max_control_state_items": {
-              "const": 262144
-            },
-            "max_frontier_events": {
-              "const": 128
             }
           },
           "additionalProperties": false
@@ -977,7 +953,7 @@
         "properties": {
           "supported_operations": {
             "contains": {
-              "const": "ak.self.events.read.mls_governance_proof"
+              "const": "ak.self.seals.read.mls_governance_proof"
             }
           }
         },

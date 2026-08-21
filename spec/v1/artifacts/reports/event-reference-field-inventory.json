@@ -796,12 +796,6 @@
     },
     {
       "schema": "event-payload.schema.json",
-      "json_pointer": "/$defs/realm_key_share_audit_payload/properties/share_event_ref",
-      "field": "share_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "event-payload.schema.json",
       "json_pointer": "/$defs/realm_link_payload/properties/counterpart_event_ref",
       "field": "counterpart_event_ref",
       "classification": "complete_event_id"

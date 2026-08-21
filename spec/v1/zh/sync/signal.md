@@ -20,129 +20,27 @@ encrypted envelope、一条 send/subscribe live rail 与一个可选单跳 peer 
 
 ```text
 SignalEnvelope {
-  realm_id,
-  scope_ref,
-  sender_actor_id,
-  sender_device_id,
-  seal_ref,
-  signal_class,
-  sent_at,
-  expires_at,
-  encrypted_payload,
-  proof
+  realm_id, scope_ref, sender_actor_id, sender_device_id, seal_ref,
+  signal_class, sent_at, expires_at, encrypted_payload, proof
 }
 ```
 
-`scope_ref`、sender、Seal basis、时间、`signal_class` 与 ciphertext metadata 进入
-`envelope_digest`；device proof 使用
-`canonical_json({context:"ak.signal-proof-v1", envelope_digest, sender_actor_id,
-sender_device_id, verification_method, created_at, domain?, audience?})`，其中 proof
-`created_at` 必须逐字等于外层 `sent_at`。`encrypted_payload` 必须使用 scope 当前 MLS exporter
-以 label `ak.signal-v1` 和 `JCS({sender_device_id})` context
-（[`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）
-派生 **per-sender-device** AEAD key，并把上述不可变 server-visible header 的 canonical digest
-绑定进 AAD。其中：
+Signal 始终是短 TTL encrypted-only transport，不是 Event、history response 或 durable object。Sender proof 使用
+`ak.signal-proof-v1` 并覆盖移除 proof 后的完整 envelope digest。普通/Agent/minimal sender 的 identity 与 current
+authorization 按各自 profile 验证。
+
+Signal 的 raw key 必须 per verified sender 派生；exporter scope 可用本 epoch history secret，standard MLS 使用
+同 epoch、不可交付的 `ak.signal-root-v1` exporter root。两者都以 exact active Leaf BasicCredential identity 作为
+`ak.signal-v1` context。Nonce 使用该 `(group,epoch,sender)` 域的 durable full-width counter：
 
 ```text
-K_signal[epoch, sender_device_id] = ExpandWithLabel(
-  history_secret[epoch],
-  "ak.signal-v1",
-  JCS({"sender_device_id": sender_device_id}),
-  AEAD.Nk
-)
+K_signal = ExpandWithLabel(signal_root[N], "ak.signal-v1", sender_domain, AEAD.Nk)
+nonce = I2OSP(counter, AEAD.Nn)
 ```
 
-`sender_device_id` 同时进入 KDF context、nonce-prefix exporter context、AAD 与 proof；receiver
-MUST 从已验证外层 sender 重算 key。这样 AES-GCM 的 32-bit `sender_nonce_prefix` 即使在两个合法
-active device 间发生碰撞，碰撞 nonce 仍位于不同 AEAD key 下，不构成同 key/nonce reuse。
-实现 MUST NOT 回退到旧的 group-shared Signal key，亦不得仅以“fixture 中两个 prefix 不同”替代
-这一 per-sender key 合同。其他参数如下：
-
-```text
-aad_digest = H(canonical_json({
-  realm_id, scope_ref, sender_actor_id, sender_device_id, seal_ref,
-  signal_class, sent_at, expires_at,
-  scheme: encrypted_payload.scheme,
-  key_ref: encrypted_payload.key_ref,
-  purpose: encrypted_payload.purpose,
-  aead_profile: encrypted_payload.aead_profile,
-  epoch: encrypted_payload.epoch,
-  nonce: encrypted_payload.nonce
-}))
-```
-
-`key_ref`、`purpose` 与 `aead_profile` 是 [`../conformance/encoding.md` §10.1](../conformance/encoding.md)
-对每个 AEAD-bearing envelope 的最低 AAD 绑定要求，同时也是 canonical nonce 派生 context
-`{key_ref, epoch, device_id, purpose, aead_profile}` 的分量——缺其一接收方就无法重算
-`sender_nonce_prefix`。
-
-**算法由 `aead_profile` 承载，不由 `scheme` 承载（normative）**：`scheme` 固定为
-`ak.signal_exporter_aead.v1`，只标识构造方式；`aead_profile` MUST 是
-[`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json)
-某个 `status=active` 行的 `canonical_id`，且 MUST 等于 `key_ref.group_state_ref` 所指 MLS group
-**实际协商**的 ciphersuite。reserved suite、未登记 suite 或与该 group 实际 ciphersuite 不符者
-MUST fail closed（同 `encoding.md` §10.1 对全部 MLS-exporter 派生 domain 的统一规则）。
-因此后续激活新 ciphersuite 时 Signal **无需任何 wire 变更**即可获得该算法；把算法名写进
-`scheme` 会使每次激活都变成一次 wire-breaking 变更，v1 不采用该形态。
-
-`aad_digest` 不包含自身、ciphertext 或 proof。`envelope_digest` 则覆盖移除 `proof` 后的完整
-SignalEnvelope，因此同时承诺 ciphertext 与 `aad_digest`。
-
-`envelope_digest` 是 proof commitment 与短 TTL transport replay fingerprint，**不是 Signal ID**。
-v1 MUST NOT 定义 `signal_id`、任何 Signal 持久化 ID namespace，或把 `envelope_digest` 包装为可长期寻址的
-对象标识；Event payload、Relation、receipt、projection 与 durable storage MUST NOT 把它作为
-Signal 业务引用持久化。send outcome MAY 原样返回该 digest 用于诊断与短期提交关联。
-
-**两个独立状态域（normative）**：Signal 验证涉及两个互不替代的状态域，`seal_ref` 只选择
-其中第一个：
-
-1. **Realm / scope 授权域**：`seal_ref` 必须解析为 `realm_id` 的已知 Seal；sender actor 在该
-   Realm / scope basis 下的实时发送资格、`signal_class` action gate 与产品级 action（§7）都在
-   该 basis 下求值。
-2. **sender-key 授权域**：普通 user / org principal 的设备授权、吊销与 device generation fence 按**每个 verifier 当时的 current accepted
-   device directory**（[`../crypto-media/device-lifecycle.md` §5.4 / §8.2](../crypto-media/device-lifecycle.md)）
-   求值；Native Agent 则按其 current accepted `ak.agent.key.authorize` 与 portable signer
-   evidence 求值。两类都与 `seal_ref` 无关；目标 Realm 的 Seal 不覆盖、也无法定位另一个
-   principal-control Realm 的 device / Agent-key 状态。
-
-`proof.verification_method` MUST 是 DID URL：去掉 fragment 后的 bare full DID 经对应 method
-adapter 投影必须逐字等于 `sender_actor_id`，fragment 必须逐字等于 `sender_device_id`；不得把
-`did_core_id` 与 fragment 直接拼接成 DID URL。该绑定只是 sender endpoint 与签名方法的完整性条件，
-不能代替授权验证。普通 principal
-的 verifier MUST 用 `(sender_actor_id, sender_device_id)` 从 current accepted
-principal-control / device-directory frontier 解析权威 verify key，并验证完整的 root-anchored PCR authorization chain、当前 active generation 与撤销状态。Native Agent 的
-verifier MUST 要求该 `sender_device_id` 等于 Agent session / MLS endpoint 的稳定绑定，并以
-同一 `proof.verification_method` 解析 current active accepted `ak.agent.key.authorize`；其
-signing-key binding、state witness、freshness、revoke / supersede / expiry / conflict 语义按
-[`../identity/key-management.md` §3.6.1](../identity/key-management.md) 的 portable signer
-evidence 验证，MUST NOT fallback 到 device directory、controller device 或裸 fragment。
-portable signer evidence 的 state witness 与 Seal lineage MUST 锚定该 Agent 的
-principal-control Realm；目标 Signal 的 `realm_id` / `seal_ref` 只用于共享 scope 与发送资格
-校验。接收方 MUST NOT 要求 evidence witness Realm 等于目标 Signal Realm，也不得用目标
-Realm 替代 evidence 的 `authorization_realm_id` 进行验证；否则任何 PCR 与会话 Realm 分离的
-合法 Agent 都会被错误拒绝。evidence query 服务必须先按目标 Realm 验证 requester 与 Agent
-的当前共享上下文，再最小披露该 Agent 的 PCR 授权证据。
-任一当前授权目录 / evidence 缺失、inactive、revoked、fenced / conflicted、信任链不完整、
-freshness 不足或签名失败一律 fail closed。已观察到相关 frontier 变化后 MUST NOT 继续使用
-旧 positive cache。
-
-设备在 `seal_ref` 之后才获得授权、验证时已处于 current active 状态时，Signal **通过设备
-授权这一关**——这不是历史授权回溯，而是两个状态域的既定语义；该 envelope 仍须通过同
-Realm `seal_ref` 下的 scope / action 校验、短 TTL、AAD / MLS epoch 与 replay 校验。反之，
-同一 Signal 可能在 ingress 接受、在 receiver 到达前因设备撤销而被 receiver 丢弃；这符合无
-durable delivery guarantee 的 Signal rail，任何一跳都不得为追求各跳一致而回退到历史已撤销
-设备。
-
-`signal_class` 是服务端可见的唯一产品分类：
-
-| 值 | 服务端用途 |
-| --- | --- |
-| `setup` | 唤醒、VoIP push、建立实时会话。 |
-| `moderation` | 额外执行 moderation action gate。 |
-| `session` | 普通 presence/typing/receipt/candidate/session 信号。 |
-
-精确 payload type、Strand/Message/Call/receipt target、sequence 与内容都在 ciphertext 内。
-服务端不得要求或推断更细 `signal_kind`。
+Signal encrypted payload 的 closed pre-encryption header 必须绑定 scope/sender/seal/class/time/scheme/group/epoch/state/
+counter；AAD 是该 header 的 JCS bytes。Counter 回退/复用 fail closed，不得 prefix 或 random fallback。Signal 不得借
+history mailbox 交付 standard signal root，也不得把 Signal digest 注册为持久 ID。
 
 ### 1.1 Plaintext payload profile 通用最小集（normative）
 
@@ -390,7 +288,7 @@ service-level profile preflight 后报告 peer relay unavailable，但不得暴�
 
 ## 5. 与 to-device 的硬边界
 
-`ak.key.verification.*`、`ak.secret.request/send`、`ak.realm_key.request` 以及直接参与设备验证、
+`ak.key.verification.*`、`ak.secret.request/send`、`ak.history_key.request` 以及直接参与设备验证、
 密钥分发、历史恢复的消息使用 `DeviceMessageEnvelope` 和可靠队列。它们不得进入 broadcast
 Signal，也不得使用 signal TTL/单跳 fanout 语义。
 

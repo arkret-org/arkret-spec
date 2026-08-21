@@ -162,7 +162,7 @@ stage 请求携带 proof 等负向量。
 
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `ak.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
-`ak.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis={leaves[]}`（撤销方签名时观察到的 accepted Seal refs，进入 canonical Event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 或 generation 字段。客户端铸造 single-leaf basis 的注册来源是 `ak.self.events.read.frontier?realm_id=<principal_control_realm_id>` 返回的 Realm Seal view，取 `leaves=[seal_id]`；client MUST 验证所引 Seal并自行重算 roots，但不把 roots 复制进 Event。来源不可用时 MUST fail closed，不得伪造 basis。
+`ak.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis={leaves[]}`（撤销方签名时观察到的 accepted Seal refs，进入 canonical Event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 或 generation 字段。客户端铸造 basis 的注册来源是 `ak.self.seals.read.frontier?realm_id=<principal_control_realm_id>` 返回的 `RealmSealFrontierView.seal_basis`；single_signer/threshold 下恰一 leaf，open_set 下必须保留完整 canonical antichain。client MUST 验证所有所引 Seal 并自行重算 joined roots，但不把 roots 复制进 Event。来源不可用或不完整时 MUST fail closed，不得伪造 basis。
 
 **`revocation_pending` 状态机（normative）**：机读合同为 [`device-revocation-state.schema.json`](../../artifacts/schemas/device-revocation-state.schema.json)（`ak.schema.device_revocation_state.v1`）。所有 deployment profile 使用同一规则，不存在通用部署 `SHOULD`、E2EE / hardening 才 `MUST` 的分支。
 
@@ -205,7 +205,7 @@ gate receipt 的 proof context 固定为 `ak.device-revocation-gate-decision-pro
 
 客户端材料处理也按 terminal state 分层：pending 期间 MUST 保留恢复或验证 `signed_reject` 所需的最小可恢复材料，不得把 pending 当永久撤销擦除；accepted covering Seal 后 MUST 擦除仅属于被撤销 device generation 的 session / KeyPackage / to-device 解密与发送材料。already lawfully issued before pending 的 Principal Server admission proof 继续按其 `accepted_at` 离线验证，后续 pending / Seal 不追溯改变历史 Event validity。
 
-共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ak.mls.commit` Remove 的 `governance_binding.security_frontier_digest` MUST 从已经包含该 `ak.device.revoke` 或将其导入 Realm 的显式 leaf-remove Control Move 的 accepted state 重算，且该撤销 MUST 已被 principal control stream 的 accepted Seal 覆盖；否则 Commit 不满足 MLS Security Frontier Binding，active generation 不得推进。
+共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ak.mls.commit` Remove 的 `governance_binding.security_frontier_digest` MUST 从已经包含该 `ak.device.revoke` 或将其导入 Realm 的显式 leaf-remove Control Move 的 accepted state 重算，且该撤销 MUST 已被 principal control stream 的 accepted Seal 覆盖；否则 Commit 不满足 MLS Security Frontier Binding，唯一 group 的 current winning epoch 不得推进。
 
 
 ## 3. 企业单点登录 (SSO / OIDC Gateway)
@@ -468,7 +468,6 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 | `sent_at` | `datetime` | required | 发送时间。 |
 | `expires_at` | `datetime` | required | 队列过期时间；不得晚于该 kind/profile 声明的 TTL 上限。 |
 | `content` | `object` | required | 类型相关内容；私密内容 SHOULD 端到端加密。 |
-| `device_proof` | `proof` | optional | 传输认证不能覆盖的场景 MAY 带 detached device proof。 |
 
 `device_message_id`、`recipient_principal_id` 和 `recipient_device_id` MUST 被签名、device proof 或加密 AAD 覆盖。发送接口使用 `messages.{principal_id}.{device_id}` 做批量路由时，服务端在入队前 MUST 把发送请求的 `device_message_id` 与路径目标复制进 `DeviceMessageEnvelope`，且接收端 MUST 拒绝 envelope 目标与当前登录设备不一致的消息。
 
@@ -926,11 +925,11 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
 - `Source-Service-ID` 是 requester 当前已验证 Principal Server locator / home authority，`Destination-Service-ID` 是 `target_principal_id` 当前 KeyPackage authority，且两端与请求中的 trust domain 均属于允许此次 Realm 建立的同一 trust domain；
 - participant authorization 的 requester、verification method、generation / device authorization、freshness 与 exact request/service binding 全部有效；
 - target 当前 active device、KeyPackage expiry / revocation / capability 均有效，并满足 `required_capabilities ⊆ capabilities`；
-- `claim_purpose=direct_conversation|direct_conversation_repair` 时，request MUST 携带 `pair_key` 与 main
+- `claim_purpose=direct_conversation` 时，request MUST 携带 `pair_key` 与 main
   `strand_id`；目标服务按 [`../identity/contact-and-direct-conversation.md` §7](../identity/contact-and-direct-conversation.md)
   重算 pair key，并验证双方 current directional Contact heads 都包含 `direct_message`、预留 Realm / Strand /
   MLS group 的一致性；该路径不得查询 Consent；
-- `claim_purpose=direct_conversation_repair` 时还必须携带 `target_keypackage_ref` 与 closed target XOR：human
+- accepted member rejoin 后的普通同组 Add/Welcome 可以在 `claim_purpose=direct_conversation` 请求中携带 `target_keypackage_ref`，此时还必须携带 closed target XOR：human
   branch 必须且只能携带恰一个 `target_device_ids`；Native Agent branch 必须且只能携带
   `target_agent_id + target_agent_verification_method + target_agent_key_authorize_event_id`，禁止
   `target_device_ids`，且 `target_agent_id == target_principal_id`。owner authority 必须验证该 exact ref 属于
@@ -941,7 +940,7 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
   以不透明 `claim_failed` 零写入；
 - `(Source-Service-ID, target_principal_id)` 的限速与 abuse policy 通过。
 
-`claim_purpose=direct_conversation|direct_conversation_repair` 时 `last_resort_allowed` MUST 缺省或为 `false`，
+`claim_purpose=direct_conversation` 时 `last_resort_allowed` MUST 缺省或为 `false`，
 目标服务 MUST NOT 返回 last-resort KeyPackage。一般 `realm_membership` claim 只有在双方 feature negotiation
 均声明 `ak.feature.mls_last_resort_keypackage.v1` 且请求显式 `last_resort_allowed=true` 时才可返回 last-resort
 record；否则 single-use pool 耗尽即失败。
@@ -952,7 +951,7 @@ record；否则 single-use pool 耗尽即失败。
 
 1. 核对已由唯一索引保护的 request reservation 与 digest；
 2. 一般 profile 选择仍为 `published` 且通过 freshness / capability gate 的 KeyPackage；
-   `direct_conversation_repair` 则只锁定 request 的 exact `target_keypackage_ref`，不得执行候选选择；
+   携带 `target_keypackage_ref` 的同组重加入请求只锁定该 exact KeyPackage，不得执行候选选择；
 3. 对 single-use KeyPackage 执行 CAS `published → claimed`；
 4. 在同一 current authority snapshot 上生成并复核 target portable evidence，写入 claim record、把
    ledger 从 `pending` 变为终态，并写入已序列化的成功 outcome bytes。
@@ -977,7 +976,7 @@ record；否则 single-use pool 耗尽即失败。
 
 public/invite/closed/knock/admin-add 的最终 join都必须携未过期、single-use、签名的
 `MlsJoinAdmissionReceipt`。receipt完整绑定 target Realm/member/**exact target device**、KeyPackage ref/claim、
-group ID、MLS generation、expected epoch、current security frontier、join authority basis、exact member Event
+group ID、current winning MLS group state、expected epoch、current security frontier、join authority basis、exact member Event
 draft ID/digest、eligible committer、ciphersuite、issuer、issued/expires-at与reservation ID。target-device签名的
 reservation在任何 claim CAS之前持久化；claim-before rejection零烧。
 
@@ -1215,7 +1214,10 @@ Client-local secret storage 的存储格式仍可使用本节的 `ak.secret_stor
 
 ## 12. Key Backup
 
-Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当前 actor 已经通过 membership、history visibility 和 Realm policy 获得的历史范围，不是给未来新成员预先保留历史 secret 的机制。唯一的 managed-principal 托管分支是 [`../identity/key-management.md` §7.5.6](../identity/key-management.md)：Native Personal Agent controller 可把其依当前 Agent DID delegation 合法持有的 Agent PCR MLS state 写入 **controller-owned** `mls_history` envelope；外层 `actor_id` 与 caller 仍是 controller，不放宽跨 actor backup 访问。
+Key backup 保存已加密的 exporter history-secret ranges。它只覆盖当前 actor 已经合法取得的历史范围，不保存
+active MLS group state、leaf signer、sender counter、ratchet 或 pending Welcome，也不存在 managed Agent PCR 的跨-principal
+active-state 例外。Native Agent 与 ordinary endpoint 的 fresh restore 都只能安装 schema 允许的 history-secret ranges；重新进入
+active group 必须走 current authorization 下的标准 KeyPackage/Add/Welcome（见 [`../identity/key-management.md` §7.5.6](../identity/key-management.md)）。
 
 备份单元使用 `ak.schema.key_backup.v1`，并设置 `backup_kind="mls_history"`。示例：
 
@@ -1302,7 +1304,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 - 任何 backup class 只要使用 `recovery_public_key`，就 MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}` 并由 `auth_data.signed_fields` 覆盖；`recipient_key_ref` 只能解析到该 accepted policy 的 `recovery_key_agreements[]`。`mls_history` / `secret_storage` 在读取/恢复时须按 accepted policy history、active-series 与轮换规则拒绝回滚。不一致 MUST `recovery_policy_mismatch`。只有 `secret_storage_key` 等非 recovery-public-key 方法携带的 `recovery_policy_ref` 才是可选 hint；任何 policy ref 都不得替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
 - 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并携带当前 accepted `device_authorize_event_id`；`frontier_ref` 只允许 `device_generation_ref`。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_kind`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 PCR device authorization evidence。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
-- 含 Agent PCR managed item 的 envelope MUST 使用 `recovery_public_key`，携带 controller 当前 `recovery_policy_ref`，并让 public index、plaintext keybag 与 AEAD AAD 对同一 `managed_principal_binding` canonical set 达成逐字一致；服务端在接受上传前 MUST 按 envelope `created_at` 验证 Agent DID/PCR/controller/delegation binding。该验证只证明 controller 当时有权托管密钥，不让服务端获得解密能力，也不让历史解密能力替代当前 Agent DID authoring authorization。
+- v1 没有 controller-owned managed Agent active-state backup 分支。`mls_history` 对所有 actor 都只承载 exporter history-secret ranges；它不携 Agent PCR binding、active MLS state、runtime key 或 pairing readiness。Fresh Agent endpoint 生成新 runtime key，并经标准 KeyPackage/Add/Welcome 重新加入唯一 group。
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
 - 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Realm history visibility。
@@ -1345,171 +1347,40 @@ DELETE /_arkret/self/keys/backups/{backup_id}
 - 同一 series 内的 retention 必须保证链不被打破：服务端 MUST NOT 删除 active series 的非尾部 envelope；旧 series 只有在已经被 active-series record 移出 primary source 后，才 MAY 按 retention / erasure 策略整组删除或迁移。若该删除属于`SecurityRotationTransaction`，两个backup kind的pointer、逐series进度、partial retry与complete confirmation一律以[`identity/security-transactions.md` §3](../identity/security-transactions.md)为准。
 - erasure 完成后保留的 `retained_stub_digest` MUST 仅含 metadata 哈希，不含密文与 KDF 参数，以避免间接成为离线爆破证据。
 
-## 13. Realm Key Share and Withholding
+## 13. Private History-Key Request and Response
 
-Arkret 使用 `ak.realm_key.share` 共享历史解密材料。`share_kind="member_device"` 是普通成员设备历史交付路径；共享前发送设备 MUST 检查：
+历史密钥恢复不得使用 public Realm Event 或通用 `DeviceMessageTarget`。唯一 surface、DTO 与 proof transcript 来自
+[`history-key.schema.json`](../../artifacts/schemas/history-key.schema.json) 和
+[`history-visibility.md`](../governance/history-visibility.md)：
 
-- 接收设备属于目标 principal。
-- 设备未撤销。
-- 设备是 PCR current accepted、未撤销且未被 generation fence 的设备；如 Realm policy 另要求人工验证，也必须满足该附加条件。
-- history visibility 允许该 principal 获取目标历史范围，且判定时点使用目标 Event range 的 deterministic `T0`，不得使用本地到达顺序或 wall clock。
-- effective `ak.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source；当 Realm / Circle history visibility 为 `restricted` 时，必须命中 `restricted_rules[]`，且本次请求所用 key 来源 MUST 在命中 rule 的 `key_sources` 内（命中 read rule 但来源不在 `key_sources` 时只放行读取、不交付 key），否则 MUST withhold。
-- `key_scope.policy_digest` 绑定本次判定使用的 Realm policy / MLS governance policy root；如判定依赖 membership frontier，`key_scope.membership_frontier_digest` SHOULD 同时写入。
-- `sender_device_signature` MUST 覆盖 `share_kind`、发送设备、接收 principal/device、`key_scope`、`aad_digest?`、`ciphertext` 或 `encrypted_key_ref` 与 `created_at`。接收方 MUST 验证该签名链接到当前有效 sender device key，且不得只依赖传输层认证。
-- 对 `history_visibility=joined` 的 scope，join 前 epoch key MUST 被拒绝；对 `invited`，share range MUST be no earlier than receiver 的有效 invite frontier；对 `shared`，join 前 history key share 仍需要 policy 明确允许；对 `world_readable`，E2EE key 不因 public history 自动公开。
-- current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续向该 principal / device 交付。
-- audit profile 要求的 `ak.realm_key.share_audit` / `ak.audit.accessed` 已满足。
-- Archive Node、Key Recovery Service、Recovery Service 或 peer 不能因为持有备份副本就绕过上述检查；服务端 operator 权限不是 key share 授权。
+- `POST /_arkret/self/history-key-requests` 创建 scope-private durable request；`POST /_arkret/self/history-key-requests/read` 执行无状态列表查询；
+- `POST /_arkret/self/history-key-responses` 发送 immutable manifest/chunk；
+- `POST /_arkret/self/history-key-responses/{reply_mailbox_id}/read` 与 `POST /_arkret/self/history-key-responses/{reply_mailbox_id}/ack` 仅凭 mailbox capability 读取/确认。
 
-`ak.realm_key.share` 的 v1 wire 合同**不携带、也不隐式依赖**发送方 `ak.device.authorize` Event ref。authoring 不得为了构造 share 查询 `list_devices` 的 current row、current device snapshot 或其它“现在最新”设备视图；这类查询结果既未进入 `RealmKeySharePayload`，也未进入 `sender_device_signature` transcript，接收方无法冻结或重放，故不构成安全证据。发送方设备资格只由本节既有的 Event envelope/CBA、`source_authorization_ref`、`sender_device_id` 与 `sender_device_signature` 验证链判定。若未来要求 exact accepted device-authorization evidence，必须先新增进入 closed schema、canonical transcript 与 receiver installation gate 的独立冻结 carrier；实现不得私下增加字段或恢复 current-snapshot 门槛。
+Requester 必须在发送前 durable 保存 HPKE private key、canonical request intent、closed
+`trusted_scope_anchor` 及使该 anchor 成为本地 trusted 的 verification checkpoint/material；create 返回后保存
+service receipt 和 sealed mailbox capability。相同 request id+intent 返回相同 bytes，不同 intent 冲突；retry 不得替换
+requester 选择的任何 authority anchor。
+Source 必须先 durable 保存完整 outbox 后发送；accepted/duplicate 只推进 exact record，重启后不得重封。
 
-`share_kind="realm_recovery_key"` 是 Realm `durability_policy` 的 RRK 持久化封存路径（[`encryption-and-audit.md` §2.10.8](./encryption-and-audit.md)）。它 MUST 携带 `recipient_verification_method` 与 `recovery_recipient_id`，MUST NOT 携带 `recipient_device_id`，且 `sender_device_signature` MUST 覆盖 `share_kind`、发送设备、`recipient_principal_id`、`recipient_verification_method`、`recovery_recipient_id`、`key_scope`、`aad_digest?`、`ciphertext` 或 `encrypted_key_ref` 与 `created_at`。发送方 MUST 按 §2.10.8 校验 RRK DID service 绑定与 effective `durability_policy`，不得复用本节的成员设备资格校验来替代 RRK 校验。
+Request、source response、service receipt 与 service response record 分别使用 proof-context registry 中的四个 closed
+context，全部复用标准 generic detached-JWS proof shape。Source proof 签入 actor/sender domain/scope/request/receipt/
+mailbox/expiry 与 content；不签服务生成的 sent_at 或 release attestation。Service record
+proof 覆盖 sequence、cursor、source-record digest、exact response、sent_at 与条件式 release attestation。Ordinary human/Native Agent/minimal source sender domain
+按 exact historical active Leaf BasicCredential identity 校验；RRK holder 使用 archive 钉住的 holder signing binding，
+不得冒充 MLS leaf。
 
-本节是 key-share 资格校验的 **canonical 来源**；history-visibility、late key recovery 等处对发送侧前置校验的引用以本节为准，不再各自重述。
+每个 chunk 首次入队是 release 线性化点：服务在同一事务复核 request 当前 membership、source、scope/Circle parent、
+current history frontier、profile-dispatched closed authority predicates、typed locator/digest vector、safety/audit 与 quota，再原子生成
+`HistoryReleaseAttestation`、分配单调 sequence/cursor 并持久化 record。
+Exact retry 返回原 record/receipt 且不重跑已收紧 policy；同 id 异 digest 冲突。Receiver 可 durable 暂存乱序 chunk，
+但 manifest/descriptor、activation slice、current release proof 与 HPKE 全部通过后才安装。
 
-拒绝共享时发送 `ak.realm_key.withheld`，其 payload 使用 `withheld_reason_code` 承载原因码：
+Ack 必须携 `high_water_cursor` 与按顺序 record digest 的
+`{response_id,record_digest,status}`。status 只允许 `installed|cryptographically_rejected|superseded_duplicate`；
+三者均释放 processing quota，只有 installed 计入 range coverage。服务在 ack/GC 后保留有界 idempotency tombstone 到
+原 expiry，避免 exact retry 永久 pending。
 
-- `unverified_device`
-- `blacklisted_device`
-- `not_member`
-- `history_not_visible`
-- `policy_denied`
-- `unknown_session`
-
-`ak.realm_key.withheld` 与 share 共用同一 delivery cell family，因此它同样 MUST 携带 `share_kind`（v1 仅 `member_device`）、`key_scope` 与 `source_authorization_ref`。withheld 虽不携带 secret，但 `not_member` / `history_not_visible` 等 reason 会产生主体级终态语义；仅有任意设备的 Event 签名不足以授权它向目标 delivery cell 写入拒绝记录。缺失或不覆盖该决定的 source authorization MUST 以 `late_recovery_share_not_authorized` 拒绝整个 Event，MUST NOT 把未授权 withheld 投影为终态。
-
-withheld 的 `key_scope.policy_digest` 是**来源方作出该拒绝判定时实际求值的** effective Realm/Circle policy root，它钉住拒绝所依据的 policy snapshot，不表示该 share 曾获授权：`not_member` / `history_not_visible` / `policy_denied` 绑定作出相应 membership、visibility 或 sharing-policy 判定时的 root；`unverified_device` / `blacklisted_device` / `unknown_session` 绑定此次拒绝所依据的 effective device/session eligibility policy root。设备、session 与 membership 事实仍由 Event CBA、引用与领域校验提供，MUST NOT 用 `policy_digest` 自证。receiver MUST 在同一 Event CBA / T₀ basis 上重算并逐字比较该 root。来源方若无法在 canonical basis 上解析出唯一 effective policy root，MUST NOT 生成 canonical durable withheld，只能 fail closed 并走领域登记的非 Event / pending 错误路径，MUST NOT 填零值、接收时当前最新 root 或实现私有占位。
-
-### 13.0 Delivery cell identity 与 sender-device transcript（normative）
-
-`ak.realm_key.share` 与 `ak.realm_key.withheld` 写入同一 `ak.component.realm_key.delivery.v1` cell family。其 cell subject 是固定 arity 4 的判别式复合 subject：`[share_kind, recipient_principal_id, recipient_target_id, effective_scope_id]`。两个 kind 使用逐字相同的 registry descriptor。实现 MUST 按 registry 纯函数重算 cell 与 value；wire 没有 producer 自选 cell。
-
-`sender_device_signature` 的 canonical transcript 由本节固定，schema description 与任何 SDK 方法都不构成替代真源。签名对象为：
-
-```text
-{
-  context: "ak.realm-key-share-sender-proof-v1",
-  share_kind,
-  sender_device_id,
-  source_authorization_ref,
-  recipient_principal_id,
-  <仅选中 variant 的 target fields>,
-  key_scope,
-  <ciphertext 或 encrypted_key_ref，精确一个>,
-  aad_digest?,
-  expires_at?,
-  created_at
-}
-```
-
-按 [`../conformance/encoding.md` §2](../conformance/encoding.md) 的 canonical JSON 签名。未选中的 variant target 字段、未选中的 material 字段与缺省 optional 字段 MUST 省略，MUST NOT 写 `null`；payload schema 已把 `ciphertext` / `encrypted_key_ref` 收紧为 exactly-one，因此 transcript 中恰有一个 material 字段。`expires_at` 出现时 MUST 进入 transcript。verifier MUST 逐字节重建同一 transcript，并要求 signature `kid` 解析到 `sender_device_id` 对应的、该 sender principal 当前 accepted 且未撤销的设备 key；外层 Event proof MUST NOT 替代这条领域签名。
-
-#### 13.0.1 Delivery append value projection（normative）
-
-delivery cell 的 lattice 是 `ordered_log`，每个 accepted Event 产生恰好一个 `op.kind="append"` entry。该 entry 的值由本节固定为一个**纯函数投影**：receiver MUST 根据 Event 与 registry 合同独立计算，不可确定时以 `reducer_projection_failed` 拒绝整个 Event。实现 MUST NOT 接受 producer 自选的任意 JSON value。
-
-投影结果是 canonical JSON object。缺省的 optional member MUST 省略，MUST NOT 写 `null`。
-
-`ak.realm_key.share` 的 member 与来源：
-
-| member | 来源 |
-| --- | --- |
-| `delivery_outcome` | 字面量 `"shared"` |
-| `share_kind` | `payload.share_kind` |
-| `recipient_principal_id` | `payload.recipient_principal_id` |
-| `recipient_target_id` | 与 cell subject 同一 `select`：`member_device` → `payload.recipient_device_id`；`realm_recovery_key` → `payload.recovery_recipient_id` |
-| `effective_scope_id` | 与 cell subject 同一 `select`：`realm` → `payload.key_scope.effective_scope.realm_id`；`circle` → `payload.key_scope.effective_scope.circle_id` |
-| `policy_digest` | `payload.key_scope.policy_digest` |
-| `from_epoch`（optional） | `payload.key_scope.from_epoch` |
-| `to_epoch`（optional） | `payload.key_scope.to_epoch` |
-| `sender_device_id` | `payload.sender_device_id` |
-| `source_authorization_ref` | `payload.source_authorization_ref` |
-| `payload_digest` | 完整签名 payload 的 canonical JSON bytes 的 digest |
-
-`ak.realm_key.withheld` 使用同一前十项（`delivery_outcome` 为字面量 `"withheld"`）与同一 `payload_digest`，并追加：
-
-| member | 来源 |
-| --- | --- |
-| `withheld_reason_code` | `payload.withheld_reason_code` |
-
-规则与理由：
-
-- **plane 边界。** delivery family 在 registry 中是 `plane=data`，因此该 cell 的 joined value MUST NOT 进入治理 `state_root`；它的 Seal 级承诺走 [`../authz/event-auth-state-resolution.md` §6.4](../authz/event-auth-state-resolution.md) 的 `data_view_root`（§6.2.1 明确 data plane cell 不进入 `state_root`）。
-- **不复制材料本身。** `op.value` 由每个参与方独立重算并进入数据面观测承诺；把 HPKE 密文抄进去会让所有节点为记账各背一份密文副本。投影只承诺指纹。
-- **`payload_digest` 承诺完整语义，不逐字段枚举。** [`../authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md) 规定同一 `(cell, actor_id, issuer_seq)` 上完整 canonical `write.op` bytes 相同即幂等 duplicate。若投影只承诺部分字段，语义不同的两条交付会产生逐字相同的 entry 而被静默去重——例如密文相同但 `expires_at` 不同的续期 share、`aad_digest` 不同的重封、RRK 轮换后 `recipient_verification_method` 改变的重新封存，以及 `key_scope` 中 `membership_frontier_digest` / `history_visibility` 的差异。逐字段枚举会在 payload 每次演进时重新产生该缺口，因此本节固定为对**完整签名 payload**（含 `sender_device_signature`）取 digest：任何语义差异都改变 `payload_digest`，而逐字节相同的重放仍然幂等。
-- **digest 形态**遵循该 Realm 的 `digest_algorithm` 与 [`../conformance/encoding.md` §3.1](../conformance/encoding.md) 的 `<suite>:<lowercase_hex>` wire 形态；输入是 payload 的 canonical JSON bytes（[`../conformance/encoding.md` §2](../conformance/encoding.md)）。
-- **不使用 Event 标识符。** `event_id` / `event_digest` MUST NOT 出现在 `op.value` 中：entry value 是内容承诺，不是 Event 引用；`event_digest` 另由 §9.3.1 的 equivocation tie-break 使用，写回 `op.value` 会产生自引用。审计侧的 share 与结果关联仍由 `ak.realm_key.share_audit` 的 `share_event_ref` 承担。
-- 其余可读 member 保留，是为了让数据面投影和诊断无需重新解析 payload；它们不承担完整性职责，完整性由 `payload_digest` 承担。
-
-### 13.1 来源级扣留 vs 主体级拒绝（normative）
-
-`ak.realm_key.withheld` 必须区分两类语义，二者对接收端是否为终态不同：
-
-- **主体级拒绝**——`not_member` / `history_not_visible`，或接收 principal/device 已处于 ban / leave / removed / account 失权态。该 reader 在目标 `T0` 本就不具读资格，withhold 为**终态 fail-closed**；客户端 MUST NOT 重试，事件维持 metadata-only。
-- **来源级扣留**——reader 在 `T0` 仍具读资格（§3 visibility 通过、receiver 未失权），仅因本次请求所用 `key_source` 不在命中 `restricted_rules[]` rule 的 `key_sources` 内（或该来源未满足 audit/device 验证）而被拒，`withheld_reason_code` 取 `policy_denied`。该扣留**只对当前来源终态、对该 reader 非终态**：
-
-  - key source MUST NOT 把它当作主体级拒绝；接收端 MUST 将事件保持在 `decryption_pending` 可恢复车道（§2.3.4 `key_unavailable` 语义），不得降级为"已拒绝"展示。
-  - 接收端 SHOULD 从 effective `ak.realm.history_sharing_policy` 命中 rule 的 `key_sources` 解析出授权来源集合，并改向其中任一来源（`key_backup` / `archive_node` / `verified_member_device` / `recovery_service`）重新请求；对已具读资格的 reader 公布该集合不构成披露。
-  - 被重新请求的授权来源 MUST 独立重跑本节完整闸门——读资格是必要非充分条件，授权来源不得因 reader 读资格成立就跳过 T0 / device / audit 校验。
-  - 若当前无任何授权来源可服务，事件停在 `decryption_pending`，超时后按 §2.3.4 转 `decryption_failed`，日后仍可经 §2.3.5 late key recovery 解锁。任何时点都不得出现"读资格成立却被标记为永久不可解"的终态。
-
-### 13.2 历史 key 请求、来源发现与选择（normative）
-
-§13 / §13.1 规定了 key source **交付**前的资格与扣留语义；本节规定接收方**如何发现、选择并向具体来源发起请求**——这是与交付独立的发现 + 请求流程。
-
-**`ak.realm_key.request`**——read-eligible 的接收方向某个 key source 发起的历史 key 请求。它是可靠
-to-device 触发消息，与 `ak.key.verification.request` 同类，使用
-[`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json) 的
-`DeviceMessageEnvelope.content`，经 device message 队列中继到 `target_source_ref` 指向的来源；
-它不进入 Event registry 或 reducer state，也不得使用 durable `EventEnvelope`。content 字段顺序对齐本表：
-
-| 字段 | 必填 | 说明 |
-| --- | --- | --- |
-| `key_scope` | yes | 请求的 `effective_scope`、`from_epoch` / `to_epoch`（请求的 epoch 区间）。 |
-| `recipient_principal_id` | yes | 接收主体 DID（MUST == 请求签名者，§13.2 校验 1）。 |
-| `recipient_device_id` | yes | 接收设备 id。 |
-| `recipient_hpke_public_key` | yes | 用于封装 `history_secret` 的接收设备公钥（KeyPackage init key 或等价设备公钥）。 |
-| `requested_source_kind` | yes | 本次面向的来源类别，取 `own_device` / `verified_member_device` / `archive_node` / `recovery_service`。**不含 `key_backup`**——它走 `ak.self.keys.backups.command.unlock`、不经本请求。 |
-| `target_source_ref` | yes | 本请求路由到的**具体来源**：peer（`own_device` / `verified_member_device`）为目标 `device_id`，service（`archive_node` / `recovery_service`）为 service DID。若 service 复用本 to-device kind，`DeviceMessageEnvelope.recipient_principal_id` MUST 等于该 service DID，`recipient_device_id` MUST 是该 service 在 describe 中暴露的具体队列 / 设备目标；未暴露时 MUST 走服务专有 operation。无该字段则 relay / service 路由与审计无法定位来源。 |
-
-**触发**：接收方在某 Event 处于 `decryption_pending` 且自身在该 Event 的 `T0` read-eligible（[`../governance/history-visibility.md`](../governance/history-visibility.md) §3）时 MAY 发起；对 `decryption_failed` 的 late recovery 同样适用（§2.3.5）。`ak.realm_key.request` 只是发起信号，不降低任何授权要求——被请求来源 MUST 独立执行 §13 canonical 校验后才交付。
-
-**两类场景的来源不同（normative）**：
-
-- **同 principal 恢复**——已是成员、在新设备上恢复或丢设备后恢复**自己已有权读取**的历史。来源为 `own_device`（同 principal 另一台在线设备）或 `key_backup`（**接收方本人的** `mls_history` key backup，加密于其本人 recovery key 之下、经 unlock 取回；见 [`../identity/key-management.md`](../identity/key-management.md) §7.7 与 `backup_kind="mls_history"`）。`mls_history` backup 只装"用户已有权读取的"历史，故 `key_backup` 只适用本场景。
-- **跨 principal 新成员**——首次加入、获取 join 前**从未持有**的历史。来源为 `verified_member_device`（现有成员重新分享其保留的 `history_secret`）、`archive_node` 或 `recovery_service`。**`own_device` / `key_backup` 不适用**：新成员从未有权读取这些 epoch，其本人 backup 里也不会有它们。
-
-**来源选择 = 三层求交（normative）**：接收方选择来源 MUST 同时满足——
-
-1. **policy 允许**：来源类别在 effective `ak.realm.history_sharing_policy` 命中 rule 的 `key_sources` 内（§13 / history-visibility §6 / §3.1）。
-2. **describe 可用**：该来源对应能力在权威 `ServiceDescribe.supported_features` 中声明——按 [`../sync/service-surface.md`](../sync/service-surface.md) §3 的能力发现原则，客户端 MUST 以 describe 为权威发现面，不得对猜测 endpoint 直接探测。
-3. 取 `policy 允许 ∩ describe 可用` 的交集，**先按上文场景筛掉不适用的来源**，再按优先级逐一尝试——同 principal 恢复推荐 `own_device` → `key_backup`；跨 principal 新成员推荐 `verified_member_device` → `archive_node` → `recovery_service`；部署 MAY 在 Realm policy 覆盖该顺序。交集为空时事件停在 `decryption_pending`（§13.1 末条），不得报永久不可解。
-
-**服务端能力广告**：服务端 MUST 通过 `ServiceDescribe.supported_features` 声明其支持的历史 key 投递途径：
-
-- `ak.feature.realm_key.backup_retrieval.v1`：托管 key_backup 取回（`POST /_arkret/self/keys/backups/{backup_id}/unlock`，见 [`../identity/key-management.md`](../identity/key-management.md) §7.7）。
-- `ak.feature.realm_key.peer_relay.v1`：中继 peer 的 `ak.realm_key.request`（device-to-device，经 device message 队列投递）；授权后的 `ak.realm_key.share` / `ak.realm_key.withheld` 仍是 durable event，队列 MAY 只投递其 event ref / 通知。
-- `ak.feature.realm_key.archive_retrieval.v1`：作为 archive_node 服务历史 key。
-
-`archive_node` / `recovery_service` / `key_recovery_service` 是独立 `service_kind`（service-surface §3 注册值），其取回 endpoint 由 Realm policy 点名的 service DID 各自 describe 暴露。
-
-**每来源的请求 / 取回映射**：
-
-- `key_backup`：走 `ak.self.keys.backups.command.unlock`（unlock proof，§7.7），**不**使用 `ak.realm_key.request`。
-- `verified_member_device` / `own_device`：发 `ak.realm_key.request` 给目标设备，服务端按 `peer_relay` 中继；目标设备校验 §13 闸门后提交 durable `ak.realm_key.share` 或 `ak.realm_key.withheld`（MAY 另经 to-device 队列通知接收方对应 event ref）。
-- `archive_node` / `recovery_service`：按该服务 describe 声明的 endpoint 取回；只有当 describe 暴露可接收 `DeviceMessageEnvelope` 的具体 queue/device target 时 MAY 复用 `ak.realm_key.request`，否则 MUST 使用服务专有 operation。
-
-**请求合法性校验（normative）**：`ak.realm_key.request` 是非授权性的**触发信号**——被请求 source MUST NOT 因为收到请求就交付，而是独立按 §13 canonical 闸门 + 授权事件日志 fail-closed 重验下列**全部**，任一不过 MUST 回 `ak.realm_key.withheld`：
-
-1. **只能为自己请求**：`recipient_principal_id` MUST == 请求事件**签名者**的 principal；不接受代他人请求。
-2. **recipient 在目标范围 `T0` eligible**：按 Realm 事件日志中 recipient 的 `ak.member.state` 判定其在 `key_scope` 各 epoch 的 `T0` 为 read-eligible（history-visibility §3）；membership 取自**签名事件日志**，不取自请求自述。
-3. **policy 允许**：effective `ak.realm.history_sharing_policy` 命中 rule 覆盖该 receiver class、`key_scope` 区间与本 source 类别（含 `restricted_rules[].key_sources`）。
-4. **请求来自 recipient 的授权设备**：`ak.realm_key.request` 的签名 MUST 链到 recipient principal 在 `T0` 当前授权的设备。
-5. **seal 目标属于 recipient**：`recipient_hpke_public_key` MUST 是该 recipient principal 的**已授权设备**公钥（对 KeyPackage / device-list 校验），防止把历史 seal 到未授权 key。
-
-合法性来自 source 对授权事件日志的**重验**，而非对请求内容的信任；伪造的请求无法越过 membership / device / policy 任一关。
-
-**push 豁免与落点（优化路径，normative）**：持有相应 `history_secret` 且已确认接收方 read-eligible 的 source MAY 不等 `ak.realm_key.request`、直接提交 durable `ak.realm_key.share`，仍 MUST 通过 §13 完整闸门与上述等价 recipient/device/policy 校验。其可行**落点是 admission（发 `ak.mls.welcome` 之时），不是 invite 之时**——invite 时被邀请者尚未发布 KeyPackage / 设备公钥，无可封装目标，故 invite 只能携带历史**资格意图**（policy 声明该 invitee 可看的 range），不能携带 sealed key。push 的 seal 目标 MUST 是**接收方掌握私钥的设备 HPKE 公钥**（§2.10.4）——MLS KeyPackage init key 的私钥通常不暴露供带外解封，故 admin **不能**直接用 claim 到的 KeyPackage init key seal。因此 push-at-admission **仅当**接收设备已发布/可获取一把专用设备 HPKE 公钥时成立；否则历史交付走 **request 驱动**:receiver 在 `ak.realm_key.request.recipient_hpke_public_key` 中广告其设备 HPKE 公钥，provider 据此 seal 并提交 share。admin 不持有的更早 epoch 同样由 receiver 事后按本节 pull 补全。
 
 ## 14. PCR-Policy Device Recovery
 

@@ -46,9 +46,34 @@ def main() -> int:
             continue
         _, digest_hex = digest_wire.split(":", 1)
         if "digest_preimage_canonical_bytes_utf8" in case and digest_wire.startswith("sha256:"):
-            actual = hashlib.sha256(case["digest_preimage_canonical_bytes_utf8"].encode("utf-8")).hexdigest()
+            preimage_bytes = case["digest_preimage_canonical_bytes_utf8"].encode("utf-8")
+            actual = hashlib.sha256(preimage_bytes).hexdigest()
             if actual != digest_hex:
                 errors.append(f"{case['name']}: SHA-256 preimage mismatch")
+            try:
+                preimage = json.loads(preimage_bytes)
+            except json.JSONDecodeError:
+                errors.append(f"{case['name']}: digest preimage is not valid canonical JSON")
+            else:
+                realm_object = preimage.get("payload", {}).get("object")
+                if preimage.get("kind") == "ak.realm.create" and isinstance(realm_object, dict):
+                    if "notary_profile" in realm_object:
+                        errors.append(f"{case['name']}: Realm create retains forbidden notary_profile")
+                    notary = realm_object.get("notary")
+                    if not isinstance(notary, dict) or "kind" not in notary:
+                        errors.append(f"{case['name']}: Realm create lacks closed notary configuration")
+                    elif notary.get("kind") == "single_signer":
+                        signer = notary.get("signer")
+                        required_signer_fields = {
+                            "actor_id",
+                            "verification_method",
+                            "key_kind",
+                            "jose_algorithm",
+                            "frozen_public_key_b64u",
+                            "frozen_public_key_digest",
+                        }
+                        if not isinstance(signer, dict) or set(signer) != required_signer_fields:
+                            errors.append(f"{case['name']}: single_signer notary lacks exact frozen signer descriptor")
         body_hex, event_id = derive(suite_code, digest_hex)
         if case.get("event_id_bytes_hex") != body_hex:
             errors.append(f"{case['name']}: body bytes mismatch")

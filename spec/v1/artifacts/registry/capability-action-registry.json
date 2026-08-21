@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-20.1",
+  "version": "2026-08-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-20T10:20:00+08:00",
+  "generated_at": "2026-08-21T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -413,6 +413,7 @@
         "allowed_circle_ids"
       ],
       "target_event_kinds": [
+        "ak.circle.history_access",
         "ak.circle.update",
         "ak.circle.archive",
         "ak.circle.restore",
@@ -1089,7 +1090,6 @@
         "ak.realm.delivery_binding_policy",
         "ak.realm.asset_privacy_policy",
         "ak.realm.read_receipt_policy",
-        "ak.realm.history_sharing_policy",
         "ak.realm.preview_policy",
         "ak.realm.moderation_policy",
         "ak.realm.search_policy",
@@ -1174,14 +1174,15 @@
         "ak.realm.alias",
         "ak.realm.policy",
         "ak.realm.join_rule",
-        "ak.realm.history_visibility",
+        "ak.realm.history_access",
+        "ak.realm.organization_recovery_key.register",
+        "ak.realm.organization_recovery_key.rotate",
         "ak.realm.discovery",
         "ak.realm.digest_suite_transition",
         "ak.realm.notary",
         "ak.realm.preview_policy",
         "ak.realm.policy_server",
         "ak.realm.policy_bundle",
-        "ak.realm.history_sharing_policy",
         "ak.realm.delivery_binding_policy",
         "ak.realm.asset_privacy_policy",
         "ak.realm.read_receipt_policy",
@@ -1367,6 +1368,7 @@
         "ak.capability.revoke",
         "ak.circle.archive",
         "ak.circle.create",
+        "ak.circle.history_access",
         "ak.circle.member.state",
         "ak.circle.restore",
         "ak.circle.tombstone",
@@ -1415,8 +1417,7 @@
         "ak.realm.digest_suite_transition",
         "ak.realm.discovery",
         "ak.realm.freeze",
-        "ak.realm.history_sharing_policy",
-        "ak.realm.history_visibility",
+        "ak.realm.history_access",
         "ak.realm.inheritance_policy",
         "ak.realm.join_rule",
         "ak.realm.link",
@@ -1424,6 +1425,8 @@
         "ak.realm.moderation_policy",
         "ak.realm.notary",
         "ak.realm.organization",
+        "ak.realm.organization_recovery_key.register",
+        "ak.realm.organization_recovery_key.rotate",
         "ak.realm.plaintext_visible_services",
         "ak.realm.policy",
         "ak.realm.policy_bundle",
@@ -1547,7 +1550,6 @@
         "ak.realm.profile",
         "ak.realm.set_default_strand",
         "ak.realm.upgrade",
-        "ak.realm_key.share",
         "ak.receipt.broadcast",
         "ak.relation.create",
         "ak.relation.tombstone",
@@ -1597,8 +1599,7 @@
           "ak.self."
         ],
         "exclude_actions": [
-          "ak.realm.create",
-          "ak.realm_key.share"
+          "ak.realm.create"
         ]
       },
       "grant_authority_rule": {
@@ -1714,18 +1715,6 @@
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.realm_key.share",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm_key.share"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name",
-      "notes": "Authorizes durable history-key delivery after the independent membership, device, history-sharing policy, source_authorization_ref, and recipient checks succeed. This explicit high-risk action is not implied by ak.realm.admin."
     },
     {
       "action": "ak.receipt.broadcast",

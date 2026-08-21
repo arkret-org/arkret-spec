@@ -13,7 +13,8 @@
     "ak.vector.circle.content_floor_below_realm_rejected.v1",
     "ak.vector.circle.directory_visibility_members_indistinguishable.v1",
     "ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
-    "ak.vector.history_visibility.joined_prejoin_denied.v1"
+    "ak.vector.history_access.since_join_prejoin_denied.v1",
+    "ak.vector.preview.token_scoped_stripped_state.v1"
   ],
   "cases": [
     {
@@ -196,39 +197,58 @@
       ]
     },
     {
-      "name": "history_visibility_joined_prejoin_denied",
-      "vector_id": "ak.vector.history_visibility.joined_prejoin_denied.v1",
-      "kind": "history_visibility_projection",
-      "history_visibility": "joined",
+      "name": "history_access_since_join_prejoin_denied",
+      "vector_id": "ak.vector.history_access.since_join_prejoin_denied.v1",
+      "kind": "history_access_projection",
+      "history_access": "since_join",
       "viewer": {
         "membership_state": "join",
-        "join_ts": 200
+        "join_epoch": 8
       },
       "events": [
         {
           "event_id": "E_before_join",
-          "origin_ts": 150,
+          "epoch": 7,
           "expected_visible": false
         },
         {
           "event_id": "E_after_join",
-          "origin_ts": 250,
+          "epoch": 8,
           "expected_visible": true
         }
       ],
       "non_member_control": {
         "membership_state": null,
         "event_id": "E_public_guess",
-        "origin_ts": 250,
+        "epoch": 8,
         "expected_visible": false
       },
       "expected": {
         "prejoin_error": "history_not_visible"
       },
       "assertions": [
-        "history_visibility=joined hides events before the viewer join timestamp",
-        "post-join events remain visible to joined members",
-        "non-members cannot read joined history by guessing event ids"
+        "history_access=since_join rejects exporter history epochs before the exact winning membership activation epoch",
+        "epochs at or after the join floor remain eligible for current members after T1 admission",
+        "non-members cannot read private history by guessing event ids"
+      ]
+    },
+    {
+      "name": "preview_token_scoped_stripped_state",
+      "vector_id": "ak.vector.preview.token_scoped_stripped_state.v1",
+      "kind": "preview_projection",
+      "input": {
+        "viewer": "non_member_with_valid_preview_token",
+        "scope": "public_plaintext_realm"
+      },
+      "expected": {
+        "projection": "registered_stripped_preview",
+        "history_events": [],
+        "exporter_secrets": []
+      },
+      "assertions": [
+        "preview authority exposes only the registered stripped projection",
+        "preview never creates current membership or history-key eligibility",
+        "unknown, expired and wrong-scope tokens are outwardly indistinguishable"
       ]
     }
   ]

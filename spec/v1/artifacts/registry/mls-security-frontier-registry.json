@@ -1,15 +1,17 @@
 {
-  "version": "2026-08-17",
-  "generated_at": "2026-08-17T06:32:00Z",
+  "version": "2026-08-21.1",
+  "generated_at": "2026-08-21T18:00:00+08:00",
   "source_of_truth": true,
   "profile_id": "ak.security_frontier.v1",
   "description": "Closed machine contract for the accepted state that changes current or historical MLS key access. Producers never choose frontier members. Verifiers project these inputs from one accepted Seal view and the RFC 9420 group state, then compare the resulting digest with the governance binding.",
   "canonicalization": "json_jcs",
   "digest_suite": "sha256",
+  "artifact_digest_rule": "frontier_registry_digest = sha256(RFC 8785 JCS bytes of this exact complete registry artifact). The digest is carried by each proof projection and compared against the verifier's locally pinned artifact bytes.",
   "digest_input": {
     "required": [
       "profile_id",
       "effective_scope",
+      "group_genesis_binding",
       "cell_entries",
       "mls_leaf_set_digest"
     ],
@@ -21,7 +23,7 @@
       ],
       "ordering": "Sort by UTF-8 bytes of cell_family, then canonical JCS bytes of cell_subject, then projected_value_digest; reject duplicates."
     },
-    "digest_rule": "security_frontier_digest = sha256(JCS({profile_id,effective_scope,cell_entries,mls_leaf_set_digest})). accepted Seal ids, ordinary Event seal_ref values and producer-supplied Event lists are not digest members."
+    "digest_rule": "security_frontier_digest = sha256(JCS({profile_id,effective_scope,group_genesis_binding,cell_entries,mls_leaf_set_digest})). group_genesis_binding is exactly {content_scheme,durability_policy?} from the verified accepted Genesis/group state. accepted Seal ids, ordinary Event seal_ref values and producer-supplied Event lists are not digest members."
   },
   "cell_rules": [
     {
@@ -33,6 +35,16 @@
         "ban"
       ],
       "include_when": "The subject is in the effective Realm scope. invite and knock do not create an MLS leaf and are excluded."
+    },
+    {
+      "cell_family": "ak.component.member.state.v1",
+      "scope": "Parent Realm membership gate for a Circle MLS scope",
+      "projected_values": [
+        "join",
+        "leave",
+        "ban"
+      ],
+      "include_when": "Include exactly the parent-Realm member.state cell for every authorization subject that owns a current or pending leaf in the Circle group; exclude all unrelated Realm members. A missing/Bottom cell or any change of one of these exact cells makes the Circle frontier stale and requires membership reconciliation. This rule is independent of the Circle's own circle.member cells."
     },
     {
       "cell_family": "ak.component.circle.member.v1",
@@ -73,24 +85,29 @@
     },
     {
       "cell_family": "ak.component.realm.policy_bundle.v1",
-      "scope": "Realm-default and parent floor for Circle MLS scopes",
+      "scope": "Realm-default scope; for Circle scope only the content/metadata encryption floors that are explicitly parent gates",
       "projected_fields": [
-        "content_scheme",
         "content_encryption_floor",
         "metadata_encryption_floor",
         "media_service_decrypts"
       ],
-      "include_when": "Only these fields are projected. Other bundle fields remain protected by Event/CBA/Seal admission but do not force rekey."
+      "include_when": "Only the mutable encryption floors and media-service plaintext recipient toggle are projected. content_scheme and durability_policy are create-locked and come from the exact accepted group Genesis/group state, never this cell."
     },
     {
-      "cell_family": "ak.component.realm.history_visibility.v1",
-      "scope": "Realm-default and parent floor for Circle MLS scopes",
-      "projection": "Effective history visibility value."
-    },
-    {
-      "cell_family": "ak.component.realm.history_sharing_policy.v1",
-      "scope": "Realm-default and parent floor for Circle MLS scopes",
-      "projection": "Fields that determine current or historical key eligibility."
+      "cell_family": "ak.component.realm.organization_recovery_key.v1",
+      "scope": "Realm authority for every Realm/Circle group whose immutable durability_policy is organization_recovery_key",
+      "projected_fields": [
+        "recovery_key_id",
+        "key_agreement_ref",
+        "holder_principal_id",
+        "holder_service_id",
+        "holder_signing_ref",
+        "hpke_suite",
+        "frozen_public_key_b64u",
+        "accepted_key_evidence_ref",
+        "holder_trusted_basis"
+      ],
+      "include_when": "Required exactly for durability_policy=organization_recovery_key. The reducer-effective unique active cell contains only the key tuple, accepted evidence Event provenance and prior holder-trusted basis. Before Genesis, verifier directly replays accepted Seals from that complete basis and proves accepted_key_evidence_ref is the effective active tuple; no singular activation Seal is carried or written into the state value it would activate. Missing/Bottom or tuple mismatch rejects Genesis/Commit. Circle uses the parent Realm cell and never registers its own key."
     },
     {
       "cell_family": "ak.component.realm.plaintext_visible_services.v1",
@@ -103,16 +120,9 @@
       "scope": "Circle MLS scope",
       "projected_fields": [
         "encryption_profile",
-        "history_visibility"
+        "content_scheme",
+        "durability_policy"
       ]
-    },
-    {
-      "cell_family": "ak.component.circle.metadata.v1",
-      "scope": "Circle MLS scope",
-      "projected_fields": [
-        "history_visibility"
-      ],
-      "include_when": "Only the effective patched history_visibility value is projected. Display and directory metadata are excluded."
     }
   ],
   "mls_tree_rule": {
@@ -129,5 +139,21 @@
     "ordinary Event seal_ref and accepted Seal identifiers",
     "producer-supplied Event, Seal, root or frontier member lists"
   ],
-  "unknown_input_behavior": "fail_closed"
+  "unknown_input_behavior": "fail_closed",
+  "group_genesis_rules": {
+    "source": "Resolve the exact accepted MLS Genesis and the winning group_state_ref named by the Event or candidate transition; verify the immutable scope-derived mls_group_id and Genesis activation Seal before projection.",
+    "required_fields": [
+      "effective_scope",
+      "mls_group_id",
+      "content_scheme"
+    ],
+    "conditional_fields": {
+      "mls_exporter_aead_v1": [
+        "durability_policy"
+      ],
+      "mls_rfc9420": []
+    },
+    "immutability": "content_scheme and durability_policy are frozen at Genesis. A later Event, policy bundle, Commit extension or group-state material that changes either value is failed_precondition and does not produce a new frontier.",
+    "frontier_projection": "The verified immutable pair is a required security-frontier input in addition to cell_entries and mls_leaf_set_digest; it is never read from ak.component.realm.policy_bundle.v1."
+  }
 }

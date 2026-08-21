@@ -17,7 +17,7 @@
     ]
   },
   "covers_vectors": [
-    "ak.vector.events.submit_seal_admission.v1",
+    "ak.vector.seals.submit_admission.v1",
     "ak.vector.cba.proposal_bounded_decision.v1"
   ],
   "schema_validation_cases": [
@@ -49,11 +49,11 @@
         "notary_signature": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
           "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "created_at": "2026-07-16T00:00:00.000Z",
           "jws": "e30..c2ln"
         },
         "sealed_at": "2026-07-16T00:00:00.000Z",
-        "hlc": "0000019f69bd-0000-00000001"
+        "hlc": "0000019f69bd-0000-00000001",
+        "availability_receipt_digests": []
       }
     },
     {
@@ -83,11 +83,11 @@
         "notary_signature": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
           "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "created_at": "2026-07-16T00:00:00.000Z",
           "jws": "e30..c2ln"
         },
         "sealed_at": "2026-07-16T00:00:00.000Z",
-        "hlc": "0000019f69bd-0000-00000001"
+        "hlc": "0000019f69bd-0000-00000001",
+        "availability_receipt_digests": []
       }
     },
     {
@@ -97,7 +97,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "device_generation_fenced",
       "predecessor_notary": {
-        "mode": "single_did",
+        "mode": "single_signer",
         "signers": [
           "did:webvh:z6mkfixture:alice.example"
         ]
@@ -119,11 +119,11 @@
         "notary_signature": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
           "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "created_at": "2026-07-16T00:00:01.000Z",
           "jws": "e30..c2ln"
         },
         "sealed_at": "2026-07-16T00:00:01.000Z",
-        "hlc": "0000019f69bd-0000-00000002"
+        "hlc": "0000019f69bd-0000-00000002",
+        "availability_receipt_digests": []
       }
     },
     {
@@ -133,7 +133,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "state_mismatch",
       "predecessor_notary": {
-        "mode": "single_did",
+        "mode": "single_signer",
         "signers": [
           "did:webvh:z6mkfixture:alice.example"
         ]
@@ -155,11 +155,11 @@
         "notary_signature": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
           "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "created_at": "2026-07-16T00:00:01.000Z",
           "jws": "e30..c2ln"
         },
         "sealed_at": "2026-07-16T00:00:01.000Z",
-        "hlc": "0000019f69bd-0000-00000002"
+        "hlc": "0000019f69bd-0000-00000002",
+        "availability_receipt_digests": []
       }
     },
     {
@@ -169,7 +169,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "seal_signer_unauthorized",
       "predecessor_notary": {
-        "mode": "single_did",
+        "mode": "single_signer",
         "signers": [
           "did:webvh:z6mkfixture:alice.example"
         ]
@@ -191,11 +191,11 @@
         "notary_signature": {
           "verification_method": "did:webvh:z6mkfixturemalloryexample:mallory.example#device-9",
           "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "created_at": "2026-07-16T00:00:01.000Z",
           "jws": "e30..c2ln"
         },
         "sealed_at": "2026-07-16T00:00:01.000Z",
-        "hlc": "0000019f69bd-0000-00000002"
+        "hlc": "0000019f69bd-0000-00000002",
+        "availability_receipt_digests": []
       }
     },
     {
@@ -205,7 +205,7 @@
       "semantic_outcome": "defer",
       "expected_reason_code": "seal_deferred_future_skew",
       "predecessor_notary": {
-        "mode": "single_did",
+        "mode": "single_signer",
         "signers": [
           "did:webvh:z6mkfixture:alice.example"
         ]
@@ -228,11 +228,11 @@
         "notary_signature": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
           "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "created_at": "2099-07-16T00:00:01.000Z",
           "jws": "e30..c2ln"
         },
         "sealed_at": "2099-07-16T00:00:01.000Z",
-        "hlc": "0000019f69bd-0000-00000002"
+        "hlc": "0000019f69bd-0000-00000002",
+        "availability_receipt_digests": []
       }
     },
     {

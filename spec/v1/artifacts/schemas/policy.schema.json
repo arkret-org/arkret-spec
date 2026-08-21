@@ -33,7 +33,7 @@
         "moderation",
         "discoverability",
         "join",
-        "history_visibility",
+        "history_access",
         "plaintext_visibility",
         "media",
         "applet",

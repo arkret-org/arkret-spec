@@ -476,24 +476,13 @@ event_id ASC
   ],
   "identity_payload": {
     "encrypted_payload": {
-      "scheme": "mls_rfc9420",
       "version": "1.0",
-      "group_id": "base64url",
-      "epoch": 12,
       "content_type": "application/vnd.arkret.member-identity+json",
-      "ciphertext": "base64url",
-      "aad_visibility_event_id_kind": "routing_digest",
-      "aad": {
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "event_kind": "ak.member.identity.update",
-        "event_ref_digest": "sha256:..."
-      },
-      "key_ref": {
-        "algorithm": "MLS",
+      "encryption_context": {
+        "epoch": 12,
         "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
       },
-      "payload_digest": "sha256:...",
-      "aad_digest": "sha256:..."
+      "ciphertext": "base64url"
     }
   },
   "identity_payload_digest": "sha256:...",
@@ -764,7 +753,7 @@ Accept: application/x-ndjson
 `agent_runtime_approval` notification 作为 `action=add` 的权威完整集合返回；即使其它
 notification 历史受限也不得截断该子集。
 
-对当前 membership 为 `join` 且 `encryption_profile=mls_rfc9420` 的 Realm，baseline 还 MUST 提供可验证的**当前安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则提供同一 frontier 下可验证的缺省/空值证明），以及足以验证当前 membership / MLS governance frontier 的 state/proof material；这些材料可直接位于 `state.events`，或由已验证 snapshot + 可 backfill refs 等价提供。`history_visibility` 只裁剪 data-plane timeline 和调用者无权读取的历史正文，不得裁掉客户端验证当前写入、选择 `content_scheme`、处理 Welcome 或判断 `epoch_update_required` 所必需的当前 control/security state。该义务不要求泄露 join 前旧 policy revisions 或其它不可见历史；只要求当前 effective singleton/control evidence。客户端在基线完整前 MUST 保持 `encryption_policy_pending` / `encryption_transition_pending`，不得把字段缺失解释为 policy 缺省或 membership 未发生变化。
+对当前 membership 为 `join` 且 `encryption_profile=mls_rfc9420` 的 Realm，baseline 还 MUST 提供可验证的**当前安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则提供同一 frontier 下可验证的缺省/空值证明），以及足以验证当前 membership / MLS governance frontier 的 state/proof material；这些材料可直接位于 `state.events`，或由已验证 snapshot + 可 backfill refs 等价提供。`history_access` 只裁剪 data-plane timeline 和调用者无权读取的历史正文，不得裁掉客户端验证当前写入、选择 `content_scheme`、处理 Welcome 或判断 `epoch_update_required` 所必需的当前 control/security state。该义务不要求泄露 join 前旧 policy revisions 或其它不可见历史；只要求当前 effective singleton/control evidence。客户端在基线完整前 MUST 保持 `encryption_policy_pending` / `encryption_transition_pending`，不得把字段缺失解释为 policy 缺省或 membership 未发生变化。
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 
@@ -786,11 +775,39 @@ E2EE client 在处理 encrypted event 前 MUST：
 `e2ee_required` Realm 的客户端在本地持久化解密产物与密钥材料时 MUST 满足以下约束。本节针对客户端 at-rest 层(Web 的 localStorage / IndexedDB、原生磁盘、OS 缓存),与服务端零知识承诺正交。
 
 - **解密明文缓存**:解密后保留的 reduced state cache、materialized view cache,以及为渲染前向保密(逐条 ratchet,密钥用后即焚)消息而缓存的解密明文——包括远端成员消息明文缓存与作者自身明文侧车——MUST 以静态加密形式持久化，或仅驻内存;**MUST NOT** 以明文写入任何持久化存储。
-- **历史密钥材料**:join 前历史解密所需的密钥材料(per-`(realm, epoch)` `history_secret`、exporter 派生密钥，或等价的逐条解密密钥)MUST 存于硬化密钥存储，其保护级别 MUST 等同于账户 MLS secret(在 Web 上即非导出 SubtleCrypto 密钥 + IndexedDB 层);**MUST NOT** 以明文落盘，且 **MUST NOT** 镜像到弱化的同步/首屏存储层(如 localStorage)。
+- **历史密钥材料**:join 前历史解密所需的密钥材料按 `(effective_scope,epoch)`（等价地按 canonical derived `mls_group_id,epoch`）分区；`history_secret`、exporter 派生密钥或等价逐条解密密钥 MUST 存于硬化密钥存储，其保护级别 MUST 等同于账户 MLS secret(在 Web 上即非导出 SubtleCrypto 密钥 + IndexedDB 层);**MUST NOT** 以明文落盘，且 **MUST NOT** 镜像到弱化的同步/首屏存储层(如 localStorage)。
 - **静态加密包裹密钥的归属**:用于上述明文缓存静态加密的 at-rest 包裹密钥本身 MUST 存于硬化密钥存储。当硬化存储不可用时，客户端 MUST fail closed——缓存仅驻内存、**MUST NOT** 以明文落盘兜底，除非用户显式 opt-in 并被告知降级风险。
 - **生命周期擦除**:设备 lock、软登出与设备吊销后，客户端 SHOULD 丢弃驻内存的 at-rest 包裹密钥并清除解密明文缓存，使已落盘的密文不可再解(本机范围；无法远程擦除其他设备)。
 
 实现侧自检(descriptive):落盘完成后直接读取持久化存储的原始字节，对加密 Realm 的解密明文与历史密钥 **MUST NOT** 命中已知明文/密钥字节；此自检作为防止"新增内联字段又把敏感数据明文落盘"的回归守卫。交叉引用见 [`encryption-and-audit.md` §5.6](../crypto-media/encryption-and-audit.md)。
+
+### 14.2 History-only multi-candidate store（normative）
+
+History response、portable backup restore 与 RRK archive 的 material 只写 history-only store。received material 全局 key 为
+`(effective_scope,mls_group_id,epoch,candidate_digest)`，origin 不参与 bytes 身份；每 scope/group/epoch 最多 8 份 resident secret material。
+新实例取得不可变 `material_received_sequence`，同 bytes/新 origin 不刷新；bytes 驱逐后 refetch 才取得新 sequence。独立
+`CandidateOriginAttribution=(material_key,origin_domain,origin_ref)` 账本另存稳定 `origin_quota_domain`；response 按 source sender、RRK 按 holder/key tuple、
+portable backup 按 series/producer 配额，具体 response/archive/envelope 只进 retrieval ref。每 candidate 最多 4 条、每 exact quota domain/epoch 最多 64 条、
+每 epoch 总计 256 条，固定 30 日 TTL 且 duplicate/refetch 不续期；确定性裁剪顺序见 history-visibility §7。
+本机 verified MLS state 直接导出项另记为
+`local_authoritative`，不占 received 槽且永不驱逐。
+
+AEAD 成功或失败只向独立 `EventCandidateBinding=(event_binding_key,candidate_digest,outcome)` 账本写入 exact Event attribution，
+不含/不推导 origin，均不得把 secret bytes pin 住或建立 epoch-level winner。超配额时先驱逐 unbound/failure-only material，再驱逐
+success-bound material；同级按 `(material_received_sequence,candidate_digest)` 升序，只删除 bytes/sequence 并保留有界 tombstone 以便 refetch。
+Event binding 账本每 epoch 最多 256 条、30 日不可延长 expiry；其裁剪不得改写 replay ledger 或 `local_authoritative`。完整规则与唯一常量见 history-visibility §7 及
+history-recovery scalability registry。
+
+Receiver 必须先 durable 保存 request private key/pending intent，再创建 request。source 必须先取得 manifest 的
+accepted/duplicate 小型 receipt；manifest 尚未 accepted 时提交 chunk，release service 必须以 dependency missing 零写入拒绝，
+不得建立 pending chunk、mailbox record 或 attestation。Receiver 只在 manifest descriptor、receipt-bound direct Seal replay、service record、
+release attestation 与 HPKE 全部验证后原子安装。每个 mailbox record 写入
+`installed|cryptographically_rejected|superseded_duplicate|service_record_lost` disposition 后才可 ack；manifest 的
+`installed` 只表示 descriptor 已安装，不完成任何 epoch coverage，reject/lost 同样不完成 coverage。
+
+永久终态按 `(scope,epoch,authorization incarnation,endpoint incarnation,reason)` 隔离。只有完整 direct Seal replay 结合 current 单向收紧 history_access 与 incarnation/join floor
+证明 T0 不可逆排除时使用 `decryption_unavailable_by_policy`；standard MLS Event 未覆盖 endpoint initial Add/Welcome 时
+使用 `decryption_unavailable_by_profile_floor`。T1 暂时失权、source 离线、proof/chunk 缺失仍可恢复，不得停止重试。
 
 ## 15. E2EE and MLS Sync Performance
 
@@ -810,7 +827,7 @@ E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处
 为降低大规模 E2EE 同步成本：
 
 - 当加密 timeline 中包含未知 epoch 的事件时，MLS epoch state SHOULD 作为 required state 返回。
-- 客户端 SHOULD 按 `(realm_id, epoch)` 缓存 epoch state 与 ratchet tree。
+- 客户端 SHOULD 按 `(canonical_mls_group_id, epoch)` 缓存 active epoch state 与 ratchet tree；Realm-default 与同 Realm 内各 Circle 的独立 group 不得碰撞。
 - 历史 backfill SHOULD 把加密 payload 与 MLS epoch 材料分成不同的范围请求。
 - 新设备恢复 SHOULD 优先使用加密密钥备份 / secret storage，而非向其他成员逐条重发历史密钥。
 - 加密附件 SHOULD 通过 blob ref 与 content hash 进行懒加载。
@@ -841,4 +858,4 @@ E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处
 
 当连续 epoch 缺口超过 `epoch_gap_recovery_threshold`（默认 32 个 epoch）或本地 backfill 预算耗尽时，客户端 SHOULD 切换到 range-based recovery：按 epoch 区间请求 key material、MLS Commit chain 和必要 snapshot proof，而不是逐消息重试。任何 key share 都必须绑定接收 principal、device、epoch range、policy hash 和发送设备签名；不得向已被移除、未授权或无法验证的成员请求密钥。
 
-超过 `decryption_pending_timeout` 后，客户端 MUST 将用户可见投影标记为 `decryption_failed`，保留 metadata-only 占位、排序位置、引用关系和重试诊断，并向用户显示不可解密状态。若之后合法 key material 到达，客户端 MAY 重新解密并把状态从 `decryption_failed` 恢复为 verified content，但该 MAY 受 [`encryption-and-audit.md` §2.3.5](../crypto-media/encryption-and-audit.md) late key recovery 状态机约束：必须通过原始接收时刻 T0 的 membership / history / key scope 校验，UI 必须显示 late recovery timeline marker；audit profile 下必须先 emit `ak.audit.accessed` 并取得 RYW receipt 后才可显示明文。恢复审计记录必须保留，不得静默替换原 metadata-only 占位。
+超过 `decryption_pending_timeout` 后，客户端 MUST 将用户可见投影标记为 `decryption_failed`，保留 metadata-only 占位、排序位置、引用关系和重试诊断，并向用户显示不可解密状态。若之后合法 key material 到达，客户端 MAY 重新解密并把状态从 `decryption_failed` 恢复为 verified content，但该 MAY 受 [`encryption-and-audit.md` §2.10](../crypto-media/encryption-and-audit.md) late key recovery 状态机约束：必须通过原始接收时刻 T0 的 membership / history / key scope 校验，UI 必须显示 late recovery timeline marker；audit profile 下必须先 emit `ak.audit.accessed` 并取得 RYW receipt 后才可显示明文。恢复审计记录必须保留，不得静默替换原 metadata-only 占位。

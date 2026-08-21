@@ -1140,77 +1140,57 @@ def check_mls_pq_suite_registration(lint: Lint) -> None:
 
 
 def check_mls_governance_proof_bounds(lint: Lint) -> None:
-    """Bounded proof chunks and Service Describe limits must stay identical."""
+    """Stateless exact proof responses and Service Describe limits stay identical."""
     schema_path = ARTIFACTS / "schemas" / "mls-governance-proof-bundle.schema.json"
     schema = load_json(lint, schema_path)
     if not isinstance(schema, dict):
         return
 
     expected_schema_values = {
-        "/$defs/proof_request/properties/chunk_index/maximum": 1023,
-        "/$defs/chunk_manifest/properties/chunk_count/minimum": 2,
-        "/$defs/chunk_manifest/properties/chunk_count/maximum": 1024,
-        "/$defs/chunk_manifest/properties/total_item_bytes/maximum": 268435456,
-        "/$defs/chunk_manifest/properties/max_response_bytes/const": 4194304,
-        "/$defs/chunk_manifest/properties/max_total_item_bytes/const": 268435456,
-        "/$defs/collection_totals/properties/seal_path/maximum": 4096,
-        "/$defs/collection_totals/properties/covered_event_digests/maximum": 1048576,
-        "/$defs/collection_totals/properties/control_state/maximum": 262144,
-        "/$defs/collection_totals/properties/frontier_events/maximum": 128,
-        "/$defs/seal_path_chunk/properties/items/maxItems": 128,
-        "/$defs/covered_event_digests_chunk/properties/items/maxItems": 8192,
-        "/$defs/control_state_chunk/properties/items/maxItems": 1024,
-        "/$defs/frontier_events_chunk/properties/items/maxItems": 32,
-        "/$defs/chunk_inclusion_proof/maxItems": 10,
+        "/$defs/proof_request_common/properties/byte_limit/minimum": 65536,
+        "/$defs/proof_request_common/properties/byte_limit/maximum": 1048576,
+        "/$defs/merkle_membership_witness/properties/siblings/maxItems": 64,
     }
     for pointer, expected in expected_schema_values.items():
         actual = json_pointer_get(schema, pointer)
         if actual != expected:
             lint.fail(schema_path, f"{pointer} must be {expected}, got {actual!r}")
 
-    sha256_ref = "#/$defs/sha256_digest"
-    digest_ref_pointers = (
-        "/properties/proof_request_digest/$ref",
-        "/properties/bundle_digest/$ref",
-        "/$defs/proof_request/properties/expected_bundle_digest/$ref",
-        "/$defs/chunk_manifest/properties/chunks_root/$ref",
-        "/$defs/chunk_inclusion_proof/items/$ref",
-        "/$defs/seal_path_chunk/properties/chunk_digest/$ref",
-        "/$defs/covered_event_digests_chunk/properties/chunk_digest/$ref",
-        "/$defs/control_state_chunk/properties/chunk_digest/$ref",
-        "/$defs/frontier_events_chunk/properties/chunk_digest/$ref",
-    )
-    for pointer in digest_ref_pointers:
-        actual = json_pointer_get(schema, pointer)
-        if actual != sha256_ref:
-            lint.fail(schema_path, f"{pointer} must reference fixed {sha256_ref}, got {actual!r}")
+    schema_keys = {
+        key
+        for _path, _value, key in walk_json(schema)
+        if isinstance(key, str)
+    }
+    for forbidden in (
+        "proof_result_set_id", "cursor", "next_cursor", "expected_result_digest",
+        "expected_bundle_digest", "chunk_manifest", "complete_control_state_v1",
+    ):
+        if forbidden in schema_keys:
+            lint.fail(schema_path, f"stateless governance proof schema must forbid legacy {forbidden}")
 
-    top_required = set(schema.get("required") or [])
-    if not {"chunk_manifest", "chunk"} <= top_required:
-        lint.fail(schema_path, "top-level response must require chunk_manifest and chunk")
-    top_properties = schema.get("properties", {})
-    for legacy_collection in ("seal_path", "covered_event_digests", "control_state", "frontier_events"):
-        if isinstance(top_properties, dict) and legacy_collection in top_properties:
-            lint.fail(schema_path, f"top-level unbounded {legacy_collection} collection is forbidden")
-    proof_request = schema.get("$defs", {}).get("proof_request", {})
-    request_required = set(proof_request.get("required") or []) if isinstance(proof_request, dict) else set()
-    request_properties = proof_request.get("properties", {}) if isinstance(proof_request, dict) else {}
-    if "chunk_index" not in request_required or "expected_bundle_digest" not in request_properties:
-        lint.fail(schema_path, "proof_request must require chunk_index and define expected_bundle_digest")
+    fixture_path = ARTIFACTS / "fixtures" / "scalability-limits-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    exact_query_cases = [
+        case
+        for case in (fixture or {}).get("cases", [])
+        if isinstance(case, dict) and case.get("name") == "mls_governance_proof_exact_query_matrix"
+    ] if isinstance(fixture, dict) else []
+    if len(exact_query_cases) != 1:
+        lint.fail(fixture_path, "MLS governance bounds fixture requires one exact-query matrix")
+    elif any(
+        forbidden in json.dumps(exact_query_cases[0], sort_keys=True)
+        for forbidden in ("chunk_request_matrix", "expected_bundle_digest", "chunk_index")
+    ):
+        lint.fail(fixture_path, "MLS governance exact-query matrix retains a legacy chunk field")
+
+    if set(schema.get("$defs", {}).get("read_request", {})) != {"$ref"}:
+        lint.fail(schema_path, "stateless governance read_request must be the sole group-security frontier ref")
 
     describe_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
     describe = load_json(lint, describe_path)
     if not isinstance(describe, dict):
         return
-    describe_expected = {
-        "max_response_bytes": 4194304,
-        "max_total_item_bytes": 268435456,
-        "max_chunks": 1024,
-        "max_seal_path_items": 4096,
-        "max_covered_event_digests": 1048576,
-        "max_control_state_items": 262144,
-        "max_frontier_events": 128,
-    }
+    describe_expected = {"max_exact_response_bytes": 1048576}
     limit_schema = (
         describe.get("properties", {})
         .get("limits", {})

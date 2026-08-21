@@ -364,7 +364,7 @@
         "discoverability": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "history_visibility": {
+        "history_access": {
           "$ref": "#/$defs/non_empty_string"
         },
         "join_candidates": {

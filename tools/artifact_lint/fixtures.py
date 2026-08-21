@@ -1179,12 +1179,57 @@ def check_security_closure_fixture(lint: Lint) -> None:
 
 
 
+def check_private_kdf_full_width_nonce(lint: Lint, path: Path, data: dict[str, Any]) -> None:
+    vector_id = "ak.vector.aead.full_width_counter_nonce.v1"
+    covers = data.get("covers_vectors")
+    if not isinstance(covers, list) or vector_id not in covers:
+        lint.fail(path, f"covers_vectors must include {vector_id}")
+    if isinstance(covers, list) and any("sender_nonce_prefix" in str(value) for value in covers):
+        lint.fail(path, "covers_vectors must not retain the removed sender nonce prefix vector")
+
+    cases = {
+        case.get("name"): case
+        for case in data.get("cases", [])
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    case = cases.get("full_width_counter_nonce_aes128gcm")
+    if not isinstance(case, dict) or case.get("vector_id") != vector_id:
+        lint.fail(path, "full-width counter nonce KAT is missing or references the wrong vector")
+        return
+    inputs = case.get("input")
+    expected = case.get("expected")
+    if not isinstance(inputs, dict) or not isinstance(expected, dict):
+        lint.fail(path, "full-width counter nonce KAT input/expected must be objects")
+        return
+    counter = inputs.get("counter")
+    nonce_length = inputs.get("aead_nn")
+    if not isinstance(counter, int) or not isinstance(nonce_length, int):
+        lint.fail(path, "full-width counter nonce KAT requires integer counter and aead_nn")
+        return
+    try:
+        nonce = counter.to_bytes(nonce_length, "big", signed=False)
+    except (OverflowError, ValueError):
+        lint.fail(path, "full-width counter nonce KAT input cannot be encoded by I2OSP")
+        return
+    if expected.get("nonce_hex") != nonce.hex():
+        lint.fail(path, "full-width counter nonce KAT nonce_hex does not equal I2OSP(counter, AEAD.Nn)")
+    leading_zeroes = nonce_length - max(1, (counter.bit_length() + 7) // 8)
+    if expected.get("high_order_zero_bytes") != leading_zeroes:
+        lint.fail(path, "full-width counter nonce KAT high_order_zero_bytes drift")
+
+    obsolete_fixture = ARTIFACTS / "fixtures" / "media-aead-nonce-fixture.json"
+    if obsolete_fixture.exists():
+        lint.fail(obsolete_fixture, "obsolete sender-prefix nonce fixture must be deleted")
+
+
 def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
     fixture_dir = ARTIFACTS / "fixtures"
     for path in sorted(fixture_dir.glob("*.json")):
         data = load_json(lint, path)
         if data is None:
             continue
+        if path.name == "arkret-private-kdf-fixture.json" and isinstance(data, dict):
+            check_private_kdf_full_width_nonce(lint, path, data)
         if path.name == "producer-allocated-identity-collision-fixture.json":
             expected_parameter_source = {
                 "registry": "registry/contract-registry.json#id_kind_registry.id_kinds",
@@ -1801,123 +1846,6 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
 
 
 
-def check_member_repair_target_snapshot_kat(lint: Lint) -> None:
-    """Recompute both member-repair target snapshot transcripts byte for byte.
-
-    `contact-and-direct-conversation.md` §8.2.1 puts the snapshot member names
-    into the JCS preimage verbatim. The Native Agent branch therefore MUST spell
-    the closed recipient endpoint triple and MUST NOT hide the two authorization
-    coordinates behind an opaque `*_ref`: a renamed, dropped or substituted
-    member has to move the digest, or two implementations could disagree on the
-    same endpoint while both claiming to follow the spec.
-    """
-
-    fixture_path = ARTIFACTS / "fixtures" / "direct-conversation-fixture.json"
-    fixture = load_json(lint, fixture_path)
-    kat = fixture.get("member_repair_target_snapshot_kat") if isinstance(fixture, dict) else None
-    if not isinstance(kat, dict):
-        lint.fail(fixture_path, "missing member_repair_target_snapshot_kat")
-        return
-
-    human = kat.get("human_principal")
-    agent = kat.get("native_agent")
-    if not isinstance(human, dict) or not isinstance(agent, dict):
-        lint.fail(fixture_path, "member-repair snapshot KAT needs both closed recipient branches")
-        return
-
-    human_domain = "ak.member-repair-target-snapshot-human-v1\n"
-    agent_domain = "ak.member-repair-target-snapshot-native-agent-v1\n"
-    if human.get("domain_separator") != human_domain:
-        lint.fail(fixture_path, "human member-repair snapshot has the wrong domain separator")
-    if agent.get("domain_separator") != agent_domain:
-        lint.fail(
-            fixture_path,
-            "Native Agent member-repair snapshot has the wrong domain separator",
-        )
-
-    enqueued = human.get("targets_as_enqueued")
-    sorted_targets = human.get("targets_device_id_sorted")
-    if (
-        not isinstance(enqueued, list)
-        or not enqueued
-        or not isinstance(sorted_targets, list)
-        or len(enqueued) != len(sorted_targets)
-    ):
-        lint.fail(fixture_path, "human member-repair snapshot needs enqueued and sorted targets")
-    else:
-        for index, row in enumerate(sorted_targets):
-            if not isinstance(row, dict) or set(row) != {
-                "recipient_device_id",
-                "device_message_id",
-            }:
-                lint.fail(
-                    fixture_path,
-                    f"human member-repair target[{index}] must be exactly "
-                    "{recipient_device_id, device_message_id}",
-                )
-                return
-        expected_order = sorted(
-            enqueued, key=lambda row: str(row.get("recipient_device_id"))
-        )
-        if sorted_targets != expected_order:
-            lint.fail(
-                fixture_path,
-                "human member-repair snapshot is not device-id sorted, so the transcript "
-                "would depend on enqueue order",
-            )
-        if enqueued == sorted_targets:
-            lint.fail(
-                fixture_path,
-                "human member-repair KAT must enqueue out of order so the sort is actually pinned",
-            )
-        jcs = canonical_json(sorted_targets)
-        if human.get("canonical_jcs") != jcs:
-            lint.fail(fixture_path, "human member-repair canonical_jcs is stale")
-        if human.get("target_snapshot_digest") != sha256_text(human_domain + jcs):
-            lint.fail(fixture_path, "human member-repair target_snapshot_digest is stale")
-
-    target = agent.get("target")
-    expected_members = {
-        "recipient_agent_id",
-        "recipient_agent_verification_method",
-        "recipient_agent_key_authorize_event_id",
-        "device_message_id",
-    }
-    if not isinstance(target, dict) or set(target) != expected_members:
-        lint.fail(
-            fixture_path,
-            "Native Agent member-repair snapshot must be exactly "
-            f"{sorted(expected_members)}; an opaque endpoint reference is not admitted",
-        )
-        return
-    jcs = canonical_json(target)
-    if agent.get("canonical_jcs") != jcs:
-        lint.fail(fixture_path, "Native Agent member-repair canonical_jcs is stale")
-    digest = sha256_text(agent_domain + jcs)
-    if agent.get("target_snapshot_digest") != digest:
-        lint.fail(fixture_path, "Native Agent member-repair target_snapshot_digest is stale")
-
-    # The retired opaque spelling MUST NOT reproduce the pinned digest.
-    retired = dict(target)
-    retired.pop("recipient_agent_verification_method")
-    retired.pop("recipient_agent_key_authorize_event_id")
-    retired["active_runtime_endpoint_ref"] = target["recipient_agent_verification_method"]
-    if sha256_text(agent_domain + canonical_json(retired)) == digest:
-        lint.fail(
-            fixture_path,
-            "the retired opaque active_runtime_endpoint_ref preimage still reproduces the digest",
-        )
-
-    schema_path = ARTIFACTS / "schemas" / "direct-conversation-operations.schema.json"
-    schema_text = read_text(schema_path)
-    if "active_runtime_endpoint_ref" in schema_text and (
-        "MUST NOT" not in schema_text and "not admitted" not in schema_text
-    ):
-        lint.fail(
-            schema_path,
-            "active_runtime_endpoint_ref may only appear as an explicitly retired spelling",
-        )
-
 
 def check_direct_conversation_digest_vectors(lint: Lint) -> None:
     """Pin the two domain-separated Direct Conversation identity digests."""
@@ -1967,7 +1895,7 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
         "main_strand_id",
         "founding_unit_digest",
         "authorization_basis",
-        "initial_exact_pair_generation_ref",
+        "initial_exact_pair_group_state_ref",
     }
     if set(canonical_binding) != expected_binding_fields:
         lint.fail(fixture_path, "binding_digest canonical object has the wrong closed field set")
@@ -2010,8 +1938,8 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
                 "kind": basis["kind"],
                 "event_refs": sorted(refs, key=lambda value: value.encode("utf-8")),
             },
-            "initial_exact_pair_generation_ref": payload[
-                "initial_exact_pair_generation_ref"
+            "initial_exact_pair_group_state_ref": payload[
+                "initial_exact_pair_group_state_ref"
             ],
         }
 
@@ -2104,6 +2032,11 @@ def _stated_preimage_bytes(source: str, decoding: str) -> bytes | None:
         try:
             return base64.urlsafe_b64decode(source + "=" * (-len(source) % 4))
         except (ValueError, binascii.Error):
+            return None
+    if decoding == "hex":
+        try:
+            return bytes.fromhex(source)
+        except ValueError:
             return None
     raise AssertionError(f"unknown stated-preimage decoding: {decoding}")
 
@@ -2334,70 +2267,18 @@ def check_encrypted_envelope_digest_vector(lint: Lint) -> None:
         lint.fail(fixture_path, "missing Encrypted Envelope digest vector")
         return
 
-    kat = vector.get("event_ref_digest_kat")
     metadata = vector.get("payload_metadata")
-    if not isinstance(kat, dict) or not isinstance(metadata, dict):
-        lint.fail(fixture_path, "Encrypted Envelope vector must declare payload_metadata and event_ref_digest_kat")
+    if not isinstance(metadata, dict):
+        lint.fail(fixture_path, "Encrypted Envelope vector must declare payload_metadata")
         return
-    domain = kat.get("domain_separator_utf8")
-    event_id = kat.get("event_id")
-    realm_id = kat.get("realm_id")
-    if not all(isinstance(value, str) for value in (domain, event_id, realm_id)):
-        lint.fail(fixture_path, "event_ref_digest_kat inputs must be strings")
-        return
-    digest_input = domain.encode("utf-8") + b"\x00" + event_id.encode("utf-8") + b"\x00" + realm_id.encode("utf-8")
-    expected_ref_digest = "sha256:" + hashlib.sha256(digest_input).hexdigest()
-    if kat.get("digest_input_hex") != digest_input.hex():
-        lint.fail(fixture_path, "event_ref_digest_kat digest_input_hex does not match canonical input")
-    if kat.get("expected_digest") != expected_ref_digest:
-        lint.fail(fixture_path, "event_ref_digest_kat expected_digest does not match canonical input")
-    aad = metadata.get("aad")
-    if not isinstance(aad, dict) or aad.get("realm_id") != realm_id or aad.get("event_ref_digest") != expected_ref_digest:
-        lint.fail(fixture_path, "payload_metadata.aad is not bound to event_ref_digest_kat")
-
-    mutations = kat.get("mutation_cases")
-    expected_mutations = {
-        "omit_nul_separators": domain.encode("utf-8") + event_id.encode("utf-8") + realm_id.encode("utf-8"),
-        "swap_event_id_and_realm_id": (
-            domain.encode("utf-8") + b"\x00" + realm_id.encode("utf-8") + b"\x00" + event_id.encode("utf-8")
-        ),
-        "append_trailing_nul": digest_input + b"\x00",
-    }
-    if not isinstance(mutations, list) or len(mutations) != len(expected_mutations):
-        lint.fail(fixture_path, "event_ref_digest_kat must cover separator, field-order, and trailing-byte mutations")
-    else:
-        seen_mutation_names: set[str] = set()
-        for index, mutation in enumerate(mutations):
-            if not isinstance(mutation, dict):
-                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] must be an object")
-                continue
-            mutation_name = mutation.get("name")
-            if (
-                not isinstance(mutation_name, str)
-                or mutation_name not in expected_mutations
-                or mutation_name in seen_mutation_names
-            ):
-                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] has unknown or duplicate name")
-                continue
-            seen_mutation_names.add(mutation_name)
-            try:
-                mutated_input = bytes.fromhex(mutation.get("digest_input_hex", ""))
-            except (TypeError, ValueError):
-                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] has invalid hex")
-                continue
-            if mutated_input != expected_mutations[mutation_name]:
-                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] input does not match its name")
-            mutated_digest = "sha256:" + hashlib.sha256(mutated_input).hexdigest()
-            if mutation.get("expected_digest") != mutated_digest:
-                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] digest mismatch")
-            if mutation.get("must_not_equal_valid") is not True or mutated_digest == expected_ref_digest:
-                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] is not a strict negative")
-
+    if set(metadata) != {"version", "content_type", "encryption_context"}:
+        lint.fail(fixture_path, "Encrypted Envelope payload_metadata must be the minimal wire projection")
+    context = metadata.get("encryption_context")
+    if not isinstance(context, dict) or set(context) != {"epoch", "group_state_ref"}:
+        lint.fail(fixture_path, "Encrypted Envelope standard MLS context must omit duplicated AAD inputs and counter")
     canonical_metadata = canonical_json(metadata)
     if vector.get("expected_metadata_canonical_bytes_utf8") != canonical_metadata:
         lint.fail(fixture_path, "Encrypted Envelope canonical payload_metadata bytes mismatch")
-    if isinstance(aad, dict) and vector.get("aad_digest") != sha256_text(canonical_json(aad)):
-        lint.fail(fixture_path, "Encrypted Envelope aad_digest mismatch")
     ciphertext_base64url = vector.get("ciphertext_base64url")
     if not isinstance(ciphertext_base64url, str):
         lint.fail(fixture_path, "Encrypted Envelope ciphertext_base64url must be a string")
@@ -2839,380 +2720,193 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
     if not isinstance(data, dict):
         return
 
-    verifier_vector = "ak.vector.mls.governance_proof.verifier.v1"
-    materializer_vector = "ak.vector.mls.governance_proof.materializer.v1"
-    bounds_vector = "ak.vector.scalability.mls_governance_proof_bounds.v1"
-    profile_id = "ak.profile.mls_governance_binding.full.v1"
-    expected_vectors = {verifier_vector, materializer_vector}
-
-    if data.get("generated_by") != "tools/generate_mls_governance_proof_fixture.py":
-        lint.fail(path, "MLS governance proof fixture must name its deterministic generator")
-    if set(data.get("covers_vectors", [])) != expected_vectors:
-        lint.fail(path, "MLS governance proof fixture must cover the verifier and materializer vectors exactly")
-    if data.get("required_companion_vectors") != [bounds_vector]:
-        lint.fail(path, "MLS governance proof fixture must require the bounds companion vector")
-
-    expected_consumers = {
-        "sdk_proof_verifier": "ak.suite.mls.governance_proof_bundle.verify.v1",
-        "server_materializer": "ak.suite.mls.governance_proof_bundle.materialize.v1",
+    expected_vectors = {
+        "ak.vector.mls.governance_proof.verifier.v1",
+        "ak.vector.mls.governance_proof.materializer.v1",
     }
-    consumers = data.get("consumer_contracts")
-    actual_consumers = {
-        row.get("role"): row.get("entrypoint")
-        for row in consumers
-        if isinstance(row, dict)
-    } if isinstance(consumers, list) else {}
-    if actual_consumers != expected_consumers:
-        lint.fail(path, f"MLS governance proof consumer ownership mismatch: {actual_consumers}")
-    for row in consumers if isinstance(consumers, list) else []:
-        outputs = set(row.get("required_output_fields", [])) if isinstance(row, dict) else set()
-        if row.get("role") == "sdk_proof_verifier":
-            required_outputs = {
-                "case_name", "schema_result", "decision", "failure_stage", "reason_code",
-                "verified_bundle_digest", "epoch_advanced",
-            }
-        else:
-            required_outputs = {
-                "case_name", "decision", "error_code", "response_count", "bundle_digest",
-                "chunk_digests", "peak_buffer_bytes", "partial_manifest_emitted",
-            }
-        if outputs != required_outputs:
-            lint.fail(path, f"{row.get('role')} required output contract drifted: {sorted(outputs)}")
+    if data.get("generated_by") != "tools/generate_mls_governance_proof_fixture.py":
+        lint.fail(path, "MLS governance fixture must name its deterministic generator")
+    if set(data.get("covers_vectors", [])) != expected_vectors:
+        lint.fail(path, "MLS governance fixture must cover verifier/materializer vectors exactly")
+    formula = data.get("page_digest_formula", {})
+    if not isinstance(formula, dict) or formula.get("domain") != "ak.mls-governance-proof-page-v1":
+        lint.fail(path, "MLS governance fixture must pin the v1 page-digest domain")
+
+    cases = data.get("cases")
+    expected_names = {
+        "genesis_base_equals_target",
+        "successor_base_equals_target",
+        "strict_descendant",
+        "open_set_multi_leaf",
+    }
+    if not isinstance(cases, list) or {row.get("name") for row in cases if isinstance(row, dict)} != expected_names:
+        lint.fail(path, "MLS governance fixture must cover equal, descendant and open-set antichain cases")
+        return
+    for index, row in enumerate(cases):
+        if not isinstance(row, dict):
+            lint.fail(path, f"cases[{index}] must be an object")
+            continue
+        query = row.get("query")
+        page_body = row.get("page_body_without_query_and_page_digest")
+        outcome = row.get("outcome")
+        if not isinstance(query, dict) or not isinstance(page_body, dict) or not isinstance(outcome, dict):
+            lint.fail(path, f"cases[{index}] query/page_body/outcome must be objects")
+            continue
+        if query.get("profile") != "group_security_frontier":
+            lint.fail(path, f"cases[{index}] must use the sole near-current profile")
+        if not isinstance(query.get("proof_base_basis"), dict) or not isinstance(query.get("proof_target_basis"), dict):
+            lint.fail(path, f"cases[{index}] must carry SealBasis antichains")
+        digest_input = (
+            b"ak.mls-governance-proof-page-v1"
+            + b"\x00"
+            + canonical_json(query).encode("utf-8")
+            + b"\x00"
+            + canonical_json(page_body).encode("utf-8")
+        )
+        expected_digest = "sha256:" + hashlib.sha256(digest_input).hexdigest()
+        if row.get("expected_page_digest") != expected_digest:
+            lint.fail(path, f"cases[{index}] expected page digest drifted")
+        if outcome != {"query": query, **page_body, "page_digest": expected_digest}:
+            lint.fail(path, f"cases[{index}] outcome is not the exact query/body/digest composition")
+        forbidden = {
+            "proof_anchor_seal_ref", "proof_target_seal_ref", "from_epoch", "to_epoch",
+            "cursor", "continuation", "proof_result_set_id", "chunk_manifest",
+        }
+        if forbidden.intersection(query) or forbidden.intersection(outcome):
+            lint.fail(path, f"cases[{index}] contains a removed bulk/stateful field")
+
+    negatives = data.get("negative_cases")
+    expected_negative_names = {
+        "genesis_with_base_group_state_ref",
+        "successor_without_base_group_state_ref",
+        "concurrent_unreachable_basis",
+        "response_exceeds_byte_limit",
+        "single_head_substitutes_open_set",
+        "multi_leaf_missing_branch",
+        "multi_leaf_duplicate_branch",
+        "multi_leaf_cross_root_witness",
+        "base_leaf_not_consumed",
+        "page_digest_mismatch",
+        "stateful_bulk_profile",
+    }
+    if not isinstance(negatives, list) or {row.get("name") for row in negatives if isinstance(row, dict)} != expected_negative_names:
+        lint.fail(path, "MLS governance frontier negative matrix drifted")
 
     profile_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
     profiles = load_json(lint, profile_path)
     requirement = (
-        profiles.get("profile_requirements", {}).get(profile_id, {})
+        profiles.get("profile_requirements", {}).get("ak.profile.mls_governance_binding.full.v1", {})
         if isinstance(profiles, dict)
         else {}
     )
-    required_profile_refs = {
-        "required_endpoints": "ak.self.events.read.mls_governance_proof",
-        "required_schemas": "ak.schema.mls_governance_proof_bundle.v1",
-        "required_fixtures": path.name,
-    }
-    for field, value in required_profile_refs.items():
-        if value not in requirement.get(field, []):
-            lint.fail(profile_path, f"{profile_id}.{field} must include {value}")
+    if "ak.self.seals.read.mls_governance_proof" not in requirement.get("required_endpoints", []):
+        lint.fail(profile_path, "MLS governance profile must require the typed Seal frontier endpoint")
+    if path.name not in requirement.get("required_fixtures", []):
+        lint.fail(profile_path, "MLS governance profile must require the frontier fixture")
+    return
 
-    vector_path = ARTIFACTS / "registry" / "vector-registry.json"
-    vector_data = load_json(lint, vector_path)
-    rows = {
-        row.get("vector_id"): row
-        for row in vector_data.get("vectors", [])
-        if isinstance(row, dict)
-    } if isinstance(vector_data, dict) else {}
-    for vector_id in expected_vectors:
-        row = rows.get(vector_id, {})
-        if row.get("status") != "active" or row.get("applies_to_fixtures") != [path.name]:
-            lint.fail(vector_path, f"{vector_id} must be active and owned by {path.name}")
-    bounds_row = rows.get(bounds_vector, {})
-    if bounds_row.get("status") != "active" or bounds_row.get("applies_to_profiles") != [profile_id]:
-        lint.fail(vector_path, f"{bounds_vector} must apply directly to {profile_id}")
 
-    def raw_sha256(value: bytes) -> bytes:
-        return hashlib.sha256(value).digest()
-
-    def wire_sha256(value: bytes) -> str:
-        return "sha256:" + raw_sha256(value).hex()
-
-    def raw_digest(value: Any, label: str) -> bytes:
-        if not isinstance(value, str) or not SHA256_RE.fullmatch(value):
-            lint.fail(path, f"{label} must be a sha256 wire digest")
-            return b""
-        return bytes.fromhex(value.split(":", 1)[1])
-
-    def merkle_root(leaf_data: list[bytes]) -> str:
-        if not leaf_data:
-            return "sha256:" + raw_sha256(b"").hex()
-        level = [raw_sha256(b"\x00" + item) for item in leaf_data]
-        while len(level) > 1:
-            next_level: list[bytes] = []
-            for index in range(0, len(level), 2):
-                if index + 1 == len(level):
-                    next_level.append(level[index])
-                else:
-                    next_level.append(raw_sha256(b"\x01" + level[index] + level[index + 1]))
-            level = next_level
-        return "sha256:" + level[0].hex()
-
-    source = data.get("source_state", {})
-    events = source.get("covered_events", []) if isinstance(source, dict) else []
-    state = source.get("joined_control_state", []) if isinstance(source, dict) else []
-    seals = source.get("accepted_seals", []) if isinstance(source, dict) else []
-    known = data.get("known_answer", {})
-    if len(events) != 2 or len(state) != 2 or len(seals) != 1:
-        lint.fail(path, "base KAT must contain two Events, two state leaves and one Seal")
+def check_history_scale_fixture(lint: Lint) -> None:
+    path = ARTIFACTS / "fixtures" / "history-key-recovery-fixture.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
         return
-    event_kats = known.get("event_steps", []) if isinstance(known, dict) else []
-    event_digests: list[str] = []
-    for index, event in enumerate(events):
-        if not isinstance(event, dict):
-            lint.fail(path, f"covered_events[{index}] must be an object")
-            continue
-        producer = {
-            key: value
-            for key, value in event.items()
-            if key not in {"proofs", "unsigned", "effective_scope", "actor_kind", "event_id"}
-        }
-        # event_id is excluded because zh/conformance/encoding.md section 4.0
-        # derives it from this digest; see section 6 for the two-class rationale.
-        producer_bytes = canonical_json(producer).encode("utf-8")
-        event_digest = wire_sha256(producer_bytes)
-        event_digests.append(event_digest)
-        proofs = event.get("proofs", [])
-        proof = proofs[0] if isinstance(proofs, list) and len(proofs) == 1 and isinstance(proofs[0], dict) else {}
-        if proof.get("event_digest") != event_digest:
-            lint.fail(path, f"covered_events[{index}] proof.event_digest does not match producer bytes")
-        binding = {
-            "context": "ak.event-proof-v1",
-            "event_digest": event_digest,
-            "actor_id": event.get("actor_id"),
-            "verification_method": proof.get("verification_method"),
-            "created_at": proof.get("created_at"),
-        }
-        kat = event_kats[index] if index < len(event_kats) and isinstance(event_kats[index], dict) else {}
-        expected_event_values = {
-            "event_id": event.get("event_id"),
-            "producer_event_canonical_bytes": len(producer_bytes),
-            "producer_event_digest": event_digest,
-            "proof_binding_canonical_bytes": len(canonical_json(binding).encode("utf-8")),
-            "proof_binding_sha256": wire_sha256(canonical_json(binding).encode("utf-8")),
-        }
-        if kat != expected_event_values:
-            lint.fail(path, f"covered_events[{index}] known-answer metadata drifted")
-
-    sorted_digests = sorted(event_digests)
-    if event_digests[0] == event_digests[1] or len(set(event_digests)) != 2:
-        lint.fail(path, "base KAT Event digests must be distinct")
-    control_root = merkle_root([raw_digest(value, "Event digest") for value in sorted_digests])
-    if known.get("control_event_set_root") != control_root:
-        lint.fail(path, "known_answer.control_event_set_root mismatch")
-    cells = [row.get("cell") for row in state if isinstance(row, dict)]
-    if cells != sorted(cells) or len(set(cells)) != len(cells):
-        lint.fail(path, "base KAT control_state must be canonical sorted and duplicate-free")
-    state_bytes = [canonical_json(row).encode("utf-8") for row in state]
-    state_root = merkle_root(state_bytes)
-    if known.get("state_root") != state_root:
-        lint.fail(path, "known_answer.state_root mismatch")
-    if known.get("state_leaf_canonical_bytes") != [len(value) for value in state_bytes]:
-        lint.fail(path, "known_answer.state_leaf_canonical_bytes mismatch")
-
-    completeness_leaf = {
-        "actor_id": events[0].get("actor_id"),
-        "from_seq": 0,
-        "to_seq": 1,
-        "event_digests": event_digests,
-    }
-    completeness_bytes = canonical_json(completeness_leaf).encode("utf-8")
-    completeness_root = merkle_root([completeness_bytes])
-    if known.get("completeness_root") != completeness_root or known.get("completeness_leaf_canonical_bytes") != len(completeness_bytes):
-        lint.fail(path, "known-answer completeness commitment mismatch")
-
-    seal = seals[0]
-    seal_body = {key: value for key, value in seal.items() if key not in {"id", "notary_signature"}}
-    seal_bytes = canonical_json(seal_body).encode("utf-8")
-    seal_digest = wire_sha256(seal_bytes)
-    signature = seal.get("notary_signature", {}) if isinstance(seal, dict) else {}
-    if seal.get("id") != "ak:seal:" + seal_digest or signature.get("payload_digest") != seal_digest:
-        lint.fail(path, "Seal id/signature payload digest does not match canonical Seal body")
-    if seal.get("delta") != sorted_digests:
-        lint.fail(path, "Seal delta must equal the canonical covered Event digest set")
-    expected_seal_fields = {
-        "control_event_set_root": control_root,
-        "state_root": state_root,
-        "completeness_root": completeness_root,
-    }
-    for field, expected in expected_seal_fields.items():
-        if seal.get(field) != expected:
-            lint.fail(path, f"Seal {field} mismatch")
-    if known.get("seal_digest") != seal_digest or known.get("seal_canonical_bytes") != len(seal_bytes):
-        lint.fail(path, "known-answer Seal commitment mismatch")
-
-    commit_context = data.get("commit_context", {})
-    leaf_entries = (
-        commit_context.get("current_or_pending_mls_leaf_entries", [])
-        if isinstance(commit_context, dict)
-        else []
-    )
-    if not isinstance(leaf_entries, list) or leaf_entries != sorted(
-        leaf_entries, key=lambda row: canonical_json(row).encode("utf-8")
-    ):
-        lint.fail(path, "commit_context MLS leaf entries must be canonical sorted")
-        leaf_entries = []
-    mls_leaf_set_digest = wire_sha256(canonical_json(leaf_entries).encode("utf-8"))
-    if (
-        not isinstance(commit_context, dict)
-        or commit_context.get("mls_leaf_set_digest") != mls_leaf_set_digest
-        or known.get("mls_leaf_set_digest") != mls_leaf_set_digest
-    ):
-        lint.fail(path, "MLS leaf-set digest commitment mismatch")
-
-    cell_entries = known.get("security_frontier_cell_entries", [])
-    if not isinstance(cell_entries, list):
-        lint.fail(path, "known_answer.security_frontier_cell_entries must be an array")
-        cell_entries = []
-    expected_cell_entries = []
-    for event in events:
-        payload = event.get("payload", {}) if isinstance(event, dict) else {}
-        if not isinstance(payload, dict):
-            continue
-        expected_cell_entries.append(
-            {
-                "cell_family": "ak.component.member.state.v1",
-                "cell_subject": payload.get("actor_id"),
-                "projected_value_digest": wire_sha256(
-                    canonical_json(payload.get("membership")).encode("utf-8")
-                ),
-            }
-        )
-    expected_cell_entries.sort(
-        key=lambda row: (
-            row["cell_family"].encode("utf-8"),
-            canonical_json(row["cell_subject"]).encode("utf-8"),
-            row["projected_value_digest"],
-        )
-    )
-    if cell_entries != expected_cell_entries:
-        lint.fail(path, "known-answer security frontier cell projection mismatch")
-    security_frontier_input = {
-        "profile_id": "ak.security_frontier.v1",
-        "effective_scope": data.get("commit_context", {}).get("expected_effective_scope"),
-        "cell_entries": cell_entries,
-        "mls_leaf_set_digest": mls_leaf_set_digest,
-    }
-    security_frontier_bytes = canonical_json(security_frontier_input).encode("utf-8")
-    security_frontier_digest = wire_sha256(security_frontier_bytes)
-    if known.get("security_frontier_digest") != security_frontier_digest or known.get("security_frontier_input_canonical_bytes") != len(security_frontier_bytes):
-        lint.fail(path, "known-answer security frontier commitment mismatch")
-    binding = commit_context.get("transcript_authenticated_governance_binding", {}) if isinstance(commit_context, dict) else {}
-    if not isinstance(binding, dict) or binding.get("security_frontier_digest") != security_frontier_digest:
-        lint.fail(path, "governance binding must contain the rederived security_frontier_digest")
-
-    proof_identity = source.get("proof_identity", {})
-    identity_bytes = canonical_json(proof_identity).encode("utf-8")
-    request_digest = wire_sha256(b"arkret-mls-governance-proof-request-v1\n" + identity_bytes)
-    if known.get("proof_request_digest") != request_digest or known.get("proof_identity_canonical_bytes") != len(identity_bytes):
-        lint.fail(path, "known-answer proof request commitment mismatch")
-
-    acquisition = data.get("expected_acquisition", {})
-    responses = acquisition.get("responses", []) if isinstance(acquisition, dict) else []
-    requests = data.get("requests", [])
-    if len(responses) != 4 or len(requests) != 4:
-        lint.fail(path, "base acquisition must contain exactly four requests and responses")
+    runner = data.get("runner")
+    if not isinstance(runner, dict) or runner.get("scale_generator") != "tools/generate_history_scale_fixture.py":
+        lint.fail(path, "history recovery fixture must name its streaming scale generator")
+    kat = data.get("direct_traversal_kat")
+    if not isinstance(kat, dict):
+        lint.fail(path, "history recovery fixture must carry the executable direct-traversal KAT")
         return
-    chunks = [row.get("chunk") for row in responses if isinstance(row, dict)]
-    expected_collections = ["seal_path", "covered_event_digests", "control_state", "frontier_events"]
-    if [chunk.get("collection") for chunk in chunks if isinstance(chunk, dict)] != expected_collections:
-        lint.fail(path, "base chunks must use the canonical four-collection order")
-    chunk_digests: list[str] = []
-    chunk_bytes_lengths: list[int] = []
-    for index, chunk in enumerate(chunks):
-        if not isinstance(chunk, dict):
+    retention = kat.get("member_retention")
+    if not isinstance(retention, dict):
+        lint.fail(path, "direct-traversal KAT must contain a schema-valid member retention object")
+    elif retention.get("traversal_intent", {}).get("profile") != "member_history_delivery":
+        lint.fail(path, "direct-traversal member retention uses the wrong profile")
+    negatives = kat.get("negative_cases")
+    required_negatives = {
+        "hidden_predecessor",
+        "target_does_not_dominate_current",
+        "branch_stops_before_base",
+        "base_leaf_not_consumed",
+        "surplus_descriptor",
+    }
+    negative_by_name = {
+        row.get("name"): row for row in negatives or []
+        if isinstance(row, dict) and isinstance(row.get("name"), str)
+    }
+    if set(negative_by_name) != required_negatives:
+        lint.fail(path, "history direct-traversal executable negative matrix drifted")
+    for name, row in negative_by_name.items():
+        if row.get("expected_error") not in row.get("actual_errors", []):
+            lint.fail(path, f"history direct-traversal negative {name} has no matching observed error")
+
+    registry_kat = data.get("governance_registry_artifact_kat")
+    if not isinstance(registry_kat, dict):
+        lint.fail(path, "history fixture must carry the registry snapshot/artifact KAT")
+    elif registry_kat.get("schema_manifest_summary", {}).get("artifact_count", 0) < 2:
+        lint.fail(path, "registry replay schema closure is incomplete")
+    signer_kat = data.get("authenticated_signer_resolution_evidence_kat")
+    if not isinstance(signer_kat, dict) or signer_kat.get("evidence", {}).get("kind") != "service":
+        lint.fail(path, "history fixture must carry service signer-resolution evidence")
+    dependency_kat = data.get("governance_dependency_resolve_kat")
+    if not isinstance(dependency_kat, dict) or len(dependency_kat.get("resolve_outcome", {}).get("items", [])) != 4:
+        lint.fail(path, "history fixture must exercise all four governance dependency branches")
+    source_agent_kat = data.get("history_source_agent_observation_digest_kat")
+    if not isinstance(source_agent_kat, dict):
+        lint.fail(path, "history fixture must carry the source Agent observation digest KAT")
+    else:
+        preimage = source_agent_kat.get("preimage")
+        expected = source_agent_kat.get("expected_digest")
+        if not isinstance(preimage, dict) or not isinstance(expected, str):
+            lint.fail(path, "source Agent observation digest KAT is malformed")
+        else:
+            actual = "sha256:" + hashlib.sha256(
+                b"ak.history-source-agent-observation-v1\x00"
+                + canonical_json(preimage).encode("utf-8")
+            ).hexdigest()
+            if actual != expected:
+                lint.fail(path, "source Agent observation digest KAT does not match its preimage")
+            for member in ("signing_input_a", "signing_input_b"):
+                signing_input = source_agent_kat.get(member)
+                if not isinstance(signing_input, dict):
+                    lint.fail(path, f"source Agent observation digest KAT omits {member}")
+                    continue
+                projected = dict(signing_input)
+                projected.pop("source_signer_evidence_ref", None)
+                projected.pop("source_signer_evidence_digest", None)
+                if projected != preimage:
+                    lint.fail(path, f"source Agent observation digest KAT {member} projection drifted")
+            if source_agent_kat.get("mutating_only_evidence_coordinates_keeps_digest") != expected:
+                lint.fail(path, "source Agent observation evidence-coordinate exclusion drifted")
+            if source_agent_kat.get("mutating_content_changes_digest") == expected:
+                lint.fail(path, "source Agent observation digest ignores signed business content")
+
+    scale = data.get("streaming_direct_traversal_scale_kats")
+    if not isinstance(scale, list) or [row.get("epoch_count") for row in scale if isinstance(row, dict)] != [26298, 65536]:
+        lint.fail(path, "history scale fixture must freeze 26,298 and 65,536 epoch runs")
+    for row in scale or []:
+        if not isinstance(row, dict):
             continue
-        digest_input = {
-            "chunk_index": chunk.get("chunk_index"),
-            "collection": chunk.get("collection"),
-            "start_index": chunk.get("start_index"),
-            "items": chunk.get("items"),
-        }
-        digest_bytes = canonical_json(digest_input).encode("utf-8")
-        chunk_digest = wire_sha256(b"arkret-mls-governance-proof-chunk-v1\n" + digest_bytes)
-        chunk_digests.append(chunk_digest)
-        chunk_bytes_lengths.append(len(digest_bytes))
-        if chunk.get("chunk_index") != index or chunk.get("start_index") != 0 or chunk.get("chunk_digest") != chunk_digest:
-            lint.fail(path, f"chunk {index} index/start/digest commitment mismatch")
-        response = responses[index]
-        request = requests[index] if isinstance(requests[index], dict) else {}
-        if response.get("proof_request_digest") != request_digest or request.get("chunk_index") != index:
-            lint.fail(path, f"request/response {index} acquisition identity mismatch")
-        if index == 0 and "expected_bundle_digest" in request:
-            lint.fail(path, "chunk 0 request must not carry expected_bundle_digest")
-
-    chunks_root = merkle_root([raw_digest(value, "chunk digest") for value in chunk_digests])
-    manifests = [row.get("chunk_manifest") for row in responses if isinstance(row, dict)]
-    if any(manifest != manifests[0] for manifest in manifests[1:]):
-        lint.fail(path, "every response must repeat the same chunk_manifest")
-    manifest = manifests[0] if manifests and isinstance(manifests[0], dict) else {}
-    total_item_bytes = sum(
-        len(canonical_json(item).encode("utf-8"))
-        for chunk in chunks if isinstance(chunk, dict)
-        for item in chunk.get("items", [])
-    )
-    totals = {
-        chunk["collection"]: len(chunk.get("items", []))
-        for chunk in chunks if isinstance(chunk, dict)
-    }
-    if manifest.get("chunks_root") != chunks_root or manifest.get("total_item_bytes") != total_item_bytes or manifest.get("collection_totals") != totals:
-        lint.fail(path, "manifest root/item-byte/collection totals mismatch")
-    if known.get("chunk_digests") != chunk_digests or known.get("chunk_canonical_bytes") != chunk_bytes_lengths:
-        lint.fail(path, "known-answer chunk commitments mismatch")
-    if known.get("chunks_root") != chunks_root or known.get("total_item_bytes") != total_item_bytes:
-        lint.fail(path, "known-answer manifest commitment mismatch")
-
-    base_header = {key: value for key, value in responses[0].items() if key not in {"bundle_digest", "chunk"}}
-    header_bytes = canonical_json(base_header).encode("utf-8")
-    bundle_digest = wire_sha256(b"arkret-mls-governance-proof-bundle-v1\n" + header_bytes)
-    for index, response in enumerate(responses):
-        response_header = {key: value for key, value in response.items() if key not in {"bundle_digest", "chunk"}}
-        if response_header != base_header or response.get("bundle_digest") != bundle_digest:
-            lint.fail(path, f"response {index} Bundle header/digest mismatch")
-        request = requests[index]
-        if index and request.get("expected_bundle_digest") != bundle_digest:
-            lint.fail(path, f"request {index} must pin the base bundle_digest")
-    if known.get("bundle_digest") != bundle_digest or known.get("bundle_header_canonical_bytes") != len(header_bytes):
-        lint.fail(path, "known-answer Bundle commitment mismatch")
-
-    expected_verifier_cases = {
-        "valid_complete_bundle", "self_reported_anchor_is_not_trust", "broken_seal_path",
-        "forked_seal_path", "wrong_notary_authority", "missing_covered_digest",
-        "extra_covered_digest", "duplicate_covered_digest", "covered_digest_order",
-        "missing_state_leaf", "extra_state_leaf", "duplicate_state_leaf", "state_leaf_order",
-        "missing_frontier_event", "extra_frontier_event", "duplicate_frontier_event",
-        "frontier_event_order", "frontier_cross_realm_scope", "frontier_event_proof_invalid",
-        "chunks_root_mismatch", "missing_chunk", "duplicate_chunk", "chunk_order",
-        "binding_realm_mismatch", "binding_group_mismatch", "binding_previous_epoch_mismatch",
-        "binding_next_epoch_mismatch", "binding_profile_mismatch", "binding_reducer_mismatch",
-        "security_frontier_digest_mismatch", "unrelated_capability_does_not_change_frontier",
-        "active_leaf_revoke_missing_from_frontier",
-    }
-    verifier_cases = data.get("verifier_cases", [])
-    actual_verifier_cases = {
-        row.get("name") for row in verifier_cases if isinstance(row, dict)
-    } if isinstance(verifier_cases, list) else set()
-    if actual_verifier_cases != expected_verifier_cases:
-        lint.fail(path, f"verifier mutation matrix drifted: {sorted(actual_verifier_cases)}")
-    for row in verifier_cases if isinstance(verifier_cases, list) else []:
-        expected = row.get("expected", {}) if isinstance(row, dict) else {}
-        if row.get("name") != "valid_complete_bundle" and (
-            expected.get("verified_bundle_persisted") is not False
-            or expected.get("epoch_advanced") is not False
-            or not expected.get("failure_stage")
-            or not expected.get("reason_code")
+        if row.get("verified_epoch_count") != row.get("epoch_count"):
+            lint.fail(path, "history scale run did not stream-verify every epoch")
+        if row.get("streaming_storage") != "temporary_sqlite_work_queue_and_visited":
+            lint.fail(path, "history scale run must use the disk-backed traversal journal")
+        if any(key in row for key in ("seals", "events", "receipts", "descriptors", "epoch_transitions")):
+            lint.fail(path, "large history scale summaries must not embed O(N) arrays")
+    overflow = data.get("streaming_direct_traversal_scale_negative_kats")
+    if not isinstance(overflow, list) or len(overflow) != 1:
+        lint.fail(path, "history scale fixture must contain one 65,537 prewrite reject")
+    else:
+        row = overflow[0]
+        if (
+            row.get("epoch_count") != 65537
+            or row.get("rejected_before_staging") is not True
+            or any(row.get(key) != 0 for key in (
+                "journal_rows", "resolved_objects", "outbox_writes"
+            ))
         ):
-            lint.fail(path, f"reject verifier case lacks fail-closed output: {row.get('name')}")
-
-    expected_materializer_cases = {
-        "valid_materialization", "unknown_anchor", "unreachable_anchor", "missing_seal_material",
-        "forked_seal_source", "unauthorized_notary_source", "missing_covered_event_source",
-        "bottom_control_cell_source", "scope_visibility_denied", "logical_bundle_over_bound",
-    }
-    materializer_cases = data.get("materializer_cases", [])
-    actual_materializer_cases = {
-        row.get("name") for row in materializer_cases if isinstance(row, dict)
-    } if isinstance(materializer_cases, list) else set()
-    if actual_materializer_cases != expected_materializer_cases:
-        lint.fail(path, f"materializer mutation matrix drifted: {sorted(actual_materializer_cases)}")
-    for row in materializer_cases if isinstance(materializer_cases, list) else []:
-        expected = row.get("expected", {}) if isinstance(row, dict) else {}
-        if row.get("name") != "valid_materialization" and (
-            expected.get("response_count") != 0
-            or expected.get("partial_manifest_emitted") is not False
-            or not expected.get("error_code")
-        ):
-            lint.fail(path, f"reject materializer case may emit partial output: {row.get('name')}")
-
-
+            lint.fail(path, "65,537 history scale reject must leave traversal journal and outbox empty")
 
 def websocket_canonical_wss_errors(value: object) -> list[str]:
     """Return profile-level canonicalization errors for a WebSocket base URL."""

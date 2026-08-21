@@ -700,16 +700,13 @@
       "type": "string",
       "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
-    "allowed_history_visibility_values": {
+    "allowed_history_access_values": {
       "type": "array",
       "items": {
         "type": "string",
         "enum": [
-          "world_readable",
-          "shared",
-          "invited",
-          "joined",
-          "restricted"
+          "since_join",
+          "all_history_for_current_members"
         ]
       },
       "uniqueItems": true

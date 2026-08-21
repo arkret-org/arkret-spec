@@ -25,7 +25,7 @@ Arkret v1 采用 **CBA**（Control-plane Basis-committed Sealing）：
 
 - 数据面事件（DataEvent）解决普通协作写入：消息、reaction、read cursor 的持久投影、协作对象字段、排序、计数等。DataEvent 由 actor 签名、按 `seal_ref` 验证授权，通过 cell Lattice / CRDT 收敛；它不等待 Seal 才成为本地可接受事实。
 - 控制面事件（Control Move）解决治理写入：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 明确声明 `sealed=true` 的对象。Control Move 由 Seal 覆盖后才取得 `sealed` finality。
-- Seal 只对控制面给出 finality；它可以携带数据面的观测承诺（例如 `data_view_root` / `data_event_set_root` / `availability_root`），但这些根只证明对应 observation，不把数据面升级为控制面 finality。
+- Seal 只对控制面给出 finality；它可以携带数据面的观测承诺（例如 `data_view_root` / `data_event_set_root`），但这些根只证明对应 observation，不把数据面升级为控制面 finality。控制面 include 所需的 AvailabilityReceipt 由 signed `availability_receipt_digests[]` 逐项承诺，不再有 `availability_root`。
 
 同步层必须支持 actor 侧可验证发布、append-only 审计日志、离线写入、跨服务传播、选择性同步、最终一致投影、以及控制面问责。
 
@@ -141,7 +141,7 @@ Seal 的 wire contract 见 [`seal.schema.json`](../../artifacts/schemas/seal.sch
 - 控制面 reducer 重放后的 `state_root` 与 Seal 声明一致。
 - inclusion list / receipt obligation / fault evidence 规则。
 
-`data_view_root`、`data_event_set_root` 和 `availability_root` 只证明 notary 在该 Seal 观察到的数据面集合或可用性材料；它们不得用于改变 DataEvent 的控制面授权结果。
+`data_view_root` 与 `data_event_set_root` 只证明 notary 在该 Seal 观察到的数据面集合；它们不得用于改变 DataEvent 的控制面授权结果。`availability_receipt_digests[]` 只约束对应 Control Move bytes 的可用性义务。
 
 ## 4. Event-first 发布模型
 
@@ -232,7 +232,7 @@ Event Batch Receipt（schema [`event-batch-receipt.schema.json`](../../artifacts
 
 ### 6.2 AvailabilityReceipt
 
-AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifacts/schemas/availability-receipt.schema.json)）证明 holder 在某 retention window 内承诺保存指定 Event bytes 或 blob bytes。它可被 Seal 的 `availability_root` 观测，但不替代事件签名、授权验证或 Lattice 收敛；具体 operation / profile 若要返回该观测证明，必须显式登记响应字段、schema 与验证规则。
+AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifacts/schemas/availability-receipt.schema.json)）证明 holder 在某 retention window 内承诺保存指定 Event bytes 或 blob bytes。Seal 直接签入其 full canonical `receipt_digest`；完整 receipt 与历史 signer evidence 经 typed governance-dependency resolve 获取。它不替代事件签名、授权验证或 Lattice 收敛。
 
 ### 6.3 Audit RYW Receipt
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/circle.schema.json",
   "title": "Arkret Circle",
-  "description": "Circle — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, and delivery/query/projection boundary. It may be plaintext delivery-only or MLS-backed depending on encryption_profile and parent Realm policy floor. It does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. Circle is NOT a principal Group; principal-set capability narrowing belongs on Group / capability constraint / resource selector. See spec/v1/zh/models/circle.md.",
+  "description": "Circle — an intra-Realm scoped event/message boundary with its own membership, history_access and optional independent MLS group. Parent Realm membership supplies only the current-membership intersection gate; history_access is never dynamically inherited.",
   "type": "object",
   "required": [
     "schema",
@@ -11,7 +11,7 @@
     "display",
     "directory_visibility",
     "join_rule",
-    "history_visibility",
+    "history_access",
     "encryption_profile",
     "state",
     "created_by",
@@ -61,16 +61,13 @@
       ],
       "description": "How an actor becomes a Circle member. 'public' lets any active parent-Realm member self-join; it does not make the Circle globally discoverable. 'knock' requires the application/approval flow. 'invite' requires Circle admin add or invite."
     },
-    "history_visibility": {
+    "history_access": {
       "type": "string",
       "enum": [
-        "world_readable",
-        "shared",
-        "invited",
-        "joined",
-        "restricted"
+        "since_join",
+        "all_history_for_current_members"
       ],
-      "description": "Circle's own history visibility. Effective visibility MUST NOT be wider than the parent Realm's policy floor. See zh/authz/event-auth-state-resolution.md §6."
+      "description": "Circle's own governance history range ratchet, initialized by Circle create. The only state-changing update is all_history_for_current_members to since_join; widening is permanently forbidden. It is never dynamically inherited from or capped by the parent Realm history_access, while current access still requires active parent-Realm membership. Standard MLS requires since_join."
     },
     "content_encryption_floor": {
       "type": "string",
@@ -109,10 +106,26 @@
       ],
       "description": "Circle content encryption profile. create-locked. 'none' means plaintext delivery/query/projection isolation only and is allowed only when the parent Realm policy floor allows plaintext. 'mls_rfc9420' means the Circle owns an independent MLS group and MUST NOT derive its keys from the Realm-default MLS group."
     },
-    "mls_group_ref": {
+    "content_scheme": {
       "type": "string",
-      "pattern": "^ak:mls:[a-z0-9_]+:[A-Za-z0-9._:-]+$",
-      "description": "Reducer-derived reference to the independent MLS group bound to (realm_id, circle_id). Present only when encryption_profile='mls_rfc9420'. Populated by ak.circle.create reducer; not actor-supplied on wire."
+      "enum": [
+        "mls_rfc9420",
+        "mls_exporter_aead_v1"
+      ],
+      "description": "Create/Genesis-locked MLS content scheme. Required exactly for an MLS-backed Circle and immutable for the derived group lifetime."
+    },
+    "mls_group_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "Reducer-derived base64url_no_pad(utf8(canonical CircleId)). Present only on the materialized MLS-backed Circle and forbidden in the actor-supplied create payload."
+    },
+    "durability_policy": {
+      "type": "string",
+      "enum": [
+        "none",
+        "organization_recovery_key"
+      ],
+      "description": "Create/Genesis-locked exporter durability policy. Required exactly for mls_exporter_aead_v1; absent otherwise."
     },
     "state": {
       "type": "string",
@@ -173,8 +186,22 @@
       },
       "then": {
         "not": {
-          "required": [
-            "mls_group_ref"
+          "anyOf": [
+            {
+              "required": [
+                "content_scheme"
+              ]
+            },
+            {
+              "required": [
+                "mls_group_id"
+              ]
+            },
+            {
+              "required": [
+                "durability_policy"
+              ]
+            }
           ]
         },
         "properties": {
@@ -183,6 +210,104 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "encryption_profile": {
+            "const": "mls_rfc9420"
+          }
+        },
+        "required": [
+          "encryption_profile"
+        ]
+      },
+      "then": {
+        "required": [
+          "content_scheme"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "content_scheme": {
+            "const": "mls_rfc9420"
+          }
+        },
+        "required": [
+          "content_scheme"
+        ]
+      },
+      "then": {
+        "properties": {
+          "history_access": {
+            "const": "since_join"
+          }
+        },
+        "not": {
+          "required": [
+            "durability_policy"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "content_scheme": {
+            "const": "mls_exporter_aead_v1"
+          }
+        },
+        "required": [
+          "content_scheme"
+        ]
+      },
+      "then": {
+        "required": [
+          "durability_policy"
+        ]
+      }
+    },
+    {
+      "oneOf": [
+        {
+          "required": [
+            "id"
+          ],
+          "if": {
+            "properties": {
+              "encryption_profile": {
+                "const": "mls_rfc9420"
+              }
+            },
+            "required": [
+              "encryption_profile"
+            ]
+          },
+          "then": {
+            "required": [
+              "mls_group_id"
+            ]
+          }
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "id"
+                ]
+              },
+              {
+                "required": [
+                  "mls_group_id"
+                ]
+              }
+            ]
+          }
+        }
+      ]
     }
   ],
   "$defs": {

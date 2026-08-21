@@ -670,7 +670,7 @@
           }
         }
       ],
-      "single_did_profile_expected": "unavailable",
+      "single_signer_profile_expected": "unavailable",
       "vector_id": "ak.vector.cba_lattice.inclusion_list_obligation.v1"
     },
     {
@@ -1062,7 +1062,7 @@
             {
               "event_id": "ak:event:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
               "realm_id": "ak:realm:Ae28wXbm9Juy5sS43CvX0rcRddRFOUfUhkTSPZ05VMSr",
-              "kind": "ak.realm.history_visibility",
+              "kind": "ak.realm.history_access",
               "actor_seq": 4,
               "prev_refs": [
                 "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA"

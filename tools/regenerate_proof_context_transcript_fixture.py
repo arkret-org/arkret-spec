@@ -46,6 +46,7 @@ REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 SCHEMAS = ARTIFACTS / "schemas"
 
 FIXTURE = ARTIFACTS / "fixtures" / "proof-context-transcript-fixture.json"
+VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 
 # The single conformance signing key already published by
 # crypto-signature-fixture.json and keypackage-write-transcript-fixture.json. A
@@ -175,6 +176,11 @@ VALUE_TABLE: dict[str, Any] = {
     "grace_until": "2026-08-11T03:00:00.000Z",
     "handle": "acme",
     "handover_id": "ak:service_route_handover:019b0000-0000-7000-8000-000000000001",
+    "holder_trusted_basis": {
+        "leaves": [
+            "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ]
+    },
     "hpke_key": "z6LSfixtureFoundingHpkeKey",
     "identity_creation_lease_id": "genesis-lease-fence-0001",
     "issued_at": "2026-05-01T00:00:00.000Z",
@@ -441,7 +447,6 @@ def build_case(
     # keep branch occur for every family that declares more than one optional,
     # and no family silently skips one of the two.
     present_optional = [name for position, name in enumerate(optional_binding) if position % 2 == 1]
-
     digest_fields = [name for name in required_binding if name in SELF_DIGEST_FIELDS]
     digest_field = digest_fields[0] if digest_fields else None
 
@@ -679,14 +684,54 @@ def main(argv: list[str]) -> int:
     document = build_document()
     serialized = json.dumps(document, ensure_ascii=False, indent=2) + "\n"
 
+    vector_registry = json.loads(VECTOR_REGISTRY.read_text(encoding="utf-8"))
+    vectors = vector_registry["vectors"]
+    by_id = {row["vector_id"]: row for row in vectors}
+    vector_registry_changed = False
+    for case in document["cases"]:
+        vector_id = case["vector_id"]
+        if vector_id in by_id:
+            continue
+        row = {
+            "vector_id": vector_id,
+            "status": "active",
+            "domain": "proof_context",
+            "description": (
+                f"Transcript KAT for {case['context']}: the registered unsigned "
+                "projection, canonical binding bytes, detached JWS, and cross-family "
+                "context replay rejection are pinned byte-for-byte."
+            ),
+            "covers_proof_contexts": [case["context"]],
+            "applies_to_fixtures": ["proof-context-transcript-fixture.json"],
+            "source_refs": [
+                "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+            ],
+        }
+        vectors.append(row)
+        by_id[vector_id] = row
+        vector_registry_changed = True
+    sorted_vectors = sorted(vectors, key=lambda row: row["vector_id"])
+    if sorted_vectors != vectors:
+        vector_registry["vectors"] = sorted_vectors
+        vector_registry_changed = True
+    vector_registry_serialized = json.dumps(vector_registry, ensure_ascii=False, indent=2) + "\n"
+
     if args.check:
+        stale = False
         if not FIXTURE.is_file() or FIXTURE.read_text(encoding="utf-8") != serialized:
             print("proof context transcript fixture is stale", file=sys.stderr)
+            stale = True
+        if vector_registry_changed:
+            print("proof context transcript vector rows are stale", file=sys.stderr)
+            stale = True
+        if stale:
             return 1
         print("proof context transcript fixture is current")
         return 0
 
     FIXTURE.write_text(serialized, encoding="utf-8", newline="\n")
+    if vector_registry_changed:
+        VECTOR_REGISTRY.write_text(vector_registry_serialized, encoding="utf-8", newline="\n")
     print(
         f"regenerated {len(document['cases'])} transcript case(s) and "
         f"{len(document['negative_cases'])} cross-family reject case(s)"

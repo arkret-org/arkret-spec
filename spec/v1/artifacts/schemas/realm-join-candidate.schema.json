@@ -13,6 +13,7 @@
     "operations",
     "join_methods",
     "encryption_profile",
+    "digest_algorithm",
     "source",
     "seal_basis",
     "as_of",
@@ -83,6 +84,10 @@
       "$ref": "./realm.schema.json#/properties/encryption_profile",
       "description": "Effective encryption_profile of this Realm in the issuer's accepted projection at as_of. Principal-server candidates MUST include it so a pre-join client can apply the E2EE recovery-material gate (identity/key-management.md section 7.11) without reading membership-gated Realm history. The issuer MUST NOT substitute a default when the accepted projection is missing or unverifiable; it MUST omit the candidate instead."
     },
+    "digest_algorithm": {
+      "$ref": "./realm.schema.json#/properties/digest_algorithm",
+      "description": "Effective live Realm digest suite obtained by the issuer from the verified joined projection of the complete seal_basis at as_of. It is covered by the candidate payload digest and proof. Missing, Bottom, non-unique, or unverifiable joined values require omission of the whole candidate; consumers MUST NOT infer the suite from a Seal id or digest prefix."
+    },
     "priority": {
       "type": "integer",
       "minimum": 0,
@@ -112,7 +117,7 @@
     },
     "seal_basis": {
       "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-      "description": "Full single-leaf Control Move basis for the candidate service's current accepted Realm Seal at as_of. Principal-server candidates MUST include this so pre-join Realm join / invite-accept Control Moves can be signed without a separate membership-gated frontier read. This is a routing/anchoring hint, not membership authorization: the receiving service still validates the submitted basis and invite."
+      "description": "Complete canonical non-empty, duplicate-free Control Move basis for the candidate service's current accepted Realm Seal frontier at as_of. Single-signer and threshold authorities have one leaf; open_set carries the complete non-quarantined leaf antichain. Principal-server candidates MUST include this so pre-join Realm join / invite-accept Control Moves can be signed without a separate membership-gated frontier read. This is a routing/anchoring hint, not membership authorization: the receiving service still validates the submitted basis, its joined digest_algorithm, and the invite."
     },
     "as_of": {
       "$ref": "#/$defs/timestamp",
@@ -128,7 +133,7 @@
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "Optional proof set binding realm_id, service_id, role, operations, join_methods, encryption_profile, as_of, and expires_at. Required when the candidate is carried outside the signed invite or current joined-member delivery-binding evidence from which it was derived."
+      "description": "Optional proof set whose payload_digest binds the complete candidate, including seal_basis, digest_algorithm, encryption_profile, realm_id, service_id, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside the signed invite or current joined-member delivery-binding evidence from which it was derived."
     }
   },
   "additionalProperties": false,

@@ -84,11 +84,6 @@ class EventKindVerbFormLintTest(unittest.TestCase):
         for row in rows:
             self.assertIn(row.get("verb_form"), lint_artifacts.EVENT_KIND_VERB_FORMS, row)
 
-    def test_realm_key_withheld_is_registered_as_past_participle(self) -> None:
-        row = self._row(self.contract, "ak.realm_key.withheld")
-        self.assertEqual(row["verb_form"], "past_participle")
-        self.assertIn("withheld_reason_code", row["verb_form_rationale"])
-
     # --- truth-source mutations -----------------------------------------
 
     def test_missing_verb_form_is_rejected(self) -> None:
@@ -135,20 +130,6 @@ class EventKindVerbFormLintTest(unittest.TestCase):
         failures = self._run(contract, self.generated)
         self.assertTrue(
             any("MUST NOT carry a verb_form_rationale" in failure for failure in failures),
-            failures,
-        )
-
-    def test_silently_reclassifying_a_past_participle_breaks_prose_closure(self) -> None:
-        contract = copy.deepcopy(self.contract)
-        row = self._row(contract, "ak.realm_key.withheld")
-        row["verb_form"] = "not_applicable"
-        row.pop("verb_form_rationale")
-        failures = self._run(contract, self.generated)
-        self.assertTrue(
-            any(
-                "ak.realm_key.withheld is listed as a past-participle exception" in failure
-                for failure in failures
-            ),
             failures,
         )
 

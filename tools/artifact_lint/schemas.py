@@ -1802,9 +1802,14 @@ def check_signed_object_closure(lint: Lint) -> None:
     if isinstance(envelope, dict):
         if envelope.get("additionalProperties") is not False:
             lint.fail(envelope_path, "encrypted envelope root additionalProperties must be false")
-        aad = (envelope.get("properties") or {}).get("aad")
-        if not isinstance(aad, dict) or aad.get("additionalProperties") is not False:
-            lint.fail(envelope_path, "encrypted envelope aad additionalProperties must be false")
+        definitions = envelope.get("$defs") or {}
+        for name in ("routing_context", "standard_mls_encryption_context", "exporter_mls_encryption_context"):
+            context = definitions.get(name)
+            if not isinstance(context, dict) or context.get("additionalProperties") is not False:
+                lint.fail(
+                    envelope_path,
+                    f"encrypted envelope {name} additionalProperties must be false",
+                )
 
     identity = load_json(lint, identity_path)
     if isinstance(identity, dict) and identity.get("additionalProperties") is not False:
@@ -2893,10 +2898,32 @@ def _fsm_field_states(
     file, node = deref(file, node)
     if isinstance(node, dict):
         if "const" in node:
-            return [node["const"]]
+            return [_FSM_ABSENT if node["const"] is None else node["const"]]
         enum_values = node.get("enum")
         if isinstance(enum_values, list) and enum_values:
-            return list(enum_values)
+            return [_FSM_ABSENT if value is None else value for value in enum_values]
+        alternatives = node.get("oneOf") or node.get("anyOf")
+        if isinstance(alternatives, list):
+            projected: list[str] = []
+            for alternative in alternatives:
+                _alternative_file, alternative = deref(file, alternative)
+                if not isinstance(alternative, dict):
+                    continue
+                if alternative.get("type") == "null":
+                    projected.append(_FSM_ABSENT)
+                elif "const" in alternative:
+                    projected.append(
+                        _FSM_ABSENT
+                        if alternative["const"] is None
+                        else alternative["const"]
+                    )
+                elif isinstance(alternative.get("enum"), list):
+                    projected.extend(
+                        _FSM_ABSENT if value is None else value
+                        for value in alternative["enum"]
+                    )
+            if projected:
+                return list(dict.fromkeys(projected))
     return list(states)
 
 
@@ -3005,7 +3032,10 @@ def check_fsm_state_reachability(lint: Lint) -> None:
                     registry_path,
                     f"fsm_contracts.{family}: initial state {state} not in states",
                 )
-        allowed = {tuple(pair) for pair in contract_view.get("allowed_transitions") or []}
+        allowed = {
+            tuple(_FSM_ABSENT if value is None else value for value in pair)
+            for pair in contract_view.get("allowed_transitions") or []
+        }
         instance_parameters = declared.get("instance_parameters") or {}
         for conditional in contract_view.get("conditional_transitions") or []:
             condition = conditional.get("when") or {}
@@ -3102,8 +3132,6 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             )
         covered_pairs = set()
         for from_state, to_state, _event_kind in edges:
-            if from_state == _FSM_ABSENT:
-                continue
             covered_pairs.add((from_state, to_state))
         dead_allowed = sorted(pair for pair in allowed if pair not in covered_pairs)
         waived_dead = [p for p in dead_allowed if p in family_waived_transitions]

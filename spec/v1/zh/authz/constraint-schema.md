@@ -106,7 +106,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `claim_based` (`constraint_subkind=claim`，device/session binding 子情形：claim issuer = accepted PCR device) | `realm_state` | (realm_id, frontier_digest, actor_device_id) | device/session binding 不是独立 constraint_subkind（见 §2.2），它是 `constraint_subkind=claim` 的子情形；当需校验设备 / session 状态（来自 principal control stream）时该子判定为 `realm_state` |
 | `confidentiality` (`constraint_subkind=encryption`，纯静态声明：`encryption_required` / `min_encryption_level` / `plaintext_fallback_allowed` / `audit_trail_required` / `approved_key_issuers` 列表成员比较) | `stateless` | (constraint_digest, op_target) | 仅做布尔标志与 issuer 列表集合比较，不读取 Realm state |
 | `confidentiality` (`constraint_subkind=encryption`，依赖 Realm 加密态：需对照 Realm `encryption_profile`、active Audit Applet Binding 或当前 MLS key schedule 的判定) | `realm_state` | (realm_id, frontier_digest) | 仅这些依赖项走 slow path |
-| `confidentiality` (`constraint_subkind=visibility`) | `realm_state` | (realm_id, frontier_digest) | 看 Realm `history_visibility` |
+| `confidentiality` (`constraint_subkind=visibility`) | `realm_state` | (realm_id, frontier_digest) | 看 Realm `history_access` |
 
 落地要点：
 
@@ -611,12 +611,12 @@ quota authority MUST 同时满足：
   "constraint_kind": "confidentiality",
   "constraint_subkind": "visibility",
   "effect": "allow",
-  "allowed_history_visibility_values": ["world_readable", "shared", "invited", "joined", "restricted"],
+  "allowed_history_access_values": ["since_join", "all_history_for_current_members"],
   "redacted_history_allowed": true
 }
 ```
 
-`allowed_history_visibility_values` 的取值 MUST 来自 `history_visibility` 权威枚举的完整集合：`world_readable`（注意是 `world_readable`，不是 `world`）、`shared`、`invited`、`joined`、`restricted`。上例列出全部五个合法值以展示权威枚举；实际 grant 中 `allowed_history_visibility_values` 通常只声明该枚举的一个**子集**（例如 `["world_readable", "shared", "joined"]`）来限制 actor 可访问的对象/消息可见性级别，未列入的级别即不被该约束允许。出现枚举外的值（如 `world`）时 receiver MUST `schema_violation`。
+`allowed_history_access_values` 的取值 MUST 来自 `history_access` 权威二态枚举：`since_join`、`all_history_for_current_members`。实际 grant MAY 只声明其中一个值；未列入的值不被该约束允许。任何旧五档值或其它枚举外值都 MUST `schema_violation`。
 
 `redacted_history_allowed` 是布尔 **allow 开关**：只有字段存在且逐字为 `true` 时，该
 visibility constraint 才允许读取 redacted stub；`false` 或缺省都不允许读取。它不是

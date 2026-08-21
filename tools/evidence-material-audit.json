@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 210,
+  "audited_occurrence_count": 252,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -88,18 +88,6 @@
       "reason": "Returns the registered composite Agent signer evidence object."
     },
     {
-      "file": "agent-signer-evidence-operations.schema.json",
-      "key": "method_history_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Carries adapter-routed method-history proofs, witness attestations and history commitments for authenticated service resolution."
-    },
-    {
       "file": "agent-signer-evidence.schema.json",
       "key": "admission_evidence",
       "occurrences": 3,
@@ -141,6 +129,127 @@
         "commitment"
       ],
       "reason": "Closed historical-mode aggregate containing the destination-signed admission receipt and its exact admission-time evidence."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "account_authority_signer_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "account_authority_signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "agent_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "attester_signer_evidence_digest",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "attester_signer_evidence_ref",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "controller_signer_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "controller_signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "native_agent_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "principal_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "receiver_signer_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "receiver_signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "service_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "availability-receipt.schema.json",
+      "key": "holder_signer_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "availability-receipt.schema.json",
+      "key": "holder_signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
     {
       "file": "contact-operations.schema.json",
@@ -320,18 +429,6 @@
     },
     {
       "file": "direct-conversation-operations.schema.json",
-      "key": "direct_conversation_repair_requester_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Closed device-or-Agent authority evidence union for a repair requester."
-    },
-    {
-      "file": "direct-conversation-operations.schema.json",
       "key": "founding_authority_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -341,18 +438,6 @@
         "commitment"
       ],
       "reason": "Verbatim echo of the DirectConversationFoundingUnitSubmission member, returned by the creation_required resolver outcome so the founder can construct the unit at all; same closed XOR branches and same material families as the service-operation-dtos.schema.json registration."
-    },
-    {
-      "file": "direct-conversation-operations.schema.json",
-      "key": "requester_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Operation field carrying the registered closed repair requester evidence union."
     },
     {
       "file": "event-batch-receipt.schema.json",
@@ -374,11 +459,32 @@
       "reason": "A critical extension may bind extension-specific proof, attestation, or receipt Events."
     },
     {
+      "file": "event-envelope.schema.json",
+      "key": "signer_resolution_evidence_digest",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "event-envelope.schema.json",
+      "key": "signer_resolution_evidence_ref",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
       "file": "event-kind-registry.json",
       "key": "evidence_class",
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Generated exact DID-authority call-site classification for the resolution successor Event."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "accepted_key_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
     {
       "file": "event-payload.schema.json",
@@ -447,6 +553,20 @@
     },
     {
       "file": "event-payload.schema.json",
+      "key": "expected_previous_key_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "expected_previous_key_evidence_seal_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "event-payload.schema.json",
       "key": "introduction_evidence_digest",
       "occurrences": 2,
       "disposition": "qualifier",
@@ -462,6 +582,105 @@
         "attestation"
       ],
       "reason": "May carry governance proposal proofs or seal and witness attestations."
+    },
+    {
+      "file": "history-key-canonical-binding-registry.json",
+      "key": "agent_signer_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "accepted_key_evidence_ref",
+      "occurrences": 4,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "agent_evidence_view_locator",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "agent_signer_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "identity_link_signer_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds the encrypted IdentityLink proof to the exact retained Principal signer evidence used at its effective boundary."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "identity_link_signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Locates the content-addressed Principal signer evidence for the encrypted IdentityLink proof verification method."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "minimal_metadata_mls_leaf_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "commitment"
+      ],
+      "reason": "Carries a content-addressed MLS identity-link and winning group-state commitment used to verify one retained pairwise response signer."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "recipient_agent_control_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "release_service_signer_evidence_digest",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Binds each mailbox record or lost descriptor to the exact historical release-service signer evidence retained under its request receipt."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "release_service_signer_evidence_ref",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Locates the exact content-addressed release-service signer evidence covered by the record or lost-descriptor proof."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "source_signer_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds the response source proof to the exact content-addressed historical signer evidence resolved through the governance dependency surface."
+    },
+    {
+      "file": "history-key.schema.json",
+      "key": "source_signer_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Locates the exact content-addressed historical signer evidence bound by the response source proof."
+    },
+    {
+      "file": "history-recovery-scalability-registry.json",
+      "key": "signer_resolution_evidence_max_canonical_bytes",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
     {
       "file": "identity-resolution.schema.json",
@@ -514,7 +733,7 @@
     {
       "file": "identity-resolution.schema.json",
       "key": "method_history_evidence",
-      "occurrences": 3,
+      "occurrences": 4,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -776,6 +995,17 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
+      "key": "authenticated_signer_resolution_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
       "key": "contact_round_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -809,6 +1039,17 @@
         "commitment"
       ],
       "reason": "DID methods may return history commitments, verification proofs, and witness attestations."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "key": "minimal_metadata_mls_leaf_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "commitment"
+      ],
+      "reason": "Carries the exact content-addressed MLS identity-link evidence selected by governance dependency resolution."
     },
     {
       "file": "service-operation-dtos.schema.json",

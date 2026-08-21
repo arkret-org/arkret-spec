@@ -25,6 +25,7 @@ from .core import (
     SCHEMA_ID_RE,
     SPEC_ROOT,
     VALUE_PROJECTION_DIGEST_INPUTS,
+    VALUE_PROJECTION_DERIVATIONS,
     json,
     load_json,
     load_yaml,
@@ -439,7 +440,8 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
 
     The projection is the pure function a receiver re-runs to rebuild `op.value`
     from the signed payload, so every member must name exactly one closed source:
-    a literal, a field path, a `select` component, or a digest over a field.
+    a literal, a field path, a `select` component, a registered derivation, or
+    a digest over a field.
     """
     if not isinstance(projection, dict):
         lint.fail(path, f"{ref} must be an object")
@@ -468,14 +470,21 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
             seen_names.add(name)
         sources = [
             key
-            for key in ("literal", "field", "envelope_field", "select", "digest_of")
+            for key in (
+                "literal",
+                "field",
+                "envelope_field",
+                "select",
+                "derivation",
+                "digest_of",
+            )
             if key in member
         ]
         if len(sources) != 1:
             lint.fail(
                 path,
                 f"{member_ref} must declare exactly one of "
-                "literal/field/envelope_field/select/digest_of",
+                "literal/field/envelope_field/select/derivation/digest_of",
             )
             continue
         source = sources[0]
@@ -494,6 +503,13 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
                 )
         elif source == "select":
             lint_select_component(lint, path, f"{member_ref}.select", member["select"])
+        elif source == "derivation":
+            if member["derivation"] not in VALUE_PROJECTION_DERIVATIONS:
+                lint.fail(
+                    path,
+                    f"{member_ref}.derivation must be one of "
+                    f"{sorted(VALUE_PROJECTION_DERIVATIONS)}",
+                )
         elif source == "digest_of":
             digest = member["digest_of"]
             if not isinstance(digest, dict):
@@ -574,18 +590,25 @@ def lint_effect_source(
 def complementary_conditions(left: object, right: object) -> bool:
     """True when two cell writes can never both participate in one Event.
 
-    The only provable form in the closed condition grammar is field_present /
-    field_absent over the identical path. Treating any other pair as exclusive
-    would be a guess, and a wrong guess means two writes racing on one cell.
+    The provable forms in the closed condition grammar are field_present /
+    field_absent over the identical path and field_equals over the identical
+    path with unequal canonical constants. Treating any other pair as
+    exclusive would be a guess, and a wrong guess means two writes racing on
+    one cell.
     """
     if not isinstance(left, dict) or not isinstance(right, dict):
         return False
-    kinds = {left.get("kind"), right.get("kind")}
-    if kinds != {"field_present", "field_absent"}:
+    if not isinstance(left.get("field"), str) or left.get("field") != right.get("field"):
         return False
+    kinds = {left.get("kind"), right.get("kind")}
+    if kinds == {"field_present", "field_absent"}:
+        return True
     return (
-        isinstance(left.get("field"), str)
-        and left.get("field") == right.get("field")
+        left.get("kind") == "field_equals"
+        and right.get("kind") == "field_equals"
+        and "const" in left
+        and "const" in right
+        and left["const"] != right["const"]
     )
 
 
@@ -940,10 +963,11 @@ def check_state_contract_closure(lint: Lint) -> None:
             lint.fail(path, f"fsm_contracts[{family!r}].states must be a non-empty unique string array")
             continue
         state_set = set(states)
+        transition_state_set = state_set | {None}
         if (
             not isinstance(initial_values, list)
             or not initial_values
-            or not set(initial_values) <= state_set
+            or not set(initial_values) <= transition_state_set
         ):
             lint.fail(path, f"fsm_contracts[{family!r}] must declare valid initial_state(s)")
         if not isinstance(terminal, list) or not set(terminal) <= state_set:
@@ -951,13 +975,13 @@ def check_state_contract_closure(lint: Lint) -> None:
         if not isinstance(transitions, list):
             lint.fail(path, f"fsm_contracts[{family!r}].allowed_transitions must be an array")
             continue
-        seen_edges: set[tuple[str, str]] = set()
+        seen_edges: set[tuple[object, object]] = set()
         for index, edge in enumerate(transitions):
             if (
                 not isinstance(edge, list)
                 or len(edge) != 2
-                or not all(isinstance(value, str) for value in edge)
-                or not set(edge) <= state_set
+                or not all(value is None or isinstance(value, str) for value in edge)
+                or not set(edge) <= transition_state_set
             ):
                 lint.fail(path, f"fsm_contracts[{family!r}].allowed_transitions[{index}] is invalid")
                 continue
@@ -1337,10 +1361,10 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         and bool({previous_kind, projection_kind} & add_kinds)
                         and bool({previous_kind, projection_kind} & remove_kinds)
                     )
-                    # The other legal repeat is a provably complementary pair:
-                    # field_present / field_absent on the same path, so the
-                    # reducer derives exactly one of them for any payload.
-                    # Anything weaker would let two writes race on one cell.
+                    # The other legal repeat is a provably disjoint condition
+                    # pair: complementary presence tests, or unequal exact
+                    # constants on the same field. Anything weaker would let
+                    # two writes race on one cell.
                     complementary = complementary_conditions(
                         previous_condition, write.get("condition")
                     )
@@ -1387,6 +1411,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         "account_data_plaintext",
         "account_data_storage",
         "dynamic_schema_ref",
+        "mls_encrypted_payload",
         "signal_plaintext_dispatch",
         "standalone_schema_alias",
     }

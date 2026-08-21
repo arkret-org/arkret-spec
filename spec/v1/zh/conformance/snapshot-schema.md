@@ -379,29 +379,18 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 ## 7. Encrypted Envelope
 
-加密载荷统一使用 `ak.schema.encrypted_envelope.v1`（artifact [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)）。字段语义与约束以 [`../crypto-media/encryption-and-audit.md` §2.3.1](../crypto-media/encryption-and-audit.md) 为权威；snapshot chunk 中的密文 MUST 是同一 envelope 形态：
+加密载荷统一使用 `ak.schema.encrypted_envelope.v1`（artifact [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)）。字段语义与约束以 [`../crypto-media/encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md) 为权威；snapshot chunk 中的密文 MUST 是同一 envelope 形态：
 
 ```json
 {
-  "scheme": "mls_rfc9420",
   "version": "1.0",
-  "group_id": "base64url",
-  "epoch": 42,
   "content_type": "application/json",
-  "ciphertext": "base64url",
-  "aad_visibility_event_id_kind": "routing_digest",
-  "aad": {
-    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-    "event_kind": "ak.message.create",
-    "event_ref_digest": "sha256:..."
-  },
-  "key_ref": {
-    "algorithm": "MLS",
+  "encryption_context": {
+    "epoch": 42,
     "group_state_ref": "ak:event:..."
   },
-  "payload_digest": "sha256:...",
-  "aad_digest": "sha256:..."
+  "ciphertext": "base64url"
 }
 ```
 
-Principal Server sync surface MAY 依据 `aad` 路由元数据投递，但 MUST NOT 要求 plaintext content。
+Principal Server sync surface 只按 outer signed Event 与已注册的最小 routing context 投递；不得从密文 envelope 要求或读取复制的 scope、kind、group、scheme、sender 或 plaintext content。

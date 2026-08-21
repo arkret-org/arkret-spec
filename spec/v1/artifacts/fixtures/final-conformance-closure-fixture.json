@@ -307,7 +307,7 @@
           "expected": {
             "decision": "accept",
             "mls_epoch_cell_advanced": true,
-            "active_generation_advanced": true
+            "active_epoch_advanced": true
           }
         },
         {
@@ -340,7 +340,7 @@
       "assertions": [
         "governance_previous_epoch_matches_payload_base_epoch",
         "governance_next_epoch_matches_payload_next_epoch",
-        "rejected_commit_does_not_advance_mls_or_active_generation"
+        "rejected_commit_does_not_advance_mls_epoch"
       ],
       "commit": {
         "base_epoch": 41,
@@ -355,7 +355,7 @@
         "decision": "reject",
         "reason": "epoch_update_required",
         "mls_epoch_cell_advanced": false,
-        "active_generation_advanced": false
+        "active_epoch_advanced": false
       }
     },
     {

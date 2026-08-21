@@ -2,329 +2,56 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/encrypted-envelope.schema.json",
   "title": "Arkret Encrypted Payload Envelope",
+  "description": "Minimal ciphertext wire. purpose, effective scope and Event kind come from the frozen signed outer Event; mls_group_id is derived from that scope; content_scheme comes from the exact referenced winning group state. The canonical pre-encryption header is reconstructed and is not duplicated on wire.",
   "type": "object",
-  "required": [
-    "scheme",
-    "version",
-    "group_id",
-    "epoch",
-    "content_type",
-    "ciphertext",
-    "aad_visibility_event_id_kind",
-    "aad",
-    "key_ref",
-    "aad_digest",
-    "payload_digest"
-  ],
-  "not": {
-    "anyOf": [
-      {
-        "required": [
-          "cleartext_commitment"
-        ]
-      },
-      {
-        "required": [
-          "authentication_tag"
-        ]
-      }
-    ]
-  },
+  "required": ["version", "content_type", "encryption_context", "ciphertext"],
   "properties": {
-    "scheme": {
-      "enum": [
-        "mls_rfc9420",
-        "mls_exporter_aead_v1"
-      ]
-    },
-    "version": {
-      "type": "string",
-      "pattern": "^\\d+\\.\\d+$"
-    },
-    "group_id": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$"
-    },
-    "epoch": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "content_type": {
-      "type": "string",
-      "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
-    },
-    "ciphertext": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$"
-    },
-    "aad_visibility_event_id_kind": {
-      "type": "string",
-      "enum": [
-        "hidden",
-        "routing_digest",
-        "opaque_id"
-      ],
-      "description": "Normative discriminator for event id visibility in aad. hidden forbids aad.event_id and aad.event_ref_digest; routing_digest requires aad.event_ref_digest and forbids aad.event_id; opaque_id requires aad.event_id and forbids aad.event_ref_digest."
-    },
-    "aad": {
+    "version": {"const": "1.0"},
+    "content_type": {"type": "string", "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"},
+    "encryption_context": {"$ref": "#/$defs/encryption_context"},
+    "ciphertext": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "routing_context": {
       "type": "object",
-      "required": [
-        "realm_id",
-        "event_kind",
-        "scope_digest"
-      ],
+      "required": ["target_ref", "routing_tag"],
       "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "scope_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-          "description": "Domain-separated commitment to the Event's exact scope_ref under ak.aad-scope-v1 (encryption-and-audit.md 2.3.2). Unconditionally required for every scope so that carrying it never fingerprints one scope kind, and irreversible so the server cannot enumerate Sidecar existence from ciphertext metadata."
-        },
-        "event_kind": {
-          "type": "string",
-          "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-        },
-        "event_id": {
-          "type": "string",
-          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-        },
-        "event_ref_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-        },
-        "causal_refs": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-          }
-        },
-        "causal_ref_digests": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-          }
-        }
-      },
-      "not": {
-        "anyOf": [
-          {
-            "required": [
-              "event_id",
-              "event_ref_digest"
-            ]
-          },
-          {
-            "required": [
-              "causal_refs",
-              "causal_ref_digests"
-            ]
-          }
-        ]
-      },
-      "additionalProperties": false
-    },
-    "key_ref": {
-      "type": "object",
-      "required": [
-        "algorithm",
-        "group_state_ref"
-      ],
-      "properties": {
-        "algorithm": {
-          "enum": [
-            "MLS",
-            "MLS-EXPORTER-AEAD"
-          ]
-        },
-        "group_state_ref": {
-          "oneOf": [
-            {
-              "type": "string",
-              "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
-              "description": "Reference to accepted ak.mls.genesis / winning ak.mls.commit event."
-            },
-            {
-              "type": "string",
-              "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-              "description": "Equivalent group state proof hash."
-            }
-          ],
-          "description": "v1 MLS group state lookup hint. MUST point to accepted ak.mls.genesis / winning ak.mls.commit / equivalent group state proof. Does NOT replace MLS transcript verification. See encryption-and-audit.md §4. Ratchet tree material MUST NOT be carried in the per-message envelope; group state changes strand through ak.mls.genesis / Welcome / Commit events."
-        }
+        "target_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "routing_tag": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"}
       },
       "additionalProperties": false,
-      "description": "MLS group binding hints. Closed object: privacy-sensitive AAD must not be smuggled through here. Forbidden in v1: ratchet_tree, leaf_node, group_info (these MUST NOT be replicated per-message)."
+      "description": "Present only for a registered reaction outer Event kind. The reaction kind and routing_window=floor(unix_ms(outer.created_at)/3600000) are derived inputs to AAD/KDF and never wire fields. All non-reaction kinds forbid routing_context."
     },
-    "purpose": {
-      "const": "mls_exporter_aead_content",
-      "description": "AEAD purpose for this domain (encryption-and-audit.md 2.10.2). It is a nonce-derivation and AAD input, so it separates a content nonce from every other AEAD domain under the same key and epoch. Present only for scheme=mls_exporter_aead_v1; mls_rfc9420 derives its message keys from the MLS secret tree and has no exporter AEAD."
+    "standard_mls_encryption_context": {
+      "type": "object",
+      "required": ["epoch", "group_state_ref"],
+      "properties": {
+        "epoch": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+        "group_state_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "routing_context": {"$ref": "#/$defs/routing_context"}
+      },
+      "additionalProperties": false,
+      "description": "The absence of counter is the structural standard-MLS branch. The referenced winning group state MUST have content_scheme=mls_rfc9420."
     },
-    "aead_profile": {
-      "type": "string",
-      "description": "canonical_id of an ACTIVE row of artifacts/registry/mls-ciphersuite-registry.json. It MUST equal the ciphersuite the MLS group at key_ref.group_state_ref actually negotiated (encryption-and-audit.md 2.10.2, conformance/encoding.md 10.1); a reserved suite, an unregistered suite, an HPKE suite name or any local alias MUST fail closed. It also fixes AEAD.Nk for the content key and N_AEAD for the nonce, so a receiver cannot derive either without it. Present only for scheme=mls_exporter_aead_v1."
+    "exporter_mls_encryption_context": {
+      "type": "object",
+      "required": ["epoch", "group_state_ref", "counter"],
+      "properties": {
+        "epoch": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+        "group_state_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "counter": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+        "routing_context": {"$ref": "#/$defs/routing_context"}
+      },
+      "additionalProperties": false,
+      "description": "The required full-width counter is the structural exporter branch. The referenced winning group state MUST have content_scheme=mls_exporter_aead_v1."
     },
-    "payload_digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-    },
-    "aad_digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    "encryption_context": {
+      "oneOf": [
+        {"$ref": "#/$defs/standard_mls_encryption_context"},
+        {"$ref": "#/$defs/exporter_mls_encryption_context"}
+      ],
+      "description": "Closed branch selected by counter presence and cross-checked against the content_scheme frozen by the exact group_state_ref. No caller-supplied scheme selector exists."
     }
-  },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "scheme": {
-            "const": "mls_rfc9420"
-          }
-        },
-        "required": [
-          "scheme"
-        ]
-      },
-      "then": {
-        "properties": {
-          "key_ref": {
-            "properties": {
-              "algorithm": {
-                "const": "MLS"
-              }
-            }
-          }
-        },
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "purpose"
-              ]
-            },
-            {
-              "required": [
-                "aead_profile"
-              ]
-            }
-          ]
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "scheme": {
-            "const": "mls_exporter_aead_v1"
-          }
-        },
-        "required": [
-          "scheme"
-        ]
-      },
-      "then": {
-        "properties": {
-          "key_ref": {
-            "properties": {
-              "algorithm": {
-                "const": "MLS-EXPORTER-AEAD"
-              }
-            }
-          }
-        },
-        "required": [
-          "aead_profile",
-          "purpose"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "aad_visibility_event_id_kind": {
-            "const": "hidden"
-          }
-        },
-        "required": [
-          "aad_visibility_event_id_kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "aad": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "event_id"
-                  ]
-                },
-                {
-                  "required": [
-                    "event_ref_digest"
-                  ]
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "aad_visibility_event_id_kind": {
-            "const": "routing_digest"
-          }
-        },
-        "required": [
-          "aad_visibility_event_id_kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "aad": {
-            "required": [
-              "event_ref_digest"
-            ],
-            "not": {
-              "required": [
-                "event_id"
-              ]
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "aad_visibility_event_id_kind": {
-            "const": "opaque_id"
-          }
-        },
-        "required": [
-          "aad_visibility_event_id_kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "aad": {
-            "required": [
-              "event_id"
-            ],
-            "not": {
-              "required": [
-                "event_ref_digest"
-              ]
-            }
-          }
-        }
-      }
-    }
-  ],
-  "additionalProperties": false
+  }
 }

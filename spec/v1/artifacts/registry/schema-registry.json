@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-20.1",
+  "version": "2026-08-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-20T06:07:00+08:00",
+  "generated_at": "2026-08-21T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -374,7 +374,19 @@
       "schema_id": "ak.schema.availability_receipt.v1",
       "file": "schemas/availability-receipt.schema.json",
       "status": "active",
-      "description": "Signed holder commitment that Event bytes are available until retention_expires_at; used by CBA Seal availability_root."
+      "description": "Signed holder commitment that exact Event bytes are available until retention_expires_at. A Seal commits every-and-only required receipt through its canonical availability_receipt_digests array."
+    },
+    {
+      "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
+      "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
+      "status": "active",
+      "description": "Content-addressed historical signer-resolution evidence pinned for Event, Principal Server and AvailabilityReceipt signature verification."
+    },
+    {
+      "schema_id": "ak.schema.governance_registry_snapshot.v1",
+      "file": "schemas/governance-registry-snapshot.schema.json",
+      "status": "active",
+      "description": "Small content-addressed governance registry manifest plus a deterministic transitive event-envelope/event-payload local-schema manifest; each named artifact is fetched separately for historical apply_seal replay."
     },
     {
       "schema_id": "ak.schema.patch.v1",
@@ -797,9 +809,9 @@
       "status": "active",
       "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain.",
       "consumer_binding": {
-        "kind": "account_data_plaintext",
-        "selector": "account_data identity-link schema field",
-        "normative_ref": "zh/crypto-media/encryption-and-audit.md"
+        "kind": "mls_encrypted_payload",
+        "selector": "content_type=application/vnd.arkret.identity-link+json; plaintext schema=ak.schema.identity_link.v1",
+        "normative_ref": "zh/governance/history-visibility.md"
       }
     },
     {
@@ -994,7 +1006,13 @@
       "schema_id": "ak.schema.mls_governance_proof_bundle.v1",
       "file": "schemas/mls-governance-proof-bundle.schema.json",
       "status": "active",
-      "description": "Complete-materialization accepted-Seal proof bundle for independently verifying full-profile MLS governance bindings"
+      "description": "Closed near-current stateless MLS group-security frontier query carrier. Bulk and old history use receipt-bound direct accepted-Seal traversal through standard resolve surfaces."
+    },
+    {
+      "schema_id": "ak.schema.history_key.v1",
+      "file": "schemas/history-key.schema.json",
+      "status": "active",
+      "description": "Closed private history-key request, mailbox, source relay, response, organization-recovery archive, and HPKE plaintext DTO family"
     },
     {
       "schema_id": "ak.schema.inclusion_list.v1",

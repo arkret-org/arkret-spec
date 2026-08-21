@@ -1,0 +1,211 @@
+{
+  "version": "2026-08-21.1",
+  "source_of_truth": true,
+  "schema_ref": "schemas/history-key.schema.json#/$defs/history_release_attestation",
+  "wire_registry_binding": "HistoryReleaseAttestation.verifier_profile_id is ak.history_release_predicates.v1 and predicate_registry_digest MUST equal sha256:<lowercase hex> computed by predicate_registry_digest_rule. The enclosing HistoryKeyResponseRecord.service_proof covers the complete attestation. Any other suite, omitted member or digest mismatch fails closed.",
+  "trust_model": "The first durable enqueue is linearized by an honest release service. Its service proof authenticates a closed T1 decision receipt and exact locator/digest vector; the vector is not a portable multi-authority proof. A malicious or stale release service is outside v1's cryptographic guarantee. A future adversarial-service profile requires a separately registered notary/quorum design.",
+  "manifest_t0_registry": {
+    "profile_id": "ak.history_manifest_t0_predicates.v1",
+    "all_or_nothing": true,
+    "required_inputs": [
+      "byte-identical signed manifest and request/receipt ledgers",
+      "receipt-bound HistoryGovernanceTraversalIntent with exact bootstrap base/current/target SealBasis antichains and registry digests",
+      "the complete retained target-to-base accepted Seal cut, base Seal bodies, delta Control Moves, AvailabilityReceipts, signer-resolution evidence, semantic dependencies and registry snapshot",
+      "requester current authorization incarnation and replay-derived winning join/reactivation transition",
+      "the scope's current monotone history_access value at target",
+      "manifest descriptor exact continuous ranges and their canonical union"
+    ],
+    "closed_predicates": [
+      "require traversal intent trusted_history_base_basis equal the request-signed predecessor-free bootstrap basis and target_basis dominate trusted_current_basis",
+      "reverse-walk every target predecessor until exact base leaves, include each interval predecessor or exact base leaf, consume every base leaf, include base Seal bodies and deltas but stop before base predecessors",
+      "topologically verify every Seal against predecessor-state frozen notary descriptors, every AvailabilityReceipt and signer/semantic dependency, then apply every delta Control Move with the accepted reducer/contract/lattice registry snapshot",
+      "derive the current requester membership incarnation, winning join/reactivation transition, every winning MLS epoch transition, ciphersuite and content_scheme exclusively from replayed state",
+      "require every descriptor range be a subset of canonical request ranges",
+      "read the current monotone history_access cell only: since_join requires every epoch >= the replay-derived current incarnation join_epoch; all_history_for_current_members ignores that floor but still requires the current incarnation",
+      "require every transition to be the reducer-effective winning cell value; conflict recovery, Bottom and continuity are reconstructed by normal replay rather than a separate activation witness",
+      "require exporter content_scheme in the winning value; standard MLS is ineligible for history delivery"
+    ],
+    "failure_rule": "Any missing, extra, stale, Bottom, mismatched, unauthorized or unavailable input rejects the whole manifest before sequence allocation, mailbox record, admission row or attestation write. Partial range admission is forbidden."
+  },
+  "traversal_admission_registry_digest_rule": {
+    "hash": "sha256",
+    "canonicalization": "RFC8785_JCS",
+    "domain": "ak.history-manifest-t0-registry-v1",
+    "formula": "sha256:<lowercase hex SHA-256(UTF8(domain) || 0x00 || JCS(manifest_t0_registry))>",
+    "rule": "HistoryGovernanceTraversalIntent.traversal_admission_registry_digest binds this exact digest; no caller-supplied boolean or service-local policy may replace it."
+  },
+  "scope_branches": {
+    "realm": {
+      "required_slots": [
+        "scope_realm"
+      ],
+      "forbidden_slots": [
+        "scope_circle"
+      ],
+      "closed_predicates": [
+        "exact current Realm history_access is evaluated",
+        "recipient exact current membership incarnation is active",
+        "member source exact current membership incarnation is active",
+        "Realm is readable and not tombstoned"
+      ]
+    },
+    "circle": {
+      "required_slots": [
+        "scope_realm",
+        "scope_circle"
+      ],
+      "closed_predicates": [
+        "exact current Circle-owned history_access is evaluated without parent history_access inheritance or cap",
+        "recipient and member source have active exact Circle membership incarnations",
+        "recipient and member source have active exact parent-Realm membership incarnations",
+        "Circle and parent Realm are readable and not tombstoned",
+        "membership_reconcile_required is false for the exact Circle group state"
+      ]
+    }
+  },
+  "seal_view_locator_rule": {
+    "basis": "Each scope slot carries the complete canonical accepted non-quarantined seal_basis antichain. Selecting one accepted Seal leaf is forbidden, including open_set.",
+    "projection": "RealmCurrentGateProjection and CircleCurrentGateProjection are the only closed projection shapes. They contain current monotone history_access, exact recipient/source authorization incarnation when the registered branch requires it, tombstone facts, and for Circle the parent-Realm intersection plus membership_reconcile_required=false.",
+    "digest": "SHA-256(UTF8('ak.history-current-gate-projection-v1') || 0x00 || JCS(current_gate_projection))",
+    "cas": "The first durable chunk-enqueue transaction re-resolves the exact basis, rejects any known successor, recomputes every projection field and digest, and CAS-compares the complete basis+projection before writing anything."
+  },
+  "recipient_author_profiles": {
+    "ordinary_human": {
+      "required_slots": [
+        "recipient_account_status",
+        "recipient_pcr_device"
+      ],
+      "forbidden_slots": [
+        "recipient_agent_control_evidence"
+      ],
+      "closed_predicates": [
+        "latest issuer-ledger AccountStatusRecord for the exact account/principal binding has status=active",
+        "exact canonical DeviceId has a current PCR device authorize Event not superseded by revoke or reanchor generation"
+      ]
+    },
+    "native_agent": {
+      "required_slots": [
+        "recipient_agent_control_evidence"
+      ],
+      "forbidden_slots": [
+        "recipient_account_status",
+        "recipient_pcr_device"
+      ],
+      "closed_predicates": [
+        "exact Agent lifecycle is active",
+        "exact current Agent signing key is authorized",
+        "closed control/evidence chain for the exact Agent endpoint incarnation is current"
+      ]
+    },
+    "minimal_metadata": {
+      "required_slots": [],
+      "forbidden_slots": [
+        "recipient_account_status",
+        "recipient_pcr_device",
+        "recipient_agent_control_evidence"
+      ],
+      "closed_predicates": [
+        "release service verifies exact requester pairwise ActorId is the current active Realm/Circle membership and delivery-binding authorization subject"
+      ],
+      "note": "The release service does not maintain or apply the MLS public tree. The receiver verifies its own exact active pairwise leaf in its current local group state; source identity is verified against the exact historical group-state material. Neither leaf fact is claimed as a service CBA proof or directory lookup."
+    }
+  },
+  "source_branches": {
+    "member": {
+      "required_discriminator": "source_author_profile",
+      "required_field": "source_authorization_incarnation",
+      "required_slots": [
+        "source_relay"
+      ],
+      "forbidden_slots": [
+        "archive_tuple",
+        "archive_coverage"
+      ],
+      "profiles": {
+        "ordinary_human": {
+          "required_source_relay_facts": [
+            "latest issuer-ledger AccountStatusRecord is active",
+            "exact source DeviceId has a current PCR authorize Event not superseded by revoke or reanchor generation"
+          ],
+          "closed_predicates": [
+            "release service verifies the complete short-lived SourceRelayAttestation from the source's current delivery-bound Principal Server",
+            "relay destination, source record digest, request receipt, source identity/profile/incarnation and expiry match exactly"
+          ]
+        },
+        "native_agent": {
+          "required_source_relay_facts": [
+            "exact Agent lifecycle, signing key and registered control/evidence chain are current"
+          ],
+          "closed_predicates": [
+            "release service verifies the complete short-lived SourceRelayAttestation from the Agent's current authority service"
+          ]
+        },
+        "minimal_metadata": {
+          "required_source_relay_facts": [
+            "exact Realm-global pairwise ActorId is the current delivery-authorized source incarnation"
+          ],
+          "closed_predicates": [
+            "release service verifies the relay service is the current source delivery binding and verifies current scope membership locally"
+          ],
+          "note": "The receiver separately verifies the source's exact historical active leaf; the service does not claim an MLS-tree proof."
+        }
+      }
+    },
+    "organization_recovery_holder": {
+      "required_slots": [
+        "source_relay",
+        "archive_tuple",
+        "archive_coverage"
+      ],
+      "forbidden_discriminator": "source_author_profile",
+      "forbidden_field": "source_authorization_incarnation",
+      "closed_predicates": [
+        "one chunk covers one byte-identical archive authorization tuple",
+        "every epoch in released_range has an exact archive Event whose historical tuple and transition provenance match",
+        "each archive tuple binds accepted_key_evidence_ref and distinct holder_trusted_basis; retained direct Seal traversal proves the effective registered/rotated key tuple from that complete holder basis to the archive target without a singular activation Seal",
+        "source local authority service verifies current holder lifecycle/signing authority and signs those coordinates into the complete SourceRelayAttestation",
+        "archive_tuple.holder_signing_ref is historical provenance only and never authorizes the current response"
+      ]
+    }
+  },
+  "visible_gate_registry": {
+    "ordinary_human": [
+      "scope membership/tombstone/history_access",
+      "AccountStatusRecord active",
+      "PCR exact DeviceId authorize/revoke/reanchor"
+    ],
+    "native_agent": [
+      "scope membership/tombstone/history_access",
+      "Agent lifecycle",
+      "Agent signing key",
+      "Agent control/evidence"
+    ],
+    "minimal_metadata": [
+      "scope current pairwise membership/tombstone/history_access",
+      "current delivery-binding authorization subject"
+    ],
+    "organization_recovery_holder": [
+      "scope current recipient gate",
+      "historical archive tuple provenance",
+      "current holder lifecycle/signing authority"
+    ],
+    "source_local_only": [
+      "holder-private blocklists or local UI policy; these are never asserted by the service attestation"
+    ]
+  },
+  "linearization": "Before the local enqueue transaction the service obtains intent-bound short-lived observations from each required local authority, verifies the source relay and scope facts, then atomically verifies every observation is unexpired. For every Realm/Circle/PCR Seal authority it re-resolves the complete canonical accepted non-quarantined Seal antichain, requires no known successor, recomputes the closed current-gate projection, and CAS-binds the exact basis+projection vector. It then stores the immutable response record and ReleaseAttestation, assigns mailbox sequence/cursor, freezes the compact HistoryKeyResponseSendReceipt and charges quota. It does not claim a cross-service atomic snapshot. Failure writes nothing. Exact source retry returns the original byte-identical compact send receipt through request expiry. Recipient high-water ack atomically removes the large mailbox record and attestation; they are not readable after ack.",
+  "release_service_binding_rule": "The request receipt's frozen release_service_id is the only release authority for that request. Before first enqueue it must verify that the requester delivery binding still names this same service DID. A ServiceResolution successor for the same service DID is permitted and becomes the current route; rebinding to another service DID rejects first enqueue and requires a new request. v1 does not migrate a mailbox or idempotency ledger. Already accepted records remain byte-identically retryable from the old ledger until expiry.",
+  "audit_record": "The immutable service-signed ReleaseAttestation created in the first durable chunk-enqueue transaction is the sole history-release audit record. v1 has no history_release_audit policy facet, pre-release audit token, audit evidence carrier or audit authority slot. Compliance projections index attestations; separate approval workflows are orthogonal capabilities.",
+  "predicate_failure": "Any required locator, authority response, subject, incarnation, tuple, digest or exact binding that is missing, Bottom, stale, mismatched or unavailable rejects the chunk before enqueue. No caller-supplied boolean can replace a predicate.",
+  "unknown_input_behavior": "fail_closed",
+  "predicate_registry_digest_rule": {
+    "hash": "sha256",
+    "canonicalization": "RFC8785_JCS",
+    "formula": "sha256:<lowercase hex SHA-256(JCS(this registry object after removing only the top-level wire_registry_binding member))>",
+    "excluded_top_level_members": [
+      "wire_registry_binding"
+    ],
+    "domain_framing": null,
+    "rule": "All other members, including this predicate_registry_digest_rule, are included. The registry contains no current digest member and therefore has no self-reference cycle."
+  }
+}

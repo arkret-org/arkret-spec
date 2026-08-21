@@ -1,0 +1,2742 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/history-key.schema.json",
+  "title": "Arkret History Key Recovery",
+  "description": "Canonical private inbox, reply-mailbox, proof and packed-range wire for exporter-scheme history recovery.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/history_key_request"
+    },
+    {
+      "$ref": "#/$defs/history_key_request_create_outcome"
+    },
+    {
+      "$ref": "#/$defs/history_key_request_list_outcome"
+    },
+    {
+      "$ref": "#/$defs/history_key_response_send_request"
+    },
+    {
+      "$ref": "#/$defs/history_key_response_list_outcome"
+    },
+    {
+      "$ref": "#/$defs/history_key_response_ack_request"
+    },
+    {
+      "$ref": "#/$defs/history_key_response_send_outcome"
+    },
+    {
+      "$ref": "#/$defs/history_key_response_ack_outcome"
+    },
+    {
+      "$ref": "#/$defs/history_key_request_replica"
+    },
+    {
+      "$ref": "#/$defs/history_key_request_replica_outcome"
+    },
+    {
+      "$ref": "#/$defs/history_key_source_relay"
+    },
+    {
+      "$ref": "#/$defs/history_secret_range"
+    },
+    {
+      "$ref": "#/$defs/history_candidate_material_key"
+    },
+    {
+      "$ref": "#/$defs/history_candidate_material_record"
+    },
+    {
+      "$ref": "#/$defs/history_candidate_origin_attribution"
+    },
+    {
+      "$ref": "#/$defs/event_candidate_binding"
+    },
+    {
+      "$ref": "#/$defs/history_chunk_plaintext"
+    },
+    {
+      "$ref": "#/$defs/mailbox_capability_plaintext"
+    },
+    {
+      "$ref": "#/$defs/organization_recovery_archive_plaintext"
+    },
+    {
+      "$ref": "#/$defs/organization_recovery_archive"
+    },
+    {
+      "$ref": "#/$defs/organization_recovery_archive_list_query"
+    },
+    {
+      "$ref": "#/$defs/organization_recovery_archive_list_outcome"
+    },
+    {
+      "$ref": "#/$defs/organization_recovery_archive_replica"
+    },
+    {
+      "$ref": "#/$defs/organization_recovery_archive_replica_outcome"
+    }
+  ],
+  "$defs": {
+    "history_request_id": {
+      "$ref": "./common-ids.schema.json#/$defs/history_request_id"
+    },
+    "history_response_id": {
+      "$ref": "./common-ids.schema.json#/$defs/history_response_id"
+    },
+    "history_mailbox_id": {
+      "$ref": "./common-ids.schema.json#/$defs/history_mailbox_id"
+    },
+    "digest": {
+      "$ref": "./event-envelope.schema.json#/$defs/digest"
+    },
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "author_profile": {
+      "enum": [
+        "ordinary_human",
+        "native_agent",
+        "minimal_metadata"
+      ]
+    },
+    "source_kind": {
+      "enum": [
+        "member",
+        "organization_recovery_holder"
+      ]
+    },
+    "history_candidate_material_key": {
+      "type": "object",
+      "required": ["effective_scope", "mls_group_id", "epoch", "candidate_digest"],
+      "properties": {
+        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
+        "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "epoch": {"type": "integer", "minimum": 0},
+        "candidate_digest": {"$ref": "#/$defs/digest"}
+      },
+      "additionalProperties": false,
+      "description": "Global received-material identity. Origin is deliberately absent; equal bytes at the same scope/group/epoch deduplicate to one resident material instance."
+    },
+    "history_candidate_material_record": {
+      "type": "object",
+      "required": ["material_key", "secret_b64u", "material_received_sequence"],
+      "properties": {
+        "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
+        "secret_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "material_received_sequence": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false,
+      "description": "Device-local resident received bytes. material_received_sequence is assigned once when this byte instance becomes resident and is immutable; adding origin attribution never refreshes it. Eviction removes this record but not bounded attribution tombstones, and refetch creates a new record with a new sequence. local_authoritative uses a separate record class."
+    },
+    "history_candidate_origin_domain": {
+      "enum": ["response_sender", "rrk_archive", "portable_backup"]
+    },
+    "history_candidate_origin_attribution": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at", "expires_at"],
+          "properties": {
+            "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
+            "origin_domain": {"const": "response_sender"},
+            "origin_quota_domain": {
+              "type": "object",
+              "required": ["source_sender_domain"],
+              "properties": {
+                "source_sender_domain": {"type": "string", "minLength": 1, "maxLength": 512}
+              },
+              "additionalProperties": false,
+              "description": "Stable quota identity. It equals the verified response source_sender_domain and does not change across response ids or retries."
+            },
+            "origin_ref": {
+              "type": "object",
+              "required": ["response_id", "source_record_digest"],
+              "properties": {
+                "response_id": {"$ref": "./common-ids.schema.json#/$defs/history_response_id"},
+                "source_record_digest": {"$ref": "#/$defs/digest"}
+              },
+              "additionalProperties": false
+            },
+            "first_observed_at": {"$ref": "#/$defs/timestamp"},
+            "expires_at": {"$ref": "#/$defs/timestamp"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at", "expires_at"],
+          "properties": {
+            "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
+            "origin_domain": {"const": "rrk_archive"},
+            "origin_quota_domain": {
+              "type": "object",
+              "required": ["holder_principal_id", "holder_service_id", "recovery_key_id", "accepted_key_evidence_ref"],
+              "properties": {
+                "holder_principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+                "holder_service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+                "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
+                "accepted_key_evidence_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
+              },
+              "additionalProperties": false,
+              "description": "Stable holder/key/effective-rotation quota tuple. accepted_key_evidence_ref is the rotation identity; archive/container retrieval coordinates are deliberately excluded."
+            },
+            "origin_ref": {
+              "type": "object",
+              "required": ["container_event_ref", "archive_digest"],
+              "properties": {
+                "container_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+                "archive_digest": {"$ref": "#/$defs/digest"}
+              },
+              "additionalProperties": false
+            },
+            "first_observed_at": {"$ref": "#/$defs/timestamp"},
+            "expires_at": {"$ref": "#/$defs/timestamp"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at", "expires_at"],
+          "properties": {
+            "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
+            "origin_domain": {"const": "portable_backup"},
+            "origin_quota_domain": {
+              "type": "object",
+              "required": ["backup_series_id", "producer_actor_id"],
+              "properties": {
+                "backup_series_id": {"type": "string", "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"},
+                "producer_actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"}
+              },
+              "additionalProperties": false,
+              "description": "Stable backup series/producer quota identity. Individual backup envelopes are retrieval coordinates only."
+            },
+            "origin_ref": {
+              "type": "object",
+              "required": ["backup_origin_id"],
+              "properties": {
+                "backup_origin_id": {
+                  "type": "string",
+                  "pattern": "^backup:(?:ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|sha256:[0-9a-f]{64})$",
+                  "description": "Use backup:<BackupId> when the envelope carries a canonical BackupId; otherwise backup:sha256:<hex of exact envelope bytes>. This is an origin identifier, never sender_domain."
+                }
+              },
+              "additionalProperties": false
+            },
+            "first_observed_at": {"$ref": "#/$defs/timestamp"},
+            "expires_at": {"$ref": "#/$defs/timestamp"}
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Independent origin ledger row keyed by (material_key,origin_domain,origin_ref), with a separate stable origin_quota_domain. origin_ref is only a retrieval coordinate and never selects quota identity. expires_at is exactly immutable first_observed_at+2592000 seconds. It never duplicates secret bytes or refreshes material_received_sequence."
+    },
+    "event_candidate_binding": {
+      "type": "object",
+      "required": ["event_binding_key", "candidate_digest", "outcome", "first_observed_at", "expires_at"],
+      "properties": {
+        "event_binding_key": {
+          "type": "object",
+          "required": ["effective_scope", "mls_group_id", "epoch", "event_id", "event_digest", "verified_sender_domain"],
+          "properties": {
+            "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
+            "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+            "epoch": {"type": "integer", "minimum": 0},
+            "event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+            "event_digest": {"$ref": "#/$defs/digest"},
+            "verified_sender_domain": {"type": "string", "minLength": 1, "maxLength": 512}
+          },
+          "additionalProperties": false
+        },
+        "candidate_digest": {"$ref": "#/$defs/digest"},
+        "outcome": {"enum": ["success", "failure"]},
+        "first_observed_at": {"$ref": "#/$defs/timestamp"},
+        "expires_at": {"$ref": "#/$defs/timestamp"}
+      },
+      "additionalProperties": false,
+      "description": "Independent Event binding keyed by (event_binding_key,candidate_digest,outcome). It contains no origin and must not be used to infer one or pin candidate bytes. expires_at is exactly first_observed_at+2592000 seconds."
+    },
+    "authorization_incarnation": {
+      "$ref": "./event-payload.schema.json#/$defs/history_authorization_incarnation"
+    },
+    "requester_endpoint_authorization": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "requester_device_id",
+            "requester_device_authorize_event_id",
+            "requester_device_generation_ref"
+          ],
+          "properties": {
+            "kind": {"const": "ordinary_human"},
+            "requester_device_id": {"$ref": "./common-ids.schema.json#/$defs/device_id"},
+            "requester_device_authorize_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+            "requester_device_generation_ref": {"type": "integer", "minimum": 1}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "requester_agent_id",
+            "requester_agent_verification_method",
+            "requester_agent_key_authorize_event_id"
+          ],
+          "properties": {
+            "kind": {"const": "native_agent"},
+            "requester_agent_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+            "requester_agent_verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
+            "requester_agent_key_authorize_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": {
+            "kind": {"const": "minimal_metadata"}
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Requester-signed exact endpoint authorization locator. The release service re-resolves this same current PCR device or Native Agent authorization at create and every first chunk enqueue; it never substitutes the current session endpoint. Minimal-metadata uses only its Realm-local pairwise endpoint actor and therefore carries no principal/device locator."
+    },
+    "archive_authorization_tuple": {
+      "type": "object",
+      "required": [
+        "recovery_key_id",
+        "key_agreement_ref",
+        "holder_principal_id",
+        "holder_service_id",
+        "holder_signing_ref",
+        "accepted_key_evidence_ref",
+        "holder_trusted_basis"
+      ],
+      "properties": {
+        "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
+        "key_agreement_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "holder_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "holder_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "holder_signing_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "accepted_key_evidence_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "holder_trusted_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Holder-durable canonical accepted Seal antichain supplied in the accepted register/rotate holder-acceptance proof. The accepted_key_evidence_ref Event and its effective registered tuple are verified by replay from this basis; no singular activation Seal is carried."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_current_gate_projection": {
+      "type": "object",
+      "required": [
+        "kind",
+        "history_access",
+        "realm_tombstoned",
+        "recipient_authorization_incarnation"
+      ],
+      "properties": {
+        "kind": {"const": "realm"},
+        "history_access": {"enum": ["since_join", "all_history_for_current_members"]},
+        "realm_tombstoned": {"const": false},
+        "recipient_authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"},
+        "source_authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"}
+      },
+      "additionalProperties": false,
+      "description": "Closed Realm current-gate projection. source_authorization_incarnation is required by the registered member-source branch and forbidden by the organization-recovery-holder branch."
+    },
+    "circle_current_gate_projection": {
+      "type": "object",
+      "required": [
+        "kind",
+        "history_access",
+        "realm_tombstoned",
+        "circle_tombstoned",
+        "membership_reconcile_required",
+        "recipient_authorization_incarnation"
+      ],
+      "properties": {
+        "kind": {"const": "circle"},
+        "history_access": {"enum": ["since_join", "all_history_for_current_members"]},
+        "realm_tombstoned": {"const": false},
+        "circle_tombstoned": {"const": false},
+        "membership_reconcile_required": {"const": false},
+        "recipient_authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"},
+        "source_authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"}
+      },
+      "additionalProperties": false,
+      "description": "Closed Circle current-gate projection. Each authorization incarnation is the closed Realm+Circle form and therefore binds the parent-Realm intersection. source_authorization_incarnation follows the same member/holder branch rule as Realm."
+    },
+    "seal_view_locator": {
+      "type": "object",
+      "required": [
+        "authority_realm_id",
+        "seal_basis",
+        "current_gate_projection",
+        "current_gate_projection_digest",
+        "authority_sequence",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "authority_realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+        "seal_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+        "current_gate_projection": {
+          "oneOf": [
+            {"$ref": "#/$defs/realm_current_gate_projection"},
+            {"$ref": "#/$defs/circle_current_gate_projection"}
+          ]
+        },
+        "current_gate_projection_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "SHA-256(UTF8('ak.history-current-gate-projection-v1') || 0x00 || JCS(current_gate_projection))."
+        },
+        "authority_sequence": {"type": "integer", "minimum": 0},
+        "observed_at": {"$ref": "#/$defs/timestamp"},
+        "expires_at": {"$ref": "#/$defs/timestamp"}
+      },
+      "additionalProperties": false,
+      "description": "Honest-service locator for a complete canonical accepted non-quarantined Seal frontier and its closed current gate. open_set uses the full antichain, never a selected leaf. The enqueue CAS re-resolves this exact basis and projection and rejects any known successor or projection change."
+    },
+    "realm_seal_view_locator": {
+      "allOf": [
+        {"$ref": "#/$defs/seal_view_locator"},
+        {"type": "object", "properties": {"current_gate_projection": {"$ref": "#/$defs/realm_current_gate_projection"}}}
+      ]
+    },
+    "circle_seal_view_locator": {
+      "allOf": [
+        {"$ref": "#/$defs/seal_view_locator"},
+        {"type": "object", "properties": {"current_gate_projection": {"$ref": "#/$defs/circle_current_gate_projection"}}}
+      ]
+    },
+    "account_status_view_locator": {
+      "type": "object",
+      "required": [
+        "account_authority_id",
+        "account_id",
+        "account_status_record_id",
+        "status_sequence",
+        "record_digest",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "account_authority_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "account_id": {
+          "allOf": [
+            {"$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"}
+          ],
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "account_status_record_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"
+        },
+        "status_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "record_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Account Authority issuer-ledger record locator/digest; never a Realm/CBA proof."
+    },
+    "pcr_device_view_locator": {
+      "type": "object",
+      "required": [
+        "principal_control_realm_id",
+        "pcr_seal_basis",
+        "device_id",
+        "device_authorize_event_id",
+        "device_generation_ref",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "pcr_seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Complete accepted non-quarantined PCR Seal frontier; open_set never selects one leaf."
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "device_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "device_generation_ref": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "PCR-local monotonic device generation; it is not an EventId or DID versionId."
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_evidence_view_locator": {
+      "type": "object",
+      "required": [
+        "agent_id",
+        "verification_method",
+        "agent_key_authorize_event_id",
+        "active_lifecycle_event_id",
+        "control_basis",
+        "agent_signer_evidence_digest",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "agent_key_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "active_lifecycle_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "control_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
+        "agent_signer_evidence_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "archive_coverage_view_locator": {
+      "type": "object",
+      "required": [
+        "archive_set_digest",
+        "covered_range",
+        "archive_count",
+        "tuple_digest"
+      ],
+      "properties": {
+        "archive_set_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "covered_range": {
+          "$ref": "#/$defs/epoch_range"
+        },
+        "archive_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65536
+        },
+        "tuple_digest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "source_relay_view_locator": {
+      "type": "object",
+      "required": [
+        "relay_service_id",
+        "relay_attestation_digest",
+        "source_authority_digest",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "relay_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "relay_attestation_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "source_authority_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Digest locator for the complete SourceRelayAttestation verified by the requester release service. Source account/device/Agent or holder authority coordinates remain solely inside the source local Principal Server's signed relay attestation."
+    },
+    "accepted_authority_view_vector": {
+      "type": "object",
+      "required": [
+        "scope_realm",
+        "source_relay"
+      ],
+      "properties": {
+        "scope_realm": {
+          "$ref": "#/$defs/realm_seal_view_locator"
+        },
+        "scope_circle": {
+          "$ref": "#/$defs/circle_seal_view_locator"
+        },
+        "recipient_account_status": {
+          "$ref": "#/$defs/account_status_view_locator"
+        },
+        "recipient_pcr_device": {
+          "$ref": "#/$defs/pcr_device_view_locator"
+        },
+        "recipient_agent_control_evidence": {
+          "$ref": "#/$defs/agent_evidence_view_locator"
+        },
+        "source_relay": {
+          "$ref": "#/$defs/source_relay_view_locator"
+        },
+        "archive_tuple": {
+          "$ref": "#/$defs/archive_authorization_tuple"
+        },
+        "archive_coverage": {
+          "$ref": "#/$defs/archive_coverage_view_locator"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Closed typed locator/digest vector in an honest release-service decision receipt. It carries no portable multi-authority proof. Profiles and source kind occur only in the outer attestation."
+    },
+    "epoch_range": {
+      "type": "object",
+      "required": [
+        "from_epoch",
+        "to_epoch"
+      ],
+      "properties": {
+        "from_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "to_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        }
+      },
+      "additionalProperties": false,
+      "description": "Inclusive non-empty range; from_epoch <= to_epoch is mandatory semantic validation."
+    },
+    "history_secret_range": {
+      "type": "object",
+      "required": [
+        "from_epoch",
+        "to_epoch",
+        "secrets_b64u"
+      ],
+      "properties": {
+        "from_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "to_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "secrets_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Packed history_secret[from] || ... || history_secret[to]. The receiver resolves KDF.Nh from each exact winning transition reconstructed by the receipt-bound direct Seal replay and requires decoded length=(to-from+1)*KDF.Nh."
+    },
+    "history_chunk_plaintext": {
+      "type": "object",
+      "required": [
+        "kind",
+        "secret_range"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.history_key.chunk_plaintext"
+        },
+        "secret_range": {
+          "$ref": "#/$defs/history_secret_range",
+          "description": "Its inclusive range must equal the outer chunk covered_epoch_range byte-for-byte. Decoded packed length is the sum of exact per-epoch KDF.Nh values resolved from the corresponding activation transitions."
+        }
+      },
+      "additionalProperties": false,
+      "description": "The only HPKE plaintext for a history response chunk. Every opened secret globally deduplicates by HistoryCandidateMaterialKey, never origin, and gets a separate response_sender CandidateOriginAttribution; it never becomes local_authoritative. Success/failure EventCandidateBinding contains no origin and does not pin bytes. It contains history secrets only and cannot carry active MLS state, sender counters, snapshots, policy claims or source metadata."
+    },
+    "mailbox_capability_plaintext": {
+      "type": "object",
+      "required": ["kind", "mailbox_capability_b64u"],
+      "properties": {
+        "kind": {"const": "ak.history_key.mailbox_capability_plaintext"},
+        "mailbox_capability_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$", "description": "Unpadded base64url of exactly 32 opaque random bytes."}
+      },
+      "additionalProperties": false,
+      "description": "The only plaintext admitted by SealedMailboxCapability. HPKE seals the RFC 8785 JCS UTF-8 bytes of this closed object; raw bytes, a bare base64url string and nested JSON text are forbidden."
+    },
+    "organization_recovery_archive_plaintext": {
+      "type": "object",
+      "required": ["kind", "history_secret_b64u"],
+      "properties": {
+        "kind": {"const": "ak.organization_recovery.archive_plaintext"},
+        "history_secret_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "description": "Unpadded base64url of the exact history_secret for archive.epoch. Its decoded length must equal KDF.Nh of the winning group transition proven for that epoch."}
+      },
+      "additionalProperties": false,
+      "description": "The only RRK archive HPKE plaintext. An opened secret globally deduplicates by HistoryCandidateMaterialKey and gets a separate rrk_archive CandidateOriginAttribution; it never becomes local_authoritative. Success/failure EventCandidateBinding contains no origin and does not pin bytes. HPKE seals RFC 8785 JCS UTF-8 of this object. It cannot carry active MLS state, counters, policy snapshots, holder claims or another epoch."
+    },
+    "history_key_request_signing_input": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "kind",
+        "effective_scope",
+        "requester_actor_id",
+        "requester_sender_domain",
+        "requester_author_profile",
+        "requester_endpoint_authorization",
+        "requester_authorization_incarnation",
+        "trusted_history_base_basis",
+        "trusted_current_basis",
+        "requested_ranges",
+        "recipient_hpke_public_key",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/history_request_id"
+        },
+        "kind": {
+          "const": "ak.history_key.request"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+        },
+        "requester_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "requester_sender_domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "requester_author_profile": {
+          "$ref": "#/$defs/author_profile"
+        },
+        "requester_endpoint_authorization": {
+          "$ref": "#/$defs/requester_endpoint_authorization"
+        },
+        "requester_authorization_incarnation": {
+          "$ref": "#/$defs/authorization_incarnation",
+          "description": "Exact closed current membership-incarnation set for this scope. Create admission verifies it and retry preserves it byte-for-byte."
+        },
+        "trusted_history_base_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Requester-selected, independently verified and durable-pinned predecessor-free Realm bootstrap cut. v1 history recovery replays from this complete canonical Seal antichain; the service cannot replace it with a later checkpoint or a singular head. It is independent from trusted_current_basis."
+        },
+        "trusted_current_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Requester-durable verified complete current scope-Realm Seal antichain used as an anti-rollback floor. It is independent from the predecessor-free traversal bootstrap base and T1 Account/PCR/Agent facts are not added to it."
+        },
+        "requested_ranges": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/epoch_range"
+          },
+          "description": "Canonical requested range set. Before signing, sort by (from_epoch,to_epoch), remove duplicates, and merge every overlapping or adjacent pair. A verifier rejects an array that is not strictly increasing, pairwise disjoint, and pairwise non-adjacent in that canonical form."
+        },
+        "recipient_hpke_public_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Canonical request expiry. Accepted create admission requires byte-for-byte equality with receipt.expires_at, mailbox expiry and history_traversal_retention.traversal_intent.retention.expires_at."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"requester_author_profile": {"const": "ordinary_human"}},
+            "required": ["requester_author_profile"]
+          },
+          "then": {
+            "properties": {
+              "requester_endpoint_authorization": {
+                "properties": {"kind": {"const": "ordinary_human"}},
+                "required": ["kind"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"requester_author_profile": {"const": "native_agent"}},
+            "required": ["requester_author_profile"]
+          },
+          "then": {
+            "properties": {
+              "requester_endpoint_authorization": {
+                "properties": {"kind": {"const": "native_agent"}},
+                "required": ["kind"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"requester_author_profile": {"const": "minimal_metadata"}},
+            "required": ["requester_author_profile"]
+          },
+          "then": {
+            "properties": {
+              "requester_endpoint_authorization": {
+                "properties": {"kind": {"const": "minimal_metadata"}},
+                "required": ["kind"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "history_key_request": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/history_key_request_signing_input"
+        },
+        {
+          "type": "object",
+          "required": [
+            "requester_proof"
+          ],
+          "properties": {
+            "requester_proof": {
+              "$ref": "./event-envelope.schema.json#/$defs/proof",
+              "x-arkret-proof-context": "ak.history-key-request-proof-v1"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false,
+      "description": "The complete RFC 8785 canonical HistoryKeyRequest is capped at 65536 bytes by history-recovery-scalability-registry.json. This inner-object limit is distinct from the 1 MiB create-operation envelope limit."
+    },
+    "history_key_request_receipt": {
+      "type": "object",
+      "required": [
+        "kind",
+        "request_digest",
+        "reply_mailbox_id",
+        "mailbox_capability_commitment",
+        "sealed_capability_digest",
+        "effective_scope",
+        "requester_sender_domain",
+        "requester_authorization_incarnation",
+        "trusted_history_base_basis",
+        "trusted_current_basis",
+        "release_service_id",
+        "release_service_binding_ref",
+        "release_service_resolution_ref",
+        "release_service_resolution_sequence",
+        "release_service_resolution_record_digest",
+        "release_service_route_digest",
+        "history_traversal_retention",
+        "accepted_at",
+        "expires_at",
+        "service_proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.history_key.request_receipt"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "reply_mailbox_id": {
+          "$ref": "#/$defs/history_mailbox_id"
+        },
+        "mailbox_capability_commitment": {
+          "$ref": "#/$defs/digest"
+        },
+        "sealed_capability_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+        },
+        "requester_sender_domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "requester_authorization_incarnation": {
+          "$ref": "#/$defs/authorization_incarnation"
+        },
+        "trusted_history_base_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
+        "trusted_current_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
+        "release_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "The requester's authenticated current Principal Server selected as the unique honest release service for this mailbox."
+        },
+        "release_service_binding_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "release_service_resolution_ref": {
+          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_record_core/properties/resolution_event_ref",
+          "description": "Adapter-canonical service resolution reference; it is not an Arkret EventId."
+        },
+        "release_service_resolution_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "release_service_resolution_record_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Digest of the complete signed ServiceResolutionRecord used at request acceptance."
+        },
+        "release_service_route_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "history_traversal_retention": {
+          "$ref": "#/$defs/history_governance_traversal_retention",
+          "description": "Member branch only. Its traversal_intent.request_digest, effective_scope, derived mls_group_id, authorization_incarnation, trusted_history_base_basis, trusted_current_basis, requested_ranges and request-expiring retention equal the accepted request/receipt fields byte-for-byte; target_basis is the release service's complete verified durable Seal frontier and dominates both signed bases."
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Byte-for-byte equal to request.expires_at, mailbox expiry and history_traversal_retention.traversal_intent.retention.expires_at."
+        },
+        "service_proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "x-arkret-proof-context": "ak.history-key-request-receipt-proof-v1"
+        }
+      },
+      "additionalProperties": false
+    },
+    "history_governance_traversal_intent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind", "profile", "effective_scope", "mls_group_id",
+            "trusted_history_base_basis", "trusted_current_basis", "target_basis",
+            "request_digest", "requested_ranges", "authorization_incarnation",
+            "registry_snapshot_digest", "traversal_admission_registry_digest", "retention"
+          ],
+          "properties": {
+            "kind": {"const": "ak.history_governance.traversal_intent"},
+            "profile": {"const": "member_history_delivery"},
+            "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
+            "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+            "trusted_history_base_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+            "trusted_current_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+            "target_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+            "request_digest": {"$ref": "#/$defs/digest"},
+            "requested_ranges": {
+              "type": "array", "minItems": 1, "maxItems": 64,
+              "items": {"$ref": "#/$defs/epoch_range"}
+            },
+            "authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"},
+            "registry_snapshot_digest": {
+              "$ref": "./governance-registry-snapshot.schema.json#/$defs/sha256_digest",
+              "description": "Content digest of the exact closed governance registry snapshot used for replay, including its transitive event-envelope/event-payload local-schema manifest."
+            },
+            "traversal_admission_registry_digest": {"$ref": "#/$defs/digest"},
+            "retention": {
+              "type": "object",
+              "required": ["kind", "expires_at"],
+              "properties": {
+                "kind": {"const": "request_expiring"},
+                "expires_at": {"$ref": "#/$defs/timestamp"}
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind", "profile", "effective_scope", "mls_group_id",
+            "trusted_history_base_basis", "trusted_current_basis", "target_basis",
+            "requested_ranges", "archive_authorization_tuple", "container_event_ref",
+            "registry_snapshot_digest", "traversal_admission_registry_digest", "retention"
+          ],
+          "properties": {
+            "kind": {"const": "ak.history_governance.traversal_intent"},
+            "profile": {"const": "organization_recovery_archive"},
+            "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
+            "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+            "trusted_history_base_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+            "trusted_current_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+            "target_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+            "requested_ranges": {
+              "type": "array", "minItems": 1, "maxItems": 1,
+              "items": {"$ref": "#/$defs/epoch_range"}
+            },
+            "archive_authorization_tuple": {"$ref": "#/$defs/archive_authorization_tuple"},
+            "container_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+            "registry_snapshot_digest": {
+              "$ref": "./governance-registry-snapshot.schema.json#/$defs/sha256_digest",
+              "description": "Content digest of the exact closed governance registry snapshot used for replay, including its transitive event-envelope/event-payload local-schema manifest."
+            },
+            "traversal_admission_registry_digest": {"$ref": "#/$defs/digest"},
+            "retention": {
+              "type": "object",
+              "required": ["kind"],
+              "properties": {"kind": {"const": "archive_lifetime"}},
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Closed direct-Seal traversal intent. target_basis must dominate every trusted_current_basis and trusted_history_base_basis leaf; reverse traversal follows signed predecessor_refs until the exact base cut, consumes every base leaf, and admits no predecessor outside the cut. requested_ranges are canonical. RRK requires one singleton range."
+    },
+    "history_governance_traversal_retention": {
+      "type": "object",
+      "required": ["traversal_intent", "traversal_intent_digest"],
+      "properties": {
+        "traversal_intent": {"$ref": "#/$defs/history_governance_traversal_intent"},
+        "traversal_intent_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "SHA-256(UTF8('ak.history-governance-traversal-intent-v1') || 0x00 || JCS(traversal_intent))."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Retention commitment for the exact target-to-base accepted Seal cut, base Seals and their delta, each interval Seal.delta Control Move canonical byte string, every AvailabilityReceipt, SemanticRef external evidence, AuthenticatedSignerResolutionEvidence, method-native DID material and registry snapshot required by registered apply_seal replay. Base predecessors are outside the cut and are never fetched. The service atomically pins the complete closure before signing the request receipt or archive-replica acknowledgement. Member retention ends at request expiry; RRK retention equals archive lifetime. This is not a proof package, snapshot, checkpoint or authority result set."
+    },
+    "self_history_traversal_access": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "request_receipt_digest"],
+          "properties": {
+            "kind": {"const": "request_receipt"},
+            "request_receipt_digest": {"$ref": "#/$defs/digest"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "archive_replica_digest"],
+          "properties": {
+            "kind": {"const": "archive_replica"},
+            "archive_replica_digest": {"$ref": "#/$defs/digest"}
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Narrow self resolve authorization for the exact retained direct-traversal cut. The service derives the cut and allowed Control Move/apply_seal dependency set from the named durable receipt or accepted archive replica; callers cannot enumerate an allowed descriptor set."
+    },
+    "peer_history_traversal_access": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "pending_archive_replica_digest"],
+          "properties": {
+            "kind": {"const": "pending_archive_replica"},
+            "pending_archive_replica_digest": {"$ref": "#/$defs/digest"}
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Authenticated peer resolve authorization only for a pending organization-recovery archive replica. Member request replicas distribute request bytes but never authorize or promise a governance closure; the release service obtains and pins that cut through ordinary Realm governance sync before signing the request receipt. Unknown, unauthorized, outside-cut and missing selectors have one response shape."
+    },
+    "sealed_mailbox_capability": {
+      "type": "object",
+      "required": [
+        "enc",
+        "ciphertext"
+      ],
+      "properties": {
+        "enc": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "ciphertext": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Uses the single active history-mailbox-capability HPKE registry profile; algorithm fields are forbidden."
+    },
+    "history_key_request_accepted_outcome": {
+      "type": "object",
+      "required": [
+        "kind",
+        "request",
+        "request_receipt",
+        "sealed_mailbox_capability"
+      ],
+      "properties": {
+        "kind": {"const": "ak.history_key.request_accepted"},
+        "request": {
+          "$ref": "#/$defs/history_key_request"
+        },
+        "request_receipt": {
+          "$ref": "#/$defs/history_key_request_receipt"
+        },
+        "sealed_mailbox_capability": {
+          "$ref": "#/$defs/sealed_mailbox_capability"
+        }
+      },
+      "additionalProperties": false
+    },
+    "history_key_request_create_outcome": {
+      "$ref": "#/$defs/history_key_request_accepted_outcome"
+    },
+    "history_key_request_record": {
+      "type": "object",
+      "required": [
+        "request",
+        "request_receipt"
+      ],
+      "properties": {
+        "request": {
+          "$ref": "#/$defs/history_key_request"
+        },
+        "request_receipt": {
+          "$ref": "#/$defs/history_key_request_receipt"
+        }
+      },
+      "additionalProperties": false
+    },
+    "history_key_request_list_outcome": {
+      "type": "object",
+      "required": [
+        "requests",
+        "limited"
+      ],
+      "properties": {
+        "requests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/history_key_request_record"
+          }
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limited": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "limited": {
+                "const": true
+              }
+            },
+            "required": [
+              "limited"
+            ]
+          },
+          "then": {
+            "required": [
+              "cursor"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "cursor"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "history_key_request_list_query": {
+      "type": "object",
+      "required": [
+        "realm_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false
+    },
+    "history_key_request_replica": {
+      "type": "object",
+      "required": [
+        "kind",
+        "request",
+        "request_receipt",
+        "destination_service_id",
+        "destination_authorization",
+        "replicated_at",
+        "expires_at",
+        "relay_proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.history_key.request_replica"
+        },
+        "request": {
+          "$ref": "#/$defs/history_key_request"
+        },
+        "request_receipt": {
+          "$ref": "#/$defs/history_key_request_receipt"
+        },
+        "destination_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "destination_authorization": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "delivery_binding_ref",
+                "delivery_binding_digest"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "member_delivery_binding"
+                },
+                "delivery_binding_ref": {
+                  "$ref": "./common-ids.schema.json#/$defs/event_id"
+                },
+                "delivery_binding_digest": {
+                  "$ref": "#/$defs/digest"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "holder_principal_id",
+                "holder_service_id",
+                "archive_tuple_digest"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "organization_recovery_holder"
+                },
+                "holder_principal_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+                },
+                "holder_service_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+                },
+                "archive_tuple_digest": {
+                  "$ref": "#/$defs/digest"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "replicated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "relay_proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "x-arkret-proof-context": "ak.history-key-request-replica-proof-v1"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Private S2S immutable request fanout from the release service to either one exact current member delivery-binding service or an exact RRK holder service whose archive tuple intersects requested ranges. destination_authorization is a closed union and must name destination_service_id."
+    },
+    "history_key_request_replica_outcome": {
+      "type": "object",
+      "required": [
+        "request_digest",
+        "destination_service_id",
+        "accepted_at",
+        "service_proof"
+      ],
+      "properties": {
+        "request_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "destination_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "service_proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "x-arkret-proof-context": "ak.history-key-request-replica-receipt-proof-v1"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rrk_holder_authority_observation": {
+      "type": "object",
+      "required": [
+        "holder_principal_id",
+        "holder_service_id",
+        "current_holder_signing_ref",
+        "accepted_key_evidence_ref",
+        "archive_authorization_tuple_digest",
+        "holder_trusted_basis",
+        "observed_at",
+        "expires_at"
+      ],
+      "properties": {
+        "holder_principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "holder_service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "current_holder_signing_ref": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
+        "accepted_key_evidence_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "archive_authorization_tuple_digest": {"$ref": "#/$defs/digest"},
+        "holder_trusted_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+        "observed_at": {"$ref": "#/$defs/timestamp"},
+        "expires_at": {"$ref": "#/$defs/timestamp"}
+      },
+      "additionalProperties": false,
+      "description": "Current source-local RRK holder authority observation. archive_authorization_tuple_digest binds the immutable historical archive tuple; current_holder_signing_ref, accepted_key_evidence_ref and holder_trusted_basis prove current holder authority and are not required to equal the tuple's historical signing/evidence coordinates. Its registered digest is SHA-256(UTF8('ak.rrk-holder-authority-observation-v1') || 0x00 || JCS(complete object))."
+    },
+    "source_authority_locator": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "binding_ref",
+            "binding_digest"
+          ],
+          "properties": {
+            "kind": {
+              "const": "member_delivery_binding"
+            },
+            "binding_ref": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            },
+            "binding_digest": {
+              "$ref": "#/$defs/digest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "authority_observation"
+          ],
+          "properties": {
+            "kind": {
+              "const": "organization_recovery_holder"
+            },
+            "authority_observation": {
+              "$ref": "#/$defs/rrk_holder_authority_observation"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "source_relay_attestation": {
+      "type": "object",
+      "required": [
+        "kind",
+        "source_record_digest",
+        "request_digest",
+        "request_receipt_digest",
+        "effective_scope",
+        "source_actor_id",
+        "source_sender_domain",
+        "source_kind",
+        "source_service_id",
+        "source_authority_locator",
+        "destination_release_service_id",
+        "relayed_at",
+        "expires_at",
+        "service_proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.history_key.source_relay_attestation"
+        },
+        "source_record_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "request_receipt_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+        },
+        "source_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "source_sender_domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "source_kind": {
+          "$ref": "#/$defs/source_kind"
+        },
+        "source_author_profile": {
+          "$ref": "#/$defs/author_profile"
+        },
+        "source_authorization_incarnation": {
+          "$ref": "#/$defs/authorization_incarnation"
+        },
+        "source_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "source_authority_locator": {
+          "$ref": "#/$defs/source_authority_locator"
+        },
+        "destination_release_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "relayed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "service_proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "x-arkret-proof-context": "ak.history-key-source-relay-attestation-proof-v1"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "const": "member"
+              }
+            },
+            "required": [
+              "source_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "source_author_profile",
+              "source_authorization_incarnation"
+            ],
+            "properties": {
+              "source_authority_locator": {
+                "properties": {
+                  "kind": {
+                    "const": "member_delivery_binding"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "source_author_profile"
+                  ]
+                },
+                {
+                  "required": [
+                    "source_authorization_incarnation"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "source_authority_locator": {
+                "properties": {
+                  "kind": {
+                    "const": "organization_recovery_holder"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false,
+      "description": "The source's authenticated local Principal Server verifies current source account/device, Agent, minimal membership/delivery binding or RRK holder authority and signs this private relay receipt. The first accepted self send atomically stores the exact relay envelope/outbox keyed by (response_id,source_record_digest); relayed_at and proof are never regenerated on retry/restart, and the first accepted outcome is durably backfilled. Exact retry returns those byte-identical bytes without a duplicate status. For RRK the source proof uses current_holder_signing_ref; historical archive holder_signing_ref is provenance only."
+    },
+    "history_key_source_relay": {
+      "type": "object",
+      "required": [
+        "response",
+        "source_relay_attestation"
+      ],
+      "properties": {
+        "response": {
+          "$ref": "#/$defs/history_key_response_send_request"
+        },
+        "source_relay_attestation": {
+          "$ref": "#/$defs/source_relay_attestation"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Private S2S immutable source record carrier to request_receipt.release_service_id. The destination verifies the relay service against the source's current delivery/authority binding before it performs the final T1 linearization and creates HistoryReleaseAttestation."
+    },
+    "history_response_manifest": {
+      "type": "object",
+      "required": [
+        "kind",
+        "chunks"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.history_key.response_manifest"
+        },
+        "chunks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["chunk_response_id", "chunk_index", "covered_epoch_range"],
+            "properties": {
+              "chunk_response_id": {
+                "$ref": "#/$defs/history_response_id"
+              },
+              "chunk_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "covered_epoch_range": {
+                "$ref": "#/$defs/epoch_range",
+                "description": "The one inclusive continuous range covered by this exact chunk_response_id. Descriptor ranges are pairwise disjoint across descriptors; their canonical ordered union is the sole manifest and attempt coverage truth and must be a subset of the request's requested_ranges. No second manifest-level ranges array exists."
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "manifest_digest = H(UTF8('ak.history-response-manifest-v1') || 0x00 || JCS(the closed HistoryKeyResponseSigningInput whose content.kind is ak.history_key.response_manifest)). Descriptors are sorted by chunk_index and are the sole truth for response id and one continuous range. covered_epoch_range must be a canonical subset of the request ranges authorized by direct Seal traversal replay; no proof/package selection is carried. A chunk repeats only manifest_digest and chunk_index. The canonical manifest source record is at most 256 KiB. Its first accepted send receipt, or the byte-identical receipt returned by an exact retry, must be durable before any named chunk is submitted."
+    },
+    "history_manifest_admission": {
+      "type": "object",
+      "required": [
+        "kind",
+        "manifest_digest",
+        "request_digest",
+        "request_receipt_digest",
+        "traversal_intent_digest",
+        "authorized_ranges",
+        "t0_pass",
+        "manifest_admission_digest"
+      ],
+      "properties": {
+        "kind": {"const": "ak.history_key.manifest_admission"},
+        "manifest_digest": {"$ref": "#/$defs/digest"},
+        "request_digest": {"$ref": "#/$defs/digest"},
+        "request_receipt_digest": {"$ref": "#/$defs/digest"},
+        "traversal_intent_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Must equal request_receipt.history_traversal_retention.traversal_intent_digest byte-for-byte."
+        },
+        "authorized_ranges": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "items": {"$ref": "#/$defs/epoch_range"},
+          "description": "Canonical sorted, disjoint exact descriptor ranges that passed the current scope history-access ratchet, requester current incarnation and join/profile floor after complete direct Seal replay. It must equal the complete manifest descriptor range union; partial admission is forbidden."
+        },
+        "t0_pass": {"const": "all_manifest_ranges_authorized"},
+        "manifest_admission_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "SHA-256(UTF8('ak.history-manifest-admission-v1') || 0x00 || JCS(this object with manifest_admission_digest removed))."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Deterministic service-authenticated T0 result written only after resolving the receipt-bound target-to-base Seal cut and replaying standard apply_seal in topological order. The traversal verifies notary authority, every predecessor edge, delta Control Move and registered dependency, target dominance, requester incarnation/join floor, the scope's current monotone history-access ratchet, every winning MLS transition and exact descriptor range. Any missing dependency, predecessor outside the exact cut, unconsumed base leaf, hidden branch, failed Seal/root/reducer check, profile/join failure or exact-range mismatch rejects the entire manifest with zero mailbox record/admission write."
+    },
+    "sealed_history_chunk": {
+      "type": "object",
+      "required": [
+        "kind",
+        "manifest_digest",
+        "manifest_admission_digest",
+        "chunk_index",
+        "enc",
+        "ciphertext"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.history_key.response_chunk"
+        },
+        "manifest_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "manifest_admission_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Must equal the already accepted manifest's deterministic HistoryManifestAdmission digest. Missing/mismatch is dependency_missing and writes no chunk record or attestation."
+        },
+        "chunk_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "enc": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 2048
+        },
+        "ciphertext": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 1900000
+        }
+      },
+      "additionalProperties": false,
+      "description": "Minimal chunk wire. The exact accepted manifest descriptor and manifest_admission_digest reconstruct the continuous range and HPKE context. T0 is the receipt-bound direct Seal replay recorded by the accepted manifest admission; the chunk carries no independent proof, selector, segment or range-key duplicate. Source submit before that manifest admission is accepted is dependency_missing with zero pending state, zero mailbox record and zero release attestation. The complete canonical chunk source record MUST be at most 2 MiB."
+    },
+    "history_source_agent_observation_input": {
+      "type": "object",
+      "required": [
+        "response_id",
+        "effective_scope",
+        "source_actor_id",
+        "source_sender_domain",
+        "request_digest",
+        "request_receipt_digest",
+        "reply_mailbox_id",
+        "expires_at",
+        "content"
+      ],
+      "properties": {
+        "response_id": {"$ref": "#/$defs/history_response_id"},
+        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
+        "source_actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "source_sender_domain": {"type": "string", "minLength": 1, "maxLength": 512},
+        "request_digest": {"$ref": "#/$defs/digest"},
+        "request_receipt_digest": {"$ref": "#/$defs/digest"},
+        "reply_mailbox_id": {"$ref": "#/$defs/history_mailbox_id"},
+        "expires_at": {"$ref": "#/$defs/timestamp"},
+        "content": {
+          "oneOf": [
+            {"$ref": "#/$defs/history_response_manifest"},
+            {"$ref": "#/$defs/sealed_history_chunk"}
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "description": "Closed non-wire canonical input for history_source_agent_observation_digest. It intentionally excludes source_signer_evidence_ref and source_signer_evidence_digest so a Native Agent can obtain CurrentAdmission evidence before authoring the complete signed response."
+    },
+    "history_key_response_signing_input": {
+      "type": "object",
+      "required": [
+        "response_id",
+        "effective_scope",
+        "source_actor_id",
+        "source_sender_domain",
+        "source_signer_evidence_ref",
+        "source_signer_evidence_digest",
+        "request_digest",
+        "request_receipt_digest",
+        "reply_mailbox_id",
+        "expires_at",
+        "content"
+      ],
+      "properties": {
+        "response_id": {
+          "$ref": "#/$defs/history_response_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+        },
+        "source_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "source_sender_domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "source_signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        },
+        "source_signer_evidence_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Must equal the digest encoded by source_signer_evidence_ref and resolve through the request-receipt governance-dependency surface to the exact historical source signer and verification method."
+        },
+        "request_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "request_receipt_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "reply_mailbox_id": {
+          "$ref": "#/$defs/history_mailbox_id"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "content": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/history_response_manifest"
+            },
+            {
+              "$ref": "#/$defs/sealed_history_chunk"
+            }
+          ]
+        }
+      }
+    },
+    "minimal_metadata_mls_leaf_signer_evidence": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "mls_group_id",
+        "epoch",
+        "leaf_index",
+        "pairwise_actor_id",
+        "source_actor_id",
+        "verification_method",
+        "response_signing_public_key_b64u",
+        "response_signing_public_key_digest",
+        "identity_link_canonical_bytes_b64u",
+        "identity_link_digest",
+        "identity_link_signer_evidence_ref",
+        "identity_link_signer_evidence_digest",
+        "leaf_node_canonical_bytes_b64u",
+        "leaf_node_digest",
+        "winning_group_state_transition_ref",
+        "winning_group_state_event_digest",
+        "winning_mls_transition_digest",
+        "target_basis",
+        "authorization_incarnation"
+      ],
+      "properties": {
+        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
+        "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 1, "maxLength": 512},
+        "epoch": {"type": "integer", "minimum": 0},
+        "leaf_index": {"type": "integer", "minimum": 0},
+        "pairwise_actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "source_actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "verification_method": {"type": "string", "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"},
+        "response_signing_public_key_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"},
+        "response_signing_public_key_digest": {"$ref": "#/$defs/digest"},
+        "identity_link_canonical_bytes_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 1, "maxLength": 1048576},
+        "identity_link_digest": {"$ref": "#/$defs/digest"},
+        "identity_link_signer_evidence_ref": {"$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref", "description": "Content-addressed Principal signer evidence for the IdentityLink proof verification_method at the link effective_at boundary."},
+        "identity_link_signer_evidence_digest": {"$ref": "#/$defs/digest"},
+        "leaf_node_canonical_bytes_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 1, "maxLength": 1048576},
+        "leaf_node_digest": {"$ref": "#/$defs/digest"},
+        "winning_group_state_transition_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "winning_group_state_event_digest": {"$ref": "#/$defs/digest"},
+        "winning_mls_transition_digest": {"$ref": "#/$defs/digest"},
+        "target_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+        "authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"}
+      },
+      "additionalProperties": false,
+      "description": "Content-addressed historical signer evidence for a minimal-metadata pairwise actor. The source proof always uses the independent Ed25519 response-signing method/key committed by the end-to-end encrypted IdentityLink; it never treats an MLS ciphersuite signature key as a generic PayloadProof key. The identity_link_signer_evidence pair resolves the exact Principal evidence used to verify the IdentityLink's own proof without consulting a live DID document. The receiver validates that proof, the response key, exact locally received identity-link and RFC MLS LeafNode canonical bytes, winning transition provenance, target Seal basis and authorization incarnation against its independently verified durable MLS state before accepting source_proof. Canonical evidence bytes are limited to 1 MiB."
+    },
+    "history_key_response_send_request": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/history_key_response_signing_input"
+        },
+        {
+          "type": "object",
+          "required": [
+            "source_proof"
+          ],
+          "properties": {
+            "source_proof": {
+              "$ref": "./event-envelope.schema.json#/$defs/proof",
+              "x-arkret-proof-context": "ak.history-key-response-proof-v1"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false,
+      "description": "The source wire carries request_digest and request_receipt_digest only, plus the content-addressed historical source signer-evidence locator required to verify source_proof. Source service resolves the exact already-verified local request replica/list record by those digests; destination release service resolves its own durable request/receipt, verifies and pins the exact signer evidence plus its transitive attester closure until request expiry, and exposes that closure through the request-receipt governance-dependency surface. Unknown or mismatched digest or evidence is dependency_missing with zero write. Repeating the full request receipt or signer evidence bytes in every manifest/chunk is forbidden."
+    },
+    "history_release_attestation": {
+      "type": "object",
+      "required": [
+        "kind",
+        "verifier_profile_id",
+        "predicate_registry_digest",
+        "source_record_digest",
+        "response_id",
+        "request_digest",
+        "request_receipt_digest",
+        "reply_mailbox_id",
+        "effective_scope",
+        "manifest_admission_digest",
+        "t0_pass",
+        "released_range",
+        "recipient_actor_id",
+        "recipient_sender_domain",
+        "recipient_authorization_incarnation",
+        "recipient_author_profile",
+        "source_actor_id",
+        "source_sender_domain",
+        "source_kind",
+        "accepted_at",
+        "expires_at",
+        "accepted_authority_views"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.history_key.release_attestation"
+        },
+        "predicate_registry_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Must use the sha256 wire suite and equal sha256:<lowercase hex SHA-256(JCS(history-release-attestation-registry.json after removing only its top-level wire_registry_binding member))>. No domain framing or other exclusion is allowed. The registry contains no embedded current digest, so the computation has no self-cycle. It is authenticated by the enclosing response-record service proof."
+        },
+        "source_record_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "response_id": {
+          "$ref": "#/$defs/history_response_id"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "request_receipt_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "reply_mailbox_id": {
+          "$ref": "#/$defs/history_mailbox_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+        },
+        "manifest_admission_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Exact digest of the previously accepted all-or-nothing manifest T0 admission."
+        },
+        "t0_pass": {
+          "const": "all_manifest_ranges_authorized",
+          "description": "Copied from the accepted HistoryManifestAdmission; it is not a caller-supplied authorization boolean."
+        },
+        "released_range": {
+          "$ref": "#/$defs/epoch_range",
+          "description": "The exact continuous chunk range; byte-for-byte equal to the matching already admitted manifest descriptor. Its authorization is reconstructed from the receipt-bound direct Seal traversal and current monotone history-access state, not from a page or selection field."
+        },
+        "recipient_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "recipient_sender_domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "recipient_authorization_incarnation": {
+          "$ref": "#/$defs/authorization_incarnation"
+        },
+        "recipient_author_profile": {
+          "$ref": "#/$defs/author_profile"
+        },
+        "source_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "source_sender_domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "source_kind": {
+          "$ref": "#/$defs/source_kind"
+        },
+        "source_author_profile": {
+          "$ref": "#/$defs/author_profile"
+        },
+        "source_authorization_incarnation": {
+          "$ref": "#/$defs/authorization_incarnation"
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "MUST be <= and normally byte-for-byte equal to request/mailbox expiry. The record is admitted only while unexpired; a receiver may install the immutable record after a later read if accepted_at was within this bound."
+        },
+        "accepted_authority_views": {
+          "$ref": "#/$defs/accepted_authority_view_vector"
+        },
+        "verifier_profile_id": {
+          "const": "ak.history_release_predicates.v1",
+          "description": "Closed verifier profile whose registry digest is predicate_registry_digest."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "recipient_author_profile": {
+                "const": "ordinary_human"
+              }
+            },
+            "required": [
+              "recipient_author_profile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "accepted_authority_views": {
+                "required": [
+                  "recipient_account_status",
+                  "recipient_pcr_device"
+                ],
+                "not": {
+                  "required": [
+                    "recipient_agent_control_evidence"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "recipient_author_profile": {
+                "const": "native_agent"
+              }
+            },
+            "required": [
+              "recipient_author_profile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "accepted_authority_views": {
+                "required": [
+                  "recipient_agent_control_evidence"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "recipient_account_status"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "recipient_pcr_device"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "recipient_author_profile": {
+                "const": "minimal_metadata"
+              }
+            },
+            "required": [
+              "recipient_author_profile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "accepted_authority_views": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "recipient_account_status"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "recipient_pcr_device"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "recipient_agent_control_evidence"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "const": "member"
+              }
+            },
+            "required": [
+              "source_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "source_author_profile",
+              "source_authorization_incarnation"
+            ],
+            "properties": {
+              "accepted_authority_views": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "archive_tuple"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "archive_coverage"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "source_author_profile"
+                  ]
+                },
+                {
+                  "required": [
+                    "source_authorization_incarnation"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "accepted_authority_views": {
+                "required": [
+                  "archive_tuple",
+                  "archive_coverage"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "effective_scope": {
+                "properties": {
+                  "kind": {
+                    "const": "circle"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "effective_scope"
+            ]
+          },
+          "then": {
+            "properties": {
+              "accepted_authority_views": {
+                "required": [
+                  "scope_circle"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "accepted_authority_views": {
+                "not": {
+                  "required": [
+                    "scope_circle"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false,
+      "description": "Immutable honest-release-service T1 decision receipt from first durable chunk enqueue. The requester Principal Server verifies its local recipient authority slots, the short-lived SourceRelayAttestation and relay-service binding, plus current scope membership. Source account/device/Agent or holder facts occur only in that source-local relay attestation and are not duplicated as remote views. The service validates every intent-bound observation is unexpired and has no known successor, then CAS-writes this locator vector and record in one local transaction. The vector is an audit coordinate, not a portable multi-authority proof."
+    },
+    "history_key_response_record": {
+      "type": "object",
+      "required": [
+        "sequence",
+        "cursor",
+        "record_digest",
+        "source_record",
+        "sent_at",
+        "release_service_signer_evidence_ref",
+        "release_service_signer_evidence_digest",
+        "service_proof"
+      ],
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "record_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Must equal SHA-256(UTF8('ak.history-response-record-v1') || 0x00 || JCS({sequence,cursor,source_record,sent_at,release_service_signer_evidence_ref,release_service_signer_evidence_digest,manifest_admission?,release_attestation?})). A manifest has exactly manifest_admission; a chunk has exactly release_attestation. record_digest and service_proof are excluded."
+        },
+        "sent_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "release_attestation": {
+          "$ref": "#/$defs/history_release_attestation",
+          "description": "Required only for a chunk. The service creates it in the same transaction as the first durable record enqueue after evaluating current T1 authority views. Exact retries return the original attestation."
+        },
+        "manifest_admission": {
+          "$ref": "#/$defs/history_manifest_admission",
+          "description": "Required only for a manifest. The outer service proof authenticates the complete deterministic T0 admission."
+        },
+        "release_service_signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Content-addressed Service-kind historical signer evidence used by this exact release-service proof."
+        },
+        "release_service_signer_evidence_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "SHA-256 digest of the complete AuthenticatedSignerResolutionEvidence::Service object named by release_service_signer_evidence_ref."
+        },
+        "service_proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "x-arkret-proof-context": "ak.history-key-response-record-proof-v1",
+          "description": "The honest release-service proof signs the RFC 8785 JCS transcript of the entire closed record with only service_proof omitted. For a chunk this coverage includes the byte-identical complete release_attestation and its typed authority locator/digest vector; the attestation has no independent proof wire."
+        },
+        "source_record": {
+          "$ref": "#/$defs/history_key_response_send_request"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "source_record": {
+              "properties": {
+                "content": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.history_key.response_manifest"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "content"
+              ]
+            }
+          },
+          "not": {
+            "required": [
+              "release_attestation"
+            ]
+          },
+          "required": ["manifest_admission"]
+        },
+        {
+          "properties": {
+            "source_record": {
+              "properties": {
+                "content": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.history_key.response_chunk"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "content"
+              ]
+            }
+          },
+          "required": [
+            "release_attestation"
+          ],
+          "not": {"required": ["manifest_admission"]}
+        }
+      ],
+      "additionalProperties": false,
+      "description": "The recipient mailbox retains this complete byte-identical source record and conditional attestation only until a valid durable high-water disposition acknowledges it. Ack before durable install/reject/lost handling is a client error. The ack transaction atomically removes the large record/attestation and releases active quota; only the compact source-facing HistoryKeyResponseSendReceipt ledger remains through request expiry for exact source retry."
+    },
+    "history_key_response_lost_record": {
+      "type": "object",
+      "required": [
+        "sequence",
+        "cursor",
+        "response_id",
+        "record_digest",
+        "lost_at",
+        "release_service_signer_evidence_ref",
+        "release_service_signer_evidence_digest",
+        "service_proof"
+      ],
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "response_id": {
+          "$ref": "#/$defs/history_response_id"
+        },
+        "record_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "lost_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "release_service_signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Content-addressed Service-kind historical signer evidence used by this exact lost-record proof."
+        },
+        "release_service_signer_evidence_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "SHA-256 digest of the complete AuthenticatedSignerResolutionEvidence::Service object named by release_service_signer_evidence_ref."
+        },
+        "service_proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "x-arkret-proof-context": "ak.history-key-response-lost-record-proof-v1",
+          "description": "Release-service signature over the closed lost descriptor with service_proof omitted."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Signed descriptor for an unrecoverably lost accepted mailbox record. It permits only a durable service_record_lost disposition and never counts as manifest or epoch coverage."
+    },
+    "history_mailbox_page_entry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "record"],
+          "properties": {
+            "kind": {"const": "record"},
+            "record": {"$ref": "#/$defs/history_key_response_record"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "lost_record"],
+          "properties": {
+            "kind": {"const": "lost"},
+            "lost_record": {"$ref": "#/$defs/history_key_response_lost_record"}
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "One item in the single sequence-ordered mailbox stream. Pagination, limit, cursor, ack token and high-water all use this merged order; records and lost descriptors are never paginated separately."
+    },
+    "history_key_response_list_outcome": {
+      "type": "object",
+      "required": [
+        "ack_entries",
+        "ack_token",
+        "limited"
+      ],
+      "properties": {
+        "ack_entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/history_mailbox_page_entry"
+          },
+          "description": "Strictly sequence-ascending merged record/lost entries. The verifier extracts each tuple {sequence,kind,response_id,entry_digest}, where entry_digest is record_digest or the digest of the complete signed lost descriptor."
+        },
+        "ack_token": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limited": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "limited": {
+                "const": true
+              }
+            },
+            "required": [
+              "limited"
+            ]
+          },
+          "then": {
+            "required": [
+              "cursor"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "cursor"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "history_key_response_list_query": {
+      "type": "object",
+      "properties": {
+        "after": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false
+    },
+    "history_mailbox_ack_entry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "sequence", "response_id", "record_digest", "status"],
+          "properties": {
+            "kind": {"const": "record"},
+            "sequence": {"type": "integer", "minimum": 0},
+            "response_id": {"$ref": "#/$defs/history_response_id"},
+            "record_digest": {"$ref": "#/$defs/digest"},
+            "status": {"enum": ["installed", "cryptographically_rejected", "superseded_duplicate"]}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "sequence", "response_id", "lost_record_digest", "status"],
+          "properties": {
+            "kind": {"const": "lost"},
+            "sequence": {"type": "integer", "minimum": 0},
+            "response_id": {"$ref": "#/$defs/history_response_id"},
+            "lost_record_digest": {"$ref": "#/$defs/digest"},
+            "status": {"const": "service_record_lost"}
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Must match one byte-identical page entry at the same sequence. service_record_lost is structurally impossible for a normal record; all other dispositions are structurally impossible for a lost descriptor. installed on a manifest installs only its descriptor/admission, never epoch coverage."
+    },
+    "history_key_response_ack_request": {
+      "type": "object",
+      "required": [
+        "ack_token",
+        "high_water_cursor",
+        "ack_entries"
+      ],
+      "properties": {
+        "ack_token": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Authenticated token whose semantic preimage binds reply_mailbox_id, the exact contiguous sequence interval, high_water_cursor and ordered tuples {sequence,kind,response_id,record_digest|lost_record_digest}."
+        },
+        "high_water_cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ack_entries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/history_mailbox_ack_entry"
+          },
+          "description": "Canonical strictly sequence-ascending entries matching the list page/ack token. Every sequence through high_water_cursor must have exactly one durable disposition."
+        }
+      },
+      "additionalProperties": false
+    },
+    "history_key_response_send_receipt": {
+      "type": "object",
+      "required": [
+        "response_id",
+        "source_record_digest",
+        "record_digest",
+        "sequence",
+        "accepted_at",
+        "manifest_admission_digest",
+        "release_attestation_digest",
+        "receipt_digest",
+        "service_proof"
+      ],
+      "properties": {
+        "response_id": {
+          "$ref": "#/$defs/history_response_id"
+        },
+        "source_record_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "record_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "manifest_admission_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Exact accepted manifest admission digest. For a manifest this is the admission created in the same transaction; for a chunk it must equal the already accepted admission named by the chunk."
+        },
+        "release_attestation_digest": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/digest"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "SHA-256 digest of the exact release attestation for a chunk; JSON null for a manifest, which never releases secret material."
+        },
+        "receipt_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "SHA-256(UTF8('ak.history-response-send-receipt-v1') || 0x00 || JCS(the closed receipt with receipt_digest and service_proof omitted))."
+        },
+        "service_proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "x-arkret-proof-context": "ak.history-key-response-send-receipt-proof-v1",
+          "description": "First release-service proof over the closed receipt including receipt_digest and excluding service_proof. Exact duplicate returns these identical originally accepted bytes; transport never emits a separately signed duplicate variant."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Small immutable source-facing success receipt. It never echoes the recipient mailbox record, release authority locators, source record, request receipt or ciphertext."
+    },
+    "history_key_response_send_outcome": {
+      "$ref": "#/$defs/history_key_response_send_receipt"
+    },
+    "history_key_response_ack_outcome": {
+      "type": "object",
+      "required": [
+        "acked_through_cursor"
+      ],
+      "properties": {
+        "acked_through_cursor": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_recovery_archive": {
+      "$ref": "./event-payload.schema.json#/$defs/organization_recovery_archive"
+    },
+    "organization_recovery_archive_list_query": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "recovery_key_id",
+        "key_agreement_ref",
+        "accepted_key_evidence_ref",
+        "holder_trusted_basis"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+        },
+        "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
+        "key_agreement_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "accepted_key_evidence_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "holder_trusted_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Holder-pinned canonical accepted Seal antichain from the accepted register/rotate tuple. Cursor and every returned archive bind it byte-for-byte."
+        },
+        "from_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "to_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "byte_limit": {
+          "type": "integer",
+          "minimum": 65536,
+          "maximum": 1048576
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "from_epoch"
+            ]
+          },
+          "then": {
+            "required": [
+              "to_epoch"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "to_epoch"
+            ]
+          },
+          "then": {
+            "required": [
+              "from_epoch"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false,
+      "description": "Recipient-bound RRK archive read/list query. The authenticated holder identity is transport authority and is not caller-supplied here. from_epoch/to_epoch, when present, form one inclusive non-empty range. The service returns only rows whose exact historical key tuple names this recovery_key_id/key_agreement_ref and accepted key provenance Event, whose holder_trusted_basis matches byte-for-byte, and whose holder_principal_id matches current authority. Replay from holder_trusted_basis proves that accepted_key_evidence_ref is reducer-effective; no singular activation Seal selector exists. Cursor binds only the authenticated holder authority, exact query selectors and last ordering tuple. byte_limit below the registry minimum legal item size returns limit_exceeded rather than a zero-progress page."
+    },
+    "organization_recovery_archive_list_item": {
+      "type": "object",
+      "required": [
+        "archive_sequence",
+        "archive",
+        "container_event_ref",
+        "history_traversal_retention"
+      ],
+      "properties": {
+        "archive_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Strictly monotonic sequence assigned by holder_service_id on first durable acceptance of this immutable archive replica."
+        },
+        "archive": {
+          "$ref": "#/$defs/organization_recovery_archive"
+        },
+        "container_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "history_traversal_retention": {
+          "$ref": "#/$defs/history_governance_traversal_retention"
+        }
+      },
+      "additionalProperties": false,
+      "description": "A content-addressed row. history_traversal_retention uses organization_recovery_archive/archive_lifetime, starts from this tuple's holder_trusted_basis, has requested_ranges exactly [{from_epoch:archive.epoch,to_epoch:archive.epoch}], and replays to a target basis that proves both the accepted key tuple and this one winning archive transition. container_event_ref equals the winning transition Event. No proof page, package root or singular activation Seal is carried."
+    },
+    "organization_recovery_archive_list_outcome": {
+      "type": "object",
+      "required": [
+        "items",
+        "limited"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/organization_recovery_archive_list_item"
+          }
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limited": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "limited": {
+                "const": true
+              }
+            },
+            "required": [
+              "limited"
+            ]
+          },
+          "then": {
+            "required": [
+              "cursor"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "cursor"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false,
+      "description": "Canonical-byte-paged recipient-bound projection. Rows are ordered by (archive_sequence numeric ascending, container_event_ref UTF-8 bytes); a delayed old epoch receives a new sequence and cannot be inserted behind a cursor. Cursor binds only the holder principal/service authority, exact query digest including accepted evidence Event and complete holder_trusted_basis, and the last ordering tuple. The direct Seal traversal closure has the same long-term retention/replication lifetime as its archive. The high-privilege holder may resolve every Control Move, Seal and registered apply_seal dependency required by that closure, including membership/policy/control metadata, but no unrelated DataEvent, generic timeline scan, membership grant or send authority. Unknown scope, absent rows, wrong holder authority and unauthorized or mismatched tuple all produce the same not_found response shape."
+    },
+    "organization_recovery_archive_replica": {
+      "type": "object",
+      "required": [
+        "kind",
+        "archive",
+        "container_event_ref",
+        "history_traversal_retention",
+        "source_service_id",
+        "holder_service_id",
+        "replicated_at",
+        "service_proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.organization_recovery.archive_replica"
+        },
+        "archive": {
+          "$ref": "#/$defs/organization_recovery_archive"
+        },
+        "container_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "history_traversal_retention": {
+          "$ref": "#/$defs/history_governance_traversal_retention"
+        },
+        "source_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "holder_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "replicated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "service_proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "x-arkret-proof-context": "ak.organization-recovery-archive-replica-proof-v1"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Private immutable S2S archive replica to the exact holder_service_id frozen by the archive tuple. It binds one container Event, the accepted-key evidence Event, the distinct holder trusted basis and one archive-lifetime exact-one-epoch direct Seal traversal. Semantic uniqueness is (effective_scope,mls_group_id,epoch,container_event_ref,archive tuple digest). The full body digest is only the exact-retry key: changing replicated_at cannot allocate another sequence for the same semantic row. Archive bytes and the traversal's complete registered apply_seal dependency closure are retained and reconciled for the archive lifetime; v1 has no remote GC or renewal state."
+    },
+    "organization_recovery_archive_replica_outcome": {
+      "type": "object",
+      "required": [
+        "archive_replica_digest",
+        "holder_service_id",
+        "archive_sequence",
+        "accepted_at",
+        "service_proof"
+      ],
+      "properties": {
+        "archive_replica_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "holder_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "archive_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "First durable holder acceptance assigns this monotonic sequence; duplicate retry returns the identical value."
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "service_proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "x-arkret-proof-context": "ak.organization-recovery-archive-replica-receipt-proof-v1"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

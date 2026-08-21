@@ -39,7 +39,7 @@
       "description": "Inclusion proofs. The combined item count of this array and availability_proofs MUST be no greater than 2048.",
       "uniqueItems": true,
       "items": {
-        "$ref": "./event-envelope.schema.json#/$defs/semantic_ref/properties/proof"
+      "$ref": "./event-envelope.schema.json#/$defs/semantic_ref_merkle_proof"
       }
     },
     "availability_proofs": {

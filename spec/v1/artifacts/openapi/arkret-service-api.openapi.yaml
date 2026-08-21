@@ -249,6 +249,15 @@ components:
         enclave operator surfaces). Not used by any registered v1 operation
         in this OpenAPI document; deployments MAY require it on product-local
         management APIs outside the Arkret protocol namespace.
+    historyMailboxAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        Opaque reply-mailbox capability using the exact wire form
+        `Authorization: Arkret-Mailbox <reply_mailbox_capability>`. The service
+        stores only its commitment. Unknown mailbox, wrong/expired capability
+        and unauthorized access are the same-shape not_found result.
   headers:
     XArkretRequestId:
       description: Stable request identifier.
@@ -1010,12 +1019,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
     DidOperationSubmitRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody
-    DirectConversationRepairDispatchRequestBody:
-      $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_dispatch_request
-    DirectConversationRepairEnqueueOutcome:
-      $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome
-    DirectConversationRepairRelayRequestBody:
-      $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_relay_request
     DirectConversationResolveOutcome:
       $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome
     DirectConversationResolveRequestBody:
@@ -1300,7 +1303,6 @@ components:
               - service_registration_denied
               - service_identity_conflict
               - policy_combination_invalid
-              - history_sharing_policy_missing
               - history_not_visible
               - notary_recovery_missing
               - unsupported_lattice_type
@@ -1400,7 +1402,6 @@ components:
               - continuity_evidence_unavailable
               - continuity_invalid
               - membership_compensation_conflict
-              - mls_generation_proposal_fanout_exceeded
             message:
               type: string
             retry_after_ms:
@@ -1543,6 +1544,8 @@ components:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome
     GhostActorProvisionRequestBody:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body
+    GovernanceDependencyResolveOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome
     GrantId:
       type: string
       pattern: ^ak:grant:[A-Za-z0-9_-]{44}$
@@ -1632,6 +1635,32 @@ components:
       additionalProperties: false
     HandleClaim:
       $ref: ../schemas/handle-claim.schema.json
+    HistoryKeyRequest:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request
+    HistoryKeyRequestCreateOutcome:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_create_outcome
+    HistoryKeyRequestListOutcome:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_list_outcome
+    HistoryKeyRequestListQuery:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_list_query
+    HistoryKeyRequestReplica:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_replica
+    HistoryKeyRequestReplicaOutcome:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_replica_outcome
+    HistoryKeyResponseAckOutcome:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome
+    HistoryKeyResponseAckRequest:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_ack_request
+    HistoryKeyResponseListOutcome:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_list_outcome
+    HistoryKeyResponseListQuery:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_list_query
+    HistoryKeyResponseSendOutcome:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_send_outcome
+    HistoryKeyResponseSendRequest:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_send_request
+    HistoryKeySourceRelay:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_source_relay
     HumanSessionGrantRefreshRequest:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRefreshRequest
     HumanSessionGrantRequest:
@@ -1785,9 +1814,9 @@ components:
     MimiUpdateConsentRequestBody:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
     MlsGovernanceProofBundle:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json
+      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/read_outcome
     MlsGovernanceProofRequestBody:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request
+      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/read_request
     MlsGroupStateMaterialOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome
     MlsGroupStateMaterialRequestBody:
@@ -1845,6 +1874,14 @@ components:
     ObjectRef:
       type: string
       pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[A-Za-z0-9_-]{44}$
+    OrganizationRecoveryArchiveListOutcome:
+      $ref: ../schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome
+    OrganizationRecoveryArchiveListQuery:
+      $ref: ../schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query
+    OrganizationRecoveryArchiveReplica:
+      $ref: ../schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica
+    OrganizationRecoveryArchiveReplicaOutcome:
+      $ref: ../schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome
     OrganizationRegistrationChallenge:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge
     OrganizationRegistrationChallengeRequestBody:
@@ -1865,6 +1902,8 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome
     PeerEventsResolveRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody
+    PeerGovernanceDependencyResolveRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequest
     PeerKeyPackagesClaimOutcome:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome
     PeerKeyPackagesClaimQueryOutcome:
@@ -2362,6 +2401,8 @@ components:
       $ref: ../schemas/query.schema.json#/$defs/search_request_body
     SelfEventsSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfEventsSubmitOutcome
+    SelfGovernanceDependencyResolveRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfGovernanceDependencyResolveRequest
     ServiceDescribe:
       type: object
       description: |
@@ -4283,9 +4324,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierState'
-  /_arkret/self/events/seals:
+  /_arkret/self/seals/frontier:
+    query:
+      operationId: ak.self.seals.read.frontier
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody
+      responses:
+        '200':
+          description: Complete verified durable current Realm Seal frontier
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealFrontierState
+  /_arkret/self/seals/resolve:
+    query:
+      operationId: ak.self.seals.read.resolve
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody
+      responses:
+        '200':
+          description: Exact resolved Seal rows and same-shape missing refs
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome
+  /_arkret/self/seals:
     post:
-      operationId: ak.self.events.command.submit_seal
+      operationId: ak.self.seals.command.submit
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -4302,14 +4381,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome
-  /_arkret/self/events/mls-governance-proof:
-    query:
-      operationId: ak.self.events.read.mls_governance_proof
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealSubmitOutcome
+  /_arkret/self/seals/mls-governance-proof:
+    post:
+      operationId: ak.self.seals.read.mls_governance_proof
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: Materialize a verifiable full-profile MLS governance binding.
+      summary: Execute one near-current stateless MLS group-security-frontier query.
       requestBody:
         required: true
         content:
@@ -4318,11 +4397,273 @@ paths:
               $ref: '#/components/schemas/MlsGovernanceProofRequestBody'
       responses:
         '200':
-          description: One manifest-committed governance proof bundle chunk
+          description: One deterministic complete response for the exact near-current frontier selector
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MlsGovernanceProofBundle'
+  /_arkret/self/seals/governance-dependencies:
+    post:
+      operationId: ak.self.seals.read.governance_dependencies
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Resolve exact AvailabilityReceipt, signer-resolution evidence, registry snapshot manifests, and registry artifacts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelfGovernanceDependencyResolveRequest'
+      responses:
+        '200':
+          description: Complete same-shape dependency result or an operation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernanceDependencyResolveOutcome'
+  /_arkret/self/history-key-requests:
+    post:
+      operationId: ak.self.history_key_requests.command.create
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Durably create one immutable scope-private history-key request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HistoryKeyRequest'
+      responses:
+        '200':
+          description: First durable accepted request receipt and sealed mailbox capability; exact retry returns the same bytes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryKeyRequestCreateOutcome'
+  /_arkret/self/history-key-requests/read:
+    post:
+      operationId: ak.self.history_key_requests.read.list
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: List unexpired requests for one exact effective scope.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HistoryKeyRequestListQuery'
+      responses:
+        '200':
+          description: Current-member projection or the RRK-holder intersecting-request projection; RRK evidence resolution separately permits the complete Control Move/Seal closure required to verify a matching archive.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryKeyRequestListOutcome'
+  /_arkret/self/history-key-responses:
+    post:
+      operationId: ak.self.history_key_responses.command.send
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Durably enqueue one immutable manifest or independently sealed chunk.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HistoryKeyResponseSendRequest'
+      responses:
+        '200':
+          description: First accepted small immutable HistoryKeyResponseSendReceipt; exact retry returns the same bytes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryKeyResponseSendOutcome'
+  /_arkret/self/history-key-responses/{reply_mailbox_id}/read:
+    parameters:
+    - name: reply_mailbox_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^ak:history_mailbox:[A-Za-z0-9_-]{22}$
+    post:
+      operationId: ak.self.history_key_responses.read.list
+      security:
+      - historyMailboxAuth: []
+      summary: Read the ordered durable capability-protected response mailbox.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HistoryKeyResponseListQuery'
+      responses:
+        '200':
+          description: Sequence-ordered normal records and signed lost descriptors with an ack token bound to every entry tuple
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryKeyResponseListOutcome'
+  /_arkret/self/history-key-responses/{reply_mailbox_id}/ack:
+    parameters:
+    - name: reply_mailbox_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^ak:history_mailbox:[A-Za-z0-9_-]{22}$
+    post:
+      operationId: ak.self.history_key_responses.command.ack
+      security:
+      - historyMailboxAuth: []
+      summary: Advance the mailbox high-water only across durable record dispositions.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HistoryKeyResponseAckRequest'
+      responses:
+        '200':
+          description: Durable contiguous acknowledgement outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryKeyResponseAckOutcome'
+  /_arkret/self/organization-recovery-archives/read:
+    post:
+      operationId: ak.self.organization_recovery_archives.read.list
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Recipient-bound byte-paged projection of RRK archives for one exact historical key tuple.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationRecoveryArchiveListQuery'
+      responses:
+        '200':
+          description: Matching archive rows with container Event refs and archive-lifetime direct traversal retention
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationRecoveryArchiveListOutcome'
+  /_arkret/peer/history-key-requests/replicate:
+    post:
+      operationId: ak.peer.history_key_requests.command.replicate
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      summary: Privately replicate one immutable history request to an exact member delivery-binding or RRK holder service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HistoryKeyRequestReplica'
+      responses:
+        '200':
+          description: First durable accepted replica receipt; exact retry returns the same bytes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryKeyRequestReplicaOutcome'
+  /_arkret/peer/history-key-responses/relay:
+    post:
+      operationId: ak.peer.history_key_responses.command.relay
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      summary: Privately relay an immutable source record to the request receipt's frozen release service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HistoryKeySourceRelay'
+      responses:
+        '200':
+          description: Byte-identical small immutable HistoryKeyResponseSendReceipt created or replayed by the destination release service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryKeyResponseSendOutcome'
+  /_arkret/peer/seals/mls-governance-proof:
+    post:
+      operationId: ak.peer.seals.read.mls_governance_proof
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      summary: Execute one near-current stateless MLS group-security-frontier query.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsGovernanceProofRequestBody'
+      responses:
+        '200':
+          description: Deterministic complete near-current frontier proof response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsGovernanceProofBundle'
+  /_arkret/peer/seals/governance-dependencies:
+    post:
+      operationId: ak.peer.seals.read.governance_dependencies
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      summary: Resolve exact governance dependencies; optional pending-archive traversal access is the only retained-cut exception.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerGovernanceDependencyResolveRequest'
+      responses:
+        '200':
+          description: Complete same-shape dependency result or an operation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernanceDependencyResolveOutcome'
+  /_arkret/peer/organization-recovery-archives/replicate:
+    post:
+      operationId: ak.peer.organization_recovery_archives.command.replicate
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      summary: Privately replicate one immutable RRK archive and its archive-lifetime direct traversal retention to the holder service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationRecoveryArchiveReplica'
+      responses:
+        '200':
+          description: First durable accepted archive replica receipt; exact retry returns the same bytes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationRecoveryArchiveReplicaOutcome'
   /_arkret/peer/principal-genesis:
     post:
       operationId: ak.peer.principal_genesis.command.submit
@@ -4758,6 +5099,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierFederationPeerState'
+  /_arkret/peer/seals/frontier:
+    query:
+      operationId: ak.peer.seals.read.frontier
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody
+      responses:
+        '200':
+          description: Authenticated complete Realm Seal frontier
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState
+  /_arkret/peer/seals/resolve:
+    query:
+      operationId: ak.peer.seals.read.resolve
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody
+      responses:
+        '200':
+          description: Authenticated exact Seal-only resolve result
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome
   /_arkret/peer/invites:
     post:
       operationId: ak.peer.invites.command.submit
@@ -4822,47 +5209,6 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome
-  /_arkret/peer/direct-conversations/repair-relay:
-    post:
-      operationId: ak.peer.direct_conversation.command.repair_relay
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Durably relay one exact requester-authorized Direct Conversation repair trigger.
-      description: |
-        The destination independently verifies the device-or-Native-Agent
-        requester evidence and the accepted repair gates. In one atomic ledger
-        transaction keyed by (Source-Service-ID, request_id), it freezes the
-        request digest and exactly one recipient branch: all current authorized
-        human devices, or one current active Native Agent runtime endpoint.
-        Exact replay returns the original outcome; a changed digest conflicts.
-        Success proves durable enqueue only and is not a business repair ack.
-      parameters:
-      - in: header
-        name: Idempotency-Key
-        required: true
-        description: MUST equal body.request_id and be covered by the HTTP Message Signature.
-        schema:
-          type: string
-          minLength: 22
-          maxLength: 128
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectConversationRepairRelayRequestBody'
-      responses:
-        '200':
-          description: Byte-identical destination durable-enqueue outcome.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectConversationRepairEnqueueOutcome'
   /_arkret/peer/keys/keypackages/claim:
     post:
       operationId: ak.peer.keys.keypackages.command.claim
@@ -5594,7 +5940,7 @@ paths:
       description: |
         Builds a ak.circle.create Operation in the named parent Realm and routes
         it through the local accept pipeline. Reducer-locked fields
-        (mls_group_ref, state) MUST NOT be actor-supplied.
+        (mls_group_id, state) MUST NOT be actor-supplied.
       requestBody:
         required: true
         content:
@@ -5969,33 +6315,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectConversationResolveOutcome'
-  /_arkret/self/direct-conversations/repair-dispatch:
-    post:
-      operationId: ak.self.direct_conversation.command.repair_dispatch
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Persist and deliver one exact Direct Conversation replacement-repair trigger.
-      description: |
-        The authenticated requester supplies no recipient target. The source
-        service validates the current participant/rejoin/contact/generation
-        gates, freezes the exact peer-relay body and current destination binding
-        in a durable outbox, and retries byte-identically until the destination
-        confirms its atomic closed-target enqueue. A different body under the
-        same requester/request_id conflicts. Success is not a repair ack.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectConversationRepairDispatchRequestBody'
-      responses:
-        '200':
-          description: Byte-identical destination durable-enqueue outcome.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectConversationRepairEnqueueOutcome'
   /_arkret/self/snapshot/head:
     get:
       operationId: ak.self.snapshot.read.manifest_head
@@ -7248,10 +7567,13 @@ paths:
       x-arkret-auth:
         public_metadata: true
         proof_in_body: false
-      summary: Read the current signed ServiceResolutionRecord.
+      summary: Read the current authenticated service-resolution closure.
       description: |
         Stable refresh surface named by ServiceResolutionRecord.current_record_url.
-        The server returns the current record for the exact stable service did_core_id.
+        The server returns the current AuthenticatedServiceResolution for the exact
+        stable service did_core_id. For did:webvh, the response includes the complete
+        gap-free native log from inception through the record position and every
+        required witness record; a resolver summary or partial log is invalid.
         TLS transports bytes but does not establish service identity; callers verify
         the record proof, method history, core projection, time ordering, successor
         sequence and describe binding. Cross-origin redirects are not followed unless
@@ -7266,7 +7588,7 @@ paths:
           pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
       responses:
         '200':
-          description: Current signed service resolution record.
+          description: Current authenticated service-resolution closure.
           headers:
             Cache-Control:
               schema:
@@ -7275,7 +7597,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_record
+                $ref: ../schemas/identity-resolution.schema.json#/$defs/authenticated_service_resolution
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
@@ -10110,7 +10432,7 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.pair_agent_key
-      description: Native personal agent runtime key pairing. Requires a ready controller-owned managed-PCR recovery backup covering the pre-commit Agent PCR frontier and a controller-signed, verifier/audience/challenge-bound private requested_scope disclosure whose digest matches the accepted-at public DID commitment. The disclosure is transaction evidence and is never copied into the authorization Event or public history. The operation validates verification_method ↔ agent_id consistency and writes ak.agent.key.authorize on approval. The accepted authorization advances the frontier and makes recovery stale until a post-commit backup tail is accepted; that transition does not roll back this successful pairing but blocks the next pairing commit. Agent runtime private keys are locally generated and never uploaded or restored.
+      description: Native personal agent runtime key pairing. Admission validates current controller/Agent authority, the fresh pairing handle, the verifier/audience/challenge-bound private requested_scope disclosure, proof-of-possession and the accepted control frontier. Backup availability and history-only MLS material are neither inputs nor readiness gates. The operation validates verification_method ↔ agent_id consistency and writes one ak.agent.key.authorize on approval. Agent runtime private keys are locally generated and never uploaded or restored.
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -10132,7 +10454,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AgentKeyPairOutcome'
         '409':
-          description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, agent_pcr_recovery_not_ready, proof_invalid, etc.)
+          description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid, etc.)
       requestBody:
         required: true
         content:
@@ -10268,7 +10590,7 @@ paths:
   /_arkret/self/agents/{agent_id}/renew-pairing:
     post:
       operationId: ak.self.agent.command.renew_pairing
-      description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle, the unchanged requested_scope_digest DID commitment, and the current managed-PCR recovery projection. All previously issued handles stay permanently unresolvable. An Agent without an active accepted runtime-key authorization uses bootstrap; an Agent holding an active authorized key (lifecycle active or paused) uses replacement while lifecycle intent, existing keys and grants stay untouched until one controller-signed authorization atomically supersedes the prior keys. Generic views express the open branch through pairing_mode/handle fields and readiness blockers and never expose runtime_state; that diagnostic is pairing-poll-local. Neither branch creates, revokes, or re-issues Realm grants. Pair commit requires pcr_recovery.status=ready; deactivated rejects.
+      description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle and the unchanged requested_scope_digest DID commitment. All previously issued handles stay permanently unresolvable. An Agent without an active accepted runtime-key authorization uses bootstrap; an Agent holding an active authorized key (lifecycle active or paused) uses replacement while lifecycle intent, existing keys and grants stay untouched until one controller-signed authorization atomically supersedes the prior keys. Generic views express the open branch through pairing_mode/handle fields and readiness blockers and never expose runtime_state or backup readiness; that diagnostic is pairing-poll-local. Neither branch creates, revokes, or re-issues Realm grants. Pair commit does not depend on history-only backup availability; deactivated rejects.
       security:
       - sessionGrantAuth: []
         dpopProof: []

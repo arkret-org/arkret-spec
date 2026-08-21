@@ -14,6 +14,9 @@
       "$ref": "#/$defs/service_resolution_record"
     },
     {
+      "$ref": "#/$defs/authenticated_service_resolution"
+    },
+    {
       "$ref": "#/$defs/service_route_handover_notice"
     }
   ],
@@ -22,6 +25,28 @@
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
       "description": "Lowercase hexadecimal SHA-256 digest."
+    },
+    "authenticated_service_resolution": {
+      "type": "object",
+      "description": "Self-contained current service-resolution verification input. The receiver validates the signed record, complete method-native history material and normalized DID document before using any verification method. This is the public service bootstrap response; a bare current record or a resolver-produced history summary is insufficient to freeze a Realm notary signer.",
+      "required": [
+        "service_resolution_record",
+        "method_history_evidence",
+        "normalized_did_document"
+      ],
+      "properties": {
+        "service_resolution_record": {
+          "$ref": "#/$defs/service_resolution_record"
+        },
+        "method_history_evidence": {
+          "$ref": "#/$defs/method_history_evidence"
+        },
+        "normalized_did_document": {
+          "type": "object",
+          "description": "Exact normalized DID Document whose canonical digest equals method_history_evidence.evidence.document_digest. Its id equals service_resolution_record.record.full_id and the record proof names an authorized assertionMethod in this document."
+        }
+      },
+      "additionalProperties": false
     },
     "method_evidence_boundary": {
       "type": "object",
@@ -60,12 +85,14 @@
     },
     "webvh_method_history_evidence": {
       "type": "object",
-      "description": "Bounded did:webvh log, proof and witness material routed to adapter did:webvh:1.0. Canonical encoded evidence MUST NOT exceed 1 MiB; a larger history is split into separately verified bounded responses.",
+      "description": "Complete did:webvh log, proof and witness material routed to adapter did:webvh:1.0. log_entries is the gap-free native history from inception through boundary.to_version_id, not a resolver summary or a partial segment. witness_records is the complete did-witness.json record set required by every witness policy active in that interval and is empty only when no entry activates a witness policy. The receiver independently verifies SCID derivation, every versionId/hash-chain link, every controller proof, rotation authorization, all applicable witness thresholds, the exact boundary endpoints and canonical equality of the terminal state with normalized_did_document. Canonical encoded evidence MUST NOT exceed 1 MiB; an over-limit service history is ineligible for this retained historical-signer/notary bootstrap and fails closed rather than returning partial evidence.",
       "required": [
         "adapter_version",
         "evidence_kind",
         "boundary",
-        "evidence"
+        "evidence",
+        "log_entries",
+        "witness_records"
       ],
       "properties": {
         "adapter_version": {
@@ -79,7 +106,24 @@
         },
         "evidence": {
           "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt",
-          "description": "Closed canonical evidence receipt for exactly the inclusive boundary. method MUST be webvh and method_proofs MUST carry the matching webvh_log row; the public evidence evaluator checks its history_head against boundary.to_method_history_head."
+          "description": "Closed canonical evidence receipt for exactly the inclusive boundary. method MUST be webvh and method_proofs MUST carry the matching webvh_log row; the public evidence evaluator checks its history_head against boundary.to_method_history_head. This receipt summarizes the independently reverified log_entries/witness_records but never replaces them."
+        },
+        "log_entries": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": {
+            "type": "object"
+          },
+          "description": "Exact ordered native did:webvh entry objects from inception through the selected terminal entry. The adapter applies the registered did:webvh parameter-name and proof rules and rejects gaps, duplicates, surplus entries after boundary.to_version_id, or a first entry other than inception."
+        },
+        "witness_records": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "type": "object"
+          },
+          "description": "Exact native did-witness.json record objects needed by log_entries. Records are keyed uniquely by versionId; missing, duplicate, invalid or surplus records fail closed. The array is empty exactly when the verified log activates no witness policy."
         }
       },
       "additionalProperties": false

@@ -71,7 +71,9 @@
               "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a8200-0000-7000-8000-000000000004",
               "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
               "created_at": "2026-07-29T02:00:00.000Z",
-              "jws": "e30..c2ln"
+              "jws": "e30..c2ln",
+              "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "signer_resolution_evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }
           ],
           "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"

@@ -1,51 +1,100 @@
 {
-  "version": "2026-08-13.2",
+  "version": "2026-08-21.1",
   "source_of_truth": true,
   "description": "Canonical registry of all normative MLS-Exporter and MLS ExpandWithLabel domain-separation labels in Arkret v1. Each label is a wire-breaking security parameter: implementations MUST use the exact label string, primitive, and Context field shape, and MUST NOT migrate or reuse keys across distinct labels without a new profile. MLS-Exporter entries MUST NOT derive with an empty Context; an ExpandWithLabel entry follows its registered context_encoding, including an explicitly registered empty context. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
   "labels": [
     {
-      "label": "ak.content-v1",
-      "primitive": "ExpandWithLabel",
-      "parent_label": "ak.history-v1",
-      "purpose": "Per-epoch content AEAD key derived from history_secret for mls_exporter_aead_v1",
-      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10.1",
-      "context_fields": [],
-      "context_encoding": "empty byte string, exactly as specified by the registered ExpandWithLabel derivation",
-      "output_bytes": "AEAD.Nk for the active MLS ciphersuite",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "grandfathered": false,
-      "empty_context_forbidden": false,
-      "forbid_reuse_with": [
-        "ak.history-v1",
-        "arkret-aead-sender-nonce-prefix-v1",
-        "arkret-reaction-routing-v1",
-        "arkret-mention-routing-v1"
-      ]
-    },
-    {
       "label": "ak.history-v1",
       "primitive": "MLS-Exporter",
-      "purpose": "Per-epoch history_secret root for mls_exporter_aead_v1 content encryption; may be retained and re-sealed to authorized later joiners via ak.realm_key.share",
-      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10.1",
-      "context_fields": [
-        "realm_id"
-      ],
-      "context_encoding": "realm_id UTF-8 bytes exactly as serialized in the enclosing Realm id string",
-      "output_bytes": "KDF.Nh for the active MLS ciphersuite",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
-      ],
+      "purpose": "Per-epoch exporter-scheme history root",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10",
+      "context_fields": ["effective_scope"],
+      "context_encoding": "canonical_effective_scope_key_bytes(effective_scope): UTF-8 canonical RealmId for Realm or UTF-8 canonical CircleId for Circle; JCS, realm-only context and empty context are forbidden",
+      "output_bytes": "KDF.Nh",
+      "applies_to_profiles": [],
+      "applies_to_content_schemes": ["mls_exporter_aead_v1"],
       "grandfathered": false,
       "empty_context_forbidden": true,
-      "empty_context_error": "e2ee_key_source_unauthorised",
-      "forbid_reuse_with": [
-        "ak.content-v1",
-        "arkret-aead-sender-nonce-prefix-v1",
-        "arkret-reaction-routing-v1",
-        "arkret-mention-routing-v1"
-      ]
+      "empty_context_error": "mls_exporter_context_invalid",
+      "forbid_reuse_with": ["ak.reaction-routing-root-v1", "ak.signal-root-v1"]
+    },
+    {
+      "label": "ak.content-v1",
+      "primitive": "ExpandWithLabel",
+      "parent_secret": "ak.history-v1",
+      "purpose": "Per-verified-sender exporter content AEAD key",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10",
+      "context_fields": ["sender_domain"],
+      "context_encoding": "exact active LeafNode BasicCredential identity bytes; ordinary DeviceId UTF-8, Native Agent ActorId UTF-8, or Realm-global minimal endpoint-incarnation pairwise ActorId UTF-8",
+      "output_bytes": "AEAD.Nk",
+      "applies_to_profiles": [],
+      "applies_to_content_schemes": ["mls_exporter_aead_v1"],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "mls_sender_domain_invalid",
+      "forbid_reuse_with": ["ak.reaction-routing-v1", "ak.signal-v1"]
+    },
+    {
+      "label": "ak.reaction-routing-root-v1",
+      "primitive": "MLS-Exporter",
+      "purpose": "Non-deliverable standard-MLS reaction routing root",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.9",
+      "context_fields": ["effective_scope"],
+      "context_encoding": "canonical_effective_scope_key_bytes(effective_scope)",
+      "output_bytes": "KDF.Nh",
+      "applies_to_profiles": [],
+      "applies_to_content_schemes": ["mls_rfc9420"],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "mls_exporter_context_invalid",
+      "forbid_reuse_with": ["ak.history-v1", "ak.signal-root-v1"]
+    },
+    {
+      "label": "ak.reaction-routing-v1",
+      "primitive": "ExpandWithLabel",
+      "parent_secret": "history_secret for exporter scheme; ak.reaction-routing-root-v1 for standard scheme",
+      "purpose": "One-hour target-bound reaction routing HMAC key",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.9",
+      "context_fields": ["effective_scope", "target_ref", "routing_window"],
+      "context_encoding": "RFC 8785 JCS bytes of closed {effective_scope,target_ref,routing_window}",
+      "output_bytes": 32,
+      "applies_to_profiles": [],
+      "applies_to_content_schemes": ["mls_rfc9420", "mls_exporter_aead_v1"],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "reaction_routing_context_invalid",
+      "forbid_reuse_with": ["ak.content-v1", "ak.signal-v1"]
+    },
+    {
+      "label": "ak.signal-root-v1",
+      "primitive": "MLS-Exporter",
+      "purpose": "Non-deliverable standard-MLS Signal root",
+      "defined_in": "zh/sync/signal.md §1",
+      "context_fields": ["effective_scope"],
+      "context_encoding": "canonical_effective_scope_key_bytes(effective_scope)",
+      "output_bytes": "KDF.Nh",
+      "applies_to_profiles": [],
+      "applies_to_content_schemes": ["mls_rfc9420"],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "mls_exporter_context_invalid",
+      "forbid_reuse_with": ["ak.history-v1", "ak.reaction-routing-root-v1"]
+    },
+    {
+      "label": "ak.signal-v1",
+      "primitive": "ExpandWithLabel",
+      "parent_secret": "history_secret for exporter scheme; ak.signal-root-v1 for standard scheme",
+      "purpose": "Per-verified-sender Signal AEAD key",
+      "defined_in": "zh/sync/signal.md §1",
+      "context_fields": ["sender_domain"],
+      "context_encoding": "exact active LeafNode BasicCredential identity bytes",
+      "output_bytes": "AEAD.Nk",
+      "applies_to_profiles": [],
+      "applies_to_content_schemes": ["mls_rfc9420", "mls_exporter_aead_v1"],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "mls_sender_domain_invalid",
+      "forbid_reuse_with": ["ak.content-v1", "ak.reaction-routing-v1"]
     },
     {
       "label": "ak.rtc-frame-key/v1",
@@ -123,93 +172,6 @@
       "forbid_reuse_with": [
         "ak.rtc-frame-key/v1",
         "ak.rtc-recording-key/v1"
-      ]
-    },
-    {
-      "label": "ak.signal-v1",
-      "primitive": "ExpandWithLabel",
-      "parent_label": "ak.history-v1",
-      "purpose": "Per-epoch, per-sender-device Signal AEAD key for the ak.signal_exporter_aead.v1 construction. Sender key separation prevents a 32-bit AES-GCM sender_nonce_prefix collision from becoming same-key nonce reuse.",
-      "defined_in": "zh/sync/signal.md",
-      "context_fields": [
-        "sender_device_id"
-      ],
-      "context_encoding": "canonical JSON (RFC 8785 JCS) bytes of {sender_device_id}; empty Context is forbidden",
-      "output_bytes": "AEAD.Nk for the active MLS ciphersuite",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "grandfathered": false,
-      "empty_context_forbidden": true,
-      "empty_context_error": "e2ee_key_source_unauthorised",
-      "forbid_reuse_with": [
-        "ak.history-v1",
-        "arkret-aead-sender-nonce-prefix-v1",
-        "arkret-reaction-routing-v1",
-        "arkret-mention-routing-v1"
-      ]
-    },
-    {
-      "label": "arkret-aead-sender-nonce-prefix-v1",
-      "primitive": "MLS-Exporter",
-      "purpose": "Per-sender AEAD nonce prefix for every AEAD-bearing v1 envelope (nonce = sender_nonce_prefix || device_nonce_counter_be64); canonical derivation defined once in encoding.md, domain documents only declare their `purpose` value",
-      "defined_in": "zh/conformance/encoding.md §10.1 (AEAD nonce uniqueness)",
-      "context_fields": [
-        "key_ref",
-        "epoch",
-        "device_id",
-        "purpose",
-        "aead_profile"
-      ],
-      "context_encoding": "canonical-bytes of the JSON object {\"key_ref\", \"epoch\", \"device_id\", \"purpose\", \"aead_profile\"} (not a bare string)",
-      "output_bytes": "N_AEAD - 8 (16 for XChaCha20-Poly1305, 4 for AES-GCM)",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "grandfathered": false,
-      "empty_context_forbidden": true,
-      "empty_context_error": "e2ee_key_source_unauthorised",
-      "forbid_reuse_with": []
-    },
-    {
-      "label": "arkret-mention-routing-v1",
-      "primitive": "MLS-Exporter",
-      "purpose": "Keyed-HMAC key for the opt-in mention routing sidecar tag in E2EE Realms (mention_routing_hmac_v1 = HMAC-SHA256(key, utf8(mentioned_did)); the exporter output is the HMAC key; Principal Server transport and sync surfaces MUST NOT derive, receive or persist the exporter secret)",
-      "defined_in": "zh/discovery/push-notifications.md (mention sidecar hint, mention_routing_hmac_v1)",
-      "context_fields": [
-        "realm_id"
-      ],
-      "context_encoding": "realm_id UTF-8 bytes exactly as serialized in the enclosing Realm id string",
-      "output_bytes": 32,
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "grandfathered": false,
-      "empty_context_forbidden": true,
-      "empty_context_error": "e2ee_key_source_unauthorised",
-      "forbid_reuse_with": [
-        "arkret-reaction-routing-v1"
-      ]
-    },
-    {
-      "label": "arkret-reaction-routing-v1",
-      "primitive": "MLS-Exporter",
-      "purpose": "Keyed-HMAC key for the plaintext reaction routing tag in E2EE Realms (reaction_routing_hmac_v1 = HMAC-SHA256(key, utf8(canonical_emoji)); the exporter output is the HMAC key)",
-      "defined_in": "zh/crypto-media/encryption-and-audit.md (reaction visibility rules, reaction_routing_hmac_v1)",
-      "context_fields": [
-        "realm_id"
-      ],
-      "context_encoding": "realm_id UTF-8 bytes exactly as serialized in the enclosing Realm id string",
-      "output_bytes": 32,
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1",
-        "ak.profile.mls.minimal_metadata_realm.v1"
-      ],
-      "grandfathered": false,
-      "empty_context_forbidden": true,
-      "empty_context_error": "e2ee_key_source_unauthorised",
-      "forbid_reuse_with": [
-        "arkret-mention-routing-v1"
       ]
     }
   ]

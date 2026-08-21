@@ -250,7 +250,7 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 
 ### 6.2 没有 `ak.realm.policy.set` 这种聚合 kind
 
-Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 的事件（power_levels、join_rules、history_visibility 等共享同一 prefix）。Arkret v1 把每个配置 facet 拆成独立 kind：`ak.realm.policy`、`ak.realm.join_rule`、`ak.realm.history_visibility`、`ak.realm.discovery`、`ak.realm.media_service`、`ak.realm.archive`、`ak.realm.tombstone` 等；完整 active kind 集合以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为权威源。
+Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 的事件（power_levels、join_rules、history_access 等共享同一 prefix）。Arkret v1 把每个配置 facet 拆成独立 kind：`ak.realm.policy`、`ak.realm.join_rule`、`ak.realm.history_access`、`ak.realm.discovery`、`ak.realm.media_service`、`ak.realm.archive`、`ak.realm.tombstone` 等；完整 active kind 集合以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为权威源。
 
 **理由**：聚合 kind 没有真实共享：每个 facet 有不同的 capability tier、auth refs、payload schema、reducer 行为。把它们绑成一个 kind 只是 Matrix wire 字段限制的产物，不反映任何模型上的共性。Arkret 的 per-facet kind 让 schema 路由更直、capability 矩阵更清楚、未来 facet 演进可独立版本化。
 
@@ -302,7 +302,7 @@ Arkret 可以继续吸收 Matrix 的成熟经验：
 ## 8. 相关文档
 
 - [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — Move、Seal、Lattice、bottom diagnostics、E2EE MLS Move
-- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Security Frontier Binding：`governance_binding.security_frontier_digest` 与 active generation projection
+- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Security Frontier Binding：`governance_binding.security_frontier_digest` 与 current winning group-state projection
 - [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) — device 密钥记录、prekey / fallback / KeyPackage claim、to-device 验证状态机、`push_target_id`、key backup envelope
 - [`identity/key-management.md`](../identity/key-management.md) — inception / principal / recovery / device / session / agent / KeyPackage 密钥层级，`backup_kind` 域隔离，社交恢复
 - [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（or_set lattice）

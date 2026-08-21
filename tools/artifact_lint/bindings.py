@@ -1752,6 +1752,16 @@ def _supply_walk_demand(
                 ref_supplied = (resolved[0], resolved[1]) in supplied_defs
                 resolved_file = resolved[0]
                 resolved_sub = resolved[2]
+        elif isinstance(sub, dict) and isinstance(sub.get("items"), dict):
+            item_schema = sub["items"]
+            if "$ref" in item_schema:
+                resolved_item = _supply_resolve_ref(
+                    schema_files, file, item_schema["$ref"]
+                )
+                if resolved_item is not None:
+                    ref_def = resolved_item[1]
+                    ref_file = resolved_item[0]
+                    ref_supplied = (resolved_item[0], resolved_item[1]) in supplied_defs
         field_caller_signed = (
             caller_signed
             or ref_def in _SUPPLY_CALLER_SIGNED_SCHEMAS

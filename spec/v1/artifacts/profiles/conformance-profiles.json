@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-20.1",
-  "generated_at": "2026-08-20T10:38:00+08:00",
+  "version": "2026-08-21.1",
+  "generated_at": "2026-08-21T18:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -642,7 +642,7 @@
     "ak.profile.traffic_metadata_hardened.v1": "admin",
     "ak.profile.key_backup.memory_hard.v1": "admin",
     "ak.profile.circle_seal_cadence.fixed_5m.v1": "admin",
-    "ak.profile.notary.single_did.v1": "admin",
+    "ak.profile.notary.single_signer.v1": "admin",
     "ak.profile.notary.threshold.v1": "admin",
     "ak.profile.notary.open_set.v1": "admin",
     "ak.profile.notary.mixed_recovery.v1": "admin",
@@ -666,7 +666,6 @@
     "ak.profile.mls_governance_binding.full.v1",
     "keypackage_claim_lifecycle",
     "ak.profile.mls.minimal_metadata_realm.v1",
-    "aad_visibility_policy",
     "ak.profile.attested_audit.e2ee.v1",
     "ak.profile.disclosed_audit.e2ee.v1",
     "e2ee_report_framed_franking"
@@ -676,7 +675,7 @@
     "private_contact_discovery",
     "connection_identifier_separation",
     "ak.profile.traffic_metadata_hardened.v1",
-    "history_sharing_policy",
+    "history_access_and_private_recovery",
     "preview_policy"
   ],
   "mimi_interop": [
@@ -1196,7 +1195,6 @@
       "role": "admin",
       "description": "Fail-closed Realm role profile for one stable two-principal Direct Conversation. The role is identified only by schema_refs containing this profile together with fields.collaboration_role=direct_conversation.",
       "required_endpoints": [
-        "ak.self.direct_conversation.command.repair_dispatch",
         "ak.self.direct_conversation.read.resolve",
         "ak.self.contact.command.request",
         "ak.self.contact.command.checkpoint",
@@ -1206,7 +1204,6 @@
         "ak.self.contact.command.tombstone",
         "ak.self.events.command.submit",
         "ak.peer.contacts.command.submit",
-        "ak.peer.direct_conversation.command.repair_relay",
         "ak.peer.keys.keypackages.command.claim",
         "ak.peer.keys.keypackages.read.claim",
         "ak.peer.events.command.submit",
@@ -1222,11 +1219,7 @@
         "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
         "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
         "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
-        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
-        "schemas/device-message.schema.json#/$defs/member_repair_request_content",
-        "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_dispatch_request",
-        "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_relay_request",
-        "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome"
+        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1270,15 +1263,12 @@
         "schema-validation-fixture.json",
         "encoding-fixture.json",
         "direct-conversation-fixture.json",
-        "history-crypto-closure-fixture.json"
+        "history-key-recovery-fixture.json"
       ],
       "required_vectors": [
         "ak.vector.contact.next_prepare_input.v1",
         "ak.vector.contact.pending_incoming_request_receipt.v1",
-        "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
-        "ak.vector.direct_conversation.repair_dispatch.v1",
-        "ak.vector.direct_conversation.send_blocker_authority.v1",
-        "ak.vector.history_sharing.direct_conversation_profile_baseline.v1"
+        "ak.vector.direct_conversation.send_blocker_authority.v1"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -1286,7 +1276,6 @@
           "direct_conversation_realm_role",
           "direct_conversation_stable_binding_reducer",
           "direct_conversation_founding_unit_admission",
-          "direct_conversation_repair_peer_relay",
           "direct_conversation_suspend_rejoin",
           "direct_conversation_participant_authority",
           "direct_conversation_root_owner_mask"
@@ -1296,31 +1285,10 @@
       "realm_defaults": {
         "default_discoverability": "invite_only",
         "default_join_rule": "closed",
-        "history_visibility": "joined",
+        "history_access": "since_join",
         "encryption_profile": "mls_rfc9420",
         "content_encryption_floor": "e2ee_required",
         "metadata_encryption_floor": "e2ee_required"
-      },
-      "history_sharing_policy_fixed_baseline": {
-        "rationale": "zh/governance/history-visibility.md section 6 condition 2 requires an effective ak.realm.history_sharing_policy before every ak.realm_key.share; the requirement is unconditional and is not limited to restricted visibility. A Direct Conversation Realm can never publish one: the founding unit is the closed four-Event unit create + peer ak.member.state{join} + main ak.strand.create + founder ak.member.state{join}; a fifth Event MUST reject the whole unit. Neither ak.authority.direct_conversation_bootstrap_participant.v1 nor ak.authority.direct_conversation_participant.v1 carries any action that could author a policy facet, and zh/identity/contact-and-direct-conversation.md section 8.3 forbids restoring owner or admin authority after found. This profile therefore supplies the effective value, exactly as ak.profile.principal_control_realm.v1 does for a PCR; key sources and reducers MUST evaluate Direct Conversation history key share against this literal value and MUST NOT raise history_sharing_policy_missing for the absence of an accepted policy Event. Producers MUST NOT declare history_sharing_policy on the Realm object and MUST NOT append a policy Event to the founding unit. Field decisions: default_key_share=event_time_visibility is correct because history_visibility=joined and both participants are Realm members from Realm Genesis onward (section 6.2), so the event-time judgement alone already releases generation-0 history. allowed_receiver_states=[active_member] is the machine-readable form of the exact-peer-only history sharing baseline, since the profile pins exactly two participants and an active member can only be one of that pair. allowed_key_sources keeps own_device, verified_member_device and key_backup, the last covering a participant restoring across their own devices from their own backup, and deliberately omits archive_node and recovery_service, which are third parties and would break the two-party exclusivity this profile exists to guarantee. post_removal_recovery=deny matches section 8.2, where a returning participant MUST NOT obtain history it had no right to decrypt before rejoining, and the new_mls_generation_history_isolated rule of ak.profile.direct_conversation_repair.v1. restricted_rules is deliberately absent because history_visibility is joined, not restricted, so that rule set is never consulted. Two different meanings of pre-join MUST NOT be conflated. pre_join_history here means before becoming a Realm member; in a Direct Conversation both participant join_frontiers are Realm Genesis itself, so no Event in the Realm has a T0 earlier than either one, the field is structurally never reached, and deny behaves identically to any allowing value; deny is chosen only to state truthfully that this profile never releases pre-membership history. The pre-join wording in section 6.2 means something else entirely, namely that the peer is not yet an MLS leaf, and that generation-0 history MUST be shared: implementations MUST NOT refuse the generation-0 provisional history key share of ak.authority.direct_conversation_bootstrap_participant.v1 because pre_join_history=deny. No release_range_clamp counterpart is registered here. The PCR clamp exists because its restricted_rules[].range=all_visible_at_t0 is a policy ceiling wider than the interval a newly authorized device may actually receive; this baseline declares no restricted_rules and therefore no range at all, and default_key_share=event_time_visibility delegates the released interval entirely to the section 3 joined event-time judgement, which is already self-clamping because an absence window between leave and rejoin is not T0-visible to the returning participant. The normative conformance vector for this clause is ak.vector.history_sharing.direct_conversation_profile_baseline.v1.",
-        "value": {
-          "version": 1,
-          "default_key_share": "event_time_visibility",
-          "pre_join_history": "deny",
-          "post_removal_recovery": "deny",
-          "allowed_key_sources": [
-            "own_device",
-            "verified_member_device",
-            "key_backup"
-          ],
-          "allowed_receiver_states": [
-            "active_member"
-          ],
-          "audit": {
-            "share_audit_event_required": true,
-            "access_audit_required": true
-          }
-        }
       },
       "client_local_send_blockers": {
         "rationale": "The Direct Conversation resolver may only report send blockers it can prove from accepted authoritative state. Two facts are structurally outside that boundary. ak.account.blocklist is holder-private account data that a synchronizing service is required to hold encrypted to holder devices only, so a service that evaluated personal_blocked would have to break that encryption invariant; and whether a given historical MLS secret was ever installed is device-private key state, so a client self-report of history_key_unavailable is a claim, not authority. Both values are therefore removed from the closed wire enum direct_conversation_send_blocker rather than merely annotated there: after removal a service that returns one produces a machine-detectable schema_violation, whereas an annotation would eventually be violated silently. They are carried instead by this closed client-local set, which is evaluated only on the holder's own device from state only that device holds. presence_offline and keypackage_empty stay on the wire because the service does hold provable facts for them, but they are visible only to an existing exact-pair participant of that pair, so they cannot serve as an enumeration oracle. The consequence is deliberate and MUST be documented by implementers: after a block, the fact that sending is refused is known only to the blocking client - not to its own service and not to the peer - and neither of them is entitled to know it. Implementations that habitually ask the server for send state will find the resolver returning found with an empty send_blockers[] and MUST still refuse the send locally. The normative conformance vector for this clause is ak.vector.direct_conversation.send_blocker_authority.v1.",
@@ -1344,14 +1312,13 @@
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
         "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit. realm_id and main_strand_id are retyped from the first and third Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
         "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the stored receipt without advancing accepted_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit.",
-        "Cross-Principal-Server founding MUST NOT depend on the peer service: the founder creates the Realm, activates generation 0 and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage. Federated delivery of the unit uses the direct_conversation_founding branch of ak.peer.events.command.submit and reports a missing bounded dependency as a top-level retryable dependency_missing with zero writes.",
-        "The unit's Genesis Seal MUST cover all four Events, every required founding write of an ordinary Realm create, and the create-locked baseline projection of join_rule=closed, content_scheme=mls_exporter_aead_v1, both e2ee_required floors and history_visibility=joined with exact-peer-only sharing. Sealing any strict prefix and appending either membership Event or the Strand afterwards MUST be rejected, and a same-batch facet Event that repeats or overrides a baseline value MUST be rejected.",
+        "Cross-Principal-Server founding MUST NOT depend on the peer service: the founder creates the Realm and its one scope-derived MLS group and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage.",
+        "The unit's Genesis Seal MUST cover all four Events, every required founding write of an ordinary Realm create, and the create-locked baseline projection of join_rule=closed, content_scheme=mls_exporter_aead_v1 and both e2ee_required floors together with the initial current history_access=since_join facet. Sealing any strict prefix and appending either membership Event or the Strand afterwards MUST be rejected, and a same-batch facet Event that repeats or overrides a baseline value MUST be rejected.",
         "Between the accepted founding unit and the first legal binding endorsement, pre-binding writes MUST cite authorization_ref=ak.authority.direct_conversation_bootstrap_participant.v1 with exactly one critical refs[] role=direct_conversation_founding_unit reference to the accepted ak.realm.create. The verifier recomputes the mutually exclusive phase from accepted facts; the producer MUST NOT declare it. Both phases retire permanently once the first legal endorsement is accepted.",
-        "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; current MLS generation is a separate accepted-history projection.",
+        "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; an encrypted Direct Conversation has one scope-derived group and one monotonic epoch lineage projected from accepted history.",
         "Leave, ban, block, either directional Contact terminal and participant terminal state suspend new writes without destroying the binding or creating a successor Realm. Consent changes never affect Personal DM authority. Recovery reuses the same Realm and MUST NOT automatically redeliver old epoch keys or history secrets.",
         "Principal-private deletion and global content/key erasure retain stable pair, Realm and main Strand identity. The resolver never returns a competing candidate or performs winner selection.",
         "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source.",
-        "The effective ak.realm.history_sharing_policy of a Direct Conversation Realm is history_sharing_policy_fixed_baseline.value, supplied by this profile. Key sources and reducers MUST evaluate every ak.realm_key.share in this Realm against that literal value and MUST NOT raise history_sharing_policy_missing for the absence of an accepted policy Event. Producers MUST NOT declare history_sharing_policy on the Realm object and MUST NOT emit ak.realm.history_sharing_policy into this Realm: the founding unit is closed at exactly four Events so a fifth Event MUST reject the whole unit, neither ak.authority.direct_conversation_bootstrap_participant.v1 nor ak.authority.direct_conversation_participant.v1 carries an action that could author a policy facet, and owner or admin authority MUST NOT be restored after found. history_visibility here is joined, so the baseline declares no restricted_rules and none is ever consulted; both participants are Realm members from Realm Genesis onward, so pre_join_history is structurally never reached and MUST NOT be used to refuse the generation-0 provisional history key share.",
         "The two client-local send blockers of client_local_send_blockers MUST NOT appear on any wire surface, and the resolver MUST NOT return suspended because one of them applies; the resolver reports only server-verifiable blockers, and personal_blocked or history_key_unavailable on the wire is a schema_violation."
       ],
       "participant_authority": {
@@ -1376,7 +1343,7 @@
           "ak.strand.create",
           "ak.typing.broadcast"
         ],
-        "scope_rule": "non_suspended_non_circle_discussion_strands_in_stably_bound_realm_using_current_active_mls_generation",
+        "scope_rule": "non_suspended_non_circle_discussion_strands_in_stably_bound_realm_using_the_unique_scope_derived_mls_group",
         "consent_gated_actions": [
           "ak.call.join",
           "ak.call.screen_share",
@@ -1516,9 +1483,6 @@
           "ak.mls.commit_failed",
           "ak.mls.welcome",
           "ak.mls.keypackage",
-          "ak.realm_key.share",
-          "ak.realm_key.withheld",
-          "ak.realm_key.share_audit",
           "ak.key_backup.active_series",
           "ak.consent.grant",
           "ak.consent.revoke",
@@ -1580,54 +1544,10 @@
         "federation_policy": "closed",
         "default_discoverability": "secret",
         "default_join_rule": "closed",
-        "history_visibility": "restricted",
+        "history_access": "since_join",
         "encryption_profile": "mls_rfc9420",
         "content_encryption_floor": "e2ee_required",
         "metadata_encryption_floor": "e2ee_required"
-      },
-      "history_sharing_policy_fixed_baseline": {
-        "rationale": "A PCR MUST declare history_visibility=restricted, and zh/governance/history-visibility.md section 3 forbids an effective restricted visibility without an accepted ak.realm.history_sharing_policy. But a PCR can never publish one: realm_event_kind_policy is allowlist_only and does not list that kind, PCR genesis is the closed two-Event unit create + ak.device.authorize (managed Agent PCR genesis is a single create), and the post-bootstrap recovery-material gate admits only its own closed write set. This profile therefore supplies the effective value. Implementations MUST evaluate PCR history key share against this literal value; producers MUST NOT declare it on the Realm object (realm.schema.json is closed and has no history_sharing_policy property) and MUST NOT emit ak.realm.history_sharing_policy into a PCR.",
-        "value": {
-          "version": 1,
-          "default_key_share": "deny",
-          "pre_join_history": "rule_only",
-          "post_removal_recovery": "deny",
-          "allowed_key_sources": [
-            "own_device",
-            "verified_member_device",
-            "key_backup"
-          ],
-          "allowed_receiver_states": [
-            "active_member"
-          ],
-          "audit": {
-            "share_audit_event_required": true,
-            "access_audit_required": true
-          },
-          "restricted_rules": [
-            {
-              "rule_id": "principal_control_authorized_device",
-              "receiver_classes": [
-                "active_member"
-              ],
-              "allowed_history_visibility_values": [
-                "restricted"
-              ],
-              "range": "all_visible_at_t0",
-              "key_sources": [
-                "own_device",
-                "verified_member_device",
-                "key_backup"
-              ],
-              "history_scope": {
-                "kind": "realm"
-              },
-              "audit_required": true
-            }
-          ]
-        },
-        "release_range_clamp": "range=all_visible_at_t0 is the policy ceiling, not the released interval. The releasing side MUST additionally clamp to the receiving device's accepted ak.device.authorize frontier per zh/identity/key-management.md section 5.0.1 (PCR history key share release authorization) and MUST NOT release earlier or concurrent-branch epoch keys. Pre-authorize control state reaches a new device through the durable device-list / normalized principal view baseline, not through earlier epoch keys.",
-        "excluded_key_sources": "archive_node and recovery_service are deliberately absent: a PCR is security_class=high_assurance with federation_policy in {closed, restricted, quarantine}, and its history secrets MUST NOT be recoverable through a third-party archive or recovery service. Managed Agent PCR continuity uses the controller-owned mls_history backup, which is a key_backup source."
       },
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
@@ -1635,12 +1555,11 @@
         "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing ordinary Event, lease, reducer, allowlist, or Seal processing is non-conformant.",
         "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
         "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",
-        "history_visibility MUST be restricted; new same-principal devices obtain prior control history via durable device-list / normalized principal view baseline and policy-gated MLS history key share, not by joining at the current epoch.",
+        "history_access MUST equal since_join. A standard-MLS PCR has no deliverable history secret; a new same-principal endpoint starts at its own initial Add/Welcome admission, while durable device-list and normalized principal views provide the control baseline without restoring foreign active MLS state.",
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer.",
         "A managed Agent principal_control_realm_id and immutable requested_scope commitment MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; the public entry fixes only realm_id, controller_did, authorization_ref and the domain-separated requested_scope_digest. The complete scope MUST come from a controller-signed verifier/audience/challenge-bound private disclosure whose digest matches that commitment. Implementation-private deterministic derivation or a service-local Agent row is not protocol evidence.",
         "Managed Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
         "A managed Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md 6.0.1 forbids. The managed Agent PCR and its controller PCR MUST be hosted by the same Principal Server, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
-        "The effective ak.realm.history_sharing_policy of a PCR is history_sharing_policy_fixed_baseline.value, supplied by this profile. Producers MUST NOT declare history_sharing_policy on the Realm object and MUST NOT emit ak.realm.history_sharing_policy into a PCR; that kind is absent from realm_event_kind_policy.allowed_event_kinds and the write MUST be rejected with principal_control_event_kind_forbidden.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
         "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked ak.component.identity.resolution.v1 cell, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision."
       ]
@@ -1787,7 +1706,7 @@
         "required": [
           "supported_sync_profiles",
           "supported_event_kinds",
-          "discussion_history_visibility"
+          "discussion_history_access"
         ],
         "unsupported_optional": "return unsupported_feature without dropping encrypted events"
       }
@@ -1972,10 +1891,7 @@
         "ak.device.revoke",
         "ak.mls.proposal",
         "ak.mls.commit",
-        "ak.mls.welcome",
-        "ak.realm_key.share",
-        "ak.realm_key.withheld",
-        "ak.realm_key.share_audit"
+        "ak.mls.welcome"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -1992,7 +1908,7 @@
       "optional_extensions": [
         "ak.profile.agent_signer_evidence.v1",
         "ak.profile.mls.minimal_metadata_realm.v1",
-        "aad_visibility_policy"
+        "ak.feature.history_key_recovery.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -2002,6 +1918,9 @@
           "encrypted_key_backup"
         ],
         "unsupported_optional": "preserve encrypted events and expose key_missing"
+      },
+      "conditional_requirements": {
+        "exporter_all_history": "A client that creates or joins a scope with content_scheme=mls_exporter_aead_v1 and history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and implement the complete history-key request/manifest/chunk/mailbox plus receipt-bound direct accepted-Seal traversal contract through the standard Event, Seal and governance-dependency resolve surfaces. The stateless Seal-governance proof is near-current frontier only. Missing feature support is fail closed; standard MLS has no history-recovery fallback."
       }
     },
     "ak.profile.agent_signer_evidence.v1": {
@@ -2319,7 +2238,8 @@
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",
         "ak.profile.push_gateway.v1",
-        "snapshot_witness"
+        "snapshot_witness",
+        "ak.feature.history_key_recovery.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -2336,7 +2256,8 @@
         "invite_claim_allowlist_recheck_must": "Reducer MUST re-check binding_proof.verification_service_id against the current effective Realm allowlist and any invite-pinned service DID before accepting subject_proof.",
         "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
         "invite_claim_membership_conversion_must": "Successful claim MUST atomically transition invite pending -> claimed and materialize only a subject-bound standard invite or membership proposal; final join still requires ak.invite.accept or an explicitly profiled equivalent path.",
-        "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1."
+        "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1.",
+        "history_key_recovery_conditional_must": "A Principal Server that accepts or serves an mls_exporter_aead_v1 scope with history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and expose the complete registered self/peer Seal-proof, request, response, relay and RRK archive operation set. Partial legacy realm_key feature claims are forbidden."
       }
     },
     "ak.profile.federation_minimal.v1": {
@@ -2903,7 +2824,6 @@
       "feature_discovery": {
         "required": [
           "blind_wakeup_payload_schema",
-          "hardened_mention_routing_hint_disabled",
           "push_target_id_scope",
           "wakeup_kind_enum"
         ],
@@ -3266,8 +3186,6 @@
           "agent_slug_selector",
           "ak.feature.agent_runtime_approval_notifications.v1",
           "runtime_key_binding_conflict_cas",
-          "managed_agent_pcr_binding",
-          "managed_agent_pcr_recovery",
           "agent_requested_scope_global_ceiling",
           "agent_requested_scope_did_commitment",
           "provision_no_realm_grant",
@@ -3475,7 +3393,7 @@
         "exact_two_participant_mask",
         "human_self_or_owned_agent_controller_closed_xor",
         "current_signed_directional_contact_heads",
-        "new_mls_generation_has_no_prejoin_history",
+        "new_realm_group_has_no_prejoin_history",
         "repair_action_allowlist_is_exactly_member_rejoin_own",
         "repair_source_never_authorizes_member_leave_own"
       ],
@@ -3522,7 +3440,7 @@
         "already_absent_and_superseded_are_signed_no_write",
         "terminal_certificate_excluded_from_event_digest",
         "federation_forwards_transport_evidence_unchanged",
-        "old_mls_generation_only"
+        "old_realm_group_only"
       ],
       "feature_discovery": {
         "required": [
@@ -3573,7 +3491,7 @@
         "required_checks": [
           "ak.mimi.room_binding.mls_group_id matches the MLS governance_binding mls_group_id",
           "governance_binding.binding_profile and reducer_profile are present and supported",
-          "the active MLS generation security_frontier_digest equals the rederived current key-access frontier",
+          "the unique MLS group current security_frontier_digest equals the rederived current key-access frontier",
           "MIMI draft/profile fields are ignored for security decisions unless mapped to registered Arkret policy/capability state"
         ],
         "downgrade_handling": "The ak.profile.e2ee_relaxed.v1 downgrade MUST NOT be represented to MIMI peers as equivalent to full MLS governance binding. If both sides explicitly support relaxed Arkret semantics, the relaxed federation guard still applies; otherwise the facade MUST reject or quarantine with mimi_room_state_incompatible or a governance binding reason.",
@@ -4172,7 +4090,6 @@
       "required_event_kinds": [
         "ak.device.revoke",
         "ak.mls.commit",
-        "ak.realm_key.withheld",
         "ak.realm.moderation_policy"
       ],
       "rejected_event_kinds": [],
@@ -4278,13 +4195,11 @@
         "ak.self.keys.keypackages.command.claim",
         "ak.self.keys.keypackages.command.consume",
         "ak.self.events.read.scan",
-        "ak.self.events.read.mls_governance_proof",
+        "ak.self.seals.read.mls_governance_proof",
         "ak.peer.mls.read.group_state_material"
       ],
       "required_event_kinds": [
-        "ak.mls.commit",
-        "ak.realm_key.share",
-        "ak.realm_key.withheld"
+        "ak.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -4299,7 +4214,6 @@
         "mls-governance-proof-fixture.json"
       ],
       "optional_extensions": [
-        "aad_visibility_policy",
         "ak.profile.mls.minimal_metadata_realm.v1"
       ],
       "feature_discovery": {
@@ -4374,7 +4288,6 @@
           "identity_link_schema",
           "identity_link_eager_invalidation",
           "minimal_metadata_author_credential",
-          "hardened_mention_routing_hint_disabled",
           "principal_disclosure_policy",
           "minimal_metadata_presign_forbidden"
         ],
@@ -4520,7 +4433,6 @@
           "audit_release_service_attestation",
           "audit_release_ryw_receipt",
           "audit_release_session_notice",
-          "hardened_mention_routing_hint_disabled",
           "audit_assurance_class_attested_hardware"
         ],
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
@@ -4562,16 +4474,15 @@
           "audit_applet_binding_visible",
           "audit_release_ryw_receipt",
           "audit_release_session_notice",
-          "hardened_mention_routing_hint_disabled",
           "audit_assurance_class_disclosed_policy",
           "forbidden_marketing_terms_check"
         ],
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
       }
     },
-    "ak.profile.notary.single_did.v1": {
+    "ak.profile.notary.single_signer.v1": {
       "inherits": [],
-      "description": "Notary profile using one DID/service key to issue Seals.",
+      "description": "Notary profile using one did_core actor and that actor's current authorized verification method to issue Seals.",
       "required_endpoints": [
         "ak.self.events.command.submit",
         "ak.self.snapshot.read.manifest_head"
@@ -4588,7 +4499,7 @@
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "single_did_notary",
+          "single_signer_notary",
           "seal_compaction"
         ],
         "unsupported_optional": "fail closed or omit profile claim"
@@ -5502,7 +5413,7 @@
     }
   },
   "notary_profiles": [
-    "ak.profile.notary.single_did.v1",
+    "ak.profile.notary.single_signer.v1",
     "ak.profile.notary.threshold.v1",
     "ak.profile.notary.open_set.v1",
     "ak.profile.notary.mixed_recovery.v1"

@@ -311,7 +311,7 @@ Dispatcher 在把 audience mention 转换为 notification / push 前 MUST 先完
 
 Audience expansion 是 dispatcher 内部计算结果，MUST NOT 进入 push payload、provider custom data、公开日志导出或可被发送者枚举的 delivery response。默认 `blind_wakeup` 下，即使 wakeup kind 是 `mention`，payload 也不得包含 `@all` / `@here`、audience 名称、recipient count、成员列表、watch level、watcher 列表或 source Event / Realm / Strand 识别字段。
 
-E2EE Realm 中，server 默认不能读取 audience mention AST。若 Realm policy 未显式允许 audience mention routing hint，Principal Server sync surface MUST 按 §4.5 的 client-side rule fallback 处理，不得从消息大小、发送者文本 hint 或客户端上传的未授权字段推断 `@all` / `@here`。若 policy 允许 routing hint，hint 也只能表达固定枚举的 audience kind 与 policy revision digest，不得携带展开后的 DID 列表、watcher 列表或 participant count；minimal-metadata 与 audited E2EE Realm SHOULD 关闭该能力。
+E2EE Realm 中，server 不能读取 audience mention AST，也没有可放宽此边界的 routing-hint policy。Principal Server sync surface MUST 按 §4.5 的 client-side rule fallback 处理，不得从消息大小、发送者文本或客户端上传的额外字段推断 `@all` / `@here`。
 
 ### 4.4 动作类型 (Actions)
 
@@ -332,38 +332,7 @@ Principal Server sync surface 不读取 encrypted `ak.push_rules`，在 E2EE Rea
 3. **降级标记**：Principal Server sync surface 在 push payload 中携带 `evaluation_locus_unresolved=true`，让客户端知道"我已经被 wakeup 但匹配尚未在 server 端确定"。客户端 MUST 完成本地评估后才决定是否进入用户感知的通知 surface；不得仅凭 wakeup 就在 system tray 弹出。
 4. **明文 hint 限制**：E2EE Realm 中，`push_hint` MUST NOT 包含会让 push gateway 间接获得规则匹配信息的字段（例如 "matched_keyword: 'urgent'"）。默认 `blind_wakeup` 下，hint 只能携带固定枚举字段（`new_message` / `incoming_call` / `mention_self`）或 `l10n_key`，不能携带匹配到的具体内容。即使 Realm policy 把 push gateway 列入 `plaintext_visible_services`，也只允许进入 §5.1 的 `visible_notification` profile；不得把该授权解释为放宽 `blind_wakeup` 的 metadata 限制。
 5. **限速降级**：E2EE Realm + client-side rule 多的 client 在高消息量场景会被持续 wakeup，电池负担显著。客户端 MUST 暴露 `aggressive_wakeup_threshold`（默认每 60 秒 ≤ 30 次）；超过阈值后切换到批量 wakeup 模式，Principal Server sync surface 把多个 wakeup 合并为单个 batch wakeup（仍携带 `evaluation_locus_unresolved=true`），客户端醒来一次评估全部待处理 Event。
-6. **`mentions_actor` 通过 mention sidecar 提示**（可选，使用 keyed HMAC 形态）：严格 E2EE 默认走第 1-5 步 blind / batch wakeup。若 Realm policy 允许 `mention_routing_hint="recipient_registered_token"`，且被提及接收方已经为当前 `(realm_id, mls_group_id, epoch, pairwise_or_principal_id)` 向 Principal Server sync surface 注册 opaque routing token，发送者的客户端 MAY 把 mention 列表的 keyed HMAC 标签作为明文 sidecar 字段附在 Event 元数据上，定义为:
-
-    ```text
-    mention_routing_hmac_v1 =
-        HMAC-SHA256(
-            key   = MLS-Exporter("arkret-mention-routing-v1", context = realm_id, length = 32),
-            data  = utf8(mentioned_did)
-        )
-    ```
-
-    其中 `MLS-Exporter` 即 MLS RFC9420 §8.5 `MLS-Exporter(label, context, length)`,使用当前 group epoch 的 exporter secret 派生。**Principal Server sync surface MUST NOT 派生、接收或持久化 MLS exporter secret**。接收方设备在本地按相同公式为自己的 DID 派生 token，并只把 opaque token、epoch、过期时间和目标推送通道注册给 Principal Server sync surface；服务端只做 sidecar tag 与已注册 opaque token 的等值比较。未注册 token、token 过期或 Realm policy 未允许时，服务端 MUST 回退到第 1-5 步 blind / batch wakeup。
-
-    **安全属性**:
-    - key 取自 MLS exporter secret,**不在群外可知**;Principal Server sync surface 即便获得 `realm_id` / `mls_group_id` / `epoch` / 完整成员名单也无法离线枚举 `mentioned_did → tag` 的字典(没有 exporter secret 即无 key)——关闭了对该字段的 server-side 字典枚举侧信道。
-    - 服务端可见的剩余信息仅限于"某个已注册 opaque token 在该 epoch 命中 N 次"。这是接收方 opt-in 的通知路由泄露，不是发送方单方开启的能力；minimal-metadata Realm 与 audited E2EE Realm MUST 默认关闭。
-    - tag 仍随 epoch 自然失效(exporter secret 跨 commit 必变);跨 epoch 重放无法命中。
-    - 同一 epoch 内同一 mentioned_did 的 tag 仍恒定 — 是 opaque token 等值比较能工作的前提；若部署不能接受该频次泄露，MUST 关闭 token 注册并使用 blind wakeup。
-    - mention sidecar 命中触发的 push wakeup 是 §2.4 意义上的一种 "push activation",因此 MUST 与其它 push activation 同样受 §2.4 timing bucket / 批处理约束:服务端 MUST NOT 在 mention 命中瞬间 per-mention 即时发出可被 provider 观察到的 push burst,否则命中时刻即成为比 presence 更细的接收方活动 timing oracle。
-    - 非 E2EE Realm 不使用 routing tag(直接看 plaintext mention 列表)。
-
-    启用与否由 Realm policy 中 `mention_routing_hint` 与接收方 token 注册共同决定。minimal-metadata Realm 与 audited E2EE Realm 默认关闭；其他 E2EE Realm 未声明时默认关闭，除非接收方显式 opt-in 注册 token。关闭时 mention 走 §4.5 第 1-5 步降级,Principal Server sync surface 不做 `mentions_actor` server-side 匹配。
-
-    **`mention_routing_hint` policy 字段枚举（normative，权威定义）**：Realm policy 的 `mention_routing_hint` 字段是封闭枚举，完整取值与默认值集中定义如下，本文其它处一律引用本表：
-
-    | 取值 | 含义 |
-    | --- | --- |
-    | `disabled`（**默认**） | 不启用任何 mention routing hint。Principal Server sync surface MUST NOT 接收、比较或持久化任何 mention routing sidecar；mention 一律走 §4.5 第 1-5 步 blind / batch wakeup。字段缺省、未声明、取未知值时按 `disabled` fail-closed 处理。 |
-    | `recipient_registered_token` | 允许接收方按本节公式 opt-in 注册 opaque routing token；仅当接收方已注册时，Principal Server sync surface 才对 sidecar tag 与已注册 token 做等值比较。仍受本节全部安全属性约束（keyed HMAC、epoch 失效、不可离线枚举）。 |
-
-    minimal-metadata Realm 与 audited E2EE Realm MUST 保持 `disabled`，即使显式声明也不得启用 `recipient_registered_token`。
-
-    **Conformance 锚点（normative）**：`ak.vector.push.mention_routing_hint_disabled_on_hardened_realm.v1` 以机器 trace 固化上述拒绝行为。声明 `ak.profile.mls.minimal_metadata_realm.v1`、`ak.profile.attested_audit.e2ee.v1` 或 `ak.profile.disclosed_audit.e2ee.v1` 的 Realm，在 policy 显式声明 `mention_routing_hint=recipient_registered_token` 时，runner MUST 断言 effective hint 为 `disabled`、注册/比较/持久化 sidecar 均未发生，并回退到 §4.5 第 1-5 步 blind / batch wakeup；普通非 hardened E2EE Realm 是允许 opt-in 的对照组。
+6. **Mention 保持端到端加密**：v1 不定义专用 mention recipient token、routing sidecar、注册表或服务端等值比较。E2EE mention 只能留在 ciphertext 中；Principal Server 一律按第 1-5 步 blind / batch wakeup，客户端同步、解密后本地判断 mention 与展示。任何专用 mention routing wire 输入均必须 schema reject。
 
 明确禁止：
 
@@ -397,12 +366,10 @@ POST /_arkret/edge/push/notify
 | `notification.devices[].push_key` | string | optional | 目标平台 push token。Push Gateway 已在 register_device 时持有该设备的 route，正常情况下 SHOULD 省略本字段，由 gateway 依 `device_id` 解析已注册 route；携带它只会把原始 provider token 多复制一份到 wire 上。本字段 MUST NOT 出现在任何响应中（见 §5.2）。 |
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |
 | `notification.devices[].platform` | string | optional | 目标平台标识，供 gateway 选择 provider adapter。 |
-| `notification.devices[].target_route_token` | string | optional（routing-stripped） | gateway-internal mention-redirect 路由 token。与 `notification.route_tokens.mention_redirect_target_route_tokens` 配对，驱动 per-device fail-closed 路由门。该 token 不得包含或可逆推出 actor DID、Realm id、Circle id、event id、handle、平台 push token 或其它跨上下文稳定标识。**MUST 在出 provider 前 strip，MUST NOT 转发给 provider**（见 §4.5）。 |
 | `notification.devices[].visible_notification_opt_in` | boolean | optional（默认 `false`；routing-stripped） | 接收设备授权状态中的 `visible_notification` opt-in 投影。仅当 Realm policy、调用服务 visible profile 与该字段三者同时允许时，Push Gateway 才可处理本表 visible-only 字段；缺失或 `false` 时该设备 MUST 回退到 `blind_wakeup`，不得接收明文标题、发送者显示名或 typed-id preview。MUST NOT 转发给 provider。 |
 | `notification.route_tokens` | object | optional（routing-stripped） | gateway-internal opaque token 集合，blind 与 visible 通知共有。第三方 Push Gateway 只可把 token 用作路由、去重、熔断和等值比较输入；token 由接收 Sync / Principal Service 生成，并绑定 `recipient_service_id`、Push Gateway service DID、用途、scope 与 salt epoch。其下所有字段 **MUST 在出 provider 前 strip，MUST NOT 转发给 provider**。 |
 | `notification.route_tokens.realm_route_token` | string | optional（routing-stripped） | Realm 级路由 / 去重 / 熔断 token；不得是 Realm id 或可逆 Realm id 编码。 |
 | `notification.route_tokens.scope_route_token` | string | optional（routing-stripped） | effective Realm / Circle scope 的 opaque token；不得携带 Circle id、`effective_scope` 对象或其它可识别 scope 原文。 |
-| `notification.route_tokens.mention_redirect_target_route_tokens` | string[] | optional（routing-stripped） | mention-redirect 路由 allow-list。非空时每个 `devices[].target_route_token` MUST 出现在此列表，否则该设备 fail-closed（不调 provider、不解密正文）。接收方据此 token 列表完成等值比较，无需解密正文，也不会向第三方 gateway 暴露 actor DID。 |
 | `notification.route_tokens.delivery_binding_frontier_token` | string | optional（routing-stripped） | federation hop 来源 notify 的 stale-route 检测 token；不得携带 raw Realm frontier。 |
 | `notification.event_id` | id:event | visible-only required | profile-gated Event id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
 | `notification.realm_id` | id:realm | visible-only required | profile-gated Realm id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
@@ -427,10 +394,10 @@ POST /_arkret/edge/push/notify
 
 1. `/_arkret/edge/push/notify` 请求体只承载本节表中定义的协议字段，且由 `push-operations.schema.json#/$defs/push_notify_request_body` 的闭合 schema 约束。产品内部 UI 草稿、DND/snooze 状态、push rule 明文、provider adapter 原始字段、APNs/FCM/WebPush 私有 body、`provider_payload`、`content` 或 `content_*` preview 字段 **MUST NOT** 进入该协议 body；实现需要这些信息时，只能在调用方产品私有进程内完成求值，并把结果压缩成本节定义的 `wakeup_kind` / `push_hint` / `reason_code` / `route_tokens` 等最小协议字段。
 2. Product-private body 是调用方服务内部状态，不是 Arkret v1 wire surface。它 MAY 包含本地化资源键、UI 文案模板、静默时段、snooze target 或 provider adapter 配置，但这些字段 MUST 在进入 `ak.edge.push.command.notify` 前被消费或丢弃。不得通过 `notification.extra`、`content`、`payload`、`data`、`provider_payload` 或任何自由对象把 product-private body 透传给 Push Gateway。
-3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`timing_profile_hint`、`route_tokens`、`devices[].target_route_token`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
+3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`timing_profile_hint`、`route_tokens`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
 4. `ak.profile.push_gateway.visible_notification.v1` 只放宽本表列出的 profile-gated 标题/标签/typed-id 字段，不引入自由正文容器。即使 Realm policy 和设备 opt-in 允许 visible notification，`notification.content`、`body`、`preview`、`summary`、provider-specific `data` 或任意 `content_*` 字段仍不属于 v1 notify body；需要完整标题与正文的客户端 SHOULD 由 blind wakeup 唤醒后本地拉取、解密并渲染。
 
-`notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ak.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。独立第三方 Push Gateway 的路由输入只能使用 `route_tokens` 与 `devices[].target_route_token`；raw Realm id、Circle id、`effective_scope`、actor DID allow-list 或其它可识别路由原文不得进入 `/_arkret/edge/push/notify` wire。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ak.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
+`notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ak.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。独立第三方 Push Gateway 的路由输入只能使用顶层 pairwise `push_target_id` 与 `route_tokens`；raw Realm id、Circle id、`effective_scope`、actor DID allow-list 或其它可识别路由原文不得进入 `/_arkret/edge/push/notify` wire。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ak.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
 
 1. Realm policy 显式把该 Push Gateway 列入 `plaintext_visible_services`，且声明允许 `visible_notification`。
 2. 接收设备在其授权状态中显式记录 `visible_notification` opt-in；未 opt-in 的设备 MUST 回退到 `ak.profile.push_gateway.blind_wakeup.v1`。
@@ -552,7 +519,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 
 - Principal Server sync surface MUST NOT 在推送中包含 `encrypted_content` / `encrypted_metadata` / `encrypted_payload` 的任何部分
 - 推送网关被视为不可信第三方：`push_hint` 的白名单约束与 payload 最小化约束见 §2.2 与 §5.1，均为 MUST / MUST NOT，本节不重复其规范内容
-- 独立 Push Gateway 的路由输入 MUST 是 opaque token：`route_tokens` 与 `devices[].target_route_token` 不得包含、编码或可逆推出 DID、Realm id、Circle id、Event id、Message id、Strand id、handle、平台 push token 或长期稳定 correlation key。mention redirect 只按 token 等值比较 fail closed；token 到真实对象的映射只保留在接收 Sync / Principal Service 的授权上下文内。
+- 独立 Push Gateway 的路由输入 MUST 是 opaque token：`route_tokens` 不得包含、编码或可逆推出 DID、Realm id、Circle id、Event id、Message id、Strand id、handle、平台 push token 或长期稳定 correlation key。v1 不存在 mention redirect token；mention 走 blind/batch wakeup 并由客户端解密判断。
 
 ## 7. 静默时段 (Do Not Disturb)
 

@@ -167,7 +167,6 @@ grpc:
       Set: ak.self.invite_receive_policy.resource.replace
     SelfDirectConversation:
       Resolve: ak.self.direct_conversation.read.resolve
-      RepairDispatch: ak.self.direct_conversation.command.repair_dispatch
     FindDirectory:
       Announce: ak.find.directory.command.announce
       Describe: ak.find.directory.read.describe
@@ -196,19 +195,39 @@ grpc:
       Describe: ak.self.events.read.describe
       DeliveryStatus: ak.self.events.read.delivery_status
       Frontier: ak.self.events.read.frontier
-      MlsGovernanceProof: ak.self.events.read.mls_governance_proof
       Get: ak.self.events.resource.get
       Query: ak.self.events.read.scan
       Resolve: ak.self.events.read.resolve
       Subscribe: ak.self.events.stream.subscribe
       Submit: ak.self.events.command.submit
-      SubmitSeal: ak.self.events.command.submit_seal
+    SelfSeals:
+      Frontier: ak.self.seals.read.frontier
+      GovernanceDependencies: ak.self.seals.read.governance_dependencies
+      MlsGovernanceProof: ak.self.seals.read.mls_governance_proof
+      Resolve: ak.self.seals.read.resolve
+      Submit: ak.self.seals.command.submit
+    SelfHistoryKey:
+      RequestCreate: ak.self.history_key_requests.command.create
+      RequestList: ak.self.history_key_requests.read.list
+      ResponseAck: ak.self.history_key_responses.command.ack
+      ResponseList: ak.self.history_key_responses.read.list
+      ResponseSend: ak.self.history_key_responses.command.send
+      OrganizationRecoveryArchiveList: ak.self.organization_recovery_archives.read.list
     PeerEvents:
       Describe: ak.peer.events.read.describe
       Frontier: ak.peer.events.read.frontier
       Query: ak.peer.events.read.scan
       Resolve: ak.peer.events.read.resolve
       Submit: ak.peer.events.command.submit
+    PeerSeals:
+      Frontier: ak.peer.seals.read.frontier
+      GovernanceDependencies: ak.peer.seals.read.governance_dependencies
+      MlsGovernanceProof: ak.peer.seals.read.mls_governance_proof
+      Resolve: ak.peer.seals.read.resolve
+    PeerHistoryKey:
+      RequestReplicate: ak.peer.history_key_requests.command.replicate
+      ResponseRelay: ak.peer.history_key_responses.command.relay
+      OrganizationRecoveryArchiveReplicate: ak.peer.organization_recovery_archives.command.replicate
     PeerDeviceRevocations:
       Check: ak.peer.device_revocations.command.check
     PeerAccountStatus:
@@ -223,9 +242,6 @@ grpc:
       Submit: ak.peer.invites.command.submit
     PeerContacts:
       Submit: ak.peer.contacts.command.submit
-    PeerDirectConversationOperationControl:
-    PeerDirectConversation:
-      RepairRelay: ak.peer.direct_conversation.command.repair_relay
     PeerKeys:
       KeyPackagesClaim: ak.peer.keys.keypackages.command.claim
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.read.claim
@@ -376,9 +392,18 @@ mq:
     self.control_proposal_decisions.read.get: ak.self.control_proposal_decisions.read.get
     self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue
     self.events.command.submit: ak.self.events.command.submit
-    self.events.command.submit_seal: ak.self.events.command.submit_seal
+    self.seals.command.submit: ak.self.seals.command.submit
     self.events.read.delivery_status: ak.self.events.read.delivery_status
-    self.events.read.mls_governance_proof: ak.self.events.read.mls_governance_proof
+    self.seals.read.frontier: ak.self.seals.read.frontier
+    self.seals.read.resolve: ak.self.seals.read.resolve
+    self.seals.read.mls_governance_proof: ak.self.seals.read.mls_governance_proof
+    self.seals.read.governance_dependencies: ak.self.seals.read.governance_dependencies
+    self.history_key_requests.command.create: ak.self.history_key_requests.command.create
+    self.history_key_requests.read.list: ak.self.history_key_requests.read.list
+    self.history_key_responses.command.send: ak.self.history_key_responses.command.send
+    self.history_key_responses.read.list: ak.self.history_key_responses.read.list
+    self.history_key_responses.command.ack: ak.self.history_key_responses.command.ack
+    self.organization_recovery_archives.read.list: ak.self.organization_recovery_archives.read.list
     self.events.read.scan.resolve: ak.self.events.read.resolve
     self.events.read.scan: ak.self.events.read.scan
     self.events.stream.subscribe: ak.self.events.stream.subscribe
@@ -389,6 +414,13 @@ mq:
     peer.events.read.scan.resolve: ak.peer.events.read.resolve
     peer.events.read.scan: ak.peer.events.read.scan
     peer.events.read.scan.frontier: ak.peer.events.read.frontier
+    peer.seals.read.frontier: ak.peer.seals.read.frontier
+    peer.seals.read.resolve: ak.peer.seals.read.resolve
+    peer.seals.read.mls_governance_proof: ak.peer.seals.read.mls_governance_proof
+    peer.seals.read.governance_dependencies: ak.peer.seals.read.governance_dependencies
+    peer.history_key_requests.command.replicate: ak.peer.history_key_requests.command.replicate
+    peer.history_key_responses.command.relay: ak.peer.history_key_responses.command.relay
+    peer.organization_recovery_archives.command.replicate: ak.peer.organization_recovery_archives.command.replicate
     peer.account_status.query.resolve: ak.peer.account_status.read.resolve
     peer.mls.query.group_state_material: ak.peer.mls.read.group_state_material
     peer.invites.command.submit: ak.peer.invites.command.submit
@@ -436,8 +468,6 @@ mq:
     self.invite_receive_policy.resource.get: ak.self.invite_receive_policy.resource.get
     self.invite_receive_policy.resource.replace: ak.self.invite_receive_policy.resource.replace
     self.direct_conversation.query.resolve: ak.self.direct_conversation.read.resolve
-    self.direct_conversation.command.repair_dispatch: ak.self.direct_conversation.command.repair_dispatch
-    peer.direct_conversation.command.repair_relay: ak.peer.direct_conversation.command.repair_relay
     self.circle.command.create: ak.self.circle.command.create
     self.circle.query.list: ak.self.circle.read.list
     self.circle.resource.get: ak.self.circle.resource.get

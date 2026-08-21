@@ -56,6 +56,7 @@ DECLARED_WIRE_BINDING_KINDS = {
     "account_data_plaintext",
     "account_data_storage",
     "dynamic_schema_ref",
+    "mls_encrypted_payload",
     "signal_plaintext_dispatch",
     "standalone_schema_alias",
 }

@@ -293,8 +293,7 @@
         "attempted_payload_classes": [
           "realm_event",
           "device_message",
-          "keypackage_claim",
-          "direct_conversation_repair"
+          "keypackage_claim"
         ]
       },
       "semantic_outcome": "reject",

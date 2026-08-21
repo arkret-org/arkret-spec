@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-20.1",
+  "version": "2026-08-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-20T10:20:00+08:00",
+  "generated_at": "2026-08-21T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -15,7 +15,7 @@
     "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell and MUST cross-bind payload.previous_resolution_event_ref and payload.previous_method_history_head."
   ],
   "principal_resolution_contract": {
-    "version": "ak.identity.resolution.contract.v1",
+    "version": "2026-08-21.1",
     "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
     "cell_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
     "profile_write_policy": {
@@ -128,9 +128,11 @@
       "version_id_rule": "The exact method-native versionId of that same verified current did:webvh log entry, serialized as a non-empty string.",
       "service_resolution_event_ref_rule": "did-webvh-entry-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
       "required_evidence": [
+        "complete_inception_to_target_log_entries",
         "scid_derivation",
         "entry_hash_chain",
         "controller_proof",
+        "complete_applicable_witness_records",
         "method_history_head",
         "version_id"
       ],

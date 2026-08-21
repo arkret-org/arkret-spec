@@ -18,7 +18,7 @@ Arkret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）
 
 - **数据面**（data plane）承载消息、内容、reaction、计数、协作文本、草稿和默认业务对象。数据面 Event 是签名因果 hash-DAG + Lattice / CRDT 输入；验签、授权与 `seal_ref` 验证通过后即可本地投影、转发和参与 join。数据面没有事件级 Seal finality 字段、没有 pending→effective 状态机、没有全局排序闸门。
 - **控制面**（control plane）承载 membership、capability、policy、notary、lifecycle、MLS epoch / governance binding 以及显式 `sealed=true` 的对象。控制面 Move 由 Seal 裁决，提供 finality、治理 `state_root`、问责与 transparency。
-- Seal 对数据面只做**观测承诺**（`data_view_root` / `data_event_set_root` / `availability_root`），不做数据面准入，不让未观测的数据面 Event 失效，也不把数据面结果升级为控制面 finality。
+- Seal 对数据面只做**观测承诺**（`data_view_root` / `data_event_set_root`）；`availability_receipt_digests[]` 则逐项绑定控制面 include 所需的完整 AvailabilityReceipt。二者都不把普通数据面 Event 升级为控制面 finality。
 
 非目标：本文不提供全局总序、经济 finality、全文搜索、媒体分发、typing / presence 等派生层行为；不证明"不存在没人见过的 Event"；轻客户端不验证全 Realm reducer 执行。
 
@@ -204,7 +204,7 @@ Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integr
 Control Move 是写 control plane cell 的 Event，通常 MUST 携带 `seal_basis` 且 MUST NOT 携带 `seal_ref`。v1 只有两个封闭 anchor-unit 例外：
 
 1. [`ak.realm.create`](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) bootstrap。自体 principal PCR 是 root-signed create + delegated first `ak.device.authorize`；event-derived Realm 使用下列两个互斥封闭分支——v1 **没有**"紧随 create 的封闭 self founding grant"槽位。创建者的 root authority 来自 create 注册 reducer contract 写入的 `ak.component.realm.authority_root.v1` cell；同批 create 之后的 Event MAY 使用绑定同批前序 `ak.realm.create.event_id` 的 staged authority-root proof，batch 之外一律要求 accepted Seal 下的 root-cell inclusion proof（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)）：
-   - 普通 Collaboration 分支必须提交 bootstrap registry 的完整有序闭包：`ak.realm.create`；同批同 actor 的 initial facets `profile → policy_bundle → join_rule → history_visibility → conditional history_sharing_policy → discovery → optional alias → conditional plaintext_visible_services → delivery_binding_policy`；最后是 creator 的 required `ak.member.state{join}`。该成员 Event 同时承载真实 delivery binding，不存在 create 隐式 join 后再做 `join -> join` 的第二形态；
+   - 普通 Collaboration 分支必须提交 bootstrap registry 的完整有序闭包：`ak.realm.create`；同批同 actor 的 initial facets `profile → policy_bundle → join_rule → history_access → discovery → optional alias → conditional plaintext_visible_services → delivery_binding_policy`；最后是 creator 的 required `ak.member.state{join}`。该成员 Event 同时承载真实 delivery binding，不存在 create 隐式 join 后再做 `join -> join` 的第二形态；
    - 1:1 Direct Conversation 分支必须恰好提交 `ak.realm.create → peer ak.member.state{join} → main ak.strand.create → founder ak.member.state{join}` 四条，不得携普通 Collaboration facet。固定 baseline 由 Direct Conversation reducer contract 机械投影；末槽是带 `head_eq null` 的显式 founder genesis membership。Strand 平时是携 `seal_ref + auth_context` 的 DataEvent；但该 exact unit 的 Genesis Seal 覆盖全部四条，无法引用一张尚不存在的 Seal，因此在且仅在该 unit 内免 basis。
 
    不在该列表内的 Control Move 一律要求 `seal_basis`。
@@ -237,7 +237,7 @@ ControlMove {
 Control Move 规则：
 
 1. `seal_basis.leaves[]` 进入 canonical Event bytes，并由 `event_digest` / `proofs[]` 覆盖。producer 不复制 `control_event_set_root` 或 `state_root`。
-2. `leaves[]` MUST 只引用 accepted Seal，按 unsigned-byte order 严格排序、去重。单 leaf basis 是轻 producer 的默认形态。account client 从 `ak.self.events.read.frontier` 取得 signed Seal id；该来源不可用时 MUST fail closed。
+2. `leaves[]` MUST 只引用 accepted Seal，按 unsigned-byte order 严格排序、去重。单 leaf basis 是轻 producer 的默认形态。account client 从 `ak.self.seals.read.frontier` 取得完整 current Seal antichain；该来源不可用时 MUST fail closed。
 3. 多 leaf basis 只有已验证每个 Seal signature、predecessor closure、control covered set 与 joined state 的 producer MAY 签；轻客户端 MUST NOT 签自己无法验证的 multi-leaf union。旁路 proof bundle只补依赖，不进入 Event digest。
 4. reducer contract 的派生写 MUST 只引用 control plane cell。若需同时写 data cell，必须拆成后续 DataEvent。
 5. `preconditions[]` 与全部派生写是原子集合；任一 precondition 不成立，整个 Control Move 失败。
@@ -292,8 +292,7 @@ Seal {
 
   data_view_root?               // observational
   data_event_set_root?          // observational
-  availability_root?            // observational
-  coverage_scope?               // observational
+  availability_receipt_digests[] // signed exact receipt digests；always present
 }
 ```
 
@@ -307,7 +306,7 @@ Receiver MUST：
 
 1. 重算 `H(seal_canonical_bytes)` 并与 `id` hex 比对。
 2. 验 `notary_signature` 覆盖同一 canonical bytes。
-3. 拒绝任何非 canonical list order 或重复项。
+3. 拒绝任何非 canonical list order 或重复项；`delta[]` 最多 4096 条，`availability_receipt_digests[]` 最多 65536 条，且完整 Seal canonical body 仍不得超过 8 MiB。
 
 ### 6.2 `control_event_set_root`
 
@@ -327,7 +326,7 @@ Seal MUST 签 `control_event_set_root`。默认 root 是对 canonical 升序 `co
 
 `control_event_set_root` 是 Seal、控制面 receipt obligation、inclusion list、censorship evidence 与 seal transparency 的共同锚点。`delta[]` 只是本批新增集合；Control Move 仅用 `seal_basis.leaves[]` 引用该承诺；root 承诺的是递归覆盖集。Compaction Seal MAY 显式携带 `covered_event_digests[]`，但 receiver MUST 验证它等于 `delta[]` 与所有 predecessor 覆盖集的并集。
 
-**Compaction 节律是结构性义务（normative）**：因为累计覆盖集由 `predecessor_refs + delta` 递归定义，compaction Seal（携带 `covered_event_digests[]` 或等价可验证全覆盖 manifest 的 Seal）是新 verifier 唯一的有界 bootstrap 物化点。Realm MUST 在 create payload 中声明 `seal_compaction_max_interval_ms`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，默认 86,400,000 ms；`open_set` 部署 MUST ≤ 24h，`threshold` 部署 MUST ≤ 7d，`single_did` SHOULD ≤ 24h）。notary 超出声明间隔仍未签发 compaction Seal 时，receiver SHOULD 触发治理健康告警；新 verifier 此时只能退回从 genesis 走链或从最近已验证 compaction Seal 接链。该义务由 conformance vector `ak.vector.cba_lattice.seal_compaction_interval_enforced.v1` 固定。
+**Compaction 节律是结构性义务（normative）**：因为累计覆盖集由 `predecessor_refs + delta` 递归定义，compaction Seal（携带 `covered_event_digests[]` 或等价可验证全覆盖 manifest 的 Seal）是新 verifier 唯一的有界 bootstrap 物化点。Realm MUST 在 create payload 中声明 `seal_compaction_max_interval_ms`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，默认 86,400,000 ms；`open_set` 部署 MUST ≤ 24h，`threshold` 部署 MUST ≤ 7d，`single_signer` SHOULD ≤ 24h）。notary 超出声明间隔仍未签发 compaction Seal 时，receiver SHOULD 触发治理健康告警；新 verifier 此时只能退回从 genesis 走链或从最近已验证 compaction Seal 接链。该义务由 conformance vector `ak.vector.cba_lattice.seal_compaction_interval_enforced.v1` 固定。
 
 ### 6.2.1 治理 `state_root` 的 Merkle 计算规则（normative）
 
@@ -350,9 +349,9 @@ inclusion proof 使用 Merkle audit path，non-membership 使用 sorted-neighbor
 
 本节定义 §6.2 `control_event_set_root`、§6.2.1 `state_root` 与 §6.4 三个观测 root **共用**的 byte-level Merkle 组合规则，使一个实现可共用一套 Merkle 代码。`H` 取该 Realm 声明的 hash suite（v1 default-MUST `sha256`，见 [`conformance/encoding.md` §3.1](../conformance/encoding.md)）；wire 输出形态为 `<suite>:<lowercase_hex>`。
 
-- **leaf**：`leaf = H(0x00 || leaf_data)`。各 root 的 `leaf_data` 由其领域规则给出：`state_root` 为 §6.2.1 的 `leaf_preimage` UTF-8 字节；`data_view_root` 为 `canonical_json(KeyView)` UTF-8 字节（§6.4）；`control_event_set_root` / `data_event_set_root` / `availability_root` 为对应 `<suite>:<hex>` digest 去前缀解码后的 raw bytes（§6.2 / §6.4）。
+- **leaf**：`leaf = H(0x00 || leaf_data)`。各 root 的 `leaf_data` 由其领域规则给出：`state_root` 为 §6.2.1 的 `leaf_preimage` UTF-8 字节；`data_view_root` 为 `canonical_json(KeyView)` UTF-8 字节（§6.4）；`control_event_set_root` / `data_event_set_root` 为对应 `<suite>:<hex>` digest 去前缀解码后的 raw bytes（§6.2 / §6.4）。AvailabilityReceipt 不再构造冗余 root，而由 Seal 的 signed canonical digest list 直接承诺。
 - **内部节点**：`node = H(0x01 || left || right)`，`left` / `right` 为左右子节点的 raw hash 输出字节。
-- **leaf 顺序**：树构造本身不排序；各领域规则先声明 leaf 顺序（`state_root` / `data_view_root` 按 cell_id code point 升序；`control_event_set_root` / `data_event_set_root` 按 digest wire 值 canonical 升序；`availability_root` 按 receipt digest canonical 升序）。
+- **leaf 顺序**：树构造本身不排序；各领域规则先声明 leaf 顺序（`state_root` / `data_view_root` 按 cell_id code point 升序；`control_event_set_root` / `data_event_set_root` 按 digest wire 值 canonical 升序）。
 - **奇数层**：某一层节点数为奇数时，尾节点**原样提升**到上一层，**MUST NOT 复制**（RFC 6962：在不超过当前节点数的最大 2 的幂处分割，右子树可较小）。
 - **单 leaf 树**：root 等于该单 leaf 的 `H(0x00 || leaf_data)`（**注意带 `0x00` 前缀**，不是裸 `leaf_data` 的 hash）。
 - **空集合**：root 为 `H` over the empty byte string；`sha256` 下即 `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`（与 RFC 6962 §2.1 `MTH({}) = SHA-256()` 一致）。
@@ -368,10 +367,10 @@ inclusion proof 使用 Merkle audit path，non-membership 使用 sorted-neighbor
 apply_seal(A):
   1. 校验 predecessor_refs 均已知、同 Realm、且不是 fork_quarantine。
   2. 校验 notary_seq 单调性和 notary_signature；`sealed_at` MUST 不早于全部 predecessor 的 `sealed_at`。若 `sealed_at` 晚于 verifier 当前时钟加 `hard_future_skew_ms`，进入非终态 `seal_deferred_future_skew`，等待本地时钟推进后从 step 1 重判，不得终态拒绝该 Seal 或其后继。
-  2b. 在 predecessor joined governance state 的 `ak.component.notary.v1` cell 上校验 signer authority：`single_did` 必须由 `notary.actor_id` 控制的方法签名；`threshold` 必须由 `members[]` 中至少 `threshold` 个互异成员形成有效门限签名；`open_set` 必须由 `members[]` 中合法 slot signer 签名；`mixed` 普通 Seal 必须由 primary `did` 签名，只有 §7.2 / §9.5 定义的 recovery 条件成立时才可由 `recovery_members[]` 签 recovery Seal。genesis Seal 的 `predecessor_refs=[]` 例外从本 Seal `delta[]` 中唯一且完整的 Realm anchor unit 的 `ak.realm.create.payload.object.notary` 求值。不满足时 MUST `rejected_seal`，服务层 reason=`seal_signer_unauthorized`。
-  3. 校验 delta[] canonical 升序去重。
+   2b. 在 predecessor joined governance state 的 `ak.component.notary.v1` cell 上按唯一 `notary.kind` 校验 frozen signer descriptor：`single_signer` 使用唯一 `notary.signer`；`threshold` 使用至少 `threshold` 个互异 `members[]` slot；`open_set` 使用合法 slot descriptor；`mixed` 普通 Seal 使用 primary descriptor，只有 §7.2 / §9.5 recovery 条件成立时才可使用 `recovery_members[]` descriptor。每个 descriptor 逐字冻结 `actor_id + verification_method + key_kind + jose_algorithm + frozen_public_key_b64u + frozen_public_key_digest`；controller 投影必须等于 actor_id。配置 admission 对 members、recovery_members 及其交集分别强制 actor_id、verification_method、frozen_public_key_digest 三个维度各自唯一，禁止跨 slot 复用 key digest。`multi_signature.signatures[]` 按 verification_method 字节序、method 唯一；每个 protected `kid` 逐字等于 verification_method，`alg` 逐字等于 descriptor.jose_algorithm；`none`、unknown `crit`、非 canonical protected/base64url/ECDSA 编码与 key_kind/alg 错配一律拒绝。验签不得查询或替换为 current DID key。`ak.realm.notary` 后继 Move 必须先由旧 descriptor 授权，再安装新 descriptor。genesis Seal 的 `predecessor_refs=[]` 例外从本 Seal `delta[]` 中唯一完整 Realm anchor unit 的 create notary descriptor 求值。不满足时 MUST `rejected_seal`，reason=`seal_signer_unauthorized`。
+  3. 校验 delta[] canonical 升序去重及 4096 条上限；超限在签 Seal 前拒绝。
   4. 校验 delta[] 与所有 predecessor covered_set 不相交。
-  5. 校验 delta[] 每项都是已知、签名有效、且未被本 Seal predecessor closure 覆盖的 Control Move digest；若 effective `availability_policy.applies_to` 含 `seal_include`，还 MUST 验证每项有满足 holder 数、role 与 retention 下限的 AvailabilityReceipt
+  5. 校验 delta[] 每项都是已知、签名有效、且未被本 Seal predecessor closure 覆盖的 Control Move digest；若 effective `availability_policy.applies_to` 含 `seal_include`，还 MUST 验证 `availability_receipt_digests[]` canonical 升序且恰好包含每项所需、无多余的 full canonical AvailabilityReceipt digest，数量不超过 65536，并经 typed governance-dependency resolve 取得完整 receipt 与 holder signer evidence，验证 holder 数、role 与 retention 下限
      （"尚未 sealed" 的判定范围见下方并发 leaf 规则）。
   6. 计算 covered_set(A) = delta(A) union predecessor covered sets。
   7. 校验 control_event_set_root == root(covered_set(A)).
@@ -392,7 +391,7 @@ Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 
 
 #### 6.3.1 Deterministic joined control view（multi-leaf join，normative）
 
-`single_did` / `threshold` notary profile 下 Seal 单链唯一，任一时刻只有一个 control head，"当前治理状态"无歧义。`open_set` profile 允许多个并发 Seal leaf（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `notary_profile`），[`../sync/federation.md` §2.4](../sync/federation.md) 与 realm.schema 据此引用的 **"deterministic joined control views"** 即指本节定义的 join；它是 §4.3 并发分支撤销重判、§6.4 观测承诺与跨 receiver 收敛的共同基准:
+`notary.kind=single_signer|threshold` 下 Seal 单链唯一，任一时刻只有一个 control head，"当前治理状态"无歧义。`notary.kind=open_set` 允许多个并发 Seal leaf；[`../sync/federation.md` §2.4](../sync/federation.md) 与 realm.schema 据此引用的 **"deterministic joined control views"** 即指本节定义的 join；它是 §4.3 并发分支撤销重判、§6.4 观测承诺与跨 receiver 收敛的共同基准:
 
 给定 receiver 已观察、已 `apply_seal` 接受、且**非** `fork_quarantine` 的全部 Seal leaf 集合 `L = {S_1, …, S_n}`，joined control view `J(L)` 按以下确定性步骤计算，对任意观察到相同 `L` 的 receiver 结果唯一:
 
@@ -443,7 +442,7 @@ KeyView {
 
 - `data_view_root` = 按 `cell_id` Unicode code point 升序排列的 KeyView 记录的 root；每个 leaf 的 `leaf_data` 为 `canonical_json(KeyView)` 的 UTF-8 字节。
 - `data_event_set_root` = 该 seal 窗口内 notary 观察到的数据面 `event_digest` 集合（按 wire 值 canonical 升序）的 root；每个 leaf 的 `leaf_data` 为对应 digest 去 `sha256:` 前缀解码后的 raw bytes。
-- `availability_root` = 该 seal 窗口内 notary 接受的 AvailabilityReceipt 的 canonical bytes 摘要集合（canonical 升序）的 root；leaf_data 同上为 raw digest bytes。
+- `availability_receipt_digests[]` 不是 Merkle root：它是 Seal 直接签名的 full canonical AvailabilityReceipt digest 列表，只能包含本次 `delta[]` admission 所需 receipts，canonical 升序、无重复、无多余。
 - 三者的 inclusion proof 使用 Merkle audit path，non-membership 使用 sorted-neighbor proof——与 §6.2 `control_event_set_root`、§6.2.1 `state_root` 的证明形态一致，实现可共用 §6.2.2 的 Merkle 代码。v1 core 只规定 root 的计算语义；若 deployment profile 或具体 operation 需要传输观测证明，必须由该 profile / operation 另行登记 wire schema 与验证规则，不存在跨所有 query 响应通用的观测证明对象。
 
 这些字段是 observational：
@@ -553,7 +552,7 @@ author 将互异 authority Ack 按 `signature.verification_method` canonical 升
    `decision_due_at=min(member.decision_due_at)`、
    `absolute_due_at=min(member.absolute_due_at)`，并要求
    `received_at <= decision_due_at <= absolute_due_at`；set级字段与该计算不一致即拒绝；
-4. 按`single_did` / `threshold` / `mixed`当前profile计算互异member quorum；open-set按
+4. 按 `single_signer` / `threshold` / `mixed` 当前 profile 计算互异 member quorum；open-set 按
    `(Realm, signer slot)`独立authority Ack，不得把互不相干leaves拼成threshold；
 5. 把canonical Ack set、accepted Event、pending index与wakeup原子提交。closed anchor Event
    不能因无 `seal_basis` 跳过该 pending index；覆盖它的 accepted Seal 必须在同一原子事务写入
@@ -615,7 +614,15 @@ authority 给出有界、可验证的决议，并为失约提供 health/fault/re
 上述 Ack、两次 defer 上界、绝对期限与迟到 Seal 规则由 conformance vector
 `ak.vector.cba.proposal_bounded_decision.v1` 固定。
 
-`ak.self.events.read.frontier` 的 `RealmSealFrontierView.governance_health` MUST 从已验证的
+`ak.self.seals.read.frontier` 与 `ak.peer.seals.read.frontier` 的 Realm current Seal discovery MUST 返回同一 closed
+`RealmSealFrontierView`：`seal_basis.leaves[]` 是 canonical bytewise sorted、duplicate-free 的完整 non-quarantined accepted
+Seal leaf antichain；`single_signer`/`threshold` authority 下恰一项，`open_set` 下不得只返回任意一项。该 View 还携
+`observation_coordinate={service_id,sequence,observed_at}`；“current”只表示该 service 在该 coordinate 的 verified durable
+view，不是 global wall-clock latest。Peer 响应的 Event `heads[]` 不是 Seal leaves，不能替代 `seal_basis`。consumer 必须
+resolve 并验证每个 leaf Seal 及路径，再自行重算 joined control state/roots；服务返回的 head/root hint（若其它 surface
+存在）不得冒充某一 Seal 的签名 root 或授权真相。
+
+`RealmSealFrontierView.governance_health` MUST 从已验证的
 Ack / decision chain 与 accepted Seal covered set 派生；pending 明细最多返回 128 项，
 按 `(absolute_due_at, proposal_digest)` canonical 升序。超过读取上限时 readiness MUST
 fail closed，不能静默截断后报告 `healthy`。该 View 不是新的可写真相源。
@@ -645,12 +652,12 @@ Censorship evidence 是普通 Control Move，event kind 为 **`ak.notary.fault.c
 **问责闭环与 recovery 路径的绑定（normative）**：被告 notary 可能审查针对自己的 fault / censorship evidence。为此：
 
 1. fault evidence Move 持有的 Control Proposal Ack（或经 federation probe 传播的副本）对 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）构成与 inclusion list 等同的收录义务：recovery notary 签发任何 recovery / fork-resolution Seal 时，MUST include、signed-reject 或证明验证失败所有其已知的、处于义务窗口内的 fault evidence Move；
-2. `single_did` 下，evidence 经 federation probe / Event Batch Receipt 渠道流转至 recovery notary；若 Realm 未声明可用 recovery 路径，问责退化为"证据可流转但不可生效"的审计态——这是 `single_did` 的诚实限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一；
+2. `single_signer` 下，evidence 经 federation probe / Event Batch Receipt 渠道流转至 recovery notary；若 Realm 未声明可用 recovery 路径，问责退化为"证据可流转但不可生效"的审计态——这是 `single_signer` 的诚实限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一；
 3. multi-signer profile 下，任何非 fault 方 signer 都可把 evidence 列入 inclusion list（§7.3），不必等待 recovery 路径。
 
 ### 7.3 Inclusion list
 
-Multi-signer profile MAY 支持 FOCIL 式 inclusion list。非 proposer signer 对通过初检的控制面 Move 签发 inclusion list；下一 Seal MUST include、signed-reject 或证明验证失败，否则 receiver MUST 拒绝该 Seal。`single_did` profile 无法提供该机制。
+Multi-signer profile MAY 支持 FOCIL 式 inclusion list。非 proposer signer 对通过初检的控制面 Move 签发 inclusion list；下一 Seal MUST include、signed-reject 或证明验证失败，否则 receiver MUST 拒绝该 Seal。`single_signer` profile 无法提供该机制。
 
 Wire schema：[`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-list.schema.json)（`ak.schema.inclusion_list.v1`）：`{realm_id, signer_id, list_seq, event_digests[], expiry_seal_count, created_at, signature}`。Receiver 校验规则（normative）：
 
@@ -679,19 +686,18 @@ Digest membership 不能证明 bytes 可获取。Arkret v1 独立建模 availabi
 
 ```text
 AvailabilityReceipt {
-  realm_id
-  event_id
-  bytes_digest
-  holder_id
-  retention_expires_at
-  signature
+  receipt: { realm_id, event_id, bytes_digest, holder_id, retention_expires_at,
+             holder_signer_evidence_ref, holder_signer_evidence_digest, signature }
+  receipt_digest // H(JCS(receipt))，覆盖完整签名内容
 }
 ```
 
+其中 `bytes_digest = H(UTF8("ak.availability-event-bytes-v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`，`H` 使用该 Realm 的 digest suite。`event_id`、`actor_kind` 与所有 accepted producer / principal-server proofs 都在 preimage 内；因此它覆盖实际保留的准入证明字节，但仍须与按普通 Event preimage 重算的 `event_digest` / `event_id` 及逐项 proof 验证交叉核对。
+
 规则：
 
-- `Realm.availability_policy` 是本义务的唯一机器承载，结构见 `realm.schema.json`。缺失时按 `{min_holders:1, holder_roles:["notary"], applies_to:["seal_include"], minimum_retention_ms:86400000}` 解释；不得按“Realm 大小”或产品类别自行选择隐式门槛。
-- notary 在 Seal include 一个 Control Move 前 MUST 收集满足 effective policy 的签名 AvailabilityReceipt；`apply_seal` receiver MUST 按 §6.3 step 5 独立验证 receipt 的 event/digest、holder DID、accepted holder role、互异 holder 数与 `retention_expires_at >= Seal.sealed_at + minimum_retention_ms`。不满足时拒绝 Seal，而不是降级为诊断。
+- `Realm.availability_policy` 是本义务的唯一机器承载，结构见 `realm.schema.json`。缺失时按 `{min_holders:1, holder_roles:["joined_member_principal_server"], applies_to:["seal_include"], minimum_retention_ms:86400000}` 解释；不得按“Realm 大小”或产品类别自行选择隐式门槛。
+- notary 在 Seal include 一个 Control Move 前 MUST 收集满足 effective policy 的签名 AvailabilityReceipt；`apply_seal` receiver MUST 按 §6.3 step 5 独立验证 full canonical digest、receipt 的 event/digest、holder DID、签发时冻结的 `AuthenticatedSignerResolutionEvidence`、accepted holder role、互异 holder 数与 `retention_expires_at >= Seal.sealed_at + minimum_retention_ms`。不得用 current resolver 代替历史签名 key；不满足时拒绝 Seal，而不是降级为诊断。
 - policy 的 `applies_to` 含 `snapshot` 或 `backfill` 时，相关签发服务在作出 bytes-available 承诺前 MUST 收集同样门槛的 receipts，并把 receipt digest / proof 随响应或承诺 root 暴露给 verifier；verifier 缺少可验证门槛时 MUST NOT 声称 availability 已满足。
 - 数据面默认 SHOULD 在 relay 签 Event Batch Receipt（§4.4）时同时签 availability 承诺；高对抗部署 MAY 要求更高 storage quorum。
 - erasure coding / data availability sampling 不进 v1 core。
@@ -793,12 +799,15 @@ AvailabilityReceipt {
 
 Realm 的 `digest_algorithm` 只能通过控制面 suite-transition Control Move 改变。transition Move MUST 经 Seal 接受，并在该 Transition Seal 上同时承诺旧 suite 与新 suite：
 
-1. transition Move 的 payload MUST 声明 `from_digest_algorithm`、`to_digest_algorithm`、`transition_snapshot_ref` 与 `snapshot_commitment`；`from_digest_algorithm` MUST 等于当前 Realm live suite，`to_digest_algorithm` MUST 是 digest-suite registry 的 active row，且不得违反 registry 的 no-downgrade strength order。
-2. Transition Seal body MUST 携带 `previous_state_root`，其 suite prefix 等于 `from_digest_algorithm`，并继续携带普通 `state_root`，其 suite prefix 等于 `to_digest_algorithm`。`previous_state_root` 是 [`../conformance/encoding.md` §3.3](../conformance/encoding.md) 的 Realm 级 suite 排他的唯一豁免字段。
-3. Verifier MUST 用旧 suite 重算 transition **前**治理 view 的 `previous_state_root`，用新 suite 重算应用 transition Move **后**治理 view 的 `state_root`，并验证 `snapshot_commitment` 对同一 control/data frontier 的 inclusion。`previous_digest_algorithm` MUST 等于 transition Move 的 `from_digest_algorithm`。任一 root、snapshot commitment、suite identity 或 suite strength 判定不匹配时，Transition Seal MUST `rejected_seal`。
+1. transition Move 的 payload MUST 声明 `from_digest_algorithm`、`to_digest_algorithm`、`transition_snapshot_ref` 与 `snapshot_commitment`；`from_digest_algorithm` MUST 等于所有 predecessor joined view 唯一、非 `Bottom` 的当前 Realm live suite，`to_digest_algorithm` MUST 是 digest-suite registry 的 active row，且不得违反 registry 的 no-downgrade strength order。Transition Seal MUST 是 compaction Seal，`delta` MUST every-and-only 包含一份 `ak.realm.digest_suite_transition` Move；同一 Seal 混入普通 Move、包含多份 transition Move、不是 compaction，或 predecessor views 不能 join 为同一 live suite 时均 MUST `rejected_seal`。
+2. Transition Move Event 及其 AvailabilityReceipt 在 transition 前的 live suite 下完成 authoring 与 admission：Event `event_id` / `event_digest`、receipt `bytes_digest` / `payload_digest` / full receipt digest，以及 transition payload 的 `snapshot_commitment` MUST 使用 `from_digest_algorithm`。这些已签对象进入 Transition Seal 时不得换 suite、改写或重新签名。
+3. Transition Seal 是新 suite frontier 的第一个 Seal。它的 `id`、notary signature `payload_digest`、`control_event_set_root`、`completeness_root` 与普通 `state_root` MUST 使用 `to_digest_algorithm`；`previous_state_root` MUST 使用 `from_digest_algorithm`。`control_event_set_root` / `completeness_root` 以新 suite 对 covered Event digest wire values 重建 Merkle tree，即使其中包含 transition 前已签的旧 suite Event digest。`predecessor_refs`、`delta`、`covered_event_digests` 与 `availability_receipt_digests` 是对既有 typed content identifiers / digests 的引用，保留各自原 suite，不得按 Transition Seal suite 重哈希。
+4. Verifier MUST 用旧 suite 重算 transition **前**治理 view 的 `previous_state_root`，用新 suite 重算应用 transition Move **后**治理 view 的 `state_root`，并验证以旧 suite 生成的 `snapshot_commitment` 对同一 control/data frontier 的 inclusion。`previous_digest_algorithm` MUST 等于 transition Move 的 `from_digest_algorithm`。任一 Event、receipt、Seal id、notary payload、root、snapshot commitment、suite identity 或 suite strength 判定不匹配时，Transition Seal MUST `rejected_seal`。
 
 上述状态机的认证入口是 `ak.vector.hash_transition.dual_root_recompute.v1` 与 `ak.vector.hash_transition.fail_closed.v1`（`hash-transition-fixture.json`）。声明 `ak.profile.hash_transition.v1` 的实现 MUST 执行双 suite 正例以及缺 root、错 suite、snapshot mismatch、降级、非 Transition Seal 携带 `previous_state_root`、迁移后旧 suite 再现的全部负例。
-4. Transition Seal 接受后，该 Realm 内所有后续 Event digest、Seal id、state_root、Merkle leaf 与 receipt digest MUST 使用 `to_digest_algorithm`；旧 suite 只可出现在历史对象和该 Transition Seal 的 `previous_state_root` 中。
+5. Transition Seal 接受后，该 Realm 内所有后续 Event digest、Seal id、state_root、Merkle leaf 与 receipt digest MUST 使用 `to_digest_algorithm`；旧 suite 只可出现在历史对象、Transition Seal 的 `previous_state_root`，以及 Transition Seal 对旧 Event / receipt / predecessor 的原样 typed 引用中。不得从任意待验证 digest 的 prefix 反向选择 live suite；verifier MUST 从已验证 predecessor joined `ak.component.realm.digest_suite.v1` 状态取得 `from_digest_algorithm`，并仅在验证 transition Move 与双 root 后原子推进到 `to_digest_algorithm`。
+
+Realm genesis 另有一次非 transition 的固定桥接：`ak.realm.create` Event / Realm token 及该 Event 的 AvailabilityReceipt 按 [`../conformance/encoding.md` §4.3](../conformance/encoding.md) 固定使用 SHA-256 code `0x01`；同一首 Seal 内除 create 外的其余 founding Events 及其 receipts MUST 使用已验证 create payload 的 `digest_algorithm`。首 Seal 同样以该声明 suite 生成 Seal id、notary payload、累计 roots 与 post-state root。因此声明 BLAKE3 的 genesis 是一个有界 mixed set：仅 create Event / receipt 是 SHA-256，其他 founding Events / receipts 与 Seal 自身均为 BLAKE3；累计 root 把这些已签 typed digest wire values 原样当作 leaf data。不得据 create Event digest prefix 把 Realm live suite 降为 SHA-256。除该固定 genesis bridge 和上述 suite-transition bridge 外，不存在 Realm 内 mixed-suite authoring。
 
 ### 9.4 非治理强一致对象
 
@@ -831,7 +840,7 @@ kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接�
 5. **witness 不陈旧、未被撤销**：`state_witness` 到 recovery Move `seal_basis.leaves[]` 的签名 Seal 时间差 MUST ≤ Realm `recovery_witness_freshness_window_ms`（默认 86,400,000 ms，最大 604,800,000 ms）；差值使用 `max(leaves[].sealed_at) - witness_seal.sealed_at`，负值或 DAG 不可达同样拒绝。local frontier 还 MUST NOT 已观察到针对该 `recovery_capability` 的 revoke / supersede 晚于 witness frontier；违反则 `recovery_witness_revoke_lagging`（receiver MUST 拒绝 stale witness replay）。
 6. **必须 sealed**：conflict-recovery Move 是控制面 Move，MUST 经控制面 Seal 接受（继承 Seal finality），使"从 `⊥` 恢复到的单值"跨 receiver canonical 一致——与 §7.1 fork-resolution 的跨 receiver 确定性同纪律。reducer 在 cell 处于 `⊥` 时，**仅**接受满足上述全部条件的 conflict-recovery Move 写入该 cell（这是 `bottom=reject` cell 在 `⊥` 下对 `failed_bottom` 的唯一例外），把 cell 解析为该 Move 声明的单一合法值。
 
-**recovery capability 来源**：`recovery_capability` 由 Realm 的恢复权威持有——即 §7.2 闭环里的 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）所辖的 recovery / fork-resolution 授权；它与 §7.1 的 fork-resolution、[`event-and-patch.md` §2.6](../models/event-and-patch.md) over-fork repair 复用同一恢复权威，不引入新授权主体。`single_did` 且未声明可用 recovery 路径的 Realm，control cell `⊥` 是诚实的死状态（与 §7.2 第 2 点"证据可流转但不可生效"同一限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一）。
+**recovery capability 来源**：`recovery_capability` 由 Realm 的恢复权威持有——即 §7.2 闭环里的 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）所辖的 recovery / fork-resolution 授权；它与 §7.1 的 fork-resolution、[`event-and-patch.md` §2.6](../models/event-and-patch.md) over-fork repair 复用同一恢复权威，不引入新授权主体。`single_signer` 且未声明可用 recovery 路径的 Realm，control cell `⊥` 是诚实的死状态（与 §7.2 第 2 点"证据可流转但不可生效"同一限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一）。
 
 **与 §7.1 的层次区分**：§7.1 恢复的是 **Seal-DAG 分叉**（equivocation / `fork_quarantine`）；本节恢复的是**未分叉治理状态内单个 cell 的 `⊥`**。两者由同一恢复权威书写、都经 Seal 接受，但作用对象不同，不可互相替代。该恢复路径由 conformance vector `ak.vector.cba_lattice.conflict_recovery_move.v1` 固定。
 
@@ -849,7 +858,7 @@ MLS security frontier binding 与普通 `seal_ref` 正交：
 - E2EE message 属于 data plane，必须携带普通 admission 的 `seal_ref`，并独立证明其消息 epoch / key schedule 绑定当前 security frontier。
 - MLS commit 是 Control Move，写 MLS control cells，并由 Seal 裁决。
 
-E2EE message 不等待数据面 Seal；它等待普通 Event admission 成立，并要求 active MLS generation 已覆盖最新 key-access frontier。普通 capability 或 metadata 变化不触发 MLS gate。
+E2EE message 不等待数据面 Seal；它等待普通 Event admission 成立，并要求 current winning MLS group state 已覆盖最新 key-access frontier。普通 capability 或 metadata 变化不触发 MLS gate。
 
 ## 12. Snapshot、GC 与恢复
 

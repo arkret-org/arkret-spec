@@ -17,15 +17,6 @@
       "$ref": "#/$defs/direct_conversation_resolve_request"
     },
     {
-      "$ref": "#/$defs/direct_conversation_repair_dispatch_request"
-    },
-    {
-      "$ref": "#/$defs/direct_conversation_repair_relay_request"
-    },
-    {
-      "$ref": "#/$defs/direct_conversation_repair_enqueue_outcome"
-    },
-    {
       "$ref": "#/$defs/direct_conversation_send_blocker"
     }
   ],
@@ -235,20 +226,20 @@
             "coordinates": {
               "$ref": "#/$defs/direct_conversation_coordinates"
             },
-            "active_mls_generation_ref": {
+            "group_state_ref": {
               "$ref": "./principal-operations.schema.json#/$defs/event_id"
             },
-            "active_mls_generation_value_digest": {
+            "group_state_digest": {
               "$ref": "./principal-operations.schema.json#/$defs/digest",
-              "description": "SHA-256 of RFC 8785 JCS for the complete currently accepted ak.component.direct_conversation.active_mls_generation.v1 cell value. The Event ref and whole-value digest are supplied or omitted as one pair."
+              "description": "Digest of the unique derived MLS group's exact current winning Genesis/Commit state. The ref and digest are supplied or omitted as one pair."
             }
           },
           "dependentRequired": {
-            "active_mls_generation_ref": [
-              "active_mls_generation_value_digest"
+            "group_state_ref": [
+              "group_state_digest"
             ],
-            "active_mls_generation_value_digest": [
-              "active_mls_generation_ref"
+            "group_state_digest": [
+              "group_state_ref"
             ]
           },
           "additionalProperties": false
@@ -257,8 +248,8 @@
           "required": [
             "state",
             "coordinates",
-            "active_mls_generation_ref",
-            "active_mls_generation_value_digest",
+            "group_state_ref",
+            "group_state_digest",
             "send_blockers"
           ],
           "properties": {
@@ -268,12 +259,12 @@
             "coordinates": {
               "$ref": "#/$defs/direct_conversation_coordinates"
             },
-            "active_mls_generation_ref": {
+            "group_state_ref": {
               "$ref": "./principal-operations.schema.json#/$defs/event_id"
             },
-            "active_mls_generation_value_digest": {
+            "group_state_digest": {
               "$ref": "./principal-operations.schema.json#/$defs/digest",
-              "description": "SHA-256 of RFC 8785 JCS for the complete currently accepted active-generation cell value, not a hash of active_mls_generation_ref."
+              "description": "Digest of the exact current winning group-state Event, not a second group selector."
             },
             "send_blockers": {
               "type": "array",
@@ -306,20 +297,20 @@
               "minItems": 1,
               "uniqueItems": true
             },
-            "active_mls_generation_ref": {
+            "group_state_ref": {
               "$ref": "./principal-operations.schema.json#/$defs/event_id"
             },
-            "active_mls_generation_value_digest": {
+            "group_state_digest": {
               "$ref": "./principal-operations.schema.json#/$defs/digest",
-              "description": "Present with active_mls_generation_ref whenever an accepted active-generation cell exists, including the replacement-repair suspended state."
+              "description": "Present with group_state_ref whenever the unique derived group has an accepted current state."
             }
           },
           "dependentRequired": {
-            "active_mls_generation_ref": [
-              "active_mls_generation_value_digest"
+            "group_state_ref": [
+              "group_state_digest"
             ],
-            "active_mls_generation_value_digest": [
-              "active_mls_generation_ref"
+            "group_state_digest": [
+              "group_state_ref"
             ]
           },
           "additionalProperties": false
@@ -350,234 +341,6 @@
       "properties": {
         "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
-        }
-      },
-      "additionalProperties": false
-    },
-    "direct_conversation_repair_authorization": {
-      "description": "Requester-owned detached authorization over UTF8('ak.direct-conversation-repair-dispatch-v1\\n') || RFC8785_JCS({request_id,content}). The branch identity, verification method and authorization Event MUST match the content and the portable evidence byte for byte. The source service session and the outer source-service signature are transport gates, never substitutes for this participant signature.",
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "requester_device_id",
-            "verification_method",
-            "device_authorize_event_id",
-            "signed_at",
-            "signature"
-          ],
-          "properties": {
-            "kind": {
-              "const": "device"
-            },
-            "requester_device_id": {
-              "$ref": "./principal-operations.schema.json#/$defs/device_id"
-            },
-            "verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
-            },
-            "device_authorize_event_id": {
-              "$ref": "./principal-operations.schema.json#/$defs/event_id"
-            },
-            "signed_at": {
-              "$ref": "./principal-operations.schema.json#/$defs/timestamp"
-            },
-            "signature": {
-              "$ref": "./principal-operations.schema.json#/$defs/signature"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "requester_agent_id",
-            "verification_method",
-            "agent_key_authorize_event_id",
-            "signed_at",
-            "signature"
-          ],
-          "properties": {
-            "kind": {
-              "const": "native_agent"
-            },
-            "requester_agent_id": {
-              "$ref": "./principal-operations.schema.json#/$defs/did_core_id"
-            },
-            "verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
-            },
-            "agent_key_authorize_event_id": {
-              "$ref": "./principal-operations.schema.json#/$defs/event_id"
-            },
-            "signed_at": {
-              "$ref": "./principal-operations.schema.json#/$defs/timestamp"
-            },
-            "signature": {
-              "$ref": "./principal-operations.schema.json#/$defs/signature"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "direct_conversation_repair_requester_evidence": {
-      "description": "Closed requester-kind discriminator. Human-device and Native-Agent authority is verified from the accepted rejoin/KeyPackage Events and their in-envelope Principal Server admission proofs; no signer-evidence sidecar is accepted.",
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "kind"
-          ],
-          "properties": {
-            "kind": {
-              "const": "device"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind"
-          ],
-          "properties": {
-            "kind": {
-              "const": "native_agent"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "direct_conversation_repair_dispatch_request": {
-      "type": "object",
-      "description": "Authenticated self command. The requester submits one stable request identity, exact non-authorizing repair content and its own detached authorization. It never enumerates recipient devices; the source service validates current gates and relays the exact request to the peer's current accepted Principal Server.",
-      "required": [
-        "request_id",
-        "content",
-        "requester_authorization"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/base64url",
-          "minLength": 22,
-          "maxLength": 128
-        },
-        "content": {
-          "$ref": "./device-message.schema.json#/$defs/member_repair_request_content"
-        },
-        "requester_authorization": {
-          "$ref": "#/$defs/direct_conversation_repair_authorization"
-        }
-      },
-      "additionalProperties": false
-    },
-    "direct_conversation_repair_relay_request": {
-      "type": "object",
-      "description": "Service-to-service repair relay. The source service copies request_id, content and requester_authorization byte for byte from the accepted self dispatch, appends exactly one portable current-authority evidence branch, then covers the canonical body with RFC 9421 and Content-Digest. The destination independently verifies participant authority and every durable Event gate.",
-      "required": [
-        "request_id",
-        "content",
-        "requester_authorization",
-        "requester_evidence"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/base64url",
-          "minLength": 22,
-          "maxLength": 128
-        },
-        "content": {
-          "$ref": "./device-message.schema.json#/$defs/member_repair_request_content"
-        },
-        "requester_authorization": {
-          "$ref": "#/$defs/direct_conversation_repair_authorization"
-        },
-        "requester_evidence": {
-          "$ref": "#/$defs/direct_conversation_repair_requester_evidence"
-        }
-      },
-      "additionalProperties": false
-    },
-    "direct_conversation_repair_enqueue_outcome": {
-      "type": "object",
-      "description": "Byte-identical terminal outcome proving only that the destination service durably accepted this exact relay and atomically completed exactly one closed recipient target branch. A human principal freezes and enqueues every current authorized device; a Native Agent freezes and enqueues its one current active runtime endpoint from accepted agent-key/session binding and never invents an ak:device identity. The branch-specific digest commits the frozen fanout without disclosing target ids. It is not a repair acknowledgement and says nothing about later Commit, Welcome or activation.",
-      "required": [
-        "request_id",
-        "request_digest",
-        "destination_service_id",
-        "status",
-        "recipient_target",
-        "accepted_at"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/base64url",
-          "minLength": 22,
-          "maxLength": 128
-        },
-        "request_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest",
-          "description": "SHA-256 of the exact canonical direct_conversation_repair_relay_request body."
-        },
-        "destination_service_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/did_core_id"
-        },
-        "status": {
-          "const": "enqueued"
-        },
-        "recipient_target": {
-          "oneOf": [
-            {
-              "type": "object",
-              "required": [
-                "kind",
-                "target_snapshot_digest",
-                "enqueued_target_count"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "human_principal"
-                },
-                "target_snapshot_digest": {
-                  "$ref": "./principal-operations.schema.json#/$defs/digest",
-                  "description": "H('ak.member-repair-target-snapshot-human-v1', device-id-sorted [{recipient_device_id,device_message_id}])."
-                },
-                "enqueued_target_count": {
-                  "type": "integer",
-                  "minimum": 1
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind",
-                "target_snapshot_digest",
-                "enqueued_target_count"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "native_agent"
-                },
-                "target_snapshot_digest": {
-                  "$ref": "./principal-operations.schema.json#/$defs/digest",
-                  "description": "H('ak.member-repair-target-snapshot-native-agent-v1', {recipient_agent_id,recipient_agent_verification_method,recipient_agent_key_authorize_event_id,device_message_id}). The three recipient members are the closed Agent endpoint triple this spec already uses for every other Agent role (sender / requester / consumer / target): the Agent principal, the exact DID URL verification_method of the one current accepted agent key, and the accepted ak.agent.key.authorize Event id that authorized it. No opaque endpoint reference is admitted: an unregistered *_ref would hide two authorization coordinates inside the canonical digest preimage."
-                },
-                "enqueued_target_count": {
-                  "const": 1
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
-        },
-        "accepted_at": {
-          "$ref": "./principal-operations.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false

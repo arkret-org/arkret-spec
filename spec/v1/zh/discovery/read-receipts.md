@@ -95,9 +95,9 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 发送客户端 MUST NOT 生成、接收客户端 MUST 丢弃该 scope 的 `ak.receipt.read`。 |
-| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Strand 的 effective scope 可见性允许的全部观察者；`members` = Strand effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人。**执行点在客户端**：服务端看不到加密 `SignalEnvelope` 内的 `event_id`，只能按签名 `scope_ref` 收窄 fanout，不能按发送者定向投递（判据见下方规则表）。**警告**：在 `history_visibility=world_readable` 的 Realm/Strand 下，`visibility=public` 允许外部观察者读取 actor 的已读位置；若用于 metadata-private 场景，receipt-policy MUST 收紧 `visibility` 为 `members` 或 `private`。该组合的 reducer 级强制判定见 §2.5.1。 |
+| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Strand 的 effective scope 可见性允许的全部观察者；`members` = Strand effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人。**执行点在客户端**：服务端看不到加密 `SignalEnvelope` 内的 `event_id`，只能按签名 `scope_ref` 收窄 fanout，不能按发送者定向投递（判据见下方规则表）。**警告**：`history_access=all_history_for_current_members` 只扩大当前成员可恢复的正文 epoch range，不扩大 receipt 观察者集合；metadata-private 场景仍 SHOULD 把 receipt-policy 收紧为 `members` 或 `private`。 |
 | `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。disclosure 的合规下限禁止从父 `required` 降到 `optional` 或 `disabled`，除非父 policy 显式声明 `receipt_compliance_opt_in.child_privacy_tightening_against_required=true`。 |
-| `receipt_compliance_opt_in` | closed object | absent（全部 false） | 单一合规旁路对象；子字段为 `child_privacy_tightening_against_required`、`public_receipts_on_world_readable`、`forced_public_world_readable_receipts`。对象 / 子字段缺失或为 false 均等价未 opt-in；未知子字段 `schema_violation`。最后一项是第二道门，不能替代 `public_receipts_on_world_readable=true`。 |
+| `receipt_compliance_opt_in` | closed object | absent（false） | 只含 `child_privacy_tightening_against_required` 的合规旁路；对象 / 子字段缺失或为 false 均等价未 opt-in，未知子字段 `schema_violation`。历史访问二态不在这里另设旁路。 |
 
 规则：
 
@@ -113,35 +113,24 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 - Child Realm policy MUST 等于或更严格于父策略，同时不得破坏父策略声明的合规下限。visibility 仅允许 `public→members→private` 方向收紧。disclosure 的隐私收紧方向是 `optional→disabled`；父策略为 `required` 时，child 不得降到 `optional` 或 `disabled`，除非父 policy 显式声明 `receipt_compliance_opt_in.child_privacy_tightening_against_required=true`。放宽方向 MUST 被 reducer 拒绝。
 - 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
 
-#### 2.5.1 `visibility × history_visibility` 组合约束（normative）
+#### 2.5.1 合规旁路（normative）
 
-`visibility` 与 Strand effective scope 的 `history_visibility` 的组合按下表判定，采用与 [`discovery-directory.md` §3.1](./discovery-directory.md) 兼容矩阵相近的记号约定（`✓` / `!` / `✗*` / `✗`），但各记号在本表的强度与时点以下方定义为准（与 directory §3.1 的 `!` = "SHOULD 在 Realm create 时显示警告"不同）：`✓` = 允许；`!` = 允许但 reducer MUST 在 accept 时附带警告诊断，客户端 SHOULD 在进入 scope 时显式提示；`✗*` = **默认拒绝、仅在显式 opt-in 后才允许**（reducer MUST 拒绝该组合，除非 policy payload 显式声明对应 opt-in 标记；opt-in 后降级为 `!` 的"允许 + 警告诊断"语义，详见表下说明）；`✗` = reducer MUST 拒绝：
+`history_access` 的 `since_join|all_history_for_current_members` 只决定正文历史范围，不改变 read-receipt
+`visibility`，也不产生公开匿名读取者。二者不得组合出第三套 policy matrix 或旧五档兼容分支。metadata-private
+场景仍 MUST 把 receipt `visibility` 收紧为 `members` 或 `private`。
 
-| visibility ↓ \ history_visibility → | `world_readable` | `shared` / `invited` / `joined` / `restricted` |
-| --- | --- | --- |
-| `private` | ✓ | ✓ |
-| `members` | ✓ | ✓ |
-| `public` | `✗*`（默认拒绝，opt-in 后降级为 `!`，见下） | ✓ |
-
-- `visibility="public"` + `history_visibility="world_readable"` 会让任意外部观察者读取 actor 的已读位置。reducer MUST 拒绝（`read_receipt_visibility_combination_invalid`），除非 payload 显式声明 `receipt_compliance_opt_in.public_receipts_on_world_readable=true`；opt-in 后仍 MUST 附带警告诊断并在 UI 明示。
-- metadata-private 场景下 receipt policy MUST 收紧 `visibility` 为 `members` 或 `private`，不得依赖上述显式 opt-in 旁路。
-- **强制公开去匿名组合 fail-closed(normative)**：`disclosure="required"` + `visibility="public"` + `history_visibility="world_readable"` MUST 拒绝 `read_receipt_forced_public_world_readable_forbidden`，除非 `receipt_compliance_opt_in.public_receipts_on_world_readable=true` **且** `receipt_compliance_opt_in.forced_public_world_readable_receipts=true`；第二项不能单独解锁。
-- **fanout 收口(normative)**：即便第一道 opt-in 已启用，Principal Server sync surface SHOULD 仍把 fanout 限制在 active member 集合；强制组合经两道 opt-in 被允许时，该收口升为 MUST，MUST NOT 主动推送给非成员观察者。
-- 该表只约束 receipt `visibility` 与 history visibility 的组合，不替代 §2.5 字段表与 child-policy 收紧规则；冲突时更严格者优先。
-
-**合规旁路 opt-in 的 canonical 结构（normative）**：v1 只接受下列单一结构化对象，三个旧顶层平行字段不是 wire 字段，出现时 MUST `schema_violation`：
+v1 合规旁路只保留 child policy 隐私收紧这一项；旧公开历史旁路字段不是 wire 字段，出现时 MUST
+`schema_violation`：
 
 ```json
 {
   "receipt_compliance_opt_in": {
-    "child_privacy_tightening_against_required": false,
-    "public_receipts_on_world_readable": false,
-    "forced_public_world_readable_receipts": false
+    "child_privacy_tightening_against_required": false
   }
 }
 ```
 
-- 三个子字段语义与各自原平行字段一一对应，缺省（对象缺省、子字段缺省、为 `false` 或子字段名拼写错误）一律按未 opt-in 即拒绝处理；`forced_public_world_readable_receipts` 仍是 `public_receipts_on_world_readable` 之上的**第二道**门（前者为 `true` 不解除后者）。
+- 对象缺省、子字段缺省或为 `false` 均按未 opt-in 处理。
 - read_receipt_policy payload schema MUST 对 `receipt_compliance_opt_in` 对象本身及其子字段集合声明 `additionalProperties=false`，未识别子字段 MUST 以 `schema_violation` 在 wire 解析阶段拒绝。
 - [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 已以 closed object 落地该结构；正文与 schema 共同构成单一现行契约。
 

@@ -1,22 +1,9 @@
 {
-  "version": "2026-08-20.3",
+  "version": "2026-08-21.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-20T10:38:00+08:00",
+  "generated_at": "2026-08-21T20:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
-    {
-      "vector_id": "ak.vector.aad_visibility.policy_ceiling.v1",
-      "status": "active",
-      "domain": "aad_visibility",
-      "applies_to_fixtures": [
-        "security-closure-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ],
-      "description": "The Realm ak.realm.policy_bundle aad_visibility.event_id_kind component is a disclosure ceiling over the encrypted-envelope aad_visibility_event_id_kind discriminator: an equal or narrower envelope is accepted, a wider one is rejected with aad_visibility_policy_violation, and an absent component means the hidden ceiling rather than no constraint."
-    },
     {
       "vector_id": "ak.vector.account.blocklist_projection.v1",
       "status": "active",
@@ -126,13 +113,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.aead.sender_nonce_prefix_kat.v1",
+      "vector_id": "ak.vector.aead.full_width_counter_nonce.v1",
       "status": "active",
       "domain": "aead",
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1"
       ],
-      "description": "Byte-level MLS-Exporter KAT for arkret-aead-sender-nonce-prefix-v1, including the exact JCS context, AES-GCM prefix length, counter concatenation, and context-field negative mutations.",
+      "description": "Byte-exact I2OSP(counter, AEAD.Nn) KAT for exporter content and Signal nonces. Non-zero high-order padding, counter rollback/reuse and increment after u64 exhaustion fail closed; no sender nonce prefix or random fallback exists.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
@@ -175,7 +162,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.agent.managed_pcr_recovery.v1",
+      "vector_id": "ak.vector.agent.managed_pcr_history_backup.v1",
       "status": "active",
       "domain": "agent",
       "applies_to_fixtures": [
@@ -186,7 +173,7 @@
         "spec/v1/zh/identity/key-management.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ],
-      "description": "Controller-owned recovery_public_key backup of managed Agent PCR MLS state, canonical managed-principal binding across public/plaintext/AAD views, pairing recovery-readiness gate, and prohibition on Agent runtime private-key backup or per-Agent human mnemonic."
+      "description": "Controller-owned recovery_public_key backup of exporter history-secret ranges for a managed Agent PCR, exact public/plaintext identity-tuple binding, no pairing readiness gate, and prohibition on portable active MLS state, Agent runtime private-key backup or per-Agent human mnemonic."
     },
     {
       "vector_id": "ak.vector.agent.managed_pcr_separation.v1",
@@ -1195,8 +1182,7 @@
       ],
       "description": "Authority-surface coverage for ak.authority.direct_conversation_repair.v1, whose action_allowlist is exactly ak.member.rejoin.own. A self leave -> join ak.member.state under the repair source matches that action and reports it as the matched authority source; joining on behalf of the other participant, carrying a first join, admitting a third participant, presenting ak.member.leave.own under the repair source (daily self-leave belongs to the participant authority) and running rejoin.own backwards as join -> leave all fail closed. Behavioural rejoin vectors that never name the action or the authority source would stay green with an empty allowlist and therefore do not cover this.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/capability-fixture.json",
-        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
     {
@@ -1561,7 +1547,6 @@
         "visibility-policy-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/profiles/conformance-profiles.json",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
@@ -1944,19 +1929,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-fixture.json"
-      ],
-      "description": "The hard cap of sixteen not-yet-active candidate MLS groups under one Direct Conversation active-generation predecessor: the sixteenth candidate MUST be admitted, the seventeenth MUST be refused with the exact registered code mls_generation_proposal_fanout_exceeded at HTTP 409 on both the self and the peer Event submit entry points, the refusal is not rate_limited and carries no retry window, and the pair MUST NOT be quarantined - coordinates, binding, membership, the current active generation and the resolver state all stay unchanged and the refusal writes nothing.",
-      "source_refs": [
-        "spec/v1/zh/identity/contact-and-direct-conversation.md",
-        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.direct_conversation.pair_key.v1",
       "status": "active",
       "domain": "direct_conversation",
@@ -1981,19 +1953,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-fixture.json"
-      ],
-      "description": "Cross-author replacement repair dispatch: registered self dispatch freezes a byte-identical peer relay outbox; the destination atomically freezes either all current authorized human devices or one current Native-Agent runtime endpoint and enqueues all-or-zero; requester authority is closed device|native_agent and byte-bound to accepted rejoin and KeyPackage signer evidence; repair claims consume only the exact target_keypackage_ref through a closed human-device|native-agent selector; durable Commit/Welcome plus activation remain the only business response.",
-      "source_refs": [
-        "spec/v1/zh/identity/contact-and-direct-conversation.md",
-        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.direct_conversation.send_blocker_authority.v1",
       "status": "active",
       "domain": "direct_conversation",
@@ -2013,7 +1972,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "Leave, block, either directional Contact terminal and participant terminal gates suspend the immutable conversation; Consent is not consulted. Recovery reuses the same Realm and main Strand with a new active MLS generation and never automatically redelivers old epoch keys or history secrets.",
+      "description": "Leave, block, either directional Contact terminal and participant terminal gates suspend the immutable conversation; Consent is not consulted. Recovery reuses the same Realm, main Strand and unique MLS group with an ordinary Commit and never automatically redelivers old epoch secrets. Total private-state loss makes the old Realm terminal.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
       ]
@@ -2316,7 +2275,6 @@
         "visibility-policy-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/profiles/conformance-profiles.json",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
@@ -2329,7 +2287,6 @@
         "visibility-policy-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/profiles/conformance-profiles.json",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
@@ -2339,10 +2296,10 @@
       "status": "active",
       "domain": "e2ee",
       "applies_to_fixtures": [
-        "history-crypto-closure-fixture.json"
+        "history-key-recovery-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -2354,7 +2311,6 @@
         "visibility-policy-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/profiles/conformance-profiles.json",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
@@ -2394,7 +2350,8 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
+      ],
+      "description": "Minimal encrypted-envelope wire digest over RFC 8785 JCS {version,content_type,encryption_context} followed by decoded ciphertext bytes. Scope, Event kind, group id, scheme and sender domain are reconstructed inputs and never duplicated in the envelope."
     },
     {
       "vector_id": "ak.vector.encoding.canonical_json.nested.v1",
@@ -2997,18 +2954,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.events.submit_seal_admission.v1",
-      "status": "active",
-      "domain": "events",
-      "applies_to_fixtures": [
-        "seal-submit-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/seal-submit-fixture.json"
-      ],
-      "description": "Service-level submit_seal admission covers genesis completeness, current device generation, recomputed roots, predecessor notary authority and non-terminal future-clock deferral."
-    },
-    {
       "vector_id": "ak.vector.fanout.route_miss.v1",
       "status": "active",
       "domain": "fanout",
@@ -3105,7 +3050,7 @@
       "applies_to_fixtures": [
         "hash-transition-fixture.json"
       ],
-      "description": "Transition Seal positive path recomputes old and new roots under their respective suites.",
+      "description": "Transition bridge keeps the Move, receipt, and snapshot commitment on the old suite while deriving the Transition Seal id, signature payload, cumulative roots, and post-state root with the new suite.",
       "source_refs": [
         "spec/v1/zh/authz/event-auth-state-resolution.md",
         "spec/v1/artifacts/fixtures/hash-transition-fixture.json"
@@ -3118,56 +3063,28 @@
       "applies_to_fixtures": [
         "hash-transition-fixture.json"
       ],
-      "description": "Transition Seal root, snapshot, suite, downgrade and post-transition negative matrix.",
+      "description": "Transition bridge Event, receipt, Seal id, signature payload, root, snapshot, suite, downgrade, and post-transition negative matrix.",
       "source_refs": [
         "spec/v1/zh/authz/event-auth-state-resolution.md",
         "spec/v1/artifacts/fixtures/hash-transition-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.history_sharing.direct_conversation_profile_baseline.v1",
+      "vector_id": "ak.vector.history_access.direct_conversation_scope_local.v1",
       "status": "active",
-      "domain": "history_sharing",
+      "domain": "history_access",
       "applies_to_fixtures": [
-        "history-crypto-closure-fixture.json"
+        "history-key-recovery-fixture.json"
       ],
-      "description": "A Direct Conversation Realm takes its effective ak.realm.history_sharing_policy from the ak.profile.direct_conversation_realm.v1 fixed baseline: the generation-0 provisional history key share to the exact peer is released without an accepted policy Event and must not be refused because pre_join_history is deny, archive_node and recovery_service key sources are withheld, and a post-repair rejoin gets no key for the absence window.",
+      "description": "A Direct Conversation Realm uses its explicit current history_access and the ordinary exporter T0/T1 history-key path. There is no fixed history-sharing policy, provisional share exception or group-generation boundary; repair in the unique group does not itself grant missing epoch secrets.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-        "spec/v1/zh/governance/history-visibility.md",
-        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.history_sharing.e2ee_prejoin_key_share_policy.v1",
+      "vector_id": "ak.vector.history_access.since_join_prejoin_denied.v1",
       "status": "active",
-      "domain": "history_sharing",
-      "applies_to_fixtures": [
-        "history-crypto-closure-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.history_sharing.principal_control_profile_baseline.v1",
-      "status": "active",
-      "domain": "history_sharing",
-      "applies_to_fixtures": [
-        "history-crypto-closure-fixture.json"
-      ],
-      "description": "A Principal Control Realm takes its effective ak.realm.history_sharing_policy from the ak.profile.principal_control_realm.v1 fixed baseline: restricted visibility is satisfied without an accepted policy Event, the Realm object must not declare the policy, the PCR must not emit the policy Event, release is clamped to the receiving device's ak.device.authorize frontier, and a Collaboration Realm other than a Direct Conversation Realm gets no implied baseline.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-        "spec/v1/zh/governance/history-visibility.md",
-        "spec/v1/zh/models/realm-and-space.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.history_visibility.joined_prejoin_denied.v1",
-      "status": "active",
-      "domain": "history_visibility",
+      "domain": "history_access",
       "applies_to_fixtures": [
         "visibility-policy-fixture.json"
       ],
@@ -3175,6 +3092,71 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.history_key.closed_mailbox_delivery.v1",
+      "status": "active",
+      "domain": "history_key",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ],
+      "description": "Closed private request, manifest-first continuous-range chunk, relay, honest release-service attestation, exact duplicate, list/ack/expiry and quota matrix."
+    },
+    {
+      "vector_id": "ak.vector.history_key.exporter_prejoin_t0_t1.v1",
+      "status": "active",
+      "domain": "history_key",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ],
+      "description": "Exporter pre-join history delivery is admitted only after receipt-bound direct traversal T0 and current-view T1 gates both pass."
+    },
+    {
+      "vector_id": "ak.vector.history_key.frontier_traversal_split.v1",
+      "status": "active",
+      "domain": "history_key",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ],
+      "description": "Closed split between the bounded near-current stateless group-security frontier and receipt-bound bulk direct Seal traversal. Covers caller-pinned bootstrap/current bases, target dominance, complete predecessor cut replay, registered dependency resolution, current monotone history access, join floor and RRK singleton traversal; no stateless epoch-range or package/page profile remains."
+    },
+    {
+      "vector_id": "ak.vector.history_key.organization_recovery_registration.v1",
+      "status": "active",
+      "domain": "history_key",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ],
+      "description": "Realm create precedes holder-accepted recovery-key register; direct replay must derive the key-evidence Control Move as reducer-effective before any opted-in exporter Genesis. The reducer cell and archive tuple contain the key tuple, provenance EventId and holder-pinned basis; no service-selected effectiveness locator exists. Rotation is exact CAS and historical tuples remain verifiable from the retained archive-lifetime Seal/Event/dependency cut."
+    },
+    {
+      "vector_id": "ak.vector.history_key.sender_crypto.v1",
+      "status": "active",
+      "domain": "history_key",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ],
+      "description": "Ordinary, Native Agent and minimal sender domains bind history-secret KDF, derived nonce, reconstructed AAD, HPKE chunk context and replay rejection. Received bytes globally deduplicate by (scope,group,epoch,candidate_digest). CandidateOriginAttribution separates stable response-sender/RRK-holder-key/backup-series-producer origin_quota_domain from retrieval-only origin_ref, with immutable 30-day TTL and 4-per-candidate/64-per-quota-domain/256-total caps. EventCandidateBinding contains no origin, is independently capped at 256 per epoch for 30 days, and never pins bytes or promotes an epoch winner. Two-tier eviction uses immutable material_received_sequence then candidate_digest, including success-bound material as the second tier."
     },
     {
       "vector_id": "ak.vector.hpke.p256_aes256gcm_base.v1",
@@ -3287,6 +3269,20 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.frozen_reservation_barrier.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "pcr-genesis-fixture.json"
+      ],
+      "description": "Before the first DID registry / method-native publication request the Account Authority MUST, in one atomic step, validate the live identity-creation lease, matching fence, holder, reservation and challenge, and freeze principal_id, full_id and the complete canonical DID operation bytes with their digest; holder-originated commands without a matching live lease/fence fail closed with zero writes before any registry I/O, and after the freeze any first submission, retry, crash recovery, response-loss reconciliation or fence takeover only queries or exact-replays the frozen operation, so a registry spy observes at most one canonical DID operation per reservation and a single stable accepted_at.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/account-lifecycle.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.identity.internationalized_identifier_profiles.v1",
       "status": "active",
       "domain": "identity",
@@ -3365,20 +3361,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/principal-server-admission-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.identity.frozen_reservation_barrier.v1",
-      "status": "active",
-      "domain": "identity",
-      "applies_to_fixtures": [
-        "pcr-genesis-fixture.json"
-      ],
-      "description": "Before the first DID registry / method-native publication request the Account Authority MUST, in one atomic step, validate the live identity-creation lease, matching fence, holder, reservation and challenge, and freeze principal_id, full_id and the complete canonical DID operation bytes with their digest; holder-originated commands without a matching live lease/fence fail closed with zero writes before any registry I/O, and after the freeze any first submission, retry, crash recovery, response-loss reconciliation or fence takeover only queries or exact-replays the frozen operation, so a registry spy observes at most one canonical DID operation per reservation and a single stable accepted_at.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/identity/account-lifecycle.md"
       ]
     },
     {
@@ -3526,9 +3508,8 @@
       "applies_to_profiles": [
         "ak.profile.mls.minimal_metadata_realm.v1"
       ],
-      "description": "Minimal-metadata author verification binds Event.actor_id and proof.verification_method to exactly one active MLS basic credential / LeafNode signature_key at the envelope epoch, rejects rollback/removal/duplicate/key-mismatch cases, and forbids principal-scoped keys/query fallback.",
+      "description": "Minimal-metadata author verification binds Event.actor_id and proof.verification_method to exactly one active MLS basic credential / LeafNode signature_key at the envelope epoch, rejects rollback/removal/duplicate/key-mismatch cases, and forbids principal-scoped keys/query fallback. The same vector pins the IdentityLink proof preimage that binds the independent Ed25519 history response-signing method, key, and key digest so signer evidence cannot self-select a proof key.",
       "source_refs": [
-        "spec/v1/zh/crypto-media/encryption-and-audit.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
       ]
@@ -3878,45 +3859,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.media.aead_nonce_counter_replay.v1",
-      "status": "active",
-      "domain": "media",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "description": "Receiver rejects repeated per-device AEAD nonce counter.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.media.aead_nonce_random_rejected.v1",
-      "status": "active",
-      "domain": "media",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "description": "Receiver rejects pure random 96-bit nonce profile for v1 encrypted attachments.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.media.aead_nonce_sender_domain_collision.v1",
-      "status": "active",
-      "domain": "media",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "description": "Receiver rejects sender_nonce_prefix collision or nonce prefix mismatch.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.media_binding.e2ee_key_source.v1",
       "status": "active",
       "domain": "media_binding",
@@ -4109,19 +4051,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.mention.routing_hmac_kat.v1",
-      "status": "active",
-      "domain": "mention",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "description": "Byte-level arkret-mention-routing-v1 exporter and HMAC-SHA256 KAT over the mentioned DID, including label, Realm, DID, and epoch negative mutations.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.mimi.consent_isolation.v1",
       "status": "active",
       "domain": "mimi",
@@ -4260,6 +4189,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.mls.content_scheme_group_immutable.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
+      ],
+      "description": "A Realm/Circle/Sidecar MLS group fixes its content scheme at Genesis; later switching or accepting another group id for the same ordinary scope fails closed."
+    },
+    {
       "vector_id": "ak.vector.mls.governance_epoch_binding.v1",
       "status": "active",
       "domain": "mls",
@@ -4278,7 +4219,7 @@
       "applies_to_fixtures": [
         "mls-governance-proof-fixture.json"
       ],
-      "description": "Server materializer KAT that reconstructs the exact bounded four-chunk proof acquisition and returns no partial manifest for unreachable anchors, missing/forked/unverifiable source state, Bottom, visibility denial, or limit overflow.",
+      "description": "Server materializer KAT for the sole near-current stateless group_security_frontier profile. It returns one deterministic complete outcome for the caller's exact canonical proof_base_basis/proof_target_basis antichains and purpose-closed query. Byte-identical base and target are valid; concurrent or unreachable cuts return mls_governance_anchor_unreachable, unavailable required material returns frontier_unavailable, and canonical-byte overflow returns mls_governance_proof_bounds_exceeded with no partial output. Bulk and old history use receipt-bound direct Seal traversal instead.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -4291,11 +4232,35 @@
       "applies_to_fixtures": [
         "mls-governance-proof-fixture.json"
       ],
-      "description": "Byte-level complete_control_state_v1 acquisition KAT and SDK verifier mutations for trust anchors, Seal paths and authority, chunk commitments, covered/state/frontier completeness, Event signatures and scope, governance roots, and commit binding fields. Also covers encryption-and-audit.md 2.5.4 anchor admission: a service-reported head used as an anchor, a candidate genesis that does not cover the create Event derived from realm_id, and a candidate genesis signed by a notary other than the one named in that create payload MUST all fail before anything is written to the trust store.",
+      "description": "Byte-level near-current query/page-digest KAT and verifier mutations for exact query replay, complete locally trusted proof_base_basis antichains, equal and ancestor-to-descendant cuts, purpose-closed frontier projections, completeness sparse paths, Event/Seal descriptors, governance roots and commit binding fields. A service-reported or single-leaf frontier candidate, a candidate genesis not covered by the Realm-derived create Event, a wrong-notary genesis, or any stateless epoch-range activation shape fails before trust-store mutation. Bulk history authorization belongs to direct accepted-Seal traversal verification.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
+    },
+    {
+      "vector_id": "ak.vector.mls.history_secret_epoch_entry_retention.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
+      ],
+      "description": "A policy-eligible source durably retains every entered exporter epoch before applying the next winning Commit; Welcome begins at join epoch and pre-join material only arrives through an authorized private history-key response or organization-recovery archive."
+    },
+    {
+      "vector_id": "ak.vector.mls.portable_history_active_state_separation.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
+      ],
+      "description": "Human portable backup carries history-secret segments only; a fresh device establishes active state with its own authorization/KeyPackage/Welcome and cannot install or send from a foreign full snapshot."
     },
     {
       "vector_id": "ak.vector.mls.rfc9420_mti_kat.v1",
@@ -4310,6 +4275,18 @@
         "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
+    },
+    {
+      "vector_id": "ak.vector.mls.scope_derived_group_identity.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
+      ],
+      "description": "Realm, Circle and Sidecar canonical effective-scope bytes derive one unpadded-base64url MLS group id and the shared MLS cell identity; a second group id for the same ordinary scope is rejected."
     },
     {
       "vector_id": "ak.vector.mls.security_frontier_key_access_only.v1",
@@ -4352,15 +4329,14 @@
       ]
     },
     {
-      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
+      "vector_id": "ak.vector.mls_exporter_aead.rrk_archive_durable_before_gc.v1",
       "status": "active",
       "domain": "mls_exporter_aead",
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1"
       ],
-      "description": "Executable RRK durability state-transition vector: all configured recovery recipients are sealed before GC, revoked or undesignated recovery methods fail closed, and threshold authorization does not shrink the eager-seal target set.",
+      "description": "Executable organization-recovery durability vector: local history-secret GC requires a byte-identical archive container Event accepted-or-duplicate, barrier/resolve exact reread and an atomic local coverage ledger. It introduces no share Event, availability receipt, threshold target set or renewal state machine.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
       ]
     },
@@ -4641,10 +4617,10 @@
       "status": "active",
       "domain": "preview",
       "applies_to_fixtures": [
-        "history-crypto-closure-fixture.json"
+        "visibility-policy-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
+        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -4862,6 +4838,21 @@
       "description": "Transcript KAT for ak.authorization-lease-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.control-proposal-authority-ack-proof-v1 rejected.",
       "covers_proof_contexts": [
         "ak.authorization-lease-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.availability_receipt_content.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.availability-receipt-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.availability-receipt-proof-v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -5141,6 +5132,141 @@
       ]
     },
     {
+      "vector_id": "ak.vector.proof_context.transcript.history_key_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.history-key-request-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.history-key-request-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.history_key_request_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.history-key-request-receipt-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.history-key-request-receipt-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.history_key_request_replica.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.history-key-request-replica-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.history-key-request-replica-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.history_key_request_replica_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.history-key-request-replica-receipt-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.history-key-request-replica-receipt-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.history_key_response.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.history-key-response-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.history-key-response-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.history_key_response_lost_record.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.history-key-response-lost-record-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.history-key-response-lost-record-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.history_key_response_record.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.history-key-response-record-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.history-key-response-record-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.history_key_response_send_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.history-key-response-send-receipt-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.history-key-response-send-receipt-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.history_key_source_relay_attestation.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.history-key-source-relay-attestation-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.history-key-source-relay-attestation-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.proof_context.transcript.identity_creation_control.v1",
       "status": "active",
       "domain": "proof_context",
@@ -5381,6 +5507,51 @@
       ]
     },
     {
+      "vector_id": "ak.vector.proof_context.transcript.organization_recovery_archive_replica.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.organization-recovery-archive-replica-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.organization-recovery-archive-replica-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.organization_recovery_archive_replica_receipt.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.organization-recovery-archive-replica-receipt-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.organization-recovery-archive-replica-receipt-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.organization_recovery_key_holder_acceptance.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.organization-recovery-key-holder-acceptance-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.organization-recovery-key-holder-acceptance-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.proof_context.transcript.organization_registration_control_proof.v1",
       "status": "active",
       "domain": "proof_context",
@@ -5402,6 +5573,21 @@
       "description": "Transcript KAT for ak.organization-registration-receipt-proof-v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.device-projection-attestation-proof-v1 rejected.",
       "covers_proof_contexts": [
         "ak.organization-registration-receipt-proof-v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.peer_seal_frontier.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.peer-seal-frontier-proof-v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.peer-seal-frontier-proof-v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -5474,24 +5660,9 @@
       "vector_id": "ak.vector.proof_context.transcript.realm_join_candidate.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.realm-join-candidate-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.realm-key-share-sender-proof-v1 rejected.",
+      "description": "Transcript KAT for ak.realm-join-candidate-proof-v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.availability-receipt-proof-v1 rejected.",
       "covers_proof_contexts": [
         "ak.realm-join-candidate-proof-v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.realm_key_share_sender_transcript.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.realm-key-share-sender-proof-v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.receipt-proof-v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.realm-key-share-sender-proof-v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -5696,20 +5867,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.push.mention_routing_hint_disabled_on_hardened_realm.v1",
-      "status": "active",
-      "domain": "push",
-      "applies_to_fixtures": [
-        "push-rule-core-fixture.json"
-      ],
-      "description": "minimal-metadata and audited E2EE Realms force mention_routing_hint=disabled even when policy declares recipient_registered_token; no sidecar registration, comparison, or persistence occurs and delivery falls back to blind or batch wakeup.",
-      "source_refs": [
-        "spec/v1/zh/discovery/push-notifications.md",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.push.notify_outcome_conservation.v1",
       "status": "active",
       "domain": "push",
@@ -5808,34 +5965,8 @@
       ],
       "description": "Realm create atomically materializes five registered cell writes including the singleton ak.component.realm.authority_root.v1 cell whose controller is created_by at epoch 0 and generation 0; missing roots, author-supplied root values, unrecomputable registry digests, non-root founding-grant shapes, and staged/accepted root proofs used outside their basis all fail closed without leaving a partial Realm or membership.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/capability-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.realm_key.share_sender_signature.v1",
-      "status": "active",
-      "domain": "realm_key",
-      "applies_to_fixtures": [
-        "state-reducer-hardening-fixture.json"
-      ],
-      "description": "Byte-exact member-device and RRK sender-proof transcripts with omitted inactive branches/material/options; cross-target, double/missing material, field tampering, and sender-device key mismatch fail closed.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.realm_key.withheld_policy_basis.v1",
-      "status": "active",
-      "domain": "realm_key",
-      "applies_to_fixtures": [
-        "state-reducer-hardening-fixture.json"
-      ],
-      "description": "Binds every durable member-device withheld reason to the unique refusal-policy root and source authorization at the Event CBA/T0 basis; receiver-current, zero, ambiguous, stale, or wrong-scope substitutes fail closed without a terminal projection.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
+        "spec/v1/artifacts/fixtures/capability-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -5863,6 +5994,20 @@
       ]
     },
     {
+      "vector_id": "ak.vector.redaction.event_target_does_not_drive_object_state.v1",
+      "status": "active",
+      "domain": "redaction",
+      "description": "An event-targeted ak.redaction (target_ref in ak:event: form) only trims that Event's fields per preserve[] and MUST NOT change any object's state, including the event-derived object minted from a targeted create Event; object state=redacted is driven only by the object typed-id spelling of target_ref. The two spellings of one 33-octet token are both schema-valid and land in two distinct ak.component.object.redaction.v1 cells (verbatim scalar subject, encoding.md 9.5.1); the cells are independent OR-Sets and neither spelling canonicalizes into the other.",
+      "applies_to_fixtures": [
+        "redaction-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/models/common-fields.md",
+        "spec/v1/artifacts/fixtures/redaction-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.redaction.hard_erasure_receipt.v1",
       "status": "active",
       "domain": "redaction",
@@ -5879,20 +6024,6 @@
       "status": "active",
       "domain": "redaction",
       "description": "Message reaches state=redacted only through the object-scoped ak.message.redact. The cross-object ak.redaction payload class excludes Message mechanically: message_id is not a member and target_ref removes the ak:message: branch, so both spellings fail schema validation before any cell write, while a non-Message object target and the ak.message.redact positive both validate.",
-      "applies_to_fixtures": [
-        "redaction-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/models/common-fields.md",
-        "spec/v1/artifacts/fixtures/redaction-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.redaction.event_target_does_not_drive_object_state.v1",
-      "status": "active",
-      "domain": "redaction",
-      "description": "An event-targeted ak.redaction (target_ref in ak:event: form) only trims that Event's fields per preserve[] and MUST NOT change any object's state, including the event-derived object minted from a targeted create Event; object state=redacted is driven only by the object typed-id spelling of target_ref. The two spellings of one 33-octet token are both schema-valid and land in two distinct ak.component.object.redaction.v1 cells (verbatim scalar subject, encoding.md 9.5.1); the cells are independent OR-Sets and neither spelling canonicalizes into the other.",
       "applies_to_fixtures": [
         "redaction-fixture.json"
       ],
@@ -6272,6 +6403,18 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.seals.submit_admission.v1",
+      "status": "active",
+      "domain": "seals",
+      "applies_to_fixtures": [
+        "seal-submit-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/seal-submit-fixture.json"
+      ],
+      "description": "Typed Seal submit admission covers genesis completeness, current device generation, recomputed roots, predecessor notary authority and non-terminal future-clock deferral."
     },
     {
       "vector_id": "ak.vector.search.blind_index_stale_posting_fail_closed.v1",

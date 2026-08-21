@@ -34,26 +34,7 @@
       "description": "Closed S2S request for the Account Authority-owned controller lifecycle gate. Agent state, account_id and raw account cell material are deliberately absent."
     },
     "authenticated_service_resolution": {
-      "type": "object",
-      "required": [
-        "service_resolution_record",
-        "method_history_evidence",
-        "normalized_did_document"
-      ],
-      "properties": {
-        "service_resolution_record": {
-          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_record"
-        },
-        "method_history_evidence": {
-          "$ref": "./identity-resolution.schema.json#/$defs/method_history_evidence"
-        },
-        "normalized_did_document": {
-          "type": "object",
-          "description": "Exact normalized DID Document whose canonical digest equals method_history_evidence.evidence.document_digest. Its id MUST equal service_resolution_record.record.full_id; the record proof and HTTP Signature keyid MUST name a currently authorized assertionMethod in this document. The method-native evidence evaluator, not this caller assertion, authenticates the document."
-        }
-      },
-      "additionalProperties": false,
-      "description": "Self-contained verification input for high-risk inbound service authentication. The receiver validates method evidence against the document and signed record, enforces record freshness/currentness and only then verifies the RFC 9421 request."
+      "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
     },
     "controller_account_gate_attestation_issue_outcome": {
       "type": "object",
@@ -87,6 +68,7 @@
           "type": "array",
           "minItems": 1,
           "maxItems": 64,
+          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/query_selector"
           }
@@ -191,19 +173,22 @@
         "evidence": {
           "type": "array",
           "maxItems": 64,
+          "uniqueItems": true,
           "items": {
-            "$ref": "./agent-signer-evidence.schema.json"
+            "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/native_agent_signer_evidence"
           }
         },
         "failures": {
           "type": "array",
           "maxItems": 64,
+          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/query_failure"
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Each success item is the complete content-addressed Native Agent signer-resolution root, including exact AgentSignerEvidence and all four recursive ref/digest pairs. Before returning success, the issuer atomically stores the byte-exact root and every recursively referenced dependency in the governance-dependency CAS. Clients never construct this wrapper from a bare AgentSignerEvidence."
     },
     "query_failure": {
       "type": "object",

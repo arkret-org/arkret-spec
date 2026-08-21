@@ -264,7 +264,7 @@ context mappings。
 4. `desired_agent_ids` 只能从 accepted frontier 派生；任何 operation 均不可写入或覆盖它。
 5. native `scope_ref.kind="sidecar"` 进入 digest、AAD、delivery/query 与 Seal 验证。AAD 侧的
    承载是 `aad.scope_digest`——对 exact `scope_ref` 的域分隔承诺（常量 `ak.aad-scope-v1`，构造与
-   接收方重算见 [`../crypto-media/encryption-and-audit.md` §2.3.2.1](../crypto-media/encryption-and-audit.md)）。
+   接收方重算见 [`../crypto-media/encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md)）。
    它对**所有** scope 恒定必填，因此"带不带这个字段"不会成为 Sidecar 指纹；明文 `sidecar_id`
    **MUST NOT** 进入 AAD，否则服务端可直接从密文枚举 Sidecar 的存在、数量与活跃度，违反 §9。
    逐字节 KAT（含 Realm 与 Sidecar 两个 scope 摘要不同的断言）在

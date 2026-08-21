@@ -500,8 +500,8 @@
           "posting_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         },
         {
-          "label": "history_visibility_tightened",
-          "state_change": "history_visibility_private",
+          "label": "history_access_tightened",
+          "state_change": "history_access_private",
           "posting_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         {
@@ -796,6 +796,16 @@
           "verification_method": "did:key:z6MkpairwiseAlice#z6MkpairwiseAuthorKey",
           "resolved_public_key": "z6MkpairwiseAuthorKey",
           "signature_valid": true
+        },
+        "history_response_signing_binding": {
+          "response_signing_verification_method": "did:key:z6Mkpseudonymous#history-response-1",
+          "response_signing_algorithm": "Ed25519",
+          "response_signing_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "response_signing_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925",
+          "identity_link_proof_preimage_hex": "616b2e6964656e746974792d6c696e6b2d76310a7b226465766963655f6964223a22616b3a6465766963653a30313961366161302d303030302d373030302d383030302d303030303030303030303030222c226566666563746976655f6174223a22323032362d30382d32315430303a30303a30302e3030305a222c226d6c735f65706f6368223a372c226d6c735f67726f75705f6964223a225a6d6c34644856795a5331795a5746736251222c226d6c735f6c6561665f696e646578223a332c2270616972776973655f6163746f725f6964223a22616b3a6469645f636f72653a6b65793a7a364d6b70736575646f6e796d6f7573222c227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2270726f6f66223a7b227369676e61747572655f616c676f726974686d223a2245643235353139222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a7a366d6b666978747572653a616c6963652e6578616d706c65236b65792d31227d2c227265616c6d5f6964223a22616b3a7265616c6d3a41517077446d375a5856546a5557436e6171636d78785a3439593843707a464a2d764c7a6d76436a42586677222c22726573706f6e73655f7369676e696e675f616c676f726974686d223a2245643235353139222c22726573706f6e73655f7369676e696e675f7075626c69635f6b65795f62363475223a2241414141414141414141414141414141414141414141414141414141414141414141414141414141414141222c22726573706f6e73655f7369676e696e675f7075626c69635f6b65795f646967657374223a227368613235363a36363638376161646638363262643737366338666331386238653966386532303038393731343835366565323333623339303261353931643064356632393235222c22726573706f6e73655f7369676e696e675f766572696669636174696f6e5f6d6574686f64223a226469643a6b65793a7a364d6b70736575646f6e796d6f757323686973746f72792d726573706f6e73652d31222c22736368656d61223a22616b2e736368656d612e6964656e746974795f6c696e6b2e7631222c22737461747573223a22616374697665222c2274727573745f646f6d61696e223a22616b3a74727573745f646f6d61696e3a6469642e77656276682e6578616d706c65227d",
+          "identity_link_proof_payload_digest": "sha256:98b26659e2d303872f43cf946964ac0287628a4c9c45fbcb9b8400f97120a0c7",
+          "mutation": "replace_response_signing_public_key_without_resigning_identity_link",
+          "expected_mutation_result": "reject_payload_digest_mismatch"
         }
       },
       "cases": [
@@ -889,7 +899,8 @@
         "one pairwise did:key is scoped to exactly one Realm and is never reused across Realms",
         "actor/session mismatch remains forbidden outside minimal-metadata encrypted content",
         "author verification never queries principal-scoped keys/query",
-        "identity_link disclosure is separate from pairwise author verification"
+        "identity_link disclosure is separate from pairwise author verification",
+        "history response signing key and method are signed inside the exact end-to-end encrypted identity_link and cannot be self-selected by signer evidence"
       ]
     }
   ]

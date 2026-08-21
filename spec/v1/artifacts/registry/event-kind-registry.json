@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-20.1",
+  "version": "2026-08-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-20T10:20:00+08:00",
+  "generated_at": "2026-08-21T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -196,6 +196,12 @@
       "id_kind": "realm",
       "plane": "control",
       "sealed": true,
+      "admission_checks": [
+        "payload.object.notary.kind is the sole notary profile discriminator; top-level notary_profile is forbidden",
+        "every signer descriptor controller projects to actor_id, decoded key bytes/digest match key_kind, and jose_algorithm is the exact registered algorithm",
+        "members, recovery_members and their union are each field-wise unique by actor_id, verification_method and frozen_public_key_digest; primary/recovery slots are disjoint",
+        "threshold does not exceed members length; unsupported key kinds or algorithms are rejected"
+      ],
       "cell_writes": [
         {
           "cell_family": "ak.component.realm.genesis.v1",
@@ -222,6 +228,66 @@
             },
             "issuer_seq": {
               "envelope_field": "actor_seq"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.realm.history_access.v1",
+          "cell_subject": null,
+          "lattice": "fsm",
+          "bottom": "reject",
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.object.purpose",
+            "const": "direct_conversation"
+          },
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "since_join"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.realm.history_access.v1",
+          "cell_subject": null,
+          "lattice": "fsm",
+          "bottom": "reject",
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.object.purpose",
+            "const": "principal_control"
+          },
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "since_join"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.realm.history_access.v1",
+          "cell_subject": null,
+          "lattice": "fsm",
+          "bottom": "reject",
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.object.purpose",
+            "const": "managed_agent_control"
+          },
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "since_join"
             }
           }
         },
@@ -578,30 +644,141 @@
       "concurrency_class": "security_barrier"
     },
     {
-      "event_kind": "ak.realm.history_visibility",
+      "event_kind": "ak.realm.history_access",
       "category": "realm",
       "status": "active",
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm history visibility scope",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/history_visibility_payload",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/history_access_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
-          "cell_family": "ak.component.realm.history_visibility.v1",
+          "cell_family": "ak.component.realm.history_access.v1",
+          "cell_subject": null,
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "field": "payload.from"
+            },
+            "to": {
+              "field": "payload.to"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier"
+    },
+    {
+      "event_kind": "ak.realm.organization_recovery_key.register",
+      "category": "realm",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Register the unique active Realm organization recovery public-key tuple after Realm creation is already activated",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/organization_recovery_key_register_payload",
+      "id_source": "not_an_object_id",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.organization_recovery_key.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "projected_value": true
+            }
+          },
+          "value_projection": {
+            "kind": "object",
+            "members": [
+              {
+                "name": "key_tuple",
+                "field": "payload.new_key_tuple"
+              },
+              {
+                "name": "accepted_key_evidence_ref",
+                "envelope_field": "event_id"
+              },
+              {
+                "name": "holder_trusted_basis",
+                "field": "payload.holder_trusted_basis"
+              }
+            ]
+          }
+        }
+      ],
+      "admission_checks": [
+        "payload.realm_id/new_key_tuple/holder_trusted_basis equal the nested holder_acceptance fields byte-for-byte",
+        "new_key_tuple.hpke_suite equals ak.hpke_x25519_aead_chacha20poly1305.v1 and frozen_public_key_b64u is canonical unpadded base64url of exactly 32 X25519 bytes",
+        "key_agreement_ref resolves current; its controller projects to holder_principal_id and its raw X25519 key equals frozen_public_key_b64u",
+        "holder_signing_ref resolves current; its controller projects to holder_principal_id; holder_proof.verification_method equals holder_signing_ref byte-for-byte and verifies under that exact key",
+        "holder_trusted_basis is the holder-pinned complete accepted Seal antichain and causally covers the accepted Realm-create Seal",
+        "ak.component.realm.organization_recovery_key.v1 is unset; register is exact create-once CAS"
+      ],
+      "concurrency_class": "security_barrier"
+    },
+    {
+      "event_kind": "ak.realm.organization_recovery_key.rotate",
+      "category": "realm",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "CAS-rotate the unique active Realm organization recovery public-key tuple while preserving historical tuple provenance",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/organization_recovery_key_rotate_payload",
+      "id_source": "not_an_object_id",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.organization_recovery_key.v1",
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
           "effect_projection": {
             "kind": "set",
             "value": {
-              "field": "payload"
+              "projected_value": true
             }
+          },
+          "value_projection": {
+            "kind": "object",
+            "members": [
+              {
+                "name": "key_tuple",
+                "field": "payload.new_key_tuple"
+              },
+              {
+                "name": "accepted_key_evidence_ref",
+                "envelope_field": "event_id"
+              },
+              {
+                "name": "holder_trusted_basis",
+                "field": "payload.holder_trusted_basis"
+              }
+            ]
           }
         }
+      ],
+      "admission_checks": [
+        "payload.realm_id/new_key_tuple/holder_trusted_basis equal the nested holder_acceptance fields byte-for-byte",
+        "new_key_tuple.hpke_suite equals ak.hpke_x25519_aead_chacha20poly1305.v1 and frozen_public_key_b64u is canonical unpadded base64url of exactly 32 X25519 bytes",
+        "key_agreement_ref resolves current; its controller projects to holder_principal_id and its raw X25519 key equals frozen_public_key_b64u",
+        "holder_signing_ref resolves current; its controller projects to holder_principal_id; holder_proof.verification_method equals holder_signing_ref byte-for-byte and verifies under that exact key",
+        "expected_previous_key_evidence_ref equals the current cell provenance Event and expected_previous_key_evidence_seal_ref is the exact accepted Seal whose state membership makes that Event tuple effective",
+        "holder_trusted_basis is the holder-pinned complete accepted Seal antichain and causally covers the prior accepted evidence Seal",
+        "rotation is exact CAS on the prior effective tuple; mismatch, missing or Bottom is failed_precondition with zero write"
       ],
       "concurrency_class": "security_barrier"
     },
@@ -729,6 +906,11 @@
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
+      "admission_checks": [
+        "the predecessor-state frozen descriptors authorize this Move before the replacement value is installed",
+        "payload.notary.kind is the sole discriminator and every closed branch satisfies the same actor_id, verification_method and frozen_public_key_digest field-wise uniqueness rules as Realm create",
+        "every descriptor controller, decoded key bytes/digest, key_kind and jose_algorithm validate exactly; threshold does not exceed members length"
+      ],
       "cell_writes": [
         {
           "cell_family": "ak.component.notary.v1",
@@ -816,34 +998,6 @@
       "cell_writes": [
         {
           "cell_family": "ak.component.realm.policy_bundle.v1",
-          "cell_subject": null,
-          "lattice": "cas_register",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "security_barrier"
-    },
-    {
-      "event_kind": "ak.realm.history_sharing_policy",
-      "category": "realm",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "E2EE history sharing policy",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/history_sharing_policy_payload",
-      "id_source": "not_an_object_id",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.realm.history_sharing_policy.v1",
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
@@ -1228,6 +1382,24 @@
               "envelope_field": "actor_seq"
             }
           }
+        },
+        {
+          "cell_family": "ak.component.circle.history_access.v1",
+          "cell_subject": {
+            "field": "envelope.event_id",
+            "kind": "id:circle"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "field": "payload.object.history_access"
+            }
+          }
         }
       ],
       "concurrency_class": "security_barrier"
@@ -1304,13 +1476,47 @@
       "concurrency_class": "security_barrier"
     },
     {
+      "event_kind": "ak.circle.history_access",
+      "category": "circle",
+      "status": "active",
+      "verb_form": "not_applicable",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Dedicated per-Circle monotone history-access FSM transition; only all_history_for_current_members to since_join is state-changing after create.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_history_access_payload",
+      "id_source": "not_an_object_id",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.circle.history_access.v1",
+          "cell_subject": {
+            "field": "payload.circle_id",
+            "kind": "id:circle"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "field": "payload.from"
+            },
+            "to": {
+              "field": "payload.to"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier"
+    },
+    {
       "event_kind": "ak.circle.update",
       "category": "circle",
       "status": "active",
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle patch (ak.schema.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility.",
+      "payload": "Circle metadata patch (ak.schema.patch.v1). history_access, realm_id, encryption_profile, content_scheme, durability_policy and MLS identity fields are forbidden; history_access uses ak.circle.history_access.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_patch_payload",
       "id_source": "reference",
       "plane": "control",
@@ -4438,7 +4644,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact round may author the founding unit. Written once and never retired; the active MLS generation is projected separately and read as the current value, never pinned by this payload.",
+      "payload": "Participant endorsement of settled Direct Conversation coordinates and the first exact-pair state of the one scope-derived MLS group. Written once and never retired; later group state advances only by ordinary Commit.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
@@ -4464,35 +4670,6 @@
         }
       ],
       "concurrency_class": "merge_safe"
-    },
-    {
-      "event_kind": "ak.direct_conversation.mls_generation.activate",
-      "category": "contact",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "self_authored_proof",
-      "payload": "Selects which already-established MLS group currently holds send authority in a Direct Conversation Realm. It never creates a group: the producer first establishes candidate state with ordinary ak.mls.genesis and Add Commit and durably stores its own private state, and the activation then references those accepted public facts. Generation 0 is the founder's sender-only provisional exporter group. Generation 1 MUST be authored by the joiner, because no portable proof exists that the peer Principal Server durably accepted the Welcome and only the joiner can truthfully assert it. Generation 2 and above are post-binding repair and require generation = current + 1 with predecessor_active_value_digest matching the current value.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_mls_generation_activate_payload",
-      "id_source": "not_an_object_id",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.direct_conversation.active_mls_generation.v1",
-          "cell_subject": null,
-          "lattice": "cas_register",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.account.blocklist",
@@ -4820,7 +4997,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "MLS proposal",
+      "payload": "MLS proposal. proposal_type=add requires exact target_principal_id and target_authorization_incarnation; the incarnation branch must match governance_binding.effective_scope, and the winning Commit that consumes this proposal defines that exact incarnation's join_epoch as Commit.next_epoch. Non-add proposals forbid target_authorization_incarnation.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_proposal_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
@@ -4829,8 +5006,25 @@
         {
           "cell_family": "ak.component.mls.proposal.v1",
           "cell_subject": {
-            "kind": "string",
-            "field": "payload.mls_group_id"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                }
+              },
+              "payload.mls_group_id"
+            ]
           },
           "lattice": "ordered_log",
           "bottom": "expose",
@@ -4863,8 +5057,25 @@
         {
           "cell_family": "ak.component.mls.epoch.v1",
           "cell_subject": {
-            "kind": "string",
-            "field": "payload.mls_group_id"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.effective_scope.sidecar_id"
+                  }
+                }
+              },
+              "payload.mls_group_id"
+            ]
           },
           "lattice": "cas_register",
           "bottom": "reject",
@@ -4872,15 +5083,69 @@
           "effect_projection": {
             "kind": "set",
             "value": {
-              "field": "payload.epoch"
+              "projected_value": true
             }
+          },
+          "value_projection": {
+            "kind": "object",
+            "members": [
+              {
+                "name": "transition_ref",
+                "envelope_field": "event_id"
+              },
+              {
+                "name": "transition_event_digest",
+                "derivation": "event_digest_from_event_id"
+              },
+              {
+                "name": "mls_transition_digest",
+                "derivation": "mls_genesis_transition_digest"
+              },
+              {
+                "name": "effective_scope",
+                "field": "payload.effective_scope"
+              },
+              {
+                "name": "mls_group_id",
+                "field": "payload.mls_group_id"
+              },
+              {
+                "name": "previous_epoch",
+                "literal": null
+              },
+              {
+                "name": "next_epoch",
+                "field": "payload.epoch"
+              },
+              {
+                "name": "content_scheme",
+                "field": "payload.governance_binding.content_scheme"
+              }
+            ]
           }
         },
         {
           "cell_family": "ak.component.mls.key_schedule.v1",
           "cell_subject": {
-            "kind": "string",
-            "field": "payload.mls_group_id"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.effective_scope.sidecar_id"
+                  }
+                }
+              },
+              "payload.mls_group_id"
+            ]
           },
           "lattice": "cas_register",
           "bottom": "reject",
@@ -4893,7 +5158,8 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier"
+      "concurrency_class": "security_barrier",
+      "effective_epoch_cell_rule": "ak.component.mls.epoch.v1 value is the closed reducer-effective winner tuple {transition_ref,transition_event_digest,mls_transition_digest,effective_scope,mls_group_id,previous_epoch,next_epoch,content_scheme}. transition_event_digest is the outer signed Event digest. mls_transition_digest is the closed Genesis core digest excluding organization_recovery_archive, outer EventId and proofs. A CAS conflict is Bottom, creates no state_root leaf and cannot serve as activation evidence."
     },
     {
       "event_kind": "ak.mls.commit",
@@ -4911,23 +5177,94 @@
         {
           "cell_family": "ak.component.mls.epoch.v1",
           "cell_subject": {
-            "kind": "string",
-            "field": "payload.mls_group_id"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                }
+              },
+              "payload.mls_group_id"
+            ]
           },
           "lattice": "cas_register",
           "bottom": "reject",
           "effect_projection": {
             "kind": "set",
             "value": {
-              "field": "payload.next_epoch"
+              "projected_value": true
             }
+          },
+          "value_projection": {
+            "kind": "object",
+            "members": [
+              {
+                "name": "transition_ref",
+                "envelope_field": "event_id"
+              },
+              {
+                "name": "transition_event_digest",
+                "derivation": "event_digest_from_event_id"
+              },
+              {
+                "name": "mls_transition_digest",
+                "field": "payload.commit_digest"
+              },
+              {
+                "name": "effective_scope",
+                "field": "payload.governance_binding.effective_scope"
+              },
+              {
+                "name": "mls_group_id",
+                "field": "payload.mls_group_id"
+              },
+              {
+                "name": "previous_epoch",
+                "field": "payload.governance_binding.previous_epoch"
+              },
+              {
+                "name": "next_epoch",
+                "field": "payload.next_epoch"
+              },
+              {
+                "name": "content_scheme",
+                "field": "payload.governance_binding.content_scheme"
+              }
+            ]
           }
         },
         {
           "cell_family": "ak.component.mls.key_schedule.v1",
           "cell_subject": {
-            "kind": "string",
-            "field": "payload.mls_group_id"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                }
+              },
+              "payload.mls_group_id"
+            ]
           },
           "lattice": "cas_register",
           "bottom": "reject",
@@ -4939,7 +5276,8 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier"
+      "concurrency_class": "security_barrier",
+      "effective_epoch_cell_rule": "ak.component.mls.epoch.v1 value is the closed reducer-effective winner tuple {transition_ref,transition_event_digest,mls_transition_digest,effective_scope,mls_group_id,previous_epoch,next_epoch,content_scheme}. transition_event_digest is the outer signed Event digest. mls_transition_digest is payload.commit_digest. A CAS conflict is Bottom, creates no state_root leaf and cannot serve as activation evidence."
     },
     {
       "event_kind": "ak.mls.commit_failed",
@@ -4958,8 +5296,25 @@
         {
           "cell_family": "ak.component.mls.failure_log.v1",
           "cell_subject": {
-            "kind": "string",
-            "field": "payload.mls_group_id"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.effective_scope.sidecar_id"
+                  }
+                }
+              },
+              "payload.mls_group_id"
+            ]
           },
           "lattice": "ordered_log",
           "bottom": "expose",
@@ -4994,6 +5349,21 @@
           "cell_subject": {
             "kind": "composite",
             "components": [
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                }
+              },
               "payload.mls_group_id",
               "payload.recipient_principal_id",
               "payload.recipient_device_id"
@@ -5048,346 +5418,6 @@
         }
       ],
       "concurrency_class": "security_barrier"
-    },
-    {
-      "event_kind": "ak.realm_key.share",
-      "category": "e2ee",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "crypto_verifiable",
-      "payload": "Realm key share: member-device history key delivery or RRK durability seal",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_key_share_payload",
-      "id_source": "not_an_object_id",
-      "plane": "data",
-      "sealed": false,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.realm_key.delivery.v1",
-          "cell_subject": {
-            "kind": "composite",
-            "components": [
-              "payload.share_kind",
-              "payload.recipient_principal_id",
-              {
-                "kind": "select",
-                "selector": "payload.share_kind",
-                "branches": {
-                  "member_device": {
-                    "field": "payload.recipient_device_id",
-                    "forbidden_fields": [
-                      "payload.recipient_verification_method",
-                      "payload.recovery_recipient_id"
-                    ]
-                  },
-                  "realm_recovery_key": {
-                    "field": "payload.recovery_recipient_id",
-                    "forbidden_fields": [
-                      "payload.recipient_device_id"
-                    ]
-                  }
-                }
-              },
-              {
-                "kind": "select",
-                "selector": "payload.key_scope.effective_scope.kind",
-                "branches": {
-                  "realm": {
-                    "field": "payload.key_scope.effective_scope.realm_id"
-                  },
-                  "circle": {
-                    "field": "payload.key_scope.effective_scope.circle_id"
-                  }
-                }
-              }
-            ]
-          },
-          "value_projection": {
-            "kind": "object",
-            "members": [
-              {
-                "name": "delivery_outcome",
-                "literal": "shared"
-              },
-              {
-                "name": "share_kind",
-                "field": "payload.share_kind"
-              },
-              {
-                "name": "recipient_principal_id",
-                "field": "payload.recipient_principal_id"
-              },
-              {
-                "name": "recipient_target_id",
-                "select": {
-                  "kind": "select",
-                  "selector": "payload.share_kind",
-                  "branches": {
-                    "member_device": {
-                      "field": "payload.recipient_device_id",
-                      "forbidden_fields": [
-                        "payload.recipient_verification_method",
-                        "payload.recovery_recipient_id"
-                      ]
-                    },
-                    "realm_recovery_key": {
-                      "field": "payload.recovery_recipient_id",
-                      "forbidden_fields": [
-                        "payload.recipient_device_id"
-                      ]
-                    }
-                  }
-                }
-              },
-              {
-                "name": "effective_scope_id",
-                "select": {
-                  "kind": "select",
-                  "selector": "payload.key_scope.effective_scope.kind",
-                  "branches": {
-                    "realm": {
-                      "field": "payload.key_scope.effective_scope.realm_id"
-                    },
-                    "circle": {
-                      "field": "payload.key_scope.effective_scope.circle_id"
-                    }
-                  }
-                }
-              },
-              {
-                "name": "policy_digest",
-                "field": "payload.key_scope.policy_digest"
-              },
-              {
-                "name": "from_epoch",
-                "field": "payload.key_scope.from_epoch",
-                "optional": true
-              },
-              {
-                "name": "to_epoch",
-                "field": "payload.key_scope.to_epoch",
-                "optional": true
-              },
-              {
-                "name": "sender_device_id",
-                "field": "payload.sender_device_id"
-              },
-              {
-                "name": "source_authorization_ref",
-                "field": "payload.source_authorization_ref"
-              },
-              {
-                "name": "payload_digest",
-                "digest_of": {
-                  "input": "event_payload_canonical_bytes"
-                }
-              }
-            ]
-          },
-          "lattice": "ordered_log",
-          "bottom": "expose",
-          "effect_projection": {
-            "kind": "append",
-            "value": {
-              "projected_value": true
-            },
-            "issuer_seq": {
-              "envelope_field": "actor_seq"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "event_kind": "ak.realm_key.withheld",
-      "category": "e2ee",
-      "status": "active",
-      "verb_form": "past_participle",
-      "verb_form_rationale": "Delivery-decision outcome announcement: the key source independently re-verified membership, device and policy, then durably records that this key delivery was withheld together with withheld_reason_code. It is not a command asking a reducer to perform a withhold action.",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "crypto_verifiable",
-      "payload": "Realm key withheld notice",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_key_withheld_payload",
-      "id_source": "not_an_object_id",
-      "plane": "data",
-      "sealed": false,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.realm_key.delivery.v1",
-          "cell_subject": {
-            "kind": "composite",
-            "components": [
-              "payload.share_kind",
-              "payload.recipient_principal_id",
-              {
-                "kind": "select",
-                "selector": "payload.share_kind",
-                "branches": {
-                  "member_device": {
-                    "field": "payload.recipient_device_id",
-                    "forbidden_fields": [
-                      "payload.recipient_verification_method",
-                      "payload.recovery_recipient_id"
-                    ]
-                  },
-                  "realm_recovery_key": {
-                    "field": "payload.recovery_recipient_id",
-                    "forbidden_fields": [
-                      "payload.recipient_device_id"
-                    ]
-                  }
-                }
-              },
-              {
-                "kind": "select",
-                "selector": "payload.key_scope.effective_scope.kind",
-                "branches": {
-                  "realm": {
-                    "field": "payload.key_scope.effective_scope.realm_id"
-                  },
-                  "circle": {
-                    "field": "payload.key_scope.effective_scope.circle_id"
-                  }
-                }
-              }
-            ]
-          },
-          "value_projection": {
-            "kind": "object",
-            "members": [
-              {
-                "name": "delivery_outcome",
-                "literal": "withheld"
-              },
-              {
-                "name": "share_kind",
-                "field": "payload.share_kind"
-              },
-              {
-                "name": "recipient_principal_id",
-                "field": "payload.recipient_principal_id"
-              },
-              {
-                "name": "recipient_target_id",
-                "select": {
-                  "kind": "select",
-                  "selector": "payload.share_kind",
-                  "branches": {
-                    "member_device": {
-                      "field": "payload.recipient_device_id",
-                      "forbidden_fields": [
-                        "payload.recipient_verification_method",
-                        "payload.recovery_recipient_id"
-                      ]
-                    },
-                    "realm_recovery_key": {
-                      "field": "payload.recovery_recipient_id",
-                      "forbidden_fields": [
-                        "payload.recipient_device_id"
-                      ]
-                    }
-                  }
-                }
-              },
-              {
-                "name": "effective_scope_id",
-                "select": {
-                  "kind": "select",
-                  "selector": "payload.key_scope.effective_scope.kind",
-                  "branches": {
-                    "realm": {
-                      "field": "payload.key_scope.effective_scope.realm_id"
-                    },
-                    "circle": {
-                      "field": "payload.key_scope.effective_scope.circle_id"
-                    }
-                  }
-                }
-              },
-              {
-                "name": "policy_digest",
-                "field": "payload.key_scope.policy_digest"
-              },
-              {
-                "name": "from_epoch",
-                "field": "payload.key_scope.from_epoch",
-                "optional": true
-              },
-              {
-                "name": "to_epoch",
-                "field": "payload.key_scope.to_epoch",
-                "optional": true
-              },
-              {
-                "name": "sender_device_id",
-                "field": "payload.sender_device_id"
-              },
-              {
-                "name": "source_authorization_ref",
-                "field": "payload.source_authorization_ref"
-              },
-              {
-                "name": "payload_digest",
-                "digest_of": {
-                  "input": "event_payload_canonical_bytes"
-                }
-              },
-              {
-                "name": "withheld_reason_code",
-                "field": "payload.withheld_reason_code"
-              }
-            ]
-          },
-          "lattice": "ordered_log",
-          "bottom": "expose",
-          "effect_projection": {
-            "kind": "append",
-            "value": {
-              "projected_value": true
-            },
-            "issuer_seq": {
-              "envelope_field": "actor_seq"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "event_kind": "ak.realm_key.share_audit",
-      "category": "e2ee",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "service_attested",
-      "payload": "Auditable history key share marker",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_key_share_audit_payload",
-      "id_source": "not_an_object_id",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.realm_key.audit.v1",
-          "cell_subject": {
-            "kind": "string",
-            "field": "payload.share_event_ref"
-          },
-          "lattice": "ordered_log",
-          "bottom": "expose",
-          "effect_projection": {
-            "kind": "append",
-            "value": {
-              "field": "payload"
-            },
-            "issuer_seq": {
-              "envelope_field": "actor_seq"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.audit.accessed",
@@ -7134,6 +7164,60 @@
     }
   },
   "fsm_contracts": {
+    "ak.component.circle.history_access.v1": {
+      "axis": "history_access",
+      "states": [
+        "since_join",
+        "all_history_for_current_members"
+      ],
+      "initial_state": null,
+      "terminal_states": [
+        "since_join"
+      ],
+      "idempotent_replay": "same_transition_same_basis_noop",
+      "concurrent_sibling_conflict": "identical_transition_only_otherwise_reject",
+      "allowed_transitions": [
+        [
+          null,
+          "since_join"
+        ],
+        [
+          null,
+          "all_history_for_current_members"
+        ],
+        [
+          "all_history_for_current_members",
+          "since_join"
+        ]
+      ]
+    },
+    "ak.component.realm.history_access.v1": {
+      "axis": "history_access",
+      "states": [
+        "since_join",
+        "all_history_for_current_members"
+      ],
+      "initial_state": null,
+      "terminal_states": [
+        "since_join"
+      ],
+      "idempotent_replay": "same_transition_same_basis_noop",
+      "concurrent_sibling_conflict": "identical_transition_only_otherwise_reject",
+      "allowed_transitions": [
+        [
+          null,
+          "since_join"
+        ],
+        [
+          null,
+          "all_history_for_current_members"
+        ],
+        [
+          "all_history_for_current_members",
+          "since_join"
+        ]
+      ]
+    },
     "ak.component.agent.status.v1": {
       "axis": "status",
       "states": [

@@ -159,7 +159,7 @@
         "internal_saga_recovery",
         "stale_holder_retry"
       ],
-      "expected": "recovery_only_queries_or_exact_replays_frozen_bytes_single_did_stable_accepted_at_stale_holder_rejected"
+      "expected": "recovery_only_queries_or_exact_replays_frozen_bytes_single_signer_stable_accepted_at_stale_holder_rejected"
     },
     {
       "name": "takeover_fresh_device_transcript_vs_frozen_operation_replacement",

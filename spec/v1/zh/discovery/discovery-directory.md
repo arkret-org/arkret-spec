@@ -20,7 +20,7 @@ Arkret 需要明确区分三件事：
 - 资源是否可被预览。
 - 主体是否可加入、读取或写入资源。
 
-发现不等于读取，读取不等于加入，加入不等于写入。实现 MUST NOT 用 `join_rule` 或 `history_visibility` 代替 discoverability policy。
+发现不等于读取，读取不等于加入，加入不等于写入。实现 MUST NOT 用 `join_rule` 或 `history_access` 代替 discoverability policy。
 
 本文定义 Realm、Organization、Actor 和 Applet 的发现模型、目录服务和防枚举要求。
 
@@ -149,12 +149,12 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
 
 `join_rule` 只控制加入流程。公开可发现的 Realm MAY 仍要求 invite、knock 或 restricted join。不可发现的 Realm MAY 对持有私有链接的成员保持 `join_rule=public`，但除非配套强反垃圾策略，否则不推荐。
 
-`history_visibility` 只控制历史读取范围。`discoverability=public` MUST NOT 隐含 `history_visibility=world_readable`。五个 history level 的 reader class、invite / join 时点、removal 后 backfill 和 E2EE key share 语义以
+`history_access` 只控制历史读取范围。`discoverability=public` MUST NOT 隐含 `history_access=all_history_for_current_members`。五个 history level 的 reader class、invite / join 时点、removal 后 backfill 和 E2EE key share 语义以
 [`../governance/history-visibility.md`](../governance/history-visibility.md) 为准；本文件只定义 discovery / join / history 三 gate 的组合关系。
 
 ### 3.0 三个独立 Gate（先于矩阵理解）
 
-`discoverability`、`join_rule`、`history_visibility` 是三条**独立判定**的 gate，作用面互不替代：
+`discoverability`、`join_rule`、`history_access` 是三条**独立判定**的 gate，作用面互不替代：
 
 ```mermaid
 flowchart TB
@@ -162,7 +162,7 @@ flowchart TB
         direction LR
         D["1. Discoverability<br>能不能发现?<br>public / listed / restricted<br>unlisted / invite_only / secret"]
         J["2. Join Rule<br>能不能加入?<br>public / invite / knock<br>restricted / knock_restricted / closed"]
-        H["3. History Visibility<br>加入后能看多少历史?<br>world_readable / shared<br>invited / joined / restricted"]
+        H["3. History Access<br>当前成员能否恢复加入前历史?<br>since_join /<br>all_history_for_current_members"]
     end
 
     Search["Directory / 搜索 / preview<br>受 Discoverability 决定"]
@@ -174,8 +174,8 @@ flowchart TB
     H --> Read
 
     R1["不可发现 ≠ 不可加入<br>unlisted + 已知 invite link → 仍可加入"]
-    R2["可加入 ≠ 可见全部历史<br>history_visibility 独立收窄"]
-    R3["可发现 ≠ 全网可读<br>discoverability=public 不隐含 world_readable"]
+    R2["可加入 ≠ 可见全部历史<br>history_access 独立收窄"]
+    R3["可发现 ≠ 可恢复全部历史<br>discoverability=public 不改变 history_access"]
 
     D -. 与 J 独立 .-> R1
     J -. 与 H 独立 .-> R2
@@ -187,9 +187,9 @@ flowchart TB
 - **Discoverability** 只控制资源是否能在搜索 / Directory / preview 里出现；不决定加入资格，也不决定历史读取范围。
 - **Join Rule** 只控制加入流程；不可发现的 Realm 也可以是 `join_rule=public`（持有私链接即可加入），公开 Realm 也可以是 `join_rule=invite`。
 - **History Visibility** 只控制 reader 对历史 Event range 的读取资格；与前两者完全正交。E2EE Realm 中它不自动授予旧 epoch key。
-- 任何把 `discoverability` 当作 `join_rule` 或 `history_visibility` 简写的实现都是错误——下表 §3.1 锁定了允许的组合。
+- 任何把 `discoverability` 当作 `join_rule` 或 `history_access` 简写的实现都是错误——下表 §3.1 锁定了允许的组合。
 
-### 3.1 `discoverability × join_rule × history_visibility` 兼容矩阵（normative）
+### 3.1 `discoverability × join_rule × history_access` 兼容矩阵（normative）
 
 下表声明 v1 在三组维度上**允许 / 禁止 / 不推荐**的组合。`✓` = 允许；`!` = 允许但 SHOULD 在 Realm create 时显示警告；`✗` = MUST 拒绝（任何写入三轴 cell 的 reducer 在 accept 时返回 `policy_combination_invalid`）。本表不替代 §3 与上方各 enum 的语义；当某条规则与本表冲突时，更严格者（拒绝/警告）优先。
 
@@ -202,14 +202,9 @@ flowchart TB
 | `invite_only` | ! | ✓ | ✗ | ✓ | ✗ | ✓ |
 | `secret` | ! | ✓ | ✗ | ✗ | ✗ | ✓ |
 
-`history_visibility` 与上述任一组合搭配时的额外约束：
+`history_access` 与上述任一组合正交，且始终只有 `since_join | all_history_for_current_members` 两个当前值。它只控制当前成员的私有历史恢复范围；discoverability 不能授予历史读取或 exporter secret。即使 `discoverability=public`，服务仍 MUST 按 exact current membership incarnation 与该 scope 的 history gate 过滤，并限制 lazy member preview 防止枚举。plaintext scope 仍按公开正文读取合同工作；`mls_rfc9420` 只允许 `since_join`，exporter scope 才可使用二态并通过 private history-key surface 交付。
 
-- `world_readable` MUST NOT 与 `discoverability ∈ {invite_only, secret}` 同时声明（拒绝）。
-- `world_readable` 与 `discoverability ∈ {unlisted, restricted}` 同时声明 MUST 在 join warning 显式告知（"任何持有 link 的方都可读取全部历史"）。
-- `shared` / `invited` / `joined` 与所有 discoverability 组合兼容。
-- `restricted` 历史可见性 MUST 与有效 `ak.realm.history_sharing_policy` 一致；缺少该 policy 时 reducer MUST 拒绝该 effective state。与 `discoverability=public` 组合时仍 SHOULD 限制 lazy member preview 防止枚举。
-
-本矩阵是 cell-level 不变量：实现 MUST 在 `ak.realm.policy_bundle`、`ak.realm.discovery`、`ak.realm.join_rule`、`ak.realm.history_visibility` 或任何其它写入三轴之一的 reducer 接受前，以同一 basis 的 post-write effective 三轴状态执行本表。使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 并保留全部旧值；不得因写入只触及一个 cell 而跳过。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
+本矩阵是 cell-level 不变量：实现 MUST 在 `ak.realm.policy_bundle`、`ak.realm.discovery`、`ak.realm.join_rule`、`ak.realm.history_access` 或任何其它写入三轴之一的 reducer 接受前，以同一 basis 的 post-write effective 三轴状态执行本表。使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 并保留全部旧值；不得因写入只触及一个 cell 而跳过。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
 
 ### 3.2 Preview / Peek 与 History Visibility 的关系
 
@@ -220,7 +215,7 @@ Directory preview 不是历史读取的快捷方式。`ak.realm.discovery.previe
 
 - Directory MAY 返回 directory card / stripped state，但 MUST NOT 返回 history stub 或 history snippet。
 - `resolve_realm` / `resolve_target` 对未授权 preview MUST 返回与不存在不可区分的 `not_found`。
-- `history_visibility=world_readable` 仍不允许 Directory 自动扩展 preview 字段；完整历史读取必须走 Events / backfill surface，并继续执行 capability、retention、redaction 和 plaintext-visible service 检查。
+- `history_access=all_history_for_current_members` 仍不允许 Directory 自动扩展 preview 字段；完整历史读取必须走 Events / backfill surface，并继续执行 capability、retention、redaction 和 plaintext-visible service 检查。
 
 ## 4. Organization 可发现性
 
@@ -923,8 +918,9 @@ object MUST 省略 `issuer`，签名者身份只由 `verification_method` 承载
 5. Candidate 只决定 invitee Principal Server 可将 join material 转交给哪个已有成员 Principal Server；最终是否接受仍由 Realm auth state、Join Policy、capability、invite / review 链、Event proof 和 reducer 校验决定。
 6. `join_candidates[].service_id` MUST 来自 signed invite 或当前 effective joined-member `delivery_binding.recipient_service_id`，但 candidate 仍不授权投递，也不得被复制为 invitee 加入后的 `delivery_binding`。后者必须由 invitee 自己签署。
 7. Directory / invite link MAY 按 requester、join_rule、discoverability、anti-enumeration policy 裁剪 candidate 数量；不得泄露完整成员 Principal Server 拓扑。对 `restricted` / `unlisted` / `invite_only` / `secret` 的 Realm，MUST 只给出 signed invite 或最小 current member binding 所需的有界集合；部署已知 peer、mirror、notary、search projection 或 URL hint 不得凭自身进入列表。
-8. `seal_basis` 是 candidate `service_id` 在 `as_of` 时该 Realm 的**当前已接受 Seal head** 对应的 single-leaf Control Move basis（`leaves=[seal_id]`）；roots 由客户端与接收方从所引 Seal 重算，不复制到 Event。resolver 只有在 signed invite 或 current member binding 已授权该有界披露时才可返回 basis；客户端 MUST 在向自己的 Principal Server 首次提交前验证并 stamp Control Move。`seal_basis` 进入 Event digest 且被 proof 绑定，任何服务都不得补填。candidate 不持有该 Realm Seal 时 MUST NOT 返回。**pre-join 活跃度侧信道收口（normative）**：对非成员 basis 解析 MUST 按 `(realm_id, requester)` 限速并使用固定 timing bucket，且 SHOULD 对 head 推进迟滞/分桶。
+8. `seal_basis` 是 candidate `service_id` 在 `as_of` observation coordinate 下该 Realm 的**完整当前已接受 Seal frontier**：`single_signer`/`threshold` authority 恰一 leaf，`open_set` authority 是 canonical sorted、duplicate-free 的完整 non-quarantined leaf antichain；不得把 open_set 压成 single head。roots 由客户端与接收方从全部所引 Seal 的 joined view 重算，不复制到 Event。resolver 只有在 signed invite 或 current member binding 已授权该有界披露时才可返回 basis；客户端 MUST 在向自己的 Principal Server 首次提交前验证并 stamp Control Move。`seal_basis` 进入 Event digest 且被 proof 绑定，任何服务都不得补填。candidate 不持有完整 Realm Seal frontier 时 MUST NOT 返回。**pre-join 活跃度侧信道收口（normative）**：对非成员 basis 解析 MUST 按 `(realm_id, requester)` 限速并使用固定 timing bucket，且 SHOULD 对 frontier 推进迟滞/分桶。
 9. `encryption_profile` 是签发方在 `as_of` 时**已接受 Realm projection** 的 effective 值，与 `seal_basis` 同样进入 candidate payload digest 并被 candidate proof 绑定。pre-join client MUST 只用该字段判定 [`../identity/key-management.md`](../identity/key-management.md) §7.11 的加入前 recovery-material gate：`mls_rfc9420` 表示该 join 会为 invitee 产生 Realm MLS group secret，gate MUST 生效；`none` / `external` 表示 Realm join 本身不产生 Realm 级 MLS 材料，gate 由后续 Circle 加入等已可读状态各自判定。客户端 MUST NOT 为判定该 gate 绕过 membership gate 或读取 membership 门控的 Realm Event 历史（服务端按本节对非成员统一返回 `not_found`，这条读路径不存在）。签发方在该 Realm 的已接受 projection 缺失或不可验证时 MUST NOT 猜测默认值，MUST 省略该 candidate；任何服务都不得补填该字段。
+10. `digest_algorithm` 是签发方在 `as_of` 对完整 `seal_basis` 的 accepted joined projection 验证得到的 current live `DigestSuite`，与 `encryption_profile`、`seal_basis` 一并进入 candidate payload digest 并被 candidate proof 绑定。缺失、为 `Bottom`、各 leaf join 后不唯一或任一 leaf / predecessor closure 不可验证时，签发方 MUST 省略整个 candidate。pre-join client 只能使用这个已签值 author `ak.invite.accept`；MUST NOT 从 `SealId`、`state_root` 或其他待验证 digest 前缀推断 suite。接收 Realm service 仍须按真实 predecessor joined suite 重验 Event，candidate 值不一致时拒绝，因此恶意 candidate issuer 只能造成拒绝服务，不能扩张权限。
 
 invitee Principal Server 的转发算法 SHOULD 按 `priority` 升序，再按本地可达性与 `service_id` 稳定排序。候选不可达、过期或 fail closed 时 MAY 尝试下一个；客户端只重试自己的 Principal Server。所有重试 MUST 使用同一 canonical `realm_id`，不得跨 Realm 重定向。
 
@@ -963,7 +959,7 @@ Result：
       "summary": "Public release coordination",
       "discoverability": "listed",
       "join_rule": "knock_restricted",
-      "history_visibility": "joined",
+      "history_access": "since_join",
       "owning_organizations": [
         "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv"
       ],

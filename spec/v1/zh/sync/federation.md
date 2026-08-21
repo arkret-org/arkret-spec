@@ -33,18 +33,18 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
 
 ### 2.3 Seal Finality 优于全局同步共识
 
-跨域网络延迟不可预测。联邦协议不要求所有 Principal Server 同步参与一个全局共识组；每个 Realm 通过 Seal DAG 表达控制面 ordering commitment。`single_did`（中心化 hub）、`threshold`（k-of-n 委员会）、`open_set`（开放对等）和 `mixed`（含 sovereign fallback）只是 `notary` control cell value 与 Notary profile 的不同配置；详见 §2.4。
+跨域网络延迟不可预测。联邦协议不要求所有 Principal Server 同步参与一个全局共识组；每个 Realm 通过 Seal DAG 表达控制面 ordering commitment。`single_signer`（单 did_core actor）、`threshold`（k-of-n actor 委员会）、`open_set`（开放对等）和 `mixed`（含 sovereign fallback）只是 `notary` control cell value 与 Notary profile 的不同配置；详见 §2.4。
 
 ### 2.4 Notary Profile 决定控制面 finality
 
-联邦传播按目标 Realm 的 `notary_profile`（参见 [`../models/realm-and-space.md` §2.3](../models/realm-and-space.md#23-schema-id-与字段) — 该字段在 Realm Schema 字段表中定义，create-locked）决定控制面 Seal 的签发方式；DataEvent 仍按签名、`seal_ref` 与 Lattice/CRDT 规则在参与方之间传播：
+联邦传播按目标 Realm create-locked 的 `notary.kind`（参见 [`../models/realm-and-space.md` §2.3](../models/realm-and-space.md#23-schema-id-与字段)）决定控制面 Seal 的签发方式；DataEvent 仍按签名、`seal_ref` 与 Lattice/CRDT 规则在参与方之间传播：
 
-- **`single_did`**：单一 service DID 签发 Seal。DataEvent 可由参与方 Principal Server 直接验证并传播；Control Move 由该 DID 的 Seal 覆盖后 `sealed`。
+- **`single_signer`**：单一 did_core actor 的 current authorized verification method 签发 Seal；wire 不把 service DID 或 DID URL 当作 authority member。DataEvent 可由参与方 Principal Server 直接验证并传播；Control Move 由该 actor 的 Seal 覆盖后 `sealed`。
 - **`threshold`**：k-of-n committee 签发 Seal。Control Move finality 需要 threshold signature。
 - **`open_set`**：多个 federation peer / admin DID 可以签发 Seal leaf。Principal Server 之间 push / pull DataEvent、pending Control Move 与 Seal leaf；查询时使用 deterministic control view join。
 - **`mixed`**：正常由主 notary 签发 Seal；主 notary 故障、签发矛盾 Seal 或 notary control cell 变成 `⊥` 时，fallback recovery notary 可以签发恢复 Seal。
 
-跨域 Realm 跨过两个 deployment（A 与 B）时，`notary_profile` 与 genesis notary 由 Realm create 固定，所有参与 deployment 都按同一 Seal 验证规则处理；不存在 "A 当 hub、B 当 peer mesh" 的分裂状态。
+跨域 Realm 跨过两个 deployment（A 与 B）时，`notary.kind` 与 genesis notary descriptors 由 Realm create 固定，所有参与 deployment 都按同一 Seal 验证规则处理；不存在 "A 当 hub、B 当 peer mesh" 的分裂状态。
 
 ## 3. 节点间认证
 
@@ -166,7 +166,7 @@ Realm 级 server ACL 的权威表达是 `ak.realm.moderation_policy` 中的 serv
 任一 federation transaction 携带或依赖 `encryption_profile="mls_rfc9420"` 的 Realm 状态、`ak.mls.genesis`、`ak.mls.commit`、`ak.mls.welcome`、MLS-backed E2EE DataEvent 或 active MLS security-frontier projection 时，接收方 MUST 把 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.5 的 `ak.profile.mls_governance_binding.full.v1` 视为 MLS 联邦互操作下界。该下界至少包含：
 
 - `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 均存在；后者必须等于该制品绑定 frontier 下 Realm reducer-profile cell 的 settled value，并位于验证方的 `supported_reducer_profiles`；
-- `ak.mls.commit` 的 MLS GroupContext extensions 中存在固定 codepoint `mls_governance_binding` (`0xF1C0`)，并且 extension bytes、Event payload 与 registered active generation projection 相互匹配；
+- `ak.mls.commit` 的 MLS GroupContext extensions 中存在固定 codepoint `mls_governance_binding` (`0xF1C0`)，并且 extension bytes、Event payload 与 registered current winning group-state projection 相互匹配；
 - `security_frontier_digest` 必须从 accepted key-access state 独立重算；E2EE DataEvent 的 group/epoch 必须指向当前 digest，普通 `seal_ref` 另行按 Event admission 验证；
 - peer 的 `ServiceDescribe.supported_profiles` / `supported_features` 声明足以支持该下界；仅支持 payload fallback、替换私用 codepoint 或省略 GroupContext extension 的 peer 不满足下界。
 
@@ -180,7 +180,7 @@ Fail-closed 条件：
 - `binding_profile` 缺失、未知、与 Realm policy 不一致，或 full Realm 上出现 relaxed binding；
 - `reducer_profile` 缺失，或与该制品绑定 frontier 下的 Realm reducer-profile cell 不一致；
 - `0xF1C0` extension 缺失、被其它私用 codepoint 替代、或 extension canonical bytes 与 Event payload 不一致；
-- active MLS generation 未覆盖最新 key-access security frontier，或把普通 capability/metadata Seal 错误吸收到该 frontier；
+- current winning MLS group state 未覆盖最新 key-access security frontier，或把普通 capability/metadata Seal 错误吸收到该 frontier；
 - relaxed federation guard 中任一 SLA、窗口或 federation_policy 条件无法证明。
 
 上述失败 MUST 在接收方推进本地 Realm frontier 前处理：写入型 push 返回 reject/quarantine 或 `temporarily_unavailable`，pull/backfill 结果保持未验证，不得清除 `state_mismatch`，snapshot/frontier witness 也不得把该 MLS epoch 标为可用。错误对外仍遵守 §3.2 / §8.3 的最小披露原则；内部 audit reason 可以记录为 `unsupported_profile`、`mls_send_pause_advisory_requires_e2ee_relaxed_profile`、`conflicting_e2ee_profiles`、`e2ee_relaxed_federation_policy_unsupported`、`mls_governance_binding_stale` 或对应 binding mismatch 族。
@@ -643,7 +643,7 @@ resolve 的失败必须外部 blinded：未认证或未通过统一 peer/Realm a
 
 实现 route mirror 的 service MUST 在 `ServiceDescribe.supported_operations` 同时声明上述两个 operation；未声明的 service 不得被当作 mirror。该能力是可选可用性增强：未实现时，current record、invite carrier 与已 durable ack 的直接 1:1 planned handover 仍须互操作，不得把某个 mirror provider 设为 v1 隐式必选真相源。是否另设 conformance profile 只能约束部署承诺，不能改变本节逐请求授权。
 
-这两项是非 Event 的路由材料交换 rail：它们不写 Realm Event、member cell、capability 或 PCR，不重复 `ak.peer.direct_conversation.command.repair_relay`，也不能绕过该 repair operation 自己的 requester/target evidence。same-core route recovery 只推进本地 durable route state；target service core 改变时，本 rail MUST 拒绝，必须走 member rebind 或其它显式 service binding 流程。
+这两项是非 Event 的路由材料交换 rail：它们不写 Realm Event、member cell、capability 或 PCR，也不能绕过 member delivery binding。same-core route recovery 只推进本地 durable route state；target service core 改变时，本 rail MUST 拒绝，必须走 member rebind 或其它显式 service binding 流程。
 
 ## 7. 联邦请求 vs 单域 client 请求
 

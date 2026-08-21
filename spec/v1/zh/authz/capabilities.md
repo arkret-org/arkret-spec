@@ -138,8 +138,6 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 1. **root authority**——[`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `ak.component.realm.authority_root.v1` cell 的 current controller。该分支的 operational authorization **MUST** 使用该 cell 在同一 Seal basis 下的 registered inclusion proof；**MUST NOT** 回退到 `realm_state.owner`、membership 或 `created_by`。
 2. **co-owner grant**——一条 active 的普通 `ak.realm.owner` grant。它给予 owner 的 operational / grant authority，但**不**给予 root-control authority：持有人不控制 authority-root cell。
 
-两个来源在 §3.2 上界校验中的判定规则相同，且 **MUST 按 action id 求值**：child action MUST 逐字存在于同一 registry basis 下 `ak.realm.owner` 的 `grant_authority_actions`。**MUST NOT** 用 `target_event_kinds ⊆ owner.target_event_kinds` 反推 action-level 授权——多个 action 可以映射到同一 event kind（例如 `ak.agent.sidecar.write` 与 `ak.message.create`、`ak.self.agent.grant.command.attach` 与 `ak.capability.grant`），以 event kind 相等或子集关系满足 action-level grant authority 会让被排除的 profile action 串权。`grant_authority_actions` 包含 core `non_event_surface` action 与 `ak.realm_key.share`，因此 owner 可以先给自己或他人签发这些字面 grant，再由普通 action admission 使用该字面 grant；owner authority 本身**不**直接放行任何 non-event endpoint。profile action 默认不在该集合内：只有当同一 seal basis 下 Realm 已在 `schema_refs` 声明该 action 的 profile（profile active）时，owner 才可签发该 profile 的 action——判定条件就是 profile 声明本身，不设也不得引入第二层逐 action 白名单；该 profile 既有的 registration / constraint / evidence gate 在 admission 层继续完整执行。`root_control_only` / `subject_only` / `reducer_only` 的 action 永不进入任何派生集合，因此无论 owner 来源为何都不可签发。
-
 Profile 对 non-event action 的显式授权规则必须登记在
 `conformance-profiles.json#/profile_requirements/<profile>/non_event_grant_authority_rules[]`；
 散文声明或只把 action 列入 `required_capability_actions[]` 不构成权限来源。每条规则必须逐字
@@ -291,7 +289,6 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 | --- | --- | --- |
 | `ak.self.keys.*` / `ak.peer.keys.*` | HTTP 密钥材料**调用面**（镜像 `/self/keys/…`、`/peer/keys/…` 路径段，故用复数） | 不是某个对象族 |
 | `ak.key_backup.*` | Key Backup **对象族**（series、active series 等） | 不是调用面 |
-| `ak.realm_key.*` | Realm E2EE **密钥材料**的分发与审计 | 不是备份，也不是调用面 |
 | `ak.sidecar.*` | Sidecar **对象自身**的生命周期（id kind 为 `sidecar`，是顶层对象） | 不是 agent 的子资源 |
 | `ak.agent.sidecar.*` | agent 对其 sidecar 的**操作面**（publish / write / exchange control） | 不改变 sidecar 是顶层对象这一事实 |
 
@@ -442,40 +439,6 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 
 ### 5.5 服务动作
 
-- `ak.self.events.read.scan`
-- `ak.self.events.stream.subscribe`
-- `ak.self.account.stream.subscribe`
-- `ak.self.account.read.describe`
-- `ak.self.snapshot.read.manifest_head`
-- `ak.self.blob.upload.create`
-- `ak.self.blob.resource.get`
-- `ak.self.blob.resource.head`
-- `ak.self.blob.command.presign`（签发预签名 blob URL；必需 constraint `blob_presign_scope` + `blob_presign_max_ttl_seconds`）
-- `ak.realm.media_service`（target=`ak.realm.media_service`，`event_mapping_kind=same_name`）
-- `ak.mls.genesis`
-- `ak.mls.proposal`
-- `ak.mls.commit`
-- `ak.mls.welcome`
-- `ak.mls.welcome.own_device`（high risk；profile=`ak.profile.direct_conversation_realm.v1`；scope_suffix_variant，target=`ak.mls.welcome`；recipient 必须是同一 stable participant 的 active authorized device，MLS group 必须精确匹配 active binding）
-- `ak.mls.keypackage`
-- `ak.realm_key.share`（high risk；仅授权 durable 历史密钥投递 Event，仍须独立通过 history-sharing policy、成员、设备、`source_authorization_ref` 与 recipient gate；不得由 `ak.realm.admin` 隐式推出）
-- `ak.audit.accessed`
-- `ak.audit.session.request`
-- `ak.audit.session.notice`
-- `ak.audit.release`
-- `ak.audit.session.close`
-- `ak.audit.query`
-- `ak.audit.export`
-- `ak.presence.broadcast`
-- `ak.typing.broadcast`
-- `ak.receipt.broadcast`
-- `ak.call.signal.send`
-- `ak.call.join`（risk_tier=medium；创建/加入通话，scope_suffix_variant，target=`{ak.call.create, ak.call.state, ak.call.summary}`）
-- `ak.call.screen_share`（risk_tier=medium；屏幕共享，scope_suffix_variant，target=`ak.call.state`）
-- `ak.call.record`（**high risk**；录制通话，aggregate admin action，target=`{ak.call.recording.start, ak.call.state}`；MUST 按 high-risk 规则携带 `expires_at`、resource selector narrowing 与审计证据）
-- `ak.call.transcribe`（**high risk**；转写通话，scope_suffix_variant，target=`ak.call.state`；同 high-risk 约束要求）
-- `ak.call.moderate`（risk_tier=medium；通话内 moderation，scope_suffix_variant，target=`ak.call.state`）
-
 v1 不注册独立的 `ak.mls.epoch` event；每个 group 的当前 epoch 由 accepted `ak.mls.commit` payload 中的 `next_epoch` 和对应 `ak.component.mls.epoch.v1` cell reducer 结果直接表达，没有"推进 epoch"这个独立可授权动作。
 
 Audit action 只授权受控审计 applet / release service 执行绑定、阶段性 session、成员通知、sealed historical release、审计视图读取或审计材料导出。审计 applet 不是 MLS group 成员，也不会因 capability 获得实时消息 fanout；E2EE 合规 release 必须走 active `ak.audit.applet_binding.create/state`、`ak.audit.session.*`、`ak.audit.release` 和 RYW receipt。普通 Realm/Circle 治理举报不使用这些 action，举报只路由给 scoped 管理员 / moderator。
@@ -568,7 +531,7 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 
 **confidentiality**
 
-- `allowed_history_visibility_values`
+- `allowed_history_access_values`
 - `redacted_history_allowed`（布尔 allow 开关；仅逐字 `true` 允许读取 redacted stub，见 constraint-schema §13.1）
 - `encryption_required`
 
@@ -623,7 +586,7 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `allowed_from_container_refs` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_from_container_refs` |
 | `allowed_to_container_refs` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_to_container_refs` |
 | `wip_limit_override` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`） | — | `wip_limit_override`（看板容器 WIP 上限覆盖） |
-| `allowed_history_visibility_values` | `confidentiality` | `visibility` | `allowed_history_visibility_values` |
+| `allowed_history_access_values` | `confidentiality` | `visibility` | `allowed_history_access_values` |
 | `redacted_history_allowed` | `confidentiality` | `visibility` | `redacted_history_allowed`（仅 `true` 允许读取 redacted stub；`false` / 缺省拒绝） |
 | `blob_max_bytes` | `quota` | `resource` | `blob_max_bytes` |
 | `blob_presign_max_ttl_seconds` | `quota` | `resource` | `blob_presign_max_ttl_seconds` |

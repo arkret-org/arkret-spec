@@ -41,25 +41,13 @@
         "schema": "ak.schema.strand.v1",
         "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
         "encrypted_content": {
-          "scheme": "mls_rfc9420",
           "version": "1.0",
-          "group_id": "Zm9vYmFy",
-          "epoch": 7,
           "content_type": "application/vnd.arkret.strand+json",
-          "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA",
-          "aad_visibility_event_id_kind": "routing_digest",
-          "aad": {
-            "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
-            "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
-            "event_kind": "ak.strand.create",
-            "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-          },
-          "key_ref": {
-            "algorithm": "MLS",
+          "encryption_context": {
+            "epoch": 7,
             "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
           },
-          "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
-          "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+          "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA"
         },
         "tracks": {
           "synthesis": {
@@ -111,25 +99,13 @@
           "synthesis": {
             "is_primary": true,
             "encrypted_content": {
-              "scheme": "mls_rfc9420",
               "version": "1.0",
-              "group_id": "Zm9vYmFy",
-              "epoch": 7,
               "content_type": "application/vnd.arkret.strand+json",
-              "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA",
-              "aad_visibility_event_id_kind": "routing_digest",
-              "aad": {
-                "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
-                "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
-                "event_kind": "ak.strand.create",
-                "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-              },
-              "key_ref": {
-                "algorithm": "MLS",
+              "encryption_context": {
+                "epoch": 7,
                 "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
               },
-              "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
-              "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+              "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA"
             }
           }
         },
@@ -228,25 +204,13 @@
         ],
         "morph_kind": "customer_risk",
         "encrypted_content": {
-          "scheme": "mls_rfc9420",
           "version": "1.0",
-          "group_id": "Zm9vYmFy",
-          "epoch": 7,
           "content_type": "application/vnd.arkret.morph+json",
-          "ciphertext": "bW9ycGhDaXBoZXJ0ZXh0",
-          "aad_visibility_event_id_kind": "routing_digest",
-          "aad": {
-            "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v",
-            "scope_digest": "sha256:752a7108ab56e5a883c531984ece03cefe8d3f10439627808aea961f67633303",
-            "event_kind": "ak.morph.create",
-            "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-          },
-          "key_ref": {
-            "algorithm": "MLS",
+          "encryption_context": {
+            "epoch": 7,
             "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
           },
-          "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
-          "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+          "ciphertext": "bW9ycGhDaXBoZXJ0ZXh0"
         },
         "state": "redacted",
         "state_changed_at": "2026-04-26T00:05:00.000Z",

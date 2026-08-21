@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-20.4",
+  "version": "2026-08-21.1",
   "codes": [
     {
       "code": "json_invalid",
@@ -769,13 +769,13 @@
       "code": "mls_governance_anchor_unreachable",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The MLS governance proof service cannot construct a verified Seal extension path from the exact trusted_anchor_seal_id supplied by the caller to the target accepted Seal. The service MUST NOT substitute or recommend an untrusted anchor. The caller MAY retry with another locally trusted older/genesis/compaction anchor or another authorized proof service."
+      "description": "The exact canonical proof_target_basis does not dominate the exact caller-supplied, locally trusted canonical proof_base_basis: at least one base leaf is neither retained as a target leaf nor an ancestor of a target leaf. Concurrent or otherwise unreachable cuts produce this error; byte-identical base and target antichains are a valid zero-transition query and MUST NOT produce it. Missing required Seal/Event/witness material that prevents the service from deciding dominance is frontier_unavailable instead. The service MUST NOT substitute a single head, common descendant, target, or untrusted base. The caller MAY retry only with another complete locally trusted basis or another authorized proof service."
     },
     {
       "code": "mls_governance_proof_bounds_exceeded",
       "http_status": 422,
       "scope": "endpoint",
-      "description": "The complete_control_state_v1 logical bundle exceeds a v1 total-item, total-byte, chunk-count, or collection-count interoperability bound and cannot be materialized without truncation. The service MUST NOT return a partial bundle. A caller MAY retry with a nearer locally trusted anchor only when the exceeded bound is seal_path; otherwise it MUST fail closed until a separately registered compact completeness profile or a smaller accepted state is available."
+      "description": "The complete near-current group_security_frontier outcome cannot fit the caller byte_limit or the v1 1 MiB canonical-response ceiling without splitting a registered frontier cell or completeness witness. The service MUST NOT truncate, omit boundary/nonmembership evidence, return a partial outcome, or split the request. The caller must present a closer independently verified proof_base_basis or fail closed; bulk history uses receipt-bound direct traversal and does not alter this query."
     },
     {
       "code": "handle_unverified",
@@ -985,19 +985,13 @@
       "code": "policy_combination_invalid",
       "http_status": 422,
       "scope": "both",
-      "description": "The submitted Realm policy combination (discoverability × join_rule × history_visibility) violates the v1 normative compatibility matrix in zh/discovery/discovery-directory.md §3.1. Reducer keeps the prior accepted state."
-    },
-    {
-      "code": "history_sharing_policy_missing",
-      "http_status": 422,
-      "scope": "both",
-      "description": "A Realm or Circle attempted to use history_visibility=restricted, or to authorize a restricted history/key-share range, without an effective ak.realm.history_sharing_policy covering the target scope. Reducers and key sources MUST fail closed. See zh/governance/history-visibility.md."
+      "description": "The submitted Realm policy combination (discoverability × join_rule × history_access) violates the v1 normative compatibility matrix in zh/discovery/discovery-directory.md §3.1. Reducer keeps the prior accepted state."
     },
     {
       "code": "history_not_visible",
       "http_status": 403,
       "scope": "both",
-      "description": "The requested Event range, backfill window, preview field, or E2EE history key share is not visible to the caller under the target Event's T0 history_visibility and the current safety policy. Non-enumerating surfaces MAY map this to not_found. See zh/governance/history-visibility.md."
+      "description": "The requested Event range, backfill window, preview field, or E2EE history key share is not visible to the caller under the target Event's T0 history_access and the current safety policy. Non-enumerating surfaces MAY map this to not_found. See zh/governance/history-visibility.md."
     },
     {
       "code": "preview_policy_denied",
@@ -1009,7 +1003,7 @@
       "code": "notary_recovery_missing",
       "http_status": 422,
       "scope": "both",
-      "description": "Realm create rejected: notary_profile=single_did was declared without a recovery_notary in a different controlling organization, in violation of zh/authz/event-auth-state-resolution.md §9.3."
+      "description": "Realm create rejected: notary.kind=single_signer was configured without the required disjoint recovery signer organization, in violation of zh/authz/event-auth-state-resolution.md §9.3."
     },
     {
       "code": "unsupported_lattice_type",
@@ -1741,23 +1735,9 @@
       "http_status": 409,
       "scope": "endpoint",
       "description": "A compensation delegation/action/executor/admission/incarnation binding is wrong, already consumed or conflicts with the current membership provenance. Newer incarnations are never removed; absent or superseded destinations return their registered signed no-write outcomes."
-    },
-    {
-      "code": "mls_generation_proposal_fanout_exceeded",
-      "http_status": 409,
-      "scope": "both",
-      "description": "Sixteen not-yet-active candidate MLS groups already exist under one Direct Conversation active-generation predecessor, so the seventeenth ak.direct_conversation.mls_generation.activate candidate is refused. The cap is a hard structural bound and not a rate limit: 409 is correct and 429 is not, waiting alone never clears it, and progress requires one existing candidate to be activated by the cell or to expire. Only the offending candidate is refused with zero writes; the pair MUST NOT be quarantined and its coordinates, binding, membership and current active generation stay untouched. Servers MUST NOT promise a retry window through retry_after_ms for this code. Semantically it is the Direct Conversation sibling of contact_lineage_conflict rather than of rate_limited. See zh/identity/contact-and-direct-conversation.md §7.3."
     }
   ],
   "reason_codes": [
-    {
-      "code": "aad_visibility_policy_violation",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when an encrypted envelope declares an aad_visibility_event_id_kind wider than the Realm ceiling in ak.realm.policy_bundle payload aad_visibility.event_id_kind (disclosure order hidden < routing_digest < opaque_id; an absent component means the hidden ceiling). Receivers and reducers MUST reject and MUST NOT silently downgrade the envelope to hidden. See zh/crypto-media/encryption-and-audit.md §2.8."
-    },
     {
       "code": "abuse_cluster",
       "applies_to": [
@@ -1967,14 +1947,6 @@
         "event_envelope"
       ],
       "description": "A managed_agent_control ak.realm.create was submitted without an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). The genesis carries no ref to its provision, so this reverse look-up is the whole binding: no match MUST fail closed with zero writes, and the receiver MUST NOT materialize the Realm, the agent-status transition or any partial projection. See zh/identity/key-management.md §3.6.3."
-    },
-    {
-      "code": "agent_pcr_recovery_not_ready",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "A Native Personal Agent runtime pairing commit was attempted while its controller-owned managed-PCR recovery projection was pending, stale, missing, or unverifiable. The endpoint MUST leave the pairing handle and every existing key/grant unchanged. The controller E2EE client must publish a current recovery_public_key mls_history series tail whose managed binding covers the Agent PCR accepted Seal frontier and MLS epoch, then retry the identical pairing request. See zh/identity/key-management.md §3.6.1 / §7.5.6."
     },
     {
       "code": "agent_provisioning_challenge_already_consumed",
@@ -2808,14 +2780,6 @@
       "description": "The re-anchor pre_fence_basis is null despite an accepted Seal, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
-      "code": "direct_conversation_activation_author_invalid",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "An ak.direct_conversation.mls_generation.activate for generation 1 was authored by the founder instead of the joining participant. No portable proof exists that the peer Principal Server durably accepted the Welcome, so only the joiner can truthfully assert it, mirroring the rule that consume is called by the Welcome recipient and never proxied. Rejected even when every other field is correct. See zh/identity/contact-and-direct-conversation.md §7.3."
-    },
-    {
       "code": "direct_conversation_binding_invalid",
       "applies_to": [
         "event_envelope",
@@ -2866,7 +2830,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The ak.authority.direct_conversation_participant.v1 evaluator did not establish the immutable stable binding, exact participant, active membership, Realm/Strand/current-MLS-generation cross-binding, lifecycle, resource, both directional Contact heads/scopes, device or Agent gate required for the requested allowlisted action. Consent is not an authority source. The evaluator MUST NOT fall back to created_by, membership, a local projection row, Realm owner aggregation or an arbitrary Event/cell reference."
+      "description": "The ak.authority.direct_conversation_participant.v1 evaluator did not establish the immutable stable binding, exact participant, active membership, Realm/Strand/current scope-derived MLS group-and-epoch cross-binding, lifecycle, resource, both directional Contact heads/scopes, device or Agent gate required for the requested allowlisted action. Consent is not an authority source. The evaluator MUST NOT fall back to created_by, membership, a local projection row, Realm owner aggregation or an arbitrary Event/cell reference."
     },
     {
       "code": "direct_conversation_root_mask_violation",
@@ -2926,25 +2890,11 @@
       "description": "A stable protocol identity was reused with different canonical content. For Event Envelope event_id this is quarantined per event-auth-state-resolution.md §11; for to-device device_message_id the send operation rejects the conflicting enqueue with reason device_message_id_conflict."
     },
     {
-      "code": "durability_recovery_recipient_unverified",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition on an unverifiable RRK durability recovery recipient, on either side. Sealer side: the sealer cannot resolve a durability_policy.recovery_recipients[].verification_method to a verification method designated by an active ArkretRealmHistoryRecoveryKey service entry published by the named principal_id; it MUST fail closed and MUST NOT fall back to any other key. Receiver side: replaying a historical RRK ak.realm_key.share, either the accepted-at point-in-time DID resolution does not yield that verification method as active, or the payload triple (recovery_recipient_id, recipient_principal_id, recipient_verification_method) has no unique field-for-field match in the durability_policy.recovery_recipients[] effective on the CBA/policy basis pinned by the Event seal_ref. Receivers MUST NOT substitute the receive-time DID document or the receive-time policy. See zh/crypto-media/encryption-and-audit.md §2.10.8 and zh/identity/identity-did.md §8.3."
-    },
-    {
       "code": "durability_scheme_incompatible",
       "applies_to": [
         "state_resolution"
       ],
       "description": "Sub-reason for failed_precondition when a ak.realm.policy_bundle write declares durability_policy.mode != none on a Realm whose content_scheme is not mls_exporter_aead_v1. mls_rfc9420 Realms have no deliverable history_secret, so Realm Recovery Key (RRK) durability is structurally unavailable. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10.8."
-    },
-    {
-      "code": "durability_seal_missing_before_gc",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition raised when a member would GC an epoch's history_secret before the RRK durability ak.realm_key.share for every durability_policy.recovery_recipients[] is accepted (read-your-writes), i.e. the eager-seal precondition is unmet. The member MUST retain history_secret[N] until the durability seal is accepted or the policy no longer requires it. See zh/crypto-media/encryption-and-audit.md §2.10.8 and §2.10.5."
     },
     {
       "code": "e2ee_key_source_unauthorised",
@@ -3246,11 +3196,11 @@
       "description": "Standard moderation reason: hate speech / targeted attacks against a protected group."
     },
     {
-      "code": "history_visibility_requires_history_capable_scheme",
+      "code": "history_access_requires_history_capable_scheme",
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when an MLS-backed Realm sets history_visibility=world_readable/shared/invited while the effective content_scheme is not mls_exporter_aead_v1. mls_rfc9420 has per-message forward secrecy and no deliverable history_secret for later joiners; reducers MUST reject create/bootstrap or policy writes that would produce the invalid combination. See zh/models/realm-and-space.md §2.3 and zh/crypto-media/encryption-and-audit.md §2.10."
+      "description": "Sub-reason for failed_precondition when an MLS-backed Realm/Circle with content_scheme=mls_rfc9420 sets history_access other than since_join. Standard RFC 9420 content has no deliverable history_secret for later endpoints; plaintext and mls_exporter_aead_v1 may use either since_join or all_history_for_current_members. See zh/models/realm-and-space.md §2.3 and zh/crypto-media/encryption-and-audit.md §2.10."
     },
     {
       "code": "human_approval_required",
@@ -3594,13 +3544,6 @@
       "description": "A late-arriving key tried to upgrade a decryption_failed event to late_recovered, but the receiver was not a member of the Realm at the original causal time T₀ (or has since been banned/removed). Client MUST NOT admit the recovered plaintext to verified timeline; audit log records this code. See zh/crypto-media/encryption-and-audit.md §2.3.5."
     },
     {
-      "code": "late_recovery_share_not_authorized",
-      "applies_to": [
-        "audit_decision"
-      ],
-      "description": "A key share or withheld decision is not covered by a verifiable source authorization. Covers three fail-closed cases. (a) A key backup / archive node / peer refused to deliver late key material because, on re-running the T₀ membership + policy check before sending, the current share policy no longer permits delivery to the requesting device (distinct from late_recovery_rejected_membership, which is the receiver-side T₀ non-membership case). (b) An ak.realm_key.share whose source_authorization_ref is missing or does not cover (source principal/device, recipient principal/device, key_scope, share_kind) at the Event CBA basis; this includes an RRK-holder re-share whose source principal is not the active RecoveryRecipient, whose signer is not a real accepted undertaken device of that principal, or whose reference does not satisfy the effective history-sharing policy for the recovery_service key source. (c) An ak.realm_key.withheld whose required source_authorization_ref is missing or does not cover the refusal decision; an unauthorized withheld MUST NOT be projected as a terminal state. See zh/crypto-media/encryption-and-audit.md §2.3.5 / §2.10.8 and zh/crypto-media/device-lifecycle.md §13."
-    },
-    {
       "code": "legal_hold_active",
       "applies_to": [
         "auth_decision"
@@ -3808,6 +3751,18 @@
         "moderation_report"
       ],
       "description": "Standard moderation reason: misleading / false information posing harm."
+    },
+    {
+      "code": "mls_content_scheme_immutable",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A policy or group-state transition attempted to change content_scheme after the ordinary Realm/Circle/Sidecar MLS group Genesis. The group scheme is immutable in v1; reducer and receiver MUST reject without creating an implicit second group. See zh/crypto-media/encryption-and-audit.md section 2.10.6."
+    },
+    {
+      "code": "history_traversal_anchor_unreachable",
+      "description": "The exact retained direct-traversal target SealBasis does not dominate every leaf of the caller-pinned trusted_history_base_basis or trusted_current_basis. The service MUST NOT substitute a head, common descendant or different basis. Missing material that prevents the decision is frontier_unavailable instead."
     },
     {
       "code": "mls_genesis_already_exists",
@@ -4345,22 +4300,6 @@
       "description": "Sub-reason for schema_violation when a ak.reaction.add / ak.reaction.remove target_ref points at an object kind that the deployment does not allow reactions on. v1 core only allows ak:message: targets; profiles MAY register additional target kinds. See zh/models/strand-and-message.md §9.8.2."
     },
     {
-      "code": "read_receipt_forced_public_world_readable_forbidden",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Reducer rejected a read-receipt policy whose effective combination is `disclosure='required'` AND `visibility='public'` on a `world_readable` scope — forced emission of publicly-pullable read positions with no member opt-out (forced de-anonymized activity tracking) — unless the policy payload also sets the second explicit opt-in `receipt_compliance_opt_in.forced_public_world_readable_receipts=true`. See zh/discovery/read-receipts.md §2.5.1."
-    },
-    {
-      "code": "read_receipt_visibility_combination_invalid",
-      "applies_to": [
-        "schema_violation",
-        "state_resolution"
-      ],
-      "description": "Read receipt visibility=public was combined with history_visibility=world_readable without an explicit opt-in marker. Reducer MUST reject the combination to avoid leaking actor read positions to anonymous observers."
-    },
-    {
       "code": "realm_alias_authority_mismatch",
       "applies_to": [
         "state_resolution",
@@ -4526,6 +4465,14 @@
       "description": "An `ak.call.state` event requested a `recording_transition` or `transcript_transition` not listed in the per-capture controlled state machine (e.g. transitioning out of terminal `ready` / `failed`, `stopped → failed`, or attempting to enter a capturing state without a new `ak.call.recording.start`). The reducer MUST `failed_precondition`. The same code covers both orthogonal capture dimensions. See zh/crypto-media/call-state.md §4.2."
     },
     {
+      "code": "recovery_required",
+      "applies_to": [
+        "device_recovery",
+        "state_resolution"
+      ],
+      "description": "An existing account endpoint lacks the durable account MLS root, dependent snapshot/reference unit, or material claimed by its emitted marker. Ordinary feature APIs MUST stop and enter the existing recovery/pairing path; they MUST NOT mint a replacement root or tree. See zh/identity/key-management.md section 7.3.1."
+    },
+    {
       "code": "recovery_capability_not_sealed",
       "applies_to": [
         "event_envelope",
@@ -4603,13 +4550,6 @@
         "service_call"
       ],
       "description": "A recovery-session submit_proof or a new RecoveryTransaction binding targeted a recovery session that is already in a terminal state (`completed` / `rejected` / `expired`). Terminal recovery sessions are immutable; servers MUST reject with top-level `failed_precondition` carrying this reason_code. Recovery sessions have no public complete operation. See artifacts/schemas/recovery-session.schema.json and zh/identity/security-transactions.md §2."
-    },
-    {
-      "code": "recovery_stale",
-      "applies_to": [
-        "agent_readiness"
-      ],
-      "description": "Closed generic Agent readiness blocker: the controller-owned PCR recovery material no longer satisfies the current recovery policy or active runtime-key state."
     },
     {
       "code": "recovery_target_not_in_bottom",
@@ -5548,5 +5488,5 @@
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
   },
-  "generated_at": "2026-08-20T10:52:00+08:00"
+  "generated_at": "2026-08-21T18:00:00+08:00"
 }

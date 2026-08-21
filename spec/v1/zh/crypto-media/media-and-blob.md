@@ -104,7 +104,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ## 3. Encrypted Attachment
 
-加密附件的 `key_ref` MUST 使用与 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md) 相同的对象形态：`{algorithm, group_state_ref}`（MLS 场景）或 `{algorithm, key_id}`（其他 profile）。下例中的 `epoch` 字段（MLS 场景）绑定 `key_ref.group_state_ref` 所属的 MLS group epoch，使接收方能确认该附件密钥派生自正确 epoch；其必填性与 wire 形态以 schema [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 为权威源。
+加密附件的 `key_ref` MUST 使用与 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md) 相同的对象形态：`{algorithm, group_state_ref}`（MLS 场景）或 `{algorithm, key_id}`（其他 profile）。下例中的 `epoch` 字段（MLS 场景）绑定 `key_ref.group_state_ref` 所属的 MLS group epoch，使接收方能确认该附件密钥派生自正确 epoch；其必填性与 wire 形态以 schema [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 为权威源。
 
 ```json
 {
@@ -125,7 +125,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ### 3.1 AEAD nonce uniqueness（normative）
 
-AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的密文同时失去机密性与完整性。通用 nonce 派生公式、`N_AEAD` 定义、counter 持久化、跨设备前缀校验、replay 防护与 AAD binding 的唯一规范源是 [`../conformance/encoding.md` §10.1 / §10.2](../conformance/encoding.md)。Blob / attachment envelope 的 `purpose` 取值固定为 `"blob-attachment"`。
+AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的密文同时失去机密性与完整性。整文件形态使用与 [`../conformance/encoding.md` §10.1](../conformance/encoding.md) 相同的 full-width counter 编码：`nonce = I2OSP(durable_sender_counter, AEAD.Nn)`；`N_AEAD`、counter 持久化、replay 防护与 AAD binding 的唯一规范源是 encoding §10.1 / §10.2。Blob / attachment envelope 的 `purpose` 取值固定为 `"blob-attachment"`。
 
 1. **Wire encoding**: `nonce` 字段 base64url 编码 N_AEAD 字节(XChaCha20-Poly1305 → 24 bytes;AES-GCM → 12 bytes);接收方 MUST 在解密前校验 nonce 长度匹配 AEAD algorithm 声明。
 
@@ -145,11 +145,11 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
    - 全局共享 counter(协调成本 / 同步攻击面);
    - 用户输入派生(可控 = 可碰撞);
    - HMAC/Hash 输出截断后直接作为完整 nonce 的形态；
-   - 任何不绑定 device_id + counter 的形态。
+   - 任何不是 `I2OSP(durable_sender_counter, AEAD.Nn)` 的整文件 nonce 形态。
 
-4. **整文件形态(`ak.blob.whole_file_aead.v1`)接收方校验(normative)**: 整文件 envelope 只携单 `nonce` 字段，但该 `nonce` 本就是 encoding §10.1 的自描述结构 `sender_nonce_prefix || device_nonce_counter_be64`，故接收方 **MUST NOT** 把整文件形态的 `nonce` 当作不透明随机串接受，而 MUST 与分块形态(§3.3.2 逐段校验)对称地执行 encoding §10.1 的接收方义务：(a) 按声明 sender 的 `device_id` 重算 `sender_nonce_prefix` 并与 `nonce` 高位字节逐字节比对，不符 MUST fail closed(`aead_nonce_sender_domain_collision`)；(b) 取 `nonce` 低 8 字节为 `device_nonce_counter_be64`，纳入 per-`(key_ref, epoch, device_id, purpose, aead_profile)` 已见 counter 集合，重复 MUST `failed_precondition`(`aead_nonce_counter_replay`)。这样整文件形态获得与流式形态等价的"接收方可独立检测同 `(key_ref,epoch,device)` counter 复用"保证，sender 实现 bug 致 counter 复用不再只能在 AEAD 碰撞时才被发现。
+4. **整文件形态（`ak.blob.whole_file_aead.v1`）接收方校验（normative）**：整文件 envelope 只携单 `nonce` 字段。Producer MUST 以原子 CAS 耐久预留严格递增的 `durable_sender_counter`，并把整个 `AEAD.Nn` 字节 nonce 编码为 `I2OSP(counter, AEAD.Nn)`；不得为 sender domain、device 或其它信息保留高位 prefix。Receiver MUST 解码恰好 `AEAD.Nn` 字节的 nonce，以 `OS2IP(nonce)` 取得 counter，并把 `(key_ref, purpose, aead_profile, counter)` 绑定到 exact ciphertext digest。相同 tuple 的相同密文折叠；相同 tuple 的不同密文 MUST 以 `failed_precondition`（`aead_nonce_counter_replay`）fail closed。高位字节不是任意 padding：任何不等于该 counter 的 canonical full-width `I2OSP` 编码、counter 回退／复用、counter 耗尽后的继续发送或 random fallback 都 MUST 拒绝。
 
-E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 wire 形态。Producer 必须提供 `ciphertext_digest`，不得提供明文 hash；若 deployment 出于审计需要保留 plaintext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md)。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
+E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 wire 形态。Producer 必须提供 `ciphertext_digest`，不得提供明文 hash；若 deployment 出于审计需要保留 plaintext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md)。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
 
 ### 3.2 形态选择：整文件 AEAD 与分块流式 AEAD
 
@@ -193,7 +193,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 `N_AEAD` 取值见 [`../conformance/encoding.md` §10.1](../conformance/encoding.md)（XChaCha20-Poly1305 → 24，因此 `nonce_prefix` 为 19 字节；AES-GCM → 12，`nonce_prefix` 为 7 字节）。
 
 - `nonce_prefix` MUST per-object 随机生成（至少 `N_AEAD - 5` 字节 CSPRNG 输出），并在 envelope 中以 base64url 编码携带（字段 `nonce_prefix`）。同一 content key 下不同 object MUST 使用不同 `nonce_prefix`。
-- 与 §3.1 整文件形态的兼容关系：§3.1 的 nonce 构造为 `sender_nonce_prefix(N_AEAD-8) || device_nonce_counter_be64(8)`，其中高位 prefix 承担**跨设备/跨 key 域分离**、低位 counter 承担**同 key 下唯一递增**。本 scheme 的 `nonce_prefix` 占位等价于整文件形态的 prefix（域分离：per-object 随机 + content key per-transfer fresh，见 §3.3.4），`u32_be(segment_index) || last_segment_flag` 占位等价于 counter 段（唯一递增：segment_index 在 object 内单调且 nonce 后缀对每段唯一）。因为每个 transfer 使用 fresh content key（content key MUST NOT 跨 transfer 复用，见 §3.3.4），(content key, nonce) 对在全局唯一，与 §3.1 "同一 key_ref 下 nonce 不复用" 的 contract 不冲突，也不与整文件形态的 counter 域产生交叉。
+- 与 §3.1 整文件形态的兼容关系：§3.1 的 nonce 是整个 `AEAD.Nn` 字节宽度上的 `I2OSP(durable_sender_counter, AEAD.Nn)`，没有 sender prefix。本 scheme 使用 per-object 随机 `nonce_prefix` 加单调 segment 后缀；每个 transfer 又使用 fresh content key（content key MUST NOT 跨 transfer 复用，见 §3.3.4），因此 `(content key, nonce)` 对在全局唯一。两种 scheme 的 nonce 构造由 `scheme` 封闭分派，接收方不得把 stream prefix 规则套用到 whole-file nonce，也不得把 whole-file full-width counter 规则套用到 stream segment nonce。
 - 因 `segment_index` 为 `u32`，单 object 的 segment 数硬上界为 `2^32`；v1 实际 `segment_count` 上限远低于此（见 scalability-constraints §6），二者 MUST 同时满足。
 
 #### 3.3.3 AAD binding（normative）
@@ -214,7 +214,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 #### 3.3.4 Content key 与 thumbnail
 
-- 每个附件 object MUST 使用 fresh content key；content key MUST NOT 跨 object / 跨 transfer 复用。key 派生与 key_ref 形态沿用 §3 与 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md)。
+- 每个附件 object MUST 使用 fresh content key；content key MUST NOT 跨 object / 跨 transfer 复用。key 派生与 key_ref 形态沿用 §3 与 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md)。
 - thumbnail 在分块形态下仍走 §4 / §5.3 的**整文件形态**：缩略图通常远小于 `segment_bytes`，无需分块；其独立 AEAD key / nonce context（`purpose="thumbnail"`、独立 key derivation / AAD，不复用正文 key+nonce）规则不变（见 §5.3）。即正文密文使用 `ak.blob.stream_aead.v1` 时，其缩略图附件 envelope 仍 SHOULD 使用 `ak.blob.whole_file_aead.v1`。
 
 #### 3.3.5 ciphertext_digest（分块形态语义，normative）

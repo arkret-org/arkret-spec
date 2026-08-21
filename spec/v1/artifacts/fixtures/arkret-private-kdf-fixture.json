@@ -9,10 +9,9 @@
     "ak.vector.mls_exporter_aead.content_key_derivation.v1",
     "ak.vector.mls_exporter_aead.seal_open_transcript.v1",
     "ak.vector.signal.exporter_key_kat.v1",
-    "ak.vector.aead.sender_nonce_prefix_kat.v1",
-    "ak.vector.mention.routing_hmac_kat.v1",
+    "ak.vector.aead.full_width_counter_nonce.v1",
     "ak.vector.reaction.routing_hmac_kat.v1",
-    "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1"
+    "ak.vector.mls_exporter_aead.rrk_archive_durable_before_gc.v1"
   ],
   "kdf_contract": {
     "hash": "SHA-256",
@@ -24,24 +23,48 @@
   },
   "cases": [
     {
-      "name": "content_key_derivation_sha256_aes128gcm",
+      "name": "content_key_derivation_ordinary_sender_sha256_aes128gcm",
       "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
         "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "history_label": "ak.history-v1",
         "content_label": "ak.content-v1",
-        "content_context_hex": "",
+        "sender_domain_kind": "ordinary_device",
+        "verified_sender_domain_utf8": "ak:device:019a7360-0000-7000-8000-000000000001",
+        "verified_sender_domain_hex": "616b3a6465766963653a30313961373336302d303030302d373030302d383030302d303030303030303030303031",
         "kdf_nh": 32,
         "aead_nk": 16,
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
       },
       "expected": {
         "history_secret_hex": "f9e39ba45ff2ba26a1e430c0df76bf7b56737a5c1ad9d103b3c07ca205e1963d",
-        "content_expand_with_label_info_hex": "0010154d4c5320312e3020616b2e636f6e74656e742d763100",
-        "content_key_hex": "9f6840122a5aa8a3c1a76fff0e02511b"
+        "content_expand_with_label_info_hex": "0010154d4c5320312e3020616b2e636f6e74656e742d76312e616b3a6465766963653a30313961373336302d303030302d373030302d383030302d303030303030303030303031",
+        "content_key_hex": "5ac66929b497ce870e9a660a5e98d9f5"
       },
-      "note": "aead_nk is AEAD.Nk of the ciphersuite the group actually negotiated, per encryption-and-audit.md 2.10.1, and 2.10.2 requires aead_profile to be an ACTIVE canonical_id of mls-ciphersuite-registry.json. The only active row is AES-128-GCM, so Nk is 16. The length is an ExpandWithLabel input, so a 16-byte key is not a prefix of a 32-byte one - an implementation following the normative text can never reproduce the latter."
+      "note": "The ExpandWithLabel context is the raw UTF-8 bytes of the already verified canonical device id; it is not empty or JSON. aead_nk is AEAD.Nk of the negotiated active ciphersuite."
+    },
+    {
+      "name": "content_key_derivation_minimal_metadata_sender_sha256_aes128gcm",
+      "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
+      "input": {
+        "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+        "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "history_label": "ak.history-v1",
+        "content_label": "ak.content-v1",
+        "sender_domain_kind": "minimal_metadata_leaf_credential",
+        "verified_sender_domain_utf8": "ak:did_core:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
+        "verified_sender_domain_hex": "616b3a6469645f636f72653a6b65793a7a364d6b764d5733746a75765736507159695838644c524e775a57794768786533626952446a41345a5069426146614a",
+        "kdf_nh": 32,
+        "aead_nk": 16,
+        "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+      },
+      "expected": {
+        "history_secret_hex": "f9e39ba45ff2ba26a1e430c0df76bf7b56737a5c1ad9d103b3c07ca205e1963d",
+        "content_expand_with_label_info_hex": "0010154d4c5320312e3020616b2e636f6e74656e742d76314040616b3a6469645f636f72653a6b65793a7a364d6b764d5733746a75765736507159695838644c524e775a57794768786533626952446a41345a5069426146614a",
+        "content_key_hex": "b24575e661dad2670ae25d57a826c55c"
+      },
+      "note": "The context is the UTF-8 bytes of canonical Event.actor_id = ak:did_core:key:<canonical-multibase-id>. The exact active LeafNode BasicCredential identity MUST be byte-identical. The producer proof verification_method is a full did:key DID URL whose adapter projection equals this actor id; full DID URL bytes never enter this KDF context."
     },
     {
       "name": "mls_exporter_aead_seal_open_transcript",
@@ -49,35 +72,86 @@
       "input": {
         "history_secret_hex": "4242424242424242424242424242424242424242424242424242424242424242",
         "content_key_hex": "76ab7dcbbbc1782052dc28c399e95bb5",
-        "nonce_hex": "714372a20000000000000007",
         "plaintext_hex": "6578706f727465722d616561642072656772657373696f6e20616e63686f72",
-        "immutable_header": {
-          "scheme": "mls_exporter_aead_v1",
-          "key_ref": {
-            "algorithm": "MLS-EXPORTER-AEAD",
-            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
+        "outer_signed_event": {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj"
           },
-          "epoch": 42,
-          "nonce": "cUNyogAAAAAAAAAH",
-          "purpose": "mls_exporter_aead_content",
-          "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
-          "aad": {
-            "realm_id": "ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj",
-            "scope_digest": "sha256:b4688597a0773d0e68224243ebaf9ce1d21c72e865d957b14714663eaae7f164",
-            "event_kind": "ak.message.create"
+          "kind": "ak.message.create",
+          "created_at": "2026-08-20T00:00:00.000Z",
+          "producer_verification_method": "did:webvh:z6mkfixture:alice.example#019a7360-0000-7000-8000-000000000001"
+        },
+        "exact_group_state": {
+          "content_scheme": "mls_exporter_aead_v1",
+          "mls_group_id": "YWs6cmVhbG06QWFXbllianRvbU5PTE9wdWVmVFp6VnlvRktGNFYtVmJqMnlBUERQMGFaVGo",
+          "ciphersuite_id": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+        },
+        "wire_envelope_without_ciphertext": {
+          "version": "1.0",
+          "content_type": "application/arkret-event+json",
+          "encryption_context": {
+            "epoch": 42,
+            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+            "counter": 7
           }
-        }
+        },
+        "verified_sender_domain": "ak:device:019a7360-0000-7000-8000-000000000001"
       },
       "expected": {
-        "aead_aad_canonical_json": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"realm_id\":\"ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj\"},\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\"},\"nonce\":\"cUNyogAAAAAAAAAH\",\"purpose\":\"mls_exporter_aead_content\",\"scheme\":\"mls_exporter_aead_v1\"}",
-        "ciphertext_with_tag_hex": "e758b2f7d462d5170fe80aa7daee698cbdef6d5247cdd6cfc71e311632aa17dbbfcdd3ff3a61a9f2928d4357d4c126",
+        "reconstructed_pre_encryption_header": {
+          "purpose": "arkret_event_content",
+          "envelope_version": "1.0",
+          "content_type": "application/arkret-event+json",
+          "scheme": "mls_exporter_aead_v1",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj"
+          },
+          "event_kind": "ak.message.create",
+          "mls_group_id": "YWs6cmVhbG06QWFXbllianRvbU5PTE9wdWVmVFp6VnlvRktGNFYtVmJqMnlBUERQMGFaVGo",
+          "epoch": 42,
+          "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+          "sender_domain": "ak:device:019a7360-0000-7000-8000-000000000001",
+          "counter": 7,
+          "routing_context": {
+            "kind": "none"
+          }
+        },
+        "aead_aad_canonical_json": "{\"content_type\":\"application/arkret-event+json\",\"counter\":7,\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj\"},\"envelope_version\":\"1.0\",\"epoch\":42,\"event_kind\":\"ak.message.create\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\",\"mls_group_id\":\"YWs6cmVhbG06QWFXbllianRvbU5PTE9wdWVmVFp6VnlvRktGNFYtVmJqMnlBUERQMGFaVGo\",\"purpose\":\"arkret_event_content\",\"routing_context\":{\"kind\":\"none\"},\"scheme\":\"mls_exporter_aead_v1\",\"sender_domain\":\"ak:device:019a7360-0000-7000-8000-000000000001\"}",
+        "derived_nonce_hex": "000000000000000000000007",
+        "ciphertext_with_tag_hex": "8289bf78219096efe91bddf94e3dac306524f7204351c30f948b8c4c4e00c97163d02ecd9a59fbf1a40622b086e56b",
         "opened_plaintext_hex": "6578706f727465722d616561642072656772657373696f6e20616e63686f72",
         "negative_mutations": [
-          "aad.event_kind",
-          "epoch",
-          "key_ref.group_state_ref",
-          "aead_profile",
+          "envelope_version",
+          "content_type",
+          "outer_event.kind",
+          "outer_event.effective_scope",
+          "producer_verification_method",
+          "group_state_ref",
+          "content_scheme",
+          "counter",
           "ciphertext_tag"
+        ],
+        "negative_decision": "reject"
+      }
+    },
+    {
+      "name": "full_width_counter_nonce_aes128gcm",
+      "vector_id": "ak.vector.aead.full_width_counter_nonce.v1",
+      "input": {
+        "counter": 7,
+        "aead_nn": 12,
+        "encoding": "I2OSP(counter, AEAD.Nn)"
+      },
+      "expected": {
+        "nonce_hex": "000000000000000000000007",
+        "high_order_zero_bytes": 11,
+        "negative_mutations": [
+          "nonzero_high_order_padding",
+          "counter_reuse_with_different_ciphertext",
+          "counter_rollback",
+          "counter_increment_after_u64_max"
         ],
         "negative_decision": "reject"
       }
@@ -114,68 +188,18 @@
       }
     },
     {
-      "name": "aead_sender_nonce_prefix_aes128gcm",
-      "vector_id": "ak.vector.aead.sender_nonce_prefix_kat.v1",
-      "input": {
-        "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "exporter_label": "arkret-aead-sender-nonce-prefix-v1",
-        "context": {
-          "key_ref": {
-            "algorithm": "MLS-EXPORTER-AEAD",
-            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
-          },
-          "epoch": 42,
-          "device_id": "ak:device:019a7360-0000-7000-8000-000000000001",
-          "purpose": "mls_exporter_aead_content",
-          "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
-        },
-        "nonce_length_bytes": 12,
-        "counter_be64_hex": "0000000000000007"
-      },
-      "expected": {
-        "context_canonical_json": "{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"device_id\":\"ak:device:019a7360-0000-7000-8000-000000000001\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\"},\"purpose\":\"mls_exporter_aead_content\"}",
-        "sender_nonce_prefix_hex": "b0e8fb2e",
-        "nonce_hex": "b0e8fb2e0000000000000007",
-        "negative_mutations": [
-          "omit_device_id",
-          "epoch=43",
-          "purpose=signal",
-          "aead_profile_changed"
-        ],
-        "negative_decision": "reject"
-      }
-    },
-    {
-      "name": "mention_routing_hmac_did",
-      "vector_id": "ak.vector.mention.routing_hmac_kat.v1",
-      "input": {
-        "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "exporter_label": "arkret-mention-routing-v1",
-        "mentioned_did_utf8": "did:webvh:z6MkhAlice:example.com"
-      },
-      "expected": {
-        "routing_hmac_key_hex": "3eb90476761b95c057f01070c5e741a3b3a8dc2cc3abd869976e2e1da7a57194",
-        "routing_tag_hex": "993b42fc498587aabe27b0a9b9f1c266ee1c0fac45951d04a715252129f3abea",
-        "negative_mutations": [
-          "wrong_exporter_label",
-          "different_realm_id",
-          "different_mentioned_did",
-          "reuse_key_after_epoch_change"
-        ],
-        "negative_decision": "reject"
-      }
-    },
-    {
       "name": "content_key_derivation_fail_closed_negatives",
       "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
       "input": {
-        "base_case": "content_key_derivation_sha256_aes128gcm",
+        "base_case": "content_key_derivation_ordinary_sender_sha256_aes128gcm",
         "mutations": [
           "history_label=ak.content-v1",
           "content_label=ak.history-v1",
           "history_exporter_context=empty",
-          "content_context=realm_id",
+          "empty_verified_sender_domain",
+          "unverified_sender_domain",
+          "sender_domain_kind_or_bytes_mismatch",
+          "reuse_key_for_collision_peer_sender",
           "reuse_content_key_across_epoch"
         ]
       },
@@ -234,113 +258,33 @@
       }
     },
     {
-      "name": "rrk_eager_seal_before_gc",
-      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
+      "name": "rrk_archive_durable_before_local_gc",
+      "vector_id": "ak.vector.mls_exporter_aead.rrk_archive_durable_before_gc.v1",
       "input": {
-        "content_scheme": "mls_exporter_aead_v1",
-        "epoch": 7,
-        "durability_policy": {
-          "mode": "threshold",
-          "threshold": 2,
-          "recovery_recipients": [
-            "did:webvh:z6mkr1:recovery.example",
-            "did:webvh:z6mkr2:recovery.example",
-            "did:webvh:z6mkr3:recovery.example"
-          ]
+        "durability_policy": "organization_recovery_key",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj"
         },
-        "accepted_share_recipients": [
-          "did:webvh:z6mkr1:recovery.example"
-        ],
-        "requested_transition": "gc_history_secret"
+        "epoch": 7,
+        "archive_tuple": "exact recovery_key_id/version/holder principal+service/signing ref",
+        "durable_completion": [
+          "byte_identical_archive_container_event_accepted_or_duplicate",
+          "barrier_resolve_exact_reread",
+          "local_atomic_coverage_ledger"
+        ]
       },
       "expected": {
-        "decision": "reject",
-        "error_code": "failed_precondition",
-        "reason_code": "durability_seal_missing_before_gc",
-        "retains_history_secret": true
-      }
-    },
-    {
-      "name": "rrk_recipient_method_must_be_active_and_designated",
-      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
-      "input": {
-        "verification_method_state": "revoked",
-        "did_service_kind": "ArkretRealmHistoryRecoveryKey",
-        "requested_transition": "seal_history_secret"
-      },
-      "expected": {
-        "decision": "reject",
-        "error_code": "failed_precondition",
-        "reason_code": "durability_recovery_recipient_unverified",
-        "must_not_fallback_to_other_key": true
-      }
-    },
-    {
-      "name": "rrk_historical_method_is_resolved_at_event_acceptance",
-      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
-      "input": {
-        "verification_method_state_at_event_acceptance": "active_and_designated",
-        "verification_method_state_at_receiver_replay": "rotated",
-        "policy_tuple_matches_event_basis": true
-      },
-      "expected": {
-        "decision": "accept",
-        "must_not_replace_with_current_did_document": true
-      }
-    },
-    {
-      "name": "rrk_policy_tuple_is_bound_field_by_field",
-      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
-      "input": {
-        "event_basis": "seal_ref_cba_policy_basis",
-        "tuple_fields": [
-          "recovery_recipient_id",
-          "recipient_principal_id",
-          "recipient_verification_method"
-        ],
-        "mutate_each_field_independently": true
-      },
-      "expected": {
-        "decision": "reject_each_mutation",
-        "reason_code": "durability_recovery_recipient_unverified"
-      }
-    },
-    {
-      "name": "rrk_holder_recovery_service_re_share_authorization",
-      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
-      "input": {
-        "source_is_recovery_recipient_principal": true,
-        "sender_device_is_currently_accepted": true,
-        "source_authorization_ref_matches_event_basis": true,
-        "history_share_sources_contains": "recovery_service"
-      },
-      "negative_mutations": [
-        "sender_device_forged",
-        "source_not_recovery_recipient",
-        "source_authorization_ref_wrong",
-        "source_authorization_ref_expired",
-        "recovery_service_not_allowed_by_policy"
-      ],
-      "expected": {
-        "positive_decision": "accept",
-        "negative_decision": "reject",
-        "negative_reason_code": "late_recovery_share_not_authorized"
-      }
-    },
-    {
-      "name": "rrk_threshold_target_set_complete",
-      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
-      "input": {
-        "threshold": 2,
-        "recipient_count": 3,
-        "accepted_share_count": 3,
-        "accepted_share_recipients_unique": true,
-        "requested_transition": "gc_history_secret"
-      },
-      "expected": {
-        "decision": "accept",
-        "required_share_target_count": 3,
-        "note": "threshold controls recovery authorization; eager sealing still targets every configured recovery recipient before GC"
+        "gc_before_completion": "reject_failed_precondition",
+        "gc_after_completion": "accept",
+        "exact_retry": "returns_original_archive_event_and_receipt",
+        "forbidden": [
+          "share_event",
+          "availability_receipt",
+          "threshold_target_set",
+          "renewal_state_machine",
+          "portable_active_mls_state"
+        ]
       }
     }
   ]

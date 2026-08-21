@@ -7,6 +7,14 @@
   ],
   "entries": [
     {
+      "pointer": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/service_resolution_record/properties/record/properties/full_id/oneOf/0/$ref",
+      "category": "did_method_log_or_evidence"
+    },
+    {
+      "pointer": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/service_resolution_record/properties/record/properties/full_id/oneOf/1/$ref",
+      "category": "did_method_log_or_evidence"
+    },
+    {
       "pointer": "account-operations.schema.json#/$defs/account_binding_receipt/properties/full_id/$ref",
       "category": "registration_or_binding"
     },

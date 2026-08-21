@@ -12,6 +12,7 @@
     "control_event_set_root",
     "state_root",
     "completeness_root",
+    "availability_receipt_digests",
     "notary_seq",
     "notary_signature",
     "sealed_at",
@@ -35,6 +36,7 @@
     },
     "delta": {
       "type": "array",
+      "maxItems": 4096,
       "description": "Canonical bytewise-sorted set of new control-plane event_digest values introduced by this Seal. DataEvent digests MUST NOT appear here. Receivers MUST reject the Seal if any delta entry is already covered by a predecessor, if any entry is not a known valid Control Move digest, or if the list is not canonical sorted and duplicate-free.",
       "items": {
         "$ref": "#/$defs/event_digest"
@@ -66,14 +68,12 @@
       "$ref": "#/$defs/digest",
       "description": "Optional observational root over DataEvent digests seen in this seal window. Missing DataEvents are not invalid."
     },
-    "availability_root": {
-      "$ref": "#/$defs/digest",
-      "description": "Optional root over AvailabilityReceipt records."
-    },
-    "coverage_scope": {
-      "type": "object",
-      "description": "Optional observational coverage declaration for data_view_root / data_event_set_root. The object is intentionally closed only by deployment profiles; core verifiers treat it as signed diagnostic material.",
-      "additionalProperties": true
+    "availability_receipt_digests": {
+      "type": "array",
+      "maxItems": 65536,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/digest"},
+      "description": "Canonical bytewise-sorted, duplicate-free full canonical content digests of every and only AvailabilityReceipt required for this Seal's delta admission. Empty when no receipt is required. The receiver resolves every digest through the registered governance-dependency surface and verifies the full signed receipt; missing or surplus receipts reject the Seal. This list replaces the redundant availability_root."
     },
     "covered_event_digests": {
       "type": "array",
@@ -89,21 +89,17 @@
       "description": "Hash-algorithm transition only: present iff this Seal is a Transition Seal under ak.profile.hash_transition.v1. It commits the governance view before the transition Move is applied, computed with previous_digest_algorithm. state_root commits the post-transition governance view with the new suite. See event-auth-state-resolution.md §9.3.2."
     },
     "previous_digest_algorithm": {
-      "type": "string",
-      "pattern": "^ak\\.profile\\.hash\\.[a-z0-9_]+\\.v[0-9]+$",
-      "description": "Profile id of the previous hash algorithm. Required iff previous_state_root is present; absent on non-transition Seals."
+      "$ref": "./realm.schema.json#/properties/digest_algorithm",
+      "description": "Canonical active digest-suite id used for previous_state_root. Required iff previous_state_root is present, absent on non-transition Seals, and byte-equal to the transition Move from_digest_algorithm. A profile id is invalid here."
     },
     "notary_signature": {
-      "description": "Signature over seal_canonical_bytes (every signed body field EXCEPT `id` and `notary_signature`). MUST NOT enter the canonical bytes itself — signatures never sign themselves. Seal is not an Event Envelope, so its signature uses the generic non-Event proof field `payload_digest`; that value MUST equal H(seal_canonical_bytes) under the Realm digest_algorithm. Event Envelope proofs use `event_digest` instead.",
+      "description": "Signature over seal_canonical_bytes (every signed body field EXCEPT id and notary_signature). Verification uses only predecessor-state frozen notary signer descriptors. Each compact JWS protected header alg must equal the descriptor jose_algorithm; none, unknown crit headers, non-canonical signature encodings and key-kind/algorithm mismatch are rejected. Threshold/open-set/mixed use canonical multi_signature entries matched to distinct frozen descriptors and apply the predecessor-state threshold/profile rule. Seal is not an Event Envelope, so each signature payload_digest equals H(seal_canonical_bytes).",
       "oneOf": [
         {
           "$ref": "#/$defs/signature"
         },
         {
           "$ref": "#/$defs/multi_signature"
-        },
-        {
-          "$ref": "#/$defs/threshold_signature"
         }
       ]
     },
@@ -170,7 +166,6 @@
       "required": [
         "verification_method",
         "payload_digest",
-        "created_at",
         "jws"
       ],
       "properties": {
@@ -183,15 +178,13 @@
           "$ref": "#/$defs/digest",
           "description": "Hash of seal_canonical_bytes for this non-Event Seal signature. Do not rename to event_digest: event_digest is reserved for Event Envelope proofs."
         },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
-        },
         "jws": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false,
+      "description": "Compact JWS over the exact Seal signing core. The protected header MUST contain alg equal to the matched frozen descriptor jose_algorithm and kid equal to verification_method. alg=none, unknown crit parameters, non-canonical protected JSON/base64url, non-canonical ECDSA encoding, and key_kind/alg mismatch are rejected. Seal sealed_at is already signed in the body; this wrapper has no duplicate created_at."
     },
     "multi_signature": {
       "type": "object",
@@ -208,38 +201,9 @@
           "items": {
             "$ref": "#/$defs/signature"
           },
-          "minItems": 1
-        }
-      },
-      "additionalProperties": false
-    },
-    "threshold_signature": {
-      "type": "object",
-      "required": [
-        "kind",
-        "threshold",
-        "signers",
-        "proof"
-      ],
-      "properties": {
-        "kind": {
-          "const": "threshold_sig"
-        },
-        "threshold": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "signers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did_core_id"
-          },
           "minItems": 1,
-          "uniqueItems": true
-        },
-        "proof": {
-          "type": "string",
-          "minLength": 1
+          "uniqueItems": true,
+          "description": "Canonical bytewise order by verification_method, with each method appearing exactly once. Each compact JWS protected kid equals its signature.verification_method and protected alg equals the matched frozen descriptor jose_algorithm. threshold/open_set/mixed verifiers match entries to distinct predecessor-state frozen signer descriptors and apply that state's rule."
         }
       },
       "additionalProperties": false

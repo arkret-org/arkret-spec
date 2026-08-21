@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-20.1",
+  "version": "2026-08-21.2",
   "source_of_truth": true,
   "description": "Canonical security-domain contexts for Arkret detached proofs and non-Event cryptographic transcripts. Proof contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript: it MUST NOT be spelled as a proof context and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
@@ -425,12 +425,15 @@
         "event_digest",
         "actor_id",
         "verification_method",
+        "signer_resolution_evidence_ref?",
+        "signer_resolution_evidence_digest?",
         "created_at",
         "domain?",
         "audience?"
       ],
       "defined_in": "zh/models/event-and-patch.md",
-      "schema_ref": "schemas/event-envelope.schema.json#/$defs/event_proof"
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/event_proof",
+      "regime_rule": "Exactly one event-level branch applies. With one valid principal_server_admission proof, producer signer evidence fields are absent and admission.producer_signing_key verifies the bound producer proof. Without admission, both signer evidence fields are present, enter this transcript and resolve to the exact producer verification_method."
     },
     {
       "context": "ak.extension-manifest-proof-v1",
@@ -818,6 +821,8 @@
         "producer_proof_digest",
         "producer_verification_method",
         "producer_signing_key",
+        "signer_resolution_evidence_ref",
+        "signer_resolution_evidence_digest",
         "accepted_at",
         "verification_method"
       ],
@@ -853,27 +858,6 @@
       ],
       "defined_in": "zh/governance/join-policy.md",
       "schema_ref": "schemas/realm-join-candidate.schema.json"
-    },
-    {
-      "context": "ak.realm-key-share-sender-proof-v1",
-      "object_family": "realm_key_share_sender_transcript",
-      "binding_fields": [
-        "share_kind",
-        "sender_device_id",
-        "source_authorization_ref",
-        "recipient_principal_id",
-        "recipient_device_id?",
-        "recipient_verification_method?",
-        "recovery_recipient_id?",
-        "key_scope",
-        "ciphertext?",
-        "encrypted_key_ref?",
-        "aad_digest?",
-        "expires_at?",
-        "created_at"
-      ],
-      "defined_in": "zh/crypto-media/device-lifecycle.md",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_key_share_payload"
     },
     {
       "context": "ak.receipt-proof-v1",
@@ -1070,31 +1054,490 @@
       ],
       "defined_in": "zh/conformance/snapshot-schema.md",
       "schema_ref": "schemas/snapshot.schema.json#/$defs/snapshot_witness_attestation"
+    },
+    {
+      "context": "ak.history-key-request-proof-v1",
+      "object_family": "history_key_request",
+      "binding_fields": [
+        "payload_digest",
+        "request_id",
+        "kind",
+        "effective_scope",
+        "requester_actor_id",
+        "requester_sender_domain",
+        "requester_author_profile",
+        "requester_endpoint_authorization",
+        "requester_authorization_incarnation",
+        "trusted_history_base_basis",
+        "trusted_current_basis",
+        "requested_ranges",
+        "recipient_hpke_public_key",
+        "expires_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request"
+    },
+    {
+      "context": "ak.history-key-request-receipt-proof-v1",
+      "object_family": "history_key_request_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "request_digest",
+        "reply_mailbox_id",
+        "mailbox_capability_commitment",
+        "sealed_capability_digest",
+        "effective_scope",
+        "requester_sender_domain",
+        "requester_authorization_incarnation",
+        "trusted_history_base_basis",
+        "trusted_current_basis",
+        "release_service_id",
+        "release_service_binding_ref",
+        "release_service_resolution_ref",
+        "release_service_resolution_sequence",
+        "release_service_resolution_record_digest",
+        "release_service_route_digest",
+        "history_traversal_retention",
+        "accepted_at",
+        "expires_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_receipt"
+    },
+    {
+      "context": "ak.history-key-response-proof-v1",
+      "object_family": "history_key_response",
+      "binding_fields": [
+        "payload_digest",
+        "response_id",
+        "effective_scope",
+        "source_actor_id",
+        "source_sender_domain",
+        "source_signer_evidence_ref",
+        "source_signer_evidence_digest",
+        "request_digest",
+        "request_receipt_digest",
+        "reply_mailbox_id",
+        "expires_at",
+        "content",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_request"
+    },
+    {
+      "context": "ak.history-key-response-record-proof-v1",
+      "object_family": "history_key_response_record",
+      "binding_fields": [
+        "payload_digest",
+        "sequence",
+        "cursor",
+        "record_digest",
+        "source_record",
+        "sent_at",
+        "release_service_signer_evidence_ref",
+        "release_service_signer_evidence_digest",
+        "manifest_admission?",
+        "release_attestation?",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_record",
+      "conditional_binding_rule": "content.kind=manifest requires manifest_admission and forbids release_attestation; content.kind=chunk requires release_attestation and forbids manifest_admission. A ? field is included iff its closed branch requires it."
+    },
+    {
+      "context": "ak.history-key-response-lost-record-proof-v1",
+      "object_family": "history_key_response_lost_record",
+      "binding_fields": [
+        "payload_digest",
+        "sequence",
+        "cursor",
+        "response_id",
+        "record_digest",
+        "lost_at",
+        "release_service_signer_evidence_ref",
+        "release_service_signer_evidence_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_lost_record"
+    },
+    {
+      "context": "ak.history-key-response-send-receipt-proof-v1",
+      "object_family": "history_key_response_send_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "response_id",
+        "source_record_digest",
+        "record_digest",
+        "sequence",
+        "accepted_at",
+        "manifest_admission_digest",
+        "release_attestation_digest",
+        "receipt_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt"
+    },
+    {
+      "context": "ak.history-key-request-replica-proof-v1",
+      "object_family": "history_key_request_replica",
+      "binding_fields": [
+        "payload_digest",
+        "kind",
+        "request",
+        "request_receipt",
+        "destination_service_id",
+        "destination_authorization",
+        "replicated_at",
+        "expires_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica"
+    },
+    {
+      "context": "ak.history-key-request-replica-receipt-proof-v1",
+      "object_family": "history_key_request_replica_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "request_digest",
+        "destination_service_id",
+        "accepted_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica_outcome"
+    },
+    {
+      "context": "ak.history-key-source-relay-attestation-proof-v1",
+      "object_family": "history_key_source_relay_attestation",
+      "binding_fields": [
+        "payload_digest",
+        "kind",
+        "source_record_digest",
+        "request_digest",
+        "request_receipt_digest",
+        "effective_scope",
+        "source_actor_id",
+        "source_sender_domain",
+        "source_kind",
+        "source_author_profile?",
+        "source_authorization_incarnation?",
+        "source_service_id",
+        "source_authority_locator",
+        "destination_release_service_id",
+        "relayed_at",
+        "expires_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/source_relay_attestation",
+      "conditional_binding_rule": "source_kind=member requires source_author_profile and source_authorization_incarnation; organization_recovery_holder forbids both and requires source_authority_locator.authority_observation to match source_actor_id, source_service_id, service_proof.verification_method, the exact archive authorization tuple and expires_at. A ? field is included iff its closed branch admits it."
+    },
+    {
+      "context": "ak.organization-recovery-archive-replica-proof-v1",
+      "object_family": "organization_recovery_archive_replica",
+      "binding_fields": [
+        "payload_digest",
+        "kind",
+        "archive",
+        "container_event_ref",
+        "history_traversal_retention",
+        "source_service_id",
+        "holder_service_id",
+        "replicated_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica"
+    },
+    {
+      "context": "ak.organization-recovery-archive-replica-receipt-proof-v1",
+      "object_family": "organization_recovery_archive_replica_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "archive_replica_digest",
+        "holder_service_id",
+        "archive_sequence",
+        "accepted_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome"
+    },
+    {
+      "context": "ak.organization-recovery-key-holder-acceptance-proof-v1",
+      "object_family": "organization_recovery_key_holder_acceptance",
+      "binding_fields": [
+        "payload_digest",
+        "realm_id",
+        "new_key_tuple",
+        "holder_trusted_basis",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/history-visibility.md",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/organization_recovery_holder_acceptance"
+    },
+    {
+      "context": "ak.peer-seal-frontier-proof-v1",
+      "object_family": "peer_seal_frontier",
+      "binding_fields": [
+        "frontier",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/sync/service-http-binding.md",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState/properties/service_proof"
+    },
+    {
+      "context": "ak.availability-receipt-proof-v1",
+      "object_family": "availability_receipt_content",
+      "binding_fields": [
+        "payload_digest",
+        "realm_id",
+        "event_id",
+        "bytes_digest",
+        "holder_id",
+        "retention_expires_at",
+        "holder_signer_evidence_ref",
+        "holder_signer_evidence_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/authz/event-auth-state-resolution.md",
+      "schema_ref": "schemas/availability-receipt.schema.json#/$defs/availability_receipt_content"
     }
   ],
   "domain_separations": [
-    {"domain":"ak.accountability-scope-set-v1","object_family":"accountability_scope_set","primitive":"canonical_json_sha256","binding_fields":["scopes"]},
-    {"domain":"ak.applet.delivery_authentication_record_digest.v1","object_family":"applet_delivery_authentication_record","primitive":"canonical_json_sha256","binding_fields":["operation_id","direction","source_service_id","destination_service_id","idempotency_key","content_digest","request_digest"]},
-    {"domain":"ak.contact.glare-unconsumed-slot.v1","object_family":"contact_glare_unconsumed_slot","primitive":"canonical_json_sha256","binding_fields":["contact_pair","slot"]},
-    {"domain":"ak.contact.no-outgoing-slot.v1","object_family":"contact_no_outgoing_slot","primitive":"canonical_json_sha256","binding_fields":["contact_pair","slot"]},
-    {"domain":"ak.contact.request-acceptance-core.v1","object_family":"contact_request_acceptance_core","primitive":"canonical_json_sha256","binding_fields":["request","acceptance"]},
-    {"domain":"ak.contact.request-source-checkpoint.v1","object_family":"contact_request_source_checkpoint","primitive":"canonical_json_sha256","binding_fields":["request","source_checkpoint"]},
-    {"domain":"ak.events.frontier.leaf.v1","object_family":"events_frontier_leaf","primitive":"merkle_leaf_sha256","binding_fields":["kind","event_id","actor_id","actor_seq"]},
-    {"domain":"ak.events.frontier.node.v1","object_family":"events_frontier_node","primitive":"merkle_node_sha256","binding_fields":["left","right"]},
-    {"domain":"ak.events.frontier.root.v1","object_family":"events_frontier_root","primitive":"merkle_root_sha256","binding_fields":["empty","root"]},
-    {"domain":"ak.events.frontier.signature.v1","object_family":"events_frontier_signature","primitive":"detached_signature","binding_fields":["frontier_root","realm_id","issuer","observed_at"]},
-    {"domain":"ak.federation.verify_actor.signature.v1","object_family":"federation_verify_actor","primitive":"detached_signature","binding_fields":["actor_id","full_id","evidence_digest","audience"]},
-    {"domain":"ak.http-message-signature.v1","object_family":"http_message_signature","primitive":"http_message_signature","binding_fields":["method","target_uri","authority","content_digest","source_service_id","destination_service_id"]},
-    {"domain":"ak.identity.recovery_policy.signature.v1","object_family":"recovery_policy","primitive":"detached_signature","binding_fields":["signed_fields","policy"]},
-    {"domain":"ak.identity.recovery_receipt.signature.v1","object_family":"recovery_receipt","primitive":"detached_signature","binding_fields":["signed_fields","receipt"]},
-    {"domain":"ak.membership-compensation.single-use-cas.v1","object_family":"membership_compensation_single_use_cas","primitive":"canonical_json_sha256","binding_fields":["delegation_ref","expected_state","operation"]},
-    {"domain":"ak.membership-compensation.terminal-certificate.v1","object_family":"membership_compensation_terminal_certificate","primitive":"detached_signature","binding_fields":["operation_id","terminal_state","certified_at","issuer"]},
-    {"domain":"ak.peer.events.command.submit.service_binding.v1","object_family":"peer_event_submit_service_binding","primitive":"canonical_json_sha256","binding_fields":["realm_id","event_ids","canonical_digests"]},
-    {"domain":"ak.policy.check.transcript.v1","object_family":"policy_check_outcome","primitive":"detached_signature","binding_fields":["request_id","decision","bound_to","freshness_state","auth_state_digest","policy_frontier_digest","membership_frontier_digest","reason_code","next_retry_at","obligations"]},
-    {"domain":"ak.realm-history-secret-share-v1","object_family":"realm_history_secret_share_hpke_info","primitive":"hpke_info","binding_fields":["realm_id","epoch","recipient","ciphertext_purpose"]},
-    {"domain":"ak.realm.organization.statement.v1","object_family":"realm_organization_statement","primitive":"detached_signature","binding_fields":["organization_id","realm_id","statement","signed_at"]},
-    {"domain":"ak.joined-control-view-digest-v1","object_family":"joined_control_view","primitive":"canonical_json_sha256","binding_fields":["leaves","covered_event_digests","control_event_set_root","state_root"]},
-    {"domain":"ak.snapshot.auth_state.issuer_local.v1","object_family":"snapshot_auth_state_issuer_local","primitive":"canonical_json_sha256","binding_fields":["issuer","realm_id","frontier_event_ids","checked_at"]},
-    {"domain":"ak.websocket-auth.v1","object_family":"websocket_dpop_replay_ledger","primitive":"replay_cache_namespace","binding_fields":["cnf_jkt","jti"],"defined_in":"zh/sync/websocket-binding.md#31-challenge_dpop_session_v1-proofnormative"}
+    {
+      "domain": "ak.accountability-scope-set-v1",
+      "object_family": "accountability_scope_set",
+      "primitive": "canonical_json_sha256",
+      "binding_fields": [
+        "scopes"
+      ]
+    },
+    {
+      "domain": "ak.applet.delivery_authentication_record_digest.v1",
+      "object_family": "applet_delivery_authentication_record",
+      "primitive": "canonical_json_sha256",
+      "binding_fields": [
+        "operation_id",
+        "direction",
+        "source_service_id",
+        "destination_service_id",
+        "idempotency_key",
+        "content_digest",
+        "request_digest"
+      ]
+    },
+    {
+      "domain": "ak.contact.glare-unconsumed-slot.v1",
+      "object_family": "contact_glare_unconsumed_slot",
+      "primitive": "canonical_json_sha256",
+      "binding_fields": [
+        "contact_pair",
+        "slot"
+      ]
+    },
+    {
+      "domain": "ak.contact.no-outgoing-slot.v1",
+      "object_family": "contact_no_outgoing_slot",
+      "primitive": "canonical_json_sha256",
+      "binding_fields": [
+        "contact_pair",
+        "slot"
+      ]
+    },
+    {
+      "domain": "ak.contact.request-acceptance-core.v1",
+      "object_family": "contact_request_acceptance_core",
+      "primitive": "canonical_json_sha256",
+      "binding_fields": [
+        "request",
+        "acceptance"
+      ]
+    },
+    {
+      "domain": "ak.contact.request-source-checkpoint.v1",
+      "object_family": "contact_request_source_checkpoint",
+      "primitive": "canonical_json_sha256",
+      "binding_fields": [
+        "request",
+        "source_checkpoint"
+      ]
+    },
+    {
+      "domain": "ak.events.frontier.leaf.v1",
+      "object_family": "events_frontier_leaf",
+      "primitive": "merkle_leaf_sha256",
+      "binding_fields": [
+        "kind",
+        "event_id",
+        "actor_id",
+        "actor_seq"
+      ]
+    },
+    {
+      "domain": "ak.events.frontier.node.v1",
+      "object_family": "events_frontier_node",
+      "primitive": "merkle_node_sha256",
+      "binding_fields": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "domain": "ak.events.frontier.root.v1",
+      "object_family": "events_frontier_root",
+      "primitive": "merkle_root_sha256",
+      "binding_fields": [
+        "empty",
+        "root"
+      ]
+    },
+    {
+      "domain": "ak.events.frontier.signature.v1",
+      "object_family": "events_frontier_signature",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "frontier_root",
+        "realm_id",
+        "issuer",
+        "observed_at"
+      ]
+    },
+    {
+      "domain": "ak.federation.verify_actor.signature.v1",
+      "object_family": "federation_verify_actor",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "actor_id",
+        "full_id",
+        "evidence_digest",
+        "audience"
+      ]
+    },
+    {
+      "domain": "ak.http-message-signature.v1",
+      "object_family": "http_message_signature",
+      "primitive": "http_message_signature",
+      "binding_fields": [
+        "method",
+        "target_uri",
+        "authority",
+        "content_digest",
+        "source_service_id",
+        "destination_service_id"
+      ]
+    },
+    {
+      "domain": "ak.identity.recovery_policy.signature.v1",
+      "object_family": "recovery_policy",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "signed_fields",
+        "policy"
+      ]
+    },
+    {
+      "domain": "ak.identity.recovery_receipt.signature.v1",
+      "object_family": "recovery_receipt",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "signed_fields",
+        "receipt"
+      ]
+    },
+    {
+      "domain": "ak.membership-compensation.single-use-cas.v1",
+      "object_family": "membership_compensation_single_use_cas",
+      "primitive": "canonical_json_sha256",
+      "binding_fields": [
+        "delegation_ref",
+        "expected_state",
+        "operation"
+      ]
+    },
+    {
+      "domain": "ak.membership-compensation.terminal-certificate.v1",
+      "object_family": "membership_compensation_terminal_certificate",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "operation_id",
+        "terminal_state",
+        "certified_at",
+        "issuer"
+      ]
+    },
+    {
+      "domain": "ak.peer.events.command.submit.service_binding.v1",
+      "object_family": "peer_event_submit_service_binding",
+      "primitive": "canonical_json_sha256",
+      "binding_fields": [
+        "realm_id",
+        "event_ids",
+        "canonical_digests"
+      ]
+    },
+    {
+      "domain": "ak.realm.organization.statement.v1",
+      "object_family": "realm_organization_statement",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "organization_id",
+        "realm_id",
+        "statement",
+        "signed_at"
+      ]
+    },
+    {
+      "domain": "ak.joined-control-view-digest-v1",
+      "object_family": "joined_control_view",
+      "primitive": "canonical_json_sha256",
+      "binding_fields": [
+        "leaves",
+        "covered_event_digests",
+        "control_event_set_root",
+        "state_root"
+      ]
+    },
+    {
+      "domain": "ak.snapshot.auth_state.issuer_local.v1",
+      "object_family": "snapshot_auth_state_issuer_local",
+      "primitive": "canonical_json_sha256",
+      "binding_fields": [
+        "issuer",
+        "realm_id",
+        "frontier_event_ids",
+        "checked_at"
+      ]
+    },
+    {
+      "domain": "ak.websocket-auth.v1",
+      "object_family": "websocket_dpop_replay_ledger",
+      "primitive": "replay_cache_namespace",
+      "binding_fields": [
+        "cnf_jkt",
+        "jti"
+      ],
+      "defined_in": "zh/sync/websocket-binding.md#31-challenge_dpop_session_v1-proofnormative"
+    }
   ]
 }

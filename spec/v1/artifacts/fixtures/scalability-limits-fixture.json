@@ -882,7 +882,7 @@
       "input": {
         "generator": {
           "kind": "mls_governance_proof_limit_matrix",
-          "operation_id": "ak.self.events.read.mls_governance_proof",
+          "operation_id": "ak.self.seals.read.mls_governance_proof",
           "schema_ref": "schemas/mls-governance-proof-bundle.schema.json",
           "dimensions": [
             {
@@ -1094,44 +1094,61 @@
       }
     },
     {
-      "name": "mls_governance_proof_chunk_request_matrix",
+      "name": "mls_governance_proof_exact_query_matrix",
       "vector_id": "ak.vector.scalability.mls_governance_proof_bounds.v1",
       "input": {
         "generator": {
-          "kind": "mls_governance_proof_chunk_request_matrix",
+          "kind": "mls_governance_proof_exact_query_matrix",
           "cases": [
             {
-              "chunk_index": 0,
-              "expected_bundle_digest": "absent",
+              "previous_epoch": 0,
+              "next_epoch": 0,
+              "base_group_state_ref": "absent",
               "expect": "accept"
             },
             {
-              "chunk_index": 0,
-              "expected_bundle_digest": "present",
+              "previous_epoch": 0,
+              "next_epoch": 0,
+              "base_group_state_ref": "present",
               "expect": "schema_violation"
             },
             {
-              "chunk_index": 1,
-              "expected_bundle_digest": "absent",
+              "previous_epoch": 7,
+              "next_epoch": 8,
+              "base_group_state_ref": "absent",
               "expect": "schema_violation"
             },
             {
-              "chunk_index": 1,
-              "expected_bundle_digest": "matches_chunk_zero",
+              "previous_epoch": 7,
+              "next_epoch": 8,
+              "base_group_state_ref": "accepted_previous_epoch_winner",
               "expect": "accept"
             },
             {
-              "chunk_index": "equal_to_manifest_chunk_count",
-              "expected_bundle_digest": "matches_chunk_zero",
-              "expect": "param_invalid"
+              "byte_limit": 65535,
+              "expect": "schema_violation"
+            },
+            {
+              "byte_limit": 65536,
+              "expect": "accept"
+            },
+            {
+              "byte_limit": 1048576,
+              "expect": "accept"
+            },
+            {
+              "byte_limit": 1048577,
+              "expect": "schema_violation"
             }
           ]
         }
       },
       "expected": {
-        "proof_request_digest_excludes_transport_fields": true,
-        "must_not_mix_bundle_digests": true,
-        "unavailable_expected_bundle_error_code": "frontier_unavailable"
+        "query_digest_covers_every_query_field": true,
+        "genesis_forbids_base_group_state_ref": true,
+        "successor_requires_accepted_previous_epoch_winner": true,
+        "response_is_complete_without_cursor_or_continuation": true,
+        "canonical_overflow_error_code": "mls_governance_proof_bounds_exceeded"
       }
     }
   ]

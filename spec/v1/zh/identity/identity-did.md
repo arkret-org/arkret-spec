@@ -226,7 +226,7 @@ Arkret v1 core conformance 要求如下：
 
 所有声称 v1 core principal_server / full_client / e2ee_client conformance 的实现 MUST 支持 `did:webvh` witness 验证、SCID 派生、entry hash chain 验证和 controller proof 验证。
 
-`ak.vector.identity.did_webvh_v1_adapter.v1` 与 `did-webvh-v1-fixture.json` 是上述精确版本选择的可执行证据：接受 `parameters.method=did:webvh:1.0`，并拒绝未知或缺失的 method 版本。
+`ak.vector.identity.did_webvh_v1_adapter.v1` 与 `did-webvh-v1-fixture.json` 是上述精确版本选择的可执行证据：接受 `parameters.method=did:webvh:1.0`，并拒绝未知或缺失的 method 版本。凡 `method_history_evidence.evidence_kind=webvh_log` 被用作公开 resolution 或 retained historical signer evidence 时，`log_entries` **MUST** 从 inception 开始、无缺口地终止于 `boundary.to_version_id`，并携带该区间全部适用 `witness_records`；验证者必须重新执行 SCID、hash chain、controller proof、key rotation 与 witness threshold 验证，并要求 terminal state 与同对象的 normalized DID Document 逐字 canonical 相等。resolver summary、partial range 或单独 current DID Document 均不是该 evidence。
 
 `did:webvh` hosting domain 暂时不可达时 resolver MAY 进入 **cache-only degraded mode**——仅消费此前已验证并落入本地 cache 的 `did:webvh` DID Document、SCID、entry hash chain 与 controller proof,**MUST NOT** 通过 live HTTP 获取该 DID 当前的 `did:web` document 作为 principal 控制权依据(这等价于把信任根从 SCID-sealed history chain 降级到当前 DNS + TLS,正好落入 [`server-threat-model.md` §2](../security/server-threat-model.md) 所列服务端攻击面中的 DNS / TLS 单点失陷)。
 
@@ -938,7 +938,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 
 ### 8.3 Realm History Recovery Key（RRK，normative）
 
-`ArkretRealmHistoryRecoveryKey` service entry 指定该主体（通常是 Organization Principal）持有的一把**离线 Realm 历史恢复公钥（RRK）**。它供 Realm `durability_policy.recovery_recipients[]` 引用，使组织在该 Realm 全体成员设备失效或全员离职后仍能解开历史（机制见 [`../crypto-media/encryption-and-audit.md` §2.10.8`](../crypto-media/encryption-and-audit.md)，策略字段见 [`../models/realm-and-space.md` §2.3.1`](../models/realm-and-space.md)）。
+`ArkretRealmHistoryRecoveryKey` service entry 指定该主体（通常是 Organization Principal）持有的一把**离线 Realm 历史恢复公钥（RRK）**。它供 Realm `durability_policy.recovery_recipients[]` 引用，使组织在该 Realm 全体成员设备失效或全员离职后仍能解开历史（机制见 [`../crypto-media/encryption-and-audit.md` §2.10](../crypto-media/encryption-and-audit.md)，策略字段见 [`../models/realm-and-space.md` §2.3.1](../models/realm-and-space.md)）。
 
 ```json
 {
@@ -968,12 +968,6 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 ```
 
 规则：
-
-- RRK 的 HPKE 公钥 MUST 以标准 `verificationMethod`（`type=Multikey`）承载，并 MUST 同时被 `keyAgreement` 关系引用（它用于 encryption-to / 密钥协商）。`ArkretRealmHistoryRecoveryKey` service entry 的 `serviceEndpoint.verificationMethod` MUST 指向该 VM，`serviceEndpoint.domain` MUST 为 `mls_history`。
-- **域隔离（MUST）**：RRK MUST 独立于该主体由 [`key-management.md` §3.3](./key-management.md) `backup_hpke_ikm` 派生的 backup-HPKE key（wire 名 `recovery_public_key`）。同一把 key MUST NOT 既作该 backup-HPKE key 又作 `ArkretRealmHistoryRecoveryKey`；攻破"能解 Realm 历史"MUST NOT 等于"能改该主体身份"。
-- **引用校验**：Realm `durability_policy.recovery_recipients[].verification_method` MUST 等于某个 `principal_id` 当前 DID Document 中、被一条 active `ArkretRealmHistoryRecoveryKey` service entry 指定的 VM；解析不到、已撤销或未被该 service entry 指定时，封存方 MUST fail closed（`durability_recovery_recipient_unverified`），MUST NOT 回退到任意 key。
-- **轮换按时点解析**:RRK 轮换进入 DID method 可验证历史；receiver 复验历史 RRK 封存的 `ak.realm_key.share` 时 MUST 按封存 Event 的 accepted-at 对该主体 DID 做按时点解析，用当时 active 的 RRK 验证，与 §4.2 / [`key-management.md` §5.0.1](./key-management.md) 的按时点解析纪律一致。
-- RRK 私钥的离线保管、门限拆分与释放走 [`key-management.md` §8](./key-management.md) recovery policy（24 词 / threshold / hardware），subject 为该 principal、域为 history-recovery。
 
 ### 8.4 外部 Organization DID 的本地 registration（normative）
 

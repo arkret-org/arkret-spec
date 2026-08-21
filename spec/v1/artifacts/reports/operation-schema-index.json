@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-20.1",
+  "version": "2026-08-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-20T10:20:00+08:00",
+  "generated_at": "2026-08-21T18:00:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2060,15 +2060,17 @@
       "operation_id": "ak.open.service.read.resolution",
       "success_shape_kind": "schema_resource",
       "response": {
-        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record",
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/authenticated_service_resolution",
         "schema_kind": "object",
         "required": [
-          "record",
-          "proof"
+          "service_resolution_record",
+          "method_history_evidence",
+          "normalized_did_document"
         ],
         "properties": [
-          "record",
-          "proof"
+          "service_resolution_record",
+          "method_history_evidence",
+          "normalized_did_document"
         ],
         "closed": true
       }
@@ -2905,48 +2907,6 @@
       }
     },
     {
-      "operation_id": "ak.peer.direct_conversation.command.repair_relay",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_relay_request",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "content",
-          "requester_authorization",
-          "requester_evidence"
-        ],
-        "properties": [
-          "request_id",
-          "content",
-          "requester_authorization",
-          "requester_evidence"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "request_digest",
-          "destination_service_id",
-          "status",
-          "recipient_target",
-          "accepted_at"
-        ],
-        "properties": [
-          "request_id",
-          "request_digest",
-          "destination_service_id",
-          "status",
-          "recipient_target",
-          "accepted_at"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.peer.erasure_receipt.command.submit",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3168,7 +3128,6 @@
           "rejected",
           "quarantine",
           "realm_actor_frontiers",
-          "realm_frontiers",
           "cursor",
           "original_outcome",
           "agent_membership_cascade"
@@ -3241,9 +3200,9 @@
           "realm_id",
           "event_ids",
           "event_digests",
-          "seal_refs",
           "include_payload",
-          "max_response_bytes"
+          "max_response_bytes",
+          "history_traversal_access"
         ],
         "closed": true
       },
@@ -3252,16 +3211,64 @@
         "schema_kind": "object",
         "required": [
           "events",
-          "cba_proof_bundles",
           "missing_event_ids",
-          "missing_event_digests",
-          "missing_seal_refs"
+          "missing_event_digests"
         ],
         "properties": [
           "events",
-          "cba_proof_bundles",
           "missing_event_ids",
-          "missing_event_digests",
+          "missing_event_digests"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.seals.read.frontier",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id"
+        ],
+        "properties": [
+          "realm_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState",
+        "schema_kind": "object",
+        "required": [
+          "frontier",
+          "service_proof"
+        ],
+        "properties": [
+          "frontier",
+          "service_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.seals.read.resolve",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
+        "schema_kind": "object",
+        "required": [
+          "seals",
+          "missing_seal_refs"
+        ],
+        "properties": [
+          "seals",
           "missing_seal_refs"
         ],
         "closed": true
@@ -4789,7 +4796,6 @@
             "schema_kind": null,
             "required": [
               "principal_control_realm_id",
-              "pcr_recovery",
               "pairing_request_id",
               "expires_at"
             ],
@@ -4821,7 +4827,6 @@
           "principal_control_realm_id",
           "controller_authorization_ref",
           "requested_scope_digest",
-          "pcr_recovery",
           "pairing_mode",
           "pairing_request_id",
           "expires_at"
@@ -4831,7 +4836,6 @@
           "principal_control_realm_id",
           "controller_authorization_ref",
           "requested_scope_digest",
-          "pcr_recovery",
           "pairing_mode",
           "pairing_request_id",
           "pairing_code",
@@ -5821,7 +5825,7 @@
           "display",
           "directory_visibility",
           "join_rule",
-          "history_visibility",
+          "history_access",
           "encryption_profile",
           "state",
           "members",
@@ -5837,11 +5841,13 @@
           "display",
           "directory_visibility",
           "join_rule",
-          "history_visibility",
+          "history_access",
           "content_encryption_floor",
           "metadata_encryption_floor",
           "encryption_profile",
-          "mls_group_ref",
+          "content_scheme",
+          "mls_group_id",
+          "durability_policy",
           "state",
           "member_count",
           "viewer_membership",
@@ -5878,7 +5884,7 @@
           "display",
           "directory_visibility",
           "join_rule",
-          "history_visibility",
+          "history_access",
           "encryption_profile",
           "state",
           "members",
@@ -5894,11 +5900,13 @@
           "display",
           "directory_visibility",
           "join_rule",
-          "history_visibility",
+          "history_access",
           "content_encryption_floor",
           "metadata_encryption_floor",
           "encryption_profile",
-          "mls_group_ref",
+          "content_scheme",
+          "mls_group_id",
+          "durability_policy",
           "state",
           "member_count",
           "viewer_membership",
@@ -5935,7 +5943,7 @@
           "display",
           "directory_visibility",
           "join_rule",
-          "history_visibility",
+          "history_access",
           "encryption_profile",
           "state",
           "members",
@@ -5951,11 +5959,13 @@
           "display",
           "directory_visibility",
           "join_rule",
-          "history_visibility",
+          "history_access",
           "content_encryption_floor",
           "metadata_encryption_floor",
           "encryption_profile",
-          "mls_group_ref",
+          "content_scheme",
+          "mls_group_id",
+          "durability_policy",
           "state",
           "member_count",
           "viewer_membership",
@@ -5979,7 +5989,7 @@
         ],
         "properties": [
           "circle_id",
-          "mls_group_ref",
+          "mls_group_id",
           "note"
         ],
         "closed": true
@@ -6009,7 +6019,7 @@
           "display",
           "directory_visibility",
           "join_rule",
-          "history_visibility",
+          "history_access",
           "encryption_profile",
           "state",
           "members",
@@ -6025,11 +6035,13 @@
           "display",
           "directory_visibility",
           "join_rule",
-          "history_visibility",
+          "history_access",
           "content_encryption_floor",
           "metadata_encryption_floor",
           "encryption_profile",
-          "mls_group_ref",
+          "content_scheme",
+          "mls_group_id",
+          "durability_policy",
           "state",
           "member_count",
           "viewer_membership",
@@ -6132,7 +6144,7 @@
           "display",
           "directory_visibility",
           "join_rule",
-          "history_visibility",
+          "history_access",
           "encryption_profile",
           "state",
           "members",
@@ -6148,11 +6160,13 @@
           "display",
           "directory_visibility",
           "join_rule",
-          "history_visibility",
+          "history_access",
           "content_encryption_floor",
           "metadata_encryption_floor",
           "encryption_profile",
-          "mls_group_ref",
+          "content_scheme",
+          "mls_group_id",
+          "durability_policy",
           "state",
           "member_count",
           "viewer_membership",
@@ -6984,8 +6998,8 @@
           "blockers",
           "retry_after_ms",
           "coordinates",
-          "active_mls_generation_ref",
-          "active_mls_generation_value_digest",
+          "group_state_ref",
+          "group_state_digest",
           "send_blockers"
         ],
         "closed": true,
@@ -7038,8 +7052,8 @@
             "properties": [
               "state",
               "coordinates",
-              "active_mls_generation_ref",
-              "active_mls_generation_value_digest"
+              "group_state_ref",
+              "group_state_digest"
             ],
             "closed": true
           },
@@ -7049,15 +7063,15 @@
             "required": [
               "state",
               "coordinates",
-              "active_mls_generation_ref",
-              "active_mls_generation_value_digest",
+              "group_state_ref",
+              "group_state_digest",
               "send_blockers"
             ],
             "properties": [
               "state",
               "coordinates",
-              "active_mls_generation_ref",
-              "active_mls_generation_value_digest",
+              "group_state_ref",
+              "group_state_digest",
               "send_blockers"
             ],
             "closed": true
@@ -7074,8 +7088,8 @@
               "state",
               "coordinates",
               "blockers",
-              "active_mls_generation_ref",
-              "active_mls_generation_value_digest"
+              "group_state_ref",
+              "group_state_digest"
             ],
             "closed": true
           },
@@ -7092,46 +7106,6 @@
             "closed": true
           }
         ]
-      }
-    },
-    {
-      "operation_id": "ak.self.direct_conversation.command.repair_dispatch",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_dispatch_request",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "content",
-          "requester_authorization"
-        ],
-        "properties": [
-          "request_id",
-          "content",
-          "requester_authorization"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "request_digest",
-          "destination_service_id",
-          "status",
-          "recipient_target",
-          "accepted_at"
-        ],
-        "properties": [
-          "request_id",
-          "request_digest",
-          "destination_service_id",
-          "status",
-          "recipient_target",
-          "accepted_at"
-        ],
-        "closed": true
       }
     },
     {
@@ -7237,7 +7211,6 @@
           "rejected",
           "quarantine",
           "realm_actor_frontiers",
-          "realm_frontiers",
           "cursor",
           "original_outcome",
           "agent_membership_cascade",
@@ -7267,7 +7240,6 @@
               "rejected",
               "quarantine",
               "realm_actor_frontiers",
-              "realm_frontiers",
               "cursor",
               "original_outcome",
               "agent_membership_cascade"
@@ -7295,7 +7267,7 @@
       }
     },
     {
-      "operation_id": "ak.self.events.command.submit_seal",
+      "operation_id": "ak.self.seals.command.submit",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/seal.schema.json",
@@ -7308,6 +7280,7 @@
           "control_event_set_root",
           "state_root",
           "completeness_root",
+          "availability_receipt_digests",
           "notary_seq",
           "notary_signature",
           "sealed_at",
@@ -7324,8 +7297,7 @@
           "notary_seq",
           "data_view_root",
           "data_event_set_root",
-          "availability_root",
-          "coverage_scope",
+          "availability_receipt_digests",
           "covered_event_digests",
           "previous_state_root",
           "previous_digest_algorithm",
@@ -7336,7 +7308,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealSubmitOutcome",
         "schema_kind": "object",
         "required": [
           "seal_id",
@@ -7403,7 +7375,9 @@
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "actor_id"
+        ],
         "properties": [
           "actor_id",
           "realm_id"
@@ -7417,6 +7391,32 @@
           "frontier"
         ],
         "properties": [
+          "frontier"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.frontier",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id"
+        ],
+        "properties": [
+          "realm_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierState",
+        "schema_kind": "object",
+        "required": [
+          "frontier"
+        ],
+        "properties": [
           "frontier",
           "receipts"
         ],
@@ -7424,64 +7424,86 @@
       }
     },
     {
-      "operation_id": "ak.self.events.read.mls_governance_proof",
+      "operation_id": "ak.self.seals.read.resolve",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
+        "schema_kind": "object",
+        "required": [
+          "seals",
+          "missing_seal_refs"
+        ],
+        "properties": [
+          "seals",
+          "missing_seal_refs"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.mls_governance_proof",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request",
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_request",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_outcome",
+        "schema_kind": "object",
+        "required": [
+          "query",
+          "frontier_projection",
+          "proof_material",
+          "page_digest"
+        ],
+        "properties": [
+          "query",
+          "frontier_projection",
+          "proof_material",
+          "page_digest"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.governance_dependencies",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfGovernanceDependencyResolveRequest",
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "effective_scope",
-          "mls_group_id",
-          "previous_epoch",
-          "next_epoch",
-          "binding_profile",
-          "reducer_profile",
-          "trusted_anchor_seal_id",
-          "chunk_index"
+          "selectors",
+          "byte_limit"
         ],
         "properties": [
           "realm_id",
-          "effective_scope",
-          "mls_group_id",
-          "previous_epoch",
-          "next_epoch",
-          "binding_profile",
-          "reducer_profile",
-          "trusted_anchor_seal_id",
-          "chunk_index",
-          "expected_bundle_digest"
+          "selectors",
+          "byte_limit",
+          "history_traversal_access"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome",
         "schema_kind": "object",
         "required": [
-          "bundle_version",
-          "proof_request_digest",
-          "bundle_digest",
-          "materialization_profile",
-          "realm_id",
-          "effective_scope",
-          "reducer_profile",
-          "trusted_anchor_seal_id",
-          "accepted_seal_id",
-          "chunk_manifest",
-          "chunk"
+          "items",
+          "missing_selectors"
         ],
         "properties": [
-          "bundle_version",
-          "proof_request_digest",
-          "bundle_digest",
-          "materialization_profile",
-          "realm_id",
-          "effective_scope",
-          "reducer_profile",
-          "trusted_anchor_seal_id",
-          "accepted_seal_id",
-          "chunk_manifest",
-          "chunk"
+          "items",
+          "missing_selectors"
         ],
         "closed": true
       }
@@ -7496,8 +7518,9 @@
         "properties": [
           "event_ids",
           "event_digests",
-          "seal_refs",
-          "include_payload"
+          "include_payload",
+          "history_traversal_access",
+          "max_response_bytes"
         ],
         "closed": true
       },
@@ -7510,7 +7533,6 @@
         ],
         "properties": [
           "events",
-          "seals",
           "missing",
           "unauthorized"
         ],
@@ -9575,6 +9597,404 @@
           "next_cursor",
           "total_estimate",
           "stale"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_requests.command.create",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_accepted_outcome",
+        "schema_kind": "object",
+        "required": [
+          "kind",
+          "request",
+          "request_receipt",
+          "sealed_mailbox_capability"
+        ],
+        "properties": [
+          "kind",
+          "request",
+          "request_receipt",
+          "sealed_mailbox_capability"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_requests.read.list",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_list_query",
+        "schema_kind": "object",
+        "required": [
+          "realm_id"
+        ],
+        "properties": [
+          "realm_id",
+          "circle_id",
+          "cursor",
+          "limit"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_list_outcome",
+        "schema_kind": "object",
+        "required": [
+          "requests",
+          "limited"
+        ],
+        "properties": [
+          "requests",
+          "cursor",
+          "limited"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_responses.command.send",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_request",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
+        "schema_kind": "object",
+        "required": [
+          "response_id",
+          "source_record_digest",
+          "record_digest",
+          "sequence",
+          "accepted_at",
+          "manifest_admission_digest",
+          "release_attestation_digest",
+          "receipt_digest",
+          "service_proof"
+        ],
+        "properties": [
+          "response_id",
+          "source_record_digest",
+          "record_digest",
+          "sequence",
+          "accepted_at",
+          "manifest_admission_digest",
+          "release_attestation_digest",
+          "receipt_digest",
+          "service_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_responses.read.list",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_query",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "after",
+          "limit"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ack_entries",
+          "ack_token",
+          "limited"
+        ],
+        "properties": [
+          "ack_entries",
+          "ack_token",
+          "cursor",
+          "limited"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.history_key_responses.command.ack",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_request",
+        "schema_kind": "object",
+        "required": [
+          "ack_token",
+          "high_water_cursor",
+          "ack_entries"
+        ],
+        "properties": [
+          "ack_token",
+          "high_water_cursor",
+          "ack_entries"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome",
+        "schema_kind": "object",
+        "required": [
+          "acked_through_cursor"
+        ],
+        "properties": [
+          "acked_through_cursor"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.organization_recovery_archives.read.list",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "recovery_key_id",
+          "key_agreement_ref",
+          "accepted_key_evidence_ref",
+          "holder_trusted_basis"
+        ],
+        "properties": [
+          "effective_scope",
+          "recovery_key_id",
+          "key_agreement_ref",
+          "accepted_key_evidence_ref",
+          "holder_trusted_basis",
+          "from_epoch",
+          "to_epoch",
+          "cursor",
+          "byte_limit"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome",
+        "schema_kind": "object",
+        "required": [
+          "items",
+          "limited"
+        ],
+        "properties": [
+          "items",
+          "cursor",
+          "limited"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.history_key_requests.command.replicate",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica",
+        "schema_kind": "object",
+        "required": [
+          "kind",
+          "request",
+          "request_receipt",
+          "destination_service_id",
+          "destination_authorization",
+          "replicated_at",
+          "expires_at",
+          "relay_proof"
+        ],
+        "properties": [
+          "kind",
+          "request",
+          "request_receipt",
+          "destination_service_id",
+          "destination_authorization",
+          "replicated_at",
+          "expires_at",
+          "relay_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_digest",
+          "destination_service_id",
+          "accepted_at",
+          "service_proof"
+        ],
+        "properties": [
+          "request_digest",
+          "destination_service_id",
+          "accepted_at",
+          "service_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.history_key_responses.command.relay",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_source_relay",
+        "schema_kind": "object",
+        "required": [
+          "response",
+          "source_relay_attestation"
+        ],
+        "properties": [
+          "response",
+          "source_relay_attestation"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
+        "schema_kind": "object",
+        "required": [
+          "response_id",
+          "source_record_digest",
+          "record_digest",
+          "sequence",
+          "accepted_at",
+          "manifest_admission_digest",
+          "release_attestation_digest",
+          "receipt_digest",
+          "service_proof"
+        ],
+        "properties": [
+          "response_id",
+          "source_record_digest",
+          "record_digest",
+          "sequence",
+          "accepted_at",
+          "manifest_admission_digest",
+          "release_attestation_digest",
+          "receipt_digest",
+          "service_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.seals.read.mls_governance_proof",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_request",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_outcome",
+        "schema_kind": "object",
+        "required": [
+          "query",
+          "frontier_projection",
+          "proof_material",
+          "page_digest"
+        ],
+        "properties": [
+          "query",
+          "frontier_projection",
+          "proof_material",
+          "page_digest"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.seals.read.governance_dependencies",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequest",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "selectors",
+          "byte_limit"
+        ],
+        "properties": [
+          "realm_id",
+          "selectors",
+          "byte_limit",
+          "history_traversal_access"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome",
+        "schema_kind": "object",
+        "required": [
+          "items",
+          "missing_selectors"
+        ],
+        "properties": [
+          "items",
+          "missing_selectors"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.organization_recovery_archives.command.replicate",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica",
+        "schema_kind": "object",
+        "required": [
+          "kind",
+          "archive",
+          "container_event_ref",
+          "history_traversal_retention",
+          "source_service_id",
+          "holder_service_id",
+          "replicated_at",
+          "service_proof"
+        ],
+        "properties": [
+          "kind",
+          "archive",
+          "container_event_ref",
+          "history_traversal_retention",
+          "source_service_id",
+          "holder_service_id",
+          "replicated_at",
+          "service_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome",
+        "schema_kind": "object",
+        "required": [
+          "archive_replica_digest",
+          "holder_service_id",
+          "archive_sequence",
+          "accepted_at",
+          "service_proof"
+        ],
+        "properties": [
+          "archive_replica_digest",
+          "holder_service_id",
+          "archive_sequence",
+          "accepted_at",
+          "service_proof"
         ],
         "closed": true
       }

@@ -155,7 +155,6 @@ GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
 SECURITY_CLOSURE_VECTOR_IDS = {
     "ak.vector.account.blocklist_projection.v1",
     "ak.vector.account_status.issuer_ledger.v1",
-    "ak.vector.aad_visibility.policy_ceiling.v1",
     "ak.vector.federation.idempotency_after_key_revoke.v1",
     "ak.vector.webrtc.media_plaintext_downgrade.v1",
     "ak.vector.identity_link.eager_invalidation.v1",
@@ -324,7 +323,6 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "retained_stub_hash": "retained_stub_digest",
     "artifact_hash": "artifact_digest",
     "original_envelope_hash": "original_envelope_digest",
-    "event_ref_hash": "event_ref_digest",
     "causal_ref_hashes": "causal_ref_digests",
     "canonical_hash": "canonical_digest",
     "binding_hash": "binding_digest",
@@ -390,6 +388,12 @@ VALUE_PROJECTION_DIGEST_INPUTS = {
     "base64url_decoded_bytes",
     "canonical_json_bytes",
     "event_payload_canonical_bytes",
+}
+
+
+VALUE_PROJECTION_DERIVATIONS = {
+    "event_digest_from_event_id",
+    "mls_genesis_transition_digest",
 }
 
 
@@ -674,6 +678,20 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
         "arkret-applet-registration-epoch-v1\n",
     ),
     ("canonical_bytes_base64url", "digest", "base64url", "sha256_hex", ""),
+    (
+        "leaf_canonical_preimage_b64u",
+        "leaf_digest",
+        "base64url",
+        "sha256_hex",
+        "\x00",
+    ),
+    (
+        "identity_link_proof_preimage_hex",
+        "identity_link_proof_payload_digest",
+        "hex",
+        "sha256_hex",
+        "",
+    ),
 )
 
 
@@ -681,6 +699,71 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
 # against. Every one needs a reason, because "no digest beside it" is also what a
 # silently deleted digest looks like.
 UNPAIRED_STATED_PREIMAGE_KEYS: dict[str, str] = {
+    "create_event_digest_preimage_canonical_bytes_utf8": (
+        "hash-transition fixture uses a suite-aware Event digest and EventId; the Rust "
+        "hash_transition_fixture test recomputes both"
+    ),
+    "accepted_event_canonical_bytes_utf8": (
+        "hash-transition receipt KAT hashes these bytes with the case's historical digest suite "
+        "and an explicit domain separator in the Rust fixture test"
+    ),
+    "bytes_digest_preimage_hex": (
+        "hash-transition receipt KAT carries already domain-framed binary bytes and is checked "
+        "by the suite-aware Rust fixture test"
+    ),
+    "receipt_core_canonical_bytes_utf8": (
+        "hash-transition receipt signature payload preimage is checked by the suite-aware Rust "
+        "fixture test"
+    ),
+    "signature_transcript_canonical_bytes_utf8": (
+        "hash-transition receipt transcript is checked against the registered binding by the "
+        "suite-aware Rust fixture test"
+    ),
+    "receipt_canonical_bytes_utf8": (
+        "hash-transition full receipt digest uses the historical suite and is recomputed by the "
+        "suite-aware Rust fixture test"
+    ),
+    "state_leaf_preimage_canonical_bytes_utf8": (
+        "hash-transition state leaf uses the live digest suite and is recomputed by the Rust KAT"
+    ),
+    "state_leaf_preimage_hex": (
+        "hash-transition state leaf is an RFC 6962 framed binary preimage checked by the Rust KAT"
+    ),
+    "control_event_leaf_preimage_hex": (
+        "hash-transition control root leaf is an RFC 6962 framed raw digest checked by the Rust KAT"
+    ),
+    "completeness_leaf_preimage_hex": (
+        "hash-transition completeness root leaf is an RFC 6962 framed JCS record checked by the Rust KAT"
+    ),
+    "seal_body_canonical_bytes_utf8": (
+        "hash-transition Seal id and signature payload use the verified Seal suite and are checked by the Rust KAT"
+    ),
+    "snapshot_canonical_bytes_utf8": (
+        "hash-transition snapshot commitment uses the predecessor suite and is checked by the Rust KAT"
+    ),
+    "transition_event_digest_preimage_canonical_bytes_utf8": (
+        "hash-transition Move uses the predecessor suite and is checked by the Rust KAT"
+    ),
+    "previous_state_leaf_preimage_canonical_bytes_utf8": (
+        "hash-transition previous state root uses the predecessor suite and is checked by the Rust KAT"
+    ),
+    "previous_state_leaf_preimage_hex": (
+        "hash-transition previous state leaf framing is checked by the Rust KAT"
+    ),
+    "next_state_leaf_preimage_canonical_bytes_utf8": (
+        "hash-transition next state root uses the successor suite and is checked by the Rust KAT"
+    ),
+    "next_state_leaf_preimage_hex": (
+        "hash-transition next state leaf framing is checked by the Rust KAT"
+    ),
+    "successor_event_digest_preimage_canonical_bytes_utf8": (
+        "hash-transition successor Event uses the successor suite and is checked by the Rust KAT"
+    ),
+    "canonical_bytes_b64u": (
+        "GovernanceRegistryArtifact bytes are paired with descriptor.content_digest in a "
+        "nested object and are recomputed by the history scale generator's domain-separated "
+        "artifact KAT"
+    ),
     "canonical_preimage": (
         "symbolic candidate label ('A', 'B') in the Seal tie-break vector, not bytes"
     ),
@@ -1185,13 +1268,6 @@ def check_event_ref_invariants_in_value(lint: Lint, path: Path, json_path: str, 
                 refs = value.get(ref_key)
                 if isinstance(refs, list) and event_id in refs:
                     lint.fail(path, f"{json_path}.{ref_key} contains its own event_id {event_id}")
-        if value.get("role") == "authorized_by" and "id" in value:
-            authorized_by_id = value.get("id")
-            if not isinstance(authorized_by_id, str) or not authorized_by_id.startswith("ak:grant:"):
-                lint.fail(
-                    path,
-                    f"{json_path}.id must be an ak:grant: id for role=authorized_by",
-                )
         for key, child in value.items():
             check_event_ref_invariants_in_value(lint, path, f"{json_path}.{key}", child)
     elif isinstance(value, list):

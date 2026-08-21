@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-20.1",
+  "version": "2026-08-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-20T10:25:00+08:00",
+  "generated_at": "2026-08-21T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -293,6 +293,22 @@
       "status": "active",
       "storage_recommendation": "Store the complete canonical ak:trust_domain:<scope> value by default. A compressed schema may store the raw scope only in an explicitly named trust_domain_scope column and MUST restore the typed prefix at the persistence boundary.",
       "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk root, recovery and authorization proofs. NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
+    },
+    {
+      "kind": "signer_evidence",
+      "wire_form": "ak:signer_evidence:sha256:<64-lowercase-hex>",
+      "payload_pattern": "sha256:[0-9a-f]{64}",
+      "status": "active",
+      "storage_recommendation": "Store the complete typed content-addressed identifier together with the exact canonical signer-evidence bytes.",
+      "description": "Content-addressed authenticated signer-resolution evidence reference. The suffix is the SHA-256 digest of the complete canonical evidence object under its registered digest rule."
+    },
+    {
+      "kind": "history_mailbox",
+      "wire_form": "ak:history_mailbox:<base64url-no-pad-16-byte-csprng>",
+      "payload_pattern": "[A-Za-z0-9_-]{22}",
+      "status": "active",
+      "storage_recommendation": "Store the full opaque locator and the mailbox capability commitment separately; the locator itself grants no access.",
+      "description": "Opaque locator for one capability-protected history reply mailbox. It is not an Event, DeviceMessage, request or response identity."
     }
   ],
   "id_kinds": [
@@ -762,6 +778,15 @@
       "identity_authority": "producer_signature"
     },
     {
+      "kind": "recovery_key",
+      "category": "identity",
+      "status": "active",
+      "wire_form": "ak:recovery_key:<uuidv7>",
+      "description": "Producer-allocated Organization Recovery Key registration identity, frozen across its authorized rotation lineage.",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    {
       "kind": "recovery_session",
       "category": "identity",
       "status": "active",
@@ -880,7 +905,7 @@
         "relation_endpoint",
         "read_cursor_scope_kind"
       ],
-      "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy.",
+      "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_access, MLS group binding, and federation policy.",
       "id_form": "event_derived",
       "identity_authority": "event",
       "genesis_event_kinds": [
@@ -919,6 +944,24 @@
       "status": "active",
       "wire_form": "ak:scheduled_send:<uuidv7>",
       "description": "Producer-allocated identity of a principal-private scheduled-send plan. It is not an Event or Message identity and MUST NOT be retyped into either one.",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    {
+      "kind": "history_request",
+      "category": "scope_private",
+      "status": "active",
+      "wire_form": "ak:history_request:<uuidv7>",
+      "description": "Producer-allocated immutable scope-private history-key request identity.",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    {
+      "kind": "history_response",
+      "category": "scope_private",
+      "status": "active",
+      "wire_form": "ak:history_response:<uuidv7>",
+      "description": "Producer-allocated immutable history-key response record identity.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     }
