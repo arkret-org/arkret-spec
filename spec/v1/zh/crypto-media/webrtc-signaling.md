@@ -299,7 +299,6 @@ Invite payload:
   "seq": 12,
   "data": {
     "lifetime_ms": 60000,
-    "mode": "p2p",
     "offer": {
       "type": "offer",
       "sdp": "v=0\r\n..."
