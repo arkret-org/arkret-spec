@@ -217,7 +217,15 @@
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
         "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "exporter_label": "arkret-reaction-routing-v1",
+        "routing_root_hex": "f9e39ba45ff2ba26a1e430c0df76bf7b56737a5c1ad9d103b3c07ca205e1963d",
+        "expand_with_label": "ak.reaction-routing-v1",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        },
+        "target_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+        "routing_window": 496448,
+        "routing_context_canonical_json": "{\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"routing_window\":496448,\"target_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\"}",
         "emoji_cases": [
           {
             "source_codepoints": [
@@ -242,16 +250,18 @@
         ]
       },
       "expected": {
-        "routing_hmac_key_hex": "711d0bc874fcd94f6a06e8e038c9a2da68b03a68aba6a453d2600f4ba588cbd1",
+        "routing_hmac_key_hex": "8c7ad5a3c2afc46c81c918404ed6df04d6b6c9b0cf45b9d08d2af10d12fab8c0",
         "tags_hex": [
-          "575d723918414eba1872188d449bce23e0812dbd3c5d8774c1144574b945d437",
-          "575d723918414eba1872188d449bce23e0812dbd3c5d8774c1144574b945d437",
-          "6bc2c742240591717aa0f27e7ffb823455702ef6d0002aafbd1b70223bbd3abf"
+          "ac97c96a90ee4de6eb391f65afdedb0847ad3e60656238aab16f6be55176e5d7",
+          "ac97c96a90ee4de6eb391f65afdedb0847ad3e60656238aab16f6be55176e5d7",
+          "f15b56824f3244910f4cc615559dad3a35756d5b65ccac85d9dabe6be4698f56"
         ],
         "negative_mutations": [
           "skip_NFC",
           "wrong_exporter_label",
-          "different_realm_id",
+          "different_effective_scope",
+          "different_target_ref",
+          "different_routing_window",
           "reuse_key_after_epoch_change"
         ],
         "negative_decision": "reject"

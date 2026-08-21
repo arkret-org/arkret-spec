@@ -5683,7 +5683,7 @@ Expected：
 
 ### 21.3 Reaction routing HMAC
 
-`ak.vector.reaction.routing_hmac_kat.v1` 固定 exporter secret、Realm context 与 routing label，要求分解形式 `U+0065 U+0301` 与预组形式 `U+00E9` 经 NFC 后产生完全相同的 tag，并覆盖 emoji modifier。跳过 NFC、错误 label、跨 Realm context 或跨 epoch 复用 exporter key MUST fail closed。
+`ak.vector.reaction.routing_hmac_kat.v1` 固定 replay-derived `routing_root`、`effective_scope`、`target_ref`、`routing_window` 与 ExpandWithLabel label，要求分解形式 `U+0065 U+0301` 与预组形式 `U+00E9` 经 NFC 后产生完全相同的 tag，并覆盖 emoji modifier。跳过 NFC、错误 label、改变 scope / target / window，或跨 epoch 复用 routing root MUST fail closed。
 
 ## 22. Identity Root、Delegated Bootstrap 与 Recovery Re-anchor 向量
 

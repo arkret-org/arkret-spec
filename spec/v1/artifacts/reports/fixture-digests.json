@@ -38,7 +38,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
-      "sha256": "8a927551c17ce06dd2e2bc5570d50ccace7f424ba750723cb9a9407483199bd4"
+      "sha256": "6677ebe744b6e195a01ebd5ba37f7c6921c119c1e9ebbd2f315ee78cedd36e94"
     },
     {
       "path": "spec/v1/artifacts/fixtures/audit-release-fixture.json",

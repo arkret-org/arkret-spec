@@ -8712,7 +8712,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "description": "Reaction key. Plaintext scopes SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted scopes MUST carry the v1 keyed-HMAC routing tag here and carry the equivalent base64url tag in encrypted_payload.encryption_context.routing_context (`HMAC-SHA256(key = MLS-Exporter(\"arkret-reaction-routing-v1\", context = canonical_effective_scope_key || routing_window), data = NFC(canonical_emoji))`); routing_window is derived from outer Event.created_at and does not require an hourly MLS Commit. See zh/crypto-media/encryption-and-audit.md §2.9. The canonical emoji travels only in encrypted_payload."
+          "description": "Reaction key. Plaintext scopes SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted scopes MUST carry the v1 keyed-HMAC routing tag here and carry the equivalent base64url tag in encrypted_payload.encryption_context.routing_context. The exact derivation is ExpandWithLabel(routing_root[N], \"ak.reaction-routing-v1\", JCS({effective_scope,target_ref,routing_window}), 32), followed by HMAC-SHA256 over NFC(canonical_emoji); routing_root[N] is the epoch history_secret for exporter mode or MLS-Exporter(\"ak.reaction-routing-root-v1\", canonical_effective_scope_key_bytes(effective_scope), KDF.Nh) for standard mode. routing_window is derived from outer Event.created_at and does not require an hourly MLS Commit. See zh/crypto-media/encryption-and-audit.md §2.9. The canonical emoji travels only in encrypted_payload."
         },
         "annotation": {
           "type": "string",
