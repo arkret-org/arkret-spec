@@ -240,7 +240,7 @@
     {
       "name": "open_set_concurrent_archive",
       "event_plane": "data",
-      "notary_profile": "open_set",
+      "notary_kind": "open_set",
       "evaluation_basis": "joined_control_view",
       "circle_state_at_seal_ref": "active",
       "observed_lifecycle_move": "ak.circle.archive",

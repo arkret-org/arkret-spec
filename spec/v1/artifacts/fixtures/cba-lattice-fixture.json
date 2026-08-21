@@ -608,11 +608,9 @@
     {
       "name": "inclusion_list_obligation",
       "description": "A multi-signer notary Seal must discharge valid inclusion-list obligations by inclusion, signed reject, or pre-state verification failure proof.",
-      "notary_profile": {
-        "proposer_id": "did:webvh:z6mkfixturenotaryproposerexample:notary-proposer.example",
-        "signer_id": "did:webvh:z6mkfixturenotarysignerexample:notary-signer.example",
-        "kind": "threshold"
-      },
+      "notary_kind": "threshold",
+      "notary_proposer_id": "did:webvh:z6mkfixturenotaryproposerexample:notary-proposer.example",
+      "notary_signer_id": "did:webvh:z6mkfixturenotarysignerexample:notary-signer.example",
       "inclusion_list": {
         "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
         "signer_id": "did:webvh:z6mkfixturenotarysignerexample:notary-signer.example",
@@ -844,7 +842,7 @@
     {
       "name": "open_set_concurrent_revocation_fail_closed",
       "description": "A DataEvent whose seal_ref is locally valid is re-evaluated against the joined multi-leaf control view when a concurrent revocation branch is observed.",
-      "notary_profile": "open_set",
+      "notary_kind": "open_set",
       "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "joined_leaf_set": [
         "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

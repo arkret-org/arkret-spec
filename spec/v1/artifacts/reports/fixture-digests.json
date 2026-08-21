@@ -82,11 +82,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "b95248faa45710d479223942ba8fd86a8242aa91ad157448600f933cc4e20088"
+      "sha256": "c20ae15a0eed60a055dc15c9fd6555b7cb3e33632b43ec32c6b08687ca4a822d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "e022d6cc8283219b54875275eb591f317830df30797c58ec564b24baf6f635b3"
+      "sha256": "ede8323b15f807cde000ababa84c1704ac7beb3c63cad8b657dea4b200a17f6e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/contact-round-kat.json",

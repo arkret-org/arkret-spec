@@ -2422,7 +2422,7 @@ def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
 
     concurrent = cases["open_set_concurrent_archive"]
     concurrent_expected = concurrent.get("expected", {})
-    if concurrent.get("notary_profile") != "open_set" or concurrent.get("evaluation_basis") != "joined_control_view":
+    if concurrent.get("notary_kind") != "open_set" or concurrent.get("evaluation_basis") != "joined_control_view":
         lint.fail(path, "concurrent Circle archive must evaluate the open_set joined control view")
     if not isinstance(concurrent_expected, dict) or concurrent_expected.get("reason") != "seal_ref_stale":
         lint.fail(path, "concurrent Circle archive must fail closed with seal_ref_stale")
