@@ -28,7 +28,6 @@ AVAILABILITY_BYTES_DOMAIN = b"ak.availability-event-bytes-v1"
 SOURCE_AGENT_OBSERVATION_DOMAIN = b"ak.history-source-agent-observation-v1"
 MAX_REQUEST_EPOCHS = 65_536
 
-GROUP = "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI"
 SERVICE_DID = "did:key:z6MkfixtureService"
 SERVICE_CORE = "ak:did_core:key:z6MkfixtureService"
 SERVICE_METHOD = SERVICE_DID + "#key-1"
@@ -56,6 +55,7 @@ def event_id(label: str) -> str:
 
 
 REALM = "ak:realm:" + event_id("history-scale-realm-create").split(":", 2)[2]
+GROUP = b64u(REALM.encode("utf-8"))
 
 
 def seal_ref(label: str | int) -> str:

@@ -262,11 +262,11 @@ context mappings。
 2. schema 与 registry 中不存在 `backing_circle_id` 或 `ak.sidecar.access.replace`。
 3. Sidecar create 不产生 Circle/member/Strand/Relation write。
 4. `desired_agent_ids` 只能从 accepted frontier 派生；任何 operation 均不可写入或覆盖它。
-5. native `scope_ref.kind="sidecar"` 进入 digest、AAD、delivery/query 与 Seal 验证。AAD 侧的
-   承载是 `aad.scope_digest`——对 exact `scope_ref` 的域分隔承诺（常量 `ak.aad-scope-v1`，构造与
-   接收方重算见 [`../crypto-media/encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md)）。
-   它对**所有** scope 恒定必填，因此"带不带这个字段"不会成为 Sidecar 指纹；明文 `sidecar_id`
-   **MUST NOT** 进入 AAD，否则服务端可直接从密文枚举 Sidecar 的存在、数量与活跃度，违反 §9。
+5. native `scope_ref.kind="sidecar"` 进入 digest、delivery/query 与 Seal 验证。加密时从已签名外层
+   Event 的 exact `scope_ref` 重构 closed pre-encryption header；最小 wire envelope 不复制
+   scope、`sidecar_id`、AAD 或其 digest。接收方必须按
+   [`../crypto-media/encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md) 从外层 Event 与 exact
+   winning group state 重构并验证，不得从密文 wire 枚举 Sidecar 的存在、数量与活跃度。
    逐字节 KAT（含 Realm 与 Sidecar 两个 scope 摘要不同的断言）在
    `ak.vector.encoding.encrypted_envelope_digest.v1`。
 6. Sidecar view 映射不改变 source Strand history；publish 创建新普通 Event。

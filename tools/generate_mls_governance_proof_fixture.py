@@ -18,7 +18,6 @@ OUTPUT = ROOT / "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json"
 DOMAIN = b"ak.mls-governance-proof-page-v1"
 ZERO = b"\x00"
 
-GROUP = "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI"
 EMPTY_ROOT = "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
 
@@ -70,6 +69,7 @@ def content_id(kind: str, label: str) -> str:
 
 
 REALM = content_id("realm", "mls-governance-fixture-realm-create")
+GROUP = b64u(REALM.encode("utf-8"))
 BASE_GROUP_STATE = content_id("event", "mls-governance-fixture-base-group-state")
 
 
@@ -165,7 +165,7 @@ def body(refs: list[str], target_refs: list[str], edges: list[tuple[str, str]]) 
         "proof_material": {
             "seal_descriptors": descriptors,
             "seal_predecessor_edges": predecessor_edges,
-            "event_descriptors": event_descriptors,
+            "event_descriptors": sorted(event_descriptors, key=lambda item: item["event_id"]),
         },
     }
 

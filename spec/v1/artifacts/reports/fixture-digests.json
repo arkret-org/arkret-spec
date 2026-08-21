@@ -170,7 +170,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "f2ab0b2fdc0e50f8e75d66bfa6a891e84c64d10f9458a54780fb8435354fc2ef"
+      "sha256": "b8177a7330a0fd3ed234cf7f4e97b5cc535ab1a97d8471083e8f758f459b2fc7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -222,7 +222,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
-      "sha256": "8245f627882c4883460b8f3b482aa36c9b0fbf39ef5753e885201129a69396b1"
+      "sha256": "1979fa0db2720f26142b492cc09082dbdf0bf2e780a931a693b2c88d40f8d611"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
