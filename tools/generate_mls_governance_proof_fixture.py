@@ -29,6 +29,10 @@ def sha(value: bytes) -> str:
     return "sha256:" + hashlib.sha256(value).hexdigest()
 
 
+def query_digest(value: dict[str, Any]) -> str:
+    return sha(b"ak.mls-governance-proof-query-v1" + ZERO + jcs(value))
+
+
 def seal(byte: int) -> str:
     return "ak:seal:sha256:" + f"{byte:02x}" * 32
 
@@ -46,6 +50,13 @@ def query(base: dict[str, Any], target: dict[str, Any], *, genesis: bool) -> dic
         "profile": "group_security_frontier",
         "effective_scope": {"kind": "realm", "realm_id": REALM},
         "mls_group_id": GROUP,
+        "local_mls_leaves": [
+            {
+                "leaf_index": 0,
+                "principal_id": "ak:did_core:webvh:z6mkfixturealice:alice.example",
+                "credential_ref": "did:webvh:z6mkfixturealice:alice.example#device-1",
+            }
+        ],
         "proof_base_basis": base,
         "proof_target_basis": target,
         "byte_limit": 1048576,
@@ -180,12 +191,14 @@ def make_case(
 ) -> dict[str, Any]:
     q = query(basis(*base_refs), basis(*target_refs), genesis=genesis)
     page_body = body(sorted(set(base_refs + target_refs)), target_refs, edges)
-    page_digest = sha(DOMAIN + ZERO + jcs(q) + ZERO + jcs(page_body))
-    outcome = {"query": q, **page_body, "page_digest": page_digest}
+    q_digest = query_digest(q)
+    page_digest = sha(DOMAIN + ZERO + q_digest.encode("utf-8") + ZERO + jcs(page_body))
+    outcome = {"query_digest": q_digest, **page_body, "page_digest": page_digest}
     return {
         "name": name,
         "query": q,
-        "page_body_without_query_and_page_digest": page_body,
+        "query_digest": q_digest,
+        "page_body_without_query_digest_and_page_digest": page_body,
         "outcome": outcome,
         "expected_page_digest": page_digest,
         "expected_relation": (
@@ -231,7 +244,7 @@ def build() -> dict[str, Any]:
         "schema_ref": "../schemas/mls-governance-proof-bundle.schema.json#/$defs/read_outcome",
         "page_digest_formula": {
             "domain": DOMAIN.decode("ascii"),
-            "formula": "SHA-256(UTF8(domain) || 0x00 || JCS(query) || 0x00 || JCS(page_body))",
+            "formula": "SHA-256(UTF8(domain) || 0x00 || UTF8(query_digest) || 0x00 || JCS(page_body))",
         },
         "cases": cases,
         "negative_cases": [

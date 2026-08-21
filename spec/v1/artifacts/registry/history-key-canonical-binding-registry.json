@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-21.2",
+  "version": "2026-08-21.3",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -193,14 +193,14 @@
     },
     "proof_query_digest": {
       "domain": "ak.mls-governance-proof-query-v1",
-      "preimage": "the complete closed read_request including byte_limit",
-      "rule": "The query is stateless, near-current and explicitly binds exact proof_base_basis and proof_target_basis antichains plus the group_security_frontier selector. Bulk or old epoch activation is forbidden on this surface."
+      "preimage": "the complete closed read_request including local_mls_leaves and byte_limit",
+      "rule": "The query is stateless, near-current and explicitly binds exact proof_base_basis and proof_target_basis antichains, the caller's canonical every-and-only public RFC 9420 leaf coordinates and the group_security_frontier selector. Bulk or old epoch activation is forbidden on this surface."
     },
     "proof_page_digest": {
       "domain": "ak.mls-governance-proof-page-v1",
       "wire_field": "page_digest",
-      "formula": "SHA-256(UTF8('ak.mls-governance-proof-page-v1') || 0x00 || JCS(query) || 0x00 || JCS(page_body))",
-      "preimage": "query is the complete closed read_request repeated by read_outcome; page_body is the complete matching read_outcome with query and page_digest removed",
+      "formula": "SHA-256(UTF8('ak.mls-governance-proof-page-v1') || 0x00 || UTF8(query_digest) || 0x00 || JCS(page_body))",
+      "preimage": "query_digest is the registered domain-separated digest of the caller-retained complete closed read_request; page_body is the complete matching read_outcome with query_digest and page_digest removed",
       "rule": "The response completely covers the exact near-current frontier selector or is rejected with mls_governance_proof_bounds_exceeded. Deterministic regeneration for identical retained closure and query produces the same page_digest."
     },
     "release_predicate_registry_digest": {

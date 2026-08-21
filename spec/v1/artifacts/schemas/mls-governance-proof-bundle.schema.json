@@ -11,13 +11,25 @@
     "digest": {"$ref": "./event-envelope.schema.json#/$defs/digest"},
     "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
     "epoch": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+    "mls_security_frontier_leaf": {
+      "type": "object",
+      "required": ["leaf_index", "principal_id", "credential_ref"],
+      "properties": {
+        "leaf_index": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+        "principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "credential_ref": {"type": "string", "minLength": 1, "maxLength": 2048}
+      },
+      "additionalProperties": false
+    },
     "proof_request_common": {
       "type": "object",
-      "required": ["profile", "effective_scope", "mls_group_id", "proof_base_basis", "proof_target_basis", "byte_limit"],
+      "description": "The exact RFC 8785 canonical request must not exceed 8 MiB. This aggregate bound includes local_mls_leaves and is enforced after Schema validation and before materialization.",
+      "required": ["profile", "effective_scope", "mls_group_id", "local_mls_leaves", "proof_base_basis", "proof_target_basis", "byte_limit"],
       "properties": {
         "profile": {"const": "group_security_frontier"},
         "effective_scope": {"$ref": "#/$defs/effective_scope"},
         "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "local_mls_leaves": {"type": "array", "minItems": 1, "maxItems": 65536, "uniqueItems": true, "items": {"$ref": "#/$defs/mls_security_frontier_leaf"}, "description": "Exact occupied public RFC 9420 leaves from the caller's locally verified current or pending group state, in strictly increasing leaf_index order. The service rejects duplicate leaf_index or credential_ref and proves governance state against this every-and-only set; the receiver repeats the comparison against its own group state. This is query input and is never copied into the response."},
         "proof_base_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis", "description": "Canonical complete verified accepted base antichain. The caller MUST also hold the crash-safe local predecessor joined verification checkpoint for this exact basis; the wire field is not a standalone trust source."},
         "proof_target_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis", "description": "Canonical complete accepted target antichain. It dominates proof_base_basis: every base leaf is retained or is an ancestor of a target leaf. The service never substitutes a single arbitrary head."},
         "byte_limit": {"type": "integer", "minimum": 65536, "maximum": 1048576, "description": "Caller-selected canonical response-byte ceiling for one complete near-current frontier selector. The response must fit without truncation or cursor. If the exact base-to-target frontier projection cannot fit, the caller must obtain a closer independently verified basis or fail closed; it cannot split cells or accept a partial frontier."}
@@ -190,15 +202,15 @@
     },
     "group_security_frontier_outcome": {
       "type": "object",
-      "required": ["query", "frontier_projection", "proof_material", "page_digest"],
+      "required": ["query_digest", "frontier_projection", "proof_material", "page_digest"],
       "properties": {
-        "query": {"$ref": "#/$defs/group_security_frontier_request"},
+        "query_digest": {"$ref": "#/$defs/digest", "description": "SHA-256(UTF8('ak.mls-governance-proof-query-v1') || 0x00 || JCS(exact request)). The response does not repeat local_mls_leaves; the caller retains the request and requires this digest to match."},
         "frontier_projection": {"$ref": "#/$defs/frontier_projection"},
         "proof_material": {"$ref": "#/$defs/typed_proof_material"},
         "page_digest": {"$ref": "#/$defs/digest"}
       },
       "additionalProperties": false,
-      "description": "A deterministic, complete near-current response for the exact group-binding selector and canonical base/target antichains in query. Bulk history authorization and activation are reconstructed by direct accepted-Seal traversal and are not fields or profiles of this response."
+      "description": "A deterministic, complete near-current response for the exact query_digest and its caller-retained group-binding selector and canonical base/target antichains. Bulk history authorization and activation are reconstructed by direct accepted-Seal traversal and are not fields or profiles of this response."
     },
     "read_request": {"$ref": "#/$defs/group_security_frontier_request"},
     "read_outcome": {"$ref": "#/$defs/group_security_frontier_outcome"}

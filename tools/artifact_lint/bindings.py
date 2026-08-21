@@ -1985,6 +1985,11 @@ def check_request_material_supply_closure(lint: Lint) -> None:
                 return False
             if _SUPPLY_CLIENT_LOCAL_RE.search(name):
                 return False
+            if demand["path"].startswith("local_mls_leaves["):
+                # The complete container is derived from the caller's locally
+                # verified RFC 9420 current/pending group state. Its credential
+                # reference is not a server-state echo or third-party carrier.
+                return False
             if (
                 name in _SUPPLY_DID_LOG_DERIVED_NAMES
                 or ref_def in _SUPPLY_DID_LOG_DERIVED_DEFS

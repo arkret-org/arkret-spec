@@ -14,7 +14,7 @@
   "schema_ref": "../schemas/mls-governance-proof-bundle.schema.json#/$defs/read_outcome",
   "page_digest_formula": {
     "domain": "ak.mls-governance-proof-page-v1",
-    "formula": "SHA-256(UTF8(domain) || 0x00 || JCS(query) || 0x00 || JCS(page_body))"
+    "formula": "SHA-256(UTF8(domain) || 0x00 || UTF8(query_digest) || 0x00 || JCS(page_body))"
   },
   "cases": [
     {
@@ -26,6 +26,13 @@
           "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
         },
         "mls_group_id": "YWs6cmVhbG06QVpvY3hMVXVCLTdsZnhWYlZKek5DY3hTRW4tYURhMDdEaTZNbmlnRndHZmQ",
+        "local_mls_leaves": [
+          {
+            "leaf_index": 0,
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice:alice.example",
+            "credential_ref": "did:webvh:z6mkfixturealice:alice.example#device-1"
+          }
+        ],
         "proof_base_basis": {
           "leaves": [
             "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101"
@@ -42,7 +49,8 @@
         "next_epoch": 0,
         "binding_profile": "ak.security_frontier.v1"
       },
-      "page_body_without_query_and_page_digest": {
+      "query_digest": "sha256:de214b77f8e178d415b065d42d9118338afa2d44d294bb87d7d05844d38fbd62",
+      "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
           "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
           "branches": [
@@ -83,29 +91,7 @@
         }
       },
       "outcome": {
-        "query": {
-          "profile": "group_security_frontier",
-          "effective_scope": {
-            "kind": "realm",
-            "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
-          },
-          "mls_group_id": "YWs6cmVhbG06QVpvY3hMVXVCLTdsZnhWYlZKek5DY3hTRW4tYURhMDdEaTZNbmlnRndHZmQ",
-          "proof_base_basis": {
-            "leaves": [
-              "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101"
-            ]
-          },
-          "proof_target_basis": {
-            "leaves": [
-              "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101"
-            ]
-          },
-          "byte_limit": 1048576,
-          "frontier_purpose": "group_binding",
-          "previous_epoch": 0,
-          "next_epoch": 0,
-          "binding_profile": "ak.security_frontier.v1"
-        },
+        "query_digest": "sha256:de214b77f8e178d415b065d42d9118338afa2d44d294bb87d7d05844d38fbd62",
         "frontier_projection": {
           "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
           "branches": [
@@ -144,9 +130,9 @@
           "seal_predecessor_edges": [],
           "event_descriptors": []
         },
-        "page_digest": "sha256:6298acee8333e400d036fd041081373ee380d553b48931d82db2b89ca570689c"
+        "page_digest": "sha256:97bd8f1c96a4527fe68a3f93eb250eac979ed932586f5ae9bd72528202de8fe0"
       },
-      "expected_page_digest": "sha256:6298acee8333e400d036fd041081373ee380d553b48931d82db2b89ca570689c",
+      "expected_page_digest": "sha256:97bd8f1c96a4527fe68a3f93eb250eac979ed932586f5ae9bd72528202de8fe0",
       "expected_relation": "equal_antichain"
     },
     {
@@ -158,6 +144,13 @@
           "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
         },
         "mls_group_id": "YWs6cmVhbG06QVpvY3hMVXVCLTdsZnhWYlZKek5DY3hTRW4tYURhMDdEaTZNbmlnRndHZmQ",
+        "local_mls_leaves": [
+          {
+            "leaf_index": 0,
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice:alice.example",
+            "credential_ref": "did:webvh:z6mkfixturealice:alice.example#device-1"
+          }
+        ],
         "proof_base_basis": {
           "leaves": [
             "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101"
@@ -175,7 +168,8 @@
         "binding_profile": "ak.security_frontier.v1",
         "base_group_state_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
       },
-      "page_body_without_query_and_page_digest": {
+      "query_digest": "sha256:486043e6fb8b6b3cea61620e31b63ff3248e93050b481f92428b47cb6c542b9e",
+      "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
           "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
           "branches": [
@@ -216,30 +210,7 @@
         }
       },
       "outcome": {
-        "query": {
-          "profile": "group_security_frontier",
-          "effective_scope": {
-            "kind": "realm",
-            "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
-          },
-          "mls_group_id": "YWs6cmVhbG06QVpvY3hMVXVCLTdsZnhWYlZKek5DY3hTRW4tYURhMDdEaTZNbmlnRndHZmQ",
-          "proof_base_basis": {
-            "leaves": [
-              "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101"
-            ]
-          },
-          "proof_target_basis": {
-            "leaves": [
-              "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101"
-            ]
-          },
-          "byte_limit": 1048576,
-          "frontier_purpose": "group_binding",
-          "previous_epoch": 0,
-          "next_epoch": 1,
-          "binding_profile": "ak.security_frontier.v1",
-          "base_group_state_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
-        },
+        "query_digest": "sha256:486043e6fb8b6b3cea61620e31b63ff3248e93050b481f92428b47cb6c542b9e",
         "frontier_projection": {
           "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
           "branches": [
@@ -278,9 +249,9 @@
           "seal_predecessor_edges": [],
           "event_descriptors": []
         },
-        "page_digest": "sha256:97ca47e8fb5b2cd9ef956fedc768b143b281e4585d1762f1971a24322437fc49"
+        "page_digest": "sha256:3173a5a8936f21c563d15b3bfee9f6fd92e82bccc7b0023213855d8180f6ef1e"
       },
-      "expected_page_digest": "sha256:97ca47e8fb5b2cd9ef956fedc768b143b281e4585d1762f1971a24322437fc49",
+      "expected_page_digest": "sha256:3173a5a8936f21c563d15b3bfee9f6fd92e82bccc7b0023213855d8180f6ef1e",
       "expected_relation": "equal_antichain"
     },
     {
@@ -292,6 +263,13 @@
           "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
         },
         "mls_group_id": "YWs6cmVhbG06QVpvY3hMVXVCLTdsZnhWYlZKek5DY3hTRW4tYURhMDdEaTZNbmlnRndHZmQ",
+        "local_mls_leaves": [
+          {
+            "leaf_index": 0,
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice:alice.example",
+            "credential_ref": "did:webvh:z6mkfixturealice:alice.example#device-1"
+          }
+        ],
         "proof_base_basis": {
           "leaves": [
             "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101"
@@ -309,7 +287,8 @@
         "binding_profile": "ak.security_frontier.v1",
         "base_group_state_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
       },
-      "page_body_without_query_and_page_digest": {
+      "query_digest": "sha256:b49d4223fde932428d8d4ce8fe5057d5734e6ea508bf01b301eec8460e331d5c",
+      "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
           "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
           "branches": [
@@ -359,30 +338,7 @@
         }
       },
       "outcome": {
-        "query": {
-          "profile": "group_security_frontier",
-          "effective_scope": {
-            "kind": "realm",
-            "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
-          },
-          "mls_group_id": "YWs6cmVhbG06QVpvY3hMVXVCLTdsZnhWYlZKek5DY3hTRW4tYURhMDdEaTZNbmlnRndHZmQ",
-          "proof_base_basis": {
-            "leaves": [
-              "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101"
-            ]
-          },
-          "proof_target_basis": {
-            "leaves": [
-              "ak:seal:sha256:0202020202020202020202020202020202020202020202020202020202020202"
-            ]
-          },
-          "byte_limit": 1048576,
-          "frontier_purpose": "group_binding",
-          "previous_epoch": 0,
-          "next_epoch": 1,
-          "binding_profile": "ak.security_frontier.v1",
-          "base_group_state_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
-        },
+        "query_digest": "sha256:b49d4223fde932428d8d4ce8fe5057d5734e6ea508bf01b301eec8460e331d5c",
         "frontier_projection": {
           "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
           "branches": [
@@ -430,9 +386,9 @@
           ],
           "event_descriptors": []
         },
-        "page_digest": "sha256:a189ea1606b4bb705307cdcafb738d6b308d4461b2174fe7c6657c2138d640c9"
+        "page_digest": "sha256:72ef95a86216bd9214415b2b86042a741d4a87755cfde1235e28636ed0248365"
       },
-      "expected_page_digest": "sha256:a189ea1606b4bb705307cdcafb738d6b308d4461b2174fe7c6657c2138d640c9",
+      "expected_page_digest": "sha256:72ef95a86216bd9214415b2b86042a741d4a87755cfde1235e28636ed0248365",
       "expected_relation": "strict_descendant_antichain"
     },
     {
@@ -444,6 +400,13 @@
           "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
         },
         "mls_group_id": "YWs6cmVhbG06QVpvY3hMVXVCLTdsZnhWYlZKek5DY3hTRW4tYURhMDdEaTZNbmlnRndHZmQ",
+        "local_mls_leaves": [
+          {
+            "leaf_index": 0,
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice:alice.example",
+            "credential_ref": "did:webvh:z6mkfixturealice:alice.example#device-1"
+          }
+        ],
         "proof_base_basis": {
           "leaves": [
             "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101",
@@ -463,7 +426,8 @@
         "binding_profile": "ak.security_frontier.v1",
         "base_group_state_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
       },
-      "page_body_without_query_and_page_digest": {
+      "query_digest": "sha256:431b8c7fb3c3f3cd3bf00fad03a588fa77bfa17d4ae935d0968ff9bfa7cfaa9e",
+      "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
           "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
           "branches": [
@@ -599,32 +563,7 @@
         }
       },
       "outcome": {
-        "query": {
-          "profile": "group_security_frontier",
-          "effective_scope": {
-            "kind": "realm",
-            "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
-          },
-          "mls_group_id": "YWs6cmVhbG06QVpvY3hMVXVCLTdsZnhWYlZKek5DY3hTRW4tYURhMDdEaTZNbmlnRndHZmQ",
-          "proof_base_basis": {
-            "leaves": [
-              "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101",
-              "ak:seal:sha256:0202020202020202020202020202020202020202020202020202020202020202"
-            ]
-          },
-          "proof_target_basis": {
-            "leaves": [
-              "ak:seal:sha256:0303030303030303030303030303030303030303030303030303030303030303",
-              "ak:seal:sha256:0404040404040404040404040404040404040404040404040404040404040404"
-            ]
-          },
-          "byte_limit": 1048576,
-          "frontier_purpose": "group_binding",
-          "previous_epoch": 0,
-          "next_epoch": 1,
-          "binding_profile": "ak.security_frontier.v1",
-          "base_group_state_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
-        },
+        "query_digest": "sha256:431b8c7fb3c3f3cd3bf00fad03a588fa77bfa17d4ae935d0968ff9bfa7cfaa9e",
         "frontier_projection": {
           "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
           "branches": [
@@ -758,9 +697,9 @@
             }
           ]
         },
-        "page_digest": "sha256:47db7d681fbadd4570dccc16dca5864f9ede4d86271765a020d4682c5ceb24d9"
+        "page_digest": "sha256:ed9c44f23b048087dfc5806f5aae142769d526d1ca41f4626455c00822498cdd"
       },
-      "expected_page_digest": "sha256:47db7d681fbadd4570dccc16dca5864f9ede4d86271765a020d4682c5ceb24d9",
+      "expected_page_digest": "sha256:ed9c44f23b048087dfc5806f5aae142769d526d1ca41f4626455c00822498cdd",
       "expected_relation": "strict_descendant_antichain"
     }
   ],

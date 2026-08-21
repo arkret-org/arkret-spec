@@ -117,9 +117,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/history-key-canonical-binding-registry.json",
-      "version": "2026-08-21.2",
+      "version": "2026-08-21.3",
       "generated_at": null,
-      "content_digest": "sha256:f5afa8449c664bb23b47257577ab21a2fc90b4be93a2c15c908f00503fc2ad33"
+      "content_digest": "sha256:cffbf5b7191fc62eef08f5f99b3c9609fc00f7b00051a8ddf5cd403888086ec8"
     },
     {
       "path": "spec/v1/artifacts/registry/history-recovery-scalability-registry.json",
@@ -171,9 +171,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-08-21.3",
-      "generated_at": "2026-08-21T21:00:00+08:00",
-      "content_digest": "sha256:d80ad3e21be9b34d3c43961bc97316c056a7f91356f980adbffb735c21590a74"
+      "version": "2026-08-21.5",
+      "generated_at": "2026-08-21T22:55:00+08:00",
+      "content_digest": "sha256:5344e5c23c2cccc9243a702cf582a87011d0f932637605683b6e931bef56d5b6"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",

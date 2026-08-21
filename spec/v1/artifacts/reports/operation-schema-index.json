@@ -7461,13 +7461,13 @@
         "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_outcome",
         "schema_kind": "object",
         "required": [
-          "query",
+          "query_digest",
           "frontier_projection",
           "proof_material",
           "page_digest"
         ],
         "properties": [
-          "query",
+          "query_digest",
           "frontier_projection",
           "proof_material",
           "page_digest"
@@ -9904,13 +9904,13 @@
         "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_outcome",
         "schema_kind": "object",
         "required": [
-          "query",
+          "query_digest",
           "frontier_projection",
           "proof_material",
           "page_digest"
         ],
         "properties": [
-          "query",
+          "query_digest",
           "frontier_projection",
           "proof_material",
           "page_digest"

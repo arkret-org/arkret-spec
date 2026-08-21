@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10300,
+    "total_properties": 10304,
     "total_schema_documents": 164,
     "by_presence_class": {
       "optional": 2830,
       "optional_defaulted": 67,
-      "required": 6992,
+      "required": 6996,
       "required_nullable": 138,
       "tristate": 273
     },
@@ -10295,7 +10295,7 @@
         "/$defs/group_security_frontier_outcome/properties/frontier_projection": "required",
         "/$defs/group_security_frontier_outcome/properties/page_digest": "required",
         "/$defs/group_security_frontier_outcome/properties/proof_material": "required",
-        "/$defs/group_security_frontier_outcome/properties/query": "required",
+        "/$defs/group_security_frontier_outcome/properties/query_digest": "required",
         "/$defs/group_security_frontier_request/allOf/1/oneOf/0/properties/next_epoch": "optional",
         "/$defs/group_security_frontier_request/allOf/1/oneOf/0/properties/previous_epoch": "optional",
         "/$defs/group_security_frontier_request/allOf/1/oneOf/1/not/properties/next_epoch": "required",
@@ -10319,8 +10319,12 @@
         "/$defs/merkle_membership_witness/properties/root_field": "required",
         "/$defs/merkle_membership_witness/properties/root_seal_ref": "required",
         "/$defs/merkle_membership_witness/properties/siblings": "required",
+        "/$defs/mls_security_frontier_leaf/properties/credential_ref": "required",
+        "/$defs/mls_security_frontier_leaf/properties/leaf_index": "required",
+        "/$defs/mls_security_frontier_leaf/properties/principal_id": "required",
         "/$defs/proof_request_common/properties/byte_limit": "required",
         "/$defs/proof_request_common/properties/effective_scope": "required",
+        "/$defs/proof_request_common/properties/local_mls_leaves": "required",
         "/$defs/proof_request_common/properties/mls_group_id": "required",
         "/$defs/proof_request_common/properties/profile": "required",
         "/$defs/proof_request_common/properties/proof_base_basis": "required",

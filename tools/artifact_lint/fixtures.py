@@ -2747,7 +2747,8 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
             lint.fail(path, f"cases[{index}] must be an object")
             continue
         query = row.get("query")
-        page_body = row.get("page_body_without_query_and_page_digest")
+        query_digest = row.get("query_digest")
+        page_body = row.get("page_body_without_query_digest_and_page_digest")
         outcome = row.get("outcome")
         if not isinstance(query, dict) or not isinstance(page_body, dict) or not isinstance(outcome, dict):
             lint.fail(path, f"cases[{index}] query/page_body/outcome must be objects")
@@ -2756,18 +2757,29 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
             lint.fail(path, f"cases[{index}] must use the sole near-current profile")
         if not isinstance(query.get("proof_base_basis"), dict) or not isinstance(query.get("proof_target_basis"), dict):
             lint.fail(path, f"cases[{index}] must carry SealBasis antichains")
+        expected_query_digest = "sha256:" + hashlib.sha256(
+            b"ak.mls-governance-proof-query-v1"
+            + b"\x00"
+            + canonical_json(query).encode("utf-8")
+        ).hexdigest()
+        if query_digest != expected_query_digest:
+            lint.fail(path, f"cases[{index}] query digest drifted")
         digest_input = (
             b"ak.mls-governance-proof-page-v1"
             + b"\x00"
-            + canonical_json(query).encode("utf-8")
+            + expected_query_digest.encode("utf-8")
             + b"\x00"
             + canonical_json(page_body).encode("utf-8")
         )
         expected_digest = "sha256:" + hashlib.sha256(digest_input).hexdigest()
         if row.get("expected_page_digest") != expected_digest:
             lint.fail(path, f"cases[{index}] expected page digest drifted")
-        if outcome != {"query": query, **page_body, "page_digest": expected_digest}:
-            lint.fail(path, f"cases[{index}] outcome is not the exact query/body/digest composition")
+        if outcome != {
+            "query_digest": expected_query_digest,
+            **page_body,
+            "page_digest": expected_digest,
+        }:
+            lint.fail(path, f"cases[{index}] outcome is not the exact query-digest/body composition")
         forbidden = {
             "proof_anchor_seal_ref", "proof_target_seal_ref", "from_epoch", "to_epoch",
             "cursor", "continuation", "proof_result_set_id", "chunk_manifest",
