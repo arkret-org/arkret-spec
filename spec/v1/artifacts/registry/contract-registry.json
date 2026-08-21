@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.1",
+  "version": "2026-08-21.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-21T18:00:00+08:00",
+  "generated_at": "2026-08-21T21:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -10121,8 +10121,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-21.1",
-    "generated_at": "2026-08-21T18:00:00+08:00"
+    "version": "2026-08-21.2",
+    "generated_at": "2026-08-21T21:00:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",

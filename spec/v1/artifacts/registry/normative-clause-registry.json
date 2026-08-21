@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.2",
+  "version": "2026-08-21.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-21T19:45:00+08:00",
+  "generated_at": "2026-08-21T21:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -53,7 +53,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#3-hash",
-      "section_digest": "sha256:fff23eb163eb8f4f4ab814de0b5ecbd3dc0e19c352d1bf6ce8b24267513c2e1f",
+      "section_digest": "sha256:82c4213bd929da93605ddfff84e4a83a103af87862d0754c2d27a0f2822cbe13",
       "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -277,7 +277,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:8204a0b01bf6bfd1f191e74afe2576735c646704617e6b97d72aaaeade3f3bb6",
+      "section_digest": "sha256:74703527d708ea4dbf1c284d3aceb65e3e583192fccb893ce3ba260700593059",
       "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
       "testability_grade": "vector",
       "evidence_refs": [

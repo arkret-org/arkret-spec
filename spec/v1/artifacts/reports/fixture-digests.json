@@ -258,7 +258,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "1433e6420d180e1ec0ef27ec6552242a1699d7c7c1de27d167f537cc8340c106"
+      "sha256": "dbee43bd1f66b39d72fdf88eefc72380461fcd092f57cd933e874930394fecc3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "d27c4ac16a0c334c31bde19152c25f58dc14622990667847a674fd1c0b8567e1"
+      "sha256": "6f3b6b8747d8765e60d8679c8933d2ad508fb0524b2fc3fc57a3d69dc9b60bc8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
