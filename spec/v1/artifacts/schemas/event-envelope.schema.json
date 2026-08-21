@@ -4572,7 +4572,7 @@
     },
     "principal_server_admission_proof": {
       "type": "object",
-      "description": "Origin Principal Server admission proof over canonical_json({context:'ak.principal-server-admission-proof-v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,signer_resolution_evidence_ref,signer_resolution_evidence_digest,accepted_at,verification_method}). It attests that the service completed local author/session/device-generation admission at accepted_at. Historical verification uses the retained content-addressed signer evidence rather than current resolver state.",
+      "description": "Origin Principal Server admission proof over canonical_json({context:'ak.principal-server-admission-proof-v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,producer_signer_resolution_evidence_digest?,signer_resolution_evidence_ref,signer_resolution_evidence_digest,accepted_at,verification_method}). The optional producer pair freezes the original producer evidence root when that signer regime has portable evidence; Native Agent federation requires it. The unprefixed signer pair continues to bind the Principal Server proof's own service signer evidence.",
       "required": [
         "kind",
         "verification_method",
@@ -4610,6 +4610,14 @@
           "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
           "description": "Public signing key that verifies the exact producer proof at admission time."
         },
+        "producer_signer_resolution_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        },
+        "producer_signer_resolution_evidence_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Must be present as a matching pair with producer_signer_resolution_evidence_ref. Native Agent admission requires the pair and it resolves to the exact frozen CurrentAdmission root."
+        },
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
         },
@@ -4626,6 +4634,32 @@
           "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "producer_signer_resolution_evidence_ref"
+            ]
+          },
+          "then": {
+            "required": [
+              "producer_signer_resolution_evidence_digest"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "producer_signer_resolution_evidence_digest"
+            ]
+          },
+          "then": {
+            "required": [
+              "producer_signer_resolution_evidence_ref"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "producer_event_proof": {

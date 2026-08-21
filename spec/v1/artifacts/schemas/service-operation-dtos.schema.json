@@ -3046,6 +3046,15 @@
           },
           "description": "Signed bounded-decision receipts for accepted or duplicate Control Move proposal digests. A duplicate MUST return the originally stored byte-identical receipt; a service MUST NOT mint later deadlines. DataEvents never appear in this array."
         },
+        "agent_event_admission_receipts": {
+          "type": "array",
+          "maxItems": 500,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./agent-signer-evidence.schema.json#/$defs/event_admission_receipt"
+          },
+          "description": "Receiver-signed receipts for every accepted or byte-identical duplicate Native Agent Event in a peer submission. Self submit outcomes omit this field. Rejected, quarantined and dependency-missing Events MUST NOT receive one."
+        },
         "duplicate": {
           "type": "array",
           "items": {

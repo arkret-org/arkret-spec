@@ -283,11 +283,16 @@ historical API 或 Event 历史验签路径结构性非法，也不得跨 verifi
 
 historical 分支必须携带由实际接收 Principal Server 在 Event accepted 时签发的
 `ak.schema.agent_signer_admission_receipt.v1`。receipt 在 domain
-`ak.agent-signer-admission-receipt-v1` 下闭合绑定 Event id/digest/Realm/admitted Seal/accepted_at、Agent/key method、
-authorize Event、完整 admission evidence digest、Agent snapshot/key/status basis、controller gate digest 与 receiver。
+`ak.agent-signer-admission-receipt-v1` 下闭合绑定 Event id/digest/Realm、origin `principal_server_admission.accepted_at`、
+receiver `accepted_at`、Agent/key method、origin 冻结的
+`producer_signer_resolution_evidence_ref/digest` 与 receiver。`event_digest` 已经覆盖 Event 自身的 `seal_ref`、
+`seal_basis` 或 anchor 形态，因此 receipt 不重复携带一个对 Data Event、Control Move 和 anchor 含义不一致的
+`event_admitted_seal_id`。
 receipt 的 `receiver_service_id` MUST 与实际接收并承诺该Event的destination service相同，receipt proof必须由该
 destination的registered verification method验证；查询方不得用source service或current authority替代。历史 verifier
-在 receipt `accepted_at` 检查当时 snapshot lease和account attestation有效，且 receipt 固定的三层 basis
+必须从原 Event admission proof 取得并逐字复核 producer evidence pair，按其 digest 从 CAS 读取 byte-exact
+`CurrentAdmission` root，只复用其中冻结的 `admission_evidence`；不得由 receipt 自报 snapshot，也不得读取当前状态
+重建。verifier 在 `producer_accepted_at` 检查当时 snapshot lease和account attestation有效，且被冻结的三层 basis
 均 active；不要求这些短期证明在 verifier-now 仍有效。删除 receipt、替换任一 basis、拿 later paused/deactivated
 witness 冒充 admission witness、或把 historical object用于新 admission均拒绝。
 
@@ -301,6 +306,10 @@ outer attestation 在 domain `ak.agent-signer-evidence.v1` 下签整个 tagged e
 的 JCS digest，防止 mode/context/snapshot/receipt拼接；它不替代底层 controller proof、Seal、snapshot lease、Account
 Authority proof或receipt proof。直接 evidence query 与 federation transport另用 RFC 9421 HTTP Message Signature
 覆盖完整 content digest、operation id与双方 service/session binding，不把 HTTP Signature header 嵌回 body形成环。
+current branch 的 outer 使用 `issued_at/expires_at` 短时窗；historical branch 使用 closed
+`attested_at` 且没有 verifier-now TTL。历史 verifier 必须按 `attested_at` 解析 Agent Authority 当时的 historical
+service signing method；之后 key rotation、Agent key revoke、Agent pause/deactivate 或 controller account terminal
+不得使已经合法组装的 historical root 追溯失效。
 
 `revoked`、`superseded`、`expired`、`conflicted`或 admission-time 任一 parent inactive 是确定性拒绝；evidence/receipt
 缺失、时窗不满足或网络失败是 `Unresolved/Stale`，绝不得提升为 Verified。启用

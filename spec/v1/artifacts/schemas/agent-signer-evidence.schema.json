@@ -66,7 +66,7 @@
           "$ref": "#/$defs/event_admission_receipt"
         },
         "outer_attestation": {
-          "$ref": "#/$defs/outer_attestation"
+          "$ref": "#/$defs/historical_outer_attestation"
         },
         "transparency": {
           "$ref": "#/$defs/transparency"
@@ -474,16 +474,12 @@
         "event_id",
         "event_digest",
         "realm_id",
-        "event_admitted_seal_id",
+        "producer_accepted_at",
         "accepted_at",
         "agent_id",
         "verification_method",
-        "agent_key_authorize_event_id",
-        "admission_evidence_digest",
-        "agent_snapshot_digest",
-        "agent_key_seal_id",
-        "agent_status_seal_id",
-        "controller_gate_attestation_digest",
+        "producer_signer_resolution_evidence_ref",
+        "producer_signer_resolution_evidence_digest",
         "receiver_service_id",
         "proof"
       ],
@@ -500,8 +496,8 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "event_admitted_seal_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        "producer_accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -512,22 +508,10 @@
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "agent_key_authorize_event_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        "producer_signer_resolution_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
         },
-        "admission_evidence_digest": {
-          "$ref": "#/$defs/sha256"
-        },
-        "agent_snapshot_digest": {
-          "$ref": "#/$defs/sha256"
-        },
-        "agent_key_seal_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
-        },
-        "agent_status_seal_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
-        },
-        "controller_gate_attestation_digest": {
+        "producer_signer_resolution_evidence_digest": {
           "$ref": "#/$defs/sha256"
         },
         "receiver_service_id": {
@@ -538,7 +522,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Destination-signed immutable record of the exact three-gate evidence used when this Event was accepted. The proof domain is ak.agent-signer-admission-receipt-v1 and covers every field except proof.jws."
+      "description": "Receiver-signed immutable record that the exact Event and the origin-frozen producer signer-evidence root were durably accepted. producer_accepted_at is copied from the verified principal_server_admission proof. Event digest already commits to seal_ref or seal_basis, so no ambiguous receipt Seal id is repeated. The proof domain is ak.agent-signer-admission-receipt-v1 and covers every field except proof.jws."
     },
     "outer_attestation": {
       "type": "object",
@@ -577,6 +561,39 @@
       },
       "additionalProperties": false,
       "description": "Anti-malleability assembly signature. It binds the tagged mode, request or receipt, admission evidence and optional transparency without replacing underlying authority proofs."
+    },
+    "historical_outer_attestation": {
+      "type": "object",
+      "required": [
+        "domain",
+        "core_digest",
+        "source_service_id",
+        "verification_method",
+        "attested_at",
+        "proof"
+      ],
+      "properties": {
+        "domain": {
+          "const": "ak.agent-signer-evidence.v1"
+        },
+        "core_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "source_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "attested_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "#/$defs/detached_jws"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Immutable historical assembly attestation. Verifiers resolve the Authority method at attested_at; unlike the current branch it has no verifier-now TTL."
     },
     "authorization": {
       "type": "object",

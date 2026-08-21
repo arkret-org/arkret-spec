@@ -782,10 +782,13 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
+          "ak.schema.agent_signer_admission_receipt.v1",
+          "ak.schema.agent_signer_evidence.v1",
           "ak.schema.agent_signer_evidence_bundle.v1",
           "ak.schema.agent_signer_evidence_query_outcome.v1",
           "ak.schema.agent_signer_evidence_query_request.v1",
           "ak.schema.availability_receipt.v1",
+          "ak.schema.controller_account_gate_attestation.v1",
           "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
           "ak.schema.controller_account_gate_attestation_issue_request.v1",
           "ak.schema.event.v1",
