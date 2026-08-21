@@ -112,8 +112,10 @@ from .fixtures import (
 )
 
 from .naming_contracts import (
+    check_duration_field_units,
     check_identifier_value_categories,
     check_naming_rule_coverage_matrix,
+    check_slug_field_closure,
 )
 
 from .prose import (
@@ -417,6 +419,8 @@ def main(argv: list[str] | None = None) -> int:
             ("naming_predicates", lambda: check_naming_predicates(lint)),
             ("naming_rule_coverage", lambda: check_naming_rule_coverage_matrix(lint)),
             ("identifier_categories", lambda: check_identifier_value_categories(lint)),
+            ("duration_field_units", lambda: check_duration_field_units(lint)),
+            ("slug_field_closure", lambda: check_slug_field_closure(lint)),
             ("profile_graph", lambda: check_profile_dependency_graph(lint)),
             ("field_matrix", lambda: check_common_object_field_matrix(lint)),
             ("keypackage_claim_proof_shape", lambda: check_keypackage_claim_proof_shape(lint)),

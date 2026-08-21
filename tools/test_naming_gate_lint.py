@@ -39,8 +39,11 @@ from tools.artifact_lint.naming import (
 from tools.artifact_lint.naming_contracts import (
     IDENTIFIER_CLASSIFICATION_PATH,
     NAMING_COVERAGE_MATRIX_PATH,
+    SLUG_FIELD_REGISTRY_PATH,
+    check_duration_field_units,
     check_identifier_value_categories,
     check_naming_rule_coverage_matrix,
+    check_slug_field_closure,
 )
 from tools.artifact_lint.prose import check_naming_predicates
 
@@ -604,6 +607,115 @@ class IdentifierClassificationTest(MutationHarness):
             check=check_identifier_value_categories,
         )
         self.assertTrue(any("brand_new_thing_id" in error for error in errors), errors)
+
+
+class DurationFieldUnitsTest(MutationHarness):
+    """NC-DURATION-001: a unitless integer duration or a non-ISO duration string fails."""
+
+    def test_gate_is_green(self) -> None:
+        lint = run_check(check_duration_field_units)
+        self.assertEqual(lint.errors, [])
+        self.assertEqual(lint.warnings, [])
+
+    def test_unitless_integer_duration_fails(self) -> None:
+        def mutate(document):
+            document["$defs"]["join_policy_component"]["properties"]["session_ttl"] = {
+                "type": "integer"
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "event-payload.schema.json", mutate, check=check_duration_field_units
+        )
+        self.assertTrue(
+            any("NC-DURATION-001" in error and "session_ttl" in error for error in errors),
+            errors,
+        )
+
+    def test_homegrown_compact_duration_dsl_fails(self) -> None:
+        def mutate(document):
+            document["properties"]["timeout"]["pattern"] = "^[0-9]+(ms|s|m|h|d)$"
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "grant-constraint.schema.json", mutate, check=check_duration_field_units
+        )
+        self.assertTrue(
+            any("NC-DURATION-001" in error and "ISO 8601" in error for error in errors), errors
+        )
+
+    def test_bare_duration_string_fails(self) -> None:
+        def mutate(document):
+            del document["properties"]["timeout"]["pattern"]
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "grant-constraint.schema.json", mutate, check=check_duration_field_units
+        )
+        self.assertTrue(
+            any("NC-DURATION-001" in error and "bare duration string" in error for error in errors),
+            errors,
+        )
+
+    def test_exception_row_going_stale_fails(self) -> None:
+        """The nth_of_period exception is pinned to the path, not to the token."""
+
+        def mutate(document):
+            properties = document["$defs"]["n_day"]["properties"]
+            properties["nth_of_period_ordinal"] = properties.pop("nth_of_period")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "calendar-event.schema.json", mutate, check=check_duration_field_units
+        )
+        self.assertTrue(any("no longer matches" in error for error in errors), errors)
+
+
+class SlugFieldClosureTest(MutationHarness):
+    """NC-SLUG-001: bare slug belongs to a registered owning context, nothing else."""
+
+    def lint_registry(self, mutate) -> list[str]:
+        return self.lint_with_file(
+            SLUG_FIELD_REGISTRY_PATH, mutate, check=check_slug_field_closure
+        )
+
+    def test_gate_is_green(self) -> None:
+        lint = run_check(check_slug_field_closure)
+        self.assertEqual(lint.errors, [])
+        self.assertEqual(lint.warnings, [])
+
+    def test_bare_slug_outside_a_registered_owning_context_fails(self) -> None:
+        def mutate(document):
+            document.setdefault("properties", {})["slug"] = {"type": "string"}
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "actor-profile.schema.json", mutate, check=check_slug_field_closure
+        )
+        self.assertTrue(any("NC-SLUG-001" in error for error in errors), errors)
+
+    def test_reference_to_an_entity_without_owning_context_fails(self) -> None:
+        def mutate(document):
+            properties = document["properties"]
+            properties["realm_slug"] = properties.pop("agent_slug")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "actor-profile.schema.json", mutate, check=check_slug_field_closure
+        )
+        self.assertTrue(any("realm_slug" in error for error in errors), errors)
+
+    def test_dropping_an_owning_context_fails(self) -> None:
+        def mutate(document):
+            document["entities"][0]["owning_contexts"] = document["entities"][0][
+                "owning_contexts"
+            ][1:]
+
+        errors = self.lint_registry(mutate)
+        self.assertTrue(any("drift" in error for error in errors), errors)
+
+    def test_stale_owning_context_pointer_fails(self) -> None:
+        def mutate(document):
+            document["entities"][0]["owning_contexts"][0][
+                "pointer"
+            ] = "/$defs/no_such_def/properties/slug"
+
+        errors = self.lint_registry(mutate)
+        self.assertTrue(any("no longer resolves" in error for error in errors), errors)
 
 
 if __name__ == "__main__":

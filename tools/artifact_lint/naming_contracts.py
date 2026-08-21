@@ -51,11 +51,13 @@ from .naming import (
     enumerate_property_owners,
     enumerate_schema_properties,
     nc_fieldcase_001,
+    split_name_words,
     terminal_excludes_typed_id_namespace,
 )
 
 NAMING_COVERAGE_MATRIX_PATH = TOOLS_ROOT / "naming-rule-coverage-matrix.json"
 IDENTIFIER_CLASSIFICATION_PATH = TOOLS_ROOT / "identifier-classification-registry.json"
+SLUG_FIELD_REGISTRY_PATH = TOOLS_ROOT / "slug-field-registry.json"
 NAMING_RULES_FILE = TOOLS_ROOT / "naming-convention-rules.json"
 ID_KIND_REGISTRY_PATH = ARTIFACTS / "registry" / "id-kind-registry.json"
 COMMON_FIELDS_PATH = SPEC_ROOT / "zh" / "models" / "common-fields.md"
@@ -903,3 +905,265 @@ def _check_pending_renames(lint: Lint, registry: dict, documents: dict[str, Any]
                 IDENTIFIER_CLASSIFICATION_PATH,
                 f"{where} no longer resolves; delete the row once the rename has landed",
             )
+
+
+# --------------------------------------------------------------------------
+# Duration field units (common-fields.md 3.0.2)
+# --------------------------------------------------------------------------
+
+# The closed noun table of 3.0.2, plus the generic `duration` noun itself. A
+# field whose final word is one of these names a duration, so 3.0.2 decides its
+# wire shape; a qualifier after the noun (`window_start`, `cooldown_after_reject`)
+# names something about a duration rather than the duration itself, which is why
+# only the final word is judged.
+DURATION_NOUNS = frozenset(
+    {"ttl", "timeout", "window", "period", "cooldown", "age", "staleness", "duration"}
+)
+
+# The one ISO 8601 duration pattern 3.0.2 admits on the wire. A duration string
+# carrying any other pattern is either a homegrown compact mini-DSL or an
+# unreviewed refinement; the clause bans the first and this check cannot prove
+# the second is a refinement, so both fail unless excepted below.
+ISO_8601_DURATION_PATTERN = (
+    "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?"
+    "(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+)
+
+# Exact-path exceptions, keyed by (schema file, RFC 6901 pointer, name) like
+# every other naming exception surface. Each row is a noun-final field the
+# closed table would reject even though 3.0.2 does not govern it; the check
+# fails closed the moment a row stops matching a real violation, so an
+# exception cannot outlive the field shape it was granted for.
+DURATION_FIELD_EXCEPTIONS = (
+    {
+        "file": "calendar-event.schema.json",
+        "pointer": "/$defs/n_day/properties/nth_of_period",
+        "name": "nth_of_period",
+        "reason": "An ordinal inside a recurrence period, not a duration; the "
+        "integer counts position within the period, so no unit suffix applies.",
+    },
+    {
+        "file": "grant-constraint.schema.json",
+        "pointer": "/allOf/8/then/properties/period",
+        "name": "period",
+        "reason": "A reviewed refinement of the canonical ISO 8601 pattern that "
+        "narrows quota recurrence periods to nonzero day/week granularity; it "
+        "admits only values the canonical pattern already admits.",
+    },
+    {
+        "file": "service-describe.schema.json",
+        "pointer": "/properties/private_contact_discovery/properties/max_psi_queries_per_window",
+        "name": "max_psi_queries_per_window",
+        "reason": "A rate count per window, not the window's length; the integer "
+        "counts queries, so no unit suffix applies.",
+    },
+)
+
+
+def check_duration_field_units(lint: Lint) -> None:
+    """Close NC-DURATION-001: duration fields carry their unit or the ISO pattern.
+
+    3.0.2 fixes a closed noun table and a closed two-row scale table, so the
+    clause is decidable on the resolved terminal: an integer duration must end
+    in ``_ms`` / ``_seconds`` (which places the unit word after the noun, so a
+    noun-final integer name is exactly the unitless shape), a string duration
+    must carry the single ISO 8601 pattern, and a bare duration string is
+    banned outright. An enum/const terminal is a closed label set such as
+    ``on_timeout``, not a duration value, and is not judged.
+    """
+
+    documents = _schema_documents(lint)
+    exceptions = {
+        (row["file"], row["pointer"], row["name"]): row for row in DURATION_FIELD_EXCEPTIONS
+    }
+    used: set[tuple[str, str, str]] = set()
+    for file_name, document in documents.items():
+        for occurrence in enumerate_schema_properties(file_name, document):
+            words = split_name_words(occurrence.name)
+            if not words or words[-1] not in DURATION_NOUNS:
+                continue
+            terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
+            patterns = [value for kind, value in terminals if kind == "pattern"]
+            is_integer = any(
+                kind == "type" and '"integer"' in value for kind, value in terminals
+            )
+            is_string = any(
+                kind == "type" and '"string"' in value for kind, value in terminals
+            )
+            has_label_set = any(kind in {"enum", "const"} for kind, _value in terminals)
+            violation: str | None = None
+            if is_integer:
+                violation = (
+                    f"`{occurrence.name}` is an integer duration field whose name carries "
+                    f"no unit suffix; 3.0.2 admits `_ms` or `_seconds` chosen by the "
+                    f"closed scale table"
+                )
+            elif patterns:
+                off_pattern = [p for p in patterns if p != ISO_8601_DURATION_PATTERN]
+                if off_pattern:
+                    violation = (
+                        f"`{occurrence.name}` is a duration string whose pattern is not the "
+                        f"single ISO 8601 duration pattern of 3.0.2: {off_pattern}"
+                    )
+            elif is_string and not has_label_set:
+                violation = (
+                    f"`{occurrence.name}` is a bare duration string with no pattern; 3.0.2 "
+                    f"requires the ISO 8601 duration pattern on every wire duration string"
+                )
+            if violation is None:
+                continue
+            key = (file_name, occurrence.pointer, occurrence.name)
+            if key in exceptions:
+                used.add(key)
+                continue
+            lint.fail(
+                SCHEMA_DIR / file_name,
+                f"{occurrence.pointer} violates NC-DURATION-001: {violation}",
+            )
+    for key in sorted(set(exceptions) - used):
+        lint.fail(
+            SCHEMA_DIR / key[0],
+            f"NC-DURATION-001 exception {key[1]} no longer matches a violating occurrence; "
+            f"delete the stale row",
+        )
+
+
+# --------------------------------------------------------------------------
+# Slug field closure (common-fields.md 3.0.3)
+# --------------------------------------------------------------------------
+
+# Reference form: `<entity>_slug`, optionally carrying a role / time qualifier
+# (`agent_slug_at_time`). The entity prefix must be an entity whose owning
+# context is registered, which is what stops a reference to a slug-bearing
+# object from being coined before the object itself exists on the wire.
+SLUG_REFERENCE_RE = re.compile(r"\A([a-z][a-z0-9]*)_slug(?:_.+)?\Z")
+
+
+def check_slug_field_closure(lint: Lint) -> None:
+    """Close NC-SLUG-001: bare `slug` only where the registry names the owning object.
+
+    3.0.3 splits slug fields into the owning object's bare ``slug`` (shared by
+    the DTOs that create, update or project that one object) and every other
+    context's ``<entity>_slug``. The split is decidable once each schema
+    declares which side it is on; ``tools/slug-field-registry.json`` is that
+    declaration, and this check closes the wire surface against it in both
+    directions so the registry cannot drift from the schemas in either
+    direction.
+    """
+
+    registry = load_json(lint, SLUG_FIELD_REGISTRY_PATH)
+    if not isinstance(registry, dict):
+        return
+    if registry.get("source_of_truth") is not False:
+        lint.fail(
+            SLUG_FIELD_REGISTRY_PATH,
+            "the slug field registry is derived from prose and schemas, not a truth source",
+        )
+    entities = registry.get("entities")
+    if not isinstance(entities, list) or not entities:
+        lint.fail(SLUG_FIELD_REGISTRY_PATH, "entities must be a non-empty array")
+        return
+
+    documents = _schema_documents(lint)
+    registered_contexts: dict[tuple[str, str], dict] = {}
+    entity_names: set[str] = set()
+    for position, entity in enumerate(entities):
+        where = f"entities[{position}]"
+        if not isinstance(entity, dict):
+            lint.fail(SLUG_FIELD_REGISTRY_PATH, f"{where} must be an object")
+            continue
+        name = entity.get("entity")
+        if not isinstance(name, str) or not re.fullmatch(r"[a-z][a-z0-9]*", name):
+            lint.fail(SLUG_FIELD_REGISTRY_PATH, f"{where} needs a snake_case entity word")
+            continue
+        if name in entity_names:
+            lint.fail(SLUG_FIELD_REGISTRY_PATH, f"{where} duplicates entity `{name}`")
+        entity_names.add(name)
+        contexts = entity.get("owning_contexts")
+        if not isinstance(contexts, list) or not contexts:
+            lint.fail(
+                SLUG_FIELD_REGISTRY_PATH,
+                f"{where} needs a non-empty owning_contexts list; an entity without an "
+                f"owning object may not be referenced",
+            )
+            continue
+        for index, context in enumerate(contexts):
+            cwhere = f"{where}.owning_contexts[{index}]"
+            if not isinstance(context, dict):
+                lint.fail(SLUG_FIELD_REGISTRY_PATH, f"{cwhere} must be an object")
+                continue
+            file_name = context.get("file")
+            pointer = context.get("pointer")
+            if (
+                not isinstance(file_name, str)
+                or not isinstance(pointer, str)
+                or not pointer.endswith("/properties/slug")
+            ):
+                lint.fail(
+                    SLUG_FIELD_REGISTRY_PATH,
+                    f"{cwhere} needs a schema file and a pointer addressing a bare `slug` property",
+                )
+                continue
+            if not isinstance(context.get("reason"), str) or not context["reason"].strip():
+                lint.fail(
+                    SLUG_FIELD_REGISTRY_PATH,
+                    f"{cwhere} must state why this context is the owning object",
+                )
+            key = (file_name, pointer)
+            if key in registered_contexts:
+                lint.fail(SLUG_FIELD_REGISTRY_PATH, f"{cwhere} duplicates {file_name}#{pointer}")
+                continue
+            registered_contexts[key] = context
+            document = documents.get(file_name)
+            if document is None:
+                lint.fail(SLUG_FIELD_REGISTRY_PATH, f"{cwhere} names an unknown schema {file_name}")
+                continue
+            try:
+                resolve_json_pointer(document, f"#{pointer}")
+            except (KeyError, TypeError, ValueError):
+                lint.fail(
+                    SLUG_FIELD_REGISTRY_PATH,
+                    f"{cwhere} no longer resolves; the bare `slug` it pinned is gone",
+                )
+
+    observed_bare: set[tuple[str, str]] = set()
+    for file_name, document in documents.items():
+        for occurrence in enumerate_schema_properties(file_name, document):
+            if "slug" not in split_name_words(occurrence.name):
+                continue
+            if occurrence.name == "slug":
+                key = (file_name, occurrence.pointer)
+                observed_bare.add(key)
+                if key not in registered_contexts:
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"{occurrence.pointer} violates NC-SLUG-001: bare `slug` is reserved "
+                        f"for the owning object's canonical slug field (3.0.3); register the "
+                        f"owning context in {SLUG_FIELD_REGISTRY_PATH.name} or rename the "
+                        f"reference to `<entity>_slug`",
+                    )
+                continue
+            reference = SLUG_REFERENCE_RE.fullmatch(occurrence.name)
+            if reference is None:
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"{occurrence.pointer} violates NC-SLUG-001: a slug reference MUST be "
+                    f"named `<entity>_slug` with an optional role/time qualifier, got "
+                    f"`{occurrence.name}`",
+                )
+                continue
+            if reference.group(1) not in entity_names:
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"{occurrence.pointer} violates NC-SLUG-001: `{occurrence.name}` references "
+                    f"entity `{reference.group(1)}`, which has no registered slug-owning "
+                    f"context; register the owning object first",
+                )
+
+    if observed_bare != set(registered_contexts):
+        lint.fail(
+            SLUG_FIELD_REGISTRY_PATH,
+            "slug owning-context drift: unregistered="
+            f"{sorted(observed_bare - set(registered_contexts))}, "
+            f"stale={sorted(set(registered_contexts) - observed_bare)}",
+        )

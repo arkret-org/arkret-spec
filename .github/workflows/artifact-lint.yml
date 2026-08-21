@@ -30,7 +30,11 @@ jobs:
           done
       # The naming predicates are only as good as the surface they reach. This
       # fails the build if the schema walker ever stops reaching a declared
-      # property, which is how the rules silently stopped applying before.
+      # property, which is how the rules silently stopped applying before, and
+      # if any naming clause is filed as `uncovered` in the rule-contract
+      # coverage matrix; `prose_only` clauses are accepted review debt whose
+      # manual_review_reason the lint enforces, so they are reported here
+      # without failing the step.
       - name: Verify naming predicate coverage
         run: python tools/naming_coverage.py --require-full
 

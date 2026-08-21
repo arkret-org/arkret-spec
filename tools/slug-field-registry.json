@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "kind": "slug_field_registry",
+  "source_of_truth": false,
+  "generated_from": [
+    "spec/v1/zh/models/common-fields.md",
+    "spec/v1/artifacts/schemas"
+  ],
+  "checked_by": "tools/artifact_lint/naming_contracts.py (check_slug_field_closure)",
+  "description": "Declaration of which schema contexts own a canonical slug, per common-fields.md 3.0.3. The owning object and the DTOs that create, update or project that one object use the bare name `slug`; every other context references it as `<entity>_slug` with an optional role/time qualifier. The check closes the wire surface against this registry in both directions: a bare `slug` outside a registered owning context fails, a registered context whose pointer no longer resolves fails, and an `<entity>_slug` reference to an entity with no registered owning context fails.",
+  "entities": [
+    {
+      "entity": "agent",
+      "owning_contexts": [
+        {
+          "file": "agent-operations.schema.json",
+          "pointer": "/$defs/agent_projection/properties/slug",
+          "role": "projection",
+          "reason": "agent_projection is the materialized projection of the Agent object; 3.0.3 requires the projecting DTO to reuse the object's own bare slug field name."
+        },
+        {
+          "file": "agent-operations.schema.json",
+          "pointer": "/$defs/agent_provision_request_body/properties/slug",
+          "role": "create_dto",
+          "reason": "agent_provision_request_body creates the Agent object and carries exactly one slug semantics, so 3.0.3 requires the same bare slug name as the materialized field."
+        }
+      ]
+    }
+  ]
+}

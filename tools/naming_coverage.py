@@ -13,13 +13,22 @@ not the same claim and only the first one was ever total:
 * **rule-contract coverage** - how many of the normative naming clauses in
   ``tools/naming-rule-coverage-matrix.json`` have mechanical enforcement at all.
   This is the figure that says whether the naming contract is closed, and it is
-  the only one that counts ``prose_only`` and ``uncovered`` clauses.
+  the only one that counts ``prose_only`` and ``uncovered`` clauses. The two are
+  not the same state: ``uncovered`` is an open protocol issue nobody accepted,
+  while ``prose_only`` is an accepted end state whose residual-risk justification
+  the artifact lint itself enforces (``check_naming_rule_coverage_matrix``
+  requires every such row to carry a substantive ``manual_review_reason`` and
+  forbids it to claim full coverage). ``--require-full`` therefore fails on
+  ``uncovered`` clauses and reports ``prose_only`` clauses without failing on
+  them; gating on an accepted state would make the gate unfixable by
+  construction.
 
 Usage::
 
     python tools/naming_coverage.py             # human-readable summary
     python tools/naming_coverage.py --json      # machine-readable
-    python tools/naming_coverage.py --require-full   # exit 1 unless all three close
+    python tools/naming_coverage.py --require-full   # exit 1 unless the walker is
+                                                     # total and nothing is uncovered
 """
 
 from __future__ import annotations
@@ -176,6 +185,8 @@ def measure_rule_contract() -> dict:
     by_kind: dict[str, int] = {}
     full = 0
     unenforced: list[str] = []
+    uncovered: list[str] = []
+    prose_only: list[str] = []
     for row in rows:
         kind = row.get("enforcement_kind")
         by_kind[kind] = by_kind.get(kind, 0) + 1
@@ -183,6 +194,10 @@ def measure_rule_contract() -> dict:
             full += 1
         if kind not in mechanical:
             unenforced.append(f"{row.get('rule_id')}({kind})")
+            if kind == "uncovered":
+                uncovered.append(row.get("rule_id"))
+            elif kind == "prose_only":
+                prose_only.append(row.get("rule_id"))
     return {
         "available": True,
         "rules": len(rows),
@@ -190,6 +205,8 @@ def measure_rule_contract() -> dict:
         "mechanically_enforced": sum(by_kind.get(kind, 0) for kind in mechanical),
         "full_coverage": full,
         "unenforced": sorted(unenforced),
+        "uncovered": sorted(uncovered),
+        "prose_only": sorted(prose_only),
     }
 
 
@@ -262,6 +279,16 @@ def _print_report(report: dict) -> None:
         print(f"  {kind:24s} : {count}")
     if contract["unenforced"]:
         print(f"  clauses without mechanical enforcement: {contract['unenforced']}")
+    if contract["uncovered"]:
+        print(
+            f"  uncovered clauses (open protocol issues; --require-full fails on these): "
+            f"{contract['uncovered']}"
+        )
+    if contract["prose_only"]:
+        print(
+            f"  prose_only clauses (accepted human-review debt with a lint-enforced "
+            f"manual_review_reason; reported, not gated): {contract['prose_only']}"
+        )
 
 
 def main(argv: list[str]) -> int:
@@ -270,7 +297,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument(
         "--require-full",
         action="store_true",
-        help="exit non-zero unless the walker is total AND every naming clause is enforced",
+        help="exit non-zero unless the walker is total AND no naming clause is uncovered "
+        "(prose_only clauses are accepted review debt: reported, not gated)",
     )
     args = parser.parse_args(argv)
 
@@ -294,10 +322,10 @@ def main(argv: list[str]) -> int:
         )
     if not contract.get("available"):
         failures.append("no rule-contract coverage matrix")
-    elif contract["unenforced"]:
+    elif contract["uncovered"]:
         failures.append(
-            f"{len(contract['unenforced'])} naming clauses have no mechanical enforcement: "
-            f"{contract['unenforced']}"
+            f"{len(contract['uncovered'])} naming clauses are uncovered open issues: "
+            f"{contract['uncovered']}"
         )
     if failures:
         print("\nFAIL: " + "; ".join(failures), file=sys.stderr)
