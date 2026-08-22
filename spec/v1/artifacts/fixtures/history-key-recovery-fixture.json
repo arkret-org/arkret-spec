@@ -513,10 +513,10 @@
         "effective_scope": {
           "kind": "circle",
           "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e",
-          "circle_id": "ak:circle:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+          "circle_id": "ak:circle:ARLVhqVZioZTp40Z0Q5o-3mkfDqEyLzivDxRty4Nchz0"
         },
-        "effective_scope_key_hex": "616b3a636972636c653a4242424242424242424242424242424242424242424242424242424242424242424242424242424242424242",
-        "expected_mls_group_id": "YWs6Y2lyY2xlOkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+        "effective_scope_key_hex": "616b3a636972636c653a41524c566871565a696f5a547034305a3051356f2d336d6b66447145794c7a69764478527479344e63687a30",
+        "expected_mls_group_id": "YWs6Y2lyY2xlOkFSTFZocVZaaW9aVHA0MFowUTVvLTNta2ZEcUV5THppdkR4UnR5NE5jaHow"
       },
       "expected": "different immutable group ids and independent monotonic epoch lineages"
     },

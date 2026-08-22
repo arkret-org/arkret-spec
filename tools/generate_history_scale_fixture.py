@@ -125,6 +125,7 @@ def event_id(label: str) -> str:
 
 
 REALM = "ak:realm:" + event_id("history-scale-realm-create").split(":", 2)[2]
+CIRCLE = "ak:circle:" + event_id("history-circle-scope-create").split(":", 2)[2]
 GROUP = b64u(REALM.encode("utf-8"))
 
 
@@ -1658,7 +1659,8 @@ def render() -> str:
                     if effective_scope.get("kind") == "realm":
                         scope_key = effective_scope.get("realm_id")
                     elif effective_scope.get("kind") == "circle":
-                        scope_key = effective_scope.get("circle_id")
+                        effective_scope["circle_id"] = CIRCLE
+                        scope_key = CIRCLE
                     else:
                         raise ValueError("history scope/group KAT has an unknown scope kind")
                     if not isinstance(scope_key, str) or not scope_key:
