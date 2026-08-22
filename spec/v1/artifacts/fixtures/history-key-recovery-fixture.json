@@ -28,7 +28,7 @@
       "wire_registry_binding"
     ],
     "domain_framing": null,
-    "expected_digest": "sha256:6f15f4f177393607346615b3f5eb8233763db1582c996322aaed99b5d1c4042e",
+    "expected_digest": "sha256:5cb77ad5f53252a2cca7f36f75b6e440863e1a6778152c17edfb8a711718f12f",
     "negative_mutations": [
       "include_wire_registry_binding",
       "exclude_any_additional_member",
@@ -238,8 +238,8 @@
           "kind": "realm",
           "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
         },
-        "effective_scope_key_hex": "616b3a7265616c6d3a4141414141414141414141414141414141414141414141414141414141414141414141414141414141414141",
-        "expected_mls_group_id": "YWs6cmVhbG06QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUE"
+        "effective_scope_key_hex": "616b3a7265616c6d3a41666a53695954584a5a532d30696656667931665f757a736d4a49426a44794e31315f2d64786e6e65353065",
+        "expected_mls_group_id": "YWs6cmVhbG06QWZqU2lZVFhKWlMtMGlmVmZ5MWZfdXpzbUpJQmpEeU4xMV8tZHhubmU1MGU"
       },
       "circle": {
         "effective_scope": {

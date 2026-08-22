@@ -71,7 +71,7 @@
       "vector_id": "ak.vector.mls_exporter_aead.seal_open_transcript.v1",
       "input": {
         "history_secret_hex": "4242424242424242424242424242424242424242424242424242424242424242",
-        "content_key_hex": "76ab7dcbbbc1782052dc28c399e95bb5",
+        "content_key_hex": "b74b39b53e608d91a401df23d4bda0d3",
         "plaintext_hex": "6578706f727465722d616561642072656772657373696f6e20616e63686f72",
         "outer_signed_event": {
           "effective_scope": {
@@ -120,7 +120,7 @@
         },
         "aead_aad_canonical_json": "{\"content_type\":\"application/arkret-event+json\",\"counter\":7,\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj\"},\"envelope_version\":\"1.0\",\"epoch\":42,\"event_kind\":\"ak.message.create\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\",\"mls_group_id\":\"YWs6cmVhbG06QWFXbllianRvbU5PTE9wdWVmVFp6VnlvRktGNFYtVmJqMnlBUERQMGFaVGo\",\"purpose\":\"arkret_event_content\",\"routing_context\":{\"kind\":\"none\"},\"scheme\":\"mls_exporter_aead_v1\",\"sender_domain\":\"ak:device:019a7360-0000-7000-8000-000000000001\"}",
         "derived_nonce_hex": "000000000000000000000007",
-        "ciphertext_with_tag_hex": "8289bf78219096efe91bddf94e3dac306524f7204351c30f948b8c4c4e00c97163d02ecd9a59fbf1a40622b086e56b",
+        "ciphertext_with_tag_hex": "22507893a090afa7ded7955941c5f5854bce03056aac1888a8c236c78c4fc0fa7bb5510242585a5cd8a6fc35ad1940",
         "opened_plaintext_hex": "6578706f727465722d616561642072656772657373696f6e20616e63686f72",
         "negative_mutations": [
           "envelope_version",

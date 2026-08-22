@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "spec/v1/artifacts/schemas"
 REGISTRY_DIR = ROOT / "spec/v1/artifacts/registry"
 OUTPUT = ROOT / "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
+HISTORY_RELEASE_REGISTRY = REGISTRY_DIR / "history-release-attestation-registry.json"
 
 ZERO = b"\x00"
 TRAVERSAL_INTENT_DOMAIN = b"ak.history-governance-traversal-intent-v1"
@@ -887,6 +888,25 @@ def render() -> str:
                 effective_scope = scope_case.get("effective_scope")
                 if isinstance(effective_scope, dict):
                     effective_scope["realm_id"] = REALM
+                    if effective_scope.get("kind") == "realm":
+                        scope_key = effective_scope.get("realm_id")
+                    elif effective_scope.get("kind") == "circle":
+                        scope_key = effective_scope.get("circle_id")
+                    else:
+                        raise ValueError("history scope/group KAT has an unknown scope kind")
+                    if not isinstance(scope_key, str) or not scope_key:
+                        raise ValueError("history scope/group KAT omits its canonical scope key")
+                    scope_key_bytes = scope_key.encode("utf-8")
+                    scope_case["effective_scope_key_hex"] = scope_key_bytes.hex()
+                    scope_case["expected_mls_group_id"] = b64u(scope_key_bytes)
+    predicate_kat = fixture.get("predicate_registry_digest_kat")
+    if not isinstance(predicate_kat, dict):
+        raise ValueError("history fixture omits predicate_registry_digest_kat")
+    predicate_registry = json.loads(HISTORY_RELEASE_REGISTRY.read_text(encoding="utf-8"))
+    if not isinstance(predicate_registry, dict):
+        raise ValueError("history release predicate registry must be an object")
+    predicate_registry.pop("wire_registry_binding", None)
+    predicate_kat["expected_digest"] = sha256(jcs(predicate_registry))
     if "ak.vector.history_key.frontier_traversal_split.v1" not in fixture.get("covers_vectors", []):
         raise ValueError("history fixture does not register the direct-traversal split vector")
     fixture.pop("mailbox_cases", None)

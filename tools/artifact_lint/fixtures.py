@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hmac
+
 from .core import (
     ARTIFACTS,
     Any,
@@ -45,14 +47,17 @@ from .core import (
 )
 
 try:
-    from cryptography.exceptions import InvalidSignature
+    from cryptography.exceptions import InvalidSignature, InvalidTag
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 except ImportError:  # pragma: no cover - CI installs the dependency.
     InvalidSignature = None
+    InvalidTag = None
     Ed25519PrivateKey = None
     Ed25519PublicKey = None
     serialization = None
+    AESGCM = None
 
 
 
@@ -69,6 +74,48 @@ def base64url_text(value: str) -> str:
 def sha256_base64url_text(value: str) -> str:
     digest = hashlib.sha256(value.encode("utf-8")).digest()
     return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
+
+
+def mls_varint(value: int) -> bytes:
+    if value < 0:
+        raise ValueError("MLS variable-length integers cannot be negative")
+    if value < 64:
+        return bytes((value,))
+    if value < 16_384:
+        return (value | 0x4000).to_bytes(2, "big")
+    if value < 1_073_741_824:
+        return (value | 0x80000000).to_bytes(4, "big")
+    if value < 4_611_686_018_427_387_904:
+        return (value | 0xC000000000000000).to_bytes(8, "big")
+    raise ValueError("MLS variable-length integer exceeds the RFC 9420 range")
+
+
+def hkdf_expand_sha256(secret: bytes, info: bytes, length: int) -> bytes:
+    hash_length = hashlib.sha256().digest_size
+    if length < 0 or length > 255 * hash_length:
+        raise ValueError("HKDF-SHA256 output length is out of range")
+    output = bytearray()
+    previous = b""
+    for counter in range(1, (length + hash_length - 1) // hash_length + 1):
+        previous = hmac.new(
+            secret, previous + info + bytes((counter,)), hashlib.sha256
+        ).digest()
+        output.extend(previous)
+    return bytes(output[:length])
+
+
+def mls_expand_with_label_sha256(
+    secret: bytes, label: str, context: bytes, length: int
+) -> bytes:
+    full_label = ("MLS 1.0 " + label).encode("utf-8")
+    info = (
+        length.to_bytes(2, "big")
+        + mls_varint(len(full_label))
+        + full_label
+        + mls_varint(len(context))
+        + context
+    )
+    return hkdf_expand_sha256(secret, info, length)
 
 
 
@@ -1270,6 +1317,207 @@ def check_private_kdf_full_width_nonce(lint: Lint, path: Path, data: dict[str, A
         lint.fail(obsolete_fixture, "obsolete sender-prefix nonce fixture must be deleted")
 
 
+def check_private_kdf_exporter_aead(lint: Lint, path: Path, data: dict[str, Any]) -> None:
+    cases = {
+        case.get("name"): case
+        for case in data.get("cases", [])
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    case = cases.get("mls_exporter_aead_seal_open_transcript")
+    if not isinstance(case, dict):
+        lint.fail(path, "exporter AEAD seal/open transcript is missing")
+        return
+    inputs = case.get("input")
+    expected = case.get("expected")
+    if not isinstance(inputs, dict) or not isinstance(expected, dict):
+        lint.fail(path, "exporter AEAD transcript input/expected must be objects")
+        return
+
+    outer = inputs.get("outer_signed_event")
+    group = inputs.get("exact_group_state")
+    envelope = inputs.get("wire_envelope_without_ciphertext")
+    encryption_context = (
+        envelope.get("encryption_context") if isinstance(envelope, dict) else None
+    )
+    sender_domain = inputs.get("verified_sender_domain")
+    if (
+        not all(
+            isinstance(value, dict)
+            for value in (outer, group, envelope, encryption_context)
+        )
+        or not isinstance(sender_domain, str)
+    ):
+        lint.fail(path, "exporter AEAD transcript omits a closed header input")
+        return
+
+    effective_scope = outer.get("effective_scope")
+    if not isinstance(effective_scope, dict) or effective_scope.get("kind") != "realm":
+        lint.fail(path, "exporter AEAD transcript effective scope must be a Realm")
+        return
+    realm_id = effective_scope.get("realm_id")
+    if not isinstance(realm_id, str):
+        lint.fail(path, "exporter AEAD transcript omits realm_id")
+        return
+    expected_group_id = (
+        base64.urlsafe_b64encode(realm_id.encode("utf-8"))
+        .rstrip(b"=")
+        .decode("ascii")
+    )
+    if group.get("mls_group_id") != expected_group_id:
+        lint.fail(path, "exporter AEAD transcript group id is not derived from effective scope")
+    if (
+        group.get("content_scheme") != "mls_exporter_aead_v1"
+        or group.get("ciphersuite_id")
+        != "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+    ):
+        lint.fail(path, "exporter AEAD transcript uses the wrong closed crypto profile")
+
+    verification_method = outer.get("producer_verification_method")
+    method_fragment = (
+        verification_method.rsplit("#", 1)[1]
+        if isinstance(verification_method, str) and "#" in verification_method
+        else None
+    )
+    if method_fragment is None or sender_domain != f"ak:device:{method_fragment}":
+        lint.fail(
+            path,
+            "exporter AEAD sender domain does not match the verified producer method",
+        )
+
+    header = {
+        "purpose": "arkret_event_content",
+        "envelope_version": envelope.get("version"),
+        "content_type": envelope.get("content_type"),
+        "scheme": group.get("content_scheme"),
+        "effective_scope": effective_scope,
+        "event_kind": outer.get("kind"),
+        "mls_group_id": group.get("mls_group_id"),
+        "epoch": encryption_context.get("epoch"),
+        "group_state_ref": encryption_context.get("group_state_ref"),
+        "sender_domain": sender_domain,
+        "counter": encryption_context.get("counter"),
+        "routing_context": {"kind": "none"},
+    }
+    if expected.get("reconstructed_pre_encryption_header") != header:
+        lint.fail(path, "exporter AEAD reconstructed pre-encryption header drifted")
+    aad = canonical_json(header).encode("utf-8")
+    if expected.get("aead_aad_canonical_json") != aad.decode("utf-8"):
+        lint.fail(
+            path,
+            "exporter AEAD canonical AAD is not derived from the reconstructed header",
+        )
+
+    try:
+        history_secret = bytes.fromhex(inputs["history_secret_hex"])
+        plaintext = bytes.fromhex(inputs["plaintext_hex"])
+        carried_key = bytes.fromhex(inputs["content_key_hex"])
+        carried_nonce = bytes.fromhex(expected["derived_nonce_hex"])
+        carried_ciphertext = bytes.fromhex(expected["ciphertext_with_tag_hex"])
+        opened_plaintext = bytes.fromhex(expected["opened_plaintext_hex"])
+        counter = encryption_context["counter"]
+    except (KeyError, TypeError, ValueError):
+        lint.fail(
+            path,
+            "exporter AEAD transcript contains malformed hexadecimal or counter input",
+        )
+        return
+    if (
+        len(history_secret) != 32
+        or len(carried_key) != 16
+        or len(carried_nonce) != 12
+        or len(carried_ciphertext) < 16
+    ):
+        lint.fail(path, "exporter AEAD transcript uses invalid key, nonce or tag lengths")
+        return
+    if not isinstance(counter, int) or counter < 0 or counter >= 1 << 64:
+        lint.fail(path, "exporter AEAD transcript counter is outside uint64")
+        return
+    derived_key = mls_expand_with_label_sha256(
+        history_secret, "ak.content-v1", sender_domain.encode("utf-8"), 16
+    )
+    if carried_key != derived_key:
+        lint.fail(
+            path,
+            "exporter AEAD content key is not derived from history secret and sender domain",
+        )
+    nonce = counter.to_bytes(12, "big")
+    if carried_nonce != nonce:
+        lint.fail(path, "exporter AEAD nonce is not I2OSP(counter, AEAD.Nn)")
+    if opened_plaintext != plaintext:
+        lint.fail(path, "exporter AEAD opened plaintext does not match transcript input")
+
+    required_mutations = {
+        "envelope_version",
+        "content_type",
+        "outer_event.kind",
+        "outer_event.effective_scope",
+        "producer_verification_method",
+        "group_state_ref",
+        "content_scheme",
+        "counter",
+        "ciphertext_tag",
+    }
+    negative_mutations = expected.get("negative_mutations")
+    if not isinstance(negative_mutations, list) or set(negative_mutations) != required_mutations:
+        lint.fail(path, "exporter AEAD negative mutation matrix drifted")
+    if AESGCM is None or InvalidTag is None:
+        lint.fail(path, "cryptography is required to verify the exporter AEAD transcript")
+        return
+    actual_ciphertext = AESGCM(derived_key).encrypt(nonce, plaintext, aad)
+    if carried_ciphertext != actual_ciphertext:
+        lint.fail(
+            path,
+            "exporter AEAD ciphertext/tag is not derived from the declared KDF, nonce, plaintext and AAD",
+        )
+        return
+    try:
+        actual_plaintext = AESGCM(derived_key).decrypt(nonce, carried_ciphertext, aad)
+    except InvalidTag:
+        lint.fail(path, "exporter AEAD registered transcript does not open")
+        return
+    if actual_plaintext != plaintext:
+        lint.fail(path, "exporter AEAD registered transcript opens to different plaintext")
+
+    mutated_header = dict(header)
+    mutated_header["event_kind"] = "ak.message.update"
+    mutated_aad = canonical_json(mutated_header).encode("utf-8")
+    mutated_ciphertext = bytearray(carried_ciphertext)
+    mutated_ciphertext[-1] ^= 1
+    mutated_secret = bytes((history_secret[0] ^ 1,)) + history_secret[1:]
+    mutations = (
+        (
+            "history_secret",
+            mls_expand_with_label_sha256(
+                mutated_secret,
+                "ak.content-v1",
+                sender_domain.encode("utf-8"),
+                16,
+            ),
+            aad,
+            carried_ciphertext,
+        ),
+        (
+            "sender_domain",
+            mls_expand_with_label_sha256(
+                history_secret,
+                "ak.content-v1",
+                (sender_domain + "x").encode("utf-8"),
+                16,
+            ),
+            aad,
+            carried_ciphertext,
+        ),
+        ("aad", derived_key, mutated_aad, carried_ciphertext),
+        ("ciphertext_tag", derived_key, aad, bytes(mutated_ciphertext)),
+    )
+    for label, key, test_aad, ciphertext in mutations:
+        try:
+            AESGCM(key).decrypt(nonce, ciphertext, test_aad)
+        except InvalidTag:
+            continue
+        lint.fail(path, f"exporter AEAD {label} mutation did not fail closed")
+
+
 def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
     fixture_dir = ARTIFACTS / "fixtures"
     for path in sorted(fixture_dir.glob("*.json")):
@@ -1278,6 +1526,7 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
             continue
         if path.name == "arkret-private-kdf-fixture.json" and isinstance(data, dict):
             check_private_kdf_full_width_nonce(lint, path, data)
+            check_private_kdf_exporter_aead(lint, path, data)
         if path.name == "producer-allocated-identity-collision-fixture.json":
             expected_parameter_source = {
                 "registry": "registry/contract-registry.json#id_kind_registry.id_kinds",
@@ -2878,6 +3127,120 @@ def check_history_scale_fixture(lint: Lint) -> None:
     runner = data.get("runner")
     if not isinstance(runner, dict) or runner.get("scale_generator") != "tools/generate_history_scale_fixture.py":
         lint.fail(path, "history recovery fixture must name its streaming scale generator")
+
+    scope_cases = data.get("scope_and_endpoint_kats")
+    if not isinstance(scope_cases, list):
+        lint.fail(path, "history recovery fixture must carry scope/group KATs")
+    else:
+        for case_index, case in enumerate(scope_cases):
+            if not isinstance(case, dict):
+                continue
+            for branch in ("realm", "circle"):
+                scope_case = case.get(branch)
+                if not isinstance(scope_case, dict):
+                    continue
+                effective_scope = scope_case.get("effective_scope")
+                if not isinstance(effective_scope, dict):
+                    lint.fail(
+                        path,
+                        f"scope/group KAT {case_index}.{branch} omits effective_scope",
+                    )
+                    continue
+                kind = effective_scope.get("kind")
+                scope_key = effective_scope.get(
+                    "realm_id" if kind == "realm" else "circle_id" if kind == "circle" else ""
+                )
+                if not isinstance(scope_key, str) or not scope_key:
+                    lint.fail(
+                        path,
+                        f"scope/group KAT {case_index}.{branch} has no canonical scope key",
+                    )
+                    continue
+                scope_key_bytes = scope_key.encode("utf-8")
+                expected_group_id = (
+                    base64.urlsafe_b64encode(scope_key_bytes)
+                    .rstrip(b"=")
+                    .decode("ascii")
+                )
+                if scope_case.get("effective_scope_key_hex") != scope_key_bytes.hex():
+                    lint.fail(
+                        path,
+                        f"scope/group KAT {case_index}.{branch} scope-key bytes drifted",
+                    )
+                if scope_case.get("expected_mls_group_id") != expected_group_id:
+                    lint.fail(
+                        path,
+                        f"scope/group KAT {case_index}.{branch} group id is not derived from its scope key",
+                    )
+
+    predicate_kat = data.get("predicate_registry_digest_kat")
+    if not isinstance(predicate_kat, dict):
+        lint.fail(
+            path,
+            "history recovery fixture must carry predicate_registry_digest_kat",
+        )
+    else:
+        registry_name = predicate_kat.get("registry")
+        if registry_name != "history-release-attestation-registry.json":
+            lint.fail(path, "history predicate KAT references the wrong registry")
+        registry_path = (
+            ARTIFACTS / "registry" / "history-release-attestation-registry.json"
+        )
+        predicate_registry = load_json(lint, registry_path)
+        if isinstance(predicate_registry, dict):
+            digest_input = copy.deepcopy(predicate_registry)
+            digest_input.pop("wire_registry_binding", None)
+            actual_digest = "sha256:" + hashlib.sha256(
+                canonical_json(digest_input).encode("utf-8")
+            ).hexdigest()
+            if predicate_kat.get("expected_digest") != actual_digest:
+                lint.fail(
+                    path,
+                    "history predicate registry digest KAT drifted from the complete registry",
+                )
+            if (
+                predicate_kat.get("hash") != "sha256"
+                or predicate_kat.get("canonicalization") != "RFC8785_JCS"
+                or predicate_kat.get("excluded_top_level_members")
+                != ["wire_registry_binding"]
+                or predicate_kat.get("domain_framing") is not None
+            ):
+                lint.fail(path, "history predicate registry digest rule drifted")
+            required_mutations = {
+                "include_wire_registry_binding",
+                "exclude_any_additional_member",
+                "add_domain_separator",
+                "use_non_sha256_wire_suite",
+            }
+            negative_mutations = predicate_kat.get("negative_mutations")
+            if (
+                not isinstance(negative_mutations, list)
+                or set(negative_mutations) != required_mutations
+            ):
+                lint.fail(path, "history predicate registry mutation matrix drifted")
+            included_digest = "sha256:" + hashlib.sha256(
+                canonical_json(predicate_registry).encode("utf-8")
+            ).hexdigest()
+            domain_digest = "sha256:" + hashlib.sha256(
+                b"ak.history-release-predicate-registry-v1\x00"
+                + canonical_json(digest_input).encode("utf-8")
+            ).hexdigest()
+            if included_digest == actual_digest or domain_digest == actual_digest:
+                lint.fail(
+                    path,
+                    "history predicate digest ignores its exclusion or no-domain rule",
+                )
+            for member in digest_input:
+                omitted = copy.deepcopy(digest_input)
+                omitted.pop(member)
+                omitted_digest = "sha256:" + hashlib.sha256(
+                    canonical_json(omitted).encode("utf-8")
+                ).hexdigest()
+                if omitted_digest == actual_digest:
+                    lint.fail(
+                        path,
+                        f"history predicate digest ignores covered member {member}",
+                    )
     kat = data.get("direct_traversal_kat")
     if not isinstance(kat, dict):
         lint.fail(path, "history recovery fixture must carry the executable direct-traversal KAT")
