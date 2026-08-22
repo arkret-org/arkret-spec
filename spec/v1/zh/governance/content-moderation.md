@@ -387,7 +387,7 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
           "action": "deny_join",
           "reason_code": "spam",
           "created_by": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
-          "created_at": "2026-04-26T00:00:00Z",
+          "created_at": "2026-04-26T00:00:00.000Z",
           "expires_at": null
         },
         {
@@ -628,7 +628,9 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
 [`event-payload.schema.json#/$defs/organization_moderation_policy_state_payload`](../../artifacts/schemas/event-payload.schema.json)：
 恰好一个 Organization 标识（`organization_principal_id` XOR `organization_id`，即 cell subject）加上
 whole-value `value`；策略内容全部位于 `value` 内，**不得**平铺到 payload 顶层——该 schema 是
-`additionalProperties:false`，平铺形态会被直接拒绝。Event 本身已由 Organization 治理密钥签名并进入
+`additionalProperties:false`，平铺形态会被直接拒绝。`value` 是 required，且 v1 只有
+`organization_moderation_policy_document` 这一 closed family：不存在 `value.schema` selector、外部 schema
+分派或 subject-only no-op/tombstone；未知 value 字段同样以 `schema_violation` 拒绝。Event 本身已由 Organization 治理密钥签名并进入
 accepted Seal state，因此 payload **不携带**独立的 detached `proof`：再签一次覆盖的是同一批 canonical
 bytes，只会多出一条可漂移的第二真相源。
 

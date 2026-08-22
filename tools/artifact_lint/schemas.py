@@ -368,9 +368,12 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
                 ensure_relative_file(lint, path, path.parent, value, f"{json_path} $ref")
         if path.name in drift_tracking_files:
             continue
-        for schema_id in json_string_tokens(data, SCHEMA_ID_TOKEN_RE):
-            if schema_id not in known["schema_ids"]:
-                lint.fail(path, f"unknown schema id reference: {schema_id}")
+        # This KAT carries the input to ak.schema.define, so its schema ids are
+        # definitions under test rather than references to the current registry.
+        if path.name != "schema-definition-validator-kat.json":
+            for schema_id in json_string_tokens(data, SCHEMA_ID_TOKEN_RE):
+                if schema_id not in known["schema_ids"]:
+                    lint.fail(path, f"unknown schema id reference: {schema_id}")
         for profile_id in json_string_tokens(data, PROFILE_ID_TOKEN_RE):
             if profile_id not in known["profiles"]:
                 lint.fail(path, f"unknown profile reference: {profile_id}")

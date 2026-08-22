@@ -181,6 +181,26 @@
     {
       "pointer": "service-operation-dtos.schema.json#/$defs/ServiceRegistrationReceipt/properties/full_id/$ref",
       "category": "registration_or_binding"
+    },
+    {
+      "pointer": "event-payload.schema.json#/$defs/identity_disclosure_policy_claim/properties/issuer/$ref",
+      "category": "resolution_or_did_document"
+    },
+    {
+      "pointer": "event-payload.schema.json#/$defs/identity_disclosure_policy_document/properties/audience/properties/org_did/$ref",
+      "category": "resolution_or_did_document"
+    },
+    {
+      "pointer": "event-payload.schema.json#/$defs/identity_disclosure_policy_document/properties/audience/properties/tsp_vids/items/$ref",
+      "category": "resolution_or_did_document"
+    },
+    {
+      "pointer": "event-payload.schema.json#/$defs/identity_disclosure_receipt_document/properties/represented_org/$ref",
+      "category": "resolution_or_did_document"
+    },
+    {
+      "pointer": "event-payload.schema.json#/$defs/moderation_policy_target/oneOf/0/properties/did/$ref",
+      "category": "resolution_or_did_document"
     }
   ]
 }

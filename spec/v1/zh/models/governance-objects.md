@@ -39,6 +39,15 @@ Schema 约束：
 
 Schema 在 wire 上以 schema id（如 `ak.schema.strand.v1`、`ak.schema.message.v1`）引用。Schema 文件本身在 [`artifacts/schemas/`](../../artifacts/schemas/) 维护，schema registry 在 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/registry/schema-registry.json`。
 
+`ak.schema.define` 的 payload MUST 严格匹配
+[`schema_define_state_payload`](../../artifacts/schemas/event-payload.schema.json)：只允许 required
+`schema_id` 与 required `value`，不得携带旧通用 wrapper 的 `state` / `reason`。`value` MUST 是声明
+`$schema="https://json-schema.org/draft/2020-12/schema"` 与 `$id` 的 JSON Schema 2020-12 文档；receiver
+MUST 执行 [`payload-validator-profile-registry.json`](../../artifacts/registry/payload-validator-profile-registry.json)
+的 `ak.validator.json_schema_2020_12_definition.v1`，并要求 `schema_id` 与 `value.$id` 逐字相等。合法但此前
+未登记的 `schema_id` 正是 define 的输入，不按 unknown family 拒绝；meta-schema validation 失败、dialect
+错误、`$id` 不等或 wrapper 未知字段统一以 `schema_violation` 拒绝。
+
 ### 2.2 Schema Evolution
 
 Schema evolution MUST be additive by default。通用 evolution 约束（新字段优先 optional、既有字段不得静默改变语义、reducer 与客户端 MUST 保留 schema 允许的未识别字段、UI 遇未知 Morph kind SHOULD 降级、标准对象不得阻止自定义 Morph kind 等）以 [morph.md §6](./morph.md) 为单一权威源，本节不重复列举，避免漂移。
@@ -102,6 +111,15 @@ Schema id: `ak.schema.policy.v1`
 
 `PolicyRule` 的完整 closed schema（`rule_id` / `kind` / `effect` 必填，`kind` enum、各 kind 的条件字段、`kind=extension` 的 `schema_ref` / `profile_ref` / `params`）由 [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) 的 `policy_rule` `$def` 权威定义；本节字段表不重复展开 rule 内部结构。
 
+`ak.policy.set` 的 payload 只允许 required `{policy_id,value}`。`value.schema` 直接由
+[`policy_set_state_payload`](../../artifacts/schemas/event-payload.schema.json) 的 `oneOf` 选择：
+`ak.schema.policy.v1` 使用 [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) root，
+`ak.schema.recovery_policy.v1` 使用 [`recovery-policy.schema.json`](../../artifacts/schemas/recovery-policy.schema.json)
+root；v1 没有第三个 policy family，也不通过随机 `policy_id` 查询外部分派。unknown `value.schema`、body
+与所选 family 不匹配或 value 未知字段均 `schema_violation`。semantic admission 还 MUST 要求外层
+`policy_id` 与 generic Policy 的 `value.id`、或 RecoveryPolicy 的 `value.policy_id` 逐字相等。`state` /
+`reason` 不是该 Event 的 wire 字段。
+
 **`rules[]` 求值与同 `priority` 冲突的确定性裁决（normative）**：reducer / Policy Server 求值 `rules[]` 时 MUST 按 `priority` 降序（数值大者先）评估；命中规则的 `effect` 即裁决结果，未命中任何规则时取 `default_effect`。当两条或多条规则同时命中目标、`priority` 相等、但 `effect` 不一致时，MUST 按以下确定性顺序裁决，**MUST NOT** 依赖 `rules[]` 数组顺序或本地求值顺序（否则跨实现结果分歧）：
 
 1. **deny-overrides**：命中的同 `priority` 规则中只要有一条 `effect=deny`，结果 MUST 为 `deny`；
@@ -114,6 +132,15 @@ Schema id: `ak.schema.policy.v1`
 ### 3.3 Policy Server 与决策
 
 Policy Server 风险判断与签名决策见 [`../authz/policy-server.md`](../authz/policy-server.md)；moderation policy（举报、franking、审核流程）见 [`../governance/content-moderation.md`](../governance/content-moderation.md)。Policy 决策与 capability 决策的关系：capability 决定基础动作权限，policy 可以 deny / quarantine / require review，但**不能授予权限**。
+
+### 3.4 Policy Action Log
+
+`ak.policy.action` 在 v1 只有一个 approval-action document family。payload 必须携带 required `value`，并在
+`policy_id` / `action_id` 中恰好携带一个作为 ordered-log subject；`value` 必须是 closed
+`{action,approval_required,approval_quorum,policy_scope}`，其中 `action` 是完整 `ak.*` action token、
+`approval_quorum >= 1`、`policy_scope` 是完整 typed resource/DID ref。v1 不按 subject id 分派 action body，
+也不允许 `state` / `reason`、平铺 action 字段或未知 value 字段；违者 `schema_violation`。机器真源为
+[`policy_action_state_payload`](../../artifacts/schemas/event-payload.schema.json)。
 
 ## 4. Capability Grant
 

@@ -55,8 +55,8 @@ COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completenes
 EVENT_REFERENCE_INVENTORY_SCRIPT = Path(__file__).with_name(
     "gen_event_reference_inventory.py"
 )
-OPEN_VALUE_EXCEPTION_SCRIPT = Path(__file__).with_name(
-    "check_open_value_exceptions.py"
+PAYLOAD_VALIDATOR_PROFILE_SCRIPT = Path(__file__).with_name(
+    "check_payload_validator_profiles.py"
 )
 EVENT_KIND_VECTOR_GAP_SCRIPT = Path(__file__).with_name(
     "check_event_kind_vector_gaps.py"
@@ -1222,8 +1222,10 @@ def run_event_reference_inventory(mode: str) -> int:
     return result.returncode
 
 
-def run_open_value_exception_check() -> int:
-    result = subprocess.run([sys.executable, str(OPEN_VALUE_EXCEPTION_SCRIPT)], cwd=ROOT)
+def run_payload_validator_profile_check() -> int:
+    result = subprocess.run(
+        [sys.executable, str(PAYLOAD_VALIDATOR_PROFILE_SCRIPT)], cwd=ROOT
+    )
     return result.returncode
 
 
@@ -1292,7 +1294,7 @@ def cmd_check(_: argparse.Namespace) -> int:
     print_contract_status()
     completeness_status = run_operation_completeness_report("check")
     event_reference_status = run_event_reference_inventory("check")
-    open_value_status = run_open_value_exception_check()
+    payload_validator_status = run_payload_validator_profile_check()
     vector_gap_status = run_event_kind_vector_gap_check()
     presence_status = run_property_presence_manifest("check")
     coverage_status = run_schema_consumer_coverage("check")
@@ -1306,7 +1308,7 @@ def cmd_check(_: argparse.Namespace) -> int:
     return (
         completeness_status
         or event_reference_status
-        or open_value_status
+        or payload_validator_status
         or vector_gap_status
         or presence_status
         or coverage_status

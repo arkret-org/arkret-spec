@@ -153,6 +153,10 @@
       "sha256": "5d93eba4d6f1dab529e1163ae5ecbb3fe05c09c07666af1ecc7bfd7ed4c1224b"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
+      "sha256": "1d659cdd3899ab2ed2f51b98094435de5f3b6231029f7df6920fc6d3559dfff6"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
       "sha256": "3abcc6da7a64b3ec592e395a85866b4c4c6b643287976f9056a5426c45ae550c"
     },
@@ -315,6 +319,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
       "sha256": "f093ef67c64e7d17b02e1e20b10282c1505ef6662926e3106bf91823818e0d87"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/schema-definition-validator-kat.json",
+      "sha256": "78a7f3e3dfb17267e749b033a26f4964e3b7388be3106ef8b62608ca89023b46"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",

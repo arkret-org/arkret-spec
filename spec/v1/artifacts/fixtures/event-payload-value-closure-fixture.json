@@ -1,0 +1,465 @@
+{
+  "suite": "event_payload_value_closure",
+  "fixture_kind": "schema_and_semantic",
+  "version": "2026-08-22",
+  "spec_anchor": "spec/v1/zh/conformance/schema-registry.md",
+  "source_refs": [
+    "spec/v1/artifacts/schemas/event-payload.schema.json",
+    "spec/v1/artifacts/schemas/policy.schema.json",
+    "spec/v1/artifacts/schemas/recovery-policy.schema.json",
+    "spec/v1/zh/identity/identity-handles.md",
+    "spec/v1/zh/governance/content-moderation.md",
+    "spec/v1/zh/models/governance-objects.md"
+  ],
+  "description": "Executable positive and negative schema cases for the five finite Event value families closed in v1. Former prose selectors and subject-only payloads are explicitly rejected. policy.set identifier equality is additionally covered as semantic admission because JSON Schema cannot compare sibling values.",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_assertion_fields": ["schema_ref", "expect_valid", "instance"],
+    "semantic_assertion_fields": ["semantic_outcome", "expected_reason_code"]
+  },
+  "schema_validation_cases": [
+    {
+      "name": "organization_moderation_policy_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/organization_moderation_policy_state_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "organization_principal_id": "ak:did_core:webvh:z6mkfixtureorganization",
+        "value": {
+          "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+          "policy_scope": {
+            "service_ids": ["ak:did_core:webvh:z6mkfixtureservice"]
+          },
+          "rules": [
+            {
+              "target": {
+                "kind": "claim_selector",
+                "claim_kind": "org_membership",
+                "issuer": "ak:did_core:webvh:z6mkfixtureissuer"
+              },
+              "action": "deny_restricted_join"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "organization_moderation_policy_missing_value_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/organization_moderation_policy_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {"organization_principal_id": "ak:did_core:webvh:z6mkfixtureorganization"}
+    },
+    {
+      "name": "organization_moderation_policy_former_schema_selector_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/organization_moderation_policy_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "organization_principal_id": "ak:did_core:webvh:z6mkfixtureorganization",
+        "value": {
+          "schema": "organization_moderation_policy",
+          "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+          "policy_scope": {"applies_to_owned_realms": true},
+          "rules": [{"target": {"kind": "content_label", "label": "spam"}, "action": "require_review"}]
+        }
+      }
+    },
+    {
+      "name": "organization_moderation_policy_body_mismatch_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/organization_moderation_policy_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:should be non-empty",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "organization_id": "organization-local-1",
+        "value": {
+          "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+          "policy_scope": {"applies_to_owned_realms": true},
+          "rules": []
+        }
+      }
+    },
+    {
+      "name": "organization_moderation_policy_unknown_wrapper_field_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/organization_moderation_policy_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "organization_id": "organization-local-1",
+        "value": {
+          "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+          "policy_scope": {"applies_to_owned_realms": true},
+          "rules": [{"target": {"kind": "content_label", "label": "spam"}, "action": "require_review"}]
+        },
+        "state": "active"
+      }
+    },
+    {
+      "name": "identity_disclosure_policy_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
+        "value": {
+          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
+          "audience": {
+            "org_did": "did:webvh:z6mkfixtureorganization:organization.example",
+            "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]
+          },
+          "allowed_claims": [],
+          "denied_fields": ["credential_id"],
+          "user_consent_required": true,
+          "expires_at": "2026-07-26T00:00:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "identity_disclosure_policy_missing_value_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {"policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000"}
+    },
+    {
+      "name": "identity_disclosure_policy_unknown_family_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
+        "value": {
+          "policy_family": "credential_specific",
+          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
+          "audience": {"org_did": "did:webvh:z6mkfixtureorganization:organization.example", "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]},
+          "allowed_claims": [],
+          "denied_fields": [],
+          "user_consent_required": true,
+          "expires_at": "2026-07-26T00:00:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "identity_disclosure_policy_body_mismatch_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
+        "value": {
+          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
+          "audience": {"org_did": "did:webvh:z6mkfixtureorganization:organization.example"},
+          "allowed_claims": [],
+          "denied_fields": [],
+          "user_consent_required": true,
+          "expires_at": "2026-07-26T00:00:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "identity_disclosure_policy_unknown_wrapper_field_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
+        "value": {
+          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
+          "audience": {"org_did": "did:webvh:z6mkfixtureorganization:organization.example", "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]},
+          "allowed_claims": [],
+          "denied_fields": [],
+          "user_consent_required": true,
+          "expires_at": "2026-07-26T00:00:00.000Z"
+        },
+        "reason": "legacy"
+      }
+    },
+    {
+      "name": "identity_disclosure_receipt_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
+        "value": {
+          "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
+          "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
+          "verifier_service_id": "ak:did_core:webvh:z6mkfixtureverifier",
+          "represented_org": "did:webvh:z6mkfixtureorganization:organization.example",
+          "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "proof_profile": "vc_di_bbs_2023",
+          "transport": "tsp",
+          "disclosed_fields": ["credentialSubject.org"],
+          "withheld_fields": ["credentialSubject.handle"],
+          "created_at": "2026-04-26T00:00:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "identity_disclosure_receipt_missing_value_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {"holder_principal_id": "ak:did_core:key:z6Mkgpairwise"}
+    },
+    {
+      "name": "identity_disclosure_receipt_former_receipt_kind_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
+        "value": {
+          "receipt_kind": "selective_disclosure",
+          "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
+          "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
+          "verifier_service_id": "ak:did_core:webvh:z6mkfixtureverifier",
+          "represented_org": "did:webvh:z6mkfixtureorganization:organization.example",
+          "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "proof_profile": "vc_di_bbs_2023",
+          "transport": "tsp",
+          "disclosed_fields": [],
+          "withheld_fields": [],
+          "created_at": "2026-04-26T00:00:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "identity_disclosure_receipt_body_mismatch_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
+        "value": {"receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000"}
+      }
+    },
+    {
+      "name": "identity_disclosure_receipt_unknown_wrapper_field_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
+        "value": {
+          "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
+          "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
+          "verifier_service_id": "ak:did_core:webvh:z6mkfixtureverifier",
+          "represented_org": "did:webvh:z6mkfixtureorganization:organization.example",
+          "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "proof_profile": "vc_di_bbs_2023",
+          "transport": "tsp",
+          "disclosed_fields": [],
+          "withheld_fields": [],
+          "created_at": "2026-04-26T00:00:00.000Z"
+        },
+        "state": "stored"
+      }
+    },
+    {
+      "name": "policy_set_generic_policy_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_set_state_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+        "value": {
+          "id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+          "schema": "ak.schema.policy.v1",
+          "policy_kind": "access",
+          "rules": [{"rule_id": "allow_read", "kind": "action", "effect": "allow", "actions": ["ak.object.read"]}],
+          "default_effect": "deny",
+          "created_by": "ak:did_core:webvh:z6mkfixtureauthor",
+          "created_at": "2026-04-26T00:00:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "policy_set_missing_value_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_set_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {"policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60"}
+    },
+    {
+      "name": "policy_set_unknown_family_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_set_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:not valid under any of the given schemas",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+        "value": {"schema": "unknown_policy_family"}
+      }
+    },
+    {
+      "name": "policy_set_body_mismatch_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_set_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:not valid under any of the given schemas",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+        "value": {"id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60", "schema": "ak.schema.policy.v1"}
+      }
+    },
+    {
+      "name": "policy_set_unknown_generic_policy_field_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_set_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:not valid under any of the given schemas",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+        "value": {
+          "id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+          "schema": "ak.schema.policy.v1",
+          "policy_kind": "access",
+          "rules": [{"rule_id": "allow_read", "kind": "action", "effect": "allow", "actions": ["ak.object.read"]}],
+          "default_effect": "deny",
+          "created_by": "ak:did_core:webvh:z6mkfixtureauthor",
+          "created_at": "2026-04-26T00:00:00.000Z",
+          "unexpected": true
+        }
+      }
+    },
+    {
+      "name": "policy_set_unknown_wrapper_field_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_set_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+        "value": {
+          "id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+          "schema": "ak.schema.policy.v1",
+          "policy_kind": "access",
+          "rules": [{"rule_id": "allow_read", "kind": "action", "effect": "allow", "actions": ["ak.object.read"]}],
+          "default_effect": "deny",
+          "created_by": "ak:did_core:webvh:z6mkfixtureauthor",
+          "created_at": "2026-04-26T00:00:00.000Z"
+        },
+        "state": "active"
+      }
+    },
+    {
+      "name": "policy_action_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_action_state_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "action_id": "approval-realm-admin-001",
+        "value": {
+          "action": "ak.realm.admin",
+          "approval_required": true,
+          "approval_quorum": 2,
+          "policy_scope": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        }
+      }
+    },
+    {
+      "name": "policy_action_missing_value_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_action_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {"action_id": "approval-realm-admin-001"}
+    },
+    {
+      "name": "policy_action_unknown_family_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_action_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "action_id": "approval-realm-admin-001",
+        "value": {
+          "action_family": "custom",
+          "action": "ak.realm.admin",
+          "approval_required": true,
+          "approval_quorum": 2,
+          "policy_scope": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        }
+      }
+    },
+    {
+      "name": "policy_action_body_mismatch_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_action_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "action_id": "approval-realm-admin-001",
+        "value": {"action": "ak.realm.admin", "approval_required": true, "policy_scope": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"}
+      }
+    },
+    {
+      "name": "policy_action_unknown_wrapper_field_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/policy_action_state_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "action_id": "approval-realm-admin-001",
+        "value": {"action": "ak.realm.admin", "approval_required": true, "approval_quorum": 2, "policy_scope": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"},
+        "reason": "legacy"
+      }
+    }
+  ],
+  "semantic_cases": [
+    {
+      "name": "policy_set_generic_policy_id_mismatch_rejected",
+      "semantic_rule": "policy_set_subject_matches_value_identity",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "policy_id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f60",
+        "value": {
+          "id": "ak:policy:0198f1a2-4c3d-7e56-8a90-1b2c3d4e5f61",
+          "schema": "ak.schema.policy.v1",
+          "policy_kind": "access",
+          "rules": [{"rule_id": "allow_read", "kind": "action", "effect": "allow", "actions": ["ak.object.read"]}],
+          "default_effect": "deny",
+          "created_by": "ak:did_core:webvh:z6mkfixtureauthor",
+          "created_at": "2026-04-26T00:00:00.000Z"
+        }
+      }
+    }
+  ]
+}

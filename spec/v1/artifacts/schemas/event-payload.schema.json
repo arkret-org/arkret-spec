@@ -4715,40 +4715,229 @@
     },
     "identity_disclosure_policy_state_payload": {
       "type": "object",
-      "description": "Identity disclosure-policy state payload. policy_id is the stable policy cell subject.",
+      "description": "Closed holder-private disclosure-policy payload. policy_id is the stable policy cell subject and value carries the sole v1 disclosure-policy document family.",
       "required": [
-        "policy_id"
+        "policy_id",
+        "value"
       ],
       "properties": {
         "policy_id": {
+          "type": "string",
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "value": {
+          "$ref": "#/$defs/identity_disclosure_policy_document"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_disclosure_policy_document": {
+      "type": "object",
+      "required": [
+        "holder_principal_id",
+        "audience",
+        "allowed_claims",
+        "denied_fields",
+        "user_consent_required",
+        "expires_at"
+      ],
+      "properties": {
+        "holder_principal_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "audience": {
+          "type": "object",
+          "required": [
+            "org_did",
+            "verifier_service_ids"
+          ],
+          "properties": {
+            "org_did": {
+              "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+            },
+            "verifier_service_ids": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            },
+            "tsp_vids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "allowed_claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identity_disclosure_policy_claim"
+          }
+        },
+        "denied_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "user_consent_required": {
+          "type": "boolean"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_disclosure_policy_claim": {
+      "type": "object",
+      "required": [
+        "claim_kind",
+        "issuer",
+        "subject_id",
+        "disclosure",
+        "fields"
+      ],
+      "properties": {
+        "claim_kind": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "value": {},
-        "state": {
-          "type": "string"
+        "issuer": {
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
         },
-        "reason": {
-          "type": "string"
+        "subject_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "disclosure": {
+          "type": "string",
+          "enum": [
+            "abstract",
+            "explicit"
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "value_constraints": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_disclosure_receipt_document": {
+      "type": "object",
+      "required": [
+        "receipt_id",
+        "request_id",
+        "verifier_service_id",
+        "represented_org",
+        "presentation_digest",
+        "proof_profile",
+        "transport",
+        "disclosed_fields",
+        "withheld_fields",
+        "created_at"
+      ],
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "verifier_service_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "represented_org": {
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        },
+        "presentation_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "proof_profile": {
+          "type": "string",
+          "enum": [
+            "vc_di_bbs_2023",
+            "sd_jwt_vc"
+          ]
+        },
+        "transport": {
+          "type": "string",
+          "enum": [
+            "tsp",
+            "http_jwe",
+            "didcomm_like",
+            "to_device",
+            "mls_dm"
+          ]
+        },
+        "tsp_relationship_id": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
+        },
+        "disclosed_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "withheld_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
     },
     "identity_disclosure_receipt_state_payload": {
       "type": "object",
-      "description": "Identity disclosure-receipt log payload. holder_principal_id is the stable log subject.",
+      "description": "Closed holder-private disclosure-receipt log payload. holder_principal_id is the stable log subject and value carries the sole v1 receipt document family.",
       "required": [
-        "holder_principal_id"
+        "holder_principal_id",
+        "value"
       ],
       "properties": {
         "holder_principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "value": {},
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
+        "value": {
+          "$ref": "#/$defs/identity_disclosure_receipt_document"
         }
       },
       "additionalProperties": false
@@ -8188,7 +8377,10 @@
     },
     "organization_moderation_policy_state_payload": {
       "type": "object",
-      "description": "Organization moderation-policy state. A producer identifies the Organization by exactly one canonical DID or typed Organization id; the first present identifier is the registered coalesce subject.",
+      "description": "Closed Organization moderation-policy state. A producer identifies the Organization by exactly one canonical DID or typed Organization id; the first present identifier is the registered coalesce subject. value carries the sole v1 Organization moderation-policy family.",
+      "required": [
+        "value"
+      ],
       "oneOf": [
         {
           "required": [
@@ -8218,15 +8410,193 @@
         "organization_id": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "value": {},
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
+        "value": {
+          "$ref": "#/$defs/organization_moderation_policy_document"
         }
       },
       "additionalProperties": false
+    },
+    "organization_moderation_policy_document": {
+      "type": "object",
+      "required": [
+        "policy_id",
+        "policy_scope",
+        "rules"
+      ],
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "policy_scope": {
+          "$ref": "#/$defs/organization_moderation_policy_scope"
+        },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/organization_moderation_policy_rule"
+          }
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_moderation_policy_scope": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "realm_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          }
+        },
+        "service_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/did_core_id"
+          }
+        },
+        "applies_to_owned_realms": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_moderation_policy_rule": {
+      "type": "object",
+      "required": [
+        "target",
+        "action"
+      ],
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/moderation_policy_target"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "deny_join",
+            "deny_restricted_join",
+            "deny_invite",
+            "deny_write",
+            "deny_federation",
+            "quarantine_message",
+            "require_review",
+            "redact_on_accept",
+            "shadow_collapse"
+          ]
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "expires_at": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/timestamp"
+            }
+          ]
+        },
+        "created_by": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moderation_policy_target": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "did"],
+          "properties": {
+            "kind": {"enum": ["actor", "device", "organization"]},
+            "did": {"$ref": "./common-ids.schema.json#/$defs/did_full_id"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "device_id"],
+          "properties": {
+            "kind": {"const": "device"},
+            "device_id": {"type": "string", "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "did_core_id"],
+          "properties": {
+            "kind": {"const": "service_id"},
+            "did_core_id": {"$ref": "#/$defs/did_core_id"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "domain"],
+          "properties": {
+            "kind": {"const": "domain"},
+            "domain": {"type": "string", "pattern": "^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"},
+            "match_subdomains": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "trust_domain"],
+          "properties": {
+            "kind": {"const": "trust_domain"},
+            "trust_domain": {"$ref": "./common-ids.schema.json#/$defs/trust_domain"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "claim_kind", "issuer"],
+          "properties": {
+            "kind": {"const": "claim_selector"},
+            "claim_kind": {"$ref": "#/$defs/non_empty_string"},
+            "issuer": {"$ref": "#/$defs/did_core_id"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "digest"],
+          "properties": {
+            "kind": {"const": "media_digest"},
+            "digest": {"$ref": "#/$defs/digest"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "label"],
+          "properties": {
+            "kind": {"const": "content_label"},
+            "label": {"$ref": "#/$defs/non_empty_string"}
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "participant_binding": {
       "type": "object",
@@ -8511,7 +8881,10 @@
     },
     "policy_action_state_payload": {
       "type": "object",
-      "description": "Policy action-log payload. Exactly one policy_id or action_id is present and becomes the registered coalesce subject.",
+      "description": "Closed policy action-log payload. Exactly one policy_id or action_id is present and becomes the registered coalesce subject; value carries the sole v1 approval-action document family.",
+      "required": [
+        "value"
+      ],
       "oneOf": [
         {
           "required": [
@@ -8536,7 +8909,8 @@
       ],
       "properties": {
         "policy_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "type": "string",
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "action_id": {
           "allOf": [
@@ -8548,12 +8922,35 @@
             }
           ]
         },
-        "value": {},
-        "state": {
-          "type": "string"
+        "value": {
+          "$ref": "#/$defs/policy_action_document"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_action_document": {
+      "type": "object",
+      "required": [
+        "action",
+        "approval_required",
+        "approval_quorum",
+        "policy_scope"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
         },
-        "reason": {
-          "type": "string"
+        "approval_required": {
+          "type": "boolean"
+        },
+        "approval_quorum": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "policy_scope": {
+          "type": "string",
+          "pattern": "^(ak:[a-z0-9_]+:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*|did:[^\\s]+)$"
         }
       },
       "additionalProperties": false
@@ -8585,20 +8982,25 @@
     },
     "policy_set_state_payload": {
       "type": "object",
-      "description": "Policy definition state payload. policy_id is the stable policy cell subject.",
+      "description": "Closed Policy definition state payload. policy_id is the stable policy cell subject. value.schema selects exactly one of the two v1 Policy document families directly in this schema; unknown families fail schema validation.",
       "required": [
-        "policy_id"
+        "policy_id",
+        "value"
       ],
       "properties": {
         "policy_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "type": "string",
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "value": {},
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
+        "value": {
+          "oneOf": [
+            {
+              "$ref": "./policy.schema.json"
+            },
+            {
+              "$ref": "./recovery-policy.schema.json"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -10298,27 +10700,32 @@
     },
     "schema_define_state_payload": {
       "type": "object",
-      "description": "Schema definition state payload. schema_id is the stable definition cell subject.",
+      "description": "Schema definition payload. value is a JSON Schema 2020-12 document validated by the executable ak.validator.json_schema_2020_12_definition.v1 profile; schema_id is the stable definition cell subject and MUST equal value.$id.",
       "required": [
-        "schema_id"
+        "schema_id",
+        "value"
       ],
       "properties": {
         "schema_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
+          "type": "string",
+          "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+        },
+        "value": {
+          "type": "object",
+          "required": [
+            "$schema",
+            "$id"
+          ],
+          "properties": {
+            "$schema": {
+              "const": "https://json-schema.org/draft/2020-12/schema"
             },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            "$id": {
+              "type": "string",
+              "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
             }
-          ]
-        },
-        "value": {},
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
+          },
+          "additionalProperties": true
         }
       },
       "additionalProperties": false

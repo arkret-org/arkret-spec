@@ -1032,35 +1032,44 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
 ```json
 {
   "kind": "ak.identity.disclosure_policy",
-  "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
-  "holder_principal_id": "ak:did_core:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5",
-  "audience": {
-    "org_did": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-    "verifier_service_ids": ["ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n"],
-    "tsp_vids": ["did:webs:google.example:verifier"]
-  },
-  "allowed_claims": [
-    {
-      "claim_kind": "verified_handle",
-      "issuer": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-      "subject_id": "ak:did_core:key:z6Mkgpairwise...",
-      "disclosure": "explicit",
-      "fields": ["handle"],
-      "value_constraints": {
-        "handle": "alice@google.com"
-      }
+  "payload": {
+    "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
+    "value": {
+      "holder_principal_id": "ak:did_core:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5",
+      "audience": {
+        "org_did": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+        "verifier_service_ids": ["ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n"],
+        "tsp_vids": ["did:webs:google.example:verifier"]
+      },
+      "allowed_claims": [
+        {
+          "claim_kind": "verified_handle",
+          "issuer": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+          "subject_id": "ak:did_core:key:z6Mkgpairwise",
+          "disclosure": "explicit",
+          "fields": ["handle"],
+          "value_constraints": {
+            "handle": "alice@google.com"
+          }
+        }
+      ],
+      "denied_fields": [
+        "other_handles",
+        "external_accounts",
+        "global_strand_identifier",
+        "credential_id"
+      ],
+      "user_consent_required": true,
+      "expires_at": "2026-07-26T00:00:00.000Z"
     }
-  ],
-  "forbidden_fields": [
-    "other_handles",
-    "external_accounts",
-    "global_strand_identifier",
-    "credential_id"
-  ],
-  "user_consent_required": true,
-  "expires_at": "2026-07-26T00:00:00Z"
+  }
 }
 ```
+
+`payload` MUST 严格匹配
+[`identity_disclosure_policy_state_payload`](../../artifacts/schemas/event-payload.schema.json)：`policy_id` 与
+`value` 都是必填，`value` 是 v1 唯一的 closed disclosure-policy document family。`holder_principal_id` 只位于
+`value`，不得平铺；`state` / `reason` 与未知 family selector 都不是该 Event 的 wire 字段。
 
 Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm。
 
@@ -1096,26 +1105,35 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
 ```json
 {
   "kind": "ak.identity.disclosure_receipt",
-  "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
-  "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-  "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
-  "verifier_service_id": "ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n",
-  "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-  "presentation_digest": "sha256:...",
-  "proof_profile": "vc_di_bbs_2023",
-  "transport": "tsp",
-  "tsp_relationship_id": "tsp:rel:...",
-  "disclosed_fields": [
-    "credentialSubject.org",
-    "credentialSubject.member"
-  ],
-  "withheld_fields": [
-    "credentialSubject.handle",
-    "other_handles"
-  ],
-  "created_at": "2026-04-26T00:00:00Z"
+  "payload": {
+    "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
+    "value": {
+      "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
+      "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
+      "verifier_service_id": "ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n",
+      "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+      "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "proof_profile": "vc_di_bbs_2023",
+      "transport": "tsp",
+      "tsp_relationship_id": "tsp:rel:example",
+      "disclosed_fields": [
+        "credentialSubject.org",
+        "credentialSubject.member"
+      ],
+      "withheld_fields": [
+        "credentialSubject.handle",
+        "other_handles"
+      ],
+      "created_at": "2026-04-26T00:00:00.000Z"
+    }
+  }
 }
 ```
+
+`payload` MUST 严格匹配
+[`identity_disclosure_receipt_state_payload`](../../artifacts/schemas/event-payload.schema.json)：
+`holder_principal_id` 与 `value` 都是必填，receipt body 只位于 closed `value`；v1 没有 `receipt_kind` 分派、
+`state` / `reason` 或平铺 receipt 字段。
 
 Receipt 是 holder 私域 audit record。Receipt MUST NOT 包含未披露字段的具体值。
 

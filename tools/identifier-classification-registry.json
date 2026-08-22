@@ -26,9 +26,9 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "registry_catalog_symbol": 20,
-    "responsibility_did": 525,
-    "typed_object_id": 871
+    "registry_catalog_symbol": 21,
+    "responsibility_did": 531,
+    "typed_object_id": 879
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -747,14 +747,6 @@
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
     {
-      "name": "policy_id",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "typed_object_id",
-      "occurrences": 3,
-      "example_path": "event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload/properties/policy_id",
-      "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
-    },
-    {
       "name": "previous_terminal_contact_round_id",
       "terminal_signature": "[[\"pattern\", \"^(sha256|blake3):[0-9a-f]{64}$\"]]",
       "category": "opaque_correlation",
@@ -975,14 +967,6 @@
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
     {
-      "name": "schema_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "registry_catalog_symbol",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/schema_define_state_payload/properties/schema_id",
-      "reason": "Registry catalog symbol naming a registered entry, not an instance of a protocol object."
-    },
-    {
       "name": "scope_container_id",
       "terminal_signature": "[[\"pattern\", \"^(ak:(realm|space|circle|strand|message|morph|relation|event|view):[A-Za-z0-9_-]{44}|did:.+)$\"]]",
       "category": "typed_object_id",
@@ -1137,6 +1121,14 @@
       "occurrences": 1,
       "example_path": "agent-signer-evidence.schema.json#/$defs/key_transition_witness/properties/transition_key_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
+    },
+    {
+      "name": "tsp_relationship_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
+      "category": "external_system_identifier",
+      "occurrences": 1,
+      "example_path": "event-payload.schema.json#/$defs/identity_disclosure_receipt_document/properties/tsp_relationship_id",
+      "reason": "Relationship identifier minted by the external TSP transport and retained verbatim; Arkret never parses it as a typed ID."
     },
     {
       "name": "user_facing_response_event_ids",

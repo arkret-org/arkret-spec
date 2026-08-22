@@ -97,6 +97,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 - `zh/` 与 `artifacts/` registry lint 通过
 - 官方最小 reference validator、reducer、authz evaluator 与 conformance runner 已发布，并由发布 CI 实际执行 core behavioral vectors；仅校验 registry/schema/digest 不满足 stable promotion。
+- `event-kind-vector-gap-registry.json` 中 `critical` 与 `high` 条目必须为零；`tools/release_gate.py` 在 release tag 切换为 `v1.0.0` 后机械阻断任何剩余 critical/high gap。`normal` backlog 可保留，但 release notes MUST 明确列出且不得把登记本身称为行为覆盖证据。
 - 至少两个相互独立、共享代码不构成同一实现的实现必须通过同一 runner 的 `core_event_store`、sync/state/capability 与安全负向向量；结果必须以绑定实现 artifact digest、spec revision 与 contract digest 的签名 conformance claim 留档。
 - `core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema、fixture、profile 已冻结；若 accepted proposal 改动这些 surface，必须在 freeze 前同步 schema / fixture / profile / vector，而不是只更新 prose
 - OpenAPI MUST NOT 包含未发布生成器报告、占位 body 说明或 operation-level 非法字段

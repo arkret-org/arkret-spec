@@ -177,15 +177,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-08-22.1",
-      "generated_at": "2026-08-22T16:30:00+08:00",
-      "content_digest": "sha256:821363d42a2f92df34e771b5730786f4f2364d8962e70542b720f9d5b6334f84"
-    },
-    {
-      "path": "spec/v1/artifacts/registry/open-value-exception-registry.json",
-      "version": "2026-08-22",
-      "generated_at": null,
-      "content_digest": "sha256:68e9c8480c0cd60a85539b53ef77771aaac3130a45471d91338164ebf2807ebc"
+      "version": "2026-08-22.2",
+      "generated_at": "2026-08-22T16:57:00+08:00",
+      "content_digest": "sha256:fd30fcb714c485db3537146fa3435740b1b3b53080444d40b08ec8d5e73387c0"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -210,6 +204,12 @@
       "version": "2026-08-15.1",
       "generated_at": null,
       "content_digest": "sha256:4f52bc28d9119d138a21ee075091d89e452c79a1cc20105f9fac62509cd461fb"
+    },
+    {
+      "path": "spec/v1/artifacts/registry/payload-validator-profile-registry.json",
+      "version": "2026-08-22",
+      "generated_at": null,
+      "content_digest": "sha256:351933fcdce9291213f8ae2a61eb6fa023fa064e822d7e8b7777fe57f6089da7"
     },
     {
       "path": "spec/v1/artifacts/registry/pcr-exposure-registry.json",
@@ -261,9 +261,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
-      "version": "2026-08-22.2",
+      "version": "2026-08-22.3",
       "generated_at": null,
-      "content_digest": "sha256:d0c73ed9786bc982662c6baa50af9b713f345ff2a4f5be9dfcc7015f1946709e"
+      "content_digest": "sha256:dec15bde9184923a1045efc2b8b340d8c5b8fcc07699e769b6bed23ad0e13346"
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",

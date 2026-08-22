@@ -1,0 +1,113 @@
+{
+  "version": "2026-08-22",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "entrypoint": "ak.suite.schema_definition_validator.v1"
+  },
+  "validator_profile_id": "ak.validator.json_schema_2020_12_definition.v1",
+  "profile_ref": "registry/payload-validator-profile-registry.json#/profiles/0",
+  "cases": [
+    {
+      "name": "valid_closed_object_schema",
+      "payload": {
+        "schema_id": "ak.schema.example.v1",
+        "value": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "ak.schema.example.v1",
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "previously_unknown_schema_id_is_a_definition_not_a_dispatch_error",
+      "payload": {
+        "schema_id": "ak.schema.vendor_extension.v1",
+        "value": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "ak.schema.vendor_extension.v1",
+          "type": "string"
+        }
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "missing_selector",
+      "payload": {
+        "value": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "ak.schema.example.v1",
+          "type": "string"
+        }
+      },
+      "expected_valid": false,
+      "expected_failure_code": "schema_violation"
+    },
+    {
+      "name": "missing_document",
+      "payload": {
+        "schema_id": "ak.schema.example.v1"
+      },
+      "expected_valid": false,
+      "expected_failure_code": "schema_violation"
+    },
+    {
+      "name": "document_id_mismatch",
+      "payload": {
+        "schema_id": "ak.schema.example.v1",
+        "value": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "ak.schema.other.v1",
+          "type": "string"
+        }
+      },
+      "expected_valid": false,
+      "expected_failure_code": "schema_violation"
+    },
+    {
+      "name": "invalid_json_schema_keyword_value",
+      "payload": {
+        "schema_id": "ak.schema.example.v1",
+        "value": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "ak.schema.example.v1",
+          "type": "not_a_json_schema_type"
+        }
+      },
+      "expected_valid": false,
+      "expected_failure_code": "schema_violation"
+    },
+    {
+      "name": "unknown_payload_field",
+      "payload": {
+        "schema_id": "ak.schema.example.v1",
+        "value": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "ak.schema.example.v1",
+          "type": "string"
+        },
+        "state": "active"
+      },
+      "expected_valid": false,
+      "expected_failure_code": "schema_violation"
+    },
+    {
+      "name": "wrong_json_schema_dialect",
+      "payload": {
+        "schema_id": "ak.schema.example.v1",
+        "value": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "$id": "ak.schema.example.v1",
+          "type": "string"
+        }
+      },
+      "expected_valid": false,
+      "expected_failure_code": "schema_violation"
+    }
+  ]
+}

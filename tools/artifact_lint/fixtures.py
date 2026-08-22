@@ -1312,9 +1312,13 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
             if not isinstance(value, str):
                 continue
 
-            for schema_id in SCHEMA_ID_TOKEN_RE.findall(value):
-                if schema_id not in known["schema_ids"]:
-                    lint.fail(path, f"{json_path} references unknown schema id: {schema_id}")
+            # schema-definition-validator-kat.json supplies documents to
+            # ak.schema.define; their $id/schema_id values are definitions,
+            # not references that must already exist in the registry.
+            if path.name != "schema-definition-validator-kat.json":
+                for schema_id in SCHEMA_ID_TOKEN_RE.findall(value):
+                    if schema_id not in known["schema_ids"]:
+                        lint.fail(path, f"{json_path} references unknown schema id: {schema_id}")
 
             for profile_id in PROFILE_ID_TOKEN_RE.findall(value):
                 if profile_id not in known["profiles"]:

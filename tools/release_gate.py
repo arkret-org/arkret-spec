@@ -32,6 +32,32 @@ def check_stable_promotion_evidence() -> str | None:
     match = re.search(r"specReleaseTag\s*=\s*['\"]([^'\"]+)['\"]", site_meta)
     if match is None or match.group(1) != "v1.0.0":
         return None
+    vector_gap_path = (
+        ROOT
+        / "spec"
+        / "v1"
+        / "artifacts"
+        / "registry"
+        / "event-kind-vector-gap-registry.json"
+    )
+    try:
+        vector_gaps = json.loads(vector_gap_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return f"stable vector-gap registry is unreadable: {exc}"
+    blocking_gaps = [
+        row
+        for row in vector_gaps.get("uncovered_event_kinds", [])
+        if isinstance(row, dict) and row.get("priority") in {"critical", "high"}
+    ]
+    if blocking_gaps:
+        counts = {
+            priority: sum(row.get("priority") == priority for row in blocking_gaps)
+            for priority in ("critical", "high")
+        }
+        return (
+            "stable promotion requires zero critical/high Event vector gaps "
+            f"(critical={counts['critical']}, high={counts['high']})"
+        )
     evidence_path = ROOT / "spec" / "v1" / "artifacts" / "reports" / "core-interop-evidence.json"
     if not evidence_path.is_file():
         return "stable tag requires artifacts/reports/core-interop-evidence.json"

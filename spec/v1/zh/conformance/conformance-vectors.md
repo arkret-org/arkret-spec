@@ -2263,10 +2263,13 @@ ak.vector.capability.approval_constraint.v1
     "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "payload": {
-      "action": "ak.realm.admin",
-      "approval_required": true,
-      "approval_quorum": 2,
-      "policy_scope": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      "action_id": "approval-realm-admin-001",
+      "value": {
+        "action": "ak.realm.admin",
+        "approval_required": true,
+        "approval_quorum": 2,
+        "policy_scope": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      }
     },
     "refs": [
       { "id": "ak:grant:AUWpzOPskuu9fxaWPsUgiijz7I4DgJHTvmXZdHFHlI82", "role": "authorized_by", "critical": true }

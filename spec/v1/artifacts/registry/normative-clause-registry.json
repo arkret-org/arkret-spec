@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-22.1",
+  "version": "2026-08-22.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-22T16:30:00+08:00",
+  "generated_at": "2026-08-22T16:57:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -126,7 +126,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:c35d9a83488d232b841a7dd15393e316bef08e0b861e1b86ee755bd8f775a373",
+      "section_digest": "sha256:578b1c536514beaad69b19290d69111fbb257bf2155699a2997bbfedf7f1aea9",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [

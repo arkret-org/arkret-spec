@@ -103,7 +103,7 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>
 - `command.ack` 表示对已投递数据做显式确认；天然幂等，但不得被 cursor 推进隐式替代。
 HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan` 为例，其 HTTP binding 唯一为 `QUERY /_arkret/self/events`，OpenAPI 3.2 的 `query:` Operation Object 持有唯一 `operationId`。实现不得为同一 operation 暴露未登记的 GET / POST 别名；gRPC / MQ 同样只暴露 registry 中的 canonical operation。
 
-### 2.4.1 写操作的 durable effect 闭包（normative）
+### 2.4.1 写操作的 durable Event authorship 闭包（normative）
 
 每个带 `idempotency_mechanism` 的写 operation 都 MUST 在 canonical
 `contract-registry.json` 的 operation 行声明一个 `durable_effect`，且只可使用：
@@ -136,6 +136,13 @@ HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan` �
   两者正交：`kind:"none"` 的 operation 同样可以有外部 durable effect
   （例：`ak.peer.account_status.command.submit` 不 author Event，但 `erasure_pending` 分支要求
   接收端先落 durable 物理擦除意图才能 ack）。因此 MUST NOT 把这对成员绑死在 `event_log` 上。
+
+本字段不描述、也不声称闭合服务内部的数据库表、事务拆分、outbox/queue 结构、single-use claim
+ledger、缓存或补偿实现。上述内部实现只有在其可观察的 retry、幂等、ACK barrier、失败恢复或
+响应语义形成跨实现互操作要求时，才必须通过该 operation 的 request/response schema、
+`idempotency_mechanism`、`retry_safe`、reason code 与正文合同表达；不得为记录某个实现的内部 UoW
+而扩展 `durable_effect` kind。因而审计与工具输出只能称其为 **durable Event authorship mapping**，
+不得简称为覆盖一切持久副作用的 durable-effect 合同。
 - 两个成员 MUST **同时出现或同时缺席**。出现时 `cross_service_effects` MUST 非空、逐字去重，
   每项是 operation-local 的稳定 slug；`irreversibility_note` MUST 非空。
 - **presence 就是那条机器信号**：这对成员出现即表示该 operation 可能产生**不可安全盲重试**的持久效果。

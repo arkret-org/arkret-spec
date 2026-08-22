@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-22.2",
+  "version": "2026-08-22.3",
   "source_of_truth": true,
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
@@ -389,12 +389,12 @@
       "description": "Closed named-exemption registry for the zh/sync/service-http-binding.md 2.2.2 request material supply-closure law. Rows carry individually adjudicated exceptions (external_form, open_finding, deferred_supply) per operation and json-path prefix; open findings must reference a live arkret-work review anchor and be deleted when the gap closes. Consumed by tools/artifact_lint#check_request_material_supply_closure."
     },
     {
-      "name": "open_value_exceptions",
-      "file": "registry/open-value-exception-registry.json",
-      "kind": "open_value_exception_registry",
+      "name": "payload_validator_profiles",
+      "file": "registry/payload-validator-profile-registry.json",
+      "kind": "payload_validator_profile_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Closed allowlist for active Event payload defs whose explicitly named value slot delegates validation to a registered selector-specific schema. Consumed by tools/check_open_value_exceptions.py."
+      "description": "Executable validator profiles for Event payload documents that cannot be represented as a finite closed schema family. The only v1 profile validates ak.schema.define as JSON Schema 2020-12 and enforces schema_id=value.$id. Consumed by tools/check_payload_validator_profiles.py."
     },
     {
       "name": "event_kind_vector_gaps",
