@@ -159,26 +159,32 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 ```json
 {
   "kind": "ak.sovereign.did_policy",
-  "trust_domain": "ak:trust_domain:did.webvh.defense.example",
-  "default_principal_method": "did:webvh",
-  "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
-  "trust_roots": [
-    "did:webvh:zE2ucm2oH9PCib4kBzLEAkFqa:registry.defense.example",
-    "did:webvh:z2TiX7ug9JmCNeioq6D2V4VjK:witness-1.defense.example",
-    "did:webvh:z8rCaf8NFL1av8pHxRpz8APYa:witness-2.defense.example"
-  ],
-  "public_resolver_allowed": false,
-  "method_policy": {
-    "did:webvh": "allowlist",
-    "did:web": "allowlist",
-    "did:plc": "external_collaborator_only",
-    "did:key": "ephemeral_only"
+  "payload": {
+    "trust_domain": "ak:trust_domain:did.webvh.defense.example",
+    "value": {
+      "default_principal_method": "did:webvh",
+      "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
+      "trust_roots": [
+        "ak:did_core:webvh:zE2ucm2oH9PCib4kBzLEAkFqa",
+        "ak:did_core:webvh:z2TiX7ug9JmCNeioq6D2V4VjK",
+        "ak:did_core:webvh:z8rCaf8NFL1av8pHxRpz8APYa"
+      ],
+      "public_resolver_allowed": false,
+      "method_policy": {
+        "did:webvh": "allowlist",
+        "did:web": "allowlist",
+        "did:plc": "external_collaborator_only",
+        "did:key": "ephemeral_only"
+      }
+    }
   }
 }
 ```
 
 规则：
 
+- `trust_roots[]` 是稳定 `did_core_id` allowlist，不是 resolver locator、bare DID 或 verification-method DID URL。对候选 bare `full_id` 做准入时，verifier MUST 先按已登记 method adapter 计算 `project(full_id)`，再与 root 逐字节比较；`did:webvh` root 因此只保留 SCID，MUST NOT 拼接 hosting domain/path。
+- 命中 `trust_roots[]` 只回答“这个稳定身份是否可作为信任根”，不提供公钥或解析地址，也不证明控制权。密码学验证仍 MUST 消费候选 `full_id` / verification-method DID URL 以及受批准 resolver、witness/watcher、离线 bundle或已接受 binding 提供的 method evidence，并验证 `project(full_id) == matched trust_root`。调用点若只有 `did_core_id`、没有可验证的 `full_id` / key binding / method evidence，MUST fail closed，不得从 Core ID 反向拼造 DID。
 - 除非 policy 明确允许该 method 与 trust root，否则客户端 MUST NOT 通过公共 resolver 端点解析内部主体。
 - 内部 DID Document 与 method 历史 MUST 从受批准的 resolver / witness / watcher / 离线 bundle 获取。
 - 仅当 policy 允许且权限链已验证时，MAY 为外部协作方接受公共 DID 方法。
@@ -228,7 +234,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       "notary": {
         "kind": "single_signer",
         "signer": {
-          "actor_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example",
+          "actor_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL",
           "verification_method": "did:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example#notary-1",
           "key_kind": "ed25519_raw32",
           "jose_algorithm": "Ed25519",

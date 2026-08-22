@@ -153,7 +153,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
   context,                          // 当前 Realm ID / 邀请方 service DID / 解析 invocation
   claim_set_snapshot,               // subject 在 as_of 的 handle_claim 集合(含 as_of 时刻 binding_state)
                                     // 详见下文"claim_set_snapshot 的 as-of 语义"
-  policy_snapshot,                  // Realm policy 在 as_of 时刻的 accepted_issuers 顺序与 trust 级别
+  policy_snapshot,                  // Realm policy 在 as_of 时刻的 handle_issuer_policy 顺序与 trust 级别
                                     // 详见下文"policy_snapshot 的 as-of 语义"
   holder_primary_handle_at_as_of,   // 从 subject DID Document(as_of version)
                                     // 提取的 metadata.primary_handle 字段值，字符串或 null
@@ -191,8 +191,8 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 `policy_snapshot` MUST 同样是 **`resolution_as_of` 时刻 Realm policy 的状态**，**不**是查询执行时的当前 policy。具体语义随用法分两支：
 
-- **实时渲染**：`as_of ≈ now`，`policy_snapshot` 即客户端当前可见的 Realm policy 状态(`accepted_issuers` 顺序与 trust 级别)。
-- **历史 replay / audit**：取 `resolution_as_of` 时刻 Realm policy event 链所定义的 `accepted_issuers` 顺序与 trust 级别。如果 Realm 后来调整 policy（重排 `accepted_issuers`、变更 trust 级别、加 / 删 issuer），replay MUST 使用**当时**的 policy 而不是现在的，否则同一历史显示在不同时刻复算会得到不同 primary handle，违反"as-of 复算可重复"原则。
+- **实时渲染**：`as_of ≈ now`，`policy_snapshot` 即客户端当前可见的 `ak.realm.policy_bundle.handle_issuer_policy` 状态（issuer 顺序、域作用域与 authority class）。
+- **历史 replay / audit**：取 `resolution_as_of` 时刻 Realm policy bundle event 链所定义的 `handle_issuer_policy`。如果 Realm 后来调整 policy（重排 entry、变更 trust 级别、加 / 删 issuer），replay MUST 使用**当时**的 policy 而不是现在的，否则同一历史显示在不同时刻复算会得到不同 primary handle，违反"as-of 复算可重复"原则。
 
 实现 SHOULD 通过 Realm policy event 的 append-only 链支撑 as-of policy 重建；缺少历史的实现 MUST NOT 用"当前 policy + 历史 as_of"组合复算，与 `claim_set_snapshot` 同款约束。无法构造 as-of policy snapshot 时，replay MUST fail closed。
 
@@ -204,7 +204,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 - **生效时间下界**：`c.created_at <= resolution_as_of` MUST 成立——即在求值时刻该 claim 已被签发；这保证 audit / replay 用历史 `as_of` 时未来才签发的 claim 不会回到候选集，也不会通过 most-recent 抢占展示。`created_at` 是 handle_claim 的签发时刻（见 §5 example），不使用 forbidden 同义别名 `valid_from` / `issued_at`（handle claim 自身命名沿用 `created_at`；候选 schema 内的 `issued_at` 是另一对象，不在此层）。
 - **失效时间上界**：`c.expires_at > resolution_as_of` MUST 成立——过期 claim 不参与展示选择。
-- **issuer trust + domain-authority filter**：`policy_snapshot.accepted_issuers[]` 的每个 entry MUST 是 `{issuer, authorized_handle_domains, authority_class}`，其中 `issuer` 是 DID，`authorized_handle_domains[]` 是该 issuer 可签发的 canonical A-label 域（精确域或 `*.<domain>` 子域模式），`authority_class ∈ {domain_authority, delegated_issuer, directory_mirror}`。丢弃 issuer 未列入 policy、handle 的 `<domain>` 不在该 entry 授权域、或授权链无法回溯到该域权威根的 claim。该步是**强制前置**；v1 不接受无域作用域的裸 issuer 字符串作为 Realm handle policy。
+- **issuer trust + domain-authority filter**：`policy_snapshot.handle_issuer_policy[]` 的每个 entry MUST 是 `{issuer, authorized_handle_domains, issuer_class}`，其中 `issuer` 是 did_core_id，`authorized_handle_domains[]` 是该 issuer 可签发的 canonical A-label 域（精确域或 `*.<domain>` 子域模式），`issuer_class ∈ {domain_authority, delegated_issuer, directory_mirror}`。该数组的唯一 wire carrier 是 closed `ak.realm.policy_bundle` 的 `handle_issuer_policy` 成员。丢弃 issuer 未列入 policy、handle 的 `<domain>` 不在该 entry 授权域、或授权链无法回溯到该域权威根的 claim。该步是**强制前置**；v1 不接受无域作用域的裸 issuer 字符串作为 Realm handle policy。
 - **audience scope filter**：丢弃 `c.audience` 存在且与当前 context 互斥（例如 audience 限定为另一 Realm 或另一 service DID）的 claim。`c.audience` 缺失视为"无 audience 限制"，保留在候选集。
 
 **Step 1 — 优先级匹配**：在 Step 0 输出的候选集内，按以下优先级取第一个非空层：
@@ -215,7 +215,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 **Step 2 — Tie-breaker**（确定性收敛）：若 Step 1 选定层内仍有多个候选，按以下顺序消歧：
 
-1. 同一 handle 域内按 `domain_authority`、`delegated_issuer`、`directory_mirror` 的顺序优先；只有 `authority_class` 相同才比较 `c.issuer` 在 policy `accepted_issuers` 列表中的位置；
+1. 同一 handle 域内按 `domain_authority`、`delegated_issuer`、`directory_mirror` 的顺序优先；只有 `issuer_class` 相同才比较 `c.issuer` 在 policy `handle_issuer_policy` 列表中的位置；
 2. `c.created_at` 较晚者；
 3. `claim_digest(c)` 字典序较小者（见下方定义）。`claim_digest` 是 claim 自身的 canonical identifier，不依赖 `proofs[]` 数组顺序——避免 issuer 重新打包 proof 时 tie-breaker 抖动；
 4. 若 `claim_digest(c)` 仍同（极小概率：两份候选共享同一 canonical claim），取 `min(c.proofs[].payload_digest)` 字典序较小者作为最后保险。
@@ -613,7 +613,7 @@ Handle 解析分为两个方向：
 3. **Directory / Organization 服务**：`POST /_arkret/find/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 `POST /_arkret/find/directory/list-handles-for-subject`（已知 subject 时）。response 仍是签名 `ak.schema.handle_claim.v1`。
 4. **Bridge / 外部 issuer**：当 handle 来自 bridge 或外部体系（例如组织自有 IDP），claim 由该体系签发并通过 §7 VC presentation 出示。
 
-解析结果 MUST 包含 §3.2 列出的字段；audience / scope / expiry 决定使用范围。multiple issuer 同时签发同一 handle 时，verifier 先按 §3.2.1 的域授权与 `authority_class` 收敛：有效 `domain_authority` claim 优先于 delegated issuer，二者都优先于 Directory mirror；Directory claim 的 `source_refs` MUST 验证到该域权威根，否则直接排除。只有同一最高 authority class 内仍存在不同 `subject` 的有效 claim 才 MUST fail closed 并交人工处理。低 authority 冲突不得让已经验证的域权威绑定失效，从而避免镜像 issuer 注入冲突造成解析 DoS。
+解析结果 MUST 包含 §3.2 列出的字段；audience / scope / expiry 决定使用范围。multiple issuer 同时签发同一 handle 时，verifier 先按 §3.2.1 的域授权与 `issuer_class` 收敛：有效 `domain_authority` claim 优先于 delegated issuer，二者都优先于 Directory mirror；Directory claim 的 `source_refs` MUST 验证到该域权威根，否则直接排除。只有同一最高 issuer class 内仍存在不同 `subject` 的有效 claim 才 MUST fail closed 并交人工处理。低 authority 冲突不得让已经验证的域权威绑定失效，从而避免镜像 issuer 注入冲突造成解析 DoS。
 
 账号侧 claim 管理不走 Directory 搜索，但 v1 core 也不定义账号侧管理 API：当前登录 principal 如何在注册、换设备、管理员修改或 claim 续期后拿到自己的 claims，是 issuer / Auth Server / 部署本地 bootstrap 的职责。Directory 只解析已经签发且对调用方可见的 claims；它不得被当作 handle 申请、审批或管理员治理接口。`ak.find.directory.read.list_handles_for_subject` MUST 应用与 `resolve_handle` 相同的 visibility、audience、requester proof、不可区分拒绝与限速规则；未授权调用方不得通过已知 subject 枚举其受限组织 handle。
 
@@ -893,7 +893,7 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
       "disclosure": "abstract"
     }
   ],
-  "forbidden_claims": [
+  "denied_claims": [
     "other_handles",
     "external_accounts",
     "global_strand_identifier"
@@ -986,38 +986,42 @@ grant subject = alice@google.com
 ```json
 {
   "kind": "ak.identity.presentation_request",
-  "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-  "verifier_service_id": "ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n",
-  "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-  "domain": "google.example",
-  "challenge": "ak.chal_01J...",
-  "purpose": "space_join",
-  "accepted_issuers": ["did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example"],
-  "required_claims": [
-    {
-      "claim_kind": "arkret_org_membership_credential",
-      "constraints": {
-        "org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-        "member": true
-      },
-      "disclosure": "abstract"
+  "payload": {
+    "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
+    "value": {
+      "verifier_service_id": "ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n",
+      "represented_org": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
+      "domain": "google.example",
+      "challenge": "ak.chal_01J...",
+      "purpose": "space_join",
+      "accepted_issuers": ["ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX"],
+      "required_claims": [
+        {
+          "claim_kind": "arkret_org_membership_credential",
+          "constraints": {
+            "org": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
+            "member": true
+          },
+          "disclosure": "abstract"
+        }
+      ],
+      "optional_claims": [
+        {
+          "claim_kind": "verified_handle",
+          "fields": ["handle"],
+          "disclosure": "explicit"
+        }
+      ],
+      "denied_claims": [
+        "other_handles",
+        "external_accounts",
+        "global_strand_identifier",
+        "credential_id"
+      ],
+      "transport_hints": ["tsp", "http_jwe", "didcomm_like"],
+      "expires_at": "2026-04-26T00:05:00Z"
     }
-  ],
-  "optional_claims": [
-    {
-      "claim_kind": "verified_handle",
-      "fields": ["handle"],
-      "disclosure": "explicit"
-    }
-  ],
-  "forbidden_claims": [
-    "other_handles",
-    "external_accounts",
-    "global_strand_identifier",
-    "credential_id"
-  ],
-  "transport_hints": ["tsp", "http_jwe", "didcomm_like"],
-  "expires_at": "2026-04-26T00:05:00Z"
+  }
 }
 ```
 

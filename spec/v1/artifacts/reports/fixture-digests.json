@@ -150,7 +150,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "08cb824128130be33ee4d08841558e0b59d102acc3a1d46c8d20f34952789406"
+      "sha256": "5d93eba4d6f1dab529e1163ae5ecbb3fe05c09c07666af1ecc7bfd7ed4c1224b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",

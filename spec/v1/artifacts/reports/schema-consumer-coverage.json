@@ -49,7 +49,7 @@
       "outbound": 50,
       "prose": 110,
       "prose_only": 2,
-      "schema_reference": 116,
+      "schema_reference": 117,
       "startup_compile": 193,
       "vectors": 120
     },
@@ -2617,6 +2617,7 @@
       "consumers": {
         "declared_wire": "dynamic_schema_ref",
         "prose": "normative_text",
+        "schema_reference": "fragment",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },

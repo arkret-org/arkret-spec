@@ -186,7 +186,7 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.realm.history_access` | History visibility state |
 | `ak.realm.discovery` | Discoverability state |
 | `ak.realm.preview_policy` | Preview / peek policy state |
-| `ak.realm.policy` | Realm policy state |
+| `ak.realm.policy` | Closed reference to one independently defined Policy object (`payload.value.policy_id`); inline Realm facets use `ak.realm.policy_bundle` or their dedicated Event kinds |
 | `ak.realm.read_receipt_policy` | Realm read receipt disclosure policy state |
 | `ak.realm.tombstone` | Terminal Realm tombstone or replacement marker |
 | `ak.realm.archive` | Reversible archive state |
@@ -277,7 +277,7 @@ Schema evolution MUST：
 - reducer 行为变化需提供变更说明
 - 若变更授权、可见性、排序或收敛语义，需声明新 schema 或 reducer profile
 
-v1 canonical object（Event Envelope / Operation / Event Batch Receipt / Snapshot / Grant / encrypted envelope）的 schema 是封闭的（`additionalProperties: false`）：schema 未声明的未知字段 MUST 被 schema validation 以 `schema_violation` 拒绝，**不存在**“接受并保留任意未知字段”的隐式路径（与 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md) 的 Event Envelope 封闭规则和 [`../models/common-fields.md`](../models/common-fields.md) 的字段默认规则同源）。前向兼容扩展只能通过 schema 显式声明的扩展位承载：已显式声明 `x_*` patternProperties 的逐 Event Invite payload schema、`requirements.critical_extensions[].parameters`，以及不进入 canonical bytes 的 `unsigned`。对 schema 允许但实现未识别的扩展位内容，接收方 MUST 在存储、转发、backfill 与 hash / 签名校验的 canonical bytes 中原样保留；reducer 可忽略其语义，但不得剔除。
+v1 canonical object（Event Envelope / Operation / Event Batch Receipt / Snapshot / Grant / encrypted envelope）的 schema 是封闭的（`additionalProperties: false`）：schema 未声明的未知字段 MUST 被 schema validation 以 `schema_violation` 拒绝，**不存在**“接受并保留任意未知字段”的隐式路径（与 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md) 的 Event Envelope 封闭规则和 [`../models/common-fields.md`](../models/common-fields.md) 的字段默认规则同源）。前向兼容扩展只能通过 schema 显式声明的扩展位承载：已显式声明 `x_*` patternProperties 的逐 Event Invite payload schema、`requirements.critical_extensions[].parameters`，以及不进入 canonical bytes 的 `unsigned`。少数 Event payload 的具名 `value` 槽需要承载 selector-specific 文档时，只有 [`open-value-exception-registry.json`](../../artifacts/registry/open-value-exception-registry.json) 中登记的 active kind 可以使用空 schema；wrapper 仍必须 closed，producer 必须携登记的 selector，reducer 必须按 entry 的 `validation_contract` 验证，正文不得把完整 payload 称为 closed。`tools/check_open_value_exceptions.py` 对未登记空槽与陈旧例外 fail closed。对 schema 允许但实现未识别的扩展位内容，接收方 MUST 在存储、转发、backfill 与 hash / 签名校验的 canonical bytes 中原样保留；reducer 可忽略其语义，但不得剔除。
 
 未知 critical feature MUST fail closed。Event Envelope 的 `requirements` 对象（含 `schema[]` / `features[]` / `critical_extensions[]`）是 v1 固定的扩展声明位置，全部进入 canonical bytes 并参与 `event_digest`。Reducer profile 从 Event 的 CBA governance basis 读取，不在 `requirements` 中重复声明。`requirements.critical_extensions[]` 每项必须包含 `id`、`extension_scope` 和 `fail_closed=true`；entry 顶层不得携带未声明字段，扩展参数必须放入 `parameters`，大对象必须用 `material_digest` 绑定。
 

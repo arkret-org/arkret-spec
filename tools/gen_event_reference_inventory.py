@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -44,7 +45,7 @@ def walk(value: Any, path: list[str], rows: list[dict[str, str]], file_name: str
             walk(child, path + [str(index)], rows, file_name)
 
 
-def main() -> int:
+def build_inventory() -> dict[str, Any]:
     rows: list[dict[str, str]] = []
     for path in sorted(SCHEMAS.glob("*.json")):
         walk(json.loads(path.read_text(encoding="utf-8")), [], rows, path.name)
@@ -52,17 +53,38 @@ def main() -> int:
     counts: dict[str, int] = {}
     for row in rows:
         counts[row["classification"]] = counts.get(row["classification"], 0) + 1
-    payload = {
-        "version": "2026-08-07",
+    return {
+        "version": "2026-08-22",
+        "source_of_truth": False,
+        "generated_from": ["schemas/*.json"],
         "generated_by": "tools/gen_event_reference_inventory.py",
         "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
         "counts": counts,
         "fields": rows,
     }
-    OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"updated {OUTPUT.relative_to(ROOT).as_posix()} ({len(rows)} fields)")
+
+
+def main(argv: list[str]) -> int:
+    mode = argv[1] if len(argv) > 1 else "generate"
+    payload = build_inventory()
+    rendered = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    if mode == "check":
+        if not OUTPUT.exists() or OUTPUT.read_text(encoding="utf-8") != rendered:
+            print(
+                f"generated report drift: {OUTPUT.relative_to(ROOT).as_posix()} "
+                "(run python tools/artifact_pipeline.py generate)",
+                file=sys.stderr,
+            )
+            return 1
+        print(f"event reference inventory clean ({len(payload['fields'])} fields)")
+        return 0
+    if mode != "generate":
+        print(f"unsupported mode: {mode}", file=sys.stderr)
+        return 2
+    OUTPUT.write_text(rendered, encoding="utf-8")
+    print(f"updated {OUTPUT.relative_to(ROOT).as_posix()} ({len(payload['fields'])} fields)")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv))

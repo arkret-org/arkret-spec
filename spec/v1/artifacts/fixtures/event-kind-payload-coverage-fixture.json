@@ -8,6 +8,7 @@
       "registry/event-kind-registry.json",
       "schemas/event-envelope.schema.json",
       "schemas/event-payload.schema.json",
+      "schemas/invite-receive-policy.schema.json",
       "schemas/accountability-grant.schema.json",
       "schemas/agent-provision.schema.json",
       "schemas/agent-selector-claim.schema.json",
@@ -17,6 +18,153 @@
     ]
   },
   "schema_validation_cases": [
+    {
+      "name": "realm_discovery_accepts_closed_anti_enumeration_policy",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_discovery_payload",
+      "expect_valid": true,
+      "instance": {
+        "value": {
+          "discoverability": "listed",
+          "directory_services": ["ak:did_core:webvh:z6mkdirectoryfixture"],
+          "anti_enumeration": {
+            "member_count_mode": "bucketed",
+            "member_count_hysteresis": {"ratio": 0.15},
+            "member_count_min_residence_ms": 300000
+          }
+        }
+      }
+    },
+    {
+      "name": "realm_discovery_rejects_retired_second_preview_policy",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_discovery_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:preview",
+      "instance": {
+        "value": {
+          "discoverability": "listed",
+          "preview": {"mode": "directory_card", "fields": ["title"]}
+        }
+      }
+    },
+    {
+      "name": "realm_asset_privacy_accepts_explicit_direct_download_gate",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_asset_privacy_policy_payload",
+      "expect_valid": true,
+      "instance": {
+        "value": {
+          "download_mode": "provider_proxy",
+          "direct_download_allowed": false,
+          "client_digest_check_required": true
+        }
+      }
+    },
+    {
+      "name": "realm_asset_privacy_rejects_unknown_policy_field",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_asset_privacy_policy_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:allow_bearer_url",
+      "instance": {
+        "value": {
+          "direct_download_allowed": true,
+          "allow_bearer_url": true
+        }
+      }
+    },
+    {
+      "name": "realm_schema_accepts_closed_morph_kind_profile",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_schema_payload",
+      "expect_valid": true,
+      "instance": {
+        "value": {
+          "schema_refs": ["ak.schema.message.v1"],
+          "morph_kind_profiles": {
+            "task": {
+              "allowed_facets": ["assignable"],
+              "writable_fields": ["title"],
+              "required_schema_refs": ["ak.schema.message.v1"],
+              "required_capability_actions": ["ak.morph.update"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "realm_schema_rejects_unknown_morph_profile_dimension",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_schema_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:allow_all_fields",
+      "instance": {
+        "value": {
+          "schema_refs": ["ak.schema.message.v1"],
+          "morph_kind_profiles": {"task": {"allow_all_fields": true}}
+        }
+      }
+    },
+    {
+      "name": "realm_policy_accepts_only_independent_policy_reference",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_payload",
+      "expect_valid": true,
+      "instance": {
+        "value": {"policy_id": "ak:policy:01991e10-0000-7000-8000-000000000000"}
+      }
+    },
+    {
+      "name": "realm_policy_rejects_inline_policy_body",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:rules",
+      "instance": {
+        "value": {
+          "policy_id": "ak:policy:01991e10-0000-7000-8000-000000000000",
+          "rules": []
+        }
+      }
+    },
+    {
+      "name": "realm_policy_bundle_accepts_domain_scoped_handle_issuer_policy",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "expect_valid": true,
+      "instance": {
+        "policy_revision": 1,
+        "handle_issuer_policy": [{
+          "issuer": "ak:did_core:webvh:z6mkissuerfixture",
+          "authorized_handle_domains": ["example.com", "*.corp.example.com"],
+          "issuer_class": "domain_authority"
+        }]
+      }
+    },
+    {
+      "name": "realm_policy_bundle_rejects_bare_handle_issuer_strings",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:handle_issuer_policy",
+      "instance": {
+        "policy_revision": 1,
+        "handle_issuer_policy": ["ak:did_core:webvh:z6mkissuerfixture"]
+      }
+    },
+    {
+      "name": "invite_receive_constraints_accept_disclosure_max",
+      "schema_ref": "schemas/invite-receive-policy.schema.json#/$defs/receive_policy_constraints",
+      "expect_valid": true,
+      "instance": {
+        "policy_version": "policy-7",
+        "disclosure_max": {
+          "high_trust_max": "outcome",
+          "discovery_trust_max": "opaque",
+          "low_trust_max": "opaque"
+        }
+      }
+    },
+    {
+      "name": "invite_receive_constraints_reject_unknown_disclosure_tier",
+      "schema_ref": "schemas/invite-receive-policy.schema.json#/$defs/receive_policy_constraints",
+      "expect_valid": false,
+      "first_expected_error": "contains:anonymous_max",
+      "instance": {
+        "disclosure_max": {"anonymous_max": "opaque"}
+      }
+    },
     {
       "name": "relation_tombstone_payload_accepts_canonical_target",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",

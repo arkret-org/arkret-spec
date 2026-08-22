@@ -228,6 +228,22 @@
             "quarantine"
           ]
         },
+        "disclosure_max": {
+          "type": "object",
+          "description": "Deployment/admin upper bound on graded invite outcome disclosure. Each present tier caps the corresponding subject disclosure value using opaque < outcome; omitted tiers impose no additional deployment cap.",
+          "properties": {
+            "high_trust_max": {
+              "$ref": "#/$defs/disclosure_level"
+            },
+            "discovery_trust_max": {
+              "$ref": "#/$defs/disclosure_level"
+            },
+            "low_trust_max": {
+              "$ref": "#/$defs/disclosure_level"
+            }
+          },
+          "additionalProperties": false
+        },
         "allowed_handle_domains": {
           "type": "array",
           "items": {

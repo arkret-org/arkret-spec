@@ -4640,12 +4640,6 @@
       ],
       "description": "Closed history-delivery authorization incarnation. Circle reactivation/Add must causally cover the exact current parent-Realm incarnation; independent Realm and Circle MLS epochs are never compared."
     },
-    "encrypted_content": {
-      "$ref": "./encrypted-envelope.schema.json"
-    },
-    "encrypted_metadata": {
-      "$ref": "./encrypted-envelope.schema.json"
-    },
     "encrypted_envelope": {
       "$ref": "./encrypted-envelope.schema.json"
     },
@@ -4759,11 +4753,60 @@
       },
       "additionalProperties": false
     },
+    "identity_presentation_claim_request": {
+      "type": "object",
+      "required": [
+        "claim_kind",
+        "disclosure"
+      ],
+      "properties": {
+        "claim_kind": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "constraints": {
+          "type": "object",
+          "description": "Claim-kind-specific constraint parameters. The selected claim schema, not this generic carrier, defines the parameter vocabulary.",
+          "additionalProperties": true
+        },
+        "fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "disclosure": {
+          "type": "string",
+          "enum": [
+            "abstract",
+            "explicit"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "discovery_profile_visibility": {
+      "type": "object",
+      "description": "Explicit map from profile field name to its maximum directory disclosure class. Dynamic keys are confined to this declared map slot.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "public",
+          "listed",
+          "restricted",
+          "hidden"
+        ]
+      }
+    },
     "identity_presentation_request_state_payload": {
       "type": "object",
       "description": "Identity presentation-request log payload. request_id is the stable presentation correlation subject.",
       "required": [
-        "request_id"
+        "request_id",
+        "value"
       ],
       "properties": {
         "request_id": {
@@ -4776,7 +4819,81 @@
             }
           ]
         },
-        "value": {},
+        "value": {
+          "type": "object",
+          "required": [
+            "verifier_service_id",
+            "domain",
+            "challenge",
+            "purpose",
+            "accepted_issuers",
+            "required_claims"
+          ],
+          "properties": {
+            "verifier_service_id": {
+              "$ref": "#/$defs/did_core_id"
+            },
+            "represented_org": {
+              "$ref": "#/$defs/did_core_id"
+            },
+            "domain": {
+              "type": "string",
+              "pattern": "^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+            },
+            "challenge": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "purpose": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "accepted_issuers": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            },
+            "required_claims": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/identity_presentation_claim_request"
+              }
+            },
+            "optional_claims": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/identity_presentation_claim_request"
+              }
+            },
+            "denied_claims": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              }
+            },
+            "transport_hints": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "tsp",
+                  "http_jwe",
+                  "didcomm_like",
+                  "to_device",
+                  "mls_dm"
+                ]
+              }
+            },
+            "expires_at": {
+              "$ref": "#/$defs/timestamp"
+            }
+          },
+          "additionalProperties": false
+        },
         "state": {
           "type": "string"
         },
@@ -8021,13 +8138,45 @@
       "type": "object",
       "description": "State payload for an Organization discovery declaration. organization_principal_id is the stable cell subject.",
       "required": [
-        "organization_principal_id"
+        "organization_principal_id",
+        "value"
       ],
       "properties": {
         "organization_principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "value": {},
+        "value": {
+          "type": "object",
+          "required": [
+            "discoverability",
+            "directory_services"
+          ],
+          "properties": {
+            "discoverability": {
+              "type": "string",
+              "enum": [
+                "public",
+                "listed",
+                "restricted",
+                "unlisted",
+                "invite_only",
+                "secret"
+              ]
+            },
+            "profile_visibility": {
+              "$ref": "#/$defs/discovery_profile_visibility"
+            },
+            "directory_services": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
         "state": {
           "type": "string"
         },
@@ -8413,7 +8562,8 @@
       "type": "object",
       "description": "Policy rule state payload. rule_id is the stable ak.component.policy.rule.v1 cell subject and MUST equal the rule_id of the PolicyRule this event asserts, whose closed shape is defined by policy.schema.json #/$defs/policy_rule (zh/models/governance-objects.md section 5). The cell is an ordered_log, so each accepted event appends one revision rather than replacing the previous one.",
       "required": [
-        "rule_id"
+        "rule_id",
+        "value"
       ],
       "properties": {
         "rule_id": {
@@ -8421,7 +8571,9 @@
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
           "description": "Rule identifier, same lexical form as policy.schema.json #/$defs/policy_rule rule_id."
         },
-        "value": {},
+        "value": {
+          "$ref": "./policy.schema.json#/$defs/policy_rule"
+        },
         "state": {
           "type": "string"
         },
@@ -9454,7 +9606,7 @@
     },
     "realm_policy_bundle_payload": {
       "type": "object",
-      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state_payload wrapper); event-envelope.schema.json dispatches the kind directly to this def, and the def name follows the ak.<x> -> <x>_payload derivation rule. The closed property set is the complete set of Realm policy components that have no independent facet Event kind. Components that DO have their own kind and cell (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.delivery_binding_policy, ak.realm.moderation_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) are written by those events and are already covered by policy_root's ak.component.realm.*policy* leaf filter; they MUST NOT be echoed here.",
+      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state wrapper); event-envelope.schema.json dispatches the kind directly to this def. The closed property set is the complete set of Realm policy components that have no independent facet Event kind. Components that DO have their own kind and cell (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.delivery_binding_policy, ak.realm.moderation_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) are written by those events and are already covered by policy_root's ak.component.realm.*policy* leaf filter; they MUST NOT be echoed here. ak.realm.policy is not a third inline carrier: it only selects an independently defined Policy object by policy_id.",
       "description": "Enabled Realm policy component set, written wholesale into the ak.component.realm.policy_bundle.v1 cas_register cell: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision is strictly monotonic; the reducer rejects rollback or gaps, and policy_frontier_digest MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md section 2.3).",
       "required": [
         "policy_revision"
@@ -9495,6 +9647,45 @@
         },
         "join_policy": {
           "$ref": "#/$defs/join_policy_component"
+        },
+        "handle_issuer_policy": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true,
+          "description": "Ordered Realm handle-issuer trust policy used by primary-handle resolution. Earlier entries have higher tie-break priority; every issuer is domain-scoped.",
+          "items": {
+            "type": "object",
+            "required": [
+              "issuer",
+              "authorized_handle_domains",
+              "issuer_class"
+            ],
+            "properties": {
+              "issuer": {
+                "$ref": "#/$defs/did_core_id"
+              },
+              "authorized_handle_domains": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 256,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(?:\\*\\.)?[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$"
+                }
+              },
+              "issuer_class": {
+                "type": "string",
+                "enum": [
+                  "domain_authority",
+                  "delegated_issuer",
+                  "directory_mirror"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
         },
         "agent_participation": {
           "$ref": "./realm.schema.json#/properties/agent_participation"
@@ -9912,7 +10103,8 @@
       "type": "object",
       "description": "State payload for actor, applet, and handle discovery declarations. resource_id is the stable cell subject; value carries the schema-versioned discovery state.",
       "required": [
-        "resource_id"
+        "resource_id",
+        "value"
       ],
       "properties": {
         "resource_id": {
@@ -9925,7 +10117,47 @@
             }
           ]
         },
-        "value": {},
+        "value": {
+          "type": "object",
+          "required": [
+            "resource_kind",
+            "discoverability",
+            "directory_services"
+          ],
+          "properties": {
+            "resource_kind": {
+              "type": "string",
+              "enum": [
+                "actor",
+                "applet",
+                "handle"
+              ]
+            },
+            "discoverability": {
+              "type": "string",
+              "enum": [
+                "public",
+                "listed",
+                "restricted",
+                "unlisted",
+                "invite_only",
+                "secret"
+              ]
+            },
+            "directory_services": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            },
+            "profile_visibility": {
+              "$ref": "#/$defs/discovery_profile_visibility"
+            }
+          },
+          "additionalProperties": false
+        },
         "state": {
           "type": "string"
         },
@@ -10237,14 +10469,66 @@
       "type": "object",
       "description": "Sovereign DID policy state payload. trust_domain is the deployment-scoped replay-boundary subject.",
       "required": [
-        "trust_domain"
+        "trust_domain",
+        "value"
       ],
       "properties": {
         "trust_domain": {
           "type": "string",
           "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
         },
-        "value": {},
+        "value": {
+          "type": "object",
+          "required": [
+            "default_principal_method",
+            "allowed_methods",
+            "trust_roots",
+            "public_resolver_allowed",
+            "method_policy"
+          ],
+          "properties": {
+            "default_principal_method": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+$"
+            },
+            "allowed_methods": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^did:[a-z0-9]+$"
+              }
+            },
+            "trust_roots": {
+              "type": "array",
+              "description": "Stable did_core_id allowlist. A root is compared against project(candidate full_id); it is not itself resolvable and does not carry a verification method or endpoint. Verification still requires approved full_id/key binding/method evidence and fails closed when that evidence is unavailable.",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            },
+            "public_resolver_allowed": {
+              "type": "boolean"
+            },
+            "method_policy": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^did:[a-z0-9]+$"
+              },
+              "additionalProperties": {
+                "type": "string",
+                "enum": [
+                  "allowlist",
+                  "external_collaborator_only",
+                  "ephemeral_only"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
         "state": {
           "type": "string"
         },
@@ -10560,11 +10844,341 @@
       },
       "additionalProperties": false
     },
-    "state_payload": {
+    "realm_policy_payload": {
       "type": "object",
-      "minProperties": 1,
+      "description": "Closed payload for ak.realm.policy. It selects one independently defined Policy object by id; inline Realm facets remain exclusively in ak.realm.policy_bundle or their dedicated facet Event kinds.",
+      "required": [
+        "value"
+      ],
       "properties": {
-        "value": {},
+        "value": {
+          "type": "object",
+          "required": [
+            "policy_id"
+          ],
+          "properties": {
+            "policy_id": {
+              "type": "string",
+              "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_rule_payload": {
+      "type": "object",
+      "description": "Closed whole-value payload for ak.realm.join_rule.",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "string",
+          "enum": [
+            "public",
+            "invite",
+            "knock",
+            "restricted",
+            "knock_restricted",
+            "closed"
+          ]
+        },
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_discovery_payload": {
+      "type": "object",
+      "description": "Closed whole-value payload for ak.realm.discovery. Preview field selection is owned exclusively by ak.realm.preview_policy.",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "object",
+          "required": [
+            "discoverability"
+          ],
+          "properties": {
+            "discoverability": {
+              "type": "string",
+              "enum": [
+                "public",
+                "listed",
+                "restricted",
+                "unlisted",
+                "invite_only",
+                "secret"
+              ]
+            },
+            "directory_visibility": {
+              "type": "object",
+              "properties": {
+                "public_directory": {
+                  "type": "boolean"
+                },
+                "organization_directory": {
+                  "type": "boolean"
+                },
+                "source_realm_directory": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "allowed_discoverers": {
+              "type": "array",
+              "maxItems": 256,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "required": [
+                  "selector_kind",
+                  "claim_kind",
+                  "issuer"
+                ],
+                "properties": {
+                  "selector_kind": {
+                    "const": "claim"
+                  },
+                  "claim_kind": {
+                    "$ref": "#/$defs/non_empty_string"
+                  },
+                  "organization": {
+                    "$ref": "#/$defs/did_core_id"
+                  },
+                  "issuer": {
+                    "$ref": "#/$defs/did_core_id"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "directory_services": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            },
+            "anti_enumeration": {
+              "type": "object",
+              "properties": {
+                "unlisted_exact_alias_required": {
+                  "type": "boolean"
+                },
+                "member_count_mode": {
+                  "type": "string",
+                  "enum": [
+                    "exact",
+                    "bucketed",
+                    "omit"
+                  ]
+                },
+                "not_found_blinding": {
+                  "type": "boolean"
+                },
+                "member_count_hysteresis": {
+                  "type": "object",
+                  "properties": {
+                    "absolute": {
+                      "type": "integer",
+                      "minimum": 2
+                    },
+                    "ratio": {
+                      "type": "number",
+                      "minimum": 0.1,
+                      "maximum": 1
+                    }
+                  },
+                  "minProperties": 1,
+                  "additionalProperties": false
+                },
+                "member_count_min_residence_ms": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_asset_privacy_policy_payload": {
+      "type": "object",
+      "description": "Closed whole-value payload for ak.realm.asset_privacy_policy.",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "download_mode": {
+              "type": "string",
+              "enum": [
+                "direct",
+                "provider_proxy",
+                "ohttp_relay",
+                "client_mirror"
+              ]
+            },
+            "allowed_modes": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "direct",
+                  "provider_proxy",
+                  "ohttp_relay",
+                  "client_mirror"
+                ]
+              }
+            },
+            "direct_download_allowed": {
+              "type": "boolean",
+              "default": false
+            },
+            "upload_services": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            },
+            "download_proxy_services": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            },
+            "ohttp_gateway_services": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            },
+            "max_plaintext_metadata": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "size_bucket",
+                  "media_type_family",
+                  "content_hash"
+                ]
+              }
+            },
+            "client_digest_check_required": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_schema_payload": {
+      "type": "object",
+      "description": "Closed whole-value payload for ak.realm.schema.",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "object",
+          "required": [
+            "schema_refs"
+          ],
+          "properties": {
+            "schema_refs": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+              }
+            },
+            "morph_kind_profiles": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9_.-]{0,127}$"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "allowed_facets": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "$ref": "#/$defs/non_empty_string"
+                    }
+                  },
+                  "writable_fields": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "$ref": "#/$defs/non_empty_string"
+                    }
+                  },
+                  "required_schema_refs": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+                    }
+                  },
+                  "required_capability_actions": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
         "state": {
           "type": "string"
         },

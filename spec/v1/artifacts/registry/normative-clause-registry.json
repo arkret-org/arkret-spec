@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.6",
+  "version": "2026-08-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-21T23:59:00+08:00",
+  "generated_at": "2026-08-22T16:30:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -14,7 +14,7 @@
       "distributed_write"
     ],
     "rule": "This registry covers the high-risk observable obligation set named in included_categories. It is deliberately not a numbering of every normative sentence under spec/v1/zh; mechanically numbering prose would manufacture meaningless MUSTs. A green release gate proves that every registered clause has live evidence and that no registered section changed without review. It does NOT prove that every MUST in the specification is registered.",
-    "extension_rule": "Adding a normative obligation inside an included category requires adding or updating a clause in the same change. Because section_digest pins the current text of every registered anchor, editing a registered section fails the release gate until the clause and its evidence are re-reviewed."
+    "extension_rule": "Adding or changing a high-risk observable obligation that this registry is intended to evidence requires adding or updating a clause in the same change. Obligations without executable evidence stay explicitly outside this registry rather than pointing at unrelated evidence. Because section_digest pins registered anchors, editing a registered section fails the release gate until its existing clause and evidence are re-reviewed; this rule does not imply exhaustive coverage of every normative sentence in an included category."
   },
   "registry_rules": [
     "clause_id values are stable and MUST NOT be reused after a clause is retired; retire a clause by setting status=deprecated instead of deleting the row.",
@@ -198,7 +198,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#3-realm-discoverability",
-      "section_digest": "sha256:7e0bf4a4dc571451b9d610a5d0ab750ce707d4b56996cb3e2777b10e719329aa",
+      "section_digest": "sha256:578c807feae6c67c60231c9958bd93af1edef8e2f0d130e31cc58bd32374cf0e",
       "requirement": "Directory resolution failures are indistinguishable: unauthorized, non-existent and policy-denied targets MUST NOT be separable by error code, field set or timing.",
       "testability_grade": "vector",
       "evidence_refs": [

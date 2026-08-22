@@ -589,29 +589,33 @@ Cache-Control: public, immutable, max-age=31536000
 {
   "kind": "ak.realm.asset_privacy_policy",
   "payload": {
-    "download_mode": "provider_proxy",
-    "allowed_modes": [
-      "provider_proxy",
-      "ohttp_relay"
-    ],
-    "direct_download_allowed": false,
-    "upload_services": [
-      "did:webvh:z9L9sKcFqigzdgN2ucF1V6ztq:blob.acme.example"
-    ],
-    "download_proxy_services": [
-      "did:webvh:zGKqLZm5euMAfKUjGMsFkXR9E:media-proxy.acme.example"
-    ],
-    "ohttp_gateway_services": [
-      "did:webvh:zAQ5daUZibU8q3K1aaxD9vMRg:ohttp-gateway.example"
-    ],
-    "max_plaintext_metadata": [
-      "size_bucket",
-      "media_type_family"
-    ],
-    "client_digest_check_required": true
+    "value": {
+      "download_mode": "provider_proxy",
+      "allowed_modes": [
+        "provider_proxy",
+        "ohttp_relay"
+      ],
+      "direct_download_allowed": false,
+      "upload_services": [
+        "ak:did_core:webvh:z9L9sKcFqigzdgN2ucF1V6ztq"
+      ],
+      "download_proxy_services": [
+        "ak:did_core:webvh:zGKqLZm5euMAfKUjGMsFkXR9E"
+      ],
+      "ohttp_gateway_services": [
+        "ak:did_core:webvh:zAQ5daUZibU8q3K1aaxD9vMRg"
+      ],
+      "max_plaintext_metadata": [
+        "size_bucket",
+        "media_type_family"
+      ],
+      "client_digest_check_required": true
+    }
   }
 }
 ```
+
+该 Event 使用 closed `realm_asset_privacy_policy_payload`；策略字段只能位于 whole-value `payload.value`，未知字段以 `schema_violation` 拒绝。
 
 `download_mode` 取值：
 

@@ -52,6 +52,15 @@ SESSION_GRANT_KAT_SCRIPT = Path(__file__).with_name("check_session_grant_kat.py"
 CONTACT_ROUND_KAT_SCRIPT = Path(__file__).with_name("check_contact_round_kat.py")
 ARTIFACT_VERSION_SCRIPT = Path(__file__).with_name("check_artifact_versions.py")
 COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
+EVENT_REFERENCE_INVENTORY_SCRIPT = Path(__file__).with_name(
+    "gen_event_reference_inventory.py"
+)
+OPEN_VALUE_EXCEPTION_SCRIPT = Path(__file__).with_name(
+    "check_open_value_exceptions.py"
+)
+EVENT_KIND_VECTOR_GAP_SCRIPT = Path(__file__).with_name(
+    "check_event_kind_vector_gaps.py"
+)
 PRESENCE_MANIFEST_SCRIPT = Path(__file__).with_name("gen_property_presence_manifest.py")
 SCHEMA_COVERAGE_SCRIPT = Path(__file__).with_name("gen_schema_consumer_coverage.py")
 OPERATION_STRING_CLASSIFICATION_SCRIPT = Path(__file__).with_name(
@@ -1206,6 +1215,23 @@ def run_operation_completeness_report(mode: str) -> int:
     return result.returncode
 
 
+def run_event_reference_inventory(mode: str) -> int:
+    result = subprocess.run(
+        [sys.executable, str(EVENT_REFERENCE_INVENTORY_SCRIPT), mode], cwd=ROOT
+    )
+    return result.returncode
+
+
+def run_open_value_exception_check() -> int:
+    result = subprocess.run([sys.executable, str(OPEN_VALUE_EXCEPTION_SCRIPT)], cwd=ROOT)
+    return result.returncode
+
+
+def run_event_kind_vector_gap_check() -> int:
+    result = subprocess.run([sys.executable, str(EVENT_KIND_VECTOR_GAP_SCRIPT)], cwd=ROOT)
+    return result.returncode
+
+
 def run_property_presence_manifest(mode: str) -> int:
     result = subprocess.run(
         [sys.executable, str(PRESENCE_MANIFEST_SCRIPT), mode], cwd=ROOT
@@ -1234,12 +1260,14 @@ def cmd_generate(_: argparse.Namespace) -> int:
     write_operation_schema_index()
     write_public_registry_snapshot()
     completeness_status = run_operation_completeness_report("generate")
+    event_reference_status = run_event_reference_inventory("generate")
     presence_status = run_property_presence_manifest("generate")
     coverage_status = run_schema_consumer_coverage("generate")
     string_classification_status = run_operation_string_classification("generate")
     print_contract_status()
     return (
         completeness_status
+        or event_reference_status
         or presence_status
         or coverage_status
         or string_classification_status
@@ -1263,6 +1291,9 @@ def cmd_check(_: argparse.Namespace) -> int:
         return 1
     print_contract_status()
     completeness_status = run_operation_completeness_report("check")
+    event_reference_status = run_event_reference_inventory("check")
+    open_value_status = run_open_value_exception_check()
+    vector_gap_status = run_event_kind_vector_gap_check()
     presence_status = run_property_presence_manifest("check")
     coverage_status = run_schema_consumer_coverage("check")
     string_classification_status = run_operation_string_classification("check")
@@ -1274,6 +1305,9 @@ def cmd_check(_: argparse.Namespace) -> int:
     prose_lint_status = run_prose_lint()
     return (
         completeness_status
+        or event_reference_status
+        or open_value_status
+        or vector_gap_status
         or presence_status
         or coverage_status
         or string_classification_status

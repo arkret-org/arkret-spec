@@ -59,20 +59,9 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
         "organization_directory": true,
         "source_realm_directory": true
       },
-      "preview": {
-        "mode": "stripped_state",
-        "fields": [
-          "title",
-          "avatar_blob_ref",
-          "summary",
-          "owning_organizations",
-          "join_rule",
-          "member_count_bucket"
-        ]
-      },
       "allowed_discoverers": [
         {
-          "type": "claim",
+          "selector_kind": "claim",
           "claim_kind": "org_membership",
           "organization": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
           "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example"
@@ -84,14 +73,16 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
       "anti_enumeration": {
         "unlisted_exact_alias_required": true,
         "member_count_mode": "bucketed",
-        "not_found_blinding": true
+        "not_found_blinding": true,
+        "member_count_hysteresis": {"ratio": 0.15},
+        "member_count_min_residence_ms": 300000
       }
     }
   }
 }
 ```
 
-`ak.realm.discovery` 的 payload class 是 closed `state_payload`：策略内容整体位于 whole-value
+`ak.realm.discovery` 的 payload class 是 closed `realm_discovery_payload`：策略内容整体位于 whole-value
 `value` 内，`state` / `reason` 是可选的诊断成员。**MUST NOT** 把策略字段平铺到 payload 顶层，也 **MUST NOT**
 在 payload 内携带 detached `proof`——Event envelope 的 producer proof 已经覆盖同一批 canonical bytes
 （§8.3 已明令废除 payload 内含 proof 的形态）。
@@ -112,12 +103,12 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
 | 模式 | 行为 |
 | --- | --- |
 | `exact` | 返回精确成员数；仅在 `discoverability ∈ {public, listed}` 时允许。 |
-| `bucketed` | 返回**封闭 bucket** 之一：`1-10` / `11-50` / `51-100` / `101-500` / `501-2000` / `2000+`。Directory 实现 MUST 使用本 bucket grid，不得自定义粒度（防止粒度差异成为枚举侧信道）。请求方收到不在此枚举的 bucket 字符串 MUST 视作 `response_invalid` 并丢弃。**边界振荡侧信道（normative）**：真实成员数在两个 bucket 边界附近抖动时，反复观察 bucket 翻转可被用来逼近精确成员数。因此 bucket 输出 MUST 带迟滞（hysteresis）**且** 最小驻留时间，且两个下界均为 MUST，不得用"声明极小窗口 / 零带宽"架空：bucket 一旦切换，MUST 在 policy 声明或本段默认的最小驻留窗口内保持稳定，不得在边界两侧逐次 query 即翻转。该最小驻留窗口 MUST ≥ max(当前 directory entry 的刷新 TTL，成员数 query 的可观察刷新间隔)；声明小于此下界的窗口 MUST 被视为不合规，未声明时采用该下界。迟滞带宽下界亦为 MUST：实现 MUST 仅在真实计数越过 bucket 边界、并持续超过该 policy 声明或本段默认的迟滞带宽后才切换输出 bucket。默认迟滞带宽 = max(2, ceil(相邻有限 bucket 跨度较小者 × 0.10))；policy MAY 声明更大的绝对值或比例，但不得低于该默认值。**开放上界 bucket(`2000+`)的迟滞参照(normative)**:`2000+` 无有限跨度，故其相邻边界(`501-2000` 与 `2000+` 之间)的迟滞带宽 MUST 取相邻有限 bucket `501-2000` 的跨度(1500)作为参照基数，按上述默认或 policy 值计算。无论哪种，该边界的迟滞带宽 MUST 为正且不得为 0。 |
+| `bucketed` | 返回**封闭 bucket** 之一：`1-10` / `11-50` / `51-100` / `101-500` / `501-2000` / `2000+`。Directory 实现 MUST 使用本 bucket grid，不得自定义粒度（防止粒度差异成为枚举侧信道）。请求方收到不在此枚举的 bucket 字符串 MUST 视作 `response_invalid` 并丢弃。**边界振荡侧信道（normative）**：真实成员数在两个 bucket 边界附近抖动时，反复观察 bucket 翻转可被用来逼近精确成员数。因此 bucket 输出 MUST 带迟滞（hysteresis）**且** 最小驻留时间，且两个下界均为 MUST，不得用"声明极小窗口 / 零带宽"架空：bucket 一旦切换，MUST 在 policy 的 `anti_enumeration.member_count_min_residence_ms` 或本段默认的最小驻留窗口内保持稳定，不得在边界两侧逐次 query 即翻转。该最小驻留窗口 MUST ≥ max(当前 directory entry 的刷新 TTL，成员数 query 的可观察刷新间隔)；声明小于此下界的窗口 MUST 被视为不合规，未声明时采用该下界。迟滞带宽由 `anti_enumeration.member_count_hysteresis.absolute` 或 `.ratio` 声明；两者同时出现时取更严格（更大）的有效带宽。实现 MUST 仅在真实计数越过 bucket 边界、并持续超过该 policy 声明或本段默认的迟滞带宽后才切换输出 bucket。默认迟滞带宽 = max(2, ceil(相邻有限 bucket 跨度较小者 × 0.10))；policy MAY 声明更大的绝对值或比例，但不得低于该默认值。**开放上界 bucket(`2000+`)的迟滞参照(normative)**:`2000+` 无有限跨度，故其相邻边界(`501-2000` 与 `2000+` 之间)的迟滞带宽 MUST 取相邻有限 bucket `501-2000` 的跨度(1500)作为参照基数，按上述默认或 policy 值计算。无论哪种，该边界的迟滞带宽 MUST 为正且不得为 0。 |
 | `omit` | 不返回成员数；任何隐含的 hint（如返回组员数组的 length）也 MUST 被裁剪。 |
 
 `restricted` / `unlisted` / `invite_only` / `secret` Realm 的 `member_count_mode` 默认 `omit`；显式声明 `bucketed` 时必须遵守上述 bucket grid 与迟滞约束。
 
-**Preview 成员数字段与 `member_count_mode` 的绑定（normative）**：§3 `ak.realm.discovery.preview.fields` 中的成员数字段（canonical 名 `member_count_bucket`）的存在性与形态 MUST 由 effective `member_count_mode` 决定，二者不得各自独立：
+**Preview 成员数字段与 `member_count_mode` 的绑定（normative）**：`ak.realm.preview_policy.value.fields` 中的成员数字段（canonical 名 `member_count_bucket`）的存在性与形态 MUST 由 effective `member_count_mode` 决定，二者不得各自独立：
 
 | effective `member_count_mode` | `preview.fields` 中成员数字段的存在性与形态 |
 | --- | --- |
@@ -208,12 +199,12 @@ flowchart TB
 
 ### 3.2 Preview / Peek 与 History Visibility 的关系
 
-Directory preview 不是历史读取的快捷方式。`ak.realm.discovery.preview` 只声明目录结果或 exact resolve 可以返回哪些最小 metadata（例如 `title`、`summary`、`join_rule`、bucketed member count、`stripped_state`），不得单独授权正文历史、成员列表、policy 原文、隐藏 edge 或 E2EE 明文。
+Directory preview 不是历史读取的快捷方式。目录结果或 exact resolve 可以返回的最小 metadata 只由 `ak.realm.preview_policy` 声明；`ak.realm.discovery` 不再包含第二套 `preview` 字段。preview policy 不得单独授权正文历史、成员列表、policy 原文、隐藏 edge 或 E2EE 明文。
 
-当实现要支持 Matrix-style "peek before join"、invitee 进入前历史片段、或带 token 的 object preview 时，Realm MUST 同时声明有效 `ak.realm.preview_policy`，并按
+当实现要返回 directory card / stripped state、支持 Matrix-style "peek before join"、invitee 进入前历史片段、或带 token 的 object preview 时，Realm MUST 声明有效 `ak.realm.preview_policy`，并按
 [`../governance/history-visibility.md`](../governance/history-visibility.md) §4 执行 preview audience、字段、历史范围、E2EE 和 anti-enumeration 规则。没有 `ak.realm.preview_policy` 时：
 
-- Directory MAY 返回 directory card / stripped state，但 MUST NOT 返回 history stub 或 history snippet。
+- Directory MUST NOT 返回 directory card、stripped state、history stub 或 history snippet；只可返回不可区分的最小定位结果。
 - `resolve_realm` / `resolve_target` 对未授权 preview MUST 返回与不存在不可区分的 `not_found`。
 - `history_access=all_history_for_current_members` 仍不允许 Directory 自动扩展 preview 字段；完整历史读取必须走 Events / backfill surface，并继续执行 capability、retention、redaction 和 plaintext-visible service 检查。
 

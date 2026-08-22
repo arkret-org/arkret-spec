@@ -538,8 +538,8 @@ Founding、peer Add 和以后 repair 都只通过该 group 的 ordinary winning 
 不得为 DC 新增 winner、barrier 或 quorum。Message 必须引用 event-time exact winning group state，后续 Commit 不追溯否定旧 Message。
 
 若所有成员均丢失该 group 的 private state，则旧 encrypted DC scope 永久终结：不得用同一 derived group id 重放 Genesis、把 epoch
-归零或激活第二组。要继续会话，双方必须按正常建联流程创建一个新 DC Realm，因此获得新 `realm_id` 与新 derived group id；旧 Realm
-的历史、backup、proof 与 epoch namespace 不与新 Realm 合并。
+归零或激活第二组。同一 stable participant pair 与同一 trust domain 下也不得创建 successor DC Realm；resolver 保持 `suspended`，服务端只能返回已登记且可由当前状态证明的 `state_mismatch`，不得把设备私态丢失猜测成新的 wire 共识状态。只有实际不同的 stable participant pair 或不同 trust domain 才会按 §5.1 自然得到不同 `pair_key`
+并进入新的普通建联流程；该新会话不是旧 lineage 的恢复，旧 Realm 的历史、backup、proof 与 epoch namespace 不与其合并。
 
 ### 7.4 exporter scheme 的既有代价
 
@@ -561,7 +561,7 @@ canonical DM Realm **MUST** 拒绝 `ak.realm.destroy` 与任何 `ak.realm.tombst
 
 只要至少一名 current authorized member 仍持有该唯一 group 的 private state，其普通同步器观察 accepted membership 变化后，按既有 KeyPackage claim 合同取得回归方 exact package，并在同一 group author 普通 Remove/Add Commit 与 Welcome。该流程完整复用普通 Commit winner、security frontier、claim consumption 与 Welcome admission；DC 不定义专用 carrier、operation、queue、feature、barrier、quorum 或幂等账本。
 
-任一 directional Contact 已撤回时，membership Event 可以被保存，但 KeyPackage claim、MLS Add 与发送必须保持拒绝，resolver 返回 `suspended`。若没有成员保有 private state，则按 §7.3 终结旧 encrypted DC scope，后续会话使用新 Realm。
+任一 directional Contact 已撤回时，membership Event 可以被保存，但 KeyPackage claim、MLS Add 与发送必须保持拒绝，resolver 返回 `suspended`。若没有成员保有 private state，则按 §7.3 终结旧 encrypted DC scope；同一 pair / trust domain 没有 successor Realm。
 
 ### 8.3 binding 与日常 authority
 

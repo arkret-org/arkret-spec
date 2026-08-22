@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.6",
+  "version": "2026-08-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-21T23:56:00+08:00",
+  "generated_at": "2026-08-22T16:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -5705,8 +5705,8 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Realm access policy reference (policy_id)",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
+        "payload": "Realm access policy reference (policy_id); inline policy components remain in ak.realm.policy_bundle or dedicated facet kinds",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5717,7 +5717,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm join rule (public/invite/knock/restricted/knock_restricted/closed)",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_join_rule_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5761,7 +5761,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm discoverability state",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_discovery_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5860,7 +5860,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm asset privacy policy",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_asset_privacy_policy_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5915,7 +5915,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm schema_refs declaration",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_schema_payload",
         "id_source": "not_an_object_id"
       },
       {
