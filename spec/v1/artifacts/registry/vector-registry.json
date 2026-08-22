@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-22.1",
+  "version": "2026-08-23.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-22T14:20:00+08:00",
+  "generated_at": "2026-08-23T00:31:05+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4357,15 +4357,15 @@
       ]
     },
     {
-      "vector_id": "ak.vector.mls_exporter_aead.rrk_archive_durable_before_gc.v1",
+      "vector_id": "ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1",
       "status": "active",
-      "domain": "mls_exporter_aead",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
+      "domain": "history_key",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
       ],
-      "description": "Executable organization-recovery durability vector: local history-secret GC requires a byte-identical archive container Event accepted-or-duplicate, barrier/resolve exact reread and an atomic local coverage ledger. It introduces no share Event, availability receipt, threshold target set or renewal state machine.",
+      "description": "Executable service-behavior vector for organization-recovery durability: deterministic HPKE archive bytes, typed transition/container provenance, first durable replica receipt, exact duplicate replay, barrier/list reread, atomic coverage-ledger states and GC-before/after decisions are all frozen without defining private storage rows.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
       ]
     },
     {

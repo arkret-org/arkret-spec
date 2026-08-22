@@ -10,8 +10,7 @@
     "ak.vector.mls_exporter_aead.seal_open_transcript.v1",
     "ak.vector.signal.exporter_key_kat.v1",
     "ak.vector.aead.full_width_counter_nonce.v1",
-    "ak.vector.reaction.routing_hmac_kat.v1",
-    "ak.vector.mls_exporter_aead.rrk_archive_durable_before_gc.v1"
+    "ak.vector.reaction.routing_hmac_kat.v1"
   ],
   "kdf_contract": {
     "hash": "SHA-256",
@@ -265,36 +264,6 @@
           "reuse_key_after_epoch_change"
         ],
         "negative_decision": "reject"
-      }
-    },
-    {
-      "name": "rrk_archive_durable_before_local_gc",
-      "vector_id": "ak.vector.mls_exporter_aead.rrk_archive_durable_before_gc.v1",
-      "input": {
-        "durability_policy": "organization_recovery_key",
-        "effective_scope": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj"
-        },
-        "epoch": 7,
-        "archive_tuple": "exact recovery_key_id/version/holder principal+service/signing ref",
-        "durable_completion": [
-          "byte_identical_archive_container_event_accepted_or_duplicate",
-          "barrier_resolve_exact_reread",
-          "local_atomic_coverage_ledger"
-        ]
-      },
-      "expected": {
-        "gc_before_completion": "reject_failed_precondition",
-        "gc_after_completion": "accept",
-        "exact_retry": "returns_original_archive_event_and_receipt",
-        "forbidden": [
-          "share_event",
-          "availability_receipt",
-          "threshold_target_set",
-          "renewal_state_machine",
-          "portable_active_mls_state"
-        ]
       }
     }
   ]

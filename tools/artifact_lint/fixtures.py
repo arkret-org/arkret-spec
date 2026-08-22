@@ -50,14 +50,17 @@ try:
     from cryptography.exceptions import InvalidSignature, InvalidTag
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
 except ImportError:  # pragma: no cover - CI installs the dependency.
     InvalidSignature = None
     InvalidTag = None
     Ed25519PrivateKey = None
     Ed25519PublicKey = None
+    X25519PrivateKey = None
     serialization = None
     AESGCM = None
+    ChaCha20Poly1305 = None
 
 
 
@@ -3127,6 +3130,18 @@ def check_history_scale_fixture(lint: Lint) -> None:
     runner = data.get("runner")
     if not isinstance(runner, dict) or runner.get("scale_generator") != "tools/generate_history_scale_fixture.py":
         lint.fail(path, "history recovery fixture must name its streaming scale generator")
+    removed_rrk_vector_id = "ak.vector.mls_exporter_aead.rrk_archive_durable_before_gc.v1"
+    private_kdf_path = ARTIFACTS / "fixtures" / "arkret-private-kdf-fixture.json"
+    private_kdf = load_json(lint, private_kdf_path)
+    vector_registry_path = ARTIFACTS / "registry" / "vector-registry.json"
+    vector_registry = load_json(lint, vector_registry_path)
+    if removed_rrk_vector_id in canonical_json(data) or (
+        isinstance(private_kdf, dict) and removed_rrk_vector_id in canonical_json(private_kdf)
+    ) or (
+        isinstance(vector_registry, dict)
+        and removed_rrk_vector_id in canonical_json(vector_registry)
+    ):
+        lint.fail(path, "removed exporter-classified RRK durability vector must not remain as an alias")
 
     scope_cases = data.get("scope_and_endpoint_kats")
     if not isinstance(scope_cases, list):
@@ -3241,6 +3256,271 @@ def check_history_scale_fixture(lint: Lint) -> None:
                         path,
                         f"history predicate digest ignores covered member {member}",
                     )
+
+    rrk = data.get("organization_recovery_archive_durable_before_gc_kat")
+    rrk_vector_id = (
+        "ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1"
+    )
+    if not isinstance(rrk, dict):
+        lint.fail(path, "history recovery fixture must carry the executable RRK durability KAT")
+    elif (
+        rrk.get("vector_id") != rrk_vector_id
+        or rrk.get("classification") != "service_behavior"
+        or rrk_vector_id not in data.get("covers_vectors", [])
+    ):
+        lint.fail(path, "RRK durability KAT classification or vector registration drifted")
+    else:
+        registered_rrk = next(
+            (
+                row
+                for row in vector_registry.get("vectors", [])
+                if isinstance(row, dict) and row.get("vector_id") == rrk_vector_id
+            ),
+            None,
+        ) if isinstance(vector_registry, dict) else None
+        if (
+            not isinstance(registered_rrk, dict)
+            or registered_rrk.get("domain") != "history_key"
+            or registered_rrk.get("applies_to_fixtures")
+            != ["history-key-recovery-fixture.json"]
+            or registered_rrk.get("source_refs")
+            != ["spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"]
+        ):
+            lint.fail(path, "RRK durability vector registry row must remain service-fixture scoped")
+        typed_instances = (
+            ("RRK archive plaintext", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_plaintext", rrk.get("hpke_transcript", {}).get("plaintext")),
+            ("RRK archive", "schemas/event-payload.schema.json#/$defs/organization_recovery_archive", rrk.get("archive")),
+            ("RRK commit payload", "schemas/event-payload.schema.json#/$defs/mls_commit_payload", rrk.get("container_event", {}).get("payload")),
+            ("RRK container Event", "schemas/event-envelope.schema.json", rrk.get("container_event")),
+            ("RRK archive tuple", "schemas/history-key.schema.json#/$defs/archive_authorization_tuple", rrk.get("archive_authorization_tuple")),
+            ("RRK traversal retention", "schemas/history-key.schema.json#/$defs/history_governance_traversal_retention", rrk.get("replica", {}).get("history_traversal_retention")),
+            ("RRK replica", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica", rrk.get("replica")),
+            ("RRK first receipt", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome", rrk.get("first_receipt")),
+            ("RRK barrier query", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query", rrk.get("barrier_query")),
+            ("RRK barrier outcome", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome", rrk.get("barrier_resolve_outcome")),
+        )
+        for label, schema_ref, instance in typed_instances:
+            check_json_instance_against_schema(lint, path, label, schema_ref, instance)
+
+        def decode_b64u(value: Any) -> bytes:
+            if not isinstance(value, str):
+                raise ValueError("not a base64url string")
+            return base64.urlsafe_b64decode(value + "=" * ((4 - len(value) % 4) % 4))
+
+        hpke = rrk.get("hpke_transcript")
+        archive = rrk.get("archive")
+        try:
+            if not isinstance(hpke, dict) or not isinstance(archive, dict):
+                raise ValueError("missing HPKE transcript or archive")
+            recipient_private_bytes = decode_b64u(hpke["recipient_private_key_b64u"])
+            ephemeral_private_bytes = decode_b64u(hpke["ephemeral_private_key_b64u"])
+            recipient_private = X25519PrivateKey.from_private_bytes(recipient_private_bytes)
+            ephemeral_private = X25519PrivateKey.from_private_bytes(ephemeral_private_bytes)
+            recipient_public = recipient_private.public_key().public_bytes(
+                serialization.Encoding.Raw, serialization.PublicFormat.Raw
+            )
+            enc = ephemeral_private.public_key().public_bytes(
+                serialization.Encoding.Raw, serialization.PublicFormat.Raw
+            )
+            if decode_b64u(hpke["recipient_public_key_b64u"]) != recipient_public:
+                raise ValueError("recipient public key is not derived from the frozen private input")
+            if decode_b64u(hpke["enc_b64u"]) != enc:
+                raise ValueError("enc is not derived from the frozen ephemeral input")
+            if archive.get("frozen_public_key_b64u") != hpke["recipient_public_key_b64u"]:
+                raise ValueError("archive frozen public key differs from the HPKE transcript")
+            if archive.get("enc") != hpke["enc_b64u"]:
+                raise ValueError("archive enc differs from the HPKE transcript")
+            archive_public = dict(archive)
+            archive_public.pop("enc")
+            archive_public.pop("ciphertext")
+            info = canonical_json(archive_public).encode("utf-8")
+            if decode_b64u(hpke["info_jcs_b64u"]) != info or decode_b64u(hpke["aad_jcs_b64u"]) != info:
+                raise ValueError("HPKE info/AAD is not the exact archive public tuple JCS")
+
+            def labeled_extract(suite_id: bytes, salt: bytes, label: bytes, ikm: bytes) -> bytes:
+                return hmac.new(
+                    salt or b"\x00" * 32,
+                    b"HPKE-v1" + suite_id + label + ikm,
+                    hashlib.sha256,
+                ).digest()
+
+            def labeled_expand(
+                suite_id: bytes, prk: bytes, label: bytes, info_value: bytes, length: int
+            ) -> bytes:
+                return hkdf_expand_sha256(
+                    prk,
+                    length.to_bytes(2, "big")
+                    + b"HPKE-v1"
+                    + suite_id
+                    + label
+                    + info_value,
+                    length,
+                )
+
+            kem_suite = b"KEM" + (0x0020).to_bytes(2, "big")
+            suite = b"HPKE" + bytes.fromhex("002000010003")
+            dh = ephemeral_private.exchange(recipient_private.public_key())
+            kem_context = enc + recipient_public
+            eae_prk = labeled_extract(kem_suite, b"", b"eae_prk", dh)
+            shared_secret = labeled_expand(kem_suite, eae_prk, b"shared_secret", kem_context, 32)
+            psk_id_hash = labeled_extract(suite, b"", b"psk_id_hash", b"")
+            info_hash = labeled_extract(suite, b"", b"info_hash", info)
+            key_schedule_context = b"\x00" + psk_id_hash + info_hash
+            secret = labeled_extract(suite, shared_secret, b"secret", b"")
+            key = labeled_expand(suite, secret, b"key", key_schedule_context, 32)
+            nonce = labeled_expand(suite, secret, b"base_nonce", key_schedule_context, 12)
+            exporter_secret = labeled_expand(
+                suite, secret, b"exp", key_schedule_context, 32
+            )
+            expected_bytes = {
+                "dh_b64u": dh,
+                "kem_context_b64u": kem_context,
+                "shared_secret_b64u": shared_secret,
+                "key_schedule_context_b64u": key_schedule_context,
+                "secret_b64u": secret,
+                "key_b64u": key,
+                "base_nonce_b64u": nonce,
+                "exporter_secret_b64u": exporter_secret,
+            }
+            for field, expected in expected_bytes.items():
+                if decode_b64u(hpke[field]) != expected:
+                    raise ValueError(f"HPKE derived field drifted: {field}")
+            plaintext_bytes = decode_b64u(hpke["plaintext_jcs_b64u"])
+            if plaintext_bytes != canonical_json(hpke["plaintext"]).encode("utf-8"):
+                raise ValueError("HPKE plaintext bytes are not typed plaintext JCS")
+            ciphertext = decode_b64u(hpke["ciphertext_b64u"])
+            if archive.get("ciphertext") != hpke["ciphertext_b64u"]:
+                raise ValueError("archive ciphertext differs from HPKE transcript")
+            if ChaCha20Poly1305(key).decrypt(nonce, ciphertext, info) != plaintext_bytes:
+                raise ValueError("HPKE transcript does not decrypt to the frozen plaintext")
+            if decode_b64u(hpke["opened_plaintext_jcs_b64u"]) != plaintext_bytes:
+                raise ValueError("HPKE opened plaintext assertion drifted")
+        except (KeyError, TypeError, ValueError, binascii.Error, InvalidTag) as exc:
+            lint.fail(path, f"RRK durability HPKE transcript is not executable: {exc}")
+
+        try:
+            container_event = rrk["container_event"]
+            container_preimage = decode_b64u(rrk["container_event_producer_bytes_b64u"])
+            container_digest = "sha256:" + hashlib.sha256(container_preimage).hexdigest()
+            provenance = rrk["transition_provenance"]
+            if container_preimage != canonical_json({
+                key: value for key, value in container_event.items() if key not in {"event_id", "proofs"}
+            }).encode("utf-8"):
+                raise ValueError("container Event digest preimage is not the canonical producer object")
+            if provenance["container_event_digest"] != container_digest:
+                raise ValueError("container Event digest drifted")
+            expected_event_ref = "ak:event:" + base64.urlsafe_b64encode(
+                b"\x01" + bytes.fromhex(container_digest[7:])
+            ).rstrip(b"=").decode("ascii")
+            if container_event["event_id"] != expected_event_ref or provenance["container_event_ref"] != expected_event_ref:
+                raise ValueError("container Event ref is not derived from its digest")
+            transition_bytes = decode_b64u(provenance["mls_transition_bytes_b64u"])
+            transition_digest = "sha256:" + hashlib.sha256(transition_bytes).hexdigest()
+            if (
+                provenance["mls_transition_digest"] != transition_digest
+                or archive["transition_digest"] != transition_digest
+                or container_event["payload"]["commit_digest"] != transition_digest
+            ):
+                raise ValueError("archive transition provenance is not single-sourced")
+            event_proof = container_event["proofs"][0]
+            event_transcript = rrk["container_event_proof_transcript"]
+            event_binding = json.loads(decode_b64u(event_transcript["binding_jcs_b64u"]))
+            if (
+                event_binding["context"] != "ak.event-proof-v1"
+                or event_binding["event_digest"] != container_digest
+                or event_binding["actor_id"] != container_event["actor_id"]
+                or event_binding["verification_method"] != event_proof["verification_method"]
+                or event_binding["signer_resolution_evidence_ref"]
+                != event_proof["signer_resolution_evidence_ref"]
+                or event_binding["signer_resolution_evidence_digest"]
+                != event_proof["signer_resolution_evidence_digest"]
+                or event_binding["created_at"] != event_proof["created_at"]
+            ):
+                raise ValueError("container Event proof binding is incomplete")
+            event_signature = decode_b64u(event_proof["jws"].split("..", 1)[1])
+            Ed25519PublicKey.from_public_bytes(
+                decode_b64u(rrk["signing_keys"]["source_ed25519_public_key_b64u"])
+            ).verify(
+                event_signature,
+                event_transcript["signing_input_ascii"].encode("ascii"),
+            )
+        except (KeyError, TypeError, ValueError, binascii.Error, InvalidSignature) as exc:
+            lint.fail(path, f"RRK durability transition/container provenance drifted: {exc}")
+
+        try:
+            replica = rrk["replica"]
+            replica_unsigned = dict(replica)
+            replica_unsigned.pop("service_proof")
+            replica_digest = "sha256:" + hashlib.sha256(
+                b"ak.organization-recovery-archive-replica-v1\x00"
+                + canonical_json(replica_unsigned).encode("utf-8")
+            ).hexdigest()
+            receipt = rrk["first_receipt"]
+            if receipt["archive_replica_digest"] != replica_digest:
+                raise ValueError("first receipt does not bind the exact replica")
+            receipt_jcs = canonical_json(receipt).encode("utf-8")
+            if decode_b64u(rrk["first_receipt_jcs_b64u"]) != receipt_jcs:
+                raise ValueError("first receipt canonical bytes drifted")
+            signing_keys = rrk["signing_keys"]
+            proof_cases = (
+                (replica["service_proof"], rrk["replica_proof_transcript"], signing_keys["source_ed25519_public_key_b64u"]),
+                (receipt["service_proof"], rrk["receipt_proof_transcript"], signing_keys["holder_ed25519_public_key_b64u"]),
+            )
+            for proof, transcript, public_key_b64u in proof_cases:
+                if proof["payload_digest"] != transcript["payload_digest"]:
+                    raise ValueError("service proof payload digest drifted")
+                signature = decode_b64u(proof["jws"].split("..", 1)[1])
+                Ed25519PublicKey.from_public_bytes(decode_b64u(public_key_b64u)).verify(
+                    signature, transcript["signing_input_ascii"].encode("ascii")
+                )
+        except (KeyError, TypeError, ValueError, binascii.Error, InvalidSignature) as exc:
+            lint.fail(path, f"RRK durability replica/receipt transcript drifted: {exc}")
+
+        try:
+            reread = rrk["barrier_resolve_outcome"]["items"][0]
+            assertions = rrk["exact_reread_assertions"]
+            if any(reread[field] != assertions[field] for field in assertions):
+                raise ValueError("barrier resolve is not the exact frozen archive row")
+            ledger = rrk["coverage_ledger"]
+            steps = {step["name"]: step for step in rrk["steps"]}
+            if set(steps) != {
+                "gc_before_durable_acceptance",
+                "first_holder_replica_acceptance",
+                "exact_duplicate_replica",
+                "barrier_resolve_exact_reread",
+                "gc_after_exact_reread",
+            }:
+                raise ValueError("step matrix is incomplete")
+            if (
+                steps["gc_before_durable_acceptance"]["expected_decision"] != "failed_precondition"
+                or steps["gc_before_durable_acceptance"]["expected_ledger"] != ledger["initial"]
+                or steps["first_holder_replica_acceptance"]["expected_receipt"] != rrk["first_receipt"]
+                or steps["first_holder_replica_acceptance"]["expected_ledger"] != ledger["after_first_accept"]
+                or steps["exact_duplicate_replica"]["expected_receipt_jcs_b64u"] != rrk["first_receipt_jcs_b64u"]
+                or steps["exact_duplicate_replica"]["expected_new_archive_sequence_count"] != 0
+                or steps["barrier_resolve_exact_reread"]["expected_outcome"] != rrk["barrier_resolve_outcome"]
+                or steps["barrier_resolve_exact_reread"]["expected_ledger"] != ledger["after_exact_reread"]
+                or steps["gc_after_exact_reread"]["expected_decision"] != "accepted"
+                or steps["gc_after_exact_reread"]["expected_ledger"] != ledger["after_local_gc"]
+            ):
+                raise ValueError("coverage-ledger or exact-retry step expectations drifted")
+            if (
+                ledger["initial"]["durable_holder_acceptance"] is not False
+                or ledger["after_first_accept"]["exact_holder_reread"] is not False
+                or ledger["after_exact_reread"]["covered_epochs"] != [archive["epoch"]]
+                or ledger["after_local_gc"]["local_history_secret_present"] is not False
+            ):
+                raise ValueError("coverage-ledger initial/intermediate/final states drifted")
+            negative_names = {row["name"] for row in rrk["negative_mutations"]}
+            if negative_names != {
+                "same_semantic_archive_changed_replicated_at",
+                "barrier_archive_bytes_mismatch",
+            }:
+                raise ValueError("RRK durability negative matrix drifted")
+            if "private_database_row_shape" not in rrk["forbidden_artifacts"]:
+                raise ValueError("RRK durability KAT no longer forbids private storage shape")
+        except (KeyError, TypeError, ValueError) as exc:
+            lint.fail(path, f"RRK durability state-machine closure drifted: {exc}")
     kat = data.get("direct_traversal_kat")
     if not isinstance(kat, dict):
         lint.fail(path, "history recovery fixture must carry the executable direct-traversal KAT")

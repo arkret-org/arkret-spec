@@ -38,7 +38,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
-      "sha256": "2a4633a06f75add4f0f94dbb1f7715dc46ab476997cd419b96aa1859f9815777"
+      "sha256": "22402ebc5eaba6fb5f5bc8ffd7f55d4997f29ab8cdb2636c0e8910ad1f3c3f0a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/audit-release-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "54344080a9e7ff74d989f5f212f76dab3868c099f9dcd2fc4972bdb710e750a0"
+      "sha256": "5b1bd1408c300c8b1e3712207e5a1a8c33bcfcec3e44d14657459f92df34912e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",

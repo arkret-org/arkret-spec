@@ -7,6 +7,7 @@ import argparse
 import base64
 import copy
 import hashlib
+import hmac
 import json
 import sqlite3
 import tempfile
@@ -14,6 +15,10 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from jsonschema import Draft202012Validator, RefResolver
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "spec/v1/artifacts/schemas"
@@ -27,6 +32,7 @@ REGISTRY_SNAPSHOT_DOMAIN = b"ak.governance-registry-snapshot-v1"
 REGISTRY_ARTIFACT_DOMAIN = b"ak.governance-registry-artifact-v1"
 AVAILABILITY_BYTES_DOMAIN = b"ak.availability-event-bytes-v1"
 SOURCE_AGENT_OBSERVATION_DOMAIN = b"ak.history-source-agent-observation-v1"
+ARCHIVE_REPLICA_DOMAIN = b"ak.organization-recovery-archive-replica-v1"
 MAX_REQUEST_EPOCHS = 65_536
 
 SERVICE_DID = "did:key:z6MkfixtureService"
@@ -49,6 +55,69 @@ def domain_digest(domain: bytes, value: Any) -> str:
 
 def b64u(value: bytes) -> str:
     return base64.urlsafe_b64encode(value).rstrip(b"=").decode("ascii")
+
+
+def hkdf_extract(salt: bytes, ikm: bytes) -> bytes:
+    return hmac.new(salt or b"\x00" * 32, ikm, hashlib.sha256).digest()
+
+
+def hkdf_expand(prk: bytes, info: bytes, length: int) -> bytes:
+    output = b""
+    block = b""
+    counter = 1
+    while len(output) < length:
+        block = hmac.new(prk, block + info + bytes([counter]), hashlib.sha256).digest()
+        output += block
+        counter += 1
+    return output[:length]
+
+
+def hpke_labeled_extract(suite_id: bytes, salt: bytes, label: bytes, ikm: bytes) -> bytes:
+    return hkdf_extract(salt, b"HPKE-v1" + suite_id + label + ikm)
+
+
+def hpke_labeled_expand(
+    suite_id: bytes, prk: bytes, label: bytes, info: bytes, length: int
+) -> bytes:
+    labeled_info = length.to_bytes(2, "big") + b"HPKE-v1" + suite_id + label + info
+    return hkdf_expand(prk, labeled_info, length)
+
+
+def detached_jws(
+    key: Ed25519PrivateKey,
+    context: str,
+    unsigned: dict[str, Any],
+    binding_fields: list[str],
+    verification_method: str,
+    created_at: str,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    payload_digest = sha256(jcs(unsigned))
+    binding = {
+        "context": context,
+        "payload_digest": payload_digest,
+        **{field: unsigned[field] for field in binding_fields},
+        "verification_method": verification_method,
+        "created_at": created_at,
+    }
+    protected = b64u(jcs({"alg": "Ed25519"}))
+    payload = b64u(jcs(binding))
+    signature = key.sign((protected + "." + payload).encode("ascii"))
+    proof = {
+        "kind": "detached_jws",
+        "verification_method": verification_method,
+        "payload_digest": payload_digest,
+        "created_at": created_at,
+        "jws": protected + ".." + b64u(signature),
+    }
+    transcript = {
+        "context": context,
+        "unsigned_jcs_b64u": b64u(jcs(unsigned)),
+        "payload_digest": payload_digest,
+        "binding_jcs_b64u": b64u(jcs(binding)),
+        "detached_payload_b64u": payload,
+        "signing_input_ascii": protected + "." + payload,
+    }
+    return proof, transcript
 
 
 def event_id(label: str) -> str:
@@ -836,6 +905,445 @@ def build_response_capability_kat() -> dict[str, Any]:
     }
 
 
+def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]) -> dict[str, Any]:
+    source_core = "ak:did_core:web:rrk-source.example"
+    source_method = "did:web:rrk-source.example#ed25519-1"
+    holder_core = "ak:did_core:web:rrk-holder.example"
+    holder_method = "did:web:rrk-holder.example#ed25519-1"
+    holder_key_agreement = "did:web:rrk-holder.example#x25519-1"
+    replicated_at = "2026-08-23T00:00:00.000Z"
+    accepted_at = "2026-08-23T00:00:01.000Z"
+    proof_created_at = "2026-08-23T00:00:02.000Z"
+    epoch = 7
+
+    source_signing_key = Ed25519PrivateKey.from_private_bytes(b"\x44" * 32)
+    holder_signing_key = Ed25519PrivateKey.from_private_bytes(b"\x55" * 32)
+    source_public_key = source_signing_key.public_key().public_bytes(
+        serialization.Encoding.Raw, serialization.PublicFormat.Raw
+    )
+    holder_public_key = holder_signing_key.public_key().public_bytes(
+        serialization.Encoding.Raw, serialization.PublicFormat.Raw
+    )
+
+    recipient_private_bytes = b"\x11" * 32
+    ephemeral_private_bytes = b"\x22" * 32
+    recipient_private = X25519PrivateKey.from_private_bytes(recipient_private_bytes)
+    ephemeral_private = X25519PrivateKey.from_private_bytes(ephemeral_private_bytes)
+    recipient_public = recipient_private.public_key().public_bytes(
+        serialization.Encoding.Raw, serialization.PublicFormat.Raw
+    )
+    enc = ephemeral_private.public_key().public_bytes(
+        serialization.Encoding.Raw, serialization.PublicFormat.Raw
+    )
+
+    effective_scope = {"kind": "realm", "realm_id": REALM}
+    holder_trusted_basis = basis(seal_ref("rrk-holder-trusted-basis"))
+    accepted_key_evidence_ref = event_id("rrk-accepted-key-evidence")
+    transition_bytes = b"arkret rrk archive fixture commit epoch 7"
+    transition_digest = sha256(transition_bytes)
+    archive_public = {
+        "effective_scope": effective_scope,
+        "mls_group_id": GROUP,
+        "epoch": epoch,
+        "transition_digest": transition_digest,
+        "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000121",
+        "holder_principal_id": holder_core,
+        "holder_service_id": holder_core,
+        "key_agreement_ref": holder_key_agreement,
+        "holder_signing_ref": holder_method,
+        "hpke_suite": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+        "frozen_public_key_b64u": b64u(recipient_public),
+        "accepted_key_evidence_ref": accepted_key_evidence_ref,
+        "holder_trusted_basis": holder_trusted_basis,
+    }
+    plaintext = {
+        "kind": "ak.organization_recovery.archive_plaintext",
+        "history_secret_b64u": b64u(b"\x33" * 32),
+    }
+    info = jcs(archive_public)
+    plaintext_bytes = jcs(plaintext)
+
+    kem_suite_id = b"KEM" + (0x0020).to_bytes(2, "big")
+    hpke_suite_id = (
+        b"HPKE"
+        + (0x0020).to_bytes(2, "big")
+        + (0x0001).to_bytes(2, "big")
+        + (0x0003).to_bytes(2, "big")
+    )
+    dh = ephemeral_private.exchange(recipient_private.public_key())
+    kem_context = enc + recipient_public
+    eae_prk = hpke_labeled_extract(kem_suite_id, b"", b"eae_prk", dh)
+    shared_secret = hpke_labeled_expand(
+        kem_suite_id, eae_prk, b"shared_secret", kem_context, 32
+    )
+    psk_id_hash = hpke_labeled_extract(hpke_suite_id, b"", b"psk_id_hash", b"")
+    info_hash = hpke_labeled_extract(hpke_suite_id, b"", b"info_hash", info)
+    key_schedule_context = b"\x00" + psk_id_hash + info_hash
+    secret = hpke_labeled_extract(hpke_suite_id, shared_secret, b"secret", b"")
+    key = hpke_labeled_expand(hpke_suite_id, secret, b"key", key_schedule_context, 32)
+    base_nonce = hpke_labeled_expand(
+        hpke_suite_id, secret, b"base_nonce", key_schedule_context, 12
+    )
+    exporter_secret = hpke_labeled_expand(
+        hpke_suite_id, secret, b"exp", key_schedule_context, 32
+    )
+    ciphertext = ChaCha20Poly1305(key).encrypt(base_nonce, plaintext_bytes, info)
+    recovered_plaintext = ChaCha20Poly1305(key).decrypt(base_nonce, ciphertext, info)
+    if recovered_plaintext != plaintext_bytes:
+        raise AssertionError("RRK archive HPKE round trip failed")
+    archive = {**archive_public, "enc": b64u(enc), "ciphertext": b64u(ciphertext)}
+
+    governance_binding = {
+        "binding_version": 1,
+        "encoding_profile": "cbor-deterministic-rfc8949-v1",
+        "realm_id": REALM,
+        "effective_scope": effective_scope,
+        "mls_group_id": GROUP,
+        "previous_epoch": epoch - 1,
+        "next_epoch": epoch,
+        "security_frontier_digest": digest_marker(0x71),
+        "content_scheme": "mls_exporter_aead_v1",
+        "durability_policy": "organization_recovery_key",
+        "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+        "reducer_profile": "ak.reducer.default.v1",
+    }
+    container_payload = {
+        "mls_group_id": GROUP,
+        "base_epoch": epoch - 1,
+        "base_epoch_ref": event_id("rrk-base-epoch"),
+        "proposal_refs": [],
+        "next_epoch": epoch,
+        "commit_bytes_b64": b64u(transition_bytes),
+        "commit_digest": transition_digest,
+        "governance_binding": governance_binding,
+        "organization_recovery_archive": archive,
+    }
+    container_event_core = {
+        "kind": "ak.mls.commit",
+        "realm_id": REALM,
+        "scope_ref": effective_scope,
+        "actor_id": source_core,
+        "principal_server_id": source_core,
+        "actor_seq": 7,
+        "created_at": replicated_at,
+        "prev_refs": [container_payload["base_epoch_ref"]],
+        "refs": [],
+        "seal_basis": basis(seal_ref("rrk-source-accepted-basis")),
+        "payload": container_payload,
+    }
+    container_event_digest = sha256(jcs(container_event_core))
+    container_event_ref = "ak:event:" + b64u(b"\x01" + bytes.fromhex(container_event_digest[7:]))
+    source_evidence_digest = digest_marker(0x72)
+    event_binding = {
+        "context": "ak.event-proof-v1",
+        "event_digest": container_event_digest,
+        "actor_id": source_core,
+        "verification_method": source_method,
+        "signer_resolution_evidence_ref": "ak:signer_evidence:" + source_evidence_digest,
+        "signer_resolution_evidence_digest": source_evidence_digest,
+        "created_at": replicated_at,
+    }
+    event_protected = b64u(jcs({"alg": "Ed25519"}))
+    event_payload = b64u(jcs(event_binding))
+    event_signature = source_signing_key.sign(
+        (event_protected + "." + event_payload).encode("ascii")
+    )
+    container_event = {
+        "event_id": container_event_ref,
+        **container_event_core,
+        "proofs": [
+            {
+                "kind": "detached_jws",
+                "verification_method": source_method,
+                "event_digest": container_event_digest,
+                "created_at": replicated_at,
+                "signer_resolution_evidence_ref": "ak:signer_evidence:" + source_evidence_digest,
+                "signer_resolution_evidence_digest": source_evidence_digest,
+                "jws": event_protected + ".." + b64u(event_signature),
+            }
+        ],
+    }
+
+    archive_tuple = {
+        field: archive[field]
+        for field in (
+            "recovery_key_id",
+            "key_agreement_ref",
+            "holder_principal_id",
+            "holder_service_id",
+            "holder_signing_ref",
+            "accepted_key_evidence_ref",
+            "holder_trusted_basis",
+        )
+    }
+    target_basis = basis(seal_ref("rrk-winning-archive-transition"))
+    traversal_intent = {
+        "kind": "ak.history_governance.traversal_intent",
+        "profile": "organization_recovery_archive",
+        "effective_scope": effective_scope,
+        "mls_group_id": GROUP,
+        "trusted_history_base_basis": holder_trusted_basis,
+        "trusted_current_basis": holder_trusted_basis,
+        "target_basis": target_basis,
+        "requested_ranges": [{"from_epoch": epoch, "to_epoch": epoch}],
+        "archive_authorization_tuple": archive_tuple,
+        "container_event_ref": container_event_ref,
+        "registry_snapshot_digest": registry["snapshot"]["snapshot_digest"],
+        "traversal_admission_registry_digest": digest_marker(0x73),
+        "retention": {"kind": "archive_lifetime"},
+    }
+    traversal_retention = {
+        "traversal_intent": traversal_intent,
+        "traversal_intent_digest": domain_digest(TRAVERSAL_INTENT_DOMAIN, traversal_intent),
+    }
+
+    replica_unsigned = {
+        "kind": "ak.organization_recovery.archive_replica",
+        "archive": archive,
+        "container_event_ref": container_event_ref,
+        "history_traversal_retention": traversal_retention,
+        "source_service_id": source_core,
+        "holder_service_id": holder_core,
+        "replicated_at": replicated_at,
+    }
+    replica_proof, replica_proof_transcript = detached_jws(
+        source_signing_key,
+        "ak.organization-recovery-archive-replica-proof-v1",
+        replica_unsigned,
+        [
+            "kind",
+            "archive",
+            "container_event_ref",
+            "history_traversal_retention",
+            "source_service_id",
+            "holder_service_id",
+            "replicated_at",
+        ],
+        source_method,
+        proof_created_at,
+    )
+    replica = {**replica_unsigned, "service_proof": replica_proof}
+    archive_replica_digest = domain_digest(ARCHIVE_REPLICA_DOMAIN, replica_unsigned)
+
+    receipt_unsigned = {
+        "archive_replica_digest": archive_replica_digest,
+        "holder_service_id": holder_core,
+        "archive_sequence": 1,
+        "accepted_at": accepted_at,
+    }
+    receipt_proof, receipt_proof_transcript = detached_jws(
+        holder_signing_key,
+        "ak.organization-recovery-archive-replica-receipt-proof-v1",
+        receipt_unsigned,
+        ["archive_replica_digest", "holder_service_id", "archive_sequence", "accepted_at"],
+        holder_method,
+        proof_created_at,
+    )
+    first_receipt = {**receipt_unsigned, "service_proof": receipt_proof}
+    list_query = {
+        "effective_scope": effective_scope,
+        "recovery_key_id": archive["recovery_key_id"],
+        "key_agreement_ref": archive["key_agreement_ref"],
+        "accepted_key_evidence_ref": accepted_key_evidence_ref,
+        "holder_trusted_basis": holder_trusted_basis,
+        "from_epoch": epoch,
+        "to_epoch": epoch,
+        "byte_limit": 65536,
+    }
+    list_item = {
+        "archive_sequence": 1,
+        "archive": archive,
+        "container_event_ref": container_event_ref,
+        "history_traversal_retention": traversal_retention,
+    }
+    list_outcome = {"items": [list_item], "limited": False}
+
+    validators = [
+        ("history-key.schema.json", "organization_recovery_archive_plaintext", plaintext),
+        ("event-payload.schema.json", "organization_recovery_archive", archive),
+        ("event-payload.schema.json", "mls_commit_payload", container_payload),
+        ("event-envelope.schema.json", None, container_event),
+        ("history-key.schema.json", "archive_authorization_tuple", archive_tuple),
+        ("history-key.schema.json", "history_governance_traversal_retention", traversal_retention),
+        ("history-key.schema.json", "organization_recovery_archive_replica", replica),
+        ("history-key.schema.json", "organization_recovery_archive_replica_outcome", first_receipt),
+        ("history-key.schema.json", "organization_recovery_archive_list_query", list_query),
+        ("history-key.schema.json", "organization_recovery_archive_list_outcome", list_outcome),
+    ]
+    for filename, definition, instance in validators:
+        schemas.validator(filename, definition).validate(instance)
+
+    archive_digest = domain_digest(b"ak.organization-recovery-archive-v1", archive)
+    tuple_digest = domain_digest(b"ak.organization-recovery-archive-tuple-v1", archive_tuple)
+    coverage_coordinate = {
+        "effective_scope": effective_scope,
+        "mls_group_id": GROUP,
+        "epoch": epoch,
+        "container_event_ref": container_event_ref,
+        "archive_authorization_tuple_digest": tuple_digest,
+    }
+    ledger_initial = {
+        "coverage_coordinate": coverage_coordinate,
+        "durable_holder_acceptance": False,
+        "exact_holder_reread": False,
+        "covered_epochs": [],
+        "local_history_secret_present": True,
+    }
+    ledger_after_accept = {
+        **ledger_initial,
+        "durable_holder_acceptance": True,
+        "archive_replica_digest": archive_replica_digest,
+        "first_receipt_digest": sha256(jcs(first_receipt)),
+    }
+    ledger_final = {
+        **ledger_after_accept,
+        "exact_holder_reread": True,
+        "covered_epochs": [epoch],
+        "exact_archive_digest": archive_digest,
+        "exact_container_event_ref": container_event_ref,
+        "exact_traversal_intent_digest": traversal_retention["traversal_intent_digest"],
+    }
+    ledger_after_gc = {**ledger_final, "local_history_secret_present": False}
+
+    return {
+        "vector_id": "ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1",
+        "classification": "service_behavior",
+        "schema_validated_instances": [
+            {"name": definition or "event_envelope", "schema": filename}
+            for filename, definition, _ in validators
+        ],
+        "signing_keys": {
+            "source_ed25519_seed_b64u": b64u(b"\x44" * 32),
+            "source_ed25519_public_key_b64u": b64u(source_public_key),
+            "holder_ed25519_seed_b64u": b64u(b"\x55" * 32),
+            "holder_ed25519_public_key_b64u": b64u(holder_public_key),
+        },
+        "hpke_transcript": {
+            "suite": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+            "base_vector_ref": "ak.vector.hpke.x25519_chacha20poly1305_base.v1",
+            "mode": "base",
+            "sequence_number": 0,
+            "recipient_private_key_b64u": b64u(recipient_private_bytes),
+            "recipient_public_key_b64u": b64u(recipient_public),
+            "ephemeral_private_key_b64u": b64u(ephemeral_private_bytes),
+            "enc_b64u": b64u(enc),
+            "info_jcs_b64u": b64u(info),
+            "aad_jcs_b64u": b64u(info),
+            "plaintext": plaintext,
+            "plaintext_jcs_b64u": b64u(plaintext_bytes),
+            "dh_b64u": b64u(dh),
+            "kem_context_b64u": b64u(kem_context),
+            "shared_secret_b64u": b64u(shared_secret),
+            "key_schedule_context_b64u": b64u(key_schedule_context),
+            "secret_b64u": b64u(secret),
+            "key_b64u": b64u(key),
+            "base_nonce_b64u": b64u(base_nonce),
+            "exporter_secret_b64u": b64u(exporter_secret),
+            "ciphertext_b64u": b64u(ciphertext),
+            "opened_plaintext_jcs_b64u": b64u(recovered_plaintext),
+        },
+        "archive_authorization_tuple": archive_tuple,
+        "transition_provenance": {
+            "transition_kind": "ak.mls.commit",
+            "mls_transition_bytes_b64u": b64u(transition_bytes),
+            "mls_transition_digest": transition_digest,
+            "accepted_key_evidence_ref": accepted_key_evidence_ref,
+            "holder_trusted_basis": holder_trusted_basis,
+            "winning_target_basis": target_basis,
+            "container_event_ref": container_event_ref,
+            "container_event_digest": container_event_digest,
+        },
+        "archive": archive,
+        "container_event": container_event,
+        "container_event_producer_bytes_b64u": b64u(jcs(container_event_core)),
+        "container_event_proof_transcript": {
+            "context": "ak.event-proof-v1",
+            "binding_jcs_b64u": b64u(jcs(event_binding)),
+            "detached_payload_b64u": event_payload,
+            "signing_input_ascii": event_protected + "." + event_payload,
+        },
+        "replica": replica,
+        "replica_proof_transcript": replica_proof_transcript,
+        "first_receipt": first_receipt,
+        "first_receipt_jcs_b64u": b64u(jcs(first_receipt)),
+        "receipt_proof_transcript": receipt_proof_transcript,
+        "barrier_query": list_query,
+        "barrier_resolve_outcome": list_outcome,
+        "exact_reread_assertions": {
+            "archive": archive,
+            "container_event_ref": container_event_ref,
+            "history_traversal_retention": traversal_retention,
+            "archive_sequence": 1,
+        },
+        "coverage_ledger": {
+            "initial": ledger_initial,
+            "after_first_accept": ledger_after_accept,
+            "after_exact_reread": ledger_final,
+            "after_local_gc": ledger_after_gc,
+        },
+        "steps": [
+            {
+                "name": "gc_before_durable_acceptance",
+                "action": "gc_local_history_secret",
+                "expected_decision": "failed_precondition",
+                "expected_ledger": ledger_initial,
+            },
+            {
+                "name": "first_holder_replica_acceptance",
+                "action": "peer_replicate_archive",
+                "input": replica,
+                "expected_receipt": first_receipt,
+                "expected_ledger": ledger_after_accept,
+            },
+            {
+                "name": "exact_duplicate_replica",
+                "action": "peer_replicate_archive",
+                "input": replica,
+                "expected_receipt_jcs_b64u": b64u(jcs(first_receipt)),
+                "expected_new_archive_sequence_count": 0,
+                "expected_ledger": ledger_after_accept,
+            },
+            {
+                "name": "barrier_resolve_exact_reread",
+                "action": "self_list_organization_recovery_archives",
+                "input": list_query,
+                "expected_outcome": list_outcome,
+                "expected_ledger": ledger_final,
+            },
+            {
+                "name": "gc_after_exact_reread",
+                "action": "gc_local_history_secret",
+                "expected_decision": "accepted",
+                "expected_ledger": ledger_after_gc,
+                "expected_holder_reread_after_gc": list_outcome,
+            },
+        ],
+        "negative_mutations": [
+            {
+                "name": "same_semantic_archive_changed_replicated_at",
+                "mutation": {"replicated_at": "2026-08-23T00:00:03.000Z"},
+                "expected_decision": "conflict",
+                "expected_new_archive_sequence_count": 0,
+            },
+            {
+                "name": "barrier_archive_bytes_mismatch",
+                "mutation": "flip one ciphertext octet in barrier_resolve_outcome",
+                "expected_decision": "failed_precondition",
+                "expected_ledger": ledger_after_accept,
+            },
+        ],
+        "forbidden_artifacts": [
+            "private_database_row_shape",
+            "share_event",
+            "availability_receipt",
+            "threshold_target_set",
+            "renewal_state_machine",
+            "remote_archive_gc",
+            "portable_active_mls_state",
+        ],
+    }
+
+
 def build_sections() -> dict[str, Any]:
     schemas = SchemaSet()
     registry = build_registry_kat(schemas)
@@ -859,6 +1367,9 @@ def build_sections() -> dict[str, Any]:
         "governance_dependency_resolve_kat": dependency,
         "history_source_agent_observation_digest_kat": build_source_agent_observation_digest_kat(schemas),
         "history_response_capability_kat": build_response_capability_kat(),
+        "organization_recovery_archive_durable_before_gc_kat": build_rrk_durable_before_gc_kat(
+            schemas, registry
+        ),
         "streaming_direct_traversal_scale_kats": scale,
         "streaming_direct_traversal_scale_negative_kats": [{
             "epoch_count": 65_537,
@@ -882,6 +1393,14 @@ def build_sections() -> dict[str, Any]:
 
 def render() -> str:
     fixture = json.loads(OUTPUT.read_text(encoding="utf-8"))
+    rrk_durability_vector = (
+        "ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1"
+    )
+    covers_vectors = fixture.get("covers_vectors")
+    if not isinstance(covers_vectors, list):
+        raise ValueError("history fixture covers_vectors must be an array")
+    if rrk_durability_vector not in covers_vectors:
+        covers_vectors.append(rrk_durability_vector)
     for case in fixture.get("scope_and_endpoint_kats", []):
         for scope_case in (case.get("realm"), case.get("circle")):
             if isinstance(scope_case, dict):
