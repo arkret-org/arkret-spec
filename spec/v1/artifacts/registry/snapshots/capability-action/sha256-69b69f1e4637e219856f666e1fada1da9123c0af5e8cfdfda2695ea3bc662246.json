@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-22.2",
+  "version": "2026-08-22.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-22T18:00:00+08:00",
+  "generated_at": "2026-08-22T16:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1443,6 +1443,7 @@
         "ak.relation.tombstone",
         "ak.relation.update",
         "ak.schema.define",
+        "ak.schema.update",
         "ak.space.archive",
         "ak.space.create",
         "ak.space.parent",
@@ -1554,6 +1555,7 @@
         "ak.relation.tombstone",
         "ak.relation.update",
         "ak.schema.define",
+        "ak.schema.update",
         "ak.space.archive",
         "ak.space.create",
         "ak.space.parent",
@@ -1774,6 +1776,17 @@
       "required_constraints": [],
       "target_event_kinds": [
         "ak.schema.define"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.schema.update",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.schema.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"

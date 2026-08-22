@@ -48,9 +48,14 @@ MUST 执行 [`payload-validator-profile-registry.json`](../../artifacts/registry
 未登记的 `schema_id` 正是 define 的输入，不按 unknown family 拒绝；meta-schema validation 失败、dialect
 错误、`$id` 不等或 wrapper 未知字段统一以 `schema_violation` 拒绝。
 
+v1 schema id 是 create-once 的不可变定义，不存在 `ak.schema.update` Event。首次合法 `ak.schema.define` 占用
+`schema_id`；相同 canonical Event 的重放按普通 Event 幂等规则处理，对已占用 `schema_id` 提交不同 bytes 必须
+`schema_violation` 且零覆盖。任何演进都使用新的 versioned `$id` / `schema_id`（例如 `.v2`），并由引用方显式切换
+`schema_refs`。因此 v1 不定义 predecessor 字段、兼容性图、原地 breaking update 或第二套 schema CAS 生命周期。
+
 ### 2.2 Schema Evolution
 
-Schema evolution MUST be additive by default。通用 evolution 约束（新字段优先 optional、既有字段不得静默改变语义、reducer 与客户端 MUST 保留 schema 允许的未识别字段、UI 遇未知 Morph kind SHOULD 降级、标准对象不得阻止自定义 Morph kind 等）以 [morph.md §6](./morph.md) 为单一权威源，本节不重复列举，避免漂移。
+Schema evolution MUST be additive by default，且通过新的 versioned schema id 表达，不修改既有定义。通用 evolution 约束（新字段优先 optional、既有字段不得静默改变语义、reducer 与客户端 MUST 保留 schema 允许的未识别字段、UI 遇未知 Morph kind SHOULD 降级、标准对象不得阻止自定义 Morph kind 等）以 [morph.md §6](./morph.md) 为单一权威源，本节不重复列举，避免漂移。
 
 完整迁移与兼容声明规则另见 [morph.md §6](./morph.md) 与 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)。
 

@@ -1037,7 +1037,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
     "value": {
       "holder_principal_id": "ak:did_core:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5",
       "audience": {
-        "org_did": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+        "represented_org": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
         "verifier_service_ids": ["ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n"],
         "tsp_vids": ["did:webs:google.example:verifier"]
       },
@@ -1078,17 +1078,22 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm�
 ```json
 {
   "kind": "ak.identity.presentation_response",
-  "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-  "holder_subject": "did:key:z6Mkgpairwise...",
-  "proof_profile": "vc_di_bbs_2023",
-  "presentation": {},
-  "disclosed_fields": [
-    "credentialSubject.org",
-    "credentialSubject.member",
-    "credentialSubject.handle_verified"
-  ],
-  "presentation_digest": "sha256:...",
-  "created_at": "2026-04-26T00:00:00Z"
+  "payload": {
+    "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
+    "request_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "value": {
+      "holder_subject": "ak:did_core:key:z6Mkgpairwise",
+      "proof_profile": "vc_di_bbs_2023",
+      "presentation": {},
+      "disclosed_fields": [
+        "credentialSubject.org",
+        "credentialSubject.member",
+        "credentialSubject.handle_verified"
+      ],
+      "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "created_at": "2026-04-26T00:00:00.000Z"
+    }
+  }
 }
 ```
 
@@ -1110,8 +1115,7 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
     "value": {
       "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
       "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-      "verifier_service_id": "ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n",
-      "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+      "request_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "proof_profile": "vc_di_bbs_2023",
       "transport": "tsp",
@@ -1136,6 +1140,21 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
 `state` / `reason` 或平铺 receipt 字段。
 
 Receipt 是 holder 私域 audit record。Receipt MUST NOT 包含未披露字段的具体值。
+
+四类对象的字段 ownership 是单向的：credential schema 定义 claim 语义；Disclosure Policy 只拥有稳定的
+`holder_principal_id`、audience selector、allowed claims / fields、denied fields、consent 与 policy expiry；Presentation
+Request 独占本次 `verifier_service_id`、`represented_org`、`domain`、`challenge`、claim set 与 request expiry；Response
+和 Receipt 都只用 `(request_id, request_digest)` 绑定 exact Request，不复制这些 request-owned 字段。Policy 匹配要求
+`request.verifier_service_id` 属于 `policy.audience.verifier_service_ids` 且
+`request.represented_org == policy.audience.represented_org`；TSP transport 被选用时还必须匹配 policy 可选
+`tsp_vids`。challenge/domain 不进入可复用 Policy。
+
+Wallet 创建 Response 或 Receipt 前 MUST 重算 exact canonical Presentation Request Event digest，并逐字比较二者的
+`request_id` / `request_digest`；proof suite 再从同一 Request 取得 verifier、organization/audience、challenge 与 domain
+构造 presentation transcript。错 verifier、错 organization、错 challenge/domain、请求的 claim/field set 与实际
+disclosed/withheld set 不一致均 fail closed。Request Event 与其 authenticated transport evidence MUST 在最后一份引用它的
+Receipt retention 结束前保存在 holder private account data；缺少或 digest 不匹配时该 Response/Receipt 不可解析，禁止从
+Receipt 字段或当前 Policy 反推。这样 Request 是一次性事实的唯一权威来源，Receipt 只是内容寻址的审计索引。
 
 ### 16.3 组织和 Verifier 确认
 

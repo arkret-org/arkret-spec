@@ -359,7 +359,10 @@ Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.comma
   Event/receiver 的历史证据交接标为完成。
 - Agent Authority 消费 obligation 时只允许读取 admission proof 指向的 byte-exact original `CurrentAdmission` root，
   复用其 frozen `admission_evidence`，加入 receipt 并签 historical outer；receipt、root、递归 signer dependencies、
-  digest CAS 与 selector index 必须原子可见。同 selector tuple 异 receipt/root 为 `duplicate_conflict` 且零覆盖。
+  digest CAS 与 selector index 必须原子可见。receiver 与 Authority 的历史 method 都从既有 current signed
+  ServiceResolutionRecord carrier 所携完整 WebVH log按 `accepted_at` / 实际 `attested_at` 选择，不新增历史检索 endpoint，
+  也不得直接使用 carrier 的 head document。selector tuple 是幂等权威：同 tuple + 同 receipt 在签名前返回已存 root，
+  同 tuple 异 receipt/root 为 `duplicate_conflict` 且零覆盖。
   outcome receipt 返回、exact duplicate byte-identical replay 与 source outbox durable handoff 的完整正负矩阵由
   `ak.vector.federation.agent_admission_receipt_handoff.v1` 固化。
 - 持续同步、批量重试和 frontier 交换通过组合 `ak.peer.events.command.submit`（推送，本节）、`ak.peer.events.read.scan` / `ak.peer.events.read.resolve`（拉取 / backfill / 补洞，§4.2）与 `ak.peer.events.read.frontier`（§4.5）完成；无需额外的有状态事务 endpoint。

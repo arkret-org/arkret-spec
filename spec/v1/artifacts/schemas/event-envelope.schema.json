@@ -261,7 +261,7 @@
   },
   "allOf": [
     {
-      "$comment": "Machine-closed producer signer-evidence regime. The unique admission proof owns historical producer-key validation when present; otherwise the unique producer proof carries its own content-addressed signer evidence pair.",
+      "$comment": "Machine-closed accepted-Event producer signer-evidence rule. When an admission proof is present it owns historical producer-key validation and the producer proof omits its external evidence pair. A no-admission envelope is shared by caller submission and retained direct-history replay, so its pair requirement is enforced by the consuming operation/profile rather than inferred from this context-free schema.",
       "if": {
         "properties": {
           "proofs": {
@@ -298,27 +298,6 @@
                       }
                     ]
                   }
-                }
-              ]
-            },
-            "minContains": 1,
-            "maxContains": 1
-          }
-        }
-      },
-      "else": {
-        "properties": {
-          "proofs": {
-            "contains": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/producer_event_proof"
-                },
-                {
-                  "required": [
-                    "signer_resolution_evidence_ref",
-                    "signer_resolution_evidence_digest"
-                  ]
                 }
               ]
             },
@@ -2058,25 +2037,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/schema_define_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.schema.update"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/schema_update_state_payload"
           }
         }
       }

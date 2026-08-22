@@ -212,6 +212,14 @@ Content-Type: application/json
 | `signature.kid` | `did-url` | required | 签名 key id。 |
 | `signature.sig` | `base64url string` | required | detached signature。 |
 
+Policy decision 的 detached signature MUST 签署 closed canonical object
+`{domain="ak.policy.check.transcript.v1", request_id, decision, bound_to, freshness_state, expires_at,
+auth_state_digest, policy_frontier_digest, membership_frontier_digest, reason_code, next_retry_at?, obligations}`；domain 的唯一机器真源是
+[`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 的同名 `domain_separations[]` 行。
+`signature.kid` 已作为 detached JWS protected header 的一部分进入 JWS signing input，用于选择并绑定验证方法；它 MUST NOT
+在 canonical payload object 中再复制为第二个 `kid` 字段。verifier 必须同时验证 protected `kid` 的 controller 与
+`bound_to.policy_server_id` 一致。
+
 `policy_frontier_digest` 与 `membership_frontier_digest` 是可跨 issuer 复算的 filtered state roots，不是 issuer-local opaque 值。二者 MUST 复用 [`event-auth-state-resolution.md` §6.2.1/§6.2.2](./event-auth-state-resolution.md#621-治理-state_root-的-merkle-计算规则normative) 的 JCS leaf、排序、hash suite 与 RFC 6962 组合规则：
 
 - `policy_frontier_digest` 枚举 decision `bound_to.realm_id` 当前 accepted Seal view 中全部 non-`⊥` policy control cell（`ak.component.realm.*policy*`、join rule、history visibility、policy components、media service，以及 profile 明确登记的 policy family）。

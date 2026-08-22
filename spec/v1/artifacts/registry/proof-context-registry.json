@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-22.1",
+  "version": "2026-08-22.2",
   "source_of_truth": true,
   "description": "Canonical security-domain contexts for Arkret detached proofs and non-Event cryptographic transcripts. Proof contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript: it MUST NOT be spelled as a proof context and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
@@ -1642,6 +1642,25 @@
         "realm_id",
         "event_ids",
         "canonical_digests"
+      ]
+    },
+    {
+      "domain": "ak.policy.check.transcript.v1",
+      "object_family": "policy_check_outcome",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "domain",
+        "request_id",
+        "decision",
+        "bound_to",
+        "freshness_state",
+        "auth_state_digest",
+        "policy_frontier_digest",
+        "membership_frontier_digest",
+        "reason_code",
+        "expires_at",
+        "next_retry_at",
+        "obligations"
       ]
     },
     {

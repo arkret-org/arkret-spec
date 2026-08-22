@@ -437,11 +437,17 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 - `event_digest = canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`
 - `actor_id`
 - `verification_method`
-- `signer_resolution_evidence_ref` / `signer_resolution_evidence_digest`（仅无 `principal_server_admission` 的 direct/DID-root/native producer 分支）
+- `signer_resolution_evidence_ref` / `signer_resolution_evidence_digest`（仅 retained direct-history / DID-root / native producer 分支；caller 首次提交态省略）
 - `created_at`
 - `domain` / `audience` where applicable
 
-Event-level proof regime 只有两个互斥分支：若 Event 含一份合法 `principal_server_admission` proof，则 producer proof MUST 省略两个 signer evidence 字段，历史 device/Agent producer key 由 admission 签入的 `producer_signing_key` 验证，而 Principal Server 自身的历史 key 由 admission 携带的 service signer evidence 验证；若没有 admission，则 producer proof MUST 同时携带 ref+digest，二者进入上述 binding object 并解析为该 `verification_method` 的 exact 历史证据。不得同时携带 admission 与 producer external evidence，也不得两者都省略。
+Event proof 有三个语境，不得仅凭“是否已有 admission proof”把 caller submit 与 retained history 合并：
+
+1. caller 首次提交态只有一个 producer proof，且 MUST 省略 signer-evidence pair；origin 在本地解析并验证 producer key 后追加 admission proof，pair 不得临时写入再剥离，因为它属于 producer 签名字节；
+2. accepted / federation Event 含一个 producer proof与一个 `principal_server_admission` proof，producer proof MUST 省略 pair；历史 device/Agent producer key 由 admission 签入的 `producer_signing_key` 与 producer evidence pair 验证，Principal Server 自身历史 key由 admission 的 service signer evidence 验证；
+3. retained direct-history Event 没有 admission proof，producer proof MUST 同时携带 ref+digest，二者进入上述 binding object并解析为该 `verification_method` 的 exact 历史证据。
+
+`ak.schema.event.v1` 只对单个 envelope 可观察的闭合形状负责：admission 存在时机械禁止 producer pair；无 admission 时pair 允许成对出现或成对省略。`EventSubmitEnvelope` 的 producer-submission validator 与 direct-history replay validator MUST分别收紧第 1、3 项，任一调用面不得把基础 JSON Schema 的允许集误当成完整准入判据。
 
 Durable Realm Event 是可由多个合规 Realm host 保存和复验的原始事实，因此其 proof 不能绑定某一台 authoring Principal Server 的 service DID。会经 federation、backfill、snapshot recovery 或多 host replay 的 Event，其 `proof.domain` / `proof.audience` MUST 省略，或绑定一个由相关 profile 明确定义且对所有合法 receiver 恒定的 Realm 语义值；MUST NOT 写入当前提交端、来源端或目标端 Principal Server DID。HTTP 目的服务、trust domain、delivery binding 与 replay 隔离由外层 RFC 9421 service signature 和 federation request binding 承担，不得通过改写原 Event proof 实现。接收方 MUST 对原 Event bytes 验签，MUST NOT 为本地 service DID 重签或补写 `domain` / `audience`。
 

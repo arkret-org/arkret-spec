@@ -113,7 +113,7 @@
         "value": {
           "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
           "audience": {
-            "org_did": "did:webvh:z6mkfixtureorganization:organization.example",
+            "represented_org": "ak:did_core:webvh:z6mkfixtureorganization",
             "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]
           },
           "allowed_claims": [],
@@ -144,7 +144,7 @@
         "value": {
           "policy_family": "credential_specific",
           "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
-          "audience": {"org_did": "did:webvh:z6mkfixtureorganization:organization.example", "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]},
+          "audience": {"represented_org": "ak:did_core:webvh:z6mkfixtureorganization", "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]},
           "allowed_claims": [],
           "denied_fields": [],
           "user_consent_required": true,
@@ -163,7 +163,7 @@
         "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
         "value": {
           "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
-          "audience": {"org_did": "did:webvh:z6mkfixtureorganization:organization.example"},
+          "audience": {"represented_org": "ak:did_core:webvh:z6mkfixtureorganization"},
           "allowed_claims": [],
           "denied_fields": [],
           "user_consent_required": true,
@@ -182,7 +182,7 @@
         "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
         "value": {
           "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
-          "audience": {"org_did": "did:webvh:z6mkfixtureorganization:organization.example", "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]},
+          "audience": {"represented_org": "ak:did_core:webvh:z6mkfixtureorganization", "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]},
           "allowed_claims": [],
           "denied_fields": [],
           "user_consent_required": true,
@@ -201,8 +201,7 @@
         "value": {
           "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
           "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-          "verifier_service_id": "ak:did_core:webvh:z6mkfixtureverifier",
-          "represented_org": "did:webvh:z6mkfixtureorganization:organization.example",
+          "request_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "proof_profile": "vc_di_bbs_2023",
           "transport": "tsp",
@@ -234,8 +233,7 @@
           "receipt_kind": "selective_disclosure",
           "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
           "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-          "verifier_service_id": "ak:did_core:webvh:z6mkfixtureverifier",
-          "represented_org": "did:webvh:z6mkfixtureorganization:organization.example",
+          "request_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "proof_profile": "vc_di_bbs_2023",
           "transport": "tsp",

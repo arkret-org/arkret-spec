@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-22.1",
+  "version": "2026-08-22.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-22T16:30:00+08:00",
+  "generated_at": "2026-08-22T18:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -4827,29 +4827,6 @@
         ],
         "concurrency_class": "security_barrier"
       },
-      "ak.schema.update": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.schema.definition.v1",
-            "cell_subject": {
-              "kind": "string",
-              "field": "payload.schema_id"
-            },
-            "lattice": "cas_register",
-            "bottom": "reject",
-            "initial_value": "__unset__",
-            "effect_projection": {
-              "kind": "set",
-              "value": {
-                "field": "payload"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "security_barrier"
-      },
       "ak.self.agent.deactivate": {
         "plane": "control",
         "sealed": true,
@@ -6239,17 +6216,6 @@
         "reducer_input": true,
         "payload": "Schema definition",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/schema_define_state_payload",
-        "id_source": "not_an_object_id"
-      },
-      {
-        "event_kind": "ak.schema.update",
-        "category": "schema",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Schema patch",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/schema_update_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -17165,7 +17131,6 @@
           "ak.relation.tombstone",
           "ak.relation.update",
           "ak.schema.define",
-          "ak.schema.update",
           "ak.space.archive",
           "ak.space.create",
           "ak.space.parent",
@@ -17277,7 +17242,6 @@
           "ak.relation.tombstone",
           "ak.relation.update",
           "ak.schema.define",
-          "ak.schema.update",
           "ak.space.archive",
           "ak.space.create",
           "ak.space.parent",
@@ -17498,17 +17462,6 @@
         "required_constraints": [],
         "target_event_kinds": [
           "ak.schema.define"
-        ],
-        "profile": null,
-        "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.schema.update",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.schema.update"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"

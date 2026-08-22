@@ -289,7 +289,12 @@ receiver `accepted_at`、Agent/key method、origin 冻结的
 `seal_basis` 或 anchor 形态，因此 receipt 不重复携带一个对 Data Event、Control Move 和 anchor 含义不一致的
 `event_admitted_seal_id`。
 receipt 的 `receiver_service_id` MUST 与实际接收并承诺该Event的destination service相同，receipt proof必须由该
-destination的registered verification method验证；查询方不得用source service或current authority替代。历史 verifier
+destination 在 `accepted_at` 有效的 registered verification method验证；查询方不得用source service或 current head
+document 中的 method 替代。v1 不新增 historical service-resolution endpoint：既有 current signed
+ServiceResolutionRecord 的 WebVH method-history evidence 已携带完整 log，materializer 与 verifier 必须先验证该完整
+carrier，再从 log 选择 `accepted_at` 的 exact normalized document；did:key 直接按不可变 identifier 展开，mutable
+did:web 继续 fail closed。current record URL 只是取得完整已签 carrier 的 transport locator，不使 head document 成为
+历史 key 的权威来源。历史 verifier
 必须从原 Event admission proof 取得并逐字复核 producer evidence pair，按其 digest 从 CAS 读取 byte-exact
 `CurrentAdmission` root，只复用其中冻结的 `admission_evidence`；不得由 receipt 自报 snapshot，也不得读取当前状态
 重建。verifier 在 `producer_accepted_at` 检查当时 snapshot lease和account attestation有效，且被冻结的三层 basis
@@ -307,9 +312,17 @@ outer attestation 在 domain `ak.agent-signer-evidence.v1` 下签整个 tagged e
 Authority proof或receipt proof。直接 evidence query 与 federation transport另用 RFC 9421 HTTP Message Signature
 覆盖完整 content digest、operation id与双方 service/session binding，不把 HTTP Signature header 嵌回 body形成环。
 current branch 的 outer 使用 `issued_at/expires_at` 短时窗；historical branch 使用 closed
-`attested_at` 且没有 verifier-now TTL。历史 verifier 必须按 `attested_at` 解析 Agent Authority 当时的 historical
-service signing method；之后 key rotation、Agent key revoke、Agent pause/deactivate 或 controller account terminal
-不得使已经合法组装的 historical root 追溯失效。
+`attested_at` 且没有 verifier-now TTL。`attested_at` MUST 是 Agent Authority 实际签署 historical outer 的时刻，
+不得回填为 receipt `accepted_at` 或从 selector 派生。历史 verifier 必须从同一完整 ServiceResolutionRecord carrier
+的 method-history evidence 选择 `attested_at` 时 Authority 的 exact document 与 outer method；该 carrier 也必须能够在
+原 snapshot/lease 的签发时刻解析其内层 Authority method，不要求两次 method 相同。之后 key rotation、Agent key
+revoke、Agent pause/deactivate 或 controller account terminal 不得使已经合法组装的 historical root 追溯失效。
+
+Historical root 的 content digest 是该次首次物化的内容地址，不是 selector tuple 的确定性函数；真实
+`attested_at`、签名随机性或并发首次尝试可以产生候选 digest。协议唯一性与幂等只由已登记 selector tuple 承担：第一份
+成功发布的完整 root 胜出；同 tuple + byte-identical receipt 的任何重试 MUST 在签名前返回已存 root/no-op，不得重新签署；
+同 tuple 异 receipt 或试图覆盖已存 root仍为 `duplicate_conflict`。因此无需伪造确定时间，也无需 outer renewal、root
+replacement 或第二套 generation 协议。
 
 `revoked`、`superseded`、`expired`、`conflicted`或 admission-time 任一 parent inactive 是确定性拒绝；evidence/receipt
 缺失、时窗不满足或网络失败是 `Unresolved/Stale`，绝不得提升为 Verified。启用

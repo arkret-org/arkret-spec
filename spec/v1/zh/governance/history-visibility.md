@@ -69,8 +69,11 @@ membership Event 及 accepted activation Seal。MLS-backed scope 的 `ak.mls.pro
 把 `target_authorization_incarnation` 逐字绑定到该 exact winning Realm incarnation；Circle Add 则同时绑定
 parent-Realm 与 Circle incarnation。消费该 Add 的 winning Commit 的 `next_epoch` 是该 incarnation 唯一的
 `join_epoch`。非 Add proposal 禁带该字段；实现不得按本地 `received_at`、`joined_at` 或当前最新 epoch 猜测。
-Genesis 初始成员的 `join_epoch=0` 只在完整 replay 同时证明 exact founding membership incarnation 与 Genesis
-初始 leaf 时成立。
+v1 Genesis 只允许一个初始 principal leaf，即 Genesis Event 的 `actor_id`（creator）；creator device 由唯一 producer
+proof 的 `verification_method` fragment 投影。完整 replay 同时证明该 creator 的 exact founding membership incarnation
+与 winning Genesis Event 后，才得到 `join_epoch=0`。`mls_genesis_payload` 不携带
+`initial_keypackage_refs` 或另一份 initial-member 清单；任何非 creator principal（包括创建时就计划加入的成员）都必须经后续
+winning Add/Commit/Welcome 得到自己的 `join_epoch`，不得从 KeyPackage blob、ratchet tree 或实现私有元数据猜测 epoch 0。
 已 active principal 的设备变化不改变 principal incarnation/join epoch；remove 后 rejoin 产生新值。
 
 Standard MLS 对每个认证 endpoint 维护 `endpoint_admission`：从该 endpoint incarnation 的 initial

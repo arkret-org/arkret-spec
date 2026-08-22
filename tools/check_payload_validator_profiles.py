@@ -50,17 +50,8 @@ def main() -> int:
     contracts = load(CONTRACTS)
     defs = load(PAYLOAD_SCHEMA)["$defs"]
     registry = load(PROFILES)
-    expected_uncovered_aliases = [
-        {
-            "event_kind": "ak.schema.update",
-            "payload_def": "schema_update_state_payload",
-            "aliased_payload_def": "schema_define_state_payload",
-            "finding": "arkret-work/review/spec-open/2026-08-22-1606-schema-update-validator-and-lifecycle-gap.md",
-            "status": "open",
-        }
-    ]
-    if registry.get("known_uncovered_aliases") != expected_uncovered_aliases:
-        errors.append("ak.schema.update uncovered validator alias finding is missing or stale")
+    if registry.get("known_uncovered_aliases") != []:
+        errors.append("retired validator aliases MUST NOT remain in the active registry")
     profiles = registry.get("profiles")
     if not isinstance(profiles, list) or len(profiles) != 1:
         errors.append("payload validator registry MUST contain exactly the schema-definition profile")
@@ -146,8 +137,7 @@ def main() -> int:
             print(f"payload-validator-profile-check: {error}")
         return 1
     print(
-        "payload-validator-profile-check: ak.schema.define profile and 8 KAT cases passed; "
-        "ak.schema.update remains explicitly open in 2026-08-22-1606"
+        "payload-validator-profile-check: immutable ak.schema.define profile and 8 KAT cases passed"
     )
     return 0
 

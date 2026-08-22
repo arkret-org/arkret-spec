@@ -154,7 +154,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
-      "sha256": "1d659cdd3899ab2ed2f51b98094435de5f3b6231029f7df6920fc6d3559dfff6"
+      "sha256": "18451ace8390503383019201d20dda11da6034652ef98763bfcb08b577e62b1c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",

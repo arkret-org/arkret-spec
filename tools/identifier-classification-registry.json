@@ -27,8 +27,8 @@
   ],
   "type_derived_summary": {
     "registry_catalog_symbol": 21,
-    "responsibility_did": 531,
-    "typed_object_id": 879
+    "responsibility_did": 530,
+    "typed_object_id": 881
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -848,7 +848,7 @@
       "name": "request_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "opaque_correlation",
-      "occurrences": 4,
+      "occurrences": 3,
       "example_path": "event-payload.schema.json#/$defs/agent_action_approve_payload/properties/request_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },

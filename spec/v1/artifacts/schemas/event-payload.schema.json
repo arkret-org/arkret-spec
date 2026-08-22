@@ -4748,12 +4748,12 @@
         "audience": {
           "type": "object",
           "required": [
-            "org_did",
+            "represented_org",
             "verifier_service_ids"
           ],
           "properties": {
-            "org_did": {
-              "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+            "represented_org": {
+              "$ref": "#/$defs/did_core_id"
             },
             "verifier_service_ids": {
               "type": "array",
@@ -4851,8 +4851,7 @@
       "required": [
         "receipt_id",
         "request_id",
-        "verifier_service_id",
-        "represented_org",
+        "request_digest",
         "presentation_digest",
         "proof_profile",
         "transport",
@@ -4869,11 +4868,9 @@
           "type": "string",
           "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "verifier_service_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "represented_org": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        "request_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Canonical SHA-256 of the exact retained Presentation Request Event. The receipt does not copy request-owned verifier, organization, domain or challenge fields."
         },
         "presentation_digest": {
           "$ref": "#/$defs/digest"
@@ -4999,14 +4996,8 @@
       ],
       "properties": {
         "request_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "value": {
           "type": "object",
@@ -5093,7 +5084,64 @@
       "additionalProperties": false
     },
     "identity_presentation_response_state_payload": {
-      "$ref": "#/$defs/identity_presentation_request_state_payload"
+      "type": "object",
+      "description": "Closed Presentation Response correlated to one exact retained request. Request-owned audience, challenge and domain are not copied into the response.",
+      "required": [
+        "request_id",
+        "request_digest",
+        "value"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "value": {
+          "type": "object",
+          "required": [
+            "holder_subject",
+            "proof_profile",
+            "presentation",
+            "disclosed_fields",
+            "presentation_digest",
+            "created_at"
+          ],
+          "properties": {
+            "holder_subject": {
+              "$ref": "#/$defs/did_core_id"
+            },
+            "proof_profile": {
+              "type": "string",
+              "enum": [
+                "vc_di_bbs_2023",
+                "sd_jwt_vc"
+              ]
+            },
+            "presentation": {
+              "type": "object",
+              "description": "Proof-suite-specific presentation document. The selected proof profile defines and verifies its closed inner shape."
+            },
+            "disclosed_fields": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              }
+            },
+            "presentation_digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "created_at": {
+              "$ref": "#/$defs/timestamp"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     },
     "inheritance_policy_status": {
       "type": "string",
@@ -6846,7 +6894,7 @@
         "governance_binding",
         "created_at"
       ],
-      "$comment": "Schema requires both effective_scope and governance_binding. Reducers/verifiers must additionally compare effective_scope with governance_binding.effective_scope; JSON Schema cannot express deep cross-field equality. Creator coordinates are not payload fields: the creator principal is Event.actor_id and the creator device is projected from the fragment of the sole producer proof verification_method, so carrying creator_principal_id or creator_device_id is a schema_violation.",
+      "$comment": "Schema requires both effective_scope and governance_binding. Reducers/verifiers must additionally compare effective_scope with governance_binding.effective_scope; JSON Schema cannot express deep cross-field equality. v1 Genesis has exactly one initial principal leaf: the creator. Creator coordinates are not payload fields: the creator principal is Event.actor_id and the creator device is projected from the fragment of the sole producer proof verification_method, so carrying creator_principal_id, creator_device_id, initial_keypackage_refs or another initial-member list is a schema_violation. Every non-creator joins through a later Add/Commit/Welcome.",
       "properties": {
         "mls_group_id": {
           "type": "string",
@@ -6882,13 +6930,6 @@
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
           "description": "SHA-256 of the raw bytes obtained by base64url-decoding ratchet_tree_bytes_b64 from the standard group-state-material operation."
-        },
-        "initial_keypackage_refs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/object_ref"
-          },
-          "uniqueItems": true
         },
         "governance_binding": {
           "$ref": "#/$defs/mls_governance_binding"
@@ -10729,9 +10770,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "schema_update_state_payload": {
-      "$ref": "#/$defs/schema_define_state_payload"
     },
     "seal_ref": {
       "type": "string",

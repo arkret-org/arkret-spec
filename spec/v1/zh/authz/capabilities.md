@@ -395,7 +395,6 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.strand.admin`
 - `ak.realm.notification.audit`（读取完整 watch 状态含 `muted`；MUST 与 `ak.audit.accessed` 同时持有，详见 [`../models/strand-and-message.md` §8.5](../models/strand-and-message.md)）
 - `ak.schema.define`
-- `ak.schema.update`
 - `ak.capability.grant`
 - `ak.capability.derived`（risk_tier=medium；记录 reducer 按 Realm link inheritance policy 机械物化出的 grant 记录，target=`ak.capability.derived`。它标记 `reducer_only`：任何 principal 都不得 author 它，因此它与 `ak.capability.grant` 的区别不是“谁再授权谁”，而是“谁写的”——`grant` 承载主体的授权意图并按 §10 的 issuer authority 规则求值，`derived` 只承载 reducer 依 [`realm-links.md` §6](../models/realm-links.md) 物化的派生记录，不引入新的授权意图）
 - `ak.capability.revoke`
