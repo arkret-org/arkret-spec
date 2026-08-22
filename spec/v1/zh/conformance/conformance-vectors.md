@@ -4448,6 +4448,8 @@ Expected:
 - 只有一个 genesis 通过标准 Event admission/CAS 成为 canonical winner；服务端不得生成 MLS private state、伪造 GroupInfo/ratchet-tree digest 或提供绕过 Event proof 的 bootstrap endpoint。
 - 所有 binding 变异 MUST fail closed；native Sidecar scope 缺失 matching `sidecar_binding`、普通 Realm/Circle
   携带该字段也必须拒绝。
+- creator device 只从该 genesis Event 唯一 producer proof 的 `verification_method` fragment 投影；变异该 proof
+  MUST fail closed，且携带 `creator_principal_id` / `creator_device_id` 的 payload MUST 判 `schema_violation`。
 - 崩溃恢复重放 bit-identical Event id/bytes，并把已接受 provisional snapshot 激活；loser snapshot 必须销毁并通过 winner group 的 KeyPackage/Welcome 加入。
 
 ### 11.9 Vector: Existence Privacy

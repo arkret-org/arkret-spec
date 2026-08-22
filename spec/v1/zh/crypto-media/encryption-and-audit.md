@@ -641,13 +641,23 @@ producer、Principal Server 与 receiver MUST 复算比较。普通 Realm/Circle
 - `mls_group_id`
 - `effective_scope`：tagged scope —— `{kind:"realm", realm_id}` 表示 Realm-default MLS group；`{kind:"circle", realm_id, circle_id}` 表示 MLS-backed [Circle](../models/circle.md)；`{kind:"sidecar", realm_id, sidecar_id}` 表示 native Sidecar MLS group。MUST NOT 从 `strand_id`、track 或隐藏 Circle 推断 genesis scope。
 - `epoch`：MUST 为 `0`。
-- `creator_principal_id`
-- `creator_device_id`
 - `cipher_suite`
 - `group_info_ref` 与 `group_info_digest`
 - `ratchet_tree_ref` 与 `ratchet_tree_digest`
 - `governance_binding`
 - `created_at`
+
+**创建者坐标（normative）**：Genesis 的创建者坐标不是 payload 字段，MUST 只从已接受 Event 派生。
+
+- **creator principal** 恒等于 `Event.actor_id`；`executed_by` 存在时 `actor_id` 仍是 principal of record，
+  MUST NOT 改取 `executed_by`。
+- **creator device** 恒等于该 Event 唯一 producer proof 的 `verification_method` fragment，按
+  [`../models/event-and-patch.md` §2.4.1](../models/event-and-patch.md) 第 2 条 ordinary device regime 投影出的完整
+  `ak:device:<uuidv7>`；它 MUST 与 `GroupInfo.signer` 所指 leaf 的 BasicCredential identity 逐字一致（§2.7）。
+- minimal-metadata、Native Agent 与 service regime 下**不存在** creator device。需要该坐标的消费方 MUST fail
+  closed，MUST NOT 回退到 device directory query、leaf 枚举、transport session 或任何本地推断。
+- 实现 MUST NOT 在 `ak.mls.genesis.payload` 中携带 `creator_principal_id` 或 `creator_device_id`；closed payload
+  schema 把二者判为 `schema_violation`。
 
 Genesis 接受规则：
 
@@ -656,6 +666,7 @@ Genesis 接受规则：
 3. 同一 effective scope（其 `mls_group_id` 已由上式唯一派生）的 genesis/epoch/key-schedule cell 使用 `cas_register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Control Move 必须 fail closed，直到 recovery Control Move 修复；不同 group id 不能创建另一个 cell。
 4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `ak.mls.commit` Control Move，其 `base_epoch=0`、`base_epoch_ref` 指向 effective `ak.mls.genesis`、`next_epoch=1`。
 5. 新加入成员的 `ak.mls.welcome` MUST 引用 effective genesis 或后续 effective commit 派生出的 epoch state；客户端不得从未被 accepted Seal 覆盖的 welcome / ratchet tree 本地推断 group authority。
+6. `effective_scope.kind = "sidecar"` 的 genesis 另有创建者约束：`Event.actor_id` MUST 逐字等于该 Sidecar 的 `controller_id`；`Event.executed_by` MUST 缺席——该 Event 是 managed Agent PCR 后继 Seal 覆盖的 effectless `ak.mls.genesis`，MUST 由 controller device 直接签名（见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)）；signer regime MUST 是 ordinary device regime，且上式投影出的 creator device MUST 是该 controller 在该 Event 的 accepted basis 上 active 的 accepted device。Agent、Applet、service 或任何 delegated signer 一律拒绝。
 
 #### 5.1.1 Epoch-0 public group-state material
 

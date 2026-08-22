@@ -6540,7 +6540,7 @@
         "governance_binding",
         "created_at"
       ],
-      "$comment": "Schema requires both effective_scope and governance_binding. Reducers/verifiers must additionally compare effective_scope with governance_binding.effective_scope; JSON Schema cannot express deep cross-field equality.",
+      "$comment": "Schema requires both effective_scope and governance_binding. Reducers/verifiers must additionally compare effective_scope with governance_binding.effective_scope; JSON Schema cannot express deep cross-field equality. Creator coordinates are not payload fields: the creator principal is Event.actor_id and the creator device is projected from the fragment of the sole producer proof verification_method, so carrying creator_principal_id or creator_device_id is a schema_violation.",
       "properties": {
         "mls_group_id": {
           "type": "string",

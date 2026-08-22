@@ -172,7 +172,10 @@ Agent pause/deactivate、ownership 终止或 current Realm membership loss 会�
 `desired_agent_ids`，并产生该 Sidecar 的 MLS Remove/rotate obligation；它们不需要也不得触发第二次
 Sidecar roster write。KeyPackage、Welcome、consume 或设备 key 尚未就绪只会使 desired Agent 暂未进入
 `effective_agent_ids`。`effective_agent_ids` **MUST** 是 `desired_agent_ids` 的子集；Sidecar 仅在 controller
-device、accepted MLS group 均就绪且两个集合相等时为 `ready`。
+device、accepted MLS group 均就绪且两个集合相等时为 `ready`。这里的 controller device 不是任何 payload 字段，
+而是 accepted Sidecar `ak.mls.genesis` 按
+[`../crypto-media/encryption-and-audit.md` §5.1](../crypto-media/encryption-and-audit.md) 的创建者坐标从 Event
+`actor_id` 与唯一 producer proof 的 `verification_method` fragment 派生得到。
 
 resource-scoped capability、Agent participation selection 与 action policy 继续独立约束 Agent 可以读取之外执行
 的 write、reply、mention、publish 等操作；它们不是第二套 MLS membership，也不得改变上述派生 roster。
