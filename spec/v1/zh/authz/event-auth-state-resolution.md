@@ -296,6 +296,37 @@ Seal {
 }
 ```
 
+### 6.0 Seal 运作闭环总览（normative）
+
+Seal 的完整运作闭环固定如下；本总览只汇总本节后续规则，不创建另一套 finality、签名或覆盖语义：
+
+1. producer 先按 Realm schema 与 event-kind registry 把写入分类为 DataEvent 或 Control Move。DataEvent
+   携 `seal_ref`，引用一个已经接受的控制面授权视图；Control Move 携 `seal_basis`，冻结其 precondition、
+   capability 与 reducer 求值基线。除 §5 登记的 anchor-unit 例外外，二者不得互换字段或跨 plane 写入。
+2. Control Move 即使已通过 Event schema、proof、basis 与 proposal admission，也只处于 pending；只有某个
+   accepted Seal 把其 `event_digest` 列入 `delta[]` 后，它才进入该 Seal 的递归 `covered_set`、治理 reducer
+   与 `state_root`。Seal 被拒绝时，`delta[]` 内任何 Move 都不因此生效。
+3. notary 以完整 `predecessor_refs[]` 的 joined governance state 为冻结基线构造 Seal。除 Genesis 例外外，
+   `notary_signature` 必须使用该 predecessor view 的 `ak.component.notary.v1` cell 中逐字冻结的 signer
+   descriptor；不得查询 current DID document 或用当前同名 verification method 的新 key 替换。包含
+   `ak.realm.notary` rotation Move 的 Seal 仍由旧 descriptor 授权并签名，只有其 accepted 后继 Seal 才使用
+   rotation 安装的新 descriptor。Genesis Seal 从其 `delta[]` 中唯一完整 Realm anchor unit 的 create notary
+   descriptor 取得 founding key。
+4. Seal body 签入 `predecessor_refs[]`、`delta[]`、全部 control roots、notary slot/time 与 optional data
+   observation roots；`id` 与 `notary_signature` 自身不进入 body。receiver 重算 body hash 得到 Seal id，并用
+   第 3 步选出的 frozen descriptor 验同一 body 的签名。因此替换签名不会改变 Seal id，但 current key 对同一
+   body 产生的密码学有效签名也不能冒充历史 notary authorization。
+5. receiver 按 §6.3 从 predecessor closure 重建 covered set 与 joined governance state，验证每个 delta
+   Control Move、registered dependency、quorum、completeness 与 roots，然后原子应用 reducer writes。任一步
+   失败均拒绝整个 Seal 且不产生部分治理状态；全部匹配才写入 accepted Seal DAG，并使后继 Seal 可递归继承
+   该 `covered_set`。
+6. accepted Seal 的控制面承诺不可追溯改写。后发现 Event fork 或完整 digest collision 时，既有 Seal、它当时
+   实际应用的 canonical bytes 与确定性 reducer 输出按 §6.3.2–§6.3.3 保留；冲突变体及相关未来推进进入
+   quarantine/recovery，不得把 later-arriving variant 重放成旧 Seal 输入，也不得声称旧 Seal 从未覆盖原 Move。
+7. DataEvent 不走上述 finality 闭环。它在自己的 proof、actor chain、`seal_ref` 授权与 data reducer 校验通过后
+   进入 data DAG；后续 Seal 的 `data_view_root` / `data_event_set_root` 至多证明 notary 观察过某个局部集合，
+   不把 DataEvent 加入 `covered_set`、不使其 final，也不能用 omission 拒绝一个原本有效的 DataEvent。
+
 `completeness_root` 是控制面 **listed-set + actor-seq envelope** 承诺，MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则。leaf 集合为当前 `covered_set(S)` 中每个 control-plane actor 的 actor_seq 包络区间；每个 leaf 的 `leaf_data = canonical_json({ "actor_id": <did_core_id>, "from_seq": <integer>, "to_seq": <integer>, "event_digests": [<digest>...] })` 的 UTF-8 字节，其中 `event_digests[]` 是该 actor 在 `[from_seq,to_seq]` 内按 `actor_seq ASC, event_digest ASC` 排列的**已列出控制面 Event** digest。leaf 按 `(actor_id, from_seq, to_seq)` canonical code point / integer 顺序排列。对同一 actor，任一 Seal 相对其**每个 predecessor** 的 interval set MUST 单调：已承诺包络不得收缩，`to_seq` 只能非降，已列 digest 不得删除；DAG 上互不可达的并发 leaf 之间不要求可比。compaction Seal MAY 合并相邻包络，但已列 digest 集合必须逐字节等价。空控制面覆盖集的 `completeness_root` 为 §6.2.2 空树 root。由于 actor_seq 链可混合 data/control event，区间内未列 seq **不声明其 plane，也不证明不存在被扣发的 Control Move**；验证者不得把该 root 单独宣传为 range completeness proof。控制面扣发检测依赖 §7.2 Control Proposal Ack obligation / inclusion list 与独立 range-bound attestation。Auditor 的 `completeness_monotonic` 只沿每条 Seal predecessor edge 验证包络与 listed-set 非缩，不得把未列 seq 当作可机械验证的 gap，也不得按 transparency `log_index` 相邻项误作线性比较。
 
 ### 6.1 Seal id 与签名 transcript

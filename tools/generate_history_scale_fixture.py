@@ -452,6 +452,90 @@ def traversal_negative_cases(case: dict[str, Any]) -> list[dict[str, Any]]:
     return results
 
 
+def build_traversal_replay_kat() -> dict[str, Any]:
+    """Build the deterministic two-Seal replay KAT inputs.
+
+    The Event and Seal canonical bytes are constructed by the shared SDK at
+    run time.  Keeping only the fixed signing inputs and expected historical
+    descriptor here makes the vector small without turning it into a prose-only
+    assertion.  The two different Event variants deliberately share a claimed
+    digest; this is a symbolic resolver-ingestion collision, not a generated
+    SHA-256 collision.
+    """
+    actor_full_id = "did:web:replay-kat.example"
+    actor_id = "ak:did_core:web:replay-kat.example"
+    verification_method = actor_full_id + "#notary-key-1"
+    historical_public_key_b64u = "0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc"
+    current_public_key_b64u = "oJql9HpnWYAv-VX43C0qFKXJnSO-l_hkEn_5ODRVpPA"
+    historical_descriptor = {
+        "actor_id": actor_id,
+        "verification_method": verification_method,
+        "key_kind": "ed25519_raw32",
+        "jose_algorithm": "Ed25519",
+        "frozen_public_key_b64u": historical_public_key_b64u,
+        "frozen_public_key_digest": "sha256:10ba682c8ad13513971e8b56881aab8bd702bb807796eca81932c735a94d6e6d",
+    }
+    current_descriptor = {
+        **historical_descriptor,
+        "frozen_public_key_b64u": current_public_key_b64u,
+        "frozen_public_key_digest": "sha256:1325b850c2871916eae203f0efc3c8987f64e5e3cdb27679e6d1fa97808357e6",
+    }
+    return {
+        "version": "2026-08-22",
+        "digest_suite": "sha256",
+        "topology": {
+            "seal_count": 2,
+            "shape": "genesis_then_successor",
+            "trusted_history_base": "genesis",
+            "trusted_current": "genesis",
+            "target": "successor",
+        },
+        "signing_inputs": {
+            "actor_full_id": actor_full_id,
+            "actor_id": actor_id,
+            "verification_method": verification_method,
+            "historical_seed_b64u": b64u(b"\x11" * 32),
+            "current_seed_b64u": b64u(b"\x22" * 32),
+            "historical_descriptor": historical_descriptor,
+            "current_same_method_descriptor": current_descriptor,
+        },
+        "cases": [
+            {
+                "name": "historical_frozen_notary_signature_positive",
+                "successor_signature_key": "historical",
+                "expected": "verified",
+                "expected_replayed_seal_count": 2,
+                "expected_committed_successor_count": 1,
+                "expected_notary_projection": historical_descriptor,
+            },
+            {
+                "name": "ambiguous_delta_resolver_response",
+                "injection": {
+                    "claimed_digest": digest_marker(0xA7),
+                    "variant_a_content_mutation": "payload.variant=a",
+                    "variant_b_content_mutation": "payload.variant=b",
+                    "real_hash_collision_claimed": False,
+                },
+                "expected": "material_rejected_before_variant_selection",
+                "expected_replayed_seal_count": 0,
+                "expected_committed_successor_count": 0,
+            },
+            {
+                "name": "current_key_same_method_substitution",
+                "successor_signature_key": "current",
+                "expected": "signature_rejected_against_predecessor_frozen_key",
+                "expected_method_id_equal": True,
+                "expected_public_key_bytes_equal": False,
+                "expected_committed_successor_count": 0,
+                "predecessor_replay_may_have_occurred": True,
+            },
+        ],
+        "wire_reason_code": None,
+        "late_collision_policy_vector": "ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1",
+        "data_events_in_delta": False,
+    }
+
+
 def ratchet_outcome(current: str | None, proposed: str) -> str:
     if current is None and proposed in {"since_join", "all_history_for_current_members"}:
         return "accepted_create"
@@ -768,6 +852,7 @@ def build_sections() -> dict[str, Any]:
         raise AssertionError("65,537 negative did not reject before every side effect")
     return {
         "direct_traversal_kat": traversal,
+        "direct_traversal_replay_kat": build_traversal_replay_kat(),
         "governance_registry_artifact_kat": registry,
         "authenticated_signer_resolution_evidence_kat": signer,
         "governance_dependency_resolve_kat": dependency,
@@ -839,7 +924,7 @@ def render() -> str:
         ],
     }
     fixture.update(build_sections())
-    fixture["version"] = "2026-08-21"
+    fixture["version"] = "2026-08-22"
     fixture["runner"] = {
         "kind": "named_suite",
         "entrypoint": "ak.suite.crypto.history_key_recovery.v1",

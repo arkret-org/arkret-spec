@@ -6622,6 +6622,12 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
    predecessor 必须在 cut 内或恰为 base leaf，每个 base leaf 必须被消费，target 必须支配独立 current anti-rollback basis。随后按拓扑运行标准
    `apply_seal`，按 digest 解析每个 `Seal.delta` Control Move、AvailabilityReceipt、signer-resolution evidence、registry snapshot/artifact 与其它
    registered dependency，重算 roots、Bottom/recovery、winner、join/incarnation、ciphersuite/content scheme 及 current monotone history access。
+   `direct_traversal_replay_kat` 另以 Genesis + successor 的最小两 Seal 拓扑执行三项真实 replay：历史 frozen notary key 正签名必须通过；同一
+   `verification_method` 换成 current key 所作的 successor 签名必须按 predecessor joined notary descriptor 拒绝，且目标 Seal、verified outcome 与业务
+   callback 均不提交（为派生历史 state 而完成的 Genesis 临时 replay 不算违规）；同一 claimed digest 对应两份不同 digest-preimage Event 的
+   resolver response 必须在选边及 replay 前整次拒绝，replayed Seal 计数为零。该 collision 是 ingestion seam 的符号化注入，不宣称制造真实
+   SHA-256 collision；这些 case name 不是 wire reason code。普通 DataEvent 不进入 `Seal.delta`，已 Seal 历史后来发现 collision 的不回滚规则复用
+   `ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1`，不得在本向量另造 first-seen 或 Realm 失效语义。
 4. 规模 recipe 不生成额外历史证明 carrier 或 O(N) fixture 数组；26,298 与 65,536 两条路径只冻结实际遍历的
    Seal/Event/dependency counts、canonical descriptor stream aggregate digest、总字节和单对象最大字节。work queue/visited set 落临时 SQLite，
    内存只保留当前 descriptor 与常数个 hash accumulator。

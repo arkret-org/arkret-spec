@@ -162,10 +162,25 @@ bootstrap cut；它不是服务自报的“全局唯一 Genesis Seal”，但不
 base 到达的并发 branch、missing object 或 fork-quarantine 均 fail closed。
 
 客户端/服务使用 SQLite 或等价 disk-backed work queue+visited set，从 target 反向发现完整 cut，再按拓扑 base→target 运行标准 `apply_seal`。
-Seal 本身的 `delta[]` 唯一发现 Control Move digest；resolve 必须返回该 accepted Seal 当时 pin 的 exact canonical Event bytes，并同时提供
-registered `apply_seal` 所需的历史 DID key、AvailabilityReceipt 及其它 CBA 依赖。每个 Seal 的 notary、predecessor、delta、
-control_event_set_root、completeness_root、state_root、frozen-predecessor admission、Bottom/recovery 与 joined state 都按核心规则重算。
-digest collision/quarantine 时不得任选另一 variant 重放。内存只需当前对象与有界队列 buffer；visited/work state 可 durable 恢复。
+direct traversal 只消费 Seal 与其 `delta[]` 唯一发现的 Control Move；普通 Message/reaction 等 DataEvent 的 digest 不得进入 `delta[]`，也不因
+某个 Seal 的 optional data observation root 出现它而取得控制面 finality。resolve 必须返回该 accepted Seal 在 acceptance 时实际 pin 的
+exact canonical Control Move bytes，并同时提供 registered `apply_seal` 所需的 historical signer evidence、AvailabilityReceipt 及其它 CBA
+依赖。每个 Seal 的 notary、predecessor、delta、control_event_set_root、completeness_root、state_root、frozen-predecessor admission、
+Bottom/recovery 与 joined state 都按核心规则重算。
+
+Seal 的 `notary_signature` 只使用其 predecessor joined governance state 中 `ak.component.notary.v1` cell 冻结的 signer descriptor 验证；
+包含 `ak.realm.notary` rotation Move 的 Seal 仍用旧 descriptor，只有 accepted 后继才使用新 descriptor。Genesis Seal 仅从其完整 Realm
+anchor unit 的 create notary descriptor 取得 founding key。verification method 虽可使用 DID URL 命名，verifier 也不得查询 current DID
+document、当前同名 method 的 key bytes 或本地 latest notary row 来替换上述历史 descriptor。Control Move/Event proof 所需的历史 signer
+evidence 同样按其 content-addressed acceptance pin 解析，不得由 current resolver 补造。
+
+同一 `event_id` / `event_digest` 后来出现两个不同 digest-preimage canonical bytes 时，direct traversal 的“不得任选 variant”只禁止歧义
+解析与追溯替换，不表示追溯撤销整个 Realm：若 resolve 对一个 selector 返回多份未经 acceptance pin 区分的 variant、返回的 bytes 不等于
+该 Seal 当时 pin 的 bytes，或已丢失该 pin，当前 traversal MUST fail closed，且不得 first-row-wins。此前 accepted Seal 及其后继不得因此
+回滚或重算；最初 receiver 必须按 [`event-auth-state-resolution.md` §6.3.2–§6.3.3](../authz/event-auth-state-resolution.md)
+保留该 Seal 实际应用的 canonical bytes 与确定性 reducer 输出，拒绝 later-arriving variant 进入普通状态，并由显式按 canonical bytes 指认的
+fork-resolution/recovery 归一。没有 acceptance-time bytes/output pin 的新 verifier 把该覆盖区间视为不可验证；它不能用任一当前可取得的 variant
+重建旧 `state_root`。内存只需当前对象与有界队列 buffer；visited/work state 可 durable 恢复。
 
 Replay intent 绑定一个小型 `GovernanceRegistrySnapshot` manifest digest。manifest 的 descriptor 集合固定为
 `registry/contract-registry.json`、`registry/proof-context-registry.json` 与一个 replay-schema manifest descriptor：前者是 reducer profile、lattice/FSM、active Event-kind contract 与 dependency extractor 的现有机器真相源，第二项冻结 detached proof transcript；schema manifest 从 `event-envelope.schema.json` 与 `event-payload.schema.json` 两个根开始，按每个本地 `$ref` 递归求出 every-and-only transitive schema closure，并按 artifact id 字节序列出 descriptor。外层 manifest 与 schema manifest 都不内联 artifact bytes；每个 artifact 按 descriptor digest 经同一 governance-dependency surface 分批取得，单 artifact canonical bytes 不超过 1 MiB，完整一次响应不超过 8 MiB。缺少、重复、多余、乱序、越界 `$ref`、不可解析 schema 或 artifact digest 不符均 fail closed。

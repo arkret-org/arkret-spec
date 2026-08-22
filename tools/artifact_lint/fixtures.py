@@ -2905,6 +2905,70 @@ def check_history_scale_fixture(lint: Lint) -> None:
         if row.get("expected_error") not in row.get("actual_errors", []):
             lint.fail(path, f"history direct-traversal negative {name} has no matching observed error")
 
+    replay_kat = data.get("direct_traversal_replay_kat")
+    if not isinstance(replay_kat, dict):
+        lint.fail(path, "history recovery fixture must carry the executable direct-traversal replay KAT")
+    else:
+        topology = replay_kat.get("topology", {})
+        if topology.get("seal_count") != 2 or topology.get("shape") != "genesis_then_successor":
+            lint.fail(path, "direct-traversal replay KAT must remain the minimal two-Seal topology")
+        signing = replay_kat.get("signing_inputs", {})
+        historical = signing.get("historical_descriptor", {})
+        current = signing.get("current_same_method_descriptor", {})
+        if (
+            historical.get("verification_method") != current.get("verification_method")
+            or historical.get("verification_method") != signing.get("verification_method")
+        ):
+            lint.fail(path, "replay KAT historical/current descriptors must use the same method id")
+        if historical.get("frozen_public_key_b64u") == current.get("frozen_public_key_b64u"):
+            lint.fail(path, "replay KAT historical/current descriptors must freeze different key bytes")
+        for label, descriptor in (("historical", historical), ("current", current)):
+            try:
+                key_bytes = base64.urlsafe_b64decode(descriptor.get("frozen_public_key_b64u", "") + "==")
+            except (ValueError, binascii.Error):
+                key_bytes = b""
+            if len(key_bytes) != 32:
+                lint.fail(path, f"replay KAT {label} Ed25519 public key must decode to 32 bytes")
+            expected_digest = "sha256:" + hashlib.sha256(key_bytes).hexdigest()
+            if descriptor.get("frozen_public_key_digest") != expected_digest:
+                lint.fail(path, f"replay KAT {label} frozen public-key digest drifted")
+        for seed_name in ("historical_seed_b64u", "current_seed_b64u"):
+            try:
+                seed = base64.urlsafe_b64decode(signing.get(seed_name, "") + "==")
+            except (ValueError, binascii.Error):
+                seed = b""
+            if len(seed) != 32:
+                lint.fail(path, f"replay KAT {seed_name} must decode to 32 bytes")
+        cases = replay_kat.get("cases", [])
+        case_by_name = {
+            row.get("name"): row for row in cases
+            if isinstance(row, dict) and isinstance(row.get("name"), str)
+        }
+        required_replay_cases = {
+            "historical_frozen_notary_signature_positive",
+            "ambiguous_delta_resolver_response",
+            "current_key_same_method_substitution",
+        }
+        if set(case_by_name) != required_replay_cases:
+            lint.fail(path, "history direct-traversal replay case matrix drifted")
+        ambiguous = case_by_name.get("ambiguous_delta_resolver_response", {})
+        if (
+            ambiguous.get("expected_replayed_seal_count") != 0
+            or ambiguous.get("expected_committed_successor_count") != 0
+            or ambiguous.get("injection", {}).get("real_hash_collision_claimed") is not False
+        ):
+            lint.fail(path, "ambiguous resolver material must be symbolic and reject before replay")
+        substitution = case_by_name.get("current_key_same_method_substitution", {})
+        if (
+            substitution.get("expected_method_id_equal") is not True
+            or substitution.get("expected_public_key_bytes_equal") is not False
+            or substitution.get("expected_committed_successor_count") != 0
+            or substitution.get("predecessor_replay_may_have_occurred") is not True
+        ):
+            lint.fail(path, "current-key substitution assertions drifted")
+        if replay_kat.get("wire_reason_code") is not None or replay_kat.get("data_events_in_delta") is not False:
+            lint.fail(path, "replay KAT must not invent a wire reason code or place DataEvents in Seal.delta")
+
     registry_kat = data.get("governance_registry_artifact_kat")
     if not isinstance(registry_kat, dict):
         lint.fail(path, "history fixture must carry the registry snapshot/artifact KAT")

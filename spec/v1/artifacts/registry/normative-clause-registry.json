@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-22.3",
+  "version": "2026-08-22.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-22T18:00:00+08:00",
+  "generated_at": "2026-08-22T19:08:16+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -231,7 +231,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:1ad3607d8a070bac636fca31edbd6fbaf53f526085231f5bb73dd76edf10331a",
+      "section_digest": "sha256:be2e15effc04000b368b37c852a7680713fa312327115c081994088253f5c9cf",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
       "testability_grade": "vector",
       "evidence_refs": [

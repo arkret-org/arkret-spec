@@ -177,9 +177,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-08-22.3",
-      "generated_at": "2026-08-22T18:00:00+08:00",
-      "content_digest": "sha256:436df1b228cf9379c2445a0862bb50ee76473f3799f5036bb266f46d10cc29e4"
+      "version": "2026-08-22.4",
+      "generated_at": "2026-08-22T19:08:16+08:00",
+      "content_digest": "sha256:badd61d51e6161254c5e13e46e2bf52f7c721fad82f13ecbc22ec27247bac931"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
