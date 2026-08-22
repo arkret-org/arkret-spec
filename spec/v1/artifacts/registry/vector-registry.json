@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.1",
+  "version": "2026-08-23.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-23T00:31:05+08:00",
+  "generated_at": "2026-08-23T00:48:41+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4365,6 +4365,7 @@
       ],
       "description": "Executable service-behavior vector for organization-recovery durability: deterministic HPKE archive bytes, typed transition/container provenance, first durable replica receipt, exact duplicate replay, barrier/list reread, atomic coverage-ledger states and GC-before/after decisions are all frozen without defining private storage rows.",
       "source_refs": [
+        "spec/v1/zh/governance/history-visibility.md",
         "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
       ]
     },

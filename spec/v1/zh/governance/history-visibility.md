@@ -516,6 +516,15 @@ HPKE、换 base/current/target 或改 intent；失败/receipt 丢失只重放原
 完整 Seal cut、Control Move bytes 与 registered replay dependencies 作为 Realm history recovery material 长期同寿命；旧 key rotation
 不缩短寿命。v1 不定义 RRK 远端 GC、renewal 或双方销毁协调 surface；部署在规范外本地销毁后不得再声称对应历史可恢复。
 
+对选择 `organization_recovery_key` durability 的 scope，source 在删除本地 epoch history secret 前 **MUST**
+同时完成以下 durable gate：holder 已首次接受 replica 或 exact duplicate 已返回首次 accepted receipt；随后通过
+`ak.self.organization_recovery_archives.read.list` barrier 逐字重读同一 archive、container Event ref 与
+`HistoryGovernanceTraversalRetention`；本地 coverage ledger 已在一个原子事务中提交 exact
+`(effective_scope,mls_group_id,epoch,container_event_ref,archive_tuple_digest)`、durable holder acceptance 与 exact
+reread。任一条件缺失或重读 bytes 不一致时，本地 GC **MUST** 以 `failed_precondition` 拒绝；全部完成后 GC 只删除本地
+history secret，不得删除或改写 holder archive。`ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1`
+是该 gate 的规范性 service-behavior 向量；它不规定服务端私有表形状。
+
 effective epoch cell 明确分开：`transition_ref` 是 Genesis/Commit EventId，`transition_event_digest` 是 outer Event digest，
 `mls_transition_digest` 才是 MLS transition 内容摘要。Conflict recovery 选择前两者；state leaf 同时绑定三者。Archive 的
 `transition_digest` 必须逐字等于 `mls_transition_digest`。Commit 使用 `payload.commit_digest`。Genesis 使用

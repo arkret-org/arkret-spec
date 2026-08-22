@@ -3284,9 +3284,15 @@ def check_history_scale_fixture(lint: Lint) -> None:
             or registered_rrk.get("applies_to_fixtures")
             != ["history-key-recovery-fixture.json"]
             or registered_rrk.get("source_refs")
-            != ["spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"]
+            != [
+                "spec/v1/zh/governance/history-visibility.md",
+                "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
+            ]
         ):
-            lint.fail(path, "RRK durability vector registry row must remain service-fixture scoped")
+            lint.fail(
+                path,
+                "RRK durability vector registry row must bind its normative prose and service fixture",
+            )
         typed_instances = (
             ("RRK archive plaintext", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_plaintext", rrk.get("hpke_transcript", {}).get("plaintext")),
             ("RRK archive", "schemas/event-payload.schema.json#/$defs/organization_recovery_archive", rrk.get("archive")),
