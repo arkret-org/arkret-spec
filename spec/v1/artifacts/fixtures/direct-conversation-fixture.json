@@ -964,6 +964,32 @@
       ]
     },
     {
+      "name": "all_members_private_state_loss_permanently_suspends_same_pair",
+      "vector_id": "ak.vector.direct_conversation.founder_loss_terminality.v1",
+      "precondition": "the immutable Direct Conversation coordinate exists and every current participant has lost the unique scope-derived MLS group's private state",
+      "action": "resolve the same stable participant pair and trust domain, then attempt a replacement Realm genesis",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "direct_conversation_founding_unit_invalid",
+      "assertions": [
+        "resolver remains suspended and returns the same pair_key and immutable coordinates",
+        "the local unique slot never returns to creation_required",
+        "no successor Realm, main Strand, MLS group or epoch namespace is created",
+        "a single device self-report of private-state loss grants no shared create authority"
+      ]
+    },
+    {
+      "name": "offline_member_or_late_backup_means_state_was_not_globally_lost",
+      "vector_id": "ak.vector.direct_conversation.founder_loss_terminality.v1",
+      "precondition": "one participant appears to lack private state while another device is offline or a verified backup may later restore the exact existing group state",
+      "action": "resolve before and after the device or backup returns",
+      "semantic_outcome": "accept_existing_only",
+      "assertions": [
+        "temporary unavailability never releases the unique pair slot",
+        "restored state resumes only the same group lineage with monotonic epoch progression",
+        "a concurrent replacement genesis is rejected before and after recovery"
+      ]
+    },
+    {
       "name": "generic_navigation_excludes_dm",
       "precondition": "stable DM Realm is synchronized",
       "action": "generic collaboration discovery",

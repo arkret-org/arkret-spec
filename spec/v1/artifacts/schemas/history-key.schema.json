@@ -23,7 +23,7 @@
       "$ref": "#/$defs/history_key_response_ack_request"
     },
     {
-      "$ref": "#/$defs/history_key_response_send_outcome"
+      "$ref": "#/$defs/history_key_response_send_receipt"
     },
     {
       "$ref": "#/$defs/history_key_response_ack_outcome"
@@ -1094,7 +1094,7 @@
       "additionalProperties": false,
       "description": "Uses the single active history-response-capability HPKE registry profile; algorithm fields are forbidden."
     },
-    "history_key_request_accepted_outcome": {
+    "history_key_request_create_outcome": {
       "type": "object",
       "required": [
         "kind",
@@ -1115,9 +1115,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "history_key_request_create_outcome": {
-      "$ref": "#/$defs/history_key_request_accepted_outcome"
     },
     "history_key_request_record": {
       "type": "object",
@@ -2478,9 +2475,6 @@
       },
       "additionalProperties": false,
       "description": "Small immutable source-facing success receipt. It never echoes the recipient response record, release authority locators, source record, request receipt or ciphertext."
-    },
-    "history_key_response_send_outcome": {
-      "$ref": "#/$defs/history_key_response_send_receipt"
     },
     "history_key_response_ack_outcome": {
       "type": "object",

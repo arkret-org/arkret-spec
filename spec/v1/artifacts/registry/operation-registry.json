@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.2",
+  "version": "2026-08-23.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-21T23:50:00+08:00",
+  "generated_at": "2026-08-23T01:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4468,7 +4468,7 @@
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
       "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_request",
-      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_outcome",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -4550,7 +4550,7 @@
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
       "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_source_relay",
-      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_outcome",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"

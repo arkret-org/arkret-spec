@@ -45,7 +45,30 @@
         "Sidecar genesis is Event-derived and MLS binds the native Sidecar scope",
         "server-generated MLS private state and synthetic GroupInfo digests are forbidden",
         "a concurrent losing provisional snapshot is destroyed"
-      ]
+      ],
+      "scope_ref_contract": {
+        "valid": {
+          "kind": "sidecar",
+          "realm_id": "ak:realm:AUu6GayQb7-Knno7Ar5EA6ndAgK47WhZI_ViA21yHqDE",
+          "sidecar_id": "ak:sidecar:Aa9QYb77BXMoa1ySi5zspQe1V0D983aoWG7js7Co0k7_"
+        },
+        "must_match_in": [
+          "event_schema",
+          "producer_digest",
+          "reducer_derived_scope",
+          "cba_and_seal",
+          "mls_aad",
+          "delivery_gate"
+        ],
+        "negative_mutations": [
+          "delete_sidecar_id",
+          "change_realm_id",
+          "replace_kind_with_circle",
+          "reference_nonexistent_sidecar",
+          "use_realm_genesis_after_create"
+        ],
+        "expected_negative_result": "fail_closed"
+      }
     },
     {
       "name": "sidecar_mls_effective_access",

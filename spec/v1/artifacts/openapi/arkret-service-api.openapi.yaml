@@ -1655,8 +1655,8 @@ components:
       $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_list_outcome
     HistoryKeyResponseListQuery:
       $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_list_query
-    HistoryKeyResponseSendOutcome:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_send_outcome
+    HistoryKeyResponseSendReceipt:
+      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_send_receipt
     HistoryKeyResponseSendRequest:
       $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_send_request
     HistoryKeySourceRelay:
@@ -4477,7 +4477,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HistoryKeyResponseSendOutcome'
+                $ref: '#/components/schemas/HistoryKeyResponseSendReceipt'
   /_arkret/self/history-key-responses/read:
     post:
       operationId: ak.self.history_key_responses.read.list
@@ -4579,7 +4579,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HistoryKeyResponseSendOutcome'
+                $ref: '#/components/schemas/HistoryKeyResponseSendReceipt'
   /_arkret/peer/seals/mls-governance-proof:
     post:
       operationId: ak.peer.seals.read.mls_governance_proof

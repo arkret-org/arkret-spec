@@ -175,6 +175,11 @@ Control Move 生命周期，`fork_quarantine` 是分支处置；这些概念不�
 
 **`distance` 度量与窗口单位（normative）**：`revocation_freshness_window` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `revocation_freshness_window_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`）。`distance(seal_ref, R)` MUST 按**控制面 Seal DAG 上 notary 签署的提交时间差**度量：取撤销 Seal `R` 与 `seal_ref` 各自签名 transcript 内 notary 提交时间（沿 Seal DAG，`R` 是 `seal_ref` 后继，见 §6.3），求二者毫秒差。该度量只用进入 Seal 签名 transcript 的 notary 提交时间，**不**用 DataEvent 自报的 `created_at` 或本地接收时间——时间来自被签名的 Seal 拓扑，可验证、跨 receiver 确定复现。`distance > revocation_freshness_window_ms` 即超窗。
 
+该字段的安全语义是 **Seal-distance grace（历史 basis 宽限）**，不是现实时间 TTL。给定同一旧 basis Seal、
+后继撤销 Seal 与 Event，receiver 在撤销后一秒或三十天首次收到、在线接收或离线回放，MUST 得到相同结果；
+不同 receiver 的到达时间与顺序也不得进入谓词。若两张 Seal 的距离在窗口内，中低风险 Event 不会仅因现实时间
+流逝变成超窗；高风险 capability 仍按下文 effective window 0 处理。
+
 该规则不判断事件真实签发时间，也不依赖本地接收时间。producer 在本地已知撤销 seal 后仍用旧 `seal_ref` 签 DataEvent，协议不把它单独定义为可证明 fault；但所有已观察到 `R` 且窗口超限的 receiver MUST 拒绝或隐藏这些事件（`seal_ref_stale`，§13）。
 
 **并发分支撤销（normative，`open_set`）**：撤销 Seal `R` 与 `seal_ref` 并发时，receiver MUST 按已 join 的控制面视图重判 capability；若已撤销或授权 cell 进入 `⊥`，依赖 Event fail closed。并发分支不计算 `distance`、不享受新鲜度宽限。轻客户端无法验证 multi-leaf union basis 时必须 hold pending 或 fail closed。撤销 leaf 迟到后，receiver MUST 把已失效 Event 从 data-cell reducer 输入集中移除，并按仍授权且依赖闭包完整的 accepted Event 集合确定性重算。
@@ -912,7 +917,7 @@ E2EE message 不等待数据面 Seal；它等待普通 Event admission 成立，
 | `rejected_seal` | Seal 签名、slot、delta、root、batch 或 `state_root` 校验失败。 |
 | `seal_deferred_future_skew` | Seal 的 `sealed_at` 暂时超过本地时钟允许的 future skew；非终态，receiver MUST hold 并随时钟推进重判。 |
 | `fork_quarantine` | 控制面分叉已被证明，相关 Seal 不得进入普通 joined view。 |
-| `seal_ref_stale` | DataEvent 的 `seal_ref` 相对已知撤销 seal 超出 freshness window。 |
+| `seal_ref_stale` | DataEvent 的 `seal_ref` 与其后继撤销 Seal 之间的 notary-committed Seal distance 超出历史 basis grace；不得解释为 Event 首次投递或接收时间超过现实 TTL。 |
 
 本表是 reducer 判定状态；其到服务 error code 的映射以 [`operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 为准，实现 MUST NOT 引入未登记错误码。
 

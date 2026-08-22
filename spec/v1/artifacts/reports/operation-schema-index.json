@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-22.2",
+  "version": "2026-08-23.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-22T18:00:00+08:00",
+  "generated_at": "2026-08-23T01:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9615,7 +9615,7 @@
         "closed": false
       },
       "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_accepted_outcome",
+        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_create_outcome",
         "schema_kind": "object",
         "required": [
           "kind",

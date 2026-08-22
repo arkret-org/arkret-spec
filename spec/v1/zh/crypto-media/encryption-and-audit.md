@@ -727,14 +727,14 @@ participant leave/ban、Realm terminal 或 immutable main Strand terminal accept
 MLS authoring authority 立即停止，同一 binding 投影为 `suspended`，不等待 retirement fact。恢复不得创建
 新 Realm/main Strand、successor/predecessor binding 或历史 segment；resolver 返回同一 `pair_key` 与永久坐标，
 并只在同一 scope-derived group 内用普通 Commit/rejoin 单调推进 epoch，绝不创建第二 group 或重置 epoch。若
-所有成员都丢失该 group 的私有状态，旧 Direct Conversation Realm 终结；继续会话必须创建新的 DC Realm/new realm_id。
+所有成员都丢失该 group 的私有状态时，旧 encrypted scope 永久不可继续，同一 stable participant pair + trust domain 的 resolver 保持 `suspended`，本地唯一 slot 不得回到可创建态。只有实际不同的 stable participant pair 或不同 trust domain 才会自然得到新的 `pair_key` 并走普通建联；它不是旧 lineage 的 successor，也不继承旧历史、keys、proof、receipt 或 epoch namespace。
 旧 epoch 的历史解密仍逐次按 receipt-bound direct Seal replay、current 单向收紧 history_access、incarnation/join floor、首次入队 current gate 与本地 key availability 判定，
 恢复不得自动补发旧 epoch key。
 
 ### 5.4 并发 Commit
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
 - 节点 MUST 以 accepted Seal view 下的 `mls_epoch_cell` / `key_schedule_cell` Lattice 结果为准。互不可达候选不会按时间或 actor 自动选 winner。
-- 若并发 Commit Control Move 都满足各自 precondition 但写入同一 `cas_register` epoch cell 的不同值，该 cell 返回 `⊥`；后续 E2EE DataEvent fail closed，直到 recovery Control Move 或后续有效 Commit 修复。
+- 若并发 Commit Control Move 都满足各自 precondition 但写入同一 `cas_register` epoch cell 的不同值，该 cell 返回 `⊥`；后续 E2EE DataEvent fail closed。普通 `ak.mls.commit` 在 `bottom=reject` 下必须以 `failed_bottom` 拒绝；唯一恢复入口是满足 recovery capability、严格 pre-conflict witness、freshness 与 Seal 条件的 `ak.conflict.recovery` Control Move。
 - 只有 effective Commit Control Move 能成为合法的下一个 Epoch。未被 accepted Seal 覆盖或导致 bottom 的 Commit 客户端 MUST 丢弃本地 epoch 变更并拉取当前 Seal view。
 
 MLS Commit 的输入和输出必须在 Event payload 中可验证表达：

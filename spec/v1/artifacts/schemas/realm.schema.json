@@ -397,7 +397,7 @@
       "type": "integer",
       "minimum": 0,
       "default": 86400000,
-      "description": "Realm-level maximum control-plane seal distance/time window for accepting DataEvents whose seal_ref predates an observed revocation seal. Receivers evaluate this window by seal topology and policy (the notary-committed seal-time delta along the Seal DAG per authz/event-auth-state-resolution.md section 4.3), not by unverified event signing time. risk_tier=high capabilities get no grace (effective 0). High-risk Realms SHOULD use a short value or move the affected cell family to control plane."
+      "description": "Realm-level maximum historical basis grace, measured only as the notary-committed Seal-time distance between an old basis Seal and its successor revocation Seal along the Seal DAG (authz/event-auth-state-resolution.md section 4.3). The value is not a wall-clock TTL and does not age from Event signing, first delivery, receiver admission, or replay time. risk_tier=high capabilities get no grace (effective 0). Deployments needing real-time online revocation also use an independent runtime/session gate."
     },
     "recovery_witness_freshness_window_ms": {
       "type": "integer",

@@ -38,6 +38,16 @@ class HistoryResponseNamingLintTest(unittest.TestCase):
         )
         self.assertEqual([token for _, token in violations], ["mailbox", "inbox", "reply"])
 
+    def test_history_success_types_have_one_schema_identity(self) -> None:
+        schema_path = ROOT / "spec/v1/artifacts/schemas/history-key.schema.json"
+        schema = __import__("json").loads(schema_path.read_text(encoding="utf-8"))
+        defs = schema["$defs"]
+        self.assertIn("history_key_request_create_outcome", defs)
+        self.assertNotIn("history_key_request_accepted_outcome", defs)
+        self.assertIn("history_key_response_send_receipt", defs)
+        self.assertNotIn("history_key_response_send_outcome", defs)
+
+
 
 if __name__ == "__main__":
     unittest.main()

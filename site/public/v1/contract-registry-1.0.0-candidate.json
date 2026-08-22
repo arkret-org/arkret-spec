@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-22.2",
+  "version": "2026-08-23.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-22T18:00:00+08:00",
+  "generated_at": "2026-08-23T01:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -15529,7 +15529,7 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_request",
-        "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_outcome",
+        "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
         "durable_effect": {
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -15611,7 +15611,7 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_source_relay",
-        "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_outcome",
+        "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
         "durable_effect": {
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -15688,8 +15688,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-21.2",
-    "generated_at": "2026-08-21T23:50:00+08:00"
+    "version": "2026-08-23.1",
+    "generated_at": "2026-08-23T01:30:00+08:00"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

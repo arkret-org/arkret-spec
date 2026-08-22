@@ -2405,6 +2405,30 @@ def check_protocol_layer_registry(lint: Lint) -> None:
     if extra:
         lint.fail(path, f"unknown or inactive Event kinds have a protocol layer: {extra}")
 
+    envelope_path = ARTIFACTS / "schemas" / "event-envelope.schema.json"
+    envelope = load_json(lint, envelope_path)
+    protocol_prose_path = SPEC_ROOT / "zh" / "overview" / "protocol-layers.md"
+    protocol_prose = read_text(protocol_prose_path)
+    if isinstance(envelope, dict):
+        branches = envelope.get("$defs", {}).get("scope_ref", {}).get("oneOf", [])
+        scope_kinds = {
+            branch.get("properties", {}).get("kind", {}).get("const")
+            for branch in branches
+            if isinstance(branch, dict)
+        }
+        expected_scope_kinds = {"realm", "circle", "sidecar", "realm_genesis"}
+        if scope_kinds != expected_scope_kinds:
+            lint.fail(
+                envelope_path,
+                f"scope_ref closed union must be exactly {sorted(expected_scope_kinds)}",
+            )
+        for scope_kind in expected_scope_kinds:
+            if f'"kind":"{scope_kind}"' not in protocol_prose:
+                lint.fail(
+                    protocol_prose_path,
+                    f"Security Scope prose omits schema scope_ref kind {scope_kind}",
+                )
+
 
 
 def check_id_form_wire_schema_alignment(lint: Lint) -> None:

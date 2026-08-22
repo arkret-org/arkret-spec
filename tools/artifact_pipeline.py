@@ -974,6 +974,11 @@ def write_operation_schema_index() -> None:
 def write_public_registry_snapshot() -> None:
     canonical_bytes = CONTRACT_REGISTRY_PATH.read_bytes()
     PUBLIC_V1.mkdir(parents=True, exist_ok=True)
+    expected = set(public_registry_paths())
+    for obsolete in sorted(PUBLIC_V1.glob("contract-registry-*.json")):
+        if obsolete not in expected:
+            obsolete.unlink()
+            print(f"removed obsolete {obsolete.relative_to(ROOT).as_posix()}")
     for target in public_registry_paths():
         target.write_bytes(canonical_bytes)
         print(f"updated {target.relative_to(ROOT).as_posix()}")
@@ -995,6 +1000,18 @@ def check_public_registry_snapshot() -> list[str]:
             "(run python tools/artifact_pipeline.py generate)"
         )
         return errors
+    tracked = subprocess.run(
+        ["git", "ls-files", "--error-unmatch", expected_path.relative_to(ROOT).as_posix()],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if tracked.returncode != 0:
+        errors.append(
+            f"public registry snapshot is not tracked by Git: "
+            f"{expected_path.relative_to(ROOT).as_posix()}"
+        )
     if expected_path.read_bytes() != CONTRACT_REGISTRY_PATH.read_bytes():
         errors.append(
             f"public registry snapshot drift: {expected_path.relative_to(ROOT).as_posix()} "

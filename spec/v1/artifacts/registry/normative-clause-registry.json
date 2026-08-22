@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-22.4",
+  "version": "2026-08-23.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-22T19:08:16+08:00",
+  "generated_at": "2026-08-23T01:30:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -408,8 +408,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#43-seal_ref-验证与撤销",
-      "section_digest": "sha256:1015fe9474d692736201d47f78158b551f51777d08160592fd6bfe741d5a8725",
-      "requirement": "A revoked authorization observed inside the configured freshness window remains deterministically accepted in reducer input; a receiver may retain separate local evidence state but MUST NOT reject it from the canonical join or invent an unregistered query-grade carrier.",
+      "section_digest": "sha256:9cc8eedd08c76facaaebf0f4b2ec8ad5a9c26c67a5e37fafb81ad965465c59e6",
+      "requirement": "A revoked authorization whose old basis-to-revocation Seal distance is inside the configured grace remains deterministically accepted in reducer input even if first delivered or replayed much later; receiver arrival time is not an input, while high-risk capability uses effective grace zero.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1"

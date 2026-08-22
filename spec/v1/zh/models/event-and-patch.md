@@ -448,7 +448,7 @@ Create 类 Event 的 `payload.object` MAY 使用其登记的对象或 genesis sc
 ```
 
 - **(a)** 的输入是 `prev_refs`——因果前沿，其中每条在因果上都早于本 Event，取 `max` 天然正确。它同时消除了 `actor_seq-1` 处存在 sibling fork（§2.6 单桶上限 16）时"以哪一条为准"的歧义：producer 按 §2.6 必须把观察到的完整 frontier 合入 `prev_refs`，所以 `max` 的输入集合就是签名覆盖的那个集合。`prev_refs` 为空（genesis）时本条不适用。
-- **(b)** 绑定所有主体，包括在该 Realm 内 `actor_seq=0` 的新成员——他们仍然必须绑定一个已接受的 Seal。`revocation_freshness_window_ms` 约束授权 basis 的陈旧程度；若 Seal 在 Event 产生前不可预测且 admission 同时拒绝过期首次注入，它 MAY 形成额外在线攻击期限，但这不是 Event-ID 位布局提供的强度。
+- **(b)** 绑定所有主体，包括在该 Realm 内 `actor_seq=0` 的新成员——他们仍然必须绑定一个已接受的 Seal。`revocation_freshness_window_ms` 只约束旧 basis Seal 与后继撤销 Seal 之间的 notary-committed Seal distance；它不是从 Event 签发、首次出现或 receiver 接收时刻开始倒计时的 TTL，也不会因现实时间流逝而自行耗尽。安全部署若需要现实时间有界的在线阻断，必须使用独立的 session/introspection、ingress deny 或运行时 kill switch。
 - **(b)** 的比较跨两台机器的墙钟，MUST 允许 `hard_future_skew_ms` 的对称容差；MUST NOT 为此新增阈值。
 
 **anchor unit 例外（normative）**：`ak.realm.create` 与 `ak.device.reanchor` 无 `seal_ref` / `seal_basis`，(b) 不适用；`ak.realm.create` 的 `prev_refs` 为空，(a) 也不适用。这只是因果/CBA 时间约束例外，不改变 §4.0 的完整 256-bit digest identity 强度。genesis 批次内免 `seal_basis` 的白名单 follow-up 因 `actor_seq > 0` 且 `prev_refs` 非空，仍受 (a) 覆盖。

@@ -3187,6 +3187,80 @@ def check_history_scale_fixture(lint: Lint) -> None:
                         path,
                         f"scope/group KAT {case_index}.{branch} group id is not derived from its scope key",
                     )
+            if case.get("name") == "standard_fresh_endpoint_floor":
+                model = case.get("deterministic_model")
+                seed_hex = case.get("seed_hex")
+                if not isinstance(model, dict) or model.get("algorithm") != "ak.standard-fresh-endpoint-model.v1":
+                    lint.fail(path, "standard fresh endpoint KAT must freeze its executable model algorithm")
+                elif not isinstance(seed_hex, str):
+                    lint.fail(path, "standard fresh endpoint KAT omits its unique model seed")
+                else:
+                    try:
+                        seed = bytes.fromhex(seed_hex)
+                        for tag in model.get("transition_tags", []):
+                            operation = tag["operation"]
+                            epoch = tag["epoch"]
+                            actual = hashlib.sha256(
+                                seed + b"\x00" + operation.encode("utf-8") + epoch.to_bytes(8, "big")
+                            ).hexdigest()
+                            if tag.get("sha256_hex") != actual:
+                                lint.fail(path, f"standard fresh endpoint transition tag drifted at epoch {epoch}")
+                    except (KeyError, TypeError, ValueError) as exc:
+                        lint.fail(path, f"standard fresh endpoint model is not executable: {exc}")
+
+    response_stream = data.get("response_stream_cases")
+    if not isinstance(response_stream, dict):
+        lint.fail(path, "history response stream KAT must be structured input, not prose cases")
+    else:
+        wire = response_stream.get("wire_instances", {})
+        for label, schema_ref, instance in (
+            ("manifest send", "schemas/history-key.schema.json#/$defs/history_key_response_send_request", wire.get("manifest_send")),
+            ("first send receipt", "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt", wire.get("first_send_receipt")),
+            ("sequence list", "schemas/history-key.schema.json#/$defs/history_key_response_list_outcome", wire.get("sequence_ordered_list")),
+            ("ack request", "schemas/history-key.schema.json#/$defs/history_key_response_ack_request", wire.get("ack_request")),
+            ("ack outcome", "schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome", wire.get("ack_outcome")),
+        ):
+            check_json_instance_against_schema(lint, path, label, schema_ref, instance)
+        byte_exact = response_stream.get("byte_exact", {})
+        try:
+            first = base64.urlsafe_b64decode(byte_exact["first_receipt_jcs_b64u"] + "==")
+            retry = base64.urlsafe_b64decode(byte_exact["exact_retry_receipt_jcs_b64u"] + "==")
+            receipt_bytes = canonical_json(wire["first_send_receipt"]).encode("utf-8")
+            if first != receipt_bytes or retry != first:
+                lint.fail(path, "history response exact retry receipt bytes drifted")
+        except (KeyError, TypeError, ValueError) as exc:
+            lint.fail(path, f"history response exact retry bytes are not executable: {exc}")
+        negative_names = {
+            row.get("name") for row in response_stream.get("negative_cases", []) if isinstance(row, dict)
+        }
+        if negative_names != {"same_id_different_content", "bad_source", "out_of_order_ack"}:
+            lint.fail(path, "history response stream mutation matrix is incomplete")
+
+    rrk_method = data.get("rrk_registration_rotation_kat")
+    if not isinstance(rrk_method, dict):
+        lint.fail(path, "RRK registration/rotation KAT must be structured input")
+    else:
+        events = rrk_method.get("events", {})
+        for label, schema_ref, instance in (
+            ("RRK register Event", "schemas/event-envelope.schema.json", events.get("register")),
+            ("RRK rotate Event", "schemas/event-envelope.schema.json", events.get("rotate")),
+            ("RRK register payload", "schemas/event-payload.schema.json#/$defs/organization_recovery_key_register_payload", events.get("register", {}).get("payload") if isinstance(events.get("register"), dict) else None),
+            ("RRK rotate payload", "schemas/event-payload.schema.json#/$defs/organization_recovery_key_rotate_payload", events.get("rotate", {}).get("payload") if isinstance(events.get("rotate"), dict) else None),
+        ):
+            check_json_instance_against_schema(lint, path, label, schema_ref, instance)
+        documents = rrk_method.get("did_documents", {})
+        if any(isinstance(document, dict) and "service" in document for document in documents.values()):
+            lint.fail(path, "RRK KAT must not add an unregistered DID service-designation requirement")
+        mutation_names = {
+            row.get("name") for row in rrk_method.get("negative_mutations", []) if isinstance(row, dict)
+        }
+        required_rrk_mutations = {
+            "wrong_curve", "wrong_method_type", "wrong_key_length", "wrong_controller",
+            "wrong_holder_proof_domain", "holder_tuple_mismatch", "register_before_realm_create",
+            "rotate_before_register", "rotate_cas_mismatch",
+        }
+        if mutation_names != required_rrk_mutations:
+            lint.fail(path, "RRK registration/rotation mutation matrix is incomplete or expanded")
 
     predicate_kat = data.get("predicate_registry_digest_kat")
     if not isinstance(predicate_kat, dict):

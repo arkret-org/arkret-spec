@@ -18,7 +18,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
-      "sha256": "f2dd16315cb44cf2ff01c2548fe43fdaa027f77e3e1e55add5320c633b5f65bd"
+      "sha256": "c2dc411a17d6bbdf1e7bccfdb482c75988893aaeed574e7323023a72b7d25b49"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
@@ -82,7 +82,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "c20ae15a0eed60a055dc15c9fd6555b7cb3e33632b43ec32c6b08687ca4a822d"
+      "sha256": "1fbdae6c9aa2a94f4f60a9d79f513f745d5973a0d19a38d728099e6ae79ece67"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -126,7 +126,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "65e1dcecaf98b3cf050c34ac8cb751b93ffdef084c9e8c5f4dbd343ed55f566a"
+      "sha256": "2640c64e7d47ac1d4108c2cc1d9a52e215bb8e42c5169577ab884ba28a3ae383"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "5b1bd1408c300c8b1e3712207e5a1a8c33bcfcec3e44d14657459f92df34912e"
+      "sha256": "ad5bfa40413ecbf43c6ad31291f836358cd91c63a40af3470ee9196117962ab9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",

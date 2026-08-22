@@ -905,6 +905,253 @@ def build_response_capability_kat() -> dict[str, Any]:
     }
 
 
+def build_response_stream_kat(schemas: SchemaSet) -> dict[str, Any]:
+    signer_digest = digest_marker(0x51)
+    signing_input = {
+        "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000301",
+        "effective_scope": {"kind": "realm", "realm_id": REALM},
+        "source_actor_id": SERVICE_CORE,
+        "source_sender_domain": SERVICE_DID,
+        "source_signer_evidence_ref": "ak:signer_evidence:" + signer_digest,
+        "source_signer_evidence_digest": signer_digest,
+        "request_digest": digest_marker(0x41),
+        "request_receipt_digest": digest_marker(0x42),
+        "expires_at": EXPIRES,
+        "content": {
+            "kind": "ak.history_key.response_manifest",
+            "chunks": [{
+                "chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000302",
+                "chunk_index": 0,
+                "covered_epoch_range": {"from_epoch": 0, "to_epoch": 1},
+            }],
+        },
+    }
+    send_request = {
+        **signing_input,
+        "source_proof": detached_proof(sha256(jcs(signing_input))),
+    }
+    receipt_unsigned = {
+        "response_id": signing_input["response_id"],
+        "source_record_digest": domain_digest(
+            b"ak.history-source-record-v1", send_request
+        ),
+        "record_digest": digest_marker(0x61),
+        "sequence": 7,
+        "accepted_at": "2026-08-23T00:00:01.000Z",
+        "manifest_admission_digest": digest_marker(0x62),
+        "release_attestation_digest": None,
+    }
+    receipt_digest = domain_digest(
+        b"ak.history-response-send-receipt-v1", receipt_unsigned
+    )
+    first_receipt = {
+        **receipt_unsigned,
+        "receipt_digest": receipt_digest,
+        "service_proof": detached_proof(
+            sha256(jcs({**receipt_unsigned, "receipt_digest": receipt_digest}))
+        ),
+    }
+    lost_unsigned = {
+        "sequence": 8,
+        "cursor": "response-cursor-8",
+        "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000303",
+        "record_digest": digest_marker(0x63),
+        "lost_at": "2026-08-23T00:00:02.000Z",
+        "release_service_signer_evidence_ref": "ak:signer_evidence:" + signer_digest,
+        "release_service_signer_evidence_digest": signer_digest,
+    }
+    lost_record = {
+        **lost_unsigned,
+        "service_proof": detached_proof(sha256(jcs(lost_unsigned))),
+    }
+    lost_record_digest = domain_digest(
+        b"ak.history-response-lost-record-v1", lost_unsigned
+    )
+    list_outcome = {
+        "ack_entries": [{"kind": "lost", "lost_record": lost_record}],
+        "ack_token": "response-ack-token-8",
+        "limited": False,
+    }
+    ack_request = {
+        "ack_token": list_outcome["ack_token"],
+        "high_water_cursor": lost_record["cursor"],
+        "ack_entries": [{
+            "kind": "lost",
+            "sequence": lost_record["sequence"],
+            "response_id": lost_record["response_id"],
+            "lost_record_digest": lost_record_digest,
+            "status": "service_record_lost",
+        }],
+    }
+    ack_outcome = {"acked_through_cursor": lost_record["cursor"]}
+
+    for definition, instance in (
+        ("history_key_response_send_request", send_request),
+        ("history_key_response_send_receipt", first_receipt),
+        ("history_key_response_list_outcome", list_outcome),
+        ("history_key_response_ack_request", ack_request),
+        ("history_key_response_ack_outcome", ack_outcome),
+    ):
+        schemas.validator("history-key.schema.json", definition).validate(instance)
+
+    changed_content = copy.deepcopy(send_request)
+    changed_content["content"]["chunks"][0]["covered_epoch_range"]["to_epoch"] = 2
+    bad_source = copy.deepcopy(send_request)
+    bad_source["source_sender_domain"] = "did:key:z6MkWrongSource"
+    out_of_order_ack = copy.deepcopy(ack_request)
+    out_of_order_ack["ack_entries"] = [
+        {**ack_request["ack_entries"][0], "sequence": 9},
+        ack_request["ack_entries"][0],
+    ]
+    return {
+        "wire_instances": {
+            "manifest_send": send_request,
+            "first_send_receipt": first_receipt,
+            "sequence_ordered_list": list_outcome,
+            "ack_request": ack_request,
+            "ack_outcome": ack_outcome,
+        },
+        "byte_exact": {
+            "first_receipt_jcs_b64u": b64u(jcs(first_receipt)),
+            "exact_retry_receipt_jcs_b64u": b64u(jcs(first_receipt)),
+            "exact_retry_is_byte_identical": True,
+        },
+        "ledger_steps": [
+            {"step": "initial", "large_records": 0, "compact_receipts": 0, "acked_through": None},
+            {"step": "accepted_send", "large_records": 1, "compact_receipts": 1, "next_sequence": 8},
+            {"step": "exact_retry", "large_records": 1, "compact_receipts": 1, "returned_first_receipt": True},
+            {"step": "high_water_ack", "large_records": 0, "compact_receipts": 1, "acked_through": "response-cursor-8"},
+            {"step": "request_expiry", "large_records": 0, "compact_receipts": 0},
+        ],
+        "negative_cases": [
+            {"name": "same_id_different_content", "input": changed_content, "expected": "duplicate_conflict_zero_writes"},
+            {"name": "bad_source", "input": bad_source, "expected": "dependency_missing_zero_writes"},
+            {"name": "out_of_order_ack", "input": out_of_order_ack, "expected": "schema_or_semantic_reject_zero_writes"},
+        ],
+    }
+
+
+def base58btc(value: bytes) -> str:
+    alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+    number = int.from_bytes(value, "big")
+    encoded = ""
+    while number:
+        number, remainder = divmod(number, 58)
+        encoded = alphabet[remainder] + encoded
+    leading_zeroes = len(value) - len(value.lstrip(b"\x00"))
+    return "1" * leading_zeroes + (encoded or "1")
+
+
+def build_rrk_registration_rotation_kat(
+    schemas: SchemaSet, durability: dict[str, Any]
+) -> dict[str, Any]:
+    archive = durability["archive"]
+    register_tuple = {
+        key: archive[key]
+        for key in (
+            "recovery_key_id", "holder_principal_id", "holder_service_id",
+            "key_agreement_ref", "holder_signing_ref", "hpke_suite",
+            "frozen_public_key_b64u",
+        )
+    }
+    trusted_basis = archive["holder_trusted_basis"]
+
+    def holder_acceptance(key_tuple: dict[str, Any]) -> dict[str, Any]:
+        unsigned = {
+            "realm_id": REALM,
+            "new_key_tuple": key_tuple,
+            "holder_trusted_basis": trusted_basis,
+        }
+        proof = detached_proof(sha256(jcs(unsigned)))
+        proof["verification_method"] = key_tuple["holder_signing_ref"]
+        return {**unsigned, "holder_proof": proof}
+
+    register_payload = {
+        "realm_id": REALM,
+        "new_key_tuple": register_tuple,
+        "holder_trusted_basis": trusted_basis,
+        "holder_acceptance": holder_acceptance(register_tuple),
+    }
+    rotate_tuple = {
+        **register_tuple,
+        "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000122",
+        "key_agreement_ref": "did:web:rrk-holder.example#x25519-2",
+        "frozen_public_key_b64u": b64u(b"\x06" * 32),
+    }
+    rotate_payload = {
+        "realm_id": REALM,
+        "expected_previous_key_evidence_ref": durability["transition_provenance"]["accepted_key_evidence_ref"],
+        "expected_previous_key_evidence_seal_ref": trusted_basis["leaves"][0],
+        "new_key_tuple": rotate_tuple,
+        "holder_trusted_basis": trusted_basis,
+        "holder_acceptance": holder_acceptance(rotate_tuple),
+    }
+
+    def event_from_template(kind: str, payload: dict[str, Any], label: str, actor_seq: int) -> dict[str, Any]:
+        event = copy.deepcopy(durability["container_event"])
+        event.update({
+            "event_id": event_id(label),
+            "kind": kind,
+            "actor_id": register_tuple["holder_principal_id"],
+            "principal_server_id": register_tuple["holder_service_id"],
+            "actor_seq": actor_seq,
+            "payload": payload,
+        })
+        event["proofs"][0]["verification_method"] = register_tuple["holder_signing_ref"]
+        event["proofs"][0]["event_digest"] = sha256(jcs({k: v for k, v in event.items() if k != "proofs"}))
+        return event
+
+    register_event = event_from_template(
+        "ak.realm.organization_recovery_key.register", register_payload, "rrk-register", 8
+    )
+    rotate_event = event_from_template(
+        "ak.realm.organization_recovery_key.rotate", rotate_payload, "rrk-rotate", 9
+    )
+    schemas.validator("event-payload.schema.json", "organization_recovery_key_register_payload").validate(register_payload)
+    schemas.validator("event-payload.schema.json", "organization_recovery_key_rotate_payload").validate(rotate_payload)
+    schemas.validator("event-envelope.schema.json").validate(register_event)
+    schemas.validator("event-envelope.schema.json").validate(rotate_event)
+
+    def did_document(key_tuple: dict[str, Any]) -> dict[str, Any]:
+        raw = base64.urlsafe_b64decode(key_tuple["frozen_public_key_b64u"] + "=")
+        return {
+            "id": key_tuple["holder_principal_id"],
+            "verificationMethod": [{
+                "id": key_tuple["key_agreement_ref"],
+                "type": "Multikey",
+                "controller": key_tuple["holder_principal_id"],
+                "publicKeyMultibase": "z" + base58btc(b"\xec\x01" + raw),
+            }],
+            "keyAgreement": [key_tuple["key_agreement_ref"]],
+        }
+
+    return {
+        "model": "accepted register/rotate Event provenance plus holder_trusted_basis; reducer effectiveness is replay-derived",
+        "did_documents": {
+            "register": did_document(register_tuple),
+            "rotate": did_document(rotate_tuple),
+        },
+        "events": {"register": register_event, "rotate": rotate_event},
+        "reducer_effective_tuples": [
+            {"after": "register", "key_tuple": register_tuple, "accepted_key_evidence_ref": register_event["event_id"], "holder_trusted_basis": trusted_basis},
+            {"after": "rotate", "key_tuple": rotate_tuple, "accepted_key_evidence_ref": rotate_event["event_id"], "holder_trusted_basis": trusted_basis},
+        ],
+        "negative_mutations": [
+            {"name": "wrong_curve", "target": "/did_documents/register/verificationMethod/0/publicKeyMultibase", "mutation": "replace x25519-pub multicodec with ed25519-pub", "expected": "durability_recovery_recipient_unverified"},
+            {"name": "wrong_method_type", "target": "/did_documents/register/verificationMethod/0/type", "value": "JsonWebKey2020", "expected": "durability_recovery_recipient_unverified"},
+            {"name": "wrong_key_length", "target": "/did_documents/register/verificationMethod/0/publicKeyMultibase", "mutation": "truncate raw key to 31 bytes", "expected": "durability_recovery_recipient_unverified"},
+            {"name": "wrong_controller", "target": "/did_documents/register/verificationMethod/0/controller", "value": "ak:did_core:web:other.example", "expected": "durability_recovery_recipient_unverified"},
+            {"name": "wrong_holder_proof_domain", "target": "/events/register/payload/holder_acceptance/holder_proof", "mutation": "verify under a non-registered proof context", "expected": "invalid_proof"},
+            {"name": "holder_tuple_mismatch", "target": "/events/register/payload/holder_acceptance/new_key_tuple/recovery_key_id", "mutation": "change duplicated field", "expected": "failed_precondition"},
+            {"name": "register_before_realm_create", "target": "/events/register", "expected": "failed_precondition"},
+            {"name": "rotate_before_register", "target": "/events/rotate", "expected": "failed_precondition"},
+            {"name": "rotate_cas_mismatch", "target": "/events/rotate/payload/expected_previous_key_evidence_ref", "mutation": "change current provenance", "expected": "cas_conflict"},
+        ],
+        "explicit_non_requirement": "DID service designation is neither required nor evaluated; the accepted tuple supplies the exact method id",
+        "forbidden_members": ["service_selected_effectiveness_locator", "history_proof_transport_object"],
+    }
+
+
 def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]) -> dict[str, Any]:
     source_core = "ak:did_core:web:rrk-source.example"
     source_method = "did:web:rrk-source.example#ed25519-1"
@@ -1350,6 +1597,7 @@ def build_sections() -> dict[str, Any]:
     signer = build_signer_evidence(schemas)
     dependency = build_dependency_kat(schemas, registry, signer)
     traversal = build_traversal_kat(schemas, registry)
+    durability = build_rrk_durable_before_gc_kat(schemas, registry)
     scale = [build_scale_recipe(26_298), build_scale_recipe(65_536)]
     probe = {"journal_rows": 0, "resolved_objects": 0, "outbox_writes": 0}
     reason = None
@@ -1367,9 +1615,9 @@ def build_sections() -> dict[str, Any]:
         "governance_dependency_resolve_kat": dependency,
         "history_source_agent_observation_digest_kat": build_source_agent_observation_digest_kat(schemas),
         "history_response_capability_kat": build_response_capability_kat(),
-        "organization_recovery_archive_durable_before_gc_kat": build_rrk_durable_before_gc_kat(
-            schemas, registry
-        ),
+        "response_stream_cases": build_response_stream_kat(schemas),
+        "organization_recovery_archive_durable_before_gc_kat": durability,
+        "rrk_registration_rotation_kat": build_rrk_registration_rotation_kat(schemas, durability),
         "streaming_direct_traversal_scale_kats": scale,
         "streaming_direct_traversal_scale_negative_kats": [{
             "epoch_count": 65_537,
@@ -1418,6 +1666,43 @@ def render() -> str:
                     scope_key_bytes = scope_key.encode("utf-8")
                     scope_case["effective_scope_key_hex"] = scope_key_bytes.hex()
                     scope_case["expected_mls_group_id"] = b64u(scope_key_bytes)
+        if case.get("name") == "standard_fresh_endpoint_floor":
+            seed = bytes.fromhex(case["seed_hex"])
+            inputs = case["inputs"]
+            winning = inputs["winning_add_epoch"]
+            post = inputs["post_admission_commit_epochs"]
+            transition_epochs = [winning, *post]
+            case["deterministic_model"] = {
+                "algorithm": "ak.standard-fresh-endpoint-model.v1",
+                "seed_use": "seed is used only as the fixed initial model domain input; it is not an MLS key, Welcome, Commit, or ciphertext seed",
+                "initial_state": {"admitted": False, "current_epoch": None},
+                "steps": [
+                    *[
+                        {"operation": "application_before_admission", "epoch": epoch, "result": "reject"}
+                        for epoch in inputs["pre_admission_epochs"]
+                    ],
+                    {"operation": "winning_add_welcome_admission", "epoch": winning, "result": "admit_and_decrypt"},
+                    *[
+                        {"operation": "sequential_commit", "epoch": epoch, "requires_previous_epoch": epoch - 1, "result": "advance_and_decrypt"}
+                        for epoch in post
+                    ],
+                ],
+                "transition_tag_formula": "SHA256(seed || 0x00 || UTF8(operation) || uint64be(epoch))",
+                "transition_tags": [
+                    {
+                        "epoch": epoch,
+                        "operation": "winning_add_welcome_admission" if epoch == winning else "sequential_commit",
+                        "sha256_hex": hashlib.sha256(
+                            seed
+                            + ZERO
+                            + (b"winning_add_welcome_admission" if epoch == winning else b"sequential_commit")
+                            + epoch.to_bytes(8, "big")
+                        ).hexdigest(),
+                    }
+                    for epoch in transition_epochs
+                ],
+                "reject_if": ["application epoch precedes winning Add/Welcome", "first admitted transition is not the winning Add/Welcome", "Commit epoch is not previous_epoch + 1"],
+            }
     predicate_kat = fixture.get("predicate_registry_digest_kat")
     if not isinstance(predicate_kat, dict):
         raise ValueError("history fixture omits predicate_registry_digest_kat")
@@ -1429,39 +1714,6 @@ def render() -> str:
     if "ak.vector.history_key.frontier_traversal_split.v1" not in fixture.get("covers_vectors", []):
         raise ValueError("history fixture does not register the direct-traversal split vector")
     fixture.pop("mailbox_cases", None)
-    fixture["response_stream_cases"] = [
-        {
-            "name": "manifest_precedes_chunk_admission",
-            "expected": "manifest admission completes direct traversal and T0 before the manifest record is accepted; a chunk without that exact admission is dependency_missing with zero writes",
-        },
-        {
-            "name": "manifest_all_or_nothing_t0_admission",
-            "expected": "the service replays the complete retained base-to-target Seal cut, Control Moves and registered dependencies, derives winners/current monotone history policy/join floor, and writes one manifest_admission_digest or nothing",
-        },
-        {
-            "name": "single_continuous_chunk_range",
-            "expected": "each chunk_index maps to exactly one manifest descriptor and one continuous epoch range already authorized by direct replay",
-        },
-        {
-            "name": "compact_exact_retry_ledger_until_expiry",
-            "expected": "the first accepted send freezes one small HistoryKeyResponseSendReceipt; exact retry returns byte-identical bytes and high-water ack removes the large response record while retaining the compact receipt ledger through expiry",
-        },
-    ]
-    fixture["rrk_registration_rotation_kat"] = {
-        "model": "register-or-rotate Event provenance plus holder_trusted_basis; reducer effectiveness is replay-derived",
-        "required_replay": "archive-lifetime direct traversal derives the effective key tuple and exact winning archive transition from standard Seal/Event/dependency closure",
-        "forbidden_members": [
-            "service_selected_effectiveness_locator",
-            "history_proof_transport_object",
-        ],
-        "negative_cases": [
-            "register_before_realm_create",
-            "holder_trusted_basis_replaced_by_service",
-            "archive_evidence_event_not_reducer_effective",
-            "rrk_requested_range_not_singleton",
-            "closure_outside_holder_authorized_control_metadata",
-        ],
-    }
     fixture.update(build_sections())
     fixture["version"] = "2026-08-22"
     fixture["runner"] = {

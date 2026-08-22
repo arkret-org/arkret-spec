@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-21.1",
+  "version": "2026-08-23.1",
   "codes": [
     {
       "code": "json_invalid",
@@ -685,7 +685,7 @@
       "code": "seal_ref_stale",
       "http_status": 409,
       "scope": "both",
-      "description": "The supplied seal_ref, seal_basis, or frontier token is older than the freshness window required for this operation or policy tier."
+      "description": "The supplied seal_ref or seal_basis exceeds the operation or policy tier's verifiable historical Seal-distance grace (or a separately defined frontier token freshness rule). For Event revocation admission this is not age since signing, first delivery, receiver admission, or replay."
     },
     {
       "code": "seal_ref_unknown",
@@ -5488,5 +5488,5 @@
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
   },
-  "generated_at": "2026-08-21T18:00:00+08:00"
+  "generated_at": "2026-08-23T01:30:00+08:00"
 }

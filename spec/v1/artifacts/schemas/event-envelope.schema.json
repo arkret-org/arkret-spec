@@ -31,7 +31,7 @@
     },
     "scope_ref": {
       "$ref": "#/$defs/scope_ref",
-      "description": "Required producer-signed security scope. It enters proof.event_digest and E2EE AAD. Reducers independently derive the Realm/Circle scope from the schema-validated payload and accepted references; missing dependencies, an underivable scope, realm_id mismatch, or any unequal field is fail closed. Exact product targets remain inside recipient-visible ciphertext."
+      "description": "Required producer-signed security scope. The closed union is ordinary existing realm, circle, or native sidecar scope plus the create-only realm_genesis exception. It enters proof.event_digest and E2EE AAD. Reducers independently derive the exact scope from schema-validated payload and accepted references; missing dependencies, nonexistent scope, realm_id mismatch, omitted sidecar_id, substituting circle for sidecar, or any unequal field is fail closed. Sidecar domain Event kinds remain Extension-owned; recognizing this native security shape does not make Kernel interpret the Sidecar reducer. Exact product targets remain inside recipient-visible ciphertext."
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",

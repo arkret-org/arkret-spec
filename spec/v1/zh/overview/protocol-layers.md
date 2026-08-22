@@ -29,7 +29,7 @@ Extension。一个实现通过 Kernel conformance，不表示它实现了完整�
 Kernel 仅包含下列安全原语：
 
 1. Principal、Device、Service identity 与 proof；
-2. Realm 与 Realm/Circle `scope_ref` 安全作用域；
+2. Realm 与 `realm | circle | sidecar` `scope_ref` 原生安全作用域，以及 create-only `realm_genesis` 例外；
 3. CBA Control Move、Seal、notary、state root 与闭集 lattice 词表；
 4. signed durable DataEvent；
 5. MLS scope/epoch binding；
@@ -86,7 +86,7 @@ bottom 与 state projection 是 reducer contract 的内部声明，不是 wire �
 
 ## 3. Security Scope
 
-所有 durable Event 的 producer 签名输入 MUST 包含：
+普通已存在 scope 中的 durable Event，其 producer 签名输入 MUST 包含以下三种 closed shape 之一：
 
 ```json
 {"kind":"realm","realm_id":"ak:realm:..."}
@@ -98,8 +98,20 @@ bottom 与 state projection 是 reducer contract 的内部声明，不是 wire �
 {"kind":"circle","realm_id":"ak:realm:...","circle_id":"ak:circle:..."}
 ```
 
+或：
+
+```json
+{"kind":"sidecar","realm_id":"ak:realm:...","sidecar_id":"ak:sidecar:..."}
+```
+
+`{"kind":"realm_genesis","realm_genesis_nonce":"..."}` 是 create-only 封闭例外，只允许对应的
+Realm genesis Event；它不是普通 durable scope，也不得用于后续 Realm、Circle 或 Sidecar Event。
+上述 closed union 以 `event-envelope.schema.json#/$defs/scope_ref` 为穷尽真源，正文集合必须由 lint 与其对齐。
+Sidecar 的领域 Event kinds 仍归 Extension；Kernel 只认识签名 Event Envelope、CBA/Seal、MLS/AAD、
+delivery/query 所需的原生安全 scope 形状，不解释 Sidecar 领域 reducer，也不得把 Sidecar 实现为 Circle。
+
 字段名固定为 `scope_ref`。它是 signed producer fact，不是 reducer 盖章字段。reducer MUST
-从 schema-validated payload、已接受的对象引用及治理状态独立派生安全作用域，并逐字段比较；
+从 schema-validated payload、已接受的对象引用及治理状态独立派生 Realm、Circle 或 Sidecar 安全作用域，并逐字段比较；
 无法派生、引用未补齐或不相等时 MUST fail closed。`actor_kind` 是 Event Envelope 唯一仍可由
 reducer 盖章且不进入 producer event digest 的顶层字段。
 

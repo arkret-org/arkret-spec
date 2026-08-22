@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-22.2",
+  "version": "2026-08-23.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-22T18:00:00+08:00",
+  "generated_at": "2026-08-23T01:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1105,10 +1105,10 @@
       "http": "POST /_arkret/peer/history-key-responses/relay",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_source_relay",
-      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_outcome",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
       "openapi_component_refs": {
         "request": "#/components/schemas/HistoryKeySourceRelay",
-        "response": "#/components/schemas/HistoryKeyResponseSendOutcome"
+        "response": "#/components/schemas/HistoryKeyResponseSendReceipt"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2623,10 +2623,10 @@
       "http": "POST /_arkret/self/history-key-responses",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_request",
-      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_outcome",
+      "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
       "openapi_component_refs": {
         "request": "#/components/schemas/HistoryKeyResponseSendRequest",
-        "response": "#/components/schemas/HistoryKeyResponseSendOutcome"
+        "response": "#/components/schemas/HistoryKeyResponseSendReceipt"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
