@@ -1,13 +1,14 @@
 {
   "profile": "ak.profile.agent_signer_evidence.v1",
-  "version": "2026-08-10.1",
+  "version": "2026-08-22.1",
   "suite": "agent_signer_evidence",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.agent.signer_evidence.v1"
   },
   "covers_vectors": [
-    "ak.vector.agent.signer_evidence_binding.v1"
+    "ak.vector.agent.signer_evidence_binding.v1",
+    "ak.vector.agent.historical_evidence_materialization.v1"
   ],
   "binding_vector": {
     "agent_id": "did:webvh:z6mkagent:agent.example",
@@ -125,6 +126,135 @@
       "three_gates_active_at_receipt_time": false,
       "expected": "rejected",
       "reason": "agent_authorization_inactive"
+    },
+    {
+      "name": "historical_materialization_exact_replay_is_no_op",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "same_selector_tuple": true,
+      "same_receipt_digest": true,
+      "same_canonical_historical_root": true,
+      "materializer_reads_selector_tuple_before_signing_a_new_root": true,
+      "additional_historical_roots_published": 0,
+      "expected": "verified"
+    },
+    {
+      "name": "historical_materialization_same_tuple_other_receipt_is_zero_overwrite",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "same_selector_tuple": true,
+      "same_receipt_digest": false,
+      "same_canonical_historical_root": false,
+      "additional_historical_roots_published": 0,
+      "expected": "rejected",
+      "reason": "duplicate_conflict"
+    },
+    {
+      "name": "historical_materialization_same_tuple_other_root_is_zero_overwrite",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "same_selector_tuple": true,
+      "same_receipt_digest": true,
+      "same_canonical_historical_root": false,
+      "additional_historical_roots_published": 0,
+      "expected": "rejected",
+      "reason": "duplicate_conflict"
+    },
+    {
+      "name": "historical_materialization_other_receiver_service_is_a_distinct_branch",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "same_selector_tuple": false,
+      "selector_component_that_differs": "receiver_service_id",
+      "additional_historical_roots_published": 1,
+      "expected": "verified"
+    },
+    {
+      "name": "historical_materialization_incomplete_dependency_closure_publishes_no_root",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "recursive_signer_dependency_closure_complete": false,
+      "additional_historical_roots_published": 0,
+      "expected": "unresolved",
+      "reason": "agent_signer_evidence_missing"
+    },
+    {
+      "name": "historical_materialization_lost_receipt_is_never_reminted",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "receipt_permanently_lost": true,
+      "materializer_rebuilds_receipt_from_current_state": false,
+      "additional_historical_roots_published": 0,
+      "expected": "unresolved",
+      "reason": "agent_signer_evidence_missing"
+    },
+    {
+      "name": "historical_outer_attestation_verifies_long_after_attested_at",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "outer_attestation_branch": "historical",
+      "outer_attestation_carries_expires_at": false,
+      "verifier_now_far_after_attested_at": true,
+      "authority_method_resolved_at": "attested_at",
+      "expected": "verified"
+    },
+    {
+      "name": "historical_branch_carrying_current_outer_attestation_rejected",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "outer_attestation_branch": "current",
+      "outer_attestation_carries_expires_at": true,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
+    },
+    {
+      "name": "authority_key_rotation_after_attested_at_preserves_historical_root",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "authority_signing_key_rotated_after_attested_at": true,
+      "authority_method_resolved_at": "attested_at",
+      "expected": "verified"
+    },
+    {
+      "name": "authority_method_inactive_at_attested_at_rejected",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "authority_method_active_at_attested_at": false,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
+    },
+    {
+      "name": "receiver_key_rotation_after_accepted_at_preserves_receipt",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "receiver_signing_key_rotated_after_accepted_at": true,
+      "receiver_dependency_resolved_at": "receipt_accepted_at",
+      "expected": "verified"
+    },
+    {
+      "name": "receiver_dependency_resolved_from_current_service_record_rejected",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "receiver_signing_key_rotated_after_accepted_at": true,
+      "receiver_dependency_resolved_at": "verifier_now",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
+    },
+    {
+      "name": "receiver_key_revoked_after_accepted_at_does_not_retroact",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "receiver_method_active_at_accepted_at": true,
+      "current_receiver_signing_key_status": "revoked",
+      "expected": "verified"
+    },
+    {
+      "name": "receiver_method_inactive_at_accepted_at_rejected",
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "verification_mode": "historical_event",
+      "receiver_method_active_at_accepted_at": false,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
     },
     {
       "name": "account_gate_never_discloses_local_identity",

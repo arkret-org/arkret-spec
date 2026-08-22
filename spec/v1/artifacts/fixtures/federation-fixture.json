@@ -357,6 +357,100 @@
       ]
     },
     {
+      "name": "agent_event_admission_receipt_handoff",
+      "vector_id": "ak.vector.federation.agent_admission_receipt_handoff.v1",
+      "request_contract": {
+        "outcome_field": "agent_event_admission_receipts",
+        "receipt_schema": "ak.schema.agent_signer_admission_receipt.v1",
+        "receipt_proof_domain": "ak.agent-signer-admission-receipt-v1",
+        "receipted_outcome_classes": [
+          "accepted",
+          "duplicate"
+        ],
+        "unreceipted_outcome_classes": [
+          "rejected",
+          "quarantine",
+          "dependency_missing"
+        ],
+        "receipt_written_in_event_acceptance_transaction": true,
+        "self_submit_outcome_omits_receipts": true,
+        "receipt_binding_fields": [
+          "event_id",
+          "event_digest",
+          "realm_id",
+          "producer_accepted_at",
+          "accepted_at",
+          "agent_id",
+          "verification_method",
+          "producer_signer_resolution_evidence_ref",
+          "producer_signer_resolution_evidence_digest",
+          "receiver_service_id"
+        ]
+      },
+      "cases": [
+        {
+          "case": "accepted_native_agent_event",
+          "expected": "outcome_returns_one_receiver_signed_receipt_for_that_event"
+        },
+        {
+          "case": "accepted_non_agent_event",
+          "expected": "outcome_carries_no_receipt_for_that_event"
+        },
+        {
+          "case": "rejected_quarantined_or_dependency_missing_native_agent_event",
+          "expected": "no_receipt_signed_and_none_returned"
+        },
+        {
+          "case": "receipt_write_fails_inside_event_acceptance_transaction",
+          "expected": "event_acceptance_rolls_back_with_zero_receipt"
+        },
+        {
+          "case": "two_receivers_accept_the_same_event",
+          "expected": "one_receipt_per_receiver_service_id_as_distinct_historical_branches"
+        },
+        {
+          "case": "byte_identical_resubmission_of_an_accepted_event",
+          "expected": "duplicate_returns_the_first_stored_byte_identical_receipt"
+        },
+        {
+          "case": "duplicate_branch_mints_a_new_accepted_at_or_signing_method",
+          "expected": "nonconformant_receipt_replay"
+        },
+        {
+          "case": "same_event_id_with_different_canonical_bytes",
+          "expected": "duplicate_conflict_with_zero_receipt_and_zero_overwrite"
+        },
+        {
+          "case": "receipt_set_matches_producer_evidence_pair_events_one_to_one",
+          "expected": "source_atomically_commits_receipt_and_materialization_obligation"
+        },
+        {
+          "case": "outcome_omits_a_receipt_for_one_such_event",
+          "expected": "handoff_incomplete_and_delivery_not_marked_complete"
+        },
+        {
+          "case": "outcome_returns_a_receipt_outside_accepted_and_duplicate",
+          "expected": "handoff_incomplete_and_delivery_not_marked_complete"
+        },
+        {
+          "case": "receipt_proof_unparsable_or_receiver_service_id_mismatch",
+          "expected": "handoff_incomplete_and_delivery_not_marked_complete"
+        },
+        {
+          "case": "receipt_producer_evidence_pair_differs_from_the_frozen_origin_pair",
+          "expected": "handoff_incomplete_and_delivery_not_marked_complete"
+        },
+        {
+          "case": "source_restarts_before_the_obligation_commit",
+          "expected": "same_outbox_row_replays_the_same_event_receiver_receipt_intent"
+        },
+        {
+          "case": "response_transport_authentication_or_outcome_schema_invalid",
+          "expected": "outcome_discarded_before_any_receipt_consumption"
+        }
+      ]
+    },
+    {
       "name": "pull_authorization",
       "input": {
         "requester": "did:webvh:z6mkfixtureserverbetaexample:server-beta.example",

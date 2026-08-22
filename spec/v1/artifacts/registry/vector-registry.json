@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.5",
+  "version": "2026-08-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-21T23:50:00+08:00",
+  "generated_at": "2026-08-22T14:20:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -147,6 +147,20 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-signer-evidence-fixture.json"
+      ],
+      "description": "Historical Agent signer evidence is materialized under the registered selector tuple: same tuple with the same receipt digest and canonical root is an exact replay checked before signing a new outer, a different receipt or root is duplicate_conflict with zero overwrite, a different receiver_service_id is a separate legal branch, an incomplete dependency closure or a permanently lost receipt stays unresolved, the historical outer attestation verifies long after attested_at with no verifier-now TTL, and the receiver method is resolved at receipt.accepted_at rather than from current state.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json"
       ]
     },
     {
@@ -2964,6 +2978,20 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.federation.agent_admission_receipt_handoff.v1",
+      "status": "active",
+      "domain": "federation",
+      "applies_to_fixtures": [
+        "federation-fixture.json"
+      ],
+      "description": "Every accepted or byte-identical duplicate Native Agent Event in a peer submission returns exactly one receiver-signed admission receipt written in the same acceptance transaction, rejected, quarantined and dependency-missing items return none, exact duplicates replay the first stored bytes, and the source durable outbox only completes the handoff after the receipt set matches the producer-evidence-pair Events one to one and the materialization obligation is committed atomically.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/federation-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/sync/federation.md"
       ]
     },
     {

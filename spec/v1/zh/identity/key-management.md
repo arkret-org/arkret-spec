@@ -314,7 +314,9 @@ service signing method；之后 key rotation、Agent key revoke、Agent pause/de
 `revoked`、`superseded`、`expired`、`conflicted`或 admission-time 任一 parent inactive 是确定性拒绝；evidence/receipt
 缺失、时窗不满足或网络失败是 `Unresolved/Stale`，绝不得提升为 Verified。启用
 `ak.profile.key_transparency.v1` 时还必须验证 inclusion/consistency/witness proof。完整 transcript 与正负矩阵由
-`ak.vector.agent.signer_evidence_binding.v1` 固化。
+`ak.vector.agent.signer_evidence_binding.v1` 固化；historical materialization 的 selector tuple exact replay /
+`duplicate_conflict`、`attested_at` 长期验证与 receiver key rotation 由
+`ak.vector.agent.historical_evidence_materialization.v1` 固化。
 
 任何缺少 `signing_key_binding_digest` 证据的 authorization 都是 unresolved，服务端不得从 session row 合成证书，也不得提升为 Verified。客户端 MUST 显示 `verification_pending`；controller MUST 通过 same-key re-authorization 产生 replacement authorize Event 与完整 v1 binding，runtime key MAY 保持不变。
 - **Sidecar exposure 披露**：pairing approval UI 必须说明，建立 Agent ownership 本身不会把 Agent 加入任何

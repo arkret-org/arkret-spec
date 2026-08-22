@@ -6321,6 +6321,29 @@ superseded、unresolved、跨verifier重放及字段混拼分支；state witness
 只加载 fixture、只验证来源服务
 签名或跳过任一 case 均不构成通过。
 
+`vector_id`: `ak.vector.agent.historical_evidence_materialization.v1`
+
+同一 fixture 中带该 `vector_id` 的 case 组固化 historical evidence 的 materialization 与长期验证合同，规则正文见
+[`../identity/key-management.md` §3.6.1](../identity/key-management.md) 与
+[`../sync/federation.md` §4.1.1](../sync/federation.md)。Runner MUST 覆盖：
+
+1. 逻辑唯一键是 selector tuple `(agent_id, verification_method, event_id, event_digest, receiver_service_id)`。
+   同 tuple、同 receipt digest、同 canonical historical root MUST 是 exact replay / no-op；materializer MUST 在
+   签发新 outer attestation 前按该 tuple 读既有 root，MUST NOT 先签再靠 digest 主键冲突发现重复，
+   `additional_historical_roots_published` 恒为 0。
+2. 同 tuple 但 receipt digest 或 canonical historical root 任一不同 MUST `duplicate_conflict`，零覆盖并进入安全诊断。
+3. 只有 `receiver_service_id` 不同的 selector 是不同合法历史分支，MUST NOT 互相冲突，各自发布自己的 root。
+4. recursive signer dependency closure 不完整或 receipt 永久丢失 MUST 保持 unresolved
+   （`agent_signer_evidence_missing`）；MUST NOT 发布半个 root，MUST NOT 从 current state 补造 receipt。
+5. historical outer attestation 使用 closed `attested_at` 且没有 verifier-now TTL：签发很久之后 MUST 仍验证通过，
+   Authority verification method MUST 按 `attested_at` 解析。之后的 Authority key rotation MUST NOT 使已合法组装的
+   root 失效；`attested_at` 当时该 method 已非 active MUST 拒绝；historical 分支携带带 `expires_at` 的 current outer
+   MUST 拒绝。
+6. receiver 在 `receipt.accepted_at` 之后轮换签 receipt 的 key MUST NOT 使该 receipt 无法 materialize：receiver
+   dependency 与 receipt proof verification method MUST 按 `receipt.accepted_at` 解析当时的 historical service record；
+   从 current service record 或 verifier-now 重建 MUST 拒绝。`accepted_at` 当时 method 非 active MUST 拒绝，
+   其后的 revoke MUST NOT 追溯否定。
+
 ## 29. Actor accountability grant closure vector
 
 `vector_id`: `ak.vector.actor.accountability_grant_required.v1`
@@ -6477,6 +6500,38 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
    不得触发 route lookup、retry 或状态转换。
 8. submit/read 两个 outcome 的 `pending_delivery_count` 必须精确等于 pending_route 与 pending_delivery rows 数；
    计数为零当且仅当 aggregate state 为 complete。
+
+## 37. Agent Event admission receipt handoff closure vector
+
+`vector_id`: `ak.vector.federation.agent_admission_receipt_handoff.v1`
+
+本向量由 [`federation-fixture.json`](../../artifacts/fixtures/federation-fixture.json) 的
+`agent_event_admission_receipt_handoff` case 组承载，规则正文见
+[`../sync/federation.md` §4.1.1](../sync/federation.md)、
+[`../sync/service-http-binding.md` §3.1.6](../sync/service-http-binding.md) 与
+[`../identity/key-management.md` §3.6.1](../identity/key-management.md)。
+
+Runner MUST 覆盖：
+
+1. `ak.peer.events.command.submit` 的成功 outcome MUST 为 `accepted[] ∪ duplicate[]` 中每个 Native Agent Event
+   返回恰好一个 receiver-signed `agent_event_admission_receipts[]` 项；非 Agent Event 不产生 receipt；
+   `rejected[]`、`quarantine[]` 与 dependency-missing 项 MUST NOT 签发或返回 receipt；self submit outcome 不带该字段。
+2. receipt MUST 与 Event durable acceptance 在同一事务写入。receipt 写入失败 MUST 使该 Event 的接受整体回滚，
+   不得出现「Event 已接受但无 receipt」。receipt 有自己的 detached proof（domain
+   `ak.agent-signer-admission-receipt-v1`），HTTP Message Signature MUST NOT 充当替代。
+3. 同一 Event 被多个 receiver 接受时，每个 receiver 各签自己的 receipt，按 `receiver_service_id` 区分为多条
+   合法历史分支。
+4. byte-identical 重投 MUST 从 `duplicate[]` 返回第一次保存的 byte-identical receipt；重新生成 `accepted_at`
+   或更换 signing method 均不合格。相同去重键但 Event canonical bytes、digest 或 receipt intent 不同 MUST
+   `duplicate_conflict`，零 receipt 且零覆盖。
+5. source durable outbox 收到 2xx 后 MUST 先校验 response transport authentication 与 outcome schema，再要求
+   receipt 集合与 `accepted[] ∪ duplicate[]` 中带 origin producer evidence pair 的 Native Agent Event 精确一一对应：
+   少一个、多一个、receipt proof 不可解析、`receiver_service_id` 不匹配，或 receipt 承诺的
+   `producer_signer_resolution_evidence_ref/digest` 与 origin 冻结的 pair 不一致，MUST NOT 把该 Event/receiver 的
+   历史证据交接标为完成。
+6. 只有 receipt 已验证并与 materialization obligation 原子保存后，该 Event 对该 receiver 的 outbox delivery 才可推进；
+   source 在 obligation 提交前重启 MUST 复用同一 outbox row 与同一 Event/receiver/receipt intent，
+   MUST NOT 重新选择 admission evidence 或产生新的逻辑 receipt。
 
 ## Account status issuer ledger
 

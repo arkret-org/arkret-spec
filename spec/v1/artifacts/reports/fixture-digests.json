@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
-      "sha256": "c37644ffc6216b466e78eec21844096f2a5411fc9f4b4a510c998ebbec96db6c"
+      "sha256": "989222e0f93155a9b787854b2aa2bd2801a0161bf702a25039386214194278ab"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -158,7 +158,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "85127452335628bd3144f6dc6468324321c1c59fbb698dfc0cb33c29ab2b7332"
+      "sha256": "a45a3b496600cf033dabdc7aa383f377b4b0eef7137d86f58ba62f235942a604"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",

@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-08-21.3",
+      "version": "2026-08-22.1",
       "generated_at": null,
-      "content_digest": "sha256:898835ea1a669faee66ebf6a1df0fdd95a2cb83e007243b88bbcb0444a8bd062"
+      "content_digest": "sha256:4494082537af9da4d17d02938932f56dbcacbacfd916f3473723aa79f8ee80f2"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -303,9 +303,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-08-21.5",
-      "generated_at": "2026-08-21T23:50:00+08:00",
-      "content_digest": "sha256:2f0e8688722e5ec81ba2e50c4251044da84c9761108ff1d9ae7fa1693b8476b7"
+      "version": "2026-08-22.1",
+      "generated_at": "2026-08-22T14:20:00+08:00",
+      "content_digest": "sha256:161eaa9511c5f50c53c82c316c27c608f123bb8948517b8df8fd22ab005a0131"
     }
   ]
 }

@@ -1,10 +1,12 @@
 {
-  "version": "2026-08-21.3",
+  "version": "2026-08-22.1",
   "source_of_truth": true,
   "description": "Canonical security-domain contexts for Arkret detached proofs and non-Event cryptographic transcripts. Proof contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript: it MUST NOT be spelled as a proof context and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
     "Every Arkret non-Event schema that uses event-envelope.schema.json#/$defs/proof MUST register an object-family context here",
+    "contexts[] closure is triggered by exactly two conditions: a terminal use point of the shared event-envelope.schema.json#/$defs/proof leaf, and an ak.*-proof-v1 literal appearing anywhere under spec/v1. A non-Event schema that declares its own local detached-proof or signature leaf instead of referencing the shared leaf, and spells its signing domain without the -proof-v1 suffix, is outside contexts[] by construction and MUST NOT be registered there",
+    "Such a locally anchored signing domain MUST instead appear in domain_separations[] with primitive detached_signature and binding_fields naming the transcript fields its proof covers, so that membership of this file is decidable from the schema alone rather than by convention",
     "A verifier MUST reject a valid signature made under a context registered to a different object family",
     "schema_ref MUST resolve to a real node: the file part MUST exist and the JSON Pointer fragment, when present, MUST resolve to a schema object",
     "Every terminal use point of the shared detached-proof leaf (a schema node whose $ref chain terminates at event-envelope.schema.json#/$defs/proof and that no other node references) MUST be covered by exactly one most-specific row here; a fragmentless schema_ref is exact only when the file root itself is the object family",
@@ -1332,6 +1334,51 @@
       ]
     },
     {
+      "domain": "ak.agent-authority-snapshot-v1",
+      "object_family": "agent_snapshot_lease",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "authority_kind",
+        "authority_service_id",
+        "verification_method",
+        "snapshot_digest",
+        "issued_at",
+        "expires_at"
+      ]
+    },
+    {
+      "domain": "ak.agent-signer-admission-receipt-v1",
+      "object_family": "agent_event_admission_receipt",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "schema",
+        "event_id",
+        "event_digest",
+        "realm_id",
+        "producer_accepted_at",
+        "accepted_at",
+        "agent_id",
+        "verification_method",
+        "producer_signer_resolution_evidence_ref",
+        "producer_signer_resolution_evidence_digest",
+        "receiver_service_id"
+      ]
+    },
+    {
+      "domain": "ak.agent-signer-evidence.v1",
+      "object_family": "agent_signer_evidence_outer_attestation",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "domain",
+        "core_digest",
+        "source_service_id",
+        "verification_method",
+        "issued_at",
+        "expires_at",
+        "attested_at"
+      ]
+    },
+    {
       "domain": "ak.applet.delivery_authentication_record_digest.v1",
       "object_family": "applet_delivery_authentication_record",
       "primitive": "canonical_json_sha256",
@@ -1379,6 +1426,23 @@
       "binding_fields": [
         "request",
         "source_checkpoint"
+      ]
+    },
+    {
+      "domain": "ak.controller-account-gate-v1",
+      "object_family": "controller_account_gate_attestation",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "schema",
+        "principal_id",
+        "eligibility",
+        "status",
+        "basis",
+        "basis_digest",
+        "authority_service_id",
+        "verification_method",
+        "issued_at",
+        "expires_at"
       ]
     },
     {
@@ -1464,6 +1528,39 @@
       ]
     },
     {
+      "domain": "ak.keypackage.claim-terminal-receipt.v1",
+      "object_family": "keypackage_claim_terminal_receipt",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "domain",
+        "claim_request_id",
+        "request_digest",
+        "terminal_state",
+        "keypackage_refs",
+        "source_service_id",
+        "destination_service_id",
+        "terminal_at"
+      ]
+    },
+    {
+      "domain": "ak.keypackage.consume-receipt.v1",
+      "object_family": "keypackage_consume_receipt",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "domain",
+        "claim_request_id",
+        "claim_ids",
+        "keypackage_refs",
+        "recipient_durable_receipt",
+        "welcome_ref",
+        "realm_id",
+        "mls_group_id",
+        "mls_epoch",
+        "source_service_id",
+        "consumed_at"
+      ]
+    },
+    {
       "domain": "ak.membership-compensation.single-use-cas.v1",
       "object_family": "membership_compensation_single_use_cas",
       "primitive": "canonical_json_sha256",
@@ -1481,6 +1578,59 @@
         "operation_id",
         "terminal_state",
         "certified_at",
+        "issuer"
+      ]
+    },
+    {
+      "domain": "ak.mls.recipient-durable-receipt.v1",
+      "object_family": "recipient_mls_durable_receipt",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "domain",
+        "claim_request_id",
+        "keypackage_ref",
+        "recipient_principal_id",
+        "recipient_device_id",
+        "recipient_agent_id",
+        "recipient_agent_verification_method",
+        "agent_key_authorize_event_id",
+        "recipient_service_id",
+        "realm_id",
+        "mls_group_id",
+        "mls_epoch",
+        "welcome_ref",
+        "welcome_digest",
+        "durable_at",
+        "device_verification_method"
+      ]
+    },
+    {
+      "domain": "ak.peer-contact.control-receipt.v1",
+      "object_family": "peer_contact_control_receipt",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "domain",
+        "request_kind",
+        "request_digest",
+        "outcome",
+        "result_digest",
+        "recipient_service_id",
+        "received_at",
+        "issuer"
+      ]
+    },
+    {
+      "domain": "ak.peer-contact.mirror-receipt.v1",
+      "object_family": "peer_contact_mirror_receipt",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "domain",
+        "request_digest",
+        "signed_event_ref",
+        "signed_event_digest",
+        "outcome",
+        "recipient_service_id",
+        "received_at",
         "issuer"
       ]
     },
