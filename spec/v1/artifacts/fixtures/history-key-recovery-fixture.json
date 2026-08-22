@@ -614,16 +614,6 @@
       }
     }
   ],
-  "forbidden_legacy_terms": [
-    "realm_key_share",
-    "realm_key_withheld",
-    "history_sharing_policy",
-    "homogeneous_segment",
-    "complete_control_state_v1",
-    "proof_result_set_id",
-    "foreign_active_mls_snapshot",
-    "to_device_history_key_request"
-  ],
   "direct_traversal_kat": {
     "member_retention": {
       "traversal_intent": {

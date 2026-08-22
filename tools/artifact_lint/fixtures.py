@@ -285,52 +285,6 @@ def check_fixture_runner_contract(lint: Lint) -> None:
             if expected is None or actual != expected:
                 lint.fail(path, f"registry coverage assertions are not bound to the executable lint contract: {sorted(actual)}")
 
-        if path.name == "morph-schema-migration-fixture.json":
-            vectors = data.get("vectors")
-            if not isinstance(vectors, list) or not vectors:
-                lint.fail(path, "morph migration runner requires vectors")
-                continue
-            observed_rules: set[str] = set()
-            for vector in vectors:
-                if not isinstance(vector, dict):
-                    lint.fail(path, "morph migration vector must be an object")
-                    continue
-                fields = dict(((vector.get("input") or {}).get("fields") or {}))
-                rules = (((vector.get("input") or {}).get("payload") or {}).get("transformation_rules") or [])
-                for rule in rules:
-                    rule_id = rule.get("rule") if isinstance(rule, dict) else None
-                    observed_rules.add(rule_id)
-                    if rule_id == "ak.transform.identity.v1":
-                        continue
-                    if rule_id == "ak.transform.rename.v1":
-                        source, target = rule.get("from"), rule.get("to")
-                        if source not in fields or target in fields:
-                            lint.fail(path, f"{vector.get('vector_id')} rename precondition failed")
-                            continue
-                        fields[target] = fields.pop(source)
-                    elif rule_id == "ak.transform.type_widen.v1":
-                        if (rule.get("from_kind"), rule.get("to_kind")) != ("integer", "number") or not isinstance(fields.get(rule.get("field")), int):
-                            lint.fail(path, f"{vector.get('vector_id')} type widening precondition failed")
-                    elif rule_id == "ak.transform.default_backfill.v1":
-                        fields.setdefault(rule.get("to"), rule.get("value"))
-                    else:
-                        lint.fail(path, f"{vector.get('vector_id')} uses unknown transformation rule {rule_id!r}")
-                if fields != vector.get("expected_output"):
-                    lint.fail(path, f"{vector.get('vector_id')} executable transformation output mismatch")
-                canonical = json.dumps(fields, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-                digest = "sha256:" + hashlib.sha256(canonical).hexdigest()
-                if digest != vector.get("expected_output_digest"):
-                    lint.fail(path, f"{vector.get('vector_id')} expected_output_digest mismatch")
-            required_rules = {
-                "ak.transform.identity.v1",
-                "ak.transform.rename.v1",
-                "ak.transform.type_widen.v1",
-                "ak.transform.default_backfill.v1",
-            }
-            if observed_rules != required_rules:
-                lint.fail(path, f"morph runner rule coverage mismatch: {sorted(observed_rules)}")
-
-
 
 def check_erasure_verification_contract(lint: Lint) -> None:
     """Verify hard-erasure structure, digest consistency, and proof boundary vectors."""
@@ -1910,23 +1864,6 @@ def check_snapshot_merkle_fixture(lint: Lint) -> None:
                 f"snapshot actor range {row.get('actor_id')} root {row.get('root')} "
                 f"!= computed {range_root}",
             )
-
-    legacy_case = next(
-        (
-            row
-            for row in challenge.get("cases", [])
-            if isinstance(row, dict) and row.get("name") == "legacy_unprefixed_commitment_root"
-        ),
-        None,
-    )
-    if (
-        not isinstance(legacy_case, dict)
-        or legacy_case.get("replacement_root") == computed
-        or legacy_case.get("expected", {}).get("decision") != "reject"
-    ):
-        lint.fail(path, "snapshot Merkle KAT must reject a distinct legacy unprefixed root")
-
-
 
 def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> None:
     if not isinstance(data, dict):

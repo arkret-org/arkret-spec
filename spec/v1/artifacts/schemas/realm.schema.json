@@ -34,12 +34,6 @@
       },
       {
         "required": [
-          "history_sharing_policy"
-        ],
-        "$comment": "Obsolete forbidden field. v1 has one scope-local history_access facet; history_sharing_policy and profile-fixed history baselines do not exist. See zh/governance/history-visibility.md."
-      },
-      {
-        "required": [
           "plaintext_visible_services"
         ],
         "$comment": "forbidden Realm policy field; the only carrier is the ak.realm.plaintext_visible_services facet cell. See zh/sync/service-surface.md."
@@ -391,7 +385,7 @@
     "capability_action_registry_digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "Create-locked genesis capability-action registry basis for this Realm: the JCS SHA-256 digest of the complete canonical capability-action-registry.json snapshot the creator adopted. The ak.realm.create reducer copies this signed value into the ak.component.realm.authority_root.v1 cell; it MUST NOT infer the digest from its own embedded registry, because that would make genesis state_root depend on the receiver's software version. Changing the basis afterwards is a root-control Move, not a Realm update."
+      "description": "Create-locked genesis capability-action registry basis for this Realm: the JCS SHA-256 digest of the current embedded capability-action-registry.json. The ak.realm.create reducer verifies equality and copies this signed value into the ak.component.realm.authority_root.v1 cell."
     },
     "revocation_freshness_window_ms": {
       "type": "integer",

@@ -106,7 +106,7 @@
     },
     "frontier": {
       "type": "object",
-      "$comment": "This is a true frontier (boundary head event ids of the snapshot), not a cumulative covered-set enumeration; it is unrelated to the retired Seal-coverage enumeration (Seal coverage is recursive via predecessor_refs + delta).",
+      "$comment": "This is a true frontier (boundary head event ids of the snapshot), not a cumulative covered-set enumeration. Seal coverage is recursive via predecessor_refs + delta.",
       "required": [
         "event_ids",
         "timeline_hlc"

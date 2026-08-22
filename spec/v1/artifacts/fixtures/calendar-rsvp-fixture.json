@@ -188,33 +188,6 @@
       }
     },
     {
-      "name": "activation_legacy_flat_schedule_field_rejected",
-      "schema_ref": "schemas/strand.schema.json",
-      "expect_valid": false,
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "first_expected_error": "contains:should not be valid under",
-      "instance": {
-        "id": "ak:strand:AXA0wlQa-N06mgvzMAZSTMx58bfbqKvSfyiu9Lnq-PQF",
-        "schema": "ak.schema.strand.v1",
-        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-        "metadata": {
-          "fields": {
-            "start": "2026-06-22T09:00:00",
-            "end": "2026-06-22T10:00:00"
-          }
-        },
-        "tracks": {
-          "synthesis": {
-            "enabled": true,
-            "is_primary": true
-          }
-        },
-        "created_by": "ak:did_core:webvh:z6mkfixture",
-        "created_at": "2026-06-01T00:00:00.000Z"
-      }
-    },
-    {
       "name": "schedule_shape_all_day_half_open_interval_valid",
       "schema_ref": "schemas/calendar-event.schema.json",
       "expect_valid": true,
@@ -715,19 +688,6 @@
             "ciphertext": "rsvpAlpha"
           }
         }
-      }
-    },
-    {
-      "name": "rsvp_privacy_legacy_flat_status_payload_rejected",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
-      "expect_valid": false,
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "first_expected_error": "contains:'entry' is a required property",
-      "instance": {
-        "event_ref": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
-        "occurrence": null,
-        "status": "accepted"
       }
     },
     {

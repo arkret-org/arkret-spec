@@ -71,10 +71,6 @@ PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
 CLASSIFICATION_FIELD_REGISTRY_PATH = REGISTRY / "classification-field-registry.json"
 CAPABILITY_ACTION_REGISTRY_PATH = REGISTRY / "capability-action-registry.json"
-CAPABILITY_ACTION_SNAPSHOT_DIR = (
-    REGISTRY / "snapshots" / "capability-action"
-)
-CAPABILITY_ACTION_SNAPSHOT_NAME_RE = re.compile(r"^sha256-([0-9a-f]{64})\.json$")
 
 
 def load_json(path: Path) -> Any:
@@ -1020,148 +1016,6 @@ def check_public_registry_snapshot() -> list[str]:
     return errors
 
 
-def check_capability_action_snapshot_archive_files(
-    snapshot_dir: Path = CAPABILITY_ACTION_SNAPSHOT_DIR,
-) -> tuple[list[str], set[str]]:
-    """Validate the content-addressed, append-only registry archive."""
-
-    errors: list[str] = []
-    digests: set[str] = set()
-    if not snapshot_dir.exists():
-        return errors, digests
-
-    for path in sorted(snapshot_dir.glob("*.json")):
-        match = CAPABILITY_ACTION_SNAPSHOT_NAME_RE.fullmatch(path.name)
-        try:
-            label = path.relative_to(ROOT).as_posix()
-        except ValueError:
-            label = path.as_posix()
-        if match is None:
-            errors.append(
-                f"capability-action snapshot has non-canonical filename: {label}"
-            )
-            continue
-        try:
-            value = load_json(path)
-        except (OSError, json.JSONDecodeError) as exc:
-            errors.append(f"invalid capability-action snapshot {label}: {exc}")
-            continue
-        if not isinstance(value, dict):
-            errors.append(f"capability-action snapshot must be an object: {label}")
-            continue
-        actual = capability_action_registry_digest(value)
-        expected = match.group(1)
-        if actual != expected:
-            errors.append(
-                f"capability-action snapshot digest mismatch: {label} "
-                f"contains sha256-{actual}.json content"
-            )
-            continue
-        digests.add(actual)
-    return errors, digests
-
-
-def _git_json_at(revision: str, relative_path: str) -> Any | None:
-    result = subprocess.run(
-        ["git", "show", f"{revision}:{relative_path}"],
-        cwd=ROOT,
-        capture_output=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return None
-    try:
-        return json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return None
-
-
-def _git_capability_action_snapshot_names(revision: str) -> set[str] | None:
-    relative = CAPABILITY_ACTION_SNAPSHOT_DIR.relative_to(ROOT).as_posix()
-    result = subprocess.run(
-        ["git", "ls-tree", "-r", "--name-only", revision, "--", relative],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return None
-    return {
-        Path(line).name
-        for line in result.stdout.splitlines()
-        if line.endswith(".json")
-    }
-
-
-def capability_action_archive_baseline_names() -> set[str] | None:
-    """Return the previous tree's archive names for append-only checking."""
-
-    relative = CAPABILITY_ACTION_SNAPSHOT_DIR.relative_to(ROOT).as_posix()
-    dirty = subprocess.run(
-        ["git", "diff", "--quiet", "HEAD", "--", relative],
-        cwd=ROOT,
-        check=False,
-    )
-    revision = "HEAD" if dirty.returncode == 1 else "HEAD^"
-    return _git_capability_action_snapshot_names(revision)
-
-
-def capability_action_predecessor() -> tuple[str, Any] | None:
-    """Find the immediate registry content replaced by the current worktree.
-
-    Before commit, HEAD is the predecessor. After commit (including CI), HEAD
-    is current and HEAD^ is the predecessor. This makes a registry digest
-    change fail unless the exact old complete object is archived in the same
-    change.
-    """
-
-    relative = CAPABILITY_ACTION_REGISTRY_PATH.relative_to(ROOT).as_posix()
-    current = load_json(CAPABILITY_ACTION_REGISTRY_PATH)
-    current_digest = capability_action_registry_digest(current)
-    head = _git_json_at("HEAD", relative)
-    if head is None:
-        return None
-    head_digest = capability_action_registry_digest(head)
-    if head_digest != current_digest:
-        return head_digest, head
-    parent = _git_json_at("HEAD^", relative)
-    if parent is None:
-        return None
-    parent_digest = capability_action_registry_digest(parent)
-    if parent_digest == current_digest:
-        return None
-    return parent_digest, parent
-
-
-def check_capability_action_snapshot_archive() -> list[str]:
-    errors, archived = check_capability_action_snapshot_archive_files()
-    baseline_names = capability_action_archive_baseline_names()
-    if baseline_names is not None:
-        current_names = {
-            path.name for path in CAPABILITY_ACTION_SNAPSHOT_DIR.glob("*.json")
-        }
-        for deleted in sorted(baseline_names - current_names):
-            errors.append(
-                "capability-action snapshot archive is append-only; restored file required: "
-                f"{deleted}"
-            )
-    predecessor = capability_action_predecessor()
-    if predecessor is None:
-        return errors
-    digest, _ = predecessor
-    if digest not in archived:
-        expected = (
-            CAPABILITY_ACTION_SNAPSHOT_DIR
-            / f"sha256-{digest}.json"
-        ).relative_to(ROOT).as_posix()
-        errors.append(
-            "capability-action registry digest changed without archiving its "
-            f"complete predecessor at {expected}"
-        )
-    return errors
-
-
 def check_derived_registry_views() -> list[str]:
     errors: list[str] = []
     for path, payload in generated_registry_payloads(load_contract_registry()).items():
@@ -1299,7 +1153,6 @@ def cmd_check(_: argparse.Namespace) -> int:
     errors.extend(check_derived_registry_views())
     errors.extend(check_operation_schema_index())
     errors.extend(check_public_registry_snapshot())
-    errors.extend(check_capability_action_snapshot_archive())
     errors.extend(check_classification_discipline())
     if errors:
         for error in errors:

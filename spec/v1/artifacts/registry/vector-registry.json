@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.2",
+  "version": "2026-08-23.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-23T00:48:41+08:00",
+  "generated_at": "2026-08-23T13:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4433,54 +4433,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.morph.transformation_default_backfill.v1",
-      "status": "active",
-      "domain": "morph",
-      "applies_to_profiles": [
-        "ak.profile.morph.schema_migration_transformations.v1"
-      ],
-      "description": "Deterministic ak.morph.schema_migrate transformation: a ak.transform.default_backfill.v1 rule backfills a new optional field with a fixed default while preserving existing fields; idempotent and replay-deterministic.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.morph.transformation_identity.v1",
-      "status": "active",
-      "domain": "morph",
-      "applies_to_profiles": [
-        "ak.profile.morph.schema_migration_transformations.v1"
-      ],
-      "description": "Deterministic identity migration preserves every Morph field and canonical JSON value.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.morph.transformation_rename.v1",
-      "status": "active",
-      "domain": "morph",
-      "applies_to_profiles": [
-        "ak.profile.morph.schema_migration_transformations.v1"
-      ],
-      "description": "Deterministic ak.morph.schema_migrate transformation: a ak.transform.rename.v1 rule renames a Morph field and leaves unrelated fields untouched; the post-migration fields projection is canonical-JSON byte-equal across replays.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.morph.transformation_type_widen.v1",
-      "status": "active",
-      "domain": "morph",
-      "applies_to_profiles": [
-        "ak.profile.morph.schema_migration_transformations.v1"
-      ],
-      "description": "Deterministic integer-to-number schema widening preserves the JSON numeric value and rejects unregistered widening pairs.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
       ]
     },
     {

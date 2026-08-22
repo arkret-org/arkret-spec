@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 20,
+  "version": 22,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -1490,18 +1490,6 @@
       "notes": "Key backup KDF params use digest_algorithm for PBKDF2/derived digest selection. The old params.hash selector is ambiguous with digest bytes and MUST NOT appear on current v1 wire."
     },
     {
-      "id": "history_sharing_policy",
-      "context": "realm_object",
-      "since_revision": "2026-07-30",
-      "rejection_level": "hard_reject",
-      "replacement": "ak.realm.history_access",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "This obsolete parallel key-sharing policy is never accepted on v1 wire. Each Realm/Circle instead has exactly one current two-state history_access facet; exporter key delivery and non-public history projection evaluate that same facet without aliases or profile-fixed baselines."
-    },
-    {
       "id": "history_access",
       "context": "space_payload",
       "since_revision": "2026-05-24",
@@ -2160,7 +2148,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "ak.morph.update / ak.morph.schema_migrate payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ak.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
+      "notes": "ak.morph.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ak.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
     },
     {
       "id": "payload_hash",

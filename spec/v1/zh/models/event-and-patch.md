@@ -489,12 +489,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 `requirements.features[]` 与 `requirements.critical_extensions[].id` 必须使用可发现的 feature/profile 标识，并通过 service describe、profile registry 或 Realm schema/policy 指向可验证定义。接收方不支持 critical feature 时 MUST fail closed；不得把未知 critical 语义当作普通未知字段保留后继续 accepted。
 
-**Per-event schema 版本绑定**：当 event 修改的对象携带 `schema_refs[]` 时，写入端 **MUST** 在 `requirements.schema[]` 中列出该 event 写入时对象实际遵循的 schema profile id 全集。reader 重放该 event 时 **MUST** 用 `requirements.schema[]` 绑定的 schema 版本进行 payload / patch / transition 验证，**不得**使用对象当前的 `schema_refs[]`。这保证 partial replication 与跨版本历史回放时验证结果一致，并锁定每个 event 的 schema 解释边界。
-
-该规则按对象的 schema 来源分成两类，二者都适用，不因来源不同而豁免：
-
-- **Realm-defined evolvable schema**（典型是 Morph）：`schema_refs[]` 由 Realm 声明并可演进，绑定用于锁定演进历史。详细规则与 Morph 特化语义见 [`morph.md` §4.1](./morph.md#41-schema-refs-evolution-policy-normative)。
-- **spec-fixed profile subtree schema**（典型是 Strand 的 `metadata.fields.<profile>` 子树）：schema 本身由 spec 固定、不可演进，但对象**是否激活**该 profile 会随 patch 变化。写入或修改该子树的 event **MUST** 同样绑定对应 schema id，否则 reader 在回放一段"profile 后来被移除"的历史时会用当前 `schema_refs[]` 得到不同的验证结论。缺该绑定 MUST `schema_violation`。v1 的唯一实例见 [`calendar-event.md` §1](./calendar-event.md)。
+**Per-event schema 绑定**：当 event 修改的对象携带 `schema_refs[]` 时，写入端 **MUST** 在 `requirements.schema[]` 中列出该 event 实际遵循的 schema profile id 全集，reader 必须据此执行 payload / patch / transition 验证。Morph 的 `schema_refs[]` 在 create 后锁定；Strand 的 spec-fixed profile 子树可随 patch 激活或移除，写入或修改该子树的 event **MUST** 绑定对应 schema id，缺失时返回 `schema_violation`。v1 的 Strand 实例见 [`calendar-event.md` §1](./calendar-event.md)。
 
 ### 2.8 统一准入与反枚举顺序（normative）
 

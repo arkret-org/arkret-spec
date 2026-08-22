@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.1",
+  "version": "2026-08-23.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-23T01:30:00+08:00",
+  "generated_at": "2026-08-23T13:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -905,17 +905,6 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.morph.schema_migrate",
-      "category": "morph",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.morph.schema_migrate"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
       "action": "ak.morph.stage.set",
       "category": "morph",
       "risk_tier": "low",
@@ -1401,7 +1390,6 @@
         "ak.morph.archive",
         "ak.morph.create",
         "ak.morph.restore",
-        "ak.morph.schema_migrate",
         "ak.morph.stage.set",
         "ak.morph.update",
         "ak.organization.moderation_policy",
@@ -1517,7 +1505,6 @@
         "ak.morph.create",
         "ak.morph.read",
         "ak.morph.restore",
-        "ak.morph.schema_migrate",
         "ak.morph.stage.set",
         "ak.morph.update",
         "ak.object.archive",

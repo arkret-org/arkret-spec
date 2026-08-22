@@ -2345,14 +2345,13 @@ ak.vector.realm.authority_root_bootstrap.v1
 
 本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条无条件 registered cell write，其中 authority-root 写入是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = envelope.actor_id, controller_epoch = 0, authority_generation = 0, capability_action_registry_digest = payload.object.capability_action_registry_digest}`；另有五条 registered condition row：`initial_resolution`、`managed_agent_control` 的 Agent status，以及由 `payload.object.purpose` 互斥选择的 `direct_conversation|principal_control|managed_agent_control` history-access `null→since_join` 初始化。每个命中的条件写入都必须包含。
 
-正例：五条无条件 registered write 与条件命中的已登记 write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。实现升级 current capability-action registry 后，使用 append-only 归档中一个已发布 predecessor digest 创建的既有 Realm MUST 仍可精确解析该旧 snapshot、重算 digest 并得到与升级前相同的 owner coverage。
+正例：五条无条件 registered write 与条件命中的已登记 write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。
 
 负例（每条各自 MUST fail closed，不得留下 Realm / membership 半成品）：
 
 - 缺 authority-root cell → `realm_authority_root_missing`；
 - author 自行提供 `controller_id` / 非零 `controller_epoch` / 非零 `authority_generation` / 与签名 payload 不一致的 registry digest / 四字段之外的额外成员 → `realm_authority_root_conflict`；
-- `capability_action_registry_digest` 对应 snapshot 不可取得或 JCS 重算不一致 → `capability_registry_basis_unavailable`，且 MUST NOT 回退到本机当前 embedded registry；
-- 把未知 digest 指向 current snapshot、按 action 集“近似相同”接受，或删除已发布 predecessor snapshot 后仅保留 current → conformance 失败；
+- `capability_action_registry_digest` 与当前内嵌 registry 的 JCS 重算值不一致 → `capability_registry_basis_unavailable`；
 - 夹带旧四项 / 五项 / 三项 founding-grant shape 的 self grant MUST NOT 被识别为 authority root，仍按 §3.2 普通 issuer 上界判定为 `grant_exceeds_issuer_authority`；
 - staged root proof 在 genesis batch 之外重放，或在 batch 内改用 accepted-Seal inclusion proof（此时尚无 accepted Seal）→ `realm_authority_controller_mismatch`。
 
@@ -5607,12 +5606,6 @@ Expected：
 
 本向量固化 grant-binding session key 与长期 device identity key 的材料分离。DPoP 与 RFC 9421 可以共享同一短期 session key；但其 key bytes、公钥 fingerprint、JWK thumbprint 或 `kid` 任一与 `device_public_key` 对应材料相同都必须 fail closed，不能以“生命周期逻辑分开”替代密码学 key separation。
 
-### 18.5 Vectors: Morph Migration Transformation Closure
-
-`vector_id`: `ak.vector.morph.transformation_identity.v1`、`ak.vector.morph.transformation_rename.v1`、`ak.vector.morph.transformation_type_widen.v1`、`ak.vector.morph.transformation_default_backfill.v1`
-
-这组向量是 `ak.profile.morph.schema_migration_transformations.v1` 的必需 fixture，覆盖 identity、rename、integer-to-number type widening 与 default backfill。runner 必须实际应用登记的 transformation grammar，比较 canonical JSON output 并重算 `expected_output_digest`；只检查字符串存在或 fixture 非空不算通过。
-
 ## 19. Applet Transaction Push Vectors
 
 本节收拢 Applet inbound transaction push 的投递认证记录与 replay 绑定向量，固化 [`applet-integration.md`](../extensions/applet-integration.md) §7.3.1、[`applet-schema.md`](../extensions/applet-schema.md) §3、[`service-http-binding.md`](../sync/service-http-binding.md) §2.2 的 service-to-service HTTP Message Signature 要求。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
@@ -5674,7 +5667,7 @@ Expected：
 
 ### 21.1 `mls_exporter_aead_v1` 内容键派生
 
-`ak.vector.mls_exporter_aead.content_key_derivation.v1` 固定 `exporter_secret` 与 `realm_id`，分别以 ordinary verified canonical `device_id` UTF-8 bytes 和 minimal-metadata exact LeafNode basic credential identity bytes 作为 `ak.content-v1` context，逐字节比较 `history_secret`、完整 KDFLabel info 与 `K_content[N,sender]`。错误 label、空 Realm exporter context、空/未验证/种类不匹配 sender domain、跨 sender 或 epoch 复用内容键均 MUST 与金值不同或在加密前 fail closed；runner MUST 删除旧空 context 兼容。
+`ak.vector.mls_exporter_aead.content_key_derivation.v1` 固定 `exporter_secret` 与 `realm_id`，分别以 ordinary verified canonical `device_id` UTF-8 bytes 和 minimal-metadata exact LeafNode basic credential identity bytes 作为 `ak.content-v1` context，逐字节比较 `history_secret`、完整 KDFLabel info 与 `K_content[N,sender]`。错误 label、空 Realm exporter context、空/未验证/种类不匹配 sender domain、跨 sender 或 epoch 复用内容键均 MUST 与金值不同或在加密前 fail closed。
 
 `ak.vector.mls_exporter_aead.seal_open_transcript.v1` 固定最小 wire envelope、outer signed Event、exact group state、verified sender domain、重构的 `pre_encryption_header`、counter-derived nonce、plaintext 与 AES-128-GCM 输出，逐字节比较 `aead_aad_canonical_json` 和含 tag 的 ciphertext。Wire 不含 header、scheme、scope、group、sender domain、nonce、Event kind 或 routing window；修改 envelope version/content type、outer kind/scope、producer verification method、group state/scheme、counter 或 authentication tag 均 MUST 在 admission/open 时拒绝。runner MUST 从三份规范输入重构 JCS bytes，不得直接把 fixture 的 canonical JSON 字符串当作可信 AAD 输入。
 

@@ -135,11 +135,6 @@
   ],
   "negative_cases": [
     {
-      "name": "legacy_inkson_domain_rejected",
-      "mutation": "replace upload domain with ak.keypackage-upload-v1 newline",
-      "expected": "device_signature_invalid"
-    },
-    {
       "name": "upload_omits_principal_id_rejected",
       "mutation": "remove principal_id from upload unsigned request",
       "expected": "device_signature_invalid"

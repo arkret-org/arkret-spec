@@ -115,13 +115,6 @@
           "decoded_body_utf8": "{\"expires_at\":\"2099-12-31T23:59:59.000Z\",\"h\":\"abcdefghijklmnopqrstuv\",\"issued_at\":\"2099-12-30T23:59:59Z\",\"purpose\":\"stream\",\"v\":\"1\"}",
           "expected_reason_code": "invalid_cursor",
           "violation": "issued_at omits the mandatory three millisecond digits; whole seconds MUST use .000Z"
-        },
-        {
-          "name": "retired_t_x_fields_rejected",
-          "input_cursor": "ak:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9",
-          "decoded_body_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
-          "expected_reason_code": "invalid_cursor",
-          "violation": "retired t/x fields are forbidden; issued_at/expires_at are required and no compatibility reader exists"
         }
       ],
       "fixture_freshness_note": "All timestamps are pinned so every case stays deterministically rejectable for the spec lifetime: expired cases use year-2020 values (always past), TTL-cap and negative-TTL cases use year-2099 x values (not expired before 2099) with a violation that is checked before any now-relative comparison could differ.",

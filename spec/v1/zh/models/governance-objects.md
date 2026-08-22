@@ -170,7 +170,7 @@ Schema id: `ak.schema.capability.v1`
 | `resources` | yes | `array<object>` | 资源 selector array，其 kind 词表、canonical JSON 结构、匹配算法与求值时机由 [`../authz/resource-selector-grammar.md`](../authz/resource-selector-grammar.md) 与 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 权威定义；多个 `resources[]` 默认 OR。匹配失败 fail-closed（不命中即不授权）。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_kind=authority_control` 的 `max_authority_depth` 表达；缺省（无 authority_control 约束）等价于 `max_authority_depth=0`，即不可转授。 | 约束条件。 |
 | `issuer_authority_refs` | yes | `array<object>` | MUST 非空。Realm root controller 签发时携带 `kind=realm_root` 的 authority-root cell / epoch / generation；再授权时携带 `kind=grant` 的 `ak:grant:` 父授权，不得指向 `ak:capability:`。 | 签发所依据的完整授权根或父授权边。 |
-| `capability_action_registry_digest` | conditional | `sha256:<64hex>` | `actions[]` 含 aggregate admin action 时必填；proof 覆盖，按 [`capabilities.md` §3/§5.0.1](../authz/capabilities.md) 固定签发时 registry snapshot。 | 防 registry 演进造成历史 grant 权限蠕变。 |
+| `capability_action_registry_digest` | conditional | `sha256:<64hex>` | `actions[]` 含 aggregate admin action 时必填；proof 覆盖，且必须匹配当前内嵌 registry，见 [`capabilities.md` §3/§5.0.1](../authz/capabilities.md)。 | 固定 grant 的 aggregate action 展开依据。 |
 | `issued_at` | yes | `timestamp` | 承载 Grant 的"创建时间"语义，取代通用 `created_at`（见 [`common-fields.md` §3.2](./common-fields.md)）；retention / audit / 排序查询 MUST 用 `issued_at` / `expires_at` / `revoked_at`，不回退到通用 `created_at`。 | 签发时间。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
 | `expires_at` | no | `timestamp` |  | 过期时间。 |

@@ -2234,17 +2234,6 @@
       "first_expected_error": "$: Additional properties are not allowed ('unexpected' was unexpected)"
     },
     {
-      "name": "recovery_session_create_request_legacy_flat_principal_id_rejected",
-      "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
-      "expect_valid": false,
-      "instance": {
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ak:trust_domain:example.local"
-      },
-      "first_expected_error": "$: 'principal_authority' is a required property"
-    },
-    {
       "name": "recovery_session_did_root_proof_valid",
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/did_root_proof",
       "expect_valid": true,

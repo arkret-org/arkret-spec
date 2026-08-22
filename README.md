@@ -41,14 +41,8 @@ site/
 └── ...                            # 协议站（pnpm 项目）
 tools/
 ├── artifact_pipeline.py           # registry 生成 / drift check
-├── artifact_lint/                  # 分域的跨构件 + Markdown 一致性 lint 包
-└── migrations/                    # 历史一次性迁移脚本；已执行完毕，MUST NOT 重跑
+└── artifact_lint/                  # 分域的跨构件 + Markdown 一致性 lint 包
 ```
-
-`tools/migrations/` 只保留已执行过的一次性重命名脚本作为改名口径记录（例如
-`20260810_did_identifier_naming.py` 对应 decision 0021 的 `did_core_id` / `did_full_id` 改名）。
-它们的替换是按 token 前缀匹配的，重跑会命中改名后才出现的合法同前缀字段
-（如 `expected_did_key`），因此**不得**再次运行，也不得纳入任何流水线。
 
 ### 手动 fixture 再生成器
 

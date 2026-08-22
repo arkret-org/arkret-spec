@@ -199,7 +199,7 @@ sidebar:
 ### 4.2 Policy Server 侧
 
 - Policy Server 风险 `reason_code` 的单点承载是 [`../authz/policy-server.md` §4](../authz/policy-server.md)；
-  本节此前复述了同一份清单，现改为指针，避免两处各自演进。取值仍以
+  取值以
   [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 为机器真源。
 - `quarantine` / `require_review` 事件须保留 `request_id`、`canonical hash` 与决策签名，进入审查队列。
 - 对 `push`/`join`/`directory` 的高风险 source 应触发 `rate_limit` + 侧信道统一返回策略。

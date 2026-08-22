@@ -1193,25 +1193,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.morph.schema_migrate"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/morph_schema_migrate_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.strand.stage.set"
           }
         },

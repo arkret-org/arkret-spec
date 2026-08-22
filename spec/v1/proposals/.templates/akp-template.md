@@ -53,7 +53,7 @@ authors:
 - 改动哪些 `spec/v1/artifacts/` 文件?
 - 是否需要新 forbidden-wire 守卫?
 - 与现有对象 / event 是否冲突?如何收敛(双源?派生?)
-- 是否需要 schema migration / profile opt-in?
+- 是否需要新的 schema / profile opt-in?
 
 ## 5. Rationale & alternatives
 

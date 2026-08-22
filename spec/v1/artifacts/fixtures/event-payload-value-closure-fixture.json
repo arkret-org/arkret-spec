@@ -188,7 +188,7 @@
           "user_consent_required": true,
           "expires_at": "2026-07-26T00:00:00.000Z"
         },
-        "reason": "legacy"
+        "reason": "unexpected"
       }
     },
     {
@@ -436,7 +436,7 @@
       "instance": {
         "action_id": "approval-realm-admin-001",
         "value": {"action": "ak.realm.admin", "approval_required": true, "approval_quorum": 2, "policy_scope": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"},
-        "reason": "legacy"
+        "reason": "unexpected"
       }
     }
   ],

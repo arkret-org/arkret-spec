@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-21.2",
-  "generated_at": "2026-08-21T23:55:00+08:00",
+  "version": "2026-08-23.1",
+  "generated_at": "2026-08-23T13:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -422,7 +422,6 @@
     "ak.profile.mimi_interop.v1",
     "ak.profile.sovereign_client.v1",
     "ak.profile.franking.v1",
-    "ak.profile.morph.schema_migration_transformations.v1",
     "ak.profile.webrtc_media.v1",
     "ak.profile.circle_conformance.v1",
     "ak.profile.personal_productivity.v1",
@@ -461,7 +460,6 @@
       "ak.profile.push_gateway.matrix_passthrough.v1",
       "ak.profile.sovereign_client.v1",
       "ak.profile.franking.v1",
-      "ak.profile.morph.schema_migration_transformations.v1",
       "ak.profile.webrtc_media.v1",
       "ak.profile.circle_conformance.v1",
       "ak.profile.ephemeral_pairwise_principal.v1"
@@ -603,7 +601,6 @@
     "ak.profile.membership_join_compensation.v1": "server",
     "ak.profile.mimi_interop.v1": "interop",
     "ak.profile.franking.v1": "server",
-    "ak.profile.morph.schema_migration_transformations.v1": "server",
     "ak.profile.webrtc_media.v1": "gateway",
     "ak.profile.circle_conformance.v1": "interop",
     "ak.profile.ephemeral_pairwise_principal.v1": "admin",
@@ -3618,72 +3615,6 @@
           "frank_canonical_fields"
         ],
         "unsupported_optional": "return franking_proof_unavailable rather than silently dropping"
-      }
-    },
-    "ak.profile.morph.schema_migration_transformations.v1": {
-      "description": "Opt-in Realm profile that permits ak.morph.schema_migrate events with compatibility_class in {breaking, transformation}. Realms not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating ak.morph.schema_migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
-      "required_endpoints": [],
-      "required_event_kinds": [
-        "ak.morph.schema_migrate"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event_payload.v1"
-      ],
-      "required_fixtures": [
-        "morph-schema-migration-fixture.json"
-      ],
-      "optional_extensions": [
-        "transformation_rules_v1_grammar"
-      ],
-      "feature_discovery": {
-        "required": [
-          "supported_compatibility_classes",
-          "transformation_rules_dialect",
-          "schema_migrate_capability_action"
-        ],
-        "unsupported_optional": "deployments without this profile MUST reject breaking and transformation migrations even if the event-payload schema would accept them"
-      },
-      "additional_requirements": {
-        "capability_must": "Reducer MUST require ak.morph.schema_migrate (or Realm-declared equivalent) capability at the event's frontier; missing yields capability_denied.",
-        "from_set_check_must": "Reducer MUST set-equal-compare payload.from_schema_refs[] against the Morph's current schema_refs[] at apply time; mismatch yields failed_precondition.",
-        "deterministic_transformation_must": "Any transformation_rules[] MUST be replay-deterministic across implementations; profile vectors MUST cover identity, rename, type widening, and default backfill cases."
-      },
-      "transformation_rules_v1_grammar": {
-        "ak.transform.identity.v1": {
-          "required_fields": [
-            "rule"
-          ],
-          "effect": "Preserve every input field and value byte-for-byte under canonical JSON."
-        },
-        "ak.transform.rename.v1": {
-          "required_fields": [
-            "rule",
-            "from",
-            "to"
-          ],
-          "effect": "Move the value at from to to; fail if from is absent or to is already present."
-        },
-        "ak.transform.type_widen.v1": {
-          "required_fields": [
-            "rule",
-            "field",
-            "from_kind",
-            "to_kind"
-          ],
-          "allowed_pairs": [
-            "integer:number"
-          ],
-          "effect": "Preserve the JSON numeric value while widening its declared schema type."
-        },
-        "ak.transform.default_backfill.v1": {
-          "required_fields": [
-            "rule",
-            "to",
-            "value"
-          ],
-          "effect": "Insert value only when to is absent; never overwrite an existing value."
-        }
       }
     },
     "ak.profile.webrtc_media.v1": {

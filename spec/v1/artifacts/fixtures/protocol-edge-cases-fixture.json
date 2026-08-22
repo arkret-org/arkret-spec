@@ -557,7 +557,6 @@
         "signature_invalid",
         "verification_method_key_mismatch",
         "cross_path_proof_replay",
-        "legacy_public_key_shape",
         "stage_request_carries_challenge_proof",
         "gate_path_selector_xor_violation"
       ],

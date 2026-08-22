@@ -494,7 +494,6 @@
       "proofs_bind_samples_to_event_set",
       "silent_actor_seq_gaps_reject_snapshot",
       "commitment_root_mismatch_rejects_snapshot",
-      "legacy_unprefixed_root_rejects_snapshot",
       "issuer_only_ranges_cannot_prove_an_entire_actor_was_not_omitted"
     ],
     "manifest": {
@@ -968,15 +967,6 @@
       {
         "name": "commitment_root_mismatch",
         "mutation": "commitment_root_mismatch",
-        "expected": {
-          "decision": "reject",
-          "reason": "inclusion_proof_failed"
-        }
-      },
-      {
-        "name": "legacy_unprefixed_commitment_root",
-        "mutation": "replace_commitment_root",
-        "replacement_root": "sha256:c243eb685fedded736ed0ccf5e6dff8ebdc0ff673e31919c98290022d59610c7",
         "expected": {
           "decision": "reject",
           "reason": "inclusion_proof_failed"

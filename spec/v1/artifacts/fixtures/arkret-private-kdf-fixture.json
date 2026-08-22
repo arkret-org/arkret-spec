@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.crypto.arkret_private_kdf_and_durability.v1"
   },
   "suite": "arkret_private_kdf_and_durability",
-  "version": "2026-07-13",
+  "version": "2026-08-23",
   "covers_vectors": [
     "ak.vector.mls_exporter_aead.content_key_derivation.v1",
     "ak.vector.mls_exporter_aead.seal_open_transcript.v1",
@@ -163,28 +163,29 @@
         "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "history_label": "ak.history-v1",
         "signal_label": "ak.signal-v1",
-        "sender_device_id": "ak:device:01904100-0000-7000-8000-000000000006",
-        "signal_context_canonical_json": "{\"sender_device_id\":\"ak:device:01904100-0000-7000-8000-000000000006\"}",
-        "signal_context_hex": "7b2273656e6465725f6465766963655f6964223a22616b3a6465766963653a30313930343130302d303030302d373030302d383030302d303030303030303030303036227d",
+        "sender_domain_kind": "ordinary_device",
+        "verified_sender_domain_utf8": "ak:device:01904100-0000-7000-8000-000000000006",
+        "verified_sender_domain_hex": "616b3a6465766963653a30313930343130302d303030302d373030302d383030302d303030303030303030303036",
         "aead_nk": 16,
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
       },
       "expected": {
         "history_secret_hex": "f9e39ba45ff2ba26a1e430c0df76bf7b56737a5c1ad9d103b3c07ca205e1963d",
-        "signal_expand_with_label_info_hex": "0010144d4c5320312e3020616b2e7369676e616c2d763140457b2273656e6465725f6465766963655f6964223a22616b3a6465766963653a30313930343130302d303030302d373030302d383030302d303030303030303030303036227d",
-        "signal_key_hex": "29152db2983e95748e835fbfb9311d89",
-        "collision_peer_sender_device_id": "ak:device:01904100-0000-7000-8000-00000000000e",
-        "collision_peer_signal_key_hex": "52339613d0e19df737ea9c9636e17955",
+        "signal_expand_with_label_info_hex": "0010144d4c5320312e3020616b2e7369676e616c2d76312e616b3a6465766963653a30313930343130302d303030302d373030302d383030302d303030303030303030303036",
+        "signal_key_hex": "b54fe4e8d4f389edb2d02028983dfb43",
+        "peer_verified_sender_domain_utf8": "ak:device:01904100-0000-7000-8000-00000000000e",
+        "peer_signal_key_hex": "ea4cbf3072a0996c6c5b72efd8369011",
         "forced_equal_nonce_hex": "000000000102030405060708",
         "same_raw_aead_key": false,
         "negative_mutations": [
           "signal_label=ak.content-v1",
           "signal_context=empty",
-          "sender_device_id=collision_peer_sender_device_id",
+          "sender_domain=peer_verified_sender_domain_utf8",
           "reuse_signal_key_after_epoch_change"
         ],
         "negative_decision": "reject"
-      }
+      },
+      "note": "The ExpandWithLabel context is the raw UTF-8 bytes of the already verified sender domain; it is not a JSON object or a duplicated sender_device_id carrier."
     },
     {
       "name": "content_key_derivation_fail_closed_negatives",

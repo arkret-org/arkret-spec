@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-23.1",
+  "version": "2026-08-23.3",
   "codes": [
     {
       "code": "json_invalid",
@@ -1853,14 +1853,6 @@
       "description": "An AEAD nonce on the wire does not match the deterministic derivation from MLS-Exporter context {key_ref, epoch, purpose} plus (device_id, monotonic counter) mandated by zh/crypto-media/media-and-blob.md §3.1. Producers MUST NOT emit naive random nonces under shared MLS application keys; receivers MUST reject such payloads to enforce the cross-implementation nonce-uniqueness contract."
     },
     {
-      "code": "aead_nonce_sender_domain_collision",
-      "applies_to": [
-        "event_envelope",
-        "encoding"
-      ],
-      "description": "Two active senders share an AEAD nonce sender-domain prefix (device_id-derived), so their derived nonces can collide under the same (key_ref, epoch). The receiver MUST fail closed before AEAD decryption to prevent nonce reuse compromising the epoch key. See zh/crypto-media/media-and-blob.md §3.1."
-    },
-    {
       "code": "agent_deactivated",
       "applies_to": [
         "auth_decision",
@@ -2354,7 +2346,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An aggregate capability grant pins a capability-action registry digest whose canonical snapshot is unavailable or whose JCS digest does not match. Receiver MUST fail closed and MUST NOT expand the grant against the current registry."
+      "description": "An aggregate capability grant pins a capability-action registry digest that does not match the current embedded registry's JCS digest. Receiver MUST fail closed."
     },
     {
       "code": "cardinality_violation",
@@ -3843,36 +3835,6 @@
         "auth_decision"
       ],
       "description": "`ak.morph.restore` rejected because the target Morph is not in `archived` state."
-    },
-    {
-      "code": "morph_schema_refs_evolution_unauthorized",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "ak.morph.update attempted to modify schema_refs[] without going through the Realm's declared schema-evolution policy (high-tier capability such as ak.morph.schema_migrate, or equivalent) and an explicit audit-grade authorization_ref. See zh/models/morph.md §4.1 S2."
-    },
-    {
-      "code": "morph_schema_refs_precondition_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Sub-reason for failed_precondition when a `ak.morph.schema_migrate` / `ak.morph.update` declares `from_schema_refs[]` (or the writer's expected current `schema_refs[]`) that is not set-equal to the Morph's actual current state — an optimistic-concurrency (CAS) miss distinct from the other morph_schema_* authorization/transformation failures. See zh/models/morph.md §4.1."
-    },
-    {
-      "code": "morph_schema_refs_transformation_unsupported",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "ak.morph.update attempted a non-additive schema_refs[] transformation (breaking or transformation-class change). Such transformations MUST be expressed as a ak.morph.schema_migrate event and require the Realm to declare the ak.profile.morph.schema_migration_transformations.v1 opt-in profile. See zh/models/morph.md §4.1 S3."
-    },
-    {
-      "code": "morph_schema_version_binding_missing",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "A reducer-input event targeting an evolvable-schema object (typically a Morph) did not include the active schema profile id(s) in requirements.schema[]. Reader cannot resolve which schema version to validate the event against. See zh/models/morph.md §4.1 S1 and zh/models/event-and-patch.md §2.7."
     },
     {
       "code": "naming_convention_violation",
@@ -5488,5 +5450,5 @@
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
   },
-  "generated_at": "2026-08-23T01:30:00+08:00"
+  "generated_at": "2026-08-23T13:00:00+08:00"
 }

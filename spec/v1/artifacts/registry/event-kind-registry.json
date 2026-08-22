@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.1",
+  "version": "2026-08-23.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-23T01:30:00+08:00",
+  "generated_at": "2026-08-23T13:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3496,44 +3496,13 @@
       "concurrency_class": "exclusive"
     },
     {
-      "event_kind": "ak.morph.schema_migrate",
-      "category": "morph",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ak.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ak.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_schema_migrate_payload",
-      "id_source": "reference",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.morph.schema.v1",
-          "cell_subject": {
-            "kind": "id:morph",
-            "field": "payload.morph_id"
-          },
-          "lattice": "cas_register",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "exclusive"
-    },
-    {
       "event_kind": "ak.morph.stage.set",
       "category": "morph",
       "status": "active",
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ak.morph.update / ak.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
+      "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ak.morph.update patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_stage_set_payload",
       "id_source": "reference",
       "plane": "control",

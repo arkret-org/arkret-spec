@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 255,
+  "audited_occurrence_count": 254,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -599,17 +599,6 @@
       "occurrences": 2,
       "disposition": "qualifier",
       "reason": "Names a digest of the heterogeneous introduction evidence container, not a material instance."
-    },
-    {
-      "file": "event-payload.schema.json",
-      "key": "migration_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "May carry governance proposal proofs or seal and witness attestations."
     },
     {
       "file": "history-key-canonical-binding-registry.json",

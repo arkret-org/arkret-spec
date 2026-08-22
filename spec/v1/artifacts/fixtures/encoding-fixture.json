@@ -880,11 +880,6 @@
           "expected_error": "schema_violation"
         },
         {
-          "name": "old_direct_scalar_subject",
-          "cell_subject": "q76kFdC2LNwLBlUed_ICSOysggmqrOXJbAtWHO49Woc",
-          "expected_error": "reducer_projection_failed"
-        },
-        {
           "name": "wrong_context",
           "context": "ak.accountability-scope-set-v1-wrong",
           "expected_error": "reducer_projection_failed"
@@ -1015,8 +1010,7 @@
           "unsigned",
           "effective_scope",
           "actor_kind"
-        ],
-        "forbidden_legacy_preimage": "envelope_without_proofs_unsigned"
+        ]
       },
       "comparison": {
         "primary_key": "decoded_digest_octets_unsigned_lexicographic_ascending",

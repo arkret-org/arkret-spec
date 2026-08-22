@@ -116,7 +116,7 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 #### 2.5.1 合规旁路（normative）
 
 `history_access` 的 `since_join|all_history_for_current_members` 只决定正文历史范围，不改变 read-receipt
-`visibility`，也不产生公开匿名读取者。二者不得组合出第三套 policy matrix 或旧五档兼容分支。metadata-private
+`visibility`，也不产生公开匿名读取者。二者不得组合出第三套 policy matrix。metadata-private
 场景仍 MUST 把 receipt `visibility` 收紧为 `members` 或 `private`。
 
 v1 合规旁路只保留 child policy 隐私收紧这一项；旧公开历史旁路字段不是 wire 字段，出现时 MUST

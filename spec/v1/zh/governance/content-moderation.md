@@ -715,7 +715,7 @@ Policy Server MAY 返回 `hard_deny`、`quarantine`、`require_review` 或 `soft
 服务端抗滥用经验（入口源身份强制、多级限速、批量事件反滥用、最小可观察性差异、可疑媒体隔离、
 可追溯审计）的单点承载是 [`../security/server-threat-model.md` §2.3](../security/server-threat-model.md)；
 其在授权与联邦层的 normative enforcement 分别见 [`../authz/policy-server.md`](../authz/policy-server.md)
-与 [`../sync/federation.md`](../sync/federation.md)。本节此前复述了同一份清单，现改为指针，避免两处各自演进。
+与 [`../sync/federation.md`](../sync/federation.md)。
 
 ## 10. v1 流程要求
 
