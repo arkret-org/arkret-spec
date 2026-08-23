@@ -30,7 +30,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import hashlib
 import json
 import re
 import subprocess
@@ -70,7 +69,6 @@ SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
 CLASSIFICATION_FIELD_REGISTRY_PATH = REGISTRY / "classification-field-registry.json"
-CAPABILITY_ACTION_REGISTRY_PATH = REGISTRY / "capability-action-registry.json"
 
 
 def load_json(path: Path) -> Any:
@@ -79,27 +77,6 @@ def load_json(path: Path) -> Any:
 
 def dump_json(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
-
-
-def canonical_json_bytes(data: Any) -> bytes:
-    """Return the repository's RFC 8785-compatible JSON encoding.
-
-    Registry artifacts contain only JSON integers, strings, booleans, arrays,
-    objects, and null, so the deterministic encoding used throughout the
-    artifact tooling is also their JCS encoding.
-    """
-
-    return json.dumps(
-        data,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-        allow_nan=False,
-    ).encode("utf-8")
-
-
-def capability_action_registry_digest(data: Any) -> str:
-    return hashlib.sha256(canonical_json_bytes(data)).hexdigest()
 
 
 def load_contract_registry() -> dict[str, Any]:

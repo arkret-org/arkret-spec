@@ -204,6 +204,7 @@ class SessionGrantKatTests(unittest.TestCase):
                 "cnf_jkt": "fixture-rfc7638-thumbprint",
                 "credential_class": claims["credential_class"],
                 "holder_binding": claims["holder_binding"],
+                "device_binding": claims["device_binding"],
             },
         }
         self.assertEqual(list(validator.iter_errors(active_outcome)), [])

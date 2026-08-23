@@ -95,8 +95,6 @@ TYPED_ID_TOKEN_RE = re.compile(r"\bak:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z
 
 UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 
-UUID8_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
-
 EVENT_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{44}$")
 
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -215,7 +213,6 @@ FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
 class Lint:
     def __init__(self) -> None:
         self.errors: list[str] = []
-        self.warnings: list[str] = []
 
     def rel(self, path: Path) -> str:
         try:
@@ -225,10 +222,6 @@ class Lint:
 
     def fail(self, path: Path, message: str) -> None:
         self.errors.append(f"{self.rel(path)}: {message}")
-
-    def warn(self, path: Path, message: str) -> None:
-        self.warnings.append(f"{self.rel(path)}: {message}")
-
 
 
 EVENT_ENVELOPE_IDENTITY_FIELDS = frozenset({"event_id", "realm_id", "payload"})
@@ -1260,17 +1253,6 @@ def check_event_ref_invariants_in_value(lint: Lint, path: Path, json_path: str, 
     elif isinstance(value, list):
         for index, child in enumerate(value):
             check_event_ref_invariants_in_value(lint, path, f"{json_path}[{index}]", child)
-
-
-
-def openapi_response_schema(operation: dict[str, Any]) -> Any:
-    return (
-        operation.get("responses", {})
-        .get("200", {})
-        .get("content", {})
-        .get("application/json", {})
-        .get("schema")
-    )
 
 
 

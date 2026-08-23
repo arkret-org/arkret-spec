@@ -52,7 +52,6 @@ ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 CATALOG = ARTIFACTS / "registry" / "contract-registry.json"
 OPENAPI = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
-BINDING = ROOT / "spec" / "v1" / "zh" / "sync" / "service-http-binding.md"
 REPORT = ARTIFACTS / "reports" / "operation-completeness-report.json"
 
 GENERIC_REQUEST_REF = "#/components/schemas/OperationRequest"

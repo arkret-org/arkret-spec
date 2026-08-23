@@ -37,11 +37,6 @@ const openapiFiles = import.meta.glob<string>(
   { eager: true, query: "?raw", import: "default" }
 );
 
-const bindingFiles = import.meta.glob<string>(
-  "../../../spec/v1/artifacts/bindings/*.yaml",
-  { eager: true, query: "?raw", import: "default" }
-);
-
 // --- typed shapes (only the fields we actually display) ----------------------
 
 export interface EventKind {
@@ -60,14 +55,6 @@ export interface ErrorCode {
   scope?: "service" | "item" | "both" | string;
   applies_to?: string[];
   description: string;
-}
-
-export interface IdKind {
-  kind: string;
-  category: string;
-  status: string;
-  wire_form: string;
-  description?: string;
 }
 
 export interface Operation {
@@ -130,7 +117,6 @@ function pickSchema<T = unknown>(name: string): T {
 const contractCatalog = pickRegistry<Record<string, unknown>>("contract-registry.json");
 const eventRegistry = pickRegistry<{ event_kinds: EventKind[] }>("event-kind-registry.json");
 const errorRegistry = pickRegistry<{ codes: ErrorCode[]; reason_codes?: ErrorCode[] }>("error-code-registry.json");
-const idRegistry = pickRegistry<{ id_kinds: IdKind[]; special_forms?: IdKind[] }>("id-kind-registry.json");
 const operationRegistry = pickRegistry<{
   operations: Operation[];
   surface_groups: SurfaceGroup[];
@@ -159,10 +145,6 @@ export const errorCodes: ErrorCode[] = Array.from(errorCodeMap.values()).sort((a
   a.code.localeCompare(b.code)
 );
 
-export const idKinds: IdKind[] = idRegistry.id_kinds.slice().sort((a, b) =>
-  a.kind.localeCompare(b.kind)
-);
-
 export const operations: Operation[] = operationRegistry.operations.slice().sort((a, b) =>
   a.operation_id.localeCompare(b.operation_id)
 );
@@ -176,32 +158,6 @@ export const schemaEntries: SchemaEntry[] = schemaRegistry.schemas.slice().sort(
 
 export const profileMatrix = conformanceProfiles;
 
-/**
- * Distinct `ak.profile.*` ids declared anywhere in conformance-profiles.json.
- * Mirrors what `tools/artifact_lint` reports as "N profiles" so the
- * homepage stat and release-readiness numbers stay in sync.
- */
-export const totalProfileCount: number = (() => {
-  const seen = new Set<string>();
-  const walk = (value: unknown): void => {
-    if (typeof value === "string") {
-      if (value.startsWith("ak.profile.")) seen.add(value);
-      return;
-    }
-    if (Array.isArray(value)) {
-      for (const item of value) walk(item);
-      return;
-    }
-    if (value && typeof value === "object") {
-      for (const item of Object.values(value as Record<string, unknown>)) {
-        walk(item);
-      }
-    }
-  };
-  walk(conformanceProfiles as unknown);
-  return seen.size;
-})();
-
 export const catalogVersion: string =
   (contractCatalog.version as string | undefined) ?? "unknown";
 
@@ -209,7 +165,6 @@ export const catalogVersion: string =
 
 const eventByKind = new Map(eventKinds.map((row) => [row.event_kind, row]));
 const errorByCode = new Map(errorCodes.map((row) => [row.code, row]));
-const idByKind = new Map(idKinds.map((row) => [row.kind, row]));
 const operationById = new Map(operations.map((row) => [row.operation_id, row]));
 const schemaById = new Map(schemaEntries.map((row) => [row.schema_id, row]));
 
@@ -223,9 +178,6 @@ export function getEventKind(kind: string): EventKind | undefined {
 }
 export function getErrorCode(code: string): ErrorCode | undefined {
   return errorByCode.get(code);
-}
-export function getIdKind(kind: string): IdKind | undefined {
-  return idByKind.get(kind);
 }
 export function getOperation(id: string): Operation | undefined {
   return operationById.get(id);
@@ -251,14 +203,6 @@ export function loadSchemaDocument(idOrFile: string): Record<string, unknown> {
   // file looks like "schemas/space.schema.json"
   const tail = file.replace(/^schemas\//, "");
   return pickSchema<Record<string, unknown>>(tail);
-}
-
-export function listSchemaDocuments(): { id: string; file: string; doc: Record<string, unknown> }[] {
-  return schemaEntries.map((entry) => ({
-    id: entry.schema_id,
-    file: entry.file,
-    doc: loadSchemaDocument(entry.schema_id),
-  }));
 }
 
 export function listAllSchemaDocuments(): { file: string; doc: Record<string, unknown> }[] {
@@ -287,10 +231,4 @@ export function readOpenApiYaml(): string {
   const key = Object.keys(openapiFiles)[0];
   if (!key) throw new Error("no openapi yaml under spec/v1/artifacts/openapi/");
   return openapiFiles[key];
-}
-
-export function readBindingsYaml(): string {
-  const key = Object.keys(bindingFiles).find((p) => /non-http-bindings/.test(p));
-  if (!key) throw new Error("non-http-bindings.yaml missing");
-  return bindingFiles[key];
 }

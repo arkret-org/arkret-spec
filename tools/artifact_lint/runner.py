@@ -502,11 +502,6 @@ def main(argv: list[str] | None = None) -> int:
         timing=args.timing,
     )
 
-    if lint.warnings:
-        print("Artifact registry lint warnings:", file=sys.stderr)
-        for warning in lint.warnings:
-            print(f"- {warning}", file=sys.stderr)
-
     if lint.errors:
         print("Artifact registry lint failed:", file=sys.stderr)
         for error in lint.errors:

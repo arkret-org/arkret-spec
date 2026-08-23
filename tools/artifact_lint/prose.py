@@ -507,7 +507,6 @@ def check_naming_predicates(lint: Lint) -> None:
             lint.fail(artifact_path, "artifact filename violates NC-ARTIFACT-001 kebab-case rule")
 
     openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
-    openapi_text = openapi_path.read_text(encoding="utf-8")
     openapi_components = load_yaml(lint, openapi_path)
     component_schemas = {}
     if isinstance(openapi_components, dict):

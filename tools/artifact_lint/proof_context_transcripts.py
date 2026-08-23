@@ -31,7 +31,6 @@ from .core import (
     binascii,
     canonical_json,
     hashlib,
-    json,
     load_json,
     re,
 )

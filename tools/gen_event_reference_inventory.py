@@ -30,7 +30,6 @@ def walk(value: Any, path: list[str], rows: list[dict[str, str]], file_name: str
         properties = value.get("properties")
         if isinstance(properties, dict):
             for name, schema in properties.items():
-                serialized = json.dumps(schema, sort_keys=True) if isinstance(schema, dict) else ""
                 if name == "prev_refs" or name == "event_id" or name.endswith("_event_id") or name.endswith("_event_ids") or name.endswith("_event_ref") or name.endswith("_event_refs") or name == "event_digest" or name.endswith("_event_digest") or name.endswith("_event_digests"):
                     rows.append({
                         "schema": file_name,

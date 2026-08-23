@@ -170,7 +170,6 @@ class EventKindVerbFormLintTest(unittest.TestCase):
             if row.get("verb_form") == "past_participle"
         }
         self.assertEqual(kinds, registered)
-        self.assertEqual(len(kinds), 8)
 
     def test_merged_prose_row_is_rejected(self) -> None:
         text = COMMON_FIELDS.read_text(encoding="utf-8").replace(

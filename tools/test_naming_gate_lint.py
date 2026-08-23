@@ -97,7 +97,6 @@ class NamingGateBaselineTest(unittest.TestCase):
     def test_gate_is_green(self) -> None:
         lint = run_gate()
         self.assertEqual(lint.errors, [])
-        self.assertEqual(lint.warnings, [])
 
     def test_every_rule_declares_enforcement(self) -> None:
         rules = json.loads(NAMING_RULES_PATH.read_text(encoding="utf-8"))
@@ -434,7 +433,6 @@ class CoverageMatrixTest(MutationHarness):
     def test_matrix_is_green(self) -> None:
         lint = run_check(check_naming_rule_coverage_matrix)
         self.assertEqual(lint.errors, [])
-        self.assertEqual(lint.warnings, [])
 
     def test_naming_a_function_that_does_not_exist_fails(self) -> None:
         def mutate(document):
@@ -531,7 +529,6 @@ class IdentifierClassificationTest(MutationHarness):
     def test_identifier_gate_is_green(self) -> None:
         lint = run_check(check_identifier_value_categories)
         self.assertEqual(lint.errors, [])
-        self.assertEqual(lint.warnings, [])
 
     def test_dropping_a_row_fails(self) -> None:
         def mutate(document):
@@ -615,7 +612,6 @@ class DurationFieldUnitsTest(MutationHarness):
     def test_gate_is_green(self) -> None:
         lint = run_check(check_duration_field_units)
         self.assertEqual(lint.errors, [])
-        self.assertEqual(lint.warnings, [])
 
     def test_unitless_integer_duration_fails(self) -> None:
         def mutate(document):
@@ -678,7 +674,6 @@ class SlugFieldClosureTest(MutationHarness):
     def test_gate_is_green(self) -> None:
         lint = run_check(check_slug_field_closure)
         self.assertEqual(lint.errors, [])
-        self.assertEqual(lint.warnings, [])
 
     def test_bare_slug_outside_a_registered_owning_context_fails(self) -> None:
         def mutate(document):

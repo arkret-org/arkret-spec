@@ -479,13 +479,6 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
     for profile_id in sorted(declared_profiles - set(requirements.keys())):
         lint.fail(path, f"profile_requirements missing declared profile: {profile_id}")
 
-    action_registry = load_json(lint, ARTIFACTS / "registry" / "capability-action-registry.json") or {}
-    capability_action_rows = {
-        row["action"]: row
-        for row in (action_registry.get("actions", []) if isinstance(action_registry, dict) else [])
-        if isinstance(row, dict) and isinstance(row.get("action"), str)
-    }
-
     fixture_files = {fixture.name for fixture in (ARTIFACTS / "fixtures").glob("*.json")}
     fixture_documents = {
         fixture.name: load_json(lint, fixture)

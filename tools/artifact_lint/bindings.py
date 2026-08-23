@@ -931,10 +931,6 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         if not isinstance(auth, dict) or auth.get("public_metadata") is not False or auth.get("proof_in_body") is not True:
             lint.fail(openapi_path, f"{operation_id} must declare x-arkret-auth proof_in_body/public_metadata=false")
 
-    def security_groups(operation: dict[str, Any]) -> list[dict[str, Any]]:
-        groups = operation.get("security")
-        return [group for group in groups if isinstance(group, dict)] if isinstance(groups, list) else []
-
     for operation_id, operation in operations.items():
         if not operation_id.startswith("ak.admin."):
             continue
@@ -1406,7 +1402,6 @@ def check_event_admission_coverage(lint: Lint) -> None:
     if not isinstance(predicate_contract, dict) or predicate_contract.get("closed_world") is not True:
         lint.fail(event_path, "event registry missing closed-world admission_predicate_contract")
     actions = action_registry.get("actions", [])
-    action_names = {a.get("action") for a in actions if isinstance(a, dict)}
     covered: set[str] = set()
     for a in actions:
         if isinstance(a, dict):

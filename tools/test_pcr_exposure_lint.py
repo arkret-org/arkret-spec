@@ -22,7 +22,6 @@ from tools.artifact_lint import foundation as lint_artifacts
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 REGISTRY = ARTIFACTS / "registry" / "pcr-exposure-registry.json"
 PROFILES = ARTIFACTS / "profiles" / "conformance-profiles.json"
-OPERATIONS = ARTIFACTS / "registry" / "operation-registry.json"
 
 
 def _load(path: Path) -> object:
