@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.3",
+  "version": "2026-08-24.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-24T05:44:00+08:00",
+  "generated_at": "2026-08-24T07:08:44+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9284,7 +9284,6 @@
           "request_digest",
           "prepared_plan",
           "prepared_plan_digest",
-          "state",
           "accepted_steps"
         ],
         "properties": [
@@ -9297,7 +9296,6 @@
           "request_digest",
           "prepared_plan",
           "prepared_plan_digest",
-          "state",
           "accepted_steps",
           "terminal_result"
         ],
@@ -9379,7 +9377,6 @@
           "request_digest",
           "prepared_plan",
           "prepared_plan_digest",
-          "state",
           "accepted_steps"
         ],
         "properties": [
@@ -9392,7 +9389,6 @@
           "request_digest",
           "prepared_plan",
           "prepared_plan_digest",
-          "state",
           "accepted_steps",
           "terminal_result"
         ],
@@ -9415,7 +9411,6 @@
           "request_digest",
           "prepared_plan",
           "prepared_plan_digest",
-          "state",
           "accepted_steps"
         ],
         "properties": [
@@ -9428,7 +9423,6 @@
           "request_digest",
           "prepared_plan",
           "prepared_plan_digest",
-          "state",
           "accepted_steps",
           "terminal_result"
         ],

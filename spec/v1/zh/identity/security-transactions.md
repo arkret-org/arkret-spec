@@ -26,17 +26,17 @@ SecurityTransaction {
   request_digest,
   prepared_plan,
   prepared_plan_digest,
-  state,
   accepted_steps,
   terminal_result
 }
 ```
 
-`kind` 是 `recovery` 或 `security_rotation`。`state` 是
-`pending | running | completed | aborted | expired`；后三者是唯一终态。`pending` 与 `running`
-只表达 coordinator 是否已开始执行当前工作，不表达下一步的执行方。客户端是否需要设备签名必须由
-`state` 非终态且 `steps(kind)[accepted_steps.length]` 为 client-attested step 纯函数计算，禁止把该
-readiness 再序列化或持久化为协议状态。
+`kind` 是 `recovery` 或 `security_rotation`。`terminal_result` 缺省表示事务仍活动；存在时其
+`result` 是 `completed | aborted | expired`，并且是终态 kind 的唯一真相源。coordinator 是否已经开始
+某一步、重试次数与 lease 只属于本地 durable step-attempt ledger 或运行遥测，不得序列化或持久化为协议
+phase/state。客户端是否需要设备签名必须由 `terminal_result` 缺省且
+`steps(kind)[accepted_steps.length]` 为 client-attested step 纯函数计算，禁止把该 readiness 再序列化或
+持久化为协议状态。
 `prepared_plan` 是按 kind/model 判别的 closed typed public plan，也是 intent 与 reserved material 的唯一
 canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 的 reserved binding view 由
 `revoke_unit` 与两项 `backup_rotations[].binding` 等字段纯函数投影，不能使用任意键值或通用步骤 DSL。
@@ -44,7 +44,7 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 不得携带该值，`prepared_plan` 内也不得携带自身 digest，计算时没有排除字段的隐式规则。
 `accepted_steps[]` 的每项固定为
 `{prepared_material_digest, acceptor_id, output_ref, output_digest, accepted_at}`；数组位置按下述固定步骤表
-唯一决定 step kind，整个数组必须是连续前缀，不能跳步、重排或为同一步记录第二个 digest。非终态的下一步
+唯一决定 step kind，整个数组必须是连续前缀，不能跳步、重排或为同一步记录第二个 digest。活动事务的下一步
 等于 `steps(kind)[accepted_steps.length]`；resource 不重复序列化该派生值。
 
 共同不变量：
@@ -94,8 +94,9 @@ attestation_digest` 的有序集合并签该 JCS projection。coordinator 必须
 验证 outer attestation；recovery 还必须验证 receipt 自己的 device signature transcript。其它 step
 携带 client attestation 必须拒绝。`get` 是 response loss、restart 与
 跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
-当 coordinator-owned prefix 已完成而最终 client-attested step 尚未提交时，resource 保持
-`state=running`；它不会被误判为 completed，因为完整 accepted prefix 与 terminal result 仍是终态的必要条件。
+当 coordinator-owned prefix 已完成而最终 client-attested step 尚未提交时，resource 仍不携带
+`terminal_result`；它不会被误判为 completed，因为完整 accepted prefix 与 `result=completed` 的 terminal
+result 仍是成功终态的必要条件。
 
 旧 `recovery_session.command.complete` 不属于 v1。recovery session 只负责建立 verified 证据；
 完成投影只能由接受 terminal receipt 的 RecoveryTransaction coordinator 原子写入，不能存在绕过

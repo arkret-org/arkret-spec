@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.3",
+  "version": "2026-08-24.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-24T05:44:00+08:00",
+  "generated_at": "2026-08-24T07:08:44+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -15333,7 +15333,7 @@
         "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
         "grpc": "SelfSecurityTransactions/Continue",
         "mq": "self.security_transaction.command.continue",
-        "notes": "Continues only the next step derived from the transaction kind and accepted-step prefix length. request_digest and prepared_plan_digest MUST equal the resource, while expected_accepted_step_count MUST equal the current prefix length; the endpoint is not a generic step or Saga executor. Client attestation is required only for issue_terminal_receipt or local_commit and must bind transaction/request/plan plus the pre-reserved output_ref. When all coordinator-owned steps are accepted but the device is offline, the resource remains running rather than completed; device-attestation readiness is a computed view of the canonical next step and is never serialized as transaction state.",
+        "notes": "Continues only the next step derived from the transaction kind and accepted-step prefix length. request_digest and prepared_plan_digest MUST equal the resource, while expected_accepted_step_count MUST equal the current prefix length; the endpoint is not a generic step or Saga executor. Client attestation is required only for issue_terminal_receipt or local_commit and must bind transaction/request/plan plus the pre-reserved output_ref. When all coordinator-owned steps are accepted but the device is offline, terminal_result remains absent; device-attestation readiness is a computed view of the canonical next step and no coordinator phase/state is serialized.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "protocol_sequence",
@@ -15367,7 +15367,7 @@
         "http": "GET /_arkret/self/security-transactions/{transaction_id}",
         "grpc": "SelfSecurityTransactions/Get",
         "mq": "self.security_transaction.resource.get",
-        "notes": "Authoritative durable progress query by transaction_id. It MUST return the stored binding, accepted step prefix, next action, and terminal outcome and MUST NOT synthesize state from a short-lived HTTP idempotency cache.",
+        "notes": "Authoritative durable progress query by transaction_id. It MUST return the prepared plan, accepted step prefix and optional terminal result; callers derive the next action from kind plus prefix length. It MUST NOT synthesize progress from a short-lived HTTP idempotency cache.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "response_schema_ref": "schemas/security-transaction.schema.json"
@@ -15649,8 +15649,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-24.3",
-    "generated_at": "2026-08-24T05:44:00+08:00"
+    "version": "2026-08-24.4",
+    "generated_at": "2026-08-24T07:08:44+08:00"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

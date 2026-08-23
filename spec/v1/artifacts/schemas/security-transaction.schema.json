@@ -14,7 +14,6 @@
     "request_digest",
     "prepared_plan",
     "prepared_plan_digest",
-    "state",
     "accepted_steps"
   ],
   "properties": {
@@ -56,16 +55,6 @@
     "prepared_plan_digest": {
       "$ref": "#/$defs/digest",
       "description": "Digest of canonical prepared_plan bytes. Implementations MUST recompute it and persist both bytes and typed value before the first side effect."
-    },
-    "state": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "running",
-        "completed",
-        "aborted",
-        "expired"
-      ]
     },
     "accepted_steps": {
       "type": "array",
@@ -125,44 +114,9 @@
     {
       "if": {
         "properties": {
-          "state": {
-            "enum": [
-              "completed",
-              "aborted",
-              "expired"
-            ]
-          }
-        },
-        "required": [
-          "state"
-        ]
-      },
-      "then": {
-        "required": [
-          "terminal_result"
-        ]
-      },
-      "else": {
-        "not": {
-          "required": [
-            "terminal_result"
-          ]
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "state": {
-            "const": "completed"
-          }
-        },
-        "required": [
-          "state"
-        ]
-      },
-      "then": {
-        "properties": {
+          "kind": {
+            "const": "recovery"
+          },
           "terminal_result": {
             "properties": {
               "result": {
@@ -170,54 +124,22 @@
               }
             },
             "required": [
-              "receipt_id"
+              "result"
             ]
           }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "state": {
-            "const": "aborted"
-          }
         },
         "required": [
-          "state"
+          "kind",
+          "terminal_result"
         ]
       },
       "then": {
         "properties": {
           "terminal_result": {
-            "properties": {
-              "result": {
-                "const": "aborted"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "state": {
-            "const": "expired"
-          }
-        },
-        "required": [
-          "state"
-        ]
-      },
-      "then": {
-        "properties": {
-          "terminal_result": {
-            "properties": {
-              "result": {
-                "const": "expired"
-              }
-            }
+            "required": [
+              "receipt_id",
+              "completion_attestation"
+            ]
           }
         }
       }
@@ -226,32 +148,39 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "recovery"
+            "const": "security_rotation"
           },
-          "state": {
-            "const": "completed"
+          "terminal_result": {
+            "properties": {
+              "result": {
+                "const": "completed"
+              }
+            },
+            "required": [
+              "result"
+            ]
           }
         },
         "required": [
           "kind",
-          "state"
+          "terminal_result"
         ]
       },
       "then": {
         "properties": {
           "terminal_result": {
-            "required": [
-              "completion_attestation"
-            ]
-          }
-        }
-      },
-      "else": {
-        "properties": {
-          "terminal_result": {
             "not": {
-              "required": [
-                "completion_attestation"
+              "anyOf": [
+                {
+                  "required": [
+                    "receipt_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "completion_attestation"
+                  ]
+                }
               ]
             }
           }
@@ -694,56 +623,36 @@
       "allOf": [
         {
           "if": {
-            "properties": {
-              "state": {
-                "enum": [
-                  "pending",
-                  "running"
-                ]
-              }
-            },
-            "required": [
-              "state"
-            ]
+            "not": {
+              "required": [
+                "terminal_result"
+              ]
+            }
           },
           "then": {
-            "oneOf": [
-              {
-                "properties": {
-                  "accepted_steps": {
-                    "maxItems": 0
-                  },
-                  "state": {
-                    "enum": [
-                      "pending",
-                      "running"
-                    ]
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "accepted_steps": {
-                    "minItems": 1,
-                    "maxItems": 1
-                  },
-                  "state": {
-                    "const": "running"
-                  }
-                }
+            "properties": {
+              "accepted_steps": {
+                "maxItems": 1
               }
-            ]
+            }
           }
         },
         {
           "if": {
             "properties": {
-              "state": {
-                "const": "completed"
+              "terminal_result": {
+                "properties": {
+                  "result": {
+                    "const": "completed"
+                  }
+                },
+                "required": [
+                  "result"
+                ]
               }
             },
             "required": [
-              "state"
+              "terminal_result"
             ]
           },
           "then": {
@@ -943,56 +852,36 @@
       "allOf": [
         {
           "if": {
-            "properties": {
-              "state": {
-                "enum": [
-                  "pending",
-                  "running"
-                ]
-              }
-            },
-            "required": [
-              "state"
-            ]
+            "not": {
+              "required": [
+                "terminal_result"
+              ]
+            }
           },
           "then": {
-            "oneOf": [
-              {
-                "properties": {
-                  "accepted_steps": {
-                    "maxItems": 3
-                  },
-                  "state": {
-                    "enum": [
-                      "pending",
-                      "running"
-                    ]
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "accepted_steps": {
-                    "minItems": 4,
-                    "maxItems": 4
-                  },
-                  "state": {
-                    "const": "running"
-                  }
-                }
+            "properties": {
+              "accepted_steps": {
+                "maxItems": 4
               }
-            ]
+            }
           }
         },
         {
           "if": {
             "properties": {
-              "state": {
-                "const": "completed"
+              "terminal_result": {
+                "properties": {
+                  "result": {
+                    "const": "completed"
+                  }
+                },
+                "required": [
+                  "result"
+                ]
               }
             },
             "required": [
-              "state"
+              "terminal_result"
             ]
           },
           "then": {
@@ -1023,35 +912,70 @@
       "maxLength": 2048
     },
     "terminal_result": {
-      "type": "object",
-      "required": [
-        "result",
-        "completed_at"
-      ],
-      "properties": {
-        "result": {
-          "type": "string",
-          "enum": [
-            "completed",
-            "aborted",
-            "expired"
-          ]
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "result",
+            "completed_at"
+          ],
+          "properties": {
+            "result": {
+              "const": "completed"
+            },
+            "completed_at": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            },
+            "receipt_id": {
+              "$ref": "#/$defs/receipt_id"
+            },
+            "completion_attestation": {
+              "$ref": "./recovery-authority.schema.json#/$defs/recovery_completion_attestation"
+            }
+          },
+          "additionalProperties": false
         },
-        "completed_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
+        {
+          "type": "object",
+          "required": [
+            "result",
+            "completed_at"
+          ],
+          "properties": {
+            "result": {
+              "const": "aborted"
+            },
+            "completed_at": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            },
+            "reason_code": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,63}$"
+            }
+          },
+          "additionalProperties": false
         },
-        "receipt_id": {
-          "$ref": "#/$defs/receipt_id"
-        },
-        "reason_code": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
-        },
-        "completion_attestation": {
-          "$ref": "./recovery-authority.schema.json#/$defs/recovery_completion_attestation"
+        {
+          "type": "object",
+          "required": [
+            "result",
+            "completed_at"
+          ],
+          "properties": {
+            "result": {
+              "const": "expired"
+            },
+            "completed_at": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            },
+            "reason_code": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,63}$"
+            }
+          },
+          "additionalProperties": false
         }
-      },
-      "additionalProperties": false
+      ]
     },
     "transaction_id": {
       "type": "string",
