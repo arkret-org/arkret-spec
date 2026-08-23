@@ -196,7 +196,7 @@ PCR create admission 必须从 durable provisioning 状态读取 prepare 锁定�
 controller proof 的 signing input 固定为：
 
 ```text
-UTF8("ak.agent-signing-key-binding-v1\n")
+UTF8("ak.agent_signing_key_binding.v1\n")
 ||
 JCS(binding object with controller_proof.jws omitted)
 ```
@@ -1181,7 +1181,7 @@ Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。
 - **revoke share**：当某个 share holder 被怀疑泄露时，policy holder 可发布只更新 `threshold.shares[i].revoked_at` 与 `revocation_reason_code` 的 rotate envelope。recovery coordinator MUST 拒绝任何 `revoked_at != null` 的 share，即便 commitment 仍能通过。`reshare_policy.max_share_age_seconds` 到期后未 reshare 的 share 在 coordinator 侧 MUST 被视为 stale，UI MUST 提醒用户。
 - **revoke policy**：用 `expires_at = now`、`allowed_proof_kinds = []`、或专门的 `policy_id` revoke 进入 principal control stream；revoke 之后只有写入新 policy 才能恢复账号——这是高代价动作，必须配 §7.7 UI 警告。
 
-任何允许的恢复方式（did_root / device_quorum / trusted_recovery_service / threshold_recovery / recovery_unlock）的 create request、session state 与 proof transcript MUST 绑定 exact closed `principal_authority: PrincipalAuthorityKey {principal_id, principal_server_id}`，以及 `(policy_id, version, recovery_session_id)`；create wire 不接受旧顶层 `principal_id`。接收方 MUST 要求 `principal_authority.principal_server_id` 等于自身 authenticated service DID，并以完整 pair 选择唯一 lifetime PCR lineage，unknown/wrong-service/mismatch fail closed。不绑定的 proof MUST `recovery_evidence_unbound`。Device recovery 场景还 MUST 使用 `crypto-media/device-lifecycle.md` §14 定义的 canonical transcript，其字段集同时绑定 `requesting_device_id`、`trust_domain`、`identity_model="pcr_policy"`、`model_generation_ref`、session `challenge`、session `created_at` 与 `expires_at`；`model_generation_ref` 必须等于 PCR current device generation，且不得由 DID `versionId` 推导。`did_root` 仅在冻结 policy 显式启用时成立。
+任何允许的恢复方式（did_root / device_quorum / trusted_recovery_service / threshold_recovery / recovery_unlock）的 create request、session state 与 proof transcript MUST 绑定 exact closed `principal_authority: PrincipalAuthorityKey {principal_id, principal_server_id}`，以及 `(policy_id, version, recovery_session_id)`；create wire 不接受旧顶层 `principal_id`。接收方 MUST 要求 `principal_authority.principal_server_id` 等于自身 authenticated service DID，并以完整 pair 选择唯一 lifetime PCR lineage，unknown/wrong-service/mismatch fail closed。不绑定的 proof MUST `recovery_evidence_unbound`。Device recovery 场景还 MUST 使用 `crypto-media/device-lifecycle.md` §14 定义的 canonical transcript，其字段集同时绑定 create `request_id`、认证该 create 的 `recovery_session` SessionGrant id、该 grant 的 `cnf.jkt`、`requesting_device_id`、`trust_domain`、`identity_model="pcr_policy"`、`model_generation_ref`、session `challenge`、session `created_at` 与 `expires_at`；`model_generation_ref` 必须等于 PCR current device generation，且不得由 DID `versionId` 推导。get、proof submit、backup unlock 与 RecoveryTransaction MUST 出示同一 grant/JKT；transport grant、session state 或 proof transcript 任一 binding 不同都必须 `recovery_evidence_unbound`。`did_root` 仅在冻结 policy 显式启用时成立。
 
 ### 8.2 Holder 取回与防滥用
 

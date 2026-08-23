@@ -170,7 +170,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
-      "sha256": "05d4453424bd84179ea3865a72ab8992bc4ee665d534c6ee97ac1dc903800380"
+      "sha256": "24c417bd8b4e50483c6095ef69b2d9ca566987214e66fb5b4d2f495f565b3ba0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
@@ -306,7 +306,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
-      "sha256": "7b2ed66611bb72a0df1d2e7f0b1aa03cf05f5202dc095165438f5b6c7e7b8697"
+      "sha256": "b90728dfad769aabc0bfc72fcf73f9a9bef8a7a8ce4e16e6fc8f88062d430c1d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
@@ -326,7 +326,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "4de8ca266ca9580935a8c9803e90806655143ec8b84876a5a3ec20bc0df7dd50"
+      "sha256": "e000afcfe6b15e217bb0c80dc55e9c94784cbdb149c74a97a6789f0323d0ab24"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

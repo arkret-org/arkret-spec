@@ -34,6 +34,9 @@ GENERIC_KINDS = KINDS[1:]
 COMMON_FIELDS = [
     "schema",
     "kind",
+    "request_id",
+    "session_grant_id",
+    "session_grant_cnf_jkt",
     "principal_authority",
     "requesting_device_id",
     "trust_domain",

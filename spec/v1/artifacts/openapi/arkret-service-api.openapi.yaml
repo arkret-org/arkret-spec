@@ -3778,10 +3778,8 @@ paths:
     post:
       operationId: ak.root.identity.recovery_policy.command.publish
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - sessionGrantAuth: []
+        dpopProof: []
       requestBody:
         required: true
         content:
@@ -3798,10 +3796,8 @@ paths:
     get:
       operationId: ak.root.identity.recovery_policy.resource.get
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - name: principal_id
         in: query
@@ -3810,7 +3806,7 @@ paths:
           type: string
           pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
           maxLength: 512
-        description: Optional target principal. If omitted, the server resolves the principal from the authenticated session or service proof.
+        description: Optional target principal. If omitted, the server resolves the principal from the authenticated SessionGrant. If present, it must equal that principal.
       responses:
         '200':
           description: Active recovery policy projection
@@ -3822,10 +3818,8 @@ paths:
     post:
       operationId: ak.root.identity.recovery_session.command.create
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - sessionGrantAuth: []
+        dpopProof: []
       requestBody:
         required: true
         content:
@@ -3843,10 +3837,8 @@ paths:
     get:
       operationId: ak.root.identity.recovery_session.resource.get
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - name: recovery_session_id
         in: path
@@ -3864,10 +3856,8 @@ paths:
     post:
       operationId: ak.root.identity.recovery_session.command.submit_proof
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - sessionGrantAuth: []
+        dpopProof: []
       parameters:
       - name: recovery_session_id
         in: path

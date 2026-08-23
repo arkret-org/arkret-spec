@@ -38,6 +38,9 @@ def common(kind: str) -> dict[str, object]:
             "principal_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
             "principal_server_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
         },
+        "request_id": "ak:request:019b6a40-0000-7000-8000-000000000000",
+        "session_grant_id": "ak:session_grant:ARZh3t6pUePAQHfZ8vZbYERKa2BqFWV_dynfVmrmHA_N",
+        "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "requesting_device_id": "ak:device:019b6a40-0000-7000-8000-000000000001",
         "trust_domain": "ak:trust_domain:recovery-fixture",
         "policy_id": "ak:policy:019b6a40-0000-7000-8000-000000000002",
@@ -209,7 +212,7 @@ def main() -> None:
             }
         )
     fixture = {
-        "version": "2026-08-23.1",
+        "version": "2026-08-23.2",
         "generated_by": "tools/regenerate_recovery_transcript_fixture.py",
         "domain": "ak.identity.recovery_proof.v1",
         "description": "Byte-exact signing transcripts for all five recovery factors. The verifier reconstructs these bytes from stored session state and the submitted proof; clients never submit a transcript object.",

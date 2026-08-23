@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.7",
+  "version": "2026-08-24.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-23T21:55:35+08:00",
+  "generated_at": "2026-08-24T01:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1270,7 +1270,8 @@
           "requested_scope_disclosure",
           "dpop_binding_proof",
           "applet_authority",
-          "proof"
+          "proof",
+          "credential_class"
         ],
         "closed": true,
         "variants": [
@@ -1315,6 +1316,25 @@
               "dpop_binding_proof",
               "applet_authority",
               "proof"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RecoverySessionGrantRequest",
+            "schema_kind": "object",
+            "required": [
+              "credential_class",
+              "request_id",
+              "principal_id",
+              "device_id",
+              "audience"
+            ],
+            "properties": [
+              "credential_class",
+              "request_id",
+              "principal_id",
+              "device_id",
+              "audience"
             ],
             "closed": true
           }
@@ -4149,11 +4169,13 @@
         "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
         "schema_kind": "object",
         "required": [
+          "request_id",
           "principal_authority",
           "requesting_device_id",
           "trust_domain"
         ],
         "properties": [
+          "request_id",
           "principal_authority",
           "requesting_device_id",
           "trust_domain",
@@ -4166,7 +4188,10 @@
         "schema_kind": "object",
         "required": [
           "schema",
+          "request_id",
           "recovery_session_id",
+          "session_grant_id",
+          "session_grant_cnf_jkt",
           "principal_authority",
           "requesting_device_id",
           "trust_domain",
@@ -4182,11 +4207,15 @@
           "updated_at",
           "current_device_generation_ref",
           "device_generation_status",
+          "registry_head",
           "accepted_seal_frontier"
         ],
         "properties": [
           "schema",
+          "request_id",
           "recovery_session_id",
+          "session_grant_id",
+          "session_grant_cnf_jkt",
           "principal_authority",
           "requesting_device_id",
           "trust_domain",
@@ -4250,7 +4279,10 @@
         "schema_kind": "object",
         "required": [
           "schema",
+          "request_id",
           "recovery_session_id",
+          "session_grant_id",
+          "session_grant_cnf_jkt",
           "principal_authority",
           "requesting_device_id",
           "trust_domain",
@@ -4266,11 +4298,15 @@
           "updated_at",
           "current_device_generation_ref",
           "device_generation_status",
+          "registry_head",
           "accepted_seal_frontier"
         ],
         "properties": [
           "schema",
+          "request_id",
           "recovery_session_id",
+          "session_grant_id",
+          "session_grant_cnf_jkt",
           "principal_authority",
           "requesting_device_id",
           "trust_domain",

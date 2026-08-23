@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.3",
+  "version": "2026-08-24.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-23T21:55:35+08:00",
+  "generated_at": "2026-08-24T01:30:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -231,8 +231,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:be2e15effc04000b368b37c852a7680713fa312327115c081994088253f5c9cf",
-      "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
+      "section_digest": "sha256:2fbc7b0dddfb3f025104df233cac1fa7a8b99bd11ab94bce77f07d5bc3bccd29",
+      "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest. Availability admission is authorized only by the joined predecessor state: genesis has no such authority, commits no AvailabilityReceipt, and materializes policy only for successor Seals.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.seal_canonical_no_self_reference.v1",
@@ -240,7 +240,8 @@
         "ak.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1",
         "ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1",
         "ak.vector.federation.reducer_profile_resolution.v1",
-        "ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1"
+        "ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1",
+        "ak.vector.hash_transition.dual_root_recompute.v1"
       ]
     },
     {

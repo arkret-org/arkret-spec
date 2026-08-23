@@ -905,6 +905,14 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         "ak.open.device_pairing.read.resolve",
         "ak.open.device_pairing.read.status",
     }
+    recovery_session_grant_operations = {
+        "ak.root.identity.recovery_policy.command.publish",
+        "ak.root.identity.recovery_policy.resource.get",
+        "ak.root.identity.recovery_session.command.create",
+        "ak.root.identity.recovery_session.resource.get",
+        "ak.root.identity.recovery_session.command.submit_proof",
+    }
+    session_grant_requirement = {"sessionGrantAuth": [], "dpopProof": []}
 
     for operation_id, operation in operations.items():
         security = operation.get("security")
@@ -930,6 +938,45 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         auth = operation.get("x-arkret-auth")
         if not isinstance(auth, dict) or auth.get("public_metadata") is not False or auth.get("proof_in_body") is not True:
             lint.fail(openapi_path, f"{operation_id} must declare x-arkret-auth proof_in_body/public_metadata=false")
+
+    for operation_id in recovery_session_grant_operations:
+        operation = operations.get(operation_id)
+        if not isinstance(operation, dict):
+            lint.fail(openapi_path, f"{operation_id} operation missing")
+            continue
+        security = operation.get("security")
+        if not isinstance(security, list):
+            lint.fail(openapi_path, f"{operation_id} security requirements missing")
+            continue
+        if session_grant_requirement not in security:
+            lint.fail(
+                openapi_path,
+                f"{operation_id} must require sessionGrantAuth and dpopProof in the same security alternative",
+            )
+        if any(
+            isinstance(requirement, dict)
+            and any(
+                scheme in requirement
+                for scheme in (
+                    "httpMessageSignature",
+                    "sourceServiceId",
+                    "destinationServiceId",
+                )
+            )
+            for requirement in security
+        ):
+            lint.fail(
+                openapi_path,
+                f"{operation_id} must not expose a recovery coordinator service-signature alternative",
+            )
+        if any(
+            isinstance(requirement, dict) and "bearerAuth" in requirement
+            for requirement in security
+        ):
+            lint.fail(
+                openapi_path,
+                f"{operation_id} must not use bearerAuth for current-v1 SessionGrant access",
+            )
 
     for operation_id, operation in operations.items():
         if not operation_id.startswith("ak.admin."):

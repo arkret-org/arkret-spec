@@ -365,7 +365,7 @@
         "missing_selectors": {"type": "array", "maxItems": 1024, "uniqueItems": true, "items": {"$ref": "#/$defs/GovernanceDependencySelector"}}
       },
       "additionalProperties": false,
-      "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object; governance_registry_snapshot computes SHA-256(UTF8('ak.governance-registry-snapshot-v1') || 0x00 || JCS({kind,artifacts})) and therefore excludes snapshot_digest; governance_registry_artifact decodes canonical_bytes_b64u, requires canonical JSON, computes SHA-256(UTF8('ak.governance-registry-artifact-v1') || 0x00 || decoded canonical bytes), and compares selector.descriptor.content_digest. The first four compare selector.content_digest. Each signer-evidence or registry-artifact object is at most 1 MiB; the small snapshot manifest has no separate 1 MiB promise. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
+      "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object; governance_registry_snapshot computes SHA-256(UTF8('ak.governance_registry_snapshot.v1') || 0x00 || JCS({kind,artifacts})) and therefore excludes snapshot_digest; governance_registry_artifact decodes canonical_bytes_b64u, requires canonical JSON, computes SHA-256(UTF8('ak.governance_registry_artifact.v1') || 0x00 || decoded canonical bytes), and compares selector.descriptor.content_digest. The first four compare selector.content_digest. Each signer-evidence or registry-artifact object is at most 1 MiB; the small snapshot manifest has no separate 1 MiB promise. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
     },
     "AccountCursorRevokeOutcome": {
       "type": "object",
@@ -5499,8 +5499,11 @@
     },
     "SessionGrantCredentialClass": {
       "type": "string",
-      "const": "standard",
-      "description": "Arkret v1 issues only standard session grants. Recovery completion proves a replacement device and then issues this same standard credential; no temporary recovery credential class exists."
+      "enum": [
+        "standard",
+        "recovery_session"
+      ],
+      "description": "Closed credential class. recovery_session is a <=15 minute, non-refreshable, DPoP-bound candidate-device grant restricted to the exact recovery operation set; recovery completion issues a distinct standard grant."
     },
     "SessionGrantDeviceBinding": {
       "type": "object",
@@ -5605,15 +5608,58 @@
           "$ref": "#/$defs/SessionGrantCredentialClass"
         },
         "holder_binding": {
-          "$ref": "./principal-operations.schema.json#/$defs/standard_holder_binding",
-          "description": "Required closed human-device versus Agent-runtime holder binding for every standard grant."
+          "$ref": "./principal-operations.schema.json#/$defs/session_grant_holder_binding",
+          "description": "Required closed accepted human-device, recovery candidate-device, or Agent-runtime holder binding."
         },
         "device_binding": {
           "$ref": "#/$defs/SessionGrantDeviceBinding",
-          "description": "Exact origin-derived device authorization preimage taken from the revocation gate's allow receipt. Required for every human grant; current-v1 has no fresh-device restricted SessionGrant."
+          "description": "Exact origin-derived device authorization preimage taken from the revocation gate's allow receipt. Required only for standard human_device grants and forbidden for recovery candidate-device and Agent grants."
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "credential_class": {
+                "const": "recovery_session"
+              }
+            },
+            "required": [
+              "credential_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "const": "recovery_candidate_device"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "human_device",
+                      "agent_runtime"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          }
+        },
         {
           "if": {
             "properties": {
@@ -5634,8 +5680,75 @@
           },
           "then": {
             "required": [
+              "device_id",
               "device_binding"
             ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "device_binding"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "const": "recovery_candidate_device"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "holder_binding"
+            ]
+          },
+          "then": {
+            "required": [
+              "device_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "const": "agent_runtime"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "holder_binding"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "device_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "device_binding"
+                  ]
+                }
+              ]
+            }
           }
         }
       ]
@@ -6146,6 +6259,36 @@
         }
       }
     },
+    "RecoverySessionGrantRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Fresh-device existing-principal recovery issuance. Authorization is the Bound AccountHandoff plus matching per-request DPoP. The Account Authority binds this request to its account/principal mapping and does not consume the handoff on success.",
+      "required": [
+        "credential_class",
+        "request_id",
+        "principal_id",
+        "device_id",
+        "audience"
+      ],
+      "properties": {
+        "credential_class": {
+          "const": "recovery_session"
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "audience": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
+      }
+    },
     "AgentSessionGrantRequest": {
       "type": "object",
       "additionalProperties": false,
@@ -6263,13 +6406,16 @@
       }
     },
     "SessionGrantRequestBody": {
-      "description": "Closed returning-human versus Agent issuance union. OIDC authorization codes are consumed only by account_handoff_request_body and never by this operation.",
+      "description": "Closed returning-human, fresh-device recovery, or Agent issuance union. OIDC authorization codes are consumed only by account_handoff_request_body and never by this operation.",
       "oneOf": [
         {
           "$ref": "#/$defs/HumanSessionGrantRequest"
         },
         {
           "$ref": "#/$defs/AgentSessionGrantRequest"
+        },
+        {
+          "$ref": "#/$defs/RecoverySessionGrantRequest"
         }
       ]
     },
@@ -6306,7 +6452,7 @@
     },
     "SignedSessionGrantClaims": {
       "type": "object",
-      "description": "Canonical signed claims carried by an ak.session.grant JWT. Except for the fixed kind and derived jti, the closed issuance preimage fields are copied from these claims. Arkret v1 fixes credential_class=standard and requires holder_binding; recovery completion directly issues this standard credential after validating the replacement-device evidence. Verifiers MUST RFC 8785-canonicalize the complete claim-derived preimage, recompute SHA-256, prepend the active sha256 suite wire code, derive ak:session_grant:<44-char-token>, and require byte equality with jti. Changing holder_binding therefore changes the ID.",
+      "description": "Canonical signed claims carried by an ak.session.grant JWT. Except for the fixed kind and derived jti, the closed issuance preimage fields are copied from these claims. credential_class and holder_binding are signed and jointly determine the authorization profile; recovery_session is never refreshable or upgradable and recovery completion issues a distinct standard credential. Verifiers MUST RFC 8785-canonicalize the complete claim-derived preimage, recompute SHA-256, prepend the active sha256 suite wire code, derive ak:session_grant:<44-char-token>, and require byte equality with jti. Changing either binding therefore changes the ID.",
       "required": [
         "kind",
         "jti",
@@ -6392,7 +6538,7 @@
           "$ref": "#/$defs/SessionGrantDeviceBinding"
         },
         "holder_binding": {
-          "$ref": "./principal-operations.schema.json#/$defs/standard_holder_binding"
+          "$ref": "./principal-operations.schema.json#/$defs/session_grant_holder_binding"
         },
         "proof_kind": {
           "type": "string",
@@ -6407,6 +6553,49 @@
       },
       "additionalProperties": false,
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "credential_class": {
+                "const": "recovery_session"
+              }
+            },
+            "required": [
+              "credential_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "const": "recovery_candidate_device"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "human_device",
+                      "agent_runtime"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          }
+        },
         {
           "if": {
             "properties": {

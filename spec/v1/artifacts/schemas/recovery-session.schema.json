@@ -27,6 +27,10 @@
       "type": "string",
       "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "request_id": {
+      "type": "string",
+      "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "recovery_session_id": {
       "type": "string",
       "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -166,7 +170,10 @@
       "type": "object",
       "required": [
         "schema",
+        "request_id",
         "recovery_session_id",
+        "session_grant_id",
+        "session_grant_cnf_jkt",
         "principal_authority",
         "requesting_device_id",
         "trust_domain",
@@ -182,14 +189,27 @@
         "updated_at",
         "current_device_generation_ref",
         "device_generation_status",
+        "registry_head",
         "accepted_seal_frontier"
       ],
       "properties": {
         "schema": {
           "const": "ak.schema.recovery_session.v1"
         },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
+        },
+        "session_grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
+          "description": "Exact recovery_session grant that created and owns this session."
+        },
+        "session_grant_cnf_jkt": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "Exact cnf.jkt of session_grant_id. All subsequent recovery requests and proof transcripts must use the same DPoP key."
         },
         "principal_authority": {
           "$ref": "#/$defs/principal_authority_key",
@@ -316,11 +336,16 @@
     "recovery_session_create_request_body": {
       "type": "object",
       "required": [
+        "request_id",
         "principal_authority",
         "requesting_device_id",
         "trust_domain"
       ],
       "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id",
+          "description": "Client-stable idempotency identity. The server binds it to the presented recovery_session grant id, cnf.jkt and canonical create intent; same identity with different intent fails duplicate_conflict."
+        },
         "principal_authority": {
           "$ref": "#/$defs/principal_authority_key",
           "description": "Required exact authority selector. The receiving server MUST require principal_server_id to equal its own service DID and select the single lifetime PCR lineage by the complete pair; an unknown or mismatched pair fails closed."
@@ -641,6 +666,9 @@
       "required": [
         "schema",
         "kind",
+        "request_id",
+        "session_grant_id",
+        "session_grant_cnf_jkt",
         "principal_authority",
         "requesting_device_id",
         "trust_domain",
@@ -660,6 +688,16 @@
         },
         "kind": {
           "const": "did_root"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "session_grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "session_grant_cnf_jkt": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
         },
         "principal_authority": {
           "$ref": "#/$defs/principal_authority_key"
@@ -789,6 +827,9 @@
       "required": [
         "schema",
         "kind",
+        "request_id",
+        "session_grant_id",
+        "session_grant_cnf_jkt",
         "principal_authority",
         "requesting_device_id",
         "trust_domain",
@@ -815,6 +856,16 @@
             "trusted_recovery_service",
             "threshold_recovery"
           ]
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "session_grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "session_grant_cnf_jkt": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
         },
         "principal_authority": {
           "$ref": "#/$defs/principal_authority_key"

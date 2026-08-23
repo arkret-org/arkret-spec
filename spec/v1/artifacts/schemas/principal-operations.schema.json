@@ -14,7 +14,7 @@
       "$ref": "#/$defs/pcr_genesis_submit_outcome"
     },
     {
-      "$ref": "#/$defs/standard_holder_binding"
+      "$ref": "#/$defs/session_grant_holder_binding"
     },
     {
       "$ref": "#/$defs/participation_replace_request"
@@ -1144,7 +1144,7 @@
     "signed_event": {
       "$ref": "./event-envelope.schema.json"
     },
-    "standard_holder_binding": {
+    "session_grant_holder_binding": {
       "oneOf": [
         {
           "type": "object",
@@ -1186,6 +1186,22 @@
             },
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "device_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "recovery_candidate_device"
+            },
+            "device_id": {
+              "$ref": "#/$defs/device_id"
             }
           },
           "additionalProperties": false

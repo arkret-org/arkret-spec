@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-23.5",
+  "version": "2026-08-23.6",
   "codes": [
     {
       "code": "json_invalid",
@@ -4487,7 +4487,7 @@
         "authz",
         "device_recovery"
       ],
-      "description": "A recovery policy or recovery session request targets a principal_id different from the authenticated principal or authorized recovery coordinator scope. Servers MUST reject without revealing the target principal's recovery state."
+      "description": "A recovery policy or recovery session request targets a principal_id different from the principal bound to the authenticated SessionGrant. Servers MUST reject without revealing the target principal's recovery state."
     },
     {
       "code": "recovery_proof_kind_unknown",
@@ -5450,5 +5450,5 @@
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
   },
-  "generated_at": "2026-08-23T13:02:00+08:00"
+  "generated_at": "2026-08-23T22:15:22+08:00"
 }

@@ -180,6 +180,35 @@ class SessionGrantKatTests(unittest.TestCase):
             "standard claims without holder_binding must fail the actual JSON Schema",
         )
 
+        recovery = copy.deepcopy(claims["issuer_a_closed_preimage"])
+        recovery["credential_class"] = "recovery_session"
+        recovery["holder_binding"] = {
+            "kind": "recovery_candidate_device",
+            "device_id": "ak:device:01904100-0000-7000-8000-000000000001",
+        }
+        recovery.pop("device_binding")
+        self.assertEqual(
+            list(validator.iter_errors(recovery)),
+            [],
+            "recovery claims with candidate-device holder and no accepted binding must validate",
+        )
+
+        recovery_with_accepted_binding = copy.deepcopy(recovery)
+        recovery_with_accepted_binding["device_binding"] = claims[
+            "issuer_a_closed_preimage"
+        ]["device_binding"]
+        self.assertTrue(
+            list(validator.iter_errors(recovery_with_accepted_binding)),
+            "recovery claims must reject an accepted device_binding",
+        )
+
+        standard_with_recovery_holder = copy.deepcopy(recovery)
+        standard_with_recovery_holder["credential_class"] = "standard"
+        self.assertTrue(
+            list(validator.iter_errors(standard_with_recovery_holder)),
+            "standard claims must reject a recovery_candidate_device holder",
+        )
+
     def test_introspection_grant_requires_cnf_jkt_but_inactive_may_omit_grant(self) -> None:
         validator = artifact_lint_core.schema_validator(
             check_session_grant_kat.CLAIMS_SCHEMA_PATH.resolve(),
@@ -202,12 +231,33 @@ class SessionGrantKatTests(unittest.TestCase):
                 "revocation_ref": "issuer-ledger-fixture",
                 "session_public_key": claims["session_public_key"],
                 "cnf_jkt": "fixture-rfc7638-thumbprint",
+                "device_id": claims["device_binding"]["device_id"],
                 "credential_class": claims["credential_class"],
                 "holder_binding": claims["holder_binding"],
                 "device_binding": claims["device_binding"],
             },
         }
         self.assertEqual(list(validator.iter_errors(active_outcome)), [])
+
+        recovery_outcome = copy.deepcopy(active_outcome)
+        recovery_outcome["grant"]["credential_class"] = "recovery_session"
+        recovery_outcome["grant"]["holder_binding"] = {
+            "kind": "recovery_candidate_device",
+            "device_id": recovery_outcome["grant"]["device_id"],
+        }
+        del recovery_outcome["grant"]["device_binding"]
+        self.assertEqual(
+            list(validator.iter_errors(recovery_outcome)),
+            [],
+            "active recovery introspection must carry candidate device_id without device_binding",
+        )
+
+        recovery_without_device = copy.deepcopy(recovery_outcome)
+        del recovery_without_device["grant"]["device_id"]
+        self.assertTrue(
+            list(validator.iter_errors(recovery_without_device)),
+            "active recovery introspection without candidate device_id must fail",
+        )
 
         missing_cnf = copy.deepcopy(active_outcome)
         del missing_cnf["grant"]["cnf_jkt"]

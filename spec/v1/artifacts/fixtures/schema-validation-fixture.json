@@ -2210,6 +2210,7 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
       "expect_valid": true,
       "instance": {
+        "request_id": "ak:request:019a6aa0-0000-7000-8000-000000000098",
         "principal_authority": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
           "principal_server_id": "ak:did_core:web:ps.example"
@@ -2223,6 +2224,7 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
       "expect_valid": false,
       "instance": {
+        "request_id": "ak:request:019a6aa0-0000-7000-8000-000000000098",
         "principal_authority": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
           "principal_server_id": "ak:did_core:web:ps.example"

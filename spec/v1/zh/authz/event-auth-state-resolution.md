@@ -406,8 +406,8 @@ apply_seal(A):
    2b. 在 predecessor joined governance state 的 `ak.component.notary.v1` cell 上按唯一 `notary.kind` 校验 frozen signer descriptor：`single_signer` 使用唯一 `notary.signer`；`threshold` 使用至少 `threshold` 个互异 `members[]` slot；`open_set` 使用合法 slot descriptor；`mixed` 普通 Seal 使用 primary descriptor，只有 §7.2 / §9.5 recovery 条件成立时才可使用 `recovery_members[]` descriptor。每个 descriptor 逐字冻结 `actor_id + verification_method + key_kind + jose_algorithm + frozen_public_key_b64u + frozen_public_key_digest`；controller 投影必须等于 actor_id。配置 admission 对 members、recovery_members 及其交集分别强制 actor_id、verification_method、frozen_public_key_digest 三个维度各自唯一，禁止跨 slot 复用 key digest。`multi_signature.signatures[]` 按 verification_method 字节序、method 唯一；每个 protected `kid` 逐字等于 verification_method，`alg` 逐字等于 descriptor.jose_algorithm；`none`、unknown `crit`、非 canonical protected/base64url/ECDSA 编码与 key_kind/alg 错配一律拒绝。验签不得查询或替换为 current DID key。`ak.realm.notary` 后继 Move 必须先由旧 descriptor 授权，再安装新 descriptor。genesis Seal 的 `predecessor_refs=[]` 例外从本 Seal `delta[]` 中唯一完整 Realm anchor unit 的 create notary descriptor 求值。不满足时 MUST `rejected_seal`，reason=`seal_signer_unauthorized`。
   3. 校验 delta[] canonical 升序去重及 4096 条上限；超限在签 Seal 前拒绝。
   4. 校验 delta[] 与所有 predecessor covered_set 不相交。
-  5. 校验 delta[] 每项都是已知、签名有效、且未被本 Seal predecessor closure 覆盖的 Control Move digest；若 effective `availability_policy.applies_to` 含 `seal_include`，还 MUST 验证 `availability_receipt_digests[]` canonical 升序且恰好包含每项所需、无多余的 full canonical AvailabilityReceipt digest，数量不超过 65536，并经 typed governance-dependency resolve 取得完整 receipt 与 holder signer evidence，验证 holder 数、role 与 retention 下限
-     （"尚未 sealed" 的判定范围见下方并发 leaf 规则）。
+  5. 校验 delta[] 每项都是已知、签名有效、且未被本 Seal predecessor closure 覆盖的 Control Move digest；若 predecessor joined governance state 的 effective `availability_policy.applies_to` 含 `seal_include`，还 MUST 验证 `availability_receipt_digests[]` canonical 升序且恰好包含每项所需、无多余的 full canonical AvailabilityReceipt digest，数量不超过 65536，并经 typed governance-dependency resolve 取得完整 receipt 与 holder signer evidence，验证 holder 数、role 与 retention 下限
+     （"尚未 sealed" 的判定范围见下方并发 leaf 规则）。`predecessor_refs=[]` 的唯一 genesis Seal 没有 predecessor availability authority，其 `availability_receipt_digests[]` MUST 为空，receiver MUST NOT 从本 Seal `delta[]`、本批 reducer projection、软件默认值或 current Realm state 臆造 policy / eligible holder 并执行 availability gate；genesis 接受后物化的默认或显式 availability policy 从引用该 genesis 的首个 successor Seal 起生效。本例外只跳过不存在的 predecessor availability gate，不跳过 genesis 的 Event proof、notary、coverage、completeness、state-root 或 registered reducer 校验。
   6. 计算 covered_set(A) = delta(A) union predecessor covered sets。
   7. 校验 control_event_set_root == root(covered_set(A)).
   7b. 从 covered_set(A) 按 §6 的 per-actor interval 规则重建 leaf 集，使用 §6.2.2 重算 completeness_root 并逐字节比对；不匹配则拒绝该 Seal。
@@ -728,7 +728,7 @@ AvailabilityReceipt {
 }
 ```
 
-其中 `bytes_digest = H(UTF8("ak.availability-event-bytes-v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`，`H` 使用该 Realm 的 digest suite。`event_id`、`actor_kind` 与所有 accepted producer / principal-server proofs 都在 preimage 内；因此它覆盖实际保留的准入证明字节，但仍须与按普通 Event preimage 重算的 `event_digest` / `event_id` 及逐项 proof 验证交叉核对。
+其中 `bytes_digest = H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`，`H` 使用该 Realm 的 digest suite。`event_id`、`actor_kind` 与所有 accepted producer / principal-server proofs 都在 preimage 内；因此它覆盖实际保留的准入证明字节，但仍须与按普通 Event preimage 重算的 `event_digest` / `event_id` 及逐项 proof 验证交叉核对。
 
 规则：
 

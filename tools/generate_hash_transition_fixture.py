@@ -72,7 +72,7 @@ def availability_receipt(
     jws: str,
 ) -> dict[str, object]:
     event_bytes = jcs(event)
-    bytes_preimage = b"ak.availability-event-bytes-v1\x00" + event_bytes.encode()
+    bytes_preimage = b"ak.availability_event_bytes.v1\x00" + event_bytes.encode()
     bytes_digest = sha256(bytes_preimage)
     core = {
         "realm_id": realm_id,
@@ -122,14 +122,6 @@ def main() -> None:
     create_digest = sha256(create_bytes.encode())
     create_event_id = event_id(create_digest, 1)
     create_realm_id = "ak:realm:" + create_event_id.rsplit(":", 1)[1]
-    create_accepted = accepted_event(create, create_digest, create_event_id, "AAAA..BBBB")
-    create_receipt = availability_receipt(
-        create_accepted,
-        create_realm_id,
-        "2026-09-05T00:00:00.000Z",
-        "2026-08-06T00:00:01.000Z",
-        "CCCC..DDDD",
-    )
     genesis_state_leaf = jcs({
         "cell": "ak:cell:ak.component.realm.digest_suite.v1:null",
         "state": {"value": "blake3"},
@@ -148,12 +140,12 @@ def main() -> None:
         "state_root": genesis_state_root,
         "completeness_root": genesis_completeness_root,
         "notary_seq": 0,
-        "availability_receipt_digests": [create_receipt["receipt_digest"]],
+        "availability_receipt_digests": [],
         "sealed_at": "2026-08-06T00:00:02.000Z",
         "hlc": "0198943a5000-0000-aabbccdd",
     }
     genesis_body_bytes = jcs(genesis_body)
-    genesis_seal_digest = "blake3:0de49537baecea24abac6fda8de0742d8c4b37474144faf85ebeb02a298ab860"
+    genesis_seal_digest = "blake3:d969555b23fcbcdc84e219a40884e359cf03c0a90853119d562e29637bd2caef"
 
     realm_id = source["cases"][1]["derived_realm_id"]
     base_seal_id = "ak:seal:sha256:" + "3" * 64
@@ -232,7 +224,7 @@ def main() -> None:
         "hlc": "019899606c00-0000-aabbccdd",
     }
     transition_body_bytes = jcs(transition_body)
-    transition_seal_digest = "blake3:de27a7a52d399ec62018c7e3074c120cf32466dd2484bc001d4b93ed5fc8adee"
+    transition_seal_digest = "blake3:be463041e2fde20070676d953baba80b69bbaca7513f665edac2395e446913db"
     successor = {
         "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 2,
@@ -246,11 +238,11 @@ def main() -> None:
         "seal_basis": {"leaves": ["ak:seal:" + transition_seal_digest]},
     }
     successor_bytes = jcs(successor)
-    successor_digest = "blake3:605be32d9ba143b3a3396e7411ce6d10b8b563775074386c1dc630e271b9466e"
+    successor_digest = "blake3:04fa710e89b46ba233d78f152f6316fc7f328edd38e52822cdc3435186a26415"
 
     fixture = {
         "profile": "ak.profile.hash_transition.v1",
-        "version": "2026-08-21",
+        "version": "2026-08-24",
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.encoding.hash_transition.v1"},
         "covers_vectors": [
             "ak.vector.hash_transition.dual_root_recompute.v1",
@@ -263,7 +255,8 @@ def main() -> None:
                 "create_event_digest": create_digest,
                 "create_event_id": create_event_id,
                 "declared_initial_live_suite": "blake3",
-                "create_availability_receipt": create_receipt,
+                "genesis_availability_receipt_digests": [],
+                "genesis_availability_negative_mutation": "non_empty_receipt_commitment",
                 "state_leaf_preimage_canonical_bytes_utf8": genesis_state_leaf,
                 "state_leaf_preimage_hex": (b"\x00" + genesis_state_leaf.encode()).hex(),
                 "state_root": genesis_state_root,
