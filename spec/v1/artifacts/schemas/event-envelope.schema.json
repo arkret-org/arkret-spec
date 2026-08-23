@@ -83,13 +83,13 @@
       "type": "string",
       "enum": [
         "user",
-        "org",
+        "organization",
         "team",
         "agent",
         "service",
         "integration"
       ],
-      "description": "Reducer-stamped projection of the actor_id Actor Profile's actor_kind at write time (see zh/models/event-and-patch.md and zh/models/actor.md). Lets audit/forensic/offline readers classify the event without resolving Actor Profile. Does NOT include 'device': a device is not an actor principal and never appears as actor_id; device actions are attributed to the owning user/org principal DID. MUST NOT appear in actor-supplied submit payload (schema_violation reason=actor_kind_reducer_managed); reducer stamps it during accept. Immutable once written and excluded from producer proof.event_digest."
+      "description": "Reducer-stamped projection of the actor_id Actor Profile's actor_kind at write time (see zh/models/event-and-patch.md and zh/models/actor.md). Lets audit/forensic/offline readers classify the event without resolving Actor Profile. Does NOT include 'device': a device is not an actor principal and never appears as actor_id; device actions are attributed to the owning user/organization principal DID. MUST NOT appear in actor-supplied submit payload (schema_violation reason=actor_kind_reducer_managed); reducer stamps it during accept. Immutable once written and excluded from producer proof.event_digest."
     },
     "actor_seq": {
       "type": "integer",

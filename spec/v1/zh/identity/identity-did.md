@@ -252,7 +252,7 @@ Arkret v1 core conformance 要求如下：
 - 即使仍处于允许的 cache-only outage 窗口，单条 `did:webvh` cache entry 的 `cached_evidence_age_ms` 超过 7 天，任何登记为 current-DID-dependent 的调用也 MUST fail closed 并暴露 `webvh_cache_too_stale`。该阈值不得扩散到 human PCR 的 capability、device、membership 或 account 动作。
 - Cache entry 写入 / 刷新不能只信任单一 resolver 自报。deployment profile 对 witness 的门限只适用于其登记的 current DID authority call；device/capability/membership 等 human PCR 动作不因自身风险等级继承该门限。v1 的 method-evidence 载体仍只接受登记 kind，未知 kind fail closed。
 
-> **Log-backed witness 增强（informative scope）**：`did:webvh` witness 可以采用 transparency-log 形态（append-only Merkle log + 第三方可独立审计 consistency / inclusion proof + 抗 split-view）。当前 v1 baseline 仍为 §3.4.2 基线表的"≥2 witness from distinct controlling org"；log-backed witness 是下述高保障 profile 的加固项，不改变 base v1 的 witness 语义。
+> **Log-backed witness 增强（informative scope）**：`did:webvh` witness 可以采用 transparency-log 形态（append-only Merkle log + 第三方可独立审计 consistency / inclusion proof + 抗 split-view）。当前 v1 baseline 仍为 §3.4.2 基线表的"≥2 witness from distinct controlling organization"；log-backed witness 是下述高保障 profile 的加固项，不改变 base v1 的 witness 语义。
 
 > **高保障 profile 加固（normative，profile-gated）**：`high_security_organization` 与 `sovereign_deployment` 对登记为 `method_successor` 或 `ongoing_governance` 的 `did:webvh` 调用，MUST 使用带 inclusion/consistency proof 的 append-only witness log。该要求不适用于仅由 human PCR 授权的 recovery、membership、device 或 capability 动作。
 
@@ -474,7 +474,7 @@ Provider 是 hosting 方而非控制者。transport bearer、mTLS 或内网凭�
 Profile 分层（承接 §3.4 的 witness 要求，不新增语义）：
 
 - `personal_node` / `small_team`：自举产出的 `did:webvh` 若仅由宿主自身见证（self-witness），属 §3.4.2 基线表的单 witness 降级——MUST 向用户暴露降级状态；MUST NOT 把 self-witness 宣称为具备外部见证的信任强度。
-- `organization` / `high_security_organization` / `sovereign_deployment`：自举产出的 service identity MUST 满足 §3.4.2 基线表对应 profile 的 ≥2 distinct-org witness（及高保障 profile 的 log-backed witness）要求，MUST NOT 以宿主自见证作为高风险控制判断的唯一依据。
+- `organization` / `high_security_organization` / `sovereign_deployment`：自举产出的 service identity MUST 满足 §3.4.2 基线表对应 profile 的 ≥2 distinct-organization witness（及高保障 profile 的 log-backed witness）要求，MUST NOT 以宿主自见证作为高风险控制判断的唯一依据。
 
 > 错误是否进入 registry 取决于观察者。Provider/服务对调用方的 wire 响应使用 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中的 `service_identity_unavailable`、`service_identity_provider_unavailable`、`service_registration_denied`、`service_identity_conflict`。
 >
@@ -845,7 +845,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
     }
   ],
   "arkret_governance": {
-    "profile": "ak.org.governance.v1",
+    "profile": "ak.organization.governance.v1",
     "threshold": {
       "required": 2,
       "eligible_methods": [

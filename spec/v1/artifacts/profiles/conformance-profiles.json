@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-23.1",
-  "generated_at": "2026-08-23T13:00:00+08:00",
+  "version": "2026-08-23.2",
+  "generated_at": "2026-08-23T15:30:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -496,7 +496,7 @@
   },
   "identity_extension_profiles": [
     "ak.profile.public_network_identity.v1",
-    "ak.profile.org_high_assurance_identity.v1",
+    "ak.profile.organization_high_assurance_identity.v1",
     "ak.profile.ephemeral_pairwise_principal.v1",
     "ak.profile.principal_control_realm.v1",
     "ak.profile.direct_conversation_realm.v1",
@@ -576,7 +576,7 @@
     "ak.profile.identity_registry.v1": "directory",
     "ak.profile.auth_server.v1": "server",
     "ak.profile.public_network_identity.v1": "directory",
-    "ak.profile.org_high_assurance_identity.v1": "directory",
+    "ak.profile.organization_high_assurance_identity.v1": "directory",
     "ak.profile.key_transparency.v1": "directory",
     "ak.profile.blob_node.v1": "gateway",
     "ak.profile.push_gateway.v1": "gateway",
@@ -1453,7 +1453,7 @@
         "pcr-genesis-fixture.json"
       ],
       "optional_extensions": [
-        "ak.profile.org_high_assurance_identity.v1",
+        "ak.profile.organization_high_assurance_identity.v1",
         "ak.profile.public_network_identity.v1"
       ],
       "feature_discovery": {
@@ -2661,7 +2661,7 @@
         "unsupported_optional": "return unsupported_did_method"
       }
     },
-    "ak.profile.org_high_assurance_identity.v1": {
+    "ak.profile.organization_high_assurance_identity.v1": {
       "required_endpoints": [
         "ak.root.identity.read.resolve",
         "ak.root.identity.document.resource.get",

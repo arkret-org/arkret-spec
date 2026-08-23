@@ -661,7 +661,7 @@ bytes，只会多出一条可漂移的第二真相源。
         {
           "target": {
             "kind": "claim_selector",
-            "claim_kind": "org_membership",
+            "claim_kind": "organization_membership",
             "issuer": "ak:did_core:webvh:zCJLLNnZDTQJWQp7tztodmPUc"
           },
           "action": "deny_restricted_join"

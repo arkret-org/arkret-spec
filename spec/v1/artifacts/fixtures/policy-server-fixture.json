@@ -142,7 +142,7 @@
           "tombstone": true
         },
         "effective_policy_server_service_id": "did:webvh:z6mkfixtureorgpolicyexample:org-policy.example",
-        "from_org_fallback": true,
+        "from_organization_fallback": true,
         "repeat_delete": "idempotent_empty_success",
         "repeat_changes_state_root": false,
         "missing_direct_history_delete": "not_found",
@@ -196,7 +196,7 @@
         "join": "bottom",
         "bottom_policy": "reject",
         "query": "failed_bottom",
-        "org_fallback_used": false,
+        "organization_fallback_used": false,
         "arrival_order_selects_winner": false,
         "recovery_kind": "ak.conflict.recovery"
       }

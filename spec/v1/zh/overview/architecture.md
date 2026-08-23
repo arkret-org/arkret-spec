@@ -415,7 +415,7 @@ flowchart LR
 
 在 agent 密集场景中，常见模式是：
 
-- user/org DID 作为 authority
+- user/organization DID 作为 authority
 - agent DID 拥有受限 capability
 - agent 的结果和审计摘要写成 agent 签名 Event
 - agent 的 Principal Server 将这些 Event 同步到 Collaboration Realm（参见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）

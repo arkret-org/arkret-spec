@@ -4794,11 +4794,11 @@
         "audience": {
           "type": "object",
           "required": [
-            "represented_org",
+            "represented_organization_id",
             "verifier_service_ids"
           ],
           "properties": {
-            "represented_org": {
+            "represented_organization_id": {
               "$ref": "#/$defs/did_core_id"
             },
             "verifier_service_ids": {
@@ -5059,7 +5059,7 @@
             "verifier_service_id": {
               "$ref": "#/$defs/did_core_id"
             },
-            "represented_org": {
+            "represented_organization_id": {
               "$ref": "#/$defs/did_core_id"
             },
             "domain": {
@@ -11392,7 +11392,7 @@
                   "claim_kind": {
                     "$ref": "#/$defs/non_empty_string"
                   },
-                  "organization": {
+                  "organization_id": {
                     "$ref": "#/$defs/did_core_id"
                   },
                   "issuer": {

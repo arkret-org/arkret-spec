@@ -62,8 +62,8 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
       "allowed_discoverers": [
         {
           "selector_kind": "claim",
-          "claim_kind": "org_membership",
-          "organization": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
+          "claim_kind": "organization_membership",
+          "organization_id": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
           "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example"
         }
       ],
@@ -713,7 +713,7 @@ Directory MUST 在 `describe` 响应中暴露 ingest 能力：
 | `accepted_resource_kinds` | `enum[]` | 本 directory 接受的资源类别子集。 |
 | `accepted_did_methods` | `string[]` | 接受的 principal/governance DID method token，形如 `did:web`、`did:webvh`。 |
 | `takedown_contact` | `did \| url?` | operator takedown 时的通知 / 申诉入口。 |
-| `rate_limits` | `object?` | per-DID / per-org / per-IP 配额上限的可读描述。 |
+| `rate_limits` | `object?` | per-DID / per-organization / per-IP 配额上限的可读描述。 |
 
 Directory 若支持 handle lookup 的高敏 intent，SHOULD 在 `ServiceDescribe` 扩展字段中声明粗粒度能力，例如 `x_handle_resolution.contact_request_enabled`、`x_handle_resolution.invite_enabled` 与 `x_handle_resolution.member_add_enabled`。这些开关为 `false` 或缺失时，客户端 MUST 使用 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的 invite address + introduction evidence 流程，或使用 `ak.self.contact.command.request` 的 `explicit_address` 低信任路径；不得把 `resolve_handle(intent="contact_request" | "invite" | "member_add")` 当作 base invite / contact 前置条件。
 

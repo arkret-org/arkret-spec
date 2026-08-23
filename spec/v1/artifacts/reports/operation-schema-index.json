@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.4",
+  "version": "2026-08-23.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-23T14:20:00+08:00",
+  "generated_at": "2026-08-23T15:31:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9172,7 +9172,7 @@
           "timeout_ms",
           "on_timeout",
           "updated_at",
-          "from_org_fallback"
+          "from_organization_fallback"
         ],
         "properties": [
           "realm_id",
@@ -9182,7 +9182,7 @@
           "timeout_ms",
           "on_timeout",
           "updated_at",
-          "from_org_fallback"
+          "from_organization_fallback"
         ],
         "closed": true
       }
@@ -9212,7 +9212,7 @@
           "timeout_ms",
           "on_timeout",
           "updated_at",
-          "from_org_fallback"
+          "from_organization_fallback"
         ],
         "properties": [
           "realm_id",
@@ -9222,7 +9222,7 @@
           "timeout_ms",
           "on_timeout",
           "updated_at",
-          "from_org_fallback"
+          "from_organization_fallback"
         ],
         "closed": true
       }

@@ -23,13 +23,13 @@ Actor 是 Arkret 协作图中"能执行动作的主体"。Actor identity 的根�
 Actor 类型（`actor_kind`）：
 
 - `user`
-- `org`
+- `organization`
 - `team`
 - `agent`
 - `service`
 - `integration`
 
-`actor_kind` 不包含 `device`：设备不是 actor 主体，没有自己的 DID。设备永远从属于某个 user/org principal，通过 `ak.device.authorize` 由该 principal 授权登记；设备的稳定标识是 `device_id`（`ak:device:<uuid>` typed ID），设备密钥是该 principal DID 下的 verification method。详见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
+`actor_kind` 不包含 `device`：设备不是 actor 主体，没有自己的 DID。设备永远从属于某个 user/organization principal，通过 `ak.device.authorize` 由该 principal 授权登记；设备的稳定标识是 `device_id`（`ak:device:<uuid>` typed ID），设备密钥是该 principal DID 下的 verification method。详见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
 
 Actor MAY 有对应的 `actor_profile` 对象，便于在协作图中被 mention、assign 或展示。
 
@@ -58,7 +58,7 @@ Schema id: `ak.schema.actor_profile.v1`
 | `schema` | yes | `ak.schema.actor_profile.v1` | const。 | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 profile 可省略。 | 所属 Realm。 |
 | `principal_id` | yes | `did_core_id` | 权限仍以经完整 DID 证明的稳定主体与 capability 为准。 | Principal 的稳定业务身份。 |
-| `actor_kind` | yes | `enum(user, org, team, agent, service, integration)` | 不含 `device`：设备非 actor 主体，见 §2 与 device-lifecycle §4。 | Actor 类型。 |
+| `actor_kind` | yes | `enum(user, organization, team, agent, service, integration)` | 不含 `device`：设备非 actor 主体，见 §2 与 device-lifecycle §4。 | Actor 类型。 |
 | `display_name` | yes | `string` | 1..128 chars。 | 展示名。 |
 | `handle` | no | `string` | 必须通过 handle 双向验证后展示为 verified。 | 可读 handle。 |
 | `agent_slug` | no | `string` | 仅 native personal agent 可用；pattern 以 `actor-profile.schema.json` 为准。若出现，MUST 可由当前有效 `ak.schema.agent_selector_claim.v1` 证明；冲突时 selector 解析 fail closed。 | controller-scoped agent mention selector 的投影 hint；不是 handle、权限主体或目录发现键。 |
@@ -74,7 +74,7 @@ Schema id: `ak.schema.actor_profile.v1`
 
 `principal_id` 是授权、签名和审计归属的稳定 `did_core_id`；`actor_kind` 只是该主体在协作图中的展示和策略分类。
 
-- **设备不是 actor 主体（normative）**：`actor_kind` 不含 `device`，设备没有自己的 DID。设备的一切普通协作-图行动 MUST 以所属 user/org principal `did_core_id` 作为 `actor_id`；设备身份通过 proof `verification_method`、`device_id`（`ak:device:<uuid>`）、`ak.device.authorize` 或 session grant 表达。唯一例外是声明 `ak.profile.mls.minimal_metadata_realm.v1` 的 Realm：发送方 MAY 使用显式 `ak.profile.ephemeral_pairwise_principal.v1` 的临时 pairwise **actor principal**（`did:key` 投影的 `did_core_id`，`actor_kind` 仍取 `user`/`agent` 等真实主体类型）。该 actor 不进入账号、PCR、Actor Profile 或设备目录；其作者 authority 仅来自 Event 所钉定 exact `(group_id, epoch, group_state_ref)` 中恰好一条 active LeafNode，且 credential identity 与 pairwise `full_id`、signature key 与 Event proof key 必须逐字一致。transport session 只承担访问与限流，不是作者授权，也不得被持久化为 identity link。
+- **设备不是 actor 主体（normative）**：`actor_kind` 不含 `device`，设备没有自己的 DID。设备的一切普通协作-图行动 MUST 以所属 user/organization principal `did_core_id` 作为 `actor_id`；设备身份通过 proof `verification_method`、`device_id`（`ak:device:<uuid>`）、`ak.device.authorize` 或 session grant 表达。唯一例外是声明 `ak.profile.mls.minimal_metadata_realm.v1` 的 Realm：发送方 MAY 使用显式 `ak.profile.ephemeral_pairwise_principal.v1` 的临时 pairwise **actor principal**（`did:key` 投影的 `did_core_id`，`actor_kind` 仍取 `user`/`agent` 等真实主体类型）。该 actor 不进入账号、PCR、Actor Profile 或设备目录；其作者 authority 仅来自 Event 所钉定 exact `(group_id, epoch, group_state_ref)` 中恰好一条 active LeafNode，且 credential identity 与 pairwise `full_id`、signature key 与 Event proof key 必须逐字一致。transport session 只承担访问与限流，不是作者授权，也不得被持久化为 identity link。
 - `team`、`agent`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_principal_ids` 指向控制/责任 principal；它们不会因为 `accountable_principal_ids` 自动继承权限。
 - `actor_kind` 的 wire enum 不包含 `agent_native`、`agent_ghost` 或 `ghost`。Native personal agent 使用 `actor_kind="agent"`，并由 `ak.profile.personal_agent_provisioning.v1` provisioning state 区分；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值（外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`）。Realm policy 必须能通过 Applet provenance、`accountable_principal_ids`、profile 与 capability 分别控制 native personal agent 与 Applet / Ghost Actor，不得合并为单一 "automation allowed" 开关：
   - **Native personal agent**:由 controller 通过 `ak.self.agent.command.provision` 直接创建的一等 Arkret actor principal,拥有独立 DID document、`ak.identity.accountability_grant` 指向 controller、`ak.agent.key.authorize` 绑定的运行时 key。可被 mention / grant / revoke / pause / deactivate。

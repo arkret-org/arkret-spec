@@ -5305,7 +5305,7 @@ whole-value `head_eq` 复制，declaration → tombstone 因此按取代链 join
 Expected：
 
 - Seal 接受前 effective state 不变；接受后 direct cell 的 settled value 是显式 tombstone，
-  GET 返回组织声明并标记 `from_org_fallback=true`；
+  GET 返回组织声明并标记 `from_organization_fallback=true`；
 - 对 settled tombstone 重复 DELETE 返回幂等空成功，cell value 与 `state_root` 不变；
 - 从未有 direct declaration / tombstone 时 DELETE 返回 `not_found`；仅继承到的配置不构成
   direct declaration，删除不得改写祖先 Realm cell；

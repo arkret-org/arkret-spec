@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.4",
+  "version": "2026-08-23.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-23T14:20:00+08:00",
+  "generated_at": "2026-08-23T15:31:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -15301,7 +15301,7 @@
         "http": "GET /_arkret/self/realms/{realm_id}/policy-server",
         "grpc": "SelfRealmPolicyServer/Get",
         "mq": "self.realm_policy_server.resource.get",
-        "notes": "Reads the projected ak.realm.policy_server config. Returns not_found when neither the Realm nor its governed_by ancestor chain declared one. from_org_fallback=true marks an inherited config.",
+        "notes": "Reads the projected ak.realm.policy_server config. Returns not_found when neither the Realm nor its governed_by ancestor chain declared one. from_organization_fallback=true marks an inherited config.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view"
@@ -15646,8 +15646,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-23.1",
-    "generated_at": "2026-08-23T01:30:00+08:00"
+    "version": "2026-08-23.2",
+    "generated_at": "2026-08-23T15:30:00+08:00"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

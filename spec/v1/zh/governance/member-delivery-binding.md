@@ -202,7 +202,7 @@ TTL route cache 与 durable anti-rollback floor 必须分离。sender MUST 为�
 
 - **同一 binding 下多设备**：member 的多台设备各自向 `recipient_service_id` 上传 KeyPackage、注册 push、维护 to-device 队列。同一 binding 下的设备共享 sync state。
 - **需要持有 Realm Event 的 bot/service/notary**：必须成为显式 joined Realm member/service actor，并使用该成员的 `delivery_binding.recipient_service_id`；部署级 HA、镜像或“已知 peer”本身不取得 Realm 内容。
-- **同一物理用户的多个上下文** (e.g. Alice 既参与 personal Realm P 也参与 work Realm S)：每个 Realm 各自有独立 membership 与独立 binding；同一 DID 在 P 中 `recipient_service_id = personal PS`，在 S 中 `recipient_service_id = org PS`。这就是本文整套机制要解决的核心场景。
+- **同一物理用户的多个上下文** (e.g. Alice 既参与 personal Realm P 也参与 work Realm S)：每个 Realm 各自有独立 membership 与独立 binding；同一 DID 在 P 中 `recipient_service_id = personal PS`，在 S 中 `recipient_service_id = organization PS`。这就是本文整套机制要解决的核心场景。
 
 ## 8. 关联性与隐私边界
 

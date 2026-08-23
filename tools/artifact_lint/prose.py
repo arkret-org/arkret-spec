@@ -5,6 +5,7 @@ from __future__ import annotations
 from .core import (
     ARTIFACTS,
     Any,
+    CANONICAL_LEXEME_REGISTRY_PATH,
     COMMON_OBJECT_FIELD_MATRIX_PATH,
     C_BET_04_REQUIRED_FRONTMATTER,
     ENVELOPE_SUBJECT_FORBIDDEN,
@@ -67,6 +68,7 @@ from .core import (
 )
 from .naming import (
     DEFAULT_REJECTED_WRAPPER_WORDS,
+    DEFAULT_FORBIDDEN_LEXEMES,
     FORBIDDEN_SYMBOLIC_LITERALS,
     PASCAL_CASE_RE,
     PREDICATES,
@@ -82,6 +84,7 @@ from .naming import (
     nc_count_001,
     nc_evidence_001,
     nc_hash_001,
+    nc_lexeme_001,
     nc_set_001,
     schema_shape_has_type,
     stacked_wrapper_words,
@@ -112,6 +115,10 @@ def check_naming_predicates(lint: Lint) -> None:
         lint.fail(NAMING_RULES_PATH, "naming convention baseline must be empty at closure")
     if rules_data.get("evidence_material_audit") != "tools/evidence-material-audit.json":
         lint.fail(NAMING_RULES_PATH, "NC-EVIDENCE-001 must point to the exact-path evidence audit")
+    if rules_data.get("canonical_lexeme_registry") != (
+        "spec/v1/artifacts/registry/canonical-lexeme-registry.json"
+    ):
+        lint.fail(NAMING_RULES_PATH, "NC-LEXEME-001 must point to the canonical lexeme registry")
     rules = rules_data.get("rules")
     if not isinstance(rules, list):
         lint.fail(NAMING_RULES_PATH, "rules must be an array")
@@ -153,6 +160,91 @@ def check_naming_predicates(lint: Lint) -> None:
                     f"{row.get('rule_id')} exception `{exception.get('id')}` anchors a path "
                     f"that no longer exists: {anchor}",
                 )
+
+    lexeme_registry = load_json(lint, CANONICAL_LEXEME_REGISTRY_PATH)
+    forbidden_lexemes: set[str] = set()
+    lexeme_qualified_external_forms: set[str] = set()
+    lexeme_non_contract_exceptions: set[tuple[str, str, str]] = set()
+    matched_lexeme_non_contract_exceptions: set[tuple[str, str, str]] = set()
+    if isinstance(lexeme_registry, dict):
+        if lexeme_registry.get("source_of_truth") is not True:
+            lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, "canonical lexeme registry must be a truth source")
+        if lexeme_registry.get("kind") != "canonical_lexeme_registry":
+            lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, "canonical lexeme registry has the wrong kind")
+        terms = lexeme_registry.get("canonical_terms")
+        if not isinstance(terms, list) or not terms:
+            lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, "canonical_terms must be a non-empty array")
+        else:
+            canonical_words: set[str] = set()
+            for index, term in enumerate(terms):
+                where = f"canonical_terms[{index}]"
+                if not isinstance(term, dict):
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} must be an object")
+                    continue
+                canonical = term.get("canonical")
+                aliases = term.get("forbidden_aliases")
+                if not isinstance(canonical, str) or not SNAKE_CASE_RE.fullmatch(canonical):
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where}.canonical must be snake_case")
+                    continue
+                if canonical in canonical_words:
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} duplicates `{canonical}`")
+                canonical_words.add(canonical)
+                if not isinstance(aliases, list) or not aliases:
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where}.forbidden_aliases must be non-empty")
+                    continue
+                for alias in aliases:
+                    if not isinstance(alias, str) or not SNAKE_CASE_RE.fullmatch(alias):
+                        lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} has invalid alias `{alias}`")
+                        continue
+                    if alias == canonical or alias in forbidden_lexemes:
+                        lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} duplicates alias `{alias}`")
+                    forbidden_lexemes.add(alias)
+                qualified_forms = term.get("qualified_external_forms", [])
+                if not isinstance(qualified_forms, list):
+                    lint.fail(
+                        CANONICAL_LEXEME_REGISTRY_PATH,
+                        f"{where}.qualified_external_forms must be an array",
+                    )
+                else:
+                    for form_index, form in enumerate(qualified_forms):
+                        if not isinstance(form, dict) or not all(
+                            isinstance(form.get(field), str) and form.get(field)
+                            for field in ("name", "boundary", "reason", "external_anchor")
+                        ):
+                            lint.fail(
+                                CANONICAL_LEXEME_REGISTRY_PATH,
+                                f"{where}.qualified_external_forms[{form_index}] is incomplete",
+                            )
+                            continue
+                        lexeme_qualified_external_forms.add(form["name"])
+        exception_rows = lexeme_registry.get("exact_non_contract_exceptions")
+        if not isinstance(exception_rows, list):
+            lint.fail(
+                CANONICAL_LEXEME_REGISTRY_PATH,
+                "exact_non_contract_exceptions must be an array",
+            )
+        else:
+            for index, exception in enumerate(exception_rows):
+                where = f"exact_non_contract_exceptions[{index}]"
+                if not isinstance(exception, dict) or not all(
+                    isinstance(exception.get(field), str) and exception.get(field)
+                    for field in ("file", "json_path", "name", "basis", "reason", "external_anchor")
+                ):
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} is incomplete")
+                    continue
+                file_name = exception["file"]
+                if not (ROOT / file_name).exists():
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} names a missing file")
+                key = (file_name, exception["json_path"], exception["name"])
+                if key in lexeme_non_contract_exceptions:
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} duplicates an exception")
+                lexeme_non_contract_exceptions.add(key)
+    if forbidden_lexemes != set(DEFAULT_FORBIDDEN_LEXEMES):
+        lint.fail(
+            CANONICAL_LEXEME_REGISTRY_PATH,
+            "canonical forbidden aliases disagree with the executable predicate table: "
+            f"registry={sorted(forbidden_lexemes)}, predicate={sorted(DEFAULT_FORBIDDEN_LEXEMES)}",
+        )
 
     dto_schema_path = ARTIFACTS / "schemas" / "service-operation-dtos.schema.json"
     dto_schema = load_json(lint, dto_schema_path)
@@ -449,6 +541,8 @@ def check_naming_predicates(lint: Lint) -> None:
                 adjudicate(schema_path, "NC-SET-001", file_name, pointer, name)
             if nc_evidence_001(name):
                 adjudicate(schema_path, "NC-EVIDENCE-001", file_name, pointer, name)
+            if nc_lexeme_001(name):
+                adjudicate(schema_path, "NC-LEXEME-001", file_name, pointer, name)
             if name == "stage" and isinstance(shape_is.get("enum"), list):
                 if set(shape_is["enum"]) != STAGE_VALUES:
                     lint.fail(schema_path, f"{pointer} reuses reserved stage outside the 8-value axis")
@@ -475,6 +569,10 @@ def check_naming_predicates(lint: Lint) -> None:
                 adjudicate(
                     schema_path, "NC-HASH-001", file_name, type_name.pointer, type_name.name
                 )
+            if nc_lexeme_001(type_name.name):
+                adjudicate(
+                    schema_path, "NC-LEXEME-001", file_name, type_name.pointer, type_name.name
+                )
 
         for enum_occurrence in enumerate_schema_enums(file_name, schema_data):
             for value in enum_occurrence.values:
@@ -482,6 +580,14 @@ def check_naming_predicates(lint: Lint) -> None:
                     lint.fail(
                         schema_path,
                         f"{enum_occurrence.pointer} contains non-snake Arkret symbol `{value}`",
+                    )
+                if isinstance(value, str) and nc_lexeme_001(value):
+                    adjudicate(
+                        schema_path,
+                        "NC-LEXEME-001",
+                        file_name,
+                        enum_occurrence.pointer,
+                        value,
                     )
 
     # Coverage proof. Both figures must be total: a walker that stops descending
@@ -523,6 +629,14 @@ def check_naming_predicates(lint: Lint) -> None:
             adjudicate(
                 openapi_path,
                 "NC-TYPE-001",
+                openapi_path.name,
+                f"/components/schemas/{component}",
+                component,
+            )
+        if nc_lexeme_001(component):
+            adjudicate(
+                openapi_path,
+                "NC-LEXEME-001",
                 openapi_path.name,
                 f"/components/schemas/{component}",
                 component,
@@ -611,12 +725,23 @@ def check_naming_predicates(lint: Lint) -> None:
                 f"{rule_id} must declare enforcement as predicate, registry or predicate+registry",
             )
 
-    def check_key(path: Path, where: str, key: str | None) -> None:
+    def check_key(path: Path, relative_path: str, where: str, key: str | None) -> None:
         if not key:
+            return
+        exception_key = (relative_path, where, key)
+        if exception_key in lexeme_non_contract_exceptions:
+            matched_lexeme_non_contract_exceptions.add(exception_key)
+            return
+        if re.fullmatch(r"(?!ak\.)[a-z0-9]+(?:\.[a-z0-9]+){2,}", key):
+            # Reverse-DNS extension keys are externally owned namespaces, not
+            # Arkret contract lexemes (for example org.example.work).
             return
         replacement = FORBIDDEN_NAMING_ALIAS_KEYS.get(key)
         if replacement:
             lint.fail(path, f"{where} uses forbidden legacy field `{key}`; use `{replacement}`")
+            return
+        if nc_lexeme_001(key):
+            lint.fail(path, f"{where} violates NC-LEXEME-001 (`{key}`)")
             return
         if key != "principal_server_did" and (key == "service_did" or "_service_did" in key):
             lint.fail(
@@ -625,9 +750,39 @@ def check_naming_predicates(lint: Lint) -> None:
                 f"use `{key.replace('service_did', 'service_id')}`",
             )
 
+    name_value_fields = {
+        "actor_kind",
+        "claim_kind",
+        "event_kind",
+        "kind",
+        "operation_id",
+        "profile_id",
+        "schema_id",
+        "type",
+    }
+
     def check_json_value(path: Path, data: Any, where: str = "$") -> None:
-        for json_path, _value, key in walk_json(data, where):
-            check_key(path, json_path, key)
+        relative_path = path.resolve().relative_to(ROOT.resolve()).as_posix()
+        for json_path, value, key in walk_json(data, where):
+            check_key(path, relative_path, json_path, key)
+            if not isinstance(value, str):
+                continue
+            if value in lexeme_qualified_external_forms:
+                continue
+            if (
+                path == CANONICAL_LEXEME_REGISTRY_PATH
+                and ".forbidden_aliases[" in json_path
+            ):
+                # This registry is the executable negative vocabulary. Its
+                # rejected spellings are rule input, not live contract values.
+                continue
+            is_contract_name = (
+                key in name_value_fields
+                or value.startswith("ak.")
+                or value.startswith("arkret_")
+            )
+            if is_contract_name and nc_lexeme_001(value):
+                lint.fail(path, f"{json_path} violates NC-LEXEME-001 (`{value}`)")
 
     json_paths = [p for p in all_json_files() if not is_wire_guard_file(p)]
     for path in json_paths:
@@ -647,6 +802,15 @@ def check_naming_predicates(lint: Lint) -> None:
                 continue
             line_no = text.count("\n", 0, match.start()) + 1
             check_json_value(path, data, f"json block line {line_no}")
+
+    stale_lexeme_exceptions = sorted(
+        lexeme_non_contract_exceptions - matched_lexeme_non_contract_exceptions
+    )
+    if stale_lexeme_exceptions:
+        lint.fail(
+            CANONICAL_LEXEME_REGISTRY_PATH,
+            f"exact_non_contract_exceptions no longer match a violation: {stale_lexeme_exceptions}",
+        )
 
 
 

@@ -828,7 +828,7 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 1. Alice 为 Google 关系使用 `did:key:z6Mkgpairwise...`
 2. Alice 为 Facebook 关系使用 `did:key:z6Mkfpairwise...`
 3. 两个 DID MUST NOT 复用相同 verification method、专用 service endpoint、endpoint 用户名、`alsoKnownAs` 或公开 profile URL
-4. Google 或受信 issuer 给 `did:key:z6Mkgpairwise...` 签发 `ArkretOrgMembershipCredential`
+4. Google 或受信 issuer 给 `did:key:z6Mkgpairwise...` 签发外部 W3C type `https://arkret.org/v1/credentials/organization-membership`；Arkret 内部对应的 `claim_kind` 仍为 `organization_membership_credential`
 5. Facebook 或受信 issuer 给 `did:key:z6Mkfpairwise...` 签发独立 credential
 6. 面向 Google verifier 时，wallet 只生成 Google 相关 presentation
 7. Google verifier MUST NOT 要求披露 Facebook credential、Facebook DID 或跨域 subject identifier
@@ -839,11 +839,15 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 
 ```json
 {
-  "type": ["verifiable_credential", "arkret_org_membership_credential"],
+  "@context": ["https://www.w3.org/ns/credentials/v2"],
+  "type": [
+    "VerifiableCredential",
+    "https://arkret.org/v1/credentials/organization-membership"
+  ],
   "issuer": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "credentialSubject": {
     "id": "did:key:z6Mkgpairwise...",
-    "org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+    "organization_id": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
     "member": true,
     "handle_verified": true
   },
@@ -875,7 +879,7 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
 
 ```json
 {
-  "type": "arkret_presentation_request",
+  "kind": "ak.identity.presentation_request",
   "audience": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "domain": "google.example",
   "challenge": "ak.chal_01J...",
@@ -885,9 +889,9 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
   ],
   "required_claims": [
     {
-      "type": "arkret_org_membership_credential",
+      "claim_kind": "organization_membership_credential",
       "constraints": {
-        "org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+        "organization_id": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
         "member": true
       },
       "disclosure": "abstract"
@@ -940,7 +944,7 @@ Capability policy MAY 依赖 verified claim，但 grant subject 仍然是 DID。
 
 ```text
 grant subject = did:key:z6Mkgpairwise...
-condition = has valid arkret_org_membership_credential where org = did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example
+condition = has valid organization_membership_credential where organization_id = did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example
 ```
 
 错误：
@@ -990,16 +994,16 @@ grant subject = alice@google.com
     "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
     "value": {
       "verifier_service_id": "ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n",
-      "represented_org": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
+      "represented_organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
       "domain": "google.example",
       "challenge": "ak.chal_01J...",
       "purpose": "space_join",
       "accepted_issuers": ["ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX"],
       "required_claims": [
         {
-          "claim_kind": "arkret_org_membership_credential",
+          "claim_kind": "organization_membership_credential",
           "constraints": {
-            "org": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
+            "organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
             "member": true
           },
           "disclosure": "abstract"
@@ -1025,7 +1029,7 @@ grant subject = alice@google.com
 }
 ```
 
-Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wallet MUST 把响应中的 proof 绑定到 `challenge`、`domain`、`verifier_service_id` 和 `represented_org`。
+Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wallet MUST 把响应中的 proof 绑定到 `challenge`、`domain`、`verifier_service_id` 和 `represented_organization_id`。
 
 #### 16.2.2 Disclosure Policy
 
@@ -1037,7 +1041,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
     "value": {
       "holder_principal_id": "ak:did_core:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5",
       "audience": {
-        "represented_org": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
+        "represented_organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
         "verifier_service_ids": ["ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n"],
         "tsp_vids": ["did:webs:google.example:verifier"]
       },
@@ -1086,7 +1090,7 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm�
       "proof_profile": "vc_di_bbs_2023",
       "presentation": {},
       "disclosed_fields": [
-        "credentialSubject.org",
+        "credentialSubject.organization_id",
         "credentialSubject.member",
         "credentialSubject.handle_verified"
       ],
@@ -1121,7 +1125,7 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
       "transport": "tsp",
       "tsp_relationship_id": "tsp:rel:example",
       "disclosed_fields": [
-        "credentialSubject.org",
+        "credentialSubject.organization_id",
         "credentialSubject.member"
       ],
       "withheld_fields": [
@@ -1143,10 +1147,10 @@ Receipt 是 holder 私域 audit record。Receipt MUST NOT 包含未披露字段�
 
 四类对象的字段 ownership 是单向的：credential schema 定义 claim 语义；Disclosure Policy 只拥有稳定的
 `holder_principal_id`、audience selector、allowed claims / fields、denied fields、consent 与 policy expiry；Presentation
-Request 独占本次 `verifier_service_id`、`represented_org`、`domain`、`challenge`、claim set 与 request expiry；Response
+Request 独占本次 `verifier_service_id`、`represented_organization_id`、`domain`、`challenge`、claim set 与 request expiry；Response
 和 Receipt 都只用 `(request_id, request_digest)` 绑定 exact Request，不复制这些 request-owned 字段。Policy 匹配要求
 `request.verifier_service_id` 属于 `policy.audience.verifier_service_ids` 且
-`request.represented_org == policy.audience.represented_org`；TSP transport 被选用时还必须匹配 policy 可选
+`request.represented_organization_id == policy.audience.represented_organization_id`；TSP transport 被选用时还必须匹配 policy 可选
 `tsp_vids`。challenge/domain 不进入可复用 Policy。
 
 Wallet 创建 Response 或 Receipt 前 MUST 重算 exact canonical Presentation Request Event digest，并逐字比较二者的
@@ -1173,7 +1177,7 @@ Service authorization claim 示例：
 {
   "issuer": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "subject": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
-  "claim_kind": "org_service_authorization",
+  "claim_kind": "organization_service_authorization",
   "service": "arkret_verifier",
   "expires_at": "2026-07-26T00:00:00Z"
 }

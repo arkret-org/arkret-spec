@@ -35,7 +35,7 @@
             {
               "target": {
                 "kind": "claim_selector",
-                "claim_kind": "org_membership",
+                "claim_kind": "organization_membership",
                 "issuer": "ak:did_core:webvh:z6mkfixtureissuer"
               },
               "action": "deny_restricted_join"
@@ -113,7 +113,7 @@
         "value": {
           "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
           "audience": {
-            "represented_org": "ak:did_core:webvh:z6mkfixtureorganization",
+            "represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
             "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]
           },
           "allowed_claims": [],
@@ -144,7 +144,7 @@
         "value": {
           "policy_family": "credential_specific",
           "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
-          "audience": {"represented_org": "ak:did_core:webvh:z6mkfixtureorganization", "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]},
+          "audience": {"represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization", "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]},
           "allowed_claims": [],
           "denied_fields": [],
           "user_consent_required": true,
@@ -163,7 +163,7 @@
         "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
         "value": {
           "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
-          "audience": {"represented_org": "ak:did_core:webvh:z6mkfixtureorganization"},
+          "audience": {"represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization"},
           "allowed_claims": [],
           "denied_fields": [],
           "user_consent_required": true,
@@ -182,7 +182,7 @@
         "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
         "value": {
           "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
-          "audience": {"represented_org": "ak:did_core:webvh:z6mkfixtureorganization", "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]},
+          "audience": {"represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization", "verifier_service_ids": ["ak:did_core:webvh:z6mkfixtureverifier"]},
           "allowed_claims": [],
           "denied_fields": [],
           "user_consent_required": true,
@@ -205,7 +205,7 @@
           "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "proof_profile": "vc_di_bbs_2023",
           "transport": "tsp",
-          "disclosed_fields": ["credentialSubject.org"],
+          "disclosed_fields": ["credentialSubject.organization_id"],
           "withheld_fields": ["credentialSubject.handle"],
           "created_at": "2026-04-26T00:00:00.000Z"
         }
@@ -268,7 +268,7 @@
           "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
           "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
           "verifier_service_id": "ak:did_core:webvh:z6mkfixtureverifier",
-          "represented_org": "did:webvh:z6mkfixtureorganization:organization.example",
+          "represented_organization_id": "did:webvh:z6mkfixtureorganization:organization.example",
           "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "proof_profile": "vc_di_bbs_2023",
           "transport": "tsp",

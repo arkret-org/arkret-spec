@@ -6150,7 +6150,7 @@
         "http": "GET /_arkret/self/realms/{realm_id}/policy-server",
         "grpc": "SelfRealmPolicyServer/Get",
         "mq": "self.realm_policy_server.resource.get",
-        "notes": "Reads the projected ak.realm.policy_server config. Returns not_found when neither the Realm nor its governed_by ancestor chain declared one. from_org_fallback=true marks an inherited config.",
+        "notes": "Reads the projected ak.realm.policy_server config. Returns not_found when neither the Realm nor its governed_by ancestor chain declared one. from_organization_fallback=true marks an inherited config.",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view"
       },

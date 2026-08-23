@@ -3,6 +3,7 @@
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#2-类型记法",
   "classification_registry": "spec/v1/artifacts/registry/classification-field-registry.json",
+  "canonical_lexeme_registry": "spec/v1/artifacts/registry/canonical-lexeme-registry.json",
   "evidence_material_audit": "tools/evidence-material-audit.json",
   "coverage_matrix": "tools/naming-rule-coverage-matrix.json",
   "identifier_classification_registry": "tools/identifier-classification-registry.json",
@@ -95,6 +96,34 @@
       "narrative_section": "R5",
       "exceptions": [],
       "enforcement": "predicate",
+      "exact_path_exceptions": []
+    },
+    {
+      "rule_id": "NC-LEXEME-001",
+      "axis": "canonical_domain_lexeme",
+      "applies_to": [
+        "wire_property",
+        "json_schema_defs_key",
+        "openapi_schema_component",
+        "symbolic_enum_value",
+        "registry_symbol",
+        "fixture_wire_specimen",
+        "normative_json_example",
+        "public_sdk_api"
+      ],
+      "predicate": "Arkret-owned names use complete canonical domain words and the default Arkret namespace; reject shortened aliases and redundant product-qualified aliases registered by canonical-lexeme-registry.json on word boundaries in snake_case, PascalCase and dotted symbols",
+      "narrative_section": "R9",
+      "exceptions": [
+        {
+          "id": "external-literal-or-identifier-payload",
+          "basis": "external_literal",
+          "reason": "An external standard literal, DNS name or opaque externally owned identifier payload is not an Arkret-owned contract name and remains byte-for-byte unchanged.",
+          "anchor": "spec/v1/zh/models/common-fields.md",
+          "external_anchor": "The owning external specification, registry or identifier namespace recorded by the enclosing contract"
+        }
+      ],
+      "enforcement": "predicate+registry",
+      "enforcement_scope": "The registry closes every adjudicated ordinary-word alias and the predicate sweeps schema properties, type names, enum values, registry symbols, fixtures and normative JSON examples. Introducing a new compact token requires classifying it under one of the registry's abbreviation authorities; ordinary word length alone never authorises shortening.",
       "exact_path_exceptions": []
     },
     {
@@ -273,6 +302,21 @@
       "expected": "reject"
     },
     {
+      "rule_id": "NC-LEXEME-001",
+      "candidate": "org_membership",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-LEXEME-001",
+      "candidate": "arkret_organization_membership_credential",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-LEXEME-001",
+      "candidate": "arkret_presentation_request",
+      "expected": "reject"
+    },
+    {
       "rule_id": "NC-EVIDENCE-001",
       "candidate": "single_signature_evidence",
       "expected": "reject"
@@ -386,6 +430,21 @@
     {
       "rule_id": "NC-CODE-001",
       "candidate": "outcome_reason_code",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-LEXEME-001",
+      "candidate": "organization_membership",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-LEXEME-001",
+      "candidate": "organization_membership_credential",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-LEXEME-001",
+      "candidate": "PresentationRequest",
       "expected": "accept"
     },
     {

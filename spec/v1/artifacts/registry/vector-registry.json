@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.5",
+  "version": "2026-08-23.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-23T14:20:00+08:00",
+  "generated_at": "2026-08-23T15:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3273,7 +3273,7 @@
       "domain": "identity",
       "applies_to_profiles": [
         "ak.profile.identity_registry.v1",
-        "ak.profile.org_high_assurance_identity.v1",
+        "ak.profile.organization_high_assurance_identity.v1",
         "ak.profile.principal_server.v1",
         "ak.profile.full_client.v1"
       ],

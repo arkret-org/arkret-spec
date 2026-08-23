@@ -336,6 +336,39 @@ def nc_type_001(candidate: str) -> bool:
     return unregistered_wrapper_word(candidate, DEFAULT_REJECTED_WRAPPER_WORDS) is not None
 
 
+DEFAULT_FORBIDDEN_LEXEMES = frozenset(
+    {
+        "org",
+        "arkret_organization_membership_credential",
+        "arkret_presentation_request",
+    }
+)
+def forbidden_lexeme_pattern(alias: str) -> re.Pattern[str]:
+    snake_clause = rf"(?:^|[_.:/-]){re.escape(alias)}(?=$|[_.:/-])"
+    pascal = "".join(word.title() for word in alias.split("_"))
+    return re.compile(
+        rf"{snake_clause}|(?:^|[a-z0-9]){re.escape(pascal)}(?=$|[A-Z0-9])"
+    )
+
+
+FORBIDDEN_LEXEME_PATTERNS = tuple(
+    forbidden_lexeme_pattern(alias) for alias in DEFAULT_FORBIDDEN_LEXEMES
+)
+
+
+def nc_lexeme_001(candidate: str) -> bool:
+    """Reject registered shortened aliases on Arkret-owned naming surfaces.
+
+    The registry decides which ordinary words have canonical full spellings;
+    this predicate only performs the casing-independent word-boundary check.
+    It therefore catches the same alias in ``org_membership``,
+    ``OrgMembershipClaim`` and ``ak.profile.org_identity.v1`` without treating
+    the letters inside ``organization`` as a match.
+    """
+
+    return any(pattern.search(candidate) for pattern in FORBIDDEN_LEXEME_PATTERNS)
+
+
 def nc_code_001(candidate: str) -> bool:
     """R5: machine reasons use reason_code / <domain>_reason_code."""
 
@@ -440,6 +473,7 @@ PREDICATES: dict[str, Callable[[str], bool]] = {
     "NC-COUNT-001": nc_count_001,
     "NC-ENUM-001": nc_enum_001,
     "NC-TYPE-001": nc_type_001,
+    "NC-LEXEME-001": nc_lexeme_001,
     "NC-CODE-001": nc_code_001,
     "NC-EVIDENCE-001": nc_evidence_001,
     "NC-ARTIFACT-001": nc_artifact_001,

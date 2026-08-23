@@ -505,9 +505,9 @@ quota authority MUST 同时满足：
   "effect": "allow",
   "required_claims": [
     {
-      "claim_kind": "org_membership",
+      "claim_kind": "organization_membership",
       "issuer": "did:webvh:zGPwcewZ4W5tpgJnGa3T8reYM:acme.com",
-      "organization": "did:webvh:zGPwcewZ4W5tpgJnGa3T8reYM:acme.com",
+      "organization_id": "did:webvh:zGPwcewZ4W5tpgJnGa3T8reYM:acme.com",
       "status": "active",
       "roles": ["employee", "contractor"]
     }
@@ -1028,7 +1028,7 @@ function matches_field_access(operation, constraint):
       "constraint_kind": "claim_based",
       "effect": "allow",
       "required_claims": [{
-        "claim_kind": "org_role",
+        "claim_kind": "organization_role",
         "roles": ["on_call"]
       }]
     }
@@ -1080,11 +1080,11 @@ Grant envelope 字段、签名规则与必填性以
   "effect": "allow",
   "required_claims": [
     {
-      "claim_kind": "arkret_org_membership_credential",
+      "claim_kind": "organization_membership_credential",
       "trusted_issuers": ["ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX"],
       "subject_matches_actor": true,
       "value_constraints": {
-        "org": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
+        "organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
         "member": true
       }
     }

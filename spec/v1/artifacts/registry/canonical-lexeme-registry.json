@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "2026-08-23.3",
+  "kind": "canonical_lexeme_registry",
+  "source_of_truth": true,
+  "description": "Closed adjudication table for Arkret-owned domain words that have historically acquired shortened aliases. Ordinary words stay complete on every contract surface; abbreviations are admitted only by one of the registered authority classes. The lint rejects every forbidden alias on schema property, type, symbolic-value, registry-symbol, fixture and normative JSON-example surfaces.",
+  "contract_surfaces": [
+    "wire_property",
+    "json_schema_defs_key",
+    "openapi_schema_component",
+    "symbolic_enum_value",
+    "registry_symbol",
+    "profile_id",
+    "operation_id",
+    "event_kind",
+    "schema_id",
+    "fixture_wire_specimen",
+    "normative_json_example",
+    "public_sdk_api"
+  ],
+  "abbreviation_authorities": [
+    {
+      "class": "external_standard_initialism",
+      "rule": "The initialism is the canonical name of an externally anchored standard or algorithm and the owning schema or registry records that authority; examples include DID, MLS, JWS, JWK, JWT, HTTP, TLS, URI, URL, UUID and OIDC."
+    },
+    {
+      "class": "arkret_glossary_initialism",
+      "rule": "The initialism is a canonical Arkret term explicitly defined by spec/v1/zh/overview/glossary.md; examples include CBA, PCR and E2EE."
+    },
+    {
+      "class": "registered_structural_word",
+      "rule": "The compact word is part of a closed structural naming table; v1 registers id and ref through common-fields.md identifier rules and the NC-TYPE-001 wrapper table."
+    },
+    {
+      "class": "external_literal",
+      "rule": "A field or value is preserved byte-for-byte from an external specification at an exact schema path carrying the required external anchor."
+    }
+  ],
+  "namespace_qualification_policy": {
+    "default_namespace": "arkret",
+    "internal_name_rule": "An Arkret-owned field, type, claim kind or symbolic value is already interpreted in the Arkret namespace and MUST NOT repeat the product name as an arkret_ or Arkret prefix.",
+    "qualification_rule": "A product or protocol qualifier is admitted only at an externally owned extension point, in a shared global namespace, as a cryptographic domain-separation label, or as a provider/backend discriminator where an unqualified word would collide. The exact qualified name and boundary MUST be registered before use.",
+    "external_import_rule": "Imported semantics use the external authority's stable registered name (for example oidc, scim, mimi or matrix) only when the contract intentionally distinguishes parallel authorities; generic future-proof prefixes are forbidden.",
+    "reserved_protocol_namespaces": "The globally serialized ak. symbolic namespace and ak: typed-ID namespace are mandatory protocol namespaces, not redundant product-word prefixes."
+  },
+  "exact_non_contract_exceptions": [
+    {
+      "file": "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json",
+      "json_path": "$.method_policy_cases[3].parameters.witness.structuredWitnesses[0].controllingOrg",
+      "name": "controllingOrg",
+      "basis": "external_literal",
+      "reason": "Raw did:webvh witness method evidence preserves the external controllingOrg member byte-for-byte.",
+      "external_anchor": "https://identity.foundation/didwebvh/v1.0/#witness"
+    }
+  ],
+  "canonical_terms": [
+    {
+      "canonical": "organization",
+      "pascal_case": "Organization",
+      "forbidden_aliases": [
+        "org"
+      ],
+      "reason": "Organization is an Arkret core domain noun, not a standard initialism. Shortening it creates competing wire, type and profile vocabularies.",
+      "identifier_rule": "When the value is an Organization DID, the field MUST use organization_id or a more specific <role>_organization_id form; bare organization is reserved for an embedded Organization value rather than its identifier.",
+      "allowed_non_contract_contexts": [
+        "internet DNS names including the .org top-level domain",
+        "opaque or externally owned identifier payloads",
+        "historical changelog text and negative conformance cases that name the rejected alias"
+      ]
+    },
+    {
+      "canonical": "organization_membership_credential",
+      "pascal_case": "OrganizationMembershipCredential",
+      "forbidden_aliases": [
+        "arkret_organization_membership_credential"
+      ],
+      "reason": "Arkret is the default namespace for Arkret-owned claim kinds and credential concepts. Repeating the product name does not disambiguate an external authority and would force internal renames whenever another protocol is imported.",
+      "identifier_rule": "Use organization_membership_credential on Arkret-owned claim/type axes. An externally owned extension point that truly needs qualification must register its exact mapped term and external boundary instead of leaking that qualifier back into the Arkret claim kind.",
+      "qualified_external_forms": [
+        {
+          "name": "https://arkret.org/v1/credentials/organization-membership",
+          "boundary": "W3C Verifiable Credentials Data Model type extension point",
+          "reason": "The W3C type value occupies an externally owned shared namespace and therefore uses an absolute Arkret-owned type IRI; this external name does not rename the internal claim_kind.",
+          "external_anchor": "https://www.w3.org/TR/vc-data-model-2.0/#types"
+        }
+      ],
+      "allowed_non_contract_contexts": [
+        "historical changelog text and negative conformance cases that name the rejected spelling"
+      ]
+    },
+    {
+      "canonical": "presentation_request",
+      "pascal_case": "PresentationRequest",
+      "forbidden_aliases": [
+        "arkret_presentation_request"
+      ],
+      "reason": "Presentation request is an Arkret-owned object in an Arkret specification, so the product qualifier is redundant.",
+      "identifier_rule": "Use presentation_request for the local symbolic value and ak.identity.presentation_request for its globally serialized protocol kind.",
+      "allowed_non_contract_contexts": [
+        "historical changelog text and negative conformance cases that name the rejected spelling"
+      ]
+    }
+  ]
+}

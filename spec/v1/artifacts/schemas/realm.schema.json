@@ -507,7 +507,7 @@
       }
     },
     {
-      "$comment": "single_signer notary profiles bind one frozen signer descriptor. controller_organization / recovery_controller_organizations / recovery_members are required ONLY when the deployment can derive a controlling organization (see notary.controller_organization 'when ... can derive it'; decisions/0003 §7 — personal / orgless Realms legitimately omit them and fall back to per-user recovery). When a controller_organization IS declared, an explicit recovery-notary diversity path MUST accompany it. The distinct-controller arithmetic stays semantic/reducer validation because JSON Schema cannot compare DID-controller derivations across resolver evidence.",
+      "$comment": "single_signer notary profiles bind one frozen signer descriptor. controller_organization / recovery_controller_organizations / recovery_members are required ONLY when the deployment can derive a controlling organization (see notary.controller_organization 'when ... can derive it'; decisions/0003 §7 — personal / organization-less Realms legitimately omit them and fall back to per-user recovery). When a controller_organization IS declared, an explicit recovery-notary diversity path MUST accompany it. The distinct-controller arithmetic stays semantic/reducer validation because JSON Schema cannot compare DID-controller derivations across resolver evidence.",
       "if": {
         "properties": {
           "notary": {
@@ -533,7 +533,7 @@
             },
             "allOf": [
               {
-                "$comment": "Org-controlled single_signer Realms MUST declare the recovery-notary diversity path alongside the controlling organization.",
+                "$comment": "Organization-controlled single_signer Realms MUST declare the recovery-notary diversity path alongside the controlling organization.",
                 "if": {
                   "required": [
                     "controller_organization"

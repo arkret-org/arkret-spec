@@ -350,6 +350,8 @@ NAMING_RULES_PATH = TOOLS_ROOT / "naming-convention-rules.json"
 
 NAMING_DEBT_PATH = TOOLS_ROOT / "naming-debt-baseline.json"
 
+CANONICAL_LEXEME_REGISTRY_PATH = ARTIFACTS / "registry" / "canonical-lexeme-registry.json"
+
 EVIDENCE_MATERIAL_AUDIT_PATH = TOOLS_ROOT / "evidence-material-audit.json"
 
 COMMON_OBJECT_FIELD_MATRIX_PATH = TOOLS_ROOT / "common-object-field-matrix.json"

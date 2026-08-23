@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 23,
+  "version": 24,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -126,7 +126,7 @@
       "context": "actor_profile.actor_kind",
       "since_revision": "2026-06-09",
       "rejection_level": "hard_reject",
-      "replacement": "owning user/org principal DID as actor_id; device identity via device_id (ak:device:<uuid>) + ak.device.authorize",
+      "replacement": "owning user/organization principal DID as actor_id; device identity via device_id (ak:device:<uuid>) + ak.device.authorize",
       "allowed_contexts": [
         "changelog",
         "negative_test"

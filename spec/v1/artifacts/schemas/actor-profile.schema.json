@@ -29,7 +29,7 @@
       "type": "string",
       "enum": [
         "user",
-        "org",
+        "organization",
         "team",
         "agent",
         "service",

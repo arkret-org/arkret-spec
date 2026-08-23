@@ -38,7 +38,7 @@
         "timeout_ms",
         "on_timeout",
         "updated_at",
-        "from_org_fallback"
+        "from_organization_fallback"
       ],
       "properties": {
         "realm_id": {
@@ -66,9 +66,9 @@
         "updated_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "from_org_fallback": {
+        "from_organization_fallback": {
           "type": "boolean",
-          "description": "True when the config was resolved via the governed_by / org-fallback chain rather than a row on the Realm itself."
+          "description": "True when the config was resolved via the governed_by / organization-fallback chain rather than a row on the Realm itself."
         }
       },
       "additionalProperties": false

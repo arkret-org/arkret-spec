@@ -22,7 +22,7 @@
     "partial": "Some occurrences are decided mechanically and the remainder needs human judgement or a registry that is not yet complete."
   },
   "coverage_summary": {
-    "predicate": 17,
+    "predicate": 18,
     "registry_closure": 8,
     "schema_type": 3,
     "prose_only": 7,
@@ -179,6 +179,45 @@
           "prose.py:check_naming_predicates"
         ],
         "registries": [
+          "tools/naming-convention-rules.json"
+        ]
+      },
+      "entry_points": [
+        "naming_predicates"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "full"
+    },
+    {
+      "rule_id": "NC-LEXEME-001",
+      "title": "Arkret-owned contract names use complete canonical words and omit redundant product qualification",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0.1",
+        "quote": "**R9 canonical 领域词、缩写与命名域限定**"
+      },
+      "applies_to": [
+        "wire_property",
+        "json_schema_defs_key",
+        "openapi_schema_component",
+        "symbolic_enum_value",
+        "registry_symbol",
+        "fixture_wire_specimen",
+        "normative_json_example",
+        "public_sdk_api"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [
+          "NC-LEXEME-001"
+        ],
+        "functions": [
+          "prose.py:check_naming_predicates"
+        ],
+        "registries": [
+          "spec/v1/artifacts/registry/canonical-lexeme-registry.json",
           "tools/naming-convention-rules.json"
         ]
       },

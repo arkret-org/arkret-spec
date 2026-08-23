@@ -288,7 +288,7 @@ Sovereign 部署默认采用 **`notary.kind=single_signer`**：每个 Realm crea
 
 ```json
 {
-  "claim_kind": "external_org_authorization",
+  "claim_kind": "external_organization_authorization",
   "issuer": "ak:did_core:webvh:zGsmzvyUSDby8As5bHG3kAtWL",
   "subject": "ak:did_core:webvh:zGTog8Hi4N3h8YrvWRQ2Lr3RP",
   "claim_scope": {
