@@ -326,7 +326,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "e000afcfe6b15e217bb0c80dc55e9c94784cbdb149c74a97a6789f0323d0ab24"
+      "sha256": "c5c88001c864cd540fe11095d8af1b56a95dba3a9244474de3740c7ee4bacac1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
-      "sha256": "c383e1c19eafdc775b3718b5d79a8f92244607c5477d07140fbeb6dc630afd4a"
+      "sha256": "6e1c6569f2c7325621b0805f127d120ff4a4f18098089ee8b4867d22004824ab"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",

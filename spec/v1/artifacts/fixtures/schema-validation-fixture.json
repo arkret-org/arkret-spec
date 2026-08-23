@@ -2698,7 +2698,7 @@
       "instance": {
         "request_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "prepared_plan_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-        "expected_next_step": "issue_terminal_receipt"
+        "expected_accepted_step_count": 1
       }
     },
     {

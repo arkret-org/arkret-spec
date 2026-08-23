@@ -24,26 +24,25 @@ SecurityTransaction {
   expires_at,
   created_at,
   request_digest,
-  binding,
   prepared_plan,
   prepared_plan_digest,
   state,
   accepted_steps,
-  next_required_step,
   terminal_result
 }
 ```
 
 `kind` 是 `recovery` 或 `security_rotation`。`state` 是
 `pending | running | awaiting_device_attestation | completed | aborted | expired`；后三者是唯一终态。
-`binding` 由 `kind` 选择闭合 shape，不能使用任意键值或通用步骤 DSL。
-`prepared_plan` 是按 kind/model 判别的 closed typed public plan；`prepared_plan_digest` 必须
-等于其完整 canonical bytes digest。`prepared_plan` 内不得再携带自身 digest，也没有计算时
-排除某字段的隐式规则。`accepted_steps[]` 的每项固定为
-`{step, prepared_material_digest, acceptor_id, output_ref, output_digest, accepted_at}`；
-`step` 必须属于该 kind/model 的闭集且在 transaction 内唯一，
-数组必须是下述顺序的连续前缀，不能跳步、重排或为同一步记录第二个 digest。
-`next_required_step` 只能是该闭集中紧随此前缀的下一项；终态必须为 `null`。
+`prepared_plan` 是按 kind/model 判别的 closed typed public plan，也是 intent 与 reserved material 的唯一
+canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 的 reserved binding view 由
+`revoke_unit` 与两项 `backup_rotations[].binding` 等字段纯函数投影，不能使用任意键值或通用步骤 DSL。
+`prepared_plan_digest` 是 coordinator 对完整 plan canonical bytes 重算并返回的只读派生值；create request
+不得携带该值，`prepared_plan` 内也不得携带自身 digest，计算时没有排除字段的隐式规则。
+`accepted_steps[]` 的每项固定为
+`{prepared_material_digest, acceptor_id, output_ref, output_digest, accepted_at}`；数组位置按下述固定步骤表
+唯一决定 step kind，整个数组必须是连续前缀，不能跳步、重排或为同一步记录第二个 digest。非终态的下一步
+等于 `steps(kind)[accepted_steps.length]`；resource 不重复序列化该派生值。
 
 共同不变量：
 
@@ -52,7 +51,7 @@ SecurityTransaction {
    全部公开 Event/object/series/ticket id；
 3. 同 id + 同 canonical bytes 返回 byte-identical 已记录 result；
 4. 同 id + 不同 bytes 返回 `duplicate_conflict`；
-5. store 分别保存 typed binding、prepared canonical bytes、首次 result 与每步 accepted output，
+5. store 分别保存唯一 typed prepared plan/canonical bytes、首次 result 与每步 accepted output，
    不能只保存“见过 id”或用一个 ref 混淆 reserved/prepared/accepted；
 6. coordinator restart、response lost 与重试都从 transaction resource 续跑；
 7. 可按 id 权威查询，不由客户端猜进度；
@@ -72,17 +71,18 @@ SecurityTransaction {
 | `ak.self.security_transaction.resource.get` | `GET /_arkret/self/security-transactions/{transaction_id}` | `SecurityTransaction` |
 | `ak.self.security_transaction.command.continue` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | `#/$defs/continue_request` → `SecurityTransaction` |
 
-两种 `create` 都必须在一个 durable transaction 中保存 canonical request bytes/digest、
-typed prepared plan/digest、全部 reserved ids 与初始 resource，然后才能执行第一个副作用。
+两种 `create` 都只接受完整 typed plan；coordinator 必须在一个 durable transaction 中保存 canonical request
+bytes/digest、typed prepared plan、自己重算的 plan digest、全部 reserved ids 与初始 resource，然后才能执行第一个副作用。
 Recovery create 还必须只接受属于同一 principal、已 verified 且尚未绑定其它 transaction 的
 recovery session，并在同一 durable commit 中 CAS 绑定该 session；SecurityRotation create
 不依赖 recovery session，必须验证当前 principal 的 high-risk action authority。`continue` 的 `request_digest`、
-`prepared_plan_digest` 和 `expected_next_step` 必须与当前 resource 精确相等，否则
+`prepared_plan_digest` 必须与当前 resource 精确相等，`expected_accepted_step_count` 必须等于当前
+`accepted_steps.length`，否则
 `duplicate_conflict` /
 `failed_precondition`；它不是提交任意步骤列表的接口。
 
 只有 `issue_terminal_receipt` 与 `local_commit` 可以携带 `client_attestation`，且其 `output_ref`
-必须等于 binding 中预留的 `terminal_receipt_id` / `local_commit_digest`。attestation 必须携带
+必须等于 prepared plan 中预留的 `terminal_receipt_id` / `local_commit_digest`。attestation 必须携带
 typed `artifact`：前者是完整 `ak.schema.recovery_receipt.v1`，后者是
 `ak.schema.security_rotation_local_commit.v1`。`attestation_digest` 必须等于
 `SHA-256(JCS(artifact))`；外层 Ed25519 `auth_data.signed_fields` 必须逐字等于
@@ -94,13 +94,14 @@ attestation_digest` 的有序集合并签该 JCS projection。coordinator 必须
 
 旧 `recovery_session.command.complete` 不属于 v1。recovery session 只负责建立 verified 证据；
 完成投影只能由接受 terminal receipt 的 RecoveryTransaction coordinator 原子写入，不能存在绕过
-transaction binding、prepared plan 和 accepted-step ledger 的第二个公开完成入口。
+prepared plan binding 和 accepted-step ledger 的第二个公开完成入口。
 
 ## 2. RecoveryTransaction
 
-RecoveryTransaction 的基础 `identity_model="pcr_policy"`。binding 固定 account authority pair 与本地 PCR lineage、recovery
-session/policy、replacement device、previous/result PCR generation、re-anchor/authorize Event ids 与 terminal
-receipt；prepared plan 固定 ordered re-anchor unit，不含 DID publication。
+RecoveryTransaction 的基础 `identity_model="pcr_policy"`。`prepared_plan.binding` 固定 account authority pair 与本地 PCR
+lineage、recovery session/policy、replacement device、re-anchor/authorize Event ids 与 terminal receipt；plan 其余字段
+固定 previous/result PCR generation 与 ordered re-anchor unit，不含 DID publication。`identity_model` 只在内嵌 binding
+出现一次。
 
 基础步骤严格为：
 
@@ -142,7 +143,7 @@ complete erase confirmation 与 local commit artifact 仍必须回显最终
 上述投影复算预留 digest。这样 outcome 与最终 plan 逐字绑定，同时不形成 request/plan digest
 的哈希不动点。
 
-`prepared_plan.backup_rotations[]` 与 binding逐项相等，并为每项保存 encrypted material与
+`prepared_plan.backup_rotations[]` 的内嵌 binding 是每项 reserved series/object refs 的唯一 source，并同时保存 encrypted material与
 active-series Event prepared unit。公开transaction/checkpoint只保存该typed public plan；
 staged account secret、明文keybag、MLS secret与私钥只能留在zeroizing secure-store slot，
 且终态必须清除。

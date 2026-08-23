@@ -1070,7 +1070,7 @@
             "event_draft": {
               "allOf": [
                 {
-                  "$ref": "#/$defs/contact_prepared_event_draft"
+                  "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
                 },
                 {
                   "properties": {
@@ -1116,7 +1116,7 @@
             "event_draft": {
               "allOf": [
                 {
-                  "$ref": "#/$defs/contact_prepared_event_draft"
+                  "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
                 },
                 {
                   "properties": {
@@ -1162,7 +1162,7 @@
             "event_draft": {
               "allOf": [
                 {
-                  "$ref": "#/$defs/contact_prepared_event_draft"
+                  "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
                 },
                 {
                   "properties": {
@@ -1208,7 +1208,7 @@
             "event_draft": {
               "allOf": [
                 {
-                  "$ref": "#/$defs/contact_prepared_event_draft"
+                  "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
                 },
                 {
                   "properties": {
@@ -1254,7 +1254,7 @@
             "event_draft": {
               "allOf": [
                 {
-                  "$ref": "#/$defs/contact_prepared_event_draft"
+                  "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
                 },
                 {
                   "properties": {
@@ -1578,37 +1578,6 @@
           "additionalProperties": false
         }
       ]
-    },
-    "contact_prepared_event_draft": {
-      "type": "object",
-      "required": [
-        "event_id",
-        "kind",
-        "unsigned_event_bytes",
-        "event_digest"
-      ],
-      "properties": {
-        "event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "kind": {
-          "enum": [
-            "ak.contact.requested",
-            "ak.contact.accepted",
-            "ak.contact.rejected",
-            "ak.contact.scope.update",
-            "ak.contact.tombstone"
-          ]
-        },
-        "unsigned_event_bytes": {
-          "$ref": "./principal-operations.schema.json#/$defs/base64url"
-        },
-        "event_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Service-fixed canonical Event bytes without the holder proof. The client may only append the proof; after removing that proof the commit Event must equal these bytes, ID and digest exactly."
     },
     "contact_reject_outcome": {
       "allOf": [

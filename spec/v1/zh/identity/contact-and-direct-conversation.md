@@ -54,10 +54,11 @@ prepare private durable reservation
 ```
 
 prepare **MUST** 保存 operation/idempotency/canonical request digest、预分配 Event ID、完整 peer XOR、方向化
-full-set scope、expiry 与该分支已有的 round/version/predecessor，并返回branch-typed
-`{event_id,kind,unsigned_event_bytes,event_digest}` canonical draft；request/reject不得伪造未来 round 字段。draft
-不含holder proof，客户端只可追加该proof。commit移除proof后必须与reserved unsigned bytes、ID、kind与digest
-逐字一致，任何其它变化返回conflict；不存在接受caller自造Event shape的分支。五类 Contact Event 均为
+full-set scope、expiry 与该分支已有的 round/version/predecessor，并返回 branch-typed
+`{unsigned_event_bytes,event_digest}` canonical draft；request/reject不得伪造未来 round 字段。typed digest 携带 suite，
+Event ID 与 kind 分别由 digest 和 canonical bytes 唯一派生，不得作为平行 wire source。draft
+不含holder proof，客户端只可追加该proof。commit移除proof后必须与 reserved unsigned bytes 和 digest
+逐字一致，并对最终 Event 执行普通 content-bound ID/kind 校验；任何其它变化返回conflict，不存在接受caller自造Event shape的分支。五类 Contact Event 均为
 Control Move；commit body 可携带`control_proposal_ack`，其结构和验证规则与
 `EventInitialSubmission.control_proposal_ack`完全相同。当接收 Principal Server 不能代表当前 authority set
 产生完整 quorum 时，caller **MUST** 携带该字段；服务端能产生时该字段 **MAY** 省略。该证据只是

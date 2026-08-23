@@ -1,4 +1,4 @@
-"""Mutation tests for security-transaction step and prepared-material closure."""
+"""Mutation tests for canonical security-transaction intent and progress."""
 
 from __future__ import annotations
 
@@ -49,26 +49,50 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
     def test_current_schema_is_closed(self) -> None:
         self.assertEqual(self._lint(), [])
 
-    def test_step_without_variant_fails(self) -> None:
+    def test_step_order_drift_fails(self) -> None:
         def mutate(schema) -> None:
-            schema["$defs"]["any_step"]["enum"].append("orphan_probe")
+            schema["$defs"]["security_rotation_step"]["enum"].reverse()
 
         errors = self._lint(mutate)
         self.assertTrue(
-            any("has no $defs/accepted_orphan_probe" in error for error in errors),
+            any("must declare the canonical order" in error for error in errors),
             errors,
         )
 
-    def test_step_without_tuple_consumer_fails(self) -> None:
+    def test_per_step_accepted_wrapper_fails(self) -> None:
         def mutate(schema) -> None:
-            tuple_def = schema["$defs"]["pcr_policy_accepted_steps"]
-            tuple_def["prefixItems"] = tuple_def["prefixItems"][1:]
+            schema["$defs"]["accepted_revoke"] = {
+                "$ref": "#/$defs/accepted_step"
+            }
 
         errors = self._lint(mutate)
         self.assertTrue(
-            any("is not consumed by any *_accepted_steps tuple" in error for error in errors),
+            any("per-step accepted wrapper" in error for error in errors),
             errors,
         )
+
+    def test_resource_derived_next_step_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["properties"]["next_required_step"] = {"type": "string"}
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("derived next_required_step" in error for error in errors), errors)
+
+    def test_create_caller_plan_digest_fails(self) -> None:
+        def mutate(schema) -> None:
+            create = schema["$defs"]["recovery_create_request"]
+            create["properties"]["prepared_plan_digest"] = {"$ref": "#/$defs/digest"}
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("caller-supplied prepared_plan_digest" in error for error in errors), errors)
+
+    def test_continue_derived_step_fails(self) -> None:
+        def mutate(schema) -> None:
+            request = schema["$defs"]["continue_request"]
+            request["properties"]["expected_next_step"] = {"type": "string"}
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("derived expected_next_step" in error for error in errors), errors)
 
     def test_orphan_prepared_material_fails(self) -> None:
         def mutate(schema) -> None:

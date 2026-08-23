@@ -36,6 +36,7 @@ from .foundation import (
 )
 
 from .schemas import (
+    check_canonical_wire_source_closure,
     check_circle_lifecycle_basis_vector,
     check_circle_membership_enum_single_source,
     check_classification_context_paths,
@@ -297,6 +298,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "security_transaction_schema_closure",
                 lambda: check_security_transaction_schema_closure(lint),
+            ),
+            (
+                "canonical_wire_source_closure",
+                lambda: check_canonical_wire_source_closure(lint),
             ),
             ("profile_requirements", lambda: check_profile_requirements(lint, known)),
             ("sdk_conformance", lambda: check_sdk_conformance_contract(lint)),

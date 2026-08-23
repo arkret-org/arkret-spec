@@ -7,8 +7,8 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "digest_copy_or_commitment": 34,
-    "complete_event_id": 172,
+    "digest_copy_or_commitment": 33,
+    "complete_event_id": 166,
     "external_event_namespace": 1
   },
   "fields": [
@@ -400,18 +400,6 @@
       "schema": "contact-operations.schema.json",
       "json_pointer": "/$defs/contact_next_prepare_input/properties/predecessor_event_ref",
       "field": "predecessor_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "contact-operations.schema.json",
-      "json_pointer": "/$defs/contact_prepared_event_draft/properties/event_digest",
-      "field": "event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "contact-operations.schema.json",
-      "json_pointer": "/$defs/contact_prepared_event_draft/properties/event_id",
-      "field": "event_id",
       "classification": "complete_event_id"
     },
     {
@@ -950,38 +938,14 @@
     },
     {
       "schema": "principal-operations.schema.json",
-      "json_pointer": "/$defs/sidecar_control_frontier/properties/create_event_ref",
-      "field": "create_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "principal-operations.schema.json",
-      "json_pointer": "/$defs/sidecar_ensure_outcome/oneOf/0/properties/context_attach_event_id",
-      "field": "context_attach_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "principal-operations.schema.json",
-      "json_pointer": "/$defs/sidecar_ensure_outcome/oneOf/0/properties/create_event_id",
-      "field": "create_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "principal-operations.schema.json",
-      "json_pointer": "/$defs/sidecar_ensure_outcome/oneOf/1/properties/context_attach_event_id",
-      "field": "context_attach_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "principal-operations.schema.json",
-      "json_pointer": "/$defs/sidecar_prepared_event_draft/properties/event_digest",
+      "json_pointer": "/$defs/prepared_event_draft/properties/event_digest",
       "field": "event_digest",
       "classification": "digest_copy_or_commitment"
     },
     {
       "schema": "principal-operations.schema.json",
-      "json_pointer": "/$defs/sidecar_prepared_event_draft/properties/event_id",
-      "field": "event_id",
+      "json_pointer": "/$defs/sidecar_control_frontier/properties/create_event_ref",
+      "field": "create_event_ref",
       "classification": "complete_event_id"
     },
     {
@@ -1078,12 +1042,6 @@
       "schema": "security-transaction.schema.json",
       "json_pointer": "/$defs/pcr_policy_recovery_binding/properties/reanchor_event_id",
       "field": "reanchor_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "security-transaction.schema.json",
-      "json_pointer": "/$defs/security_rotation_binding/properties/revoke_event_id",
-      "field": "revoke_event_id",
       "classification": "complete_event_id"
     },
     {

@@ -611,8 +611,6 @@
         "pairing_code",
         "new_device_pubkey",
         "challenge_proof",
-        "hpke_key",
-        "device_signature",
         "authorize_event"
       ],
       "properties": {
@@ -626,17 +624,9 @@
           "$ref": "./device-pairing.schema.json#/$defs/device_pairing_challenge_proof",
           "description": "Structured proof of possession of new_device_pubkey. The Account Authority MUST recompute the signing transcript itself and MUST NOT settle for byte equality against a stored copy. Which transcript applies is fixed by the request shape: with device_pairing_request_id it is ak.device-pairing.challenge.v1 rebuilt from the staged record; with challenge_transcript it is ak.device-pairing.challenge.to_device.v1 rebuilt from those inputs plus the Account Authority own gate_audience origin. The digest of that recomputed transcript is also the value the target device_signature commits to, so one recomputation gates both proofs. A mismatched transcript_digest, a transcript name that does not match the request shape, a kid other than new_device_pubkey.kid, or a failing signature MUST NOT authorize a device."
         },
-        "hpke_key": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "New target device X25519 HPKE public key. It MUST be byte-identical to authorize_event.event.payload.hpke_key and is never generated or substituted by the service. Its authority is the out-of-band device_pairing_target_attestation the approving device verified, not the staged record: the unauthenticated staging surface never carries this value."
-        },
-        "device_signature": {
-          "$ref": "./event-payload.schema.json#/$defs/signature_material",
-          "description": "Target-device Ed25519 possession proof over ak.device_authorize_accepted_device_possession_proof.v1: this operation always produces authorization_binding_kind=accepted_device, so registration_anchor and pcr_recovery possession domains MUST be rejected here. It MUST be byte-identical to authorize_event.event.payload.device_signature and verify under new_device_pubkey."
-        },
         "authorize_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-          "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the ordinary Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. The payload MUST name the target new_device_pubkey.kid, hpke_key and device_signature from this request, set authorization_binding_kind=accepted_device, and name the approving current device id in authorized_by. The proof.verification_method bare DID component MUST project through its registered adapter to principal_id and its fragment MUST equal authorized_by; appending a fragment to did_core_id is forbidden. That Event proof, not the target device_signature, binds principal_id, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
+          "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the ordinary Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. Its typed payload is the sole source of hpke_key and the target-device possession device_signature, MUST match new_device_pubkey by device id and Ed25519 key bytes, MUST set authorization_binding_kind=accepted_device, and MUST name the approving current device id in authorized_by. The proof.verification_method bare DID component MUST project through its registered adapter to principal_id and its fragment MUST equal authorized_by; appending a fragment to did_core_id is forbidden. That Event proof, not the target device_signature, binds principal_id, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/security-transaction.schema.json",
   "title": "Arkret Security Transaction",
-  "description": "Closed durable RecoveryTransaction and SecurityRotationTransaction resource. Binding, prepared plan and accepted outputs are separate protocol states.",
+  "description": "Closed durable RecoveryTransaction and SecurityRotationTransaction resource. The prepared plan is the sole canonical intent source; accepted outputs form a durable ordered prefix.",
   "type": "object",
   "required": [
     "transaction_id",
@@ -12,12 +12,10 @@
     "expires_at",
     "created_at",
     "request_digest",
-    "binding",
     "prepared_plan",
     "prepared_plan_digest",
     "state",
-    "accepted_steps",
-    "next_required_step"
+    "accepted_steps"
   ],
   "properties": {
     "transaction_id": {
@@ -44,16 +42,6 @@
     },
     "request_digest": {
       "$ref": "#/$defs/digest"
-    },
-    "binding": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/pcr_policy_recovery_binding"
-        },
-        {
-          "$ref": "#/$defs/security_rotation_binding"
-        }
-      ]
     },
     "prepared_plan": {
       "oneOf": [
@@ -85,17 +73,8 @@
       "maxItems": 5,
       "items": {
         "$ref": "#/$defs/accepted_step"
-      }
-    },
-    "next_required_step": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/any_step"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      },
+      "description": "Durable accepted prefix. Entry i has the step kind at index i of the fixed order selected by kind; entries never carry a duplicate step label."
     },
     "terminal_result": {
       "$ref": "#/$defs/terminal_result"
@@ -115,24 +94,11 @@
       },
       "then": {
         "properties": {
-          "binding": {
-            "$ref": "#/$defs/pcr_policy_recovery_binding"
-          },
           "prepared_plan": {
             "$ref": "#/$defs/pcr_policy_recovery_plan"
           },
           "accepted_steps": {
             "$ref": "#/$defs/pcr_policy_accepted_steps"
-          },
-          "next_required_step": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/pcr_policy_recovery_step"
-              },
-              {
-                "type": "null"
-              }
-            ]
           }
         },
         "allOf": [
@@ -143,24 +109,11 @@
       },
       "else": {
         "properties": {
-          "binding": {
-            "$ref": "#/$defs/security_rotation_binding"
-          },
           "prepared_plan": {
             "$ref": "#/$defs/security_rotation_plan"
           },
           "accepted_steps": {
             "$ref": "#/$defs/security_rotation_accepted_steps"
-          },
-          "next_required_step": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/security_rotation_step"
-              },
-              {
-                "type": "null"
-              }
-            ]
           }
         },
         "allOf": [
@@ -188,12 +141,7 @@
       "then": {
         "required": [
           "terminal_result"
-        ],
-        "properties": {
-          "next_required_step": {
-            "type": "null"
-          }
-        }
+        ]
       },
       "else": {
         "not": {
@@ -314,66 +262,9 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "accepted_erase_old_material": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/accepted_step"
-        },
-        {
-          "properties": {
-            "step": {
-              "const": "erase_old_material"
-            }
-          }
-        }
-      ]
-    },
-    "accepted_issue_terminal_receipt": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/accepted_step"
-        },
-        {
-          "properties": {
-            "step": {
-              "const": "issue_terminal_receipt"
-            }
-          }
-        }
-      ]
-    },
-    "accepted_local_commit": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/accepted_step"
-        },
-        {
-          "properties": {
-            "step": {
-              "const": "local_commit"
-            }
-          }
-        }
-      ]
-    },
-    "accepted_revoke": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/accepted_step"
-        },
-        {
-          "properties": {
-            "step": {
-              "const": "revoke"
-            }
-          }
-        }
-      ]
-    },
     "accepted_step": {
       "type": "object",
       "required": [
-        "step",
         "prepared_material_digest",
         "acceptor_id",
         "output_ref",
@@ -381,9 +272,6 @@
         "accepted_at"
       ],
       "properties": {
-        "step": {
-          "$ref": "#/$defs/any_step"
-        },
         "prepared_material_digest": {
           "$ref": "#/$defs/digest"
         },
@@ -401,61 +289,8 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
-    },
-    "accepted_submit_reanchor_unit": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/accepted_step"
-        },
-        {
-          "properties": {
-            "step": {
-              "const": "submit_reanchor_unit"
-            }
-          }
-        }
-      ]
-    },
-    "accepted_switch_authoritative_pointer": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/accepted_step"
-        },
-        {
-          "properties": {
-            "step": {
-              "const": "switch_authoritative_pointer"
-            }
-          }
-        }
-      ]
-    },
-    "accepted_upload_new_material": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/accepted_step"
-        },
-        {
-          "properties": {
-            "step": {
-              "const": "upload_new_material"
-            }
-          }
-        }
-      ]
-    },
-    "any_step": {
-      "type": "string",
-      "enum": [
-        "submit_reanchor_unit",
-        "issue_terminal_receipt",
-        "revoke",
-        "upload_new_material",
-        "switch_authoritative_pointer",
-        "erase_old_material",
-        "local_commit"
-      ]
+      "additionalProperties": false,
+      "description": "Evidence accepted at one position in the kind-specific fixed step order. The position, not a duplicated label, determines the step kind."
     },
     "backup_id": {
       "type": "string",
@@ -563,10 +398,24 @@
       ],
       "properties": {
         "step": {
-          "type": "string",
-          "enum": [
-            "issue_terminal_receipt",
-            "local_commit"
+          "allOf": [
+            {
+              "type": "string",
+              "enum": [
+                "issue_terminal_receipt",
+                "local_commit"
+              ]
+            },
+            {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/pcr_policy_recovery_step"
+                },
+                {
+                  "$ref": "#/$defs/security_rotation_step"
+                }
+              ]
+            }
           ]
         },
         "output_ref": {
@@ -665,7 +514,7 @@
       "required": [
         "request_digest",
         "prepared_plan_digest",
-        "expected_next_step"
+        "expected_accepted_step_count"
       ],
       "properties": {
         "request_digest": {
@@ -674,8 +523,11 @@
         "prepared_plan_digest": {
           "$ref": "#/$defs/digest"
         },
-        "expected_next_step": {
-          "$ref": "#/$defs/any_step"
+        "expected_accepted_step_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4,
+          "description": "CAS coordinate. It MUST equal the current accepted_steps length; the coordinator selects the next fixed step from transaction kind and this index."
         },
         "client_attestation": {
           "$ref": "#/$defs/client_step_attestation"
@@ -690,10 +542,10 @@
           },
           "then": {
             "properties": {
-              "expected_next_step": {
+              "expected_accepted_step_count": {
                 "enum": [
-                  "issue_terminal_receipt",
-                  "local_commit"
+                  1,
+                  4
                 ]
               }
             }
@@ -702,15 +554,15 @@
         {
           "if": {
             "properties": {
-              "expected_next_step": {
+              "expected_accepted_step_count": {
                 "enum": [
-                  "issue_terminal_receipt",
-                  "local_commit"
+                  1,
+                  4
                 ]
               }
             },
             "required": [
-              "expected_next_step"
+              "expected_accepted_step_count"
             ]
           },
           "then": {
@@ -805,9 +657,7 @@
         "kind",
         "principal_id",
         "expires_at",
-        "binding",
-        "prepared_plan",
-        "prepared_plan_digest"
+        "prepared_plan"
       ],
       "properties": {
         "transaction_id": {
@@ -823,14 +673,8 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "binding": {
-          "$ref": "#/$defs/pcr_policy_recovery_binding"
-        },
         "prepared_plan": {
           "$ref": "#/$defs/pcr_policy_recovery_plan"
-        },
-        "prepared_plan_digest": {
-          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -842,15 +686,10 @@
     "pcr_policy_accepted_steps": {
       "type": "array",
       "maxItems": 2,
-      "prefixItems": [
-        {
-          "$ref": "#/$defs/accepted_submit_reanchor_unit"
-        },
-        {
-          "$ref": "#/$defs/accepted_issue_terminal_receipt"
-        }
-      ],
-      "items": false
+      "items": {
+        "$ref": "#/$defs/accepted_step"
+      },
+      "description": "Accepted prefix for the canonical pcr_policy step order declared by pcr_policy_recovery_step."
     },
     "pcr_policy_progress_contract": {
       "allOf": [
@@ -876,9 +715,6 @@
                   "accepted_steps": {
                     "maxItems": 0
                   },
-                  "next_required_step": {
-                    "const": "submit_reanchor_unit"
-                  },
                   "state": {
                     "enum": [
                       "pending",
@@ -892,9 +728,6 @@
                   "accepted_steps": {
                     "minItems": 1,
                     "maxItems": 1
-                  },
-                  "next_required_step": {
-                    "const": "issue_terminal_receipt"
                   },
                   "state": {
                     "const": "awaiting_device_attestation"
@@ -961,7 +794,7 @@
     "pcr_policy_recovery_plan": {
       "type": "object",
       "required": [
-        "identity_model",
+        "binding",
         "recovery_session_snapshot_digest",
         "proof_digest",
         "previous_model_generation_ref",
@@ -969,8 +802,8 @@
         "reanchor_unit"
       ],
       "properties": {
-        "identity_model": {
-          "const": "pcr_policy"
+        "binding": {
+          "$ref": "#/$defs/pcr_policy_recovery_binding"
         },
         "recovery_session_snapshot_digest": {
           "$ref": "#/$defs/digest"
@@ -992,6 +825,7 @@
     },
     "pcr_policy_recovery_step": {
       "type": "string",
+      "description": "The enum array order is the canonical PCR-policy recovery step order addressed by accepted_steps indexes.",
       "enum": [
         "submit_reanchor_unit",
         "issue_terminal_receipt"
@@ -1000,61 +834,10 @@
     "security_rotation_accepted_steps": {
       "type": "array",
       "maxItems": 5,
-      "prefixItems": [
-        {
-          "$ref": "#/$defs/accepted_revoke"
-        },
-        {
-          "$ref": "#/$defs/accepted_upload_new_material"
-        },
-        {
-          "$ref": "#/$defs/accepted_switch_authoritative_pointer"
-        },
-        {
-          "$ref": "#/$defs/accepted_erase_old_material"
-        },
-        {
-          "$ref": "#/$defs/accepted_local_commit"
-        }
-      ],
-      "items": false
-    },
-    "security_rotation_binding": {
-      "type": "object",
-      "required": [
-        "revoke_event_id",
-        "new_secret_commitment",
-        "backup_rotations",
-        "erase_confirmation_digest",
-        "local_commit_digest"
-      ],
-      "properties": {
-        "revoke_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "new_secret_commitment": {
-          "$ref": "#/$defs/digest"
-        },
-        "backup_rotations": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/backup_rotation_binding"
-          },
-          "description": "Exactly secret_storage then mls_history in canonical backup_kind order."
-        },
-        "erase_confirmation_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 of the non-circular JCS projection {domain=ak.backup_series_erase_confirmation_preimage.v1, transaction_id, series=backup_rotations}."
-        },
-        "local_commit_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 of the non-circular JCS projection {domain=ak.security_rotation_local_commit_preimage.v1, transaction_id, new_secret_commitment, backup_rotations}."
-        }
+      "items": {
+        "$ref": "#/$defs/accepted_step"
       },
-      "additionalProperties": false
+      "description": "Accepted prefix for the canonical rotation step order declared by security_rotation_step."
     },
     "security_rotation_create_request": {
       "type": "object",
@@ -1063,9 +846,7 @@
         "kind",
         "principal_id",
         "expires_at",
-        "binding",
-        "prepared_plan",
-        "prepared_plan_digest"
+        "prepared_plan"
       ],
       "properties": {
         "transaction_id": {
@@ -1081,14 +862,8 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "binding": {
-          "$ref": "#/$defs/security_rotation_binding"
-        },
         "prepared_plan": {
           "$ref": "#/$defs/security_rotation_plan"
-        },
-        "prepared_plan_digest": {
-          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -1153,15 +928,15 @@
           "items": {
             "$ref": "#/$defs/backup_rotation_plan"
           },
-          "description": "Prepared material for the same canonical two backup_kind entries as binding.backup_rotations."
+          "description": "The canonical secret_storage then mls_history entries; each nested binding is the sole source of its reserved series and object references."
         },
         "erase_confirmation_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Must equal the binding's non-circular erase confirmation projection digest."
+          "description": "Must equal the non-circular projection digest over transaction_id and this plan's nested backup rotation bindings."
         },
         "local_commit_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Must equal the binding's non-circular local commit projection digest."
+          "description": "Must equal the non-circular projection digest over transaction_id, new_secret_commitment and this plan's nested backup rotation bindings."
         }
       },
       "additionalProperties": false
@@ -1188,43 +963,13 @@
               {
                 "properties": {
                   "accepted_steps": {
-                    "maxItems": 0
-                  },
-                  "next_required_step": {
-                    "const": "revoke"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "accepted_steps": {
-                    "minItems": 1,
-                    "maxItems": 1
-                  },
-                  "next_required_step": {
-                    "const": "upload_new_material"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "accepted_steps": {
-                    "minItems": 2,
-                    "maxItems": 2
-                  },
-                  "next_required_step": {
-                    "const": "switch_authoritative_pointer"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "accepted_steps": {
-                    "minItems": 3,
                     "maxItems": 3
                   },
-                  "next_required_step": {
-                    "const": "erase_old_material"
+                  "state": {
+                    "enum": [
+                      "pending",
+                      "running"
+                    ]
                   }
                 }
               },
@@ -1233,9 +978,6 @@
                   "accepted_steps": {
                     "minItems": 4,
                     "maxItems": 4
-                  },
-                  "next_required_step": {
-                    "const": "local_commit"
                   },
                   "state": {
                     "const": "awaiting_device_attestation"
@@ -1269,6 +1011,7 @@
     },
     "security_rotation_step": {
       "type": "string",
+      "description": "The enum array order is the canonical security-rotation step order addressed by accepted_steps indexes.",
       "enum": [
         "revoke",
         "upload_new_material",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.1",
+  "version": "2026-08-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-24T01:30:00+08:00",
+  "generated_at": "2026-08-24T04:27:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5147,8 +5147,7 @@
         "schema_kind": "oneOf",
         "required": [
           "status",
-          "operation_id",
-          "sidecar_id"
+          "operation_id"
         ],
         "properties": [
           "status",
@@ -5156,11 +5155,9 @@
           "operation_id",
           "reservation_handle",
           "expires_at",
-          "sidecar_id",
-          "create_event_id",
-          "context_attach_event_id",
           "create_event_draft",
           "context_attach_event_draft",
+          "sidecar_id",
           "accepted_phase",
           "ok",
           "source_context_ref",
@@ -5178,9 +5175,6 @@
               "operation_id",
               "reservation_handle",
               "expires_at",
-              "sidecar_id",
-              "create_event_id",
-              "context_attach_event_id",
               "create_event_draft",
               "context_attach_event_draft"
             ],
@@ -5190,9 +5184,6 @@
               "operation_id",
               "reservation_handle",
               "expires_at",
-              "sidecar_id",
-              "create_event_id",
-              "context_attach_event_id",
               "create_event_draft",
               "context_attach_event_draft"
             ],
@@ -5208,7 +5199,6 @@
               "reservation_handle",
               "expires_at",
               "sidecar_id",
-              "context_attach_event_id",
               "context_attach_event_draft"
             ],
             "properties": [
@@ -5218,7 +5208,6 @@
               "reservation_handle",
               "expires_at",
               "sidecar_id",
-              "context_attach_event_id",
               "context_attach_event_draft"
             ],
             "closed": true
@@ -9272,12 +9261,12 @@
         "required": [
           "request_digest",
           "prepared_plan_digest",
-          "expected_next_step"
+          "expected_accepted_step_count"
         ],
         "properties": [
           "request_digest",
           "prepared_plan_digest",
-          "expected_next_step",
+          "expected_accepted_step_count",
           "client_attestation"
         ],
         "closed": true
@@ -9293,12 +9282,10 @@
           "expires_at",
           "created_at",
           "request_digest",
-          "binding",
           "prepared_plan",
           "prepared_plan_digest",
           "state",
-          "accepted_steps",
-          "next_required_step"
+          "accepted_steps"
         ],
         "properties": [
           "transaction_id",
@@ -9308,12 +9295,10 @@
           "expires_at",
           "created_at",
           "request_digest",
-          "binding",
           "prepared_plan",
           "prepared_plan_digest",
           "state",
           "accepted_steps",
-          "next_required_step",
           "terminal_result"
         ],
         "closed": true
@@ -9330,18 +9315,14 @@
           "kind",
           "principal_id",
           "expires_at",
-          "binding",
-          "prepared_plan",
-          "prepared_plan_digest"
+          "prepared_plan"
         ],
         "properties": [
           "transaction_id",
           "kind",
           "principal_id",
           "expires_at",
-          "binding",
-          "prepared_plan",
-          "prepared_plan_digest"
+          "prepared_plan"
         ],
         "closed": true,
         "variants": [
@@ -9353,18 +9334,14 @@
               "kind",
               "principal_id",
               "expires_at",
-              "binding",
-              "prepared_plan",
-              "prepared_plan_digest"
+              "prepared_plan"
             ],
             "properties": [
               "transaction_id",
               "kind",
               "principal_id",
               "expires_at",
-              "binding",
-              "prepared_plan",
-              "prepared_plan_digest"
+              "prepared_plan"
             ],
             "closed": true
           },
@@ -9376,18 +9353,14 @@
               "kind",
               "principal_id",
               "expires_at",
-              "binding",
-              "prepared_plan",
-              "prepared_plan_digest"
+              "prepared_plan"
             ],
             "properties": [
               "transaction_id",
               "kind",
               "principal_id",
               "expires_at",
-              "binding",
-              "prepared_plan",
-              "prepared_plan_digest"
+              "prepared_plan"
             ],
             "closed": true
           }
@@ -9404,12 +9377,10 @@
           "expires_at",
           "created_at",
           "request_digest",
-          "binding",
           "prepared_plan",
           "prepared_plan_digest",
           "state",
-          "accepted_steps",
-          "next_required_step"
+          "accepted_steps"
         ],
         "properties": [
           "transaction_id",
@@ -9419,12 +9390,10 @@
           "expires_at",
           "created_at",
           "request_digest",
-          "binding",
           "prepared_plan",
           "prepared_plan_digest",
           "state",
           "accepted_steps",
-          "next_required_step",
           "terminal_result"
         ],
         "closed": true
@@ -9444,12 +9413,10 @@
           "expires_at",
           "created_at",
           "request_digest",
-          "binding",
           "prepared_plan",
           "prepared_plan_digest",
           "state",
-          "accepted_steps",
-          "next_required_step"
+          "accepted_steps"
         ],
         "properties": [
           "transaction_id",
@@ -9459,12 +9426,10 @@
           "expires_at",
           "created_at",
           "request_digest",
-          "binding",
           "prepared_plan",
           "prepared_plan_digest",
           "state",
           "accepted_steps",
-          "next_required_step",
           "terminal_result"
         ],
         "closed": true

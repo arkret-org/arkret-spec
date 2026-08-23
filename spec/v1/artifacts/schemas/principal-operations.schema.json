@@ -824,9 +824,6 @@
             "operation_id",
             "reservation_handle",
             "expires_at",
-            "sidecar_id",
-            "create_event_id",
-            "context_attach_event_id",
             "create_event_draft",
             "context_attach_event_draft"
           ],
@@ -846,48 +843,11 @@
             "expires_at": {
               "$ref": "#/$defs/timestamp"
             },
-            "sidecar_id": {
-              "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-            },
-            "create_event_id": {
-              "$ref": "#/$defs/event_id"
-            },
-            "context_attach_event_id": {
-              "$ref": "#/$defs/event_id"
-            },
             "create_event_draft": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/sidecar_prepared_event_draft"
-                },
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.sidecar.create"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              ]
+              "$ref": "#/$defs/prepared_event_draft"
             },
             "context_attach_event_draft": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/sidecar_prepared_event_draft"
-                },
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.sidecar.context.attach"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              ]
+              "$ref": "#/$defs/prepared_event_draft"
             }
           },
           "additionalProperties": false
@@ -901,7 +861,6 @@
             "reservation_handle",
             "expires_at",
             "sidecar_id",
-            "context_attach_event_id",
             "context_attach_event_draft"
           ],
           "properties": {
@@ -923,25 +882,8 @@
             "sidecar_id": {
               "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
             },
-            "context_attach_event_id": {
-              "$ref": "#/$defs/event_id"
-            },
             "context_attach_event_draft": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/sidecar_prepared_event_draft"
-                },
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.sidecar.context.attach"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              ]
+              "$ref": "#/$defs/prepared_event_draft"
             }
           },
           "additionalProperties": false
@@ -1092,26 +1034,14 @@
         }
       ]
     },
-    "sidecar_prepared_event_draft": {
+    "prepared_event_draft": {
       "type": "object",
-      "description": "Service-built canonical producer Event bytes with proofs and reducer-managed fields absent. The client MUST decode these exact bytes, add only a controller proof over event_digest, and return the resulting signed Event. The service MUST reject any other unsigned bytes or digest.",
+      "description": "Service-built canonical producer Event digest-payload bytes with proofs and reducer-managed fields absent. The client MUST decode these exact bytes under the suite carried by event_digest, add only the required producer proof, and return the resulting signed Event. Event id and kind are derived views, never parallel wire inputs.",
       "required": [
-        "event_id",
-        "kind",
         "unsigned_event_bytes",
         "event_digest"
       ],
       "properties": {
-        "event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "kind": {
-          "type": "string",
-          "enum": [
-            "ak.sidecar.create",
-            "ak.sidecar.context.attach"
-          ]
-        },
         "unsigned_event_bytes": {
           "$ref": "#/$defs/base64url"
         },

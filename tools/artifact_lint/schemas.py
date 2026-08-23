@@ -392,7 +392,7 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
 
 
 def check_security_transaction_schema_closure(lint: Lint) -> None:
-    """Require every transaction step and prepared material to have a closed consumer."""
+    """Require canonical transaction intent/progress and closed prepared material."""
     path = ARTIFACTS / "schemas" / "security-transaction.schema.json"
     data = load_json(lint, path)
     defs = data.get("$defs") if isinstance(data, dict) else None
@@ -400,42 +400,79 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
         lint.fail(path, "security transaction schema must define $defs")
         return
 
-    any_steps = defs.get("any_step")
-    steps = any_steps.get("enum") if isinstance(any_steps, dict) else None
-    if not isinstance(steps, list) or not all(isinstance(step, str) for step in steps):
-        lint.fail(path, "$defs.any_step.enum must be a string array")
-        return
-
-    accepted_tuple_refs: set[str] = set()
-    for def_name, definition in defs.items():
-        if not def_name.endswith("_accepted_steps"):
+    expected_orders = {
+        "pcr_policy_recovery": (
+            "pcr_policy",
+            ["submit_reanchor_unit", "issue_terminal_receipt"],
+        ),
+        "security_rotation": (
+            "security_rotation",
+            [
+            "revoke",
+            "upload_new_material",
+            "switch_authoritative_pointer",
+            "erase_old_material",
+            "local_commit",
+            ],
+        ),
+    }
+    for prefix, (accepted_prefix, expected) in expected_orders.items():
+        step_def = defs.get(f"{prefix}_step")
+        actual = step_def.get("enum") if isinstance(step_def, dict) else None
+        if actual != expected:
+            lint.fail(path, f"$defs/{prefix}_step must declare the canonical order {expected}")
+        accepted = defs.get(f"{accepted_prefix}_accepted_steps")
+        if not isinstance(accepted, dict):
+            lint.fail(path, f"missing $defs/{accepted_prefix}_accepted_steps")
             continue
-        accepted_tuple_refs.update(
-            value
-            for _, value, key in walk_json(definition)
-            if key == "$ref"
-            and isinstance(value, str)
-            and value.startswith("#/$defs/accepted_")
-        )
+        if accepted.get("maxItems") != len(expected):
+            lint.fail(path, f"$defs/{accepted_prefix}_accepted_steps maxItems must equal step count")
+        if accepted.get("items") != {"$ref": "#/$defs/accepted_step"}:
+            lint.fail(path, f"$defs/{accepted_prefix}_accepted_steps must use the sole accepted_step shape")
+        if "prefixItems" in accepted:
+            lint.fail(path, f"$defs/{accepted_prefix}_accepted_steps must not duplicate step labels by position")
 
-    for step in steps:
-        variant_name = f"accepted_{step}"
-        variant = defs.get(variant_name)
-        if not isinstance(variant, dict):
-            lint.fail(path, f"any_step {step!r} has no $defs/{variant_name} variant")
-            continue
-        constants = {
-            value
-            for _, value, key in walk_json(variant)
-            if key == "const" and isinstance(value, str)
-        }
-        if step not in constants:
-            lint.fail(path, f"$defs/{variant_name} does not constrain step to {step!r}")
-        if f"#/$defs/{variant_name}" not in accepted_tuple_refs:
-            lint.fail(
-                path,
-                f"any_step {step!r} is not consumed by any *_accepted_steps tuple",
-            )
+    accepted_step = defs.get("accepted_step")
+    accepted_required = accepted_step.get("required") if isinstance(accepted_step, dict) else None
+    accepted_properties = accepted_step.get("properties") if isinstance(accepted_step, dict) else None
+    if not isinstance(accepted_required, list) or "step" in accepted_required:
+        lint.fail(path, "$defs/accepted_step must not require a derived step label")
+    if not isinstance(accepted_properties, dict) or "step" in accepted_properties:
+        lint.fail(path, "$defs/accepted_step must not define a derived step label")
+    if any(name.startswith("accepted_") and name != "accepted_step" for name in defs):
+        lint.fail(path, "per-step accepted wrapper definitions are forbidden")
+
+    resource_required = data.get("required", [])
+    resource_properties = data.get("properties", {})
+    for derived in ("binding", "next_required_step"):
+        if derived in resource_required or derived in resource_properties:
+            lint.fail(path, f"transaction resource must not serialize derived {derived}")
+
+    for create_name in ("recovery_create_request", "security_rotation_create_request"):
+        create = defs.get(create_name)
+        required = create.get("required", []) if isinstance(create, dict) else []
+        properties = create.get("properties", {}) if isinstance(create, dict) else {}
+        for derived in ("binding", "prepared_plan_digest"):
+            if derived in required or derived in properties:
+                lint.fail(path, f"$defs/{create_name} must not accept caller-supplied {derived}")
+
+    recovery_plan = defs.get("pcr_policy_recovery_plan")
+    recovery_required = recovery_plan.get("required", []) if isinstance(recovery_plan, dict) else []
+    recovery_properties = recovery_plan.get("properties", {}) if isinstance(recovery_plan, dict) else {}
+    if recovery_properties.get("binding") != {"$ref": "#/$defs/pcr_policy_recovery_binding"}:
+        lint.fail(path, "$defs/pcr_policy_recovery_plan must own its closed binding")
+    if "binding" not in recovery_required or "identity_model" in recovery_properties:
+        lint.fail(path, "PCR recovery identity_model must appear only inside prepared_plan.binding")
+    if "security_rotation_binding" in defs:
+        lint.fail(path, "top-level security_rotation_binding schema is a forbidden plan projection")
+
+    continue_request = defs.get("continue_request")
+    continue_required = continue_request.get("required", []) if isinstance(continue_request, dict) else []
+    continue_properties = continue_request.get("properties", {}) if isinstance(continue_request, dict) else {}
+    if "expected_accepted_step_count" not in continue_required:
+        lint.fail(path, "$defs/continue_request must require expected_accepted_step_count CAS")
+    if "expected_next_step" in continue_required or "expected_next_step" in continue_properties:
+        lint.fail(path, "$defs/continue_request must not accept a derived expected_next_step")
 
     plan_refs: set[str] = set()
     for def_name, definition in defs.items():
@@ -452,6 +489,74 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
                 path,
                 f"orphan prepared material $defs/{def_name} is not referenced by any plan",
             )
+
+
+def check_canonical_wire_source_closure(lint: Lint) -> None:
+    """Reject reintroduction of Event-draft and device-pairing wire mirrors."""
+    schema_dir = ARTIFACTS / "schemas"
+    principal_path = schema_dir / "principal-operations.schema.json"
+    contact_path = schema_dir / "contact-operations.schema.json"
+    agent_path = schema_dir / "agent-operations.schema.json"
+    principal = load_json(lint, principal_path)
+    contact = load_json(lint, contact_path)
+    agent = load_json(lint, agent_path)
+    if not all(isinstance(value, dict) for value in (principal, contact, agent)):
+        return
+
+    principal_defs = principal.get("$defs", {})
+    draft = principal_defs.get("prepared_event_draft") if isinstance(principal_defs, dict) else None
+    draft_required = draft.get("required") if isinstance(draft, dict) else None
+    draft_properties = draft.get("properties") if isinstance(draft, dict) else None
+    expected_draft_fields = {"unsigned_event_bytes", "event_digest"}
+    if not isinstance(draft_required, list) or set(draft_required) != expected_draft_fields:
+        lint.fail(principal_path, "$defs/prepared_event_draft must require only bytes and typed digest")
+    if not isinstance(draft_properties, dict) or set(draft_properties) != expected_draft_fields:
+        lint.fail(principal_path, "$defs/prepared_event_draft must define only bytes and typed digest")
+    if isinstance(principal_defs, dict) and "sidecar_prepared_event_draft" in principal_defs:
+        lint.fail(principal_path, "Sidecar must use the sole generic prepared_event_draft")
+
+    contact_defs = contact.get("$defs", {})
+    if isinstance(contact_defs, dict) and "contact_prepared_event_draft" in contact_defs:
+        lint.fail(contact_path, "Contact must use the sole generic prepared_event_draft")
+    contact_refs = {
+        value
+        for _, value, key in walk_json(contact)
+        if key == "$ref" and isinstance(value, str) and "prepared_event_draft" in value
+    }
+    expected_ref = "./principal-operations.schema.json#/$defs/prepared_event_draft"
+    if contact_refs != {expected_ref}:
+        lint.fail(contact_path, "all Contact prepared drafts must reference the generic draft schema")
+
+    sidecar_outcome = principal_defs.get("sidecar_ensure_outcome") if isinstance(principal_defs, dict) else None
+    branches = sidecar_outcome.get("oneOf", []) if isinstance(sidecar_outcome, dict) else []
+    prepared_branches = [
+        branch
+        for branch in branches
+        if isinstance(branch, dict)
+        and isinstance(branch.get("properties"), dict)
+        and branch["properties"].get("status", {}).get("const") == "prepared"
+    ]
+    for branch in prepared_branches:
+        branch_name = branch["properties"].get("branch", {}).get("const")
+        forbidden = {"create_event_id", "context_attach_event_id"}
+        if branch_name == "new":
+            forbidden.add("sidecar_id")
+        required = set(branch.get("required", []))
+        properties = set(branch.get("properties", {}))
+        duplicated = sorted(forbidden & (required | properties))
+        if duplicated:
+            lint.fail(principal_path, f"Sidecar {branch_name} prepare duplicates derived fields {duplicated}")
+
+    agent_defs = agent.get("$defs", {})
+    pair = agent_defs.get("account_device_pair_request_body") if isinstance(agent_defs, dict) else None
+    pair_required = set(pair.get("required", [])) if isinstance(pair, dict) else set()
+    pair_properties = set(pair.get("properties", {})) if isinstance(pair, dict) else set()
+    duplicated_pair_fields = sorted({"hpke_key", "device_signature"} & (pair_required | pair_properties))
+    if duplicated_pair_fields:
+        lint.fail(agent_path, f"device pair commit duplicates signed payload fields {duplicated_pair_fields}")
+    for retained in ("new_device_pubkey", "challenge_proof", "authorize_event"):
+        if retained not in pair_required or retained not in pair_properties:
+            lint.fail(agent_path, f"device pair commit must retain required {retained}")
 
 
 def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:

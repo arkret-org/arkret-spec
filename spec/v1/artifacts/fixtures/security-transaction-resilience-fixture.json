@@ -94,7 +94,7 @@
   },
   "assertions": [
     "one_transaction_id_and_one_reserved_id_set",
-    "request_plan_binding_step_outputs_and_first_terminal_result_are_durable",
+    "request_plan_step_outputs_and_first_terminal_result_are_durable",
     "exact_replay_returns_the_stored_outcome",
     "conflicting_replay_returns_duplicate_conflict",
     "accepted_webvh_entry_resumes_the_same_reanchor_unit",
