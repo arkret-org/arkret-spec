@@ -444,6 +444,12 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
 
     resource_required = data.get("required", [])
     resource_properties = data.get("properties", {})
+    state = resource_properties.get("state") if isinstance(resource_properties, dict) else None
+    expected_states = ["pending", "running", "completed", "aborted", "expired"]
+    if not isinstance(state, dict) or state.get("enum") != expected_states:
+        lint.fail(path, f"transaction state must be the closed non-derived set {expected_states}")
+    if any(value == "awaiting_device_attestation" for _, value, _ in walk_json(data)):
+        lint.fail(path, "transaction schema must not serialize derived device-attestation readiness")
     for derived in ("binding", "next_required_step"):
         if derived in resource_required or derived in resource_properties:
             lint.fail(path, f"transaction resource must not serialize derived {derived}")

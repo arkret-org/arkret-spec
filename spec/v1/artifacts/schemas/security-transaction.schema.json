@@ -62,7 +62,6 @@
       "enum": [
         "pending",
         "running",
-        "awaiting_device_attestation",
         "completed",
         "aborted",
         "expired"
@@ -699,8 +698,7 @@
               "state": {
                 "enum": [
                   "pending",
-                  "running",
-                  "awaiting_device_attestation"
+                  "running"
                 ]
               }
             },
@@ -730,7 +728,7 @@
                     "maxItems": 1
                   },
                   "state": {
-                    "const": "awaiting_device_attestation"
+                    "const": "running"
                   }
                 }
               }
@@ -949,8 +947,7 @@
               "state": {
                 "enum": [
                   "pending",
-                  "running",
-                  "awaiting_device_attestation"
+                  "running"
                 ]
               }
             },
@@ -980,7 +977,7 @@
                     "maxItems": 4
                   },
                   "state": {
-                    "const": "awaiting_device_attestation"
+                    "const": "running"
                   }
                 }
               }

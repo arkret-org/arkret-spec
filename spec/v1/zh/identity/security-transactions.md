@@ -3,7 +3,7 @@ title: 安全事务资源
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-11
+updated: 2026-08-24
 ---
 
 # 安全事务资源
@@ -33,7 +33,10 @@ SecurityTransaction {
 ```
 
 `kind` 是 `recovery` 或 `security_rotation`。`state` 是
-`pending | running | awaiting_device_attestation | completed | aborted | expired`；后三者是唯一终态。
+`pending | running | completed | aborted | expired`；后三者是唯一终态。`pending` 与 `running`
+只表达 coordinator 是否已开始执行当前工作，不表达下一步的执行方。客户端是否需要设备签名必须由
+`state` 非终态且 `steps(kind)[accepted_steps.length]` 为 client-attested step 纯函数计算，禁止把该
+readiness 再序列化或持久化为协议状态。
 `prepared_plan` 是按 kind/model 判别的 closed typed public plan，也是 intent 与 reserved material 的唯一
 canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 的 reserved binding view 由
 `revoke_unit` 与两项 `backup_rotations[].binding` 等字段纯函数投影，不能使用任意键值或通用步骤 DSL。
@@ -91,6 +94,8 @@ attestation_digest` 的有序集合并签该 JCS projection。coordinator 必须
 验证 outer attestation；recovery 还必须验证 receipt 自己的 device signature transcript。其它 step
 携带 client attestation 必须拒绝。`get` 是 response loss、restart 与
 跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
+当 coordinator-owned prefix 已完成而最终 client-attested step 尚未提交时，resource 保持
+`state=running`；它不会被误判为 completed，因为完整 accepted prefix 与 terminal result 仍是终态的必要条件。
 
 旧 `recovery_session.command.complete` 不属于 v1。recovery session 只负责建立 verified 证据；
 完成投影只能由接受 terminal receipt 的 RecoveryTransaction coordinator 原子写入，不能存在绕过

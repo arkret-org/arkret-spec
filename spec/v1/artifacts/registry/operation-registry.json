@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.2",
+  "version": "2026-08-24.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-24T04:27:00+08:00",
+  "generated_at": "2026-08-24T05:44:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4314,7 +4314,7 @@
       "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
       "grpc": "SelfSecurityTransactions/Continue",
       "mq": "self.security_transaction.command.continue",
-      "notes": "Continues only the next step derived from the transaction kind and accepted-step prefix length. request_digest and prepared_plan_digest MUST equal the resource, while expected_accepted_step_count MUST equal the current prefix length; the endpoint is not a generic step or Saga executor. Client attestation is required only for issue_terminal_receipt or local_commit and must bind transaction/request/plan plus the pre-reserved output_ref. When all coordinator-owned recovery steps are accepted but the device is offline, the resource remains awaiting_device_attestation rather than completed.",
+      "notes": "Continues only the next step derived from the transaction kind and accepted-step prefix length. request_digest and prepared_plan_digest MUST equal the resource, while expected_accepted_step_count MUST equal the current prefix length; the endpoint is not a generic step or Saga executor. Client attestation is required only for issue_terminal_receipt or local_commit and must bind transaction/request/plan plus the pre-reserved output_ref. When all coordinator-owned steps are accepted but the device is offline, the resource remains running rather than completed; device-attestation readiness is a computed view of the canonical next step and is never serialized as transaction state.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "protocol_sequence",

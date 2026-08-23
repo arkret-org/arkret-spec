@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
-      "sha256": "6e1c6569f2c7325621b0805f127d120ff4a4f18098089ee8b4867d22004824ab"
+      "sha256": "9a37fd11ae73eb314b16f39129f5012612d4f7269f095cc2d1f2596c521ebea6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",

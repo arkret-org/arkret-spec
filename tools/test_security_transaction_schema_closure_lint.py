@@ -78,6 +78,21 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
         errors = self._lint(mutate)
         self.assertTrue(any("derived next_required_step" in error for error in errors), errors)
 
+    def test_derived_awaiting_state_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["properties"]["state"]["enum"].insert(
+                2, "awaiting_device_attestation"
+            )
+
+        errors = self._lint(mutate)
+        self.assertTrue(
+            any(
+                "non-derived set" in error or "derived device-attestation" in error
+                for error in errors
+            ),
+            errors,
+        )
+
     def test_create_caller_plan_digest_fails(self) -> None:
         def mutate(schema) -> None:
             create = schema["$defs"]["recovery_create_request"]
