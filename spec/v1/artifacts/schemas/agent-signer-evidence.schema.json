@@ -264,7 +264,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Authority signature over domain ak.agent-authority-snapshot-v1 and every sibling field except proof.jws. Current admission checks the lease at verifier-now; historical verification checks it at the receipt accepted_at."
+      "description": "Authority signature over domain ak.agent_authority_snapshot.v1 and every sibling field except proof.jws. Current admission checks the lease at verifier-now; historical verification checks it at the receipt accepted_at."
     },
     "controller_account_gate_attestation": {
       "type": "object",
@@ -365,7 +365,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "Privacy-minimal Account Authority gate. The authority signs domain ak.controller-account-gate-v1 and every field except proof.jws. account_id and raw account cell material are forbidden by the closed schema."
+      "description": "Privacy-minimal Account Authority gate. The authority signs domain ak.controller_account_gate.v1 and every field except proof.jws. account_id and raw account cell material are forbidden by the closed schema."
     },
     "account_binding_default_basis": {
       "type": "object",
@@ -522,7 +522,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Receiver-signed immutable record that the exact Event and the origin-frozen producer signer-evidence root were durably accepted. producer_accepted_at is copied from the verified principal_server_admission proof. Event digest already commits to seal_ref or seal_basis, so no ambiguous receipt Seal id is repeated. The proof domain is ak.agent-signer-admission-receipt-v1 and covers every field except proof.jws."
+      "description": "Receiver-signed immutable record that the exact Event and the origin-frozen producer signer-evidence root were durably accepted. producer_accepted_at is copied from the verified principal_server_admission proof. Event digest already commits to seal_ref or seal_basis, so no ambiguous receipt Seal id is repeated. The proof domain is ak.agent_signer_admission_receipt.v1 and covers every field except proof.jws."
     },
     "outer_attestation": {
       "type": "object",
@@ -537,7 +537,7 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.agent-signer-evidence.v1"
+          "const": "ak.agent_signer_evidence.v1"
         },
         "core_digest": {
           "$ref": "#/$defs/sha256",
@@ -574,7 +574,7 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.agent-signer-evidence.v1"
+          "const": "ak.agent_signer_evidence.v1"
         },
         "core_digest": {
           "$ref": "#/$defs/sha256"

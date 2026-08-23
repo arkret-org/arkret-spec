@@ -256,7 +256,7 @@
     },
     "device_projection_attestation": {
       "type": "object",
-      "description": "Complete origin-Principal-Server-signed device projection attestation. The detached proof signs the ak.device-projection-attestation-proof-v1 transcript; proof.created_at MUST equal attestation.attested_at.",
+      "description": "Complete origin-Principal-Server-signed device projection attestation. The detached proof signs the ak.device_projection_attestation_proof.v1 transcript; proof.created_at MUST equal attestation.attested_at.",
       "required": [
         "attestation",
         "proof"

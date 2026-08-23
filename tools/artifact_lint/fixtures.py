@@ -1621,6 +1621,59 @@ def check_declared_schema_fixture_instances(lint: Lint) -> None:
             visit(path, data, "")
 
 
+def check_cba_seal_canonical_fixture(lint: Lint) -> None:
+    """Validate the complete signed Seal body and its content-derived identity."""
+
+    path = ARTIFACTS / "fixtures" / "cba-lattice-fixture.json"
+    fixture = load_json(lint, path)
+    vectors = fixture.get("vectors", []) if isinstance(fixture, dict) else []
+    vector = next(
+        (
+            item
+            for item in vectors
+            if isinstance(item, dict)
+            and item.get("name") == "seal_canonical_no_self_reference"
+        ),
+        None,
+    )
+    if not isinstance(vector, dict):
+        lint.fail(path, "missing seal_canonical_no_self_reference vector")
+        return
+    body = vector.get("seal_body")
+    expected = vector.get("expected")
+    if not isinstance(body, dict) or not isinstance(expected, dict):
+        lint.fail(path, "Seal canonical vector must declare seal_body and expected objects")
+        return
+    forbidden = sorted(set(body) & {"id", "notary_signature"})
+    if forbidden:
+        lint.fail(path, f"Seal canonical body contains self-referential member(s): {', '.join(forbidden)}")
+        return
+
+    digest = "sha256:" + hashlib.sha256(canonical_json(body).encode("utf-8")).hexdigest()
+    seal_id = "ak:seal:" + digest
+    if expected.get("id") != seal_id:
+        lint.fail(path, f"Seal canonical vector id must be {seal_id}")
+    if expected.get("notary_signature_payload_digest") != digest:
+        lint.fail(path, f"Seal canonical vector signature payload digest must be {digest}")
+    if expected.get("valid_result") != "accept":
+        lint.fail(path, "Seal canonical positive vector must expect accept")
+
+    schema_instance = copy.deepcopy(body)
+    schema_instance["id"] = seal_id
+    schema_instance["notary_signature"] = {
+        "verification_method": "did:key:z6MkCbaFixtureNotary#notary-1",
+        "payload_digest": digest,
+        "jws": "eyJhbGciOiJFZERTQSJ9..AA",
+    }
+    check_json_instance_against_schema(
+        lint,
+        path,
+        "seal_canonical_no_self_reference complete Seal",
+        "schemas/seal.schema.json",
+        schema_instance,
+    )
+
+
 def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
     """Bind every KeyPackage write transcript to its wire schema and bytes.
 
@@ -3484,7 +3537,7 @@ def check_history_scale_fixture(lint: Lint) -> None:
             event_transcript = rrk["container_event_proof_transcript"]
             event_binding = json.loads(decode_b64u(event_transcript["binding_jcs_b64u"]))
             if (
-                event_binding["context"] != "ak.event-proof-v1"
+                event_binding["context"] != "ak.event_proof.v1"
                 or event_binding["event_digest"] != container_digest
                 or event_binding["actor_id"] != container_event["actor_id"]
                 or event_binding["verification_method"] != event_proof["verification_method"]

@@ -841,7 +841,7 @@
           "properties": {
             "requester_proof": {
               "$ref": "./event-envelope.schema.json#/$defs/proof",
-              "x-arkret-proof-context": "ak.history-key-request-proof-v1"
+              "x-arkret-proof-context": "ak.history_key_request_proof.v1"
             }
           }
         }
@@ -937,7 +937,7 @@
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.history-key-request-receipt-proof-v1"
+          "x-arkret-proof-context": "ak.history_key_request_receipt_proof.v1"
         }
       },
       "additionalProperties": false
@@ -1283,7 +1283,7 @@
         },
         "relay_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.history-key-request-replica-proof-v1"
+          "x-arkret-proof-context": "ak.history_key_request_replica_proof.v1"
         }
       },
       "additionalProperties": false,
@@ -1309,7 +1309,7 @@
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.history-key-request-replica-receipt-proof-v1"
+          "x-arkret-proof-context": "ak.history_key_request_replica_receipt_proof.v1"
         }
       },
       "additionalProperties": false
@@ -1447,7 +1447,7 @@
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.history-key-source-relay-attestation-proof-v1"
+          "x-arkret-proof-context": "ak.history_key_source_relay_attestation_proof.v1"
         }
       },
       "allOf": [
@@ -1791,7 +1791,7 @@
           "properties": {
             "source_proof": {
               "$ref": "./event-envelope.schema.json#/$defs/proof",
-              "x-arkret-proof-context": "ak.history-key-response-proof-v1"
+              "x-arkret-proof-context": "ak.history_key_response_proof.v1"
             }
           }
         }
@@ -2154,7 +2154,7 @@
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.history-key-response-record-proof-v1",
+          "x-arkret-proof-context": "ak.history_key_response_record_proof.v1",
           "description": "The honest release-service proof signs the RFC 8785 JCS transcript of the entire closed record with only service_proof omitted. For a chunk this coverage includes the byte-identical complete release_attestation and its typed authority locator/digest vector; the attestation has no independent proof wire."
         },
         "source_record": {
@@ -2258,7 +2258,7 @@
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.history-key-response-lost-record-proof-v1",
+          "x-arkret-proof-context": "ak.history_key_response_lost_record_proof.v1",
           "description": "Release-service signature over the closed lost descriptor with service_proof omitted."
         }
       },
@@ -2466,7 +2466,7 @@
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.history-key-response-send-receipt-proof-v1",
+          "x-arkret-proof-context": "ak.history_key_response_send_receipt_proof.v1",
           "description": "First release-service proof over the closed receipt including receipt_digest and excluding service_proof. Exact duplicate returns these identical originally accepted bytes; transport never emits a separately signed duplicate variant."
         }
       },
@@ -2675,7 +2675,7 @@
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.organization-recovery-archive-replica-proof-v1"
+          "x-arkret-proof-context": "ak.organization_recovery_archive_replica_proof.v1"
         }
       },
       "additionalProperties": false,
@@ -2707,7 +2707,7 @@
         },
         "service_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.organization-recovery-archive-replica-receipt-proof-v1"
+          "x-arkret-proof-context": "ak.organization_recovery_archive_replica_receipt_proof.v1"
         }
       },
       "additionalProperties": false

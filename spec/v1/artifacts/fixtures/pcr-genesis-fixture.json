@@ -12,9 +12,9 @@
     "ak.vector.identity.frozen_reservation_barrier.v1"
   ],
   "digest_domains": {
-    "identity_creation_control_proof": "ak.identity-creation-control-proof-v1",
-    "device_possession": "ak.device-authorize-possession-proof-v1",
-    "event_receipt": "ak.receipt-proof-v1"
+    "identity_creation_control_proof": "ak.identity_creation_control_proof.v1",
+    "device_possession": "ak.device_authorize_possession_proof.v1",
+    "event_receipt": "ak.receipt_proof.v1"
   },
   "founding_authorize": {
     "payload": {
@@ -262,7 +262,7 @@
     ]
   },
   "identity_creation_control_transcript": {
-    "context": "ak.identity-creation-control-proof-v1",
+    "context": "ak.identity_creation_control_proof.v1",
     "signature_omitted_object": {
       "proof_kind": "did_webvh_inception_update_key",
       "challenge_id": "genesis-challenge-000001",

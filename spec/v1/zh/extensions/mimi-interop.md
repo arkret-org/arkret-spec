@@ -110,13 +110,13 @@ directory 文档由 [`mimi-interop.schema.json#/$defs/provider_directory`](../..
 canonical JSON（[`../conformance/encoding.md` §2](../conformance/encoding.md)，JCS）
 SHA-256 typed digest；proof 自身与任何未登记扩展字段都不进入 projection。projection
 首个成员是本对象族在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)
-登记的唯一 context `ak.mimi-provider-directory-proof-v1`（schema 侧投影为
+登记的唯一 context `ak.mimi_provider_directory_proof.v1`（schema 侧投影为
 `mimi-interop.schema.json#/$defs/provider_directory` 的 `x-arkret-proof-context`，两处 MUST
 逐字一致）；用其它对象族 context 生成的签名即使密码学验签通过也 MUST 拒绝：
 
 ```text
 {
-  "context": "ak.mimi-provider-directory-proof-v1",
+  "context": "ak.mimi_provider_directory_proof.v1",
   "schema": ...,
   "service_id": ...,
   "service_kind": ...,
@@ -330,13 +330,13 @@ MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对�
 
 | 对象族 | operation | context |
 | --- | --- | --- |
-| `mimi_key_material_request_body.proofs[]` | `ak.open.mimi.exchange.request_key_material` | `ak.mimi-key-material-request-proof-v1` |
-| `mimi_key_material_outcome.signature` | `ak.open.mimi.exchange.request_key_material` | `ak.mimi-key-material-outcome-proof-v1` |
-| `mimi_group_info_outcome.proofs[]` | `ak.open.mimi.read.group_info` | `ak.mimi-group-info-outcome-proof-v1` |
-| `mimi_request_consent_request_body.proofs[]` | `ak.open.mimi.command.request_consent` | `ak.mimi-request-consent-request-proof-v1` |
-| `mimi_update_consent_request_body.signature` | `ak.open.mimi.command.update_consent` | `ak.mimi-update-consent-request-proof-v1` |
-| `mimi_identifier_query_request_body.proofs[]` | `ak.open.mimi.read.identifiers` | `ak.mimi-identifier-query-request-proof-v1` |
-| `mimi_identifier_query_outcome.proofs[]` | `ak.open.mimi.read.identifiers` | `ak.mimi-identifier-query-outcome-proof-v1` |
+| `mimi_key_material_request_body.proofs[]` | `ak.open.mimi.exchange.request_key_material` | `ak.mimi_key_material_request_proof.v1` |
+| `mimi_key_material_outcome.signature` | `ak.open.mimi.exchange.request_key_material` | `ak.mimi_key_material_outcome_proof.v1` |
+| `mimi_group_info_outcome.proofs[]` | `ak.open.mimi.read.group_info` | `ak.mimi_group_info_outcome_proof.v1` |
+| `mimi_request_consent_request_body.proofs[]` | `ak.open.mimi.command.request_consent` | `ak.mimi_request_consent_request_proof.v1` |
+| `mimi_update_consent_request_body.signature` | `ak.open.mimi.command.update_consent` | `ak.mimi_update_consent_request_proof.v1` |
+| `mimi_identifier_query_request_body.proofs[]` | `ak.open.mimi.read.identifiers` | `ak.mimi_identifier_query_request_proof.v1` |
+| `mimi_identifier_query_outcome.proofs[]` | `ak.open.mimi.read.identifiers` | `ak.mimi_identifier_query_outcome_proof.v1` |
 
 发送方 MUST 先从 request/outcome body 移除顶层 `signature` 或 `proofs` 成员（删除成员本身，不是置为 `null`），保留所有实际存在的 optional 字段，对剩余完整对象计算 `payload_digest = sha256(canonical_json(unsigned_body))`，再以 canonical JSON 编码并签署下列 transcript：
 

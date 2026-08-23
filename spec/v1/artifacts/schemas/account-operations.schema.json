@@ -355,7 +355,7 @@
     },
     "account_registration_control_proof": {
       "type": "object",
-      "description": "Closed control proof for binding an already-published full_id to principal_id through account register. OIDC, passkey, or agent authentication alone is insufficient to establish DID control. The Account Authority resolves full_id at high freshness, requires project(full_id)=principal_id, and selects the current active update key of the entry pinned by did_version_id from verified method history rather than from request-supplied key material. The signature covers every field except signature as canonical JSON with domain separator ak.account-registration-control-proof-v1 and MUST replay the durable challenge issued by ak.gate.account.command.issue_did_binding_challenge.",
+      "description": "Closed control proof for binding an already-published full_id to principal_id through account register. OIDC, passkey, or agent authentication alone is insufficient to establish DID control. The Account Authority resolves full_id at high freshness, requires project(full_id)=principal_id, and selects the current active update key of the entry pinned by did_version_id from verified method history rather than from request-supplied key material. The signature covers every field except signature as canonical JSON with domain separator ak.account_registration_control_proof.v1 and MUST replay the durable challenge issued by ak.gate.account.command.issue_did_binding_challenge.",
       "required": [
         "proof_kind",
         "challenge_id",
@@ -461,7 +461,7 @@
     },
     "account_handoff_authentication_proof": {
       "type": "object",
-      "description": "OIDC authorization-code exchange proof used only to create a DPoP-bound account handoff. The signature is made by the same Ed25519 holder key as the request DPoP proof over utf8('ak.account-handoff-authentication-proof-v1\\n') || RFC8785_JCS(this object with signature omitted).",
+      "description": "OIDC authorization-code exchange proof used only to create a DPoP-bound account handoff. The signature is made by the same Ed25519 holder key as the request DPoP proof over utf8('ak.account_handoff_authentication_proof.v1\\n') || RFC8785_JCS(this object with signature omitted).",
       "required": [
         "proof_kind",
         "challenge",
@@ -975,7 +975,7 @@
     },
     "identity_creation_control_proof": {
       "type": "object",
-      "description": "Fresh proof signed by the did:webvh inception operation's parameters.updateKeys[0] identity root. The verifier selects that key from did_operation and MUST NOT treat a request-supplied key or a DID Document verificationMethod as authority. Signature covers every field except signature as canonical JSON with domain separator ak.identity-creation-control-proof-v1.",
+      "description": "Fresh proof signed by the did:webvh inception operation's parameters.updateKeys[0] identity root. The verifier selects that key from did_operation and MUST NOT treat a request-supplied key or a DID Document verificationMethod as authority. Signature covers every field except signature as canonical JSON with domain separator ak.identity_creation_control_proof.v1.",
       "required": [
         "proof_kind",
         "challenge_id",
@@ -1225,7 +1225,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Account Authority detached proof. payload_digest is SHA-256 over RFC 8785 JCS of the complete receipt with proof omitted, including binding_kind, principal_id, full_id, did_version_id, control_key_digest, operation/head digests, and the identity-creation lease/fence only when that branch applies. JWS signs canonical_json({context:'ak.account-binding-receipt-proof-v1', payload_digest, account_authority_id, account_subject, principal_id, full_id, did_version_id, control_key_digest, verification_method, created_at}); proof.created_at MUST equal issued_at and verification_method MUST be an assertion method of account_authority_id valid at issued_at."
+          "description": "Account Authority detached proof. payload_digest is SHA-256 over RFC 8785 JCS of the complete receipt with proof omitted, including binding_kind, principal_id, full_id, did_version_id, control_key_digest, operation/head digests, and the identity-creation lease/fence only when that branch applies. JWS signs canonical_json({context:'ak.account_binding_receipt_proof.v1', payload_digest, account_authority_id, account_subject, principal_id, full_id, did_version_id, control_key_digest, verification_method, created_at}); proof.created_at MUST equal issued_at and verification_method MUST be an assertion method of account_authority_id valid at issued_at."
         }
       },
       "allOf": [
@@ -1716,8 +1716,8 @@
     },
     "account_status_record": {
       "type": "object",
-      "description": "Immutable Account Authority issuer-ledger record. account_status_record_id is the suite-tagged full digest of RFC 8785 JCS over every field except account_status_record_id and proof. The proof uses context ak.account-status-record-proof-v1 over that same closed unsigned core. principal_control_realm_id is a verified account-binding coordinate only and is never a finality scope.",
-      "x-arkret-proof-context": "ak.account-status-record-proof-v1",
+      "description": "Immutable Account Authority issuer-ledger record. account_status_record_id is the suite-tagged full digest of RFC 8785 JCS over every field except account_status_record_id and proof. The proof uses context ak.account_status_record_proof.v1 over that same closed unsigned core. principal_control_realm_id is a verified account-binding coordinate only and is never a finality scope.",
+      "x-arkret-proof-context": "ak.account_status_record_proof.v1",
       "required": [
         "schema",
         "account_status_record_id",
@@ -1890,8 +1890,8 @@
     },
     "account_status_receipt": {
       "type": "object",
-      "description": "Receiver-signed receipt proving durable monotonic replication of one exact AccountStatusRecord. It grants no authority. proof uses context ak.account-status-replication-receipt-proof-v1 and payload_digest over RFC 8785 JCS of every field except proof.",
-      "x-arkret-proof-context": "ak.account-status-replication-receipt-proof-v1",
+      "description": "Receiver-signed receipt proving durable monotonic replication of one exact AccountStatusRecord. It grants no authority. proof uses context ak.account_status_replication_receipt_proof.v1 and payload_digest over RFC 8785 JCS of every field except proof.",
+      "x-arkret-proof-context": "ak.account_status_replication_receipt_proof.v1",
       "required": [
         "receipt_id",
         "account_status_record_id",

@@ -214,7 +214,7 @@
     },
     "application_receipt": {
       "type": "object",
-      "description": "Applicant-signed application receipt. application_receipt_digest is sha256:JCS of this object with application_receipt_digest and proof omitted. proof signs the ak.join-application-receipt-proof-v1 transcript.",
+      "description": "Applicant-signed application receipt. application_receipt_digest is sha256:JCS of this object with application_receipt_digest and proof omitted. proof signs the ak.join_application_receipt_proof.v1 transcript.",
       "required": [
         "candidate_kind",
         "realm_id",
@@ -295,7 +295,7 @@
     },
     "review_receipt": {
       "type": "object",
-      "description": "Reviewer-signed decision receipt bound to the exact reviewer authority pair. review_receipt_digest is sha256:JCS of this object with review_receipt_digest and proof omitted. proof signs the ak.join-application-review-receipt-proof-v1 transcript including principal_server_id=reviewer_principal_server_id.",
+      "description": "Reviewer-signed decision receipt bound to the exact reviewer authority pair. review_receipt_digest is sha256:JCS of this object with review_receipt_digest and proof omitted. proof signs the ak.join_application_review_receipt_proof.v1 transcript including principal_server_id=reviewer_principal_server_id.",
       "required": [
         "candidate_kind",
         "realm_id",
@@ -411,7 +411,7 @@
     },
     "cancel_receipt": {
       "type": "object",
-      "description": "Applicant-signed cancellation receipt. cancel_receipt_digest is sha256:JCS of this object with cancel_receipt_digest and proof omitted. proof signs the ak.join-application-cancel-receipt-proof-v1 transcript.",
+      "description": "Applicant-signed cancellation receipt. cancel_receipt_digest is sha256:JCS of this object with cancel_receipt_digest and proof omitted. proof signs the ak.join_application_cancel_receipt_proof.v1 transcript.",
       "required": [
         "candidate_kind",
         "realm_id",

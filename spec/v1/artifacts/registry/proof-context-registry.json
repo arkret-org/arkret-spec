@@ -1,11 +1,11 @@
 {
-  "version": "2026-08-23.1",
+  "version": "2026-08-23.2",
   "source_of_truth": true,
-  "description": "Canonical security-domain contexts for Arkret detached proofs and non-Event cryptographic transcripts. Proof contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript: it MUST NOT be spelled as a proof context and MUST NOT be carried by a wire or fixture field named proof_context.",
+  "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
     "Every Arkret non-Event schema that uses event-envelope.schema.json#/$defs/proof MUST register an object-family context here",
-    "contexts[] closure is triggered by exactly two conditions: a terminal use point of the shared event-envelope.schema.json#/$defs/proof leaf, and an ak.*-proof-v1 literal appearing anywhere under spec/v1. A non-Event schema that declares its own local detached-proof or signature leaf instead of referencing the shared leaf, and spells its signing domain without the -proof-v1 suffix, is outside contexts[] by construction and MUST NOT be registered there",
+    "contexts[] closure is triggered by a terminal use point of the shared event-envelope.schema.json#/$defs/proof leaf. A non-Event schema that declares its own local detached-proof or signature leaf instead of referencing the shared leaf is outside contexts[] by construction and MUST NOT be registered there",
     "Such a locally anchored signing domain MUST instead appear in domain_separations[] with primitive detached_signature and binding_fields naming the transcript fields its proof covers, so that membership of this file is decidable from the schema alone rather than by convention",
     "A verifier MUST reject a valid signature made under a context registered to a different object family",
     "schema_ref MUST resolve to a real node: the file part MUST exist and the JSON Pointer fragment, when present, MUST resolve to a schema object",
@@ -14,12 +14,13 @@
     "One shared wire leaf MAY carry several consumer contexts. Every row anchored on a shared anchor MUST declare a distinct consumer_operation from operation-registry.json, and the anchored schema node MUST list exactly those contexts in x-arkret-proof-contexts",
     "A schema node MAY project its single context as x-arkret-proof-context; when both the annotation and a registry row exist they MUST agree byte-for-byte",
     "A shared-proof use point whose enclosing top-level $defs entry is reached by $ref from more than one other top-level $defs entry of the same file is a packed leaf. Unless every covering row declares its own consumer_operation, each object family MUST hold its own proof node and its own row; one row MUST NOT stand for several request/outcome families",
-    "domain_separations rows MUST have unique domain and object_family values, MUST NOT reuse an object_family already registered in contexts[], and MUST declare a primitive from the closed set canonical_json_sha256, merkle_leaf_sha256, merkle_node_sha256, merkle_root_sha256, detached_signature, http_message_signature, hpke_info, replay_cache_namespace",
+    "domain_separations rows MUST have unique domain and object_family values, MUST NOT reuse a label or object_family already registered in contexts[], and MUST declare a primitive from the closed set canonical_json_sha256, merkle_leaf_sha256, merkle_node_sha256, merkle_root_sha256, detached_signature, http_message_signature, hpke_info, replay_cache_namespace",
+    "Every contexts[].context and domain_separations[].domain MUST match ak.<dot-separated snake_case symbol path>.v1. A dot separates naming levels, an underscore joins words inside one level, and a label MUST occur in exactly one array; the array and primitive, not delimiter spelling, determine its semantics. Legacy ak.<kebab-case>-proof-v1 spelling is invalid and is not an alias",
     "A replay_cache_namespace row MUST declare defined_in, and the normative document it names MUST contain the domain literal. Every fixture field named replay_cache_namespace MUST carry a registered replay_cache_namespace domain, and every fixture field named proof_context MUST carry a registered proof context"
   ],
   "contexts": [
     {
-      "context": "ak.account-binding-receipt-proof-v1",
+      "context": "ak.account_binding_receipt_proof.v1",
       "object_family": "account_binding_receipt",
       "binding_fields": [
         "payload_digest",
@@ -33,7 +34,7 @@
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_binding_receipt"
     },
     {
-      "context": "ak.account-status-record-proof-v1",
+      "context": "ak.account_status_record_proof.v1",
       "object_family": "account_status_record",
       "binding_fields": [
         "payload_digest",
@@ -44,7 +45,7 @@
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_record"
     },
     {
-      "context": "ak.account-status-replication-receipt-proof-v1",
+      "context": "ak.account_status_replication_receipt_proof.v1",
       "object_family": "account_status_replication_receipt",
       "binding_fields": [
         "payload_digest",
@@ -55,7 +56,7 @@
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_receipt"
     },
     {
-      "context": "ak.account-handoff-authentication-proof-v1",
+      "context": "ak.account_handoff_authentication_proof.v1",
       "object_family": "account_handoff_authentication",
       "binding_fields": [
         "payload_digest",
@@ -69,7 +70,7 @@
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_authentication_proof"
     },
     {
-      "context": "ak.account-registration-control-proof-v1",
+      "context": "ak.account_registration_control_proof.v1",
       "object_family": "account_registration_control_proof",
       "binding_fields": [
         "proof_kind",
@@ -96,7 +97,7 @@
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_registration_control_proof"
     },
     {
-      "context": "ak.accountability-grant-proof-v1",
+      "context": "ak.accountability_grant_proof.v1",
       "object_family": "accountability_grant",
       "binding_fields": [
         "payload_digest",
@@ -111,7 +112,7 @@
       "schema_ref": "schemas/accountability-grant.schema.json"
     },
     {
-      "context": "ak.agent-requested-scope-disclosure-proof-v1",
+      "context": "ak.agent_requested_scope_disclosure_proof.v1",
       "object_family": "agent_requested_scope_disclosure",
       "binding_fields": [
         "payload_digest",
@@ -126,7 +127,7 @@
       "schema_ref": "schemas/agent-requested-scope-disclosure.schema.json"
     },
     {
-      "context": "ak.agent-runtime-key-possession-proof-v1",
+      "context": "ak.agent_runtime_key_possession_proof.v1",
       "object_family": "agent_runtime_key_possession",
       "binding_fields": [
         "kind",
@@ -143,7 +144,7 @@
       "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof"
     },
     {
-      "context": "ak.agent-session-refresh-proof-v1",
+      "context": "ak.agent_session_refresh_proof.v1",
       "object_family": "agent_session_refresh_proof",
       "binding_fields": [
         "request_canonical_digest",
@@ -156,7 +157,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionRefreshProof"
     },
     {
-      "context": "ak.agent-selector-claim-proof-v1",
+      "context": "ak.agent_selector_claim_proof.v1",
       "object_family": "agent_selector_claim",
       "binding_fields": [
         "payload_digest",
@@ -171,7 +172,7 @@
       "schema_ref": "schemas/agent-selector-claim.schema.json"
     },
     {
-      "context": "ak.applet-package-proof-v1",
+      "context": "ak.applet_package_proof.v1",
       "object_family": "applet_package",
       "binding_fields": [
         "payload_digest",
@@ -186,7 +187,7 @@
       "schema_ref": "schemas/applet-package.schema.json"
     },
     {
-      "context": "ak.audit-release-attestation-proof-v1",
+      "context": "ak.audit_release_attestation_proof.v1",
       "object_family": "attestation_evidence",
       "binding_fields": [
         "payload_digest",
@@ -201,7 +202,7 @@
       "schema_ref": "schemas/audit-release-attestation.schema.json"
     },
     {
-      "context": "ak.audit-ryw-receipt-proof-v1",
+      "context": "ak.audit_ryw_receipt_proof.v1",
       "object_family": "audit_ryw_receipt",
       "binding_fields": [
         "payload_digest",
@@ -216,7 +217,7 @@
       "schema_ref": "schemas/audit-ryw-receipt.schema.json"
     },
     {
-      "context": "ak.authorization-lease-proof-v1",
+      "context": "ak.authorization_lease_proof.v1",
       "object_family": "authorization_lease",
       "binding_fields": [
         "payload_digest",
@@ -230,7 +231,7 @@
       "schema_ref": "schemas/offline-publication.schema.json#/$defs/authorization_lease"
     },
     {
-      "context": "ak.control-proposal-authority-ack-proof-v1",
+      "context": "ak.control_proposal_authority_ack_proof.v1",
       "object_family": "control_proposal_authority_ack",
       "binding_fields": [
         "payload_digest",
@@ -241,7 +242,7 @@
       "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_authority_ack"
     },
     {
-      "context": "ak.control-proposal-decision-proof-v1",
+      "context": "ak.control_proposal_decision_proof.v1",
       "object_family": "control_proposal_decision",
       "binding_fields": [
         "payload_digest",
@@ -252,7 +253,7 @@
       "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_decision"
     },
     {
-      "context": "ak.device-authorize-accepted-device-possession-proof-v1",
+      "context": "ak.device_authorize_accepted_device_possession_proof.v1",
       "object_family": "device_authorize_accepted_device_possession",
       "binding_fields": [
         "device_id",
@@ -267,7 +268,7 @@
       "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_target_attestation"
     },
     {
-      "context": "ak.device-authorize-possession-proof-v1",
+      "context": "ak.device_authorize_possession_proof.v1",
       "object_family": "device_authorize_possession",
       "binding_fields": [
         "principal_id",
@@ -287,7 +288,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload"
     },
     {
-      "context": "ak.device-authorize-recovery-possession-proof-v1",
+      "context": "ak.device_authorize_recovery_possession_proof.v1",
       "object_family": "device_authorize_recovery_possession",
       "binding_fields": [
         "principal_id",
@@ -304,7 +305,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload"
     },
     {
-      "context": "ak.device-revocation-gate-decision-proof-v1",
+      "context": "ak.device_revocation_gate_decision_proof.v1",
       "object_family": "device_revocation_gate_decision_receipt",
       "binding_fields": [
         "payload_digest",
@@ -315,7 +316,7 @@
       "schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_decision_receipt"
     },
     {
-      "context": "ak.did-webvh-witness-receipt-proof-v1",
+      "context": "ak.did_webvh_witness_receipt_proof.v1",
       "object_family": "did_webvh_witness_receipt",
       "binding_fields": [
         "payload_digest",
@@ -332,7 +333,7 @@
       "schema_ref": "schemas/did-webvh-witness-receipt.schema.json"
     },
     {
-      "context": "ak.directory-governance-request-proof-v1",
+      "context": "ak.directory_governance_request_proof.v1",
       "object_family": "directory_governance_request",
       "binding_fields": [
         "payload_digest",
@@ -347,7 +348,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof"
     },
     {
-      "context": "ak.directory-list-handles-for-subject-request-proof-v1",
+      "context": "ak.directory_list_handles_for_subject_request_proof.v1",
       "object_family": "directory_list_handles_for_subject_request",
       "binding_fields": [
         "payload_digest",
@@ -362,7 +363,7 @@
       "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body"
     },
     {
-      "context": "ak.directory-resolve-agent-selector-request-proof-v1",
+      "context": "ak.directory_resolve_agent_selector_request_proof.v1",
       "object_family": "directory_resolve_agent_selector_request",
       "binding_fields": [
         "payload_digest",
@@ -378,7 +379,7 @@
       "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body"
     },
     {
-      "context": "ak.directory-resolve-handle-request-proof-v1",
+      "context": "ak.directory_resolve_handle_request_proof.v1",
       "object_family": "directory_resolve_handle_request",
       "binding_fields": [
         "payload_digest",
@@ -393,7 +394,7 @@
       "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body"
     },
     {
-      "context": "ak.directory-resolve-organization-request-proof-v1",
+      "context": "ak.directory_resolve_organization_request_proof.v1",
       "object_family": "directory_resolve_organization_request",
       "binding_fields": [
         "payload_digest",
@@ -406,7 +407,7 @@
       "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body"
     },
     {
-      "context": "ak.directory-resolve-target-request-proof-v1",
+      "context": "ak.directory_resolve_target_request_proof.v1",
       "object_family": "directory_resolve_target_request",
       "binding_fields": [
         "payload_digest",
@@ -421,7 +422,7 @@
       "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body"
     },
     {
-      "context": "ak.event-proof-v1",
+      "context": "ak.event_proof.v1",
       "object_family": "event_envelope",
       "binding_fields": [
         "event_digest",
@@ -438,7 +439,7 @@
       "regime_rule": "Exactly one event-level branch applies. With one valid principal_server_admission proof, producer signer evidence fields are absent and admission.producer_signing_key verifies the bound producer proof. Without admission, both signer evidence fields are present, enter this transcript and resolve to the exact producer verification_method."
     },
     {
-      "context": "ak.extension-manifest-proof-v1",
+      "context": "ak.extension_manifest_proof.v1",
       "object_family": "extension_manifest",
       "binding_fields": [
         "payload_digest",
@@ -453,7 +454,7 @@
       "schema_ref": "schemas/extension-manifest.schema.json"
     },
     {
-      "context": "ak.handle-claim-proof-v1",
+      "context": "ak.handle_claim_proof.v1",
       "object_family": "handle_claim",
       "binding_fields": [
         "payload_digest",
@@ -468,7 +469,7 @@
       "schema_ref": "schemas/handle-claim.schema.json"
     },
     {
-      "context": "ak.identity-creation-control-proof-v1",
+      "context": "ak.identity_creation_control_proof.v1",
       "object_family": "identity_creation_control",
       "binding_fields": [
         "proof_kind",
@@ -496,7 +497,7 @@
       "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof"
     },
     {
-      "context": "ak.identity-receipt-proof-v1",
+      "context": "ak.identity_receipt_proof.v1",
       "object_family": "identity_receipt",
       "binding_fields": [
         "payload_digest",
@@ -511,7 +512,7 @@
       "schema_ref": "schemas/identity-receipt.schema.json"
     },
     {
-      "context": "ak.ingress-receipt-proof-v1",
+      "context": "ak.ingress_receipt_proof.v1",
       "object_family": "ingress_receipt",
       "binding_fields": [
         "payload_digest",
@@ -525,7 +526,7 @@
       "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt"
     },
     {
-      "context": "ak.join-application-cancel-receipt-proof-v1",
+      "context": "ak.join_application_cancel_receipt_proof.v1",
       "object_family": "join_application_cancel_receipt",
       "binding_fields": [
         "receipt_digest",
@@ -539,7 +540,7 @@
       "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/cancel_receipt"
     },
     {
-      "context": "ak.join-application-receipt-proof-v1",
+      "context": "ak.join_application_receipt_proof.v1",
       "object_family": "join_application_receipt",
       "binding_fields": [
         "receipt_digest",
@@ -552,7 +553,7 @@
       "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_receipt"
     },
     {
-      "context": "ak.join-application-review-receipt-proof-v1",
+      "context": "ak.join_application_review_receipt_proof.v1",
       "object_family": "join_application_review_receipt",
       "binding_fields": [
         "receipt_digest",
@@ -568,7 +569,7 @@
       "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/review_receipt"
     },
     {
-      "context": "ak.key-backup-delete-proof-v1",
+      "context": "ak.key_backup_delete_proof.v1",
       "object_family": "key_backup_delete_authority",
       "consumer_operation": "ak.self.keys.backups.resource.delete",
       "binding_fields": [
@@ -592,7 +593,7 @@
       "schema_ref": "schemas/high-risk-authority-proof.schema.json"
     },
     {
-      "context": "ak.member-delivery-binding-candidate-proof-v1",
+      "context": "ak.member_delivery_binding_candidate_proof.v1",
       "object_family": "member_delivery_binding_candidate",
       "binding_fields": [
         "payload_digest",
@@ -607,7 +608,7 @@
       "schema_ref": "schemas/member-delivery-binding-candidate.schema.json"
     },
     {
-      "context": "ak.mimi-group-info-outcome-proof-v1",
+      "context": "ak.mimi_group_info_outcome_proof.v1",
       "object_family": "mimi_group_info_outcome",
       "binding_fields": [
         "payload_digest",
@@ -622,7 +623,7 @@
       "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome"
     },
     {
-      "context": "ak.mimi-identifier-query-outcome-proof-v1",
+      "context": "ak.mimi_identifier_query_outcome_proof.v1",
       "object_family": "mimi_identifier_query_outcome",
       "binding_fields": [
         "payload_digest",
@@ -636,7 +637,7 @@
       "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome"
     },
     {
-      "context": "ak.mimi-identifier-query-request-proof-v1",
+      "context": "ak.mimi_identifier_query_request_proof.v1",
       "object_family": "mimi_identifier_query_request",
       "binding_fields": [
         "payload_digest",
@@ -651,7 +652,7 @@
       "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body"
     },
     {
-      "context": "ak.mimi-key-material-outcome-proof-v1",
+      "context": "ak.mimi_key_material_outcome_proof.v1",
       "object_family": "mimi_key_material_outcome",
       "binding_fields": [
         "payload_digest",
@@ -665,7 +666,7 @@
       "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome"
     },
     {
-      "context": "ak.mimi-key-material-request-proof-v1",
+      "context": "ak.mimi_key_material_request_proof.v1",
       "object_family": "mimi_key_material_request",
       "binding_fields": [
         "payload_digest",
@@ -682,7 +683,7 @@
       "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body"
     },
     {
-      "context": "ak.mimi-provider-directory-proof-v1",
+      "context": "ak.mimi_provider_directory_proof.v1",
       "object_family": "mimi_provider_directory",
       "binding_fields": [
         "payload_digest",
@@ -698,7 +699,7 @@
       "schema_ref": "schemas/mimi-interop.schema.json#/$defs/provider_directory"
     },
     {
-      "context": "ak.mimi-request-consent-request-proof-v1",
+      "context": "ak.mimi_request_consent_request_proof.v1",
       "object_family": "mimi_request_consent_request",
       "binding_fields": [
         "payload_digest",
@@ -715,7 +716,7 @@
       "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body"
     },
     {
-      "context": "ak.mimi-update-consent-request-proof-v1",
+      "context": "ak.mimi_update_consent_request_proof.v1",
       "object_family": "mimi_update_consent_request",
       "binding_fields": [
         "payload_digest",
@@ -732,7 +733,7 @@
       "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body"
     },
     {
-      "context": "ak.organization-registration-control-proof-v1",
+      "context": "ak.organization_registration_control_proof.v1",
       "object_family": "organization_registration_control_proof",
       "binding_fields": [
         "challenge_id",
@@ -747,7 +748,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationControlProof"
     },
     {
-      "context": "ak.organization-registration-receipt-proof-v1",
+      "context": "ak.organization_registration_receipt_proof.v1",
       "object_family": "organization_registration_receipt",
       "binding_fields": [
         "payload_digest",
@@ -763,7 +764,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt"
     },
     {
-      "context": "ak.device-projection-attestation-proof-v1",
+      "context": "ak.device_projection_attestation_proof.v1",
       "object_family": "device_projection_attestation",
       "binding_fields": [
         "payload_digest",
@@ -784,7 +785,7 @@
       "schema_ref": "schemas/keys-operations.schema.json#/$defs/device_projection_attestation"
     },
     {
-      "context": "ak.principal-locator-proof-v1",
+      "context": "ak.principal_locator_proof.v1",
       "object_family": "principal_locator",
       "binding_fields": [
         "payload_digest",
@@ -799,7 +800,7 @@
       "schema_ref": "schemas/principal-locator.schema.json"
     },
     {
-      "context": "ak.principal-resolution-projection-attestation-proof-v1",
+      "context": "ak.principal_resolution_projection_attestation_proof.v1",
       "object_family": "principal_resolution_projection_attestation",
       "binding_fields": [
         "payload_digest",
@@ -816,7 +817,7 @@
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_projection_attestation"
     },
     {
-      "context": "ak.principal-server-admission-proof-v1",
+      "context": "ak.principal_server_admission_proof.v1",
       "object_family": "principal_server_event_admission",
       "binding_fields": [
         "event_digest",
@@ -832,7 +833,7 @@
       "schema_ref": "schemas/event-envelope.schema.json#/$defs/principal_server_admission_proof"
     },
     {
-      "context": "ak.range-completeness-attestation-proof-v1",
+      "context": "ak.range_completeness_attestation_proof.v1",
       "object_family": "range_completeness_attestation",
       "binding_fields": [
         "payload_digest",
@@ -847,7 +848,7 @@
       "schema_ref": "schemas/range-completeness-attestation.schema.json"
     },
     {
-      "context": "ak.realm-join-candidate-proof-v1",
+      "context": "ak.realm_join_candidate_proof.v1",
       "object_family": "realm_join_candidate",
       "binding_fields": [
         "payload_digest",
@@ -862,7 +863,7 @@
       "schema_ref": "schemas/realm-join-candidate.schema.json"
     },
     {
-      "context": "ak.receipt-proof-v1",
+      "context": "ak.receipt_proof.v1",
       "object_family": "event_batch_receipt",
       "binding_fields": [
         "payload_digest",
@@ -876,7 +877,7 @@
       "schema_ref": "schemas/event-batch-receipt.schema.json"
     },
     {
-      "context": "ak.registration-did-evidence-control-proof-v1",
+      "context": "ak.registration_did_evidence_control_proof.v1",
       "object_family": "registration_did_evidence_control",
       "binding_fields": [
         "principal_id",
@@ -893,7 +894,7 @@
       "schema_ref": "schemas/registration-did-evidence.schema.json#/$defs/registration_did_evidence_draft"
     },
     {
-      "context": "ak.service-registration-receipt-proof-v1",
+      "context": "ak.service_registration_receipt_proof.v1",
       "object_family": "service_registration_receipt",
       "binding_fields": [
         "payload_digest",
@@ -908,7 +909,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationReceipt"
     },
     {
-      "context": "ak.service-resolution-publish-ack-proof-v1",
+      "context": "ak.service_resolution_publish_ack_proof.v1",
       "object_family": "service_resolution_publish_ack",
       "binding_fields": [
         "payload_digest",
@@ -927,7 +928,7 @@
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_ack"
     },
     {
-      "context": "ak.service-resolution-record-proof-v1",
+      "context": "ak.service_resolution_record_proof.v1",
       "object_family": "service_resolution_record",
       "binding_fields": [
         "payload_digest",
@@ -954,7 +955,7 @@
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record"
     },
     {
-      "context": "ak.service-route-handover-notice-proof-v1",
+      "context": "ak.service_route_handover_notice_proof.v1",
       "object_family": "service_route_handover_notice",
       "binding_fields": [
         "payload_digest",
@@ -982,7 +983,7 @@
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_route_handover_notice"
     },
     {
-      "context": "ak.session-grant-accepted-device-possession-proof-v1",
+      "context": "ak.session_grant_accepted_device_possession_proof.v1",
       "object_family": "session_grant_accepted_device_possession",
       "binding_fields": [
         "purpose",
@@ -1003,7 +1004,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof"
     },
     {
-      "context": "ak.signal-proof-v1",
+      "context": "ak.signal_proof.v1",
       "object_family": "signal_envelope",
       "binding_fields": [
         "envelope_digest",
@@ -1018,7 +1019,7 @@
       "schema_ref": "schemas/signal-envelope.schema.json"
     },
     {
-      "context": "ak.snapshot-proof-v1",
+      "context": "ak.snapshot_proof.v1",
       "object_family": "snapshot",
       "binding_fields": [
         "payload_digest",
@@ -1033,7 +1034,7 @@
       "schema_ref": "schemas/snapshot.schema.json"
     },
     {
-      "context": "ak.snapshot-witness-attestation-proof-v1",
+      "context": "ak.snapshot_witness_attestation_proof.v1",
       "object_family": "snapshot_witness_attestation",
       "binding_fields": [
         "payload_digest",
@@ -1058,7 +1059,7 @@
       "schema_ref": "schemas/snapshot.schema.json#/$defs/snapshot_witness_attestation"
     },
     {
-      "context": "ak.history-key-request-proof-v1",
+      "context": "ak.history_key_request_proof.v1",
       "object_family": "history_key_request",
       "binding_fields": [
         "payload_digest",
@@ -1082,7 +1083,7 @@
       "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request"
     },
     {
-      "context": "ak.history-key-request-receipt-proof-v1",
+      "context": "ak.history_key_request_receipt_proof.v1",
       "object_family": "history_key_request_receipt",
       "binding_fields": [
         "payload_digest",
@@ -1110,7 +1111,7 @@
       "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_receipt"
     },
     {
-      "context": "ak.history-key-response-proof-v1",
+      "context": "ak.history_key_response_proof.v1",
       "object_family": "history_key_response",
       "binding_fields": [
         "payload_digest",
@@ -1131,7 +1132,7 @@
       "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_request"
     },
     {
-      "context": "ak.history-key-response-record-proof-v1",
+      "context": "ak.history_key_response_record_proof.v1",
       "object_family": "history_key_response_record",
       "binding_fields": [
         "payload_digest",
@@ -1152,7 +1153,7 @@
       "conditional_binding_rule": "content.kind=manifest requires manifest_admission and forbids release_attestation; content.kind=chunk requires release_attestation and forbids manifest_admission. A ? field is included iff its closed branch requires it."
     },
     {
-      "context": "ak.history-key-response-lost-record-proof-v1",
+      "context": "ak.history_key_response_lost_record_proof.v1",
       "object_family": "history_key_response_lost_record",
       "binding_fields": [
         "payload_digest",
@@ -1170,7 +1171,7 @@
       "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_lost_record"
     },
     {
-      "context": "ak.history-key-response-send-receipt-proof-v1",
+      "context": "ak.history_key_response_send_receipt_proof.v1",
       "object_family": "history_key_response_send_receipt",
       "binding_fields": [
         "payload_digest",
@@ -1189,7 +1190,7 @@
       "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt"
     },
     {
-      "context": "ak.history-key-request-replica-proof-v1",
+      "context": "ak.history_key_request_replica_proof.v1",
       "object_family": "history_key_request_replica",
       "binding_fields": [
         "payload_digest",
@@ -1207,7 +1208,7 @@
       "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica"
     },
     {
-      "context": "ak.history-key-request-replica-receipt-proof-v1",
+      "context": "ak.history_key_request_replica_receipt_proof.v1",
       "object_family": "history_key_request_replica_receipt",
       "binding_fields": [
         "payload_digest",
@@ -1221,7 +1222,7 @@
       "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica_outcome"
     },
     {
-      "context": "ak.history-key-source-relay-attestation-proof-v1",
+      "context": "ak.history_key_source_relay_attestation_proof.v1",
       "object_family": "history_key_source_relay_attestation",
       "binding_fields": [
         "payload_digest",
@@ -1248,7 +1249,7 @@
       "conditional_binding_rule": "source_kind=member requires source_author_profile and source_authorization_incarnation; organization_recovery_holder forbids both and requires source_authority_locator.authority_observation to match source_actor_id, source_service_id, service_proof.verification_method, the exact archive authorization tuple and expires_at. A ? field is included iff its closed branch admits it."
     },
     {
-      "context": "ak.organization-recovery-archive-replica-proof-v1",
+      "context": "ak.organization_recovery_archive_replica_proof.v1",
       "object_family": "organization_recovery_archive_replica",
       "binding_fields": [
         "payload_digest",
@@ -1266,7 +1267,7 @@
       "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica"
     },
     {
-      "context": "ak.organization-recovery-archive-replica-receipt-proof-v1",
+      "context": "ak.organization_recovery_archive_replica_receipt_proof.v1",
       "object_family": "organization_recovery_archive_replica_receipt",
       "binding_fields": [
         "payload_digest",
@@ -1281,7 +1282,7 @@
       "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome"
     },
     {
-      "context": "ak.organization-recovery-key-holder-acceptance-proof-v1",
+      "context": "ak.organization_recovery_key_holder_acceptance_proof.v1",
       "object_family": "organization_recovery_key_holder_acceptance",
       "binding_fields": [
         "payload_digest",
@@ -1295,7 +1296,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/organization_recovery_holder_acceptance"
     },
     {
-      "context": "ak.peer-seal-frontier-proof-v1",
+      "context": "ak.peer_seal_frontier_proof.v1",
       "object_family": "peer_seal_frontier",
       "binding_fields": [
         "frontier",
@@ -1306,7 +1307,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState/properties/service_proof"
     },
     {
-      "context": "ak.availability-receipt-proof-v1",
+      "context": "ak.availability_receipt_proof.v1",
       "object_family": "availability_receipt_content",
       "binding_fields": [
         "payload_digest",
@@ -1326,7 +1327,7 @@
   ],
   "domain_separations": [
     {
-      "domain": "ak.accountability-scope-set-v1",
+      "domain": "ak.accountability_scope_set.v1",
       "object_family": "accountability_scope_set",
       "primitive": "canonical_json_sha256",
       "binding_fields": [
@@ -1334,7 +1335,7 @@
       ]
     },
     {
-      "domain": "ak.agent-authority-snapshot-v1",
+      "domain": "ak.agent_authority_snapshot.v1",
       "object_family": "agent_snapshot_lease",
       "primitive": "detached_signature",
       "binding_fields": [
@@ -1347,7 +1348,7 @@
       ]
     },
     {
-      "domain": "ak.agent-signer-admission-receipt-v1",
+      "domain": "ak.agent_signer_admission_receipt.v1",
       "object_family": "agent_event_admission_receipt",
       "primitive": "detached_signature",
       "binding_fields": [
@@ -1365,7 +1366,7 @@
       ]
     },
     {
-      "domain": "ak.agent-signer-evidence.v1",
+      "domain": "ak.agent_signer_evidence.v1",
       "object_family": "agent_signer_evidence_outer_attestation",
       "primitive": "detached_signature",
       "binding_fields": [
@@ -1393,7 +1394,7 @@
       ]
     },
     {
-      "domain": "ak.contact.glare-unconsumed-slot.v1",
+      "domain": "ak.contact.glare_unconsumed_slot.v1",
       "object_family": "contact_glare_unconsumed_slot",
       "primitive": "canonical_json_sha256",
       "binding_fields": [
@@ -1402,7 +1403,7 @@
       ]
     },
     {
-      "domain": "ak.contact.no-outgoing-slot.v1",
+      "domain": "ak.contact.no_outgoing_slot.v1",
       "object_family": "contact_no_outgoing_slot",
       "primitive": "canonical_json_sha256",
       "binding_fields": [
@@ -1411,7 +1412,7 @@
       ]
     },
     {
-      "domain": "ak.contact.request-acceptance-core.v1",
+      "domain": "ak.contact.request_acceptance_core.v1",
       "object_family": "contact_request_acceptance_core",
       "primitive": "canonical_json_sha256",
       "binding_fields": [
@@ -1420,7 +1421,7 @@
       ]
     },
     {
-      "domain": "ak.contact.request-source-checkpoint.v1",
+      "domain": "ak.contact.request_source_checkpoint.v1",
       "object_family": "contact_request_source_checkpoint",
       "primitive": "canonical_json_sha256",
       "binding_fields": [
@@ -1429,7 +1430,7 @@
       ]
     },
     {
-      "domain": "ak.controller-account-gate-v1",
+      "domain": "ak.controller_account_gate.v1",
       "object_family": "controller_account_gate_attestation",
       "primitive": "detached_signature",
       "binding_fields": [
@@ -1497,7 +1498,7 @@
       ]
     },
     {
-      "domain": "ak.http-message-signature.v1",
+      "domain": "ak.http_message_signature.v1",
       "object_family": "http_message_signature",
       "primitive": "http_message_signature",
       "binding_fields": [
@@ -1555,7 +1556,7 @@
       ]
     },
     {
-      "domain": "ak.keypackage.claim-terminal-receipt.v1",
+      "domain": "ak.keypackage.claim_terminal_receipt.v1",
       "object_family": "keypackage_claim_terminal_receipt",
       "primitive": "detached_signature",
       "binding_fields": [
@@ -1570,7 +1571,7 @@
       ]
     },
     {
-      "domain": "ak.keypackage.consume-receipt.v1",
+      "domain": "ak.keypackage.consume_receipt.v1",
       "object_family": "keypackage_consume_receipt",
       "primitive": "detached_signature",
       "binding_fields": [
@@ -1588,7 +1589,7 @@
       ]
     },
     {
-      "domain": "ak.membership-compensation.single-use-cas.v1",
+      "domain": "ak.membership_compensation.single_use_cas.v1",
       "object_family": "membership_compensation_single_use_cas",
       "primitive": "canonical_json_sha256",
       "binding_fields": [
@@ -1598,7 +1599,7 @@
       ]
     },
     {
-      "domain": "ak.membership-compensation.terminal-certificate.v1",
+      "domain": "ak.membership_compensation.terminal_certificate.v1",
       "object_family": "membership_compensation_terminal_certificate",
       "primitive": "detached_signature",
       "binding_fields": [
@@ -1609,7 +1610,7 @@
       ]
     },
     {
-      "domain": "ak.mls.recipient-durable-receipt.v1",
+      "domain": "ak.mls.recipient_durable_receipt.v1",
       "object_family": "recipient_mls_durable_receipt",
       "primitive": "detached_signature",
       "binding_fields": [
@@ -1632,7 +1633,7 @@
       ]
     },
     {
-      "domain": "ak.peer-contact.control-receipt.v1",
+      "domain": "ak.peer_contact.control_receipt.v1",
       "object_family": "peer_contact_control_receipt",
       "primitive": "detached_signature",
       "binding_fields": [
@@ -1647,7 +1648,7 @@
       ]
     },
     {
-      "domain": "ak.peer-contact.mirror-receipt.v1",
+      "domain": "ak.peer_contact.mirror_receipt.v1",
       "object_family": "peer_contact_mirror_receipt",
       "primitive": "detached_signature",
       "binding_fields": [
@@ -1702,7 +1703,7 @@
       ]
     },
     {
-      "domain": "ak.joined-control-view-digest-v1",
+      "domain": "ak.joined_control_view_digest.v1",
       "object_family": "joined_control_view",
       "primitive": "canonical_json_sha256",
       "binding_fields": [
@@ -1724,7 +1725,7 @@
       ]
     },
     {
-      "domain": "ak.websocket-auth.v1",
+      "domain": "ak.websocket_auth.v1",
       "object_family": "websocket_dpop_replay_ledger",
       "primitive": "replay_cache_namespace",
       "binding_fields": [

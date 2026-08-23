@@ -228,7 +228,7 @@ private key、MLS private state、服务本地 `account_id` 与 raw account cell
 `agent_authority_snapshot.core` 在 Agent Principal Control Realm 的一个 exact signed Seal view 中同时承载完整
 `signing_key_binding`、key authorization、key state witness 和 Agent lifecycle witness。`snapshot_digest` 只对 core
 做 RFC 8785/JCS SHA-256；`lease` 由该 PCR 的权威 service DID 在独立 domain
-`ak.agent-authority-snapshot-v1` 下签名并逐字绑定 authority、verification method、snapshot digest 与时窗。
+`ak.agent_authority_snapshot.v1` 下签名并逐字绑定 authority、verification method、snapshot digest 与时窗。
 snapshot core 的 `seal_lineage[]` 必须是把 key/status witness Seal 连接到 `frontier_seal_id` 的完整、无重复
 predecessor closure；unknown、fork、跨 Realm、缺 predecessor 或签名无效均拒绝。
 
@@ -246,7 +246,7 @@ receiver 验证 Seal id/notary signature/Realm/lineage，以 canonical
 `{"cell":cell_ref,"state":{"value":cell_value}}` 重算 leaf，再按 §6.2.2 odd-tail promotion 重建 `state_root`。
 缺 signed Seal/value、cell/subject/actor/controller/event dot 错配、proof 剩余/不足或 root 不等均 fail closed。
 
-`controller_account_gate_attestation` 由 Account Authority 在 domain `ak.controller-account-gate-v1` 下签名，只公开
+`controller_account_gate_attestation` 由 Account Authority 在 domain `ak.controller_account_gate.v1` 下签名，只公开
 controller principal `did_core_id`、closed active/inactive eligibility、六值 account status、`basis.kind` 对应的最小
 binding/status digest 与时窗。`account_binding_default` 表示权威私有 binding 上尚无更严格 accepted status head；
 `account_status_event` 绑定真实 status Event/frontier digest。`status=active` 当且仅当 `eligibility=active`；其它状态
@@ -283,7 +283,7 @@ historical API 或 Event 历史验签路径结构性非法，也不得跨 verifi
 
 historical 分支必须携带由实际接收 Principal Server 在 Event accepted 时签发的
 `ak.schema.agent_signer_admission_receipt.v1`。receipt 在 domain
-`ak.agent-signer-admission-receipt-v1` 下闭合绑定 Event id/digest/Realm、origin `principal_server_admission.accepted_at`、
+`ak.agent_signer_admission_receipt.v1` 下闭合绑定 Event id/digest/Realm、origin `principal_server_admission.accepted_at`、
 receiver `accepted_at`、Agent/key method、origin 冻结的
 `producer_signer_resolution_evidence_ref/digest` 与 receiver。`event_digest` 已经覆盖 Event 自身的 `seal_ref`、
 `seal_basis` 或 anchor 形态，因此 receipt 不重复携带一个对 Data Event、Control Move 和 anchor 含义不一致的
@@ -307,7 +307,7 @@ key interval、Agent lifecycle 与 controller account lifecycle 是三个正交 
 否决“取最早 terminal frontier写入单一 valid_until”的做法。历史有效性只取决于 destination-signed receipt 固定的
 三项 admission-time basis；后来任一 gate 变化只阻止新 admission，不追溯抹除此前合法签名。
 
-outer attestation 在 domain `ak.agent-signer-evidence.v1` 下签整个 tagged evidence（只省略 outer_attestation 自身）
+outer attestation 在 domain `ak.agent_signer_evidence.v1` 下签整个 tagged evidence（只省略 outer_attestation 自身）
 的 JCS digest，防止 mode/context/snapshot/receipt拼接；它不替代底层 controller proof、Seal、snapshot lease、Account
 Authority proof或receipt proof。直接 evidence query 与 federation transport另用 RFC 9421 HTTP Message Signature
 覆盖完整 content digest、operation id与双方 service/session binding，不把 HTTP Signature header 嵌回 body形成环。
@@ -357,7 +357,7 @@ Conformance vector：`ak.vector.agent.runtime_key_binding.v1`。
 
 ```json
 {
-  "context": "ak.agent-runtime-key-possession-proof-v1",
+  "context": "ak.agent_runtime_key_possession_proof.v1",
   "kind": "agent_runtime_key_possession",
   "verification_method": "<request.verification_method>",
   "challenge": "<pairing_request_id>",
@@ -1097,7 +1097,7 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
 
    ```text
    {
-     "context": "ak.key-backup-delete-proof-v1",
+     "context": "ak.key_backup_delete_proof.v1",
      "operation": "ak.self.keys.backups.resource.delete",
      "request_id": <DELETE body request_id>,
      "principal_id": <authenticated principal>,
@@ -1118,7 +1118,7 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
    challenge window（`issued_at`..`expires_at`）内。
 
    `context` 是本 consumer 在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)
-   登记的唯一对象族 context `ak.key-backup-delete-proof-v1`，其 registry row 以
+   登记的唯一对象族 context `ak.key_backup_delete_proof.v1`，其 registry row 以
    `consumer_operation = "ak.self.keys.backups.resource.delete"` 声明归属。
    [`high-risk-authority-proof.schema.json`](../../artifacts/schemas/high-risk-authority-proof.schema.json)
    是**一套 wire leaf、多 consumer context**：leaf 自身不拥有 context，schema 根的

@@ -925,7 +925,7 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.keypackage.claim-terminal-receipt.v1"
+          "const": "ak.keypackage.claim_terminal_receipt.v1"
         },
         "claim_request_id": {
           "$ref": "#/$defs/base64url",
@@ -1276,7 +1276,7 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.mls.recipient-durable-receipt.v1"
+          "const": "ak.mls.recipient_durable_receipt.v1"
         },
         "claim_request_id": {
           "$ref": "#/$defs/base64url",
@@ -1358,7 +1358,7 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.keypackage.consume-receipt.v1"
+          "const": "ak.keypackage.consume_receipt.v1"
         },
         "claim_request_id": {
           "$ref": "#/$defs/base64url",

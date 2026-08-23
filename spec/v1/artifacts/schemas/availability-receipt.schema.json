@@ -39,11 +39,11 @@
         "holder_signer_evidence_digest": {"$ref": "#/$defs/sha256_digest"},
         "signature": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.availability-receipt-proof-v1"
+          "x-arkret-proof-context": "ak.availability_receipt_proof.v1"
         }
       },
       "additionalProperties": false,
-      "description": "The signature-free core is {realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}. bytes_digest binds the complete accepted Event bytes except unsigned and is not event_id; verifier separately recomputes event_digest/event_id and every accepted proof. signature.payload_digest is the Realm-suite digest of RFC 8785 JCS(core). signature signs RFC 8785 JCS({context:'ak.availability-receipt-proof-v1',payload_digest,...core,verification_method,created_at}). holder_signer_evidence_digest equals the digest encoded by holder_signer_evidence_ref. The resolved evidence authorizes signature.verification_method for holder_id at signing time; current DID state is not a historical-key substitute."
+      "description": "The signature-free core is {realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}. bytes_digest binds the complete accepted Event bytes except unsigned and is not event_id; verifier separately recomputes event_digest/event_id and every accepted proof. signature.payload_digest is the Realm-suite digest of RFC 8785 JCS(core). signature signs RFC 8785 JCS({context:'ak.availability_receipt_proof.v1',payload_digest,...core,verification_method,created_at}). holder_signer_evidence_digest equals the digest encoded by holder_signer_evidence_ref. The resolved evidence authorizes signature.verification_method for holder_id at signing time; current DID state is not a historical-key substitute."
     },
     "digest": {"type": "string", "pattern": "^(sha256|blake3):[0-9a-f]{64}$"},
     "sha256_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}

@@ -10270,7 +10270,7 @@ paths:
       description: |
         The Account Authority reads its own current account binding/status
         projection and signs one privacy-minimal controller lifecycle snapshot
-        under ak.controller-account-gate-v1. The attestation lifetime is at most
+        under ak.controller_account_gate.v1. The attestation lifetime is at most
         300 seconds. It intentionally omits operation, request digest, audience
         and challenge because per-request current_observation and outer
         attestation bind its digest to those exact values. Unknown principal,

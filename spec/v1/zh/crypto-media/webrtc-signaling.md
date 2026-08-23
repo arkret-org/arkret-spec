@@ -273,7 +273,7 @@ Seal basis、scope/MLS epoch 与 AAD，然后解密并检查 plaintext sequence 
 `(realm_id, call_id, actor_id, device_id)` 上单调递增。失败、过期、重放、未知 signal kind
 或被吊销设备的 frame 必须 fail closed。规范外层 schema 是
 [`signal-envelope.schema.json`](../../artifacts/schemas/signal-envelope.schema.json)；
-proof context 固定为 `ak.signal-proof-v1`。
+proof context 固定为 `ak.signal_proof.v1`。
 
 解密后的 plaintext 顶层必须通过 [`call-signal-plaintext.schema.json`](../../artifacts/schemas/call-signal-plaintext.schema.json)（`ak.schema.call_signal_plaintext.v1`），闭合字段为 `kind=ak.call.signal`、
 `payload_sequence`、`call_id`、`signal_kind`、`seq` 与 `data`。`payload_sequence` 是

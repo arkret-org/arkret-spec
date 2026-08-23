@@ -4099,7 +4099,7 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Required Ed25519 possession proof. registration_anchor uses ak.device-authorize-possession-proof-v1, pcr_recovery uses ak.device-authorize-recovery-possession-proof-v1, and accepted_device uses ak.device-authorize-accepted-device-possession-proof-v1. All transcripts bind authorization_binding_kind and cannot be substituted across branches."
+          "description": "Required Ed25519 possession proof. registration_anchor uses ak.device_authorize_possession_proof.v1, pcr_recovery uses ak.device_authorize_recovery_possession_proof.v1, and accepted_device uses ak.device_authorize_accepted_device_possession_proof.v1. All transcripts bind authorization_binding_kind and cannot be substituted across branches."
         },
         "recovery_session_id": {
           "type": "string",
@@ -7062,7 +7062,7 @@
         "holder_trusted_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
         "holder_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.organization-recovery-key-holder-acceptance-proof-v1",
+          "x-arkret-proof-context": "ak.organization_recovery_key_holder_acceptance_proof.v1",
           "description": "Holder proof over RFC 8785 JCS of {realm_id,new_key_tuple,holder_trusted_basis}. proof.verification_method MUST equal new_key_tuple.holder_signing_ref byte-for-byte, resolve current, and its controller MUST project to new_key_tuple.holder_principal_id. The proof key is that exact method key. The proof is excluded from its own transcript."
         }
       },

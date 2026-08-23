@@ -254,7 +254,7 @@
     },
     "mimi_key_material_request_body": {
       "type": "object",
-      "x-arkret-proof-context": "ak.mimi-key-material-request-proof-v1",
+      "x-arkret-proof-context": "ak.mimi_key_material_request_proof.v1",
       "required": [
         "requester",
         "strand_id",
@@ -302,7 +302,7 @@
     },
     "mimi_key_material_outcome": {
       "type": "object",
-      "x-arkret-proof-context": "ak.mimi-key-material-outcome-proof-v1",
+      "x-arkret-proof-context": "ak.mimi_key_material_outcome_proof.v1",
       "anyOf": [
         {
           "required": [
@@ -577,7 +577,7 @@
     },
     "mimi_group_info_outcome": {
       "type": "object",
-      "x-arkret-proof-context": "ak.mimi-group-info-outcome-proof-v1",
+      "x-arkret-proof-context": "ak.mimi_group_info_outcome_proof.v1",
       "required": [
         "group_info"
       ],
@@ -622,7 +622,7 @@
     },
     "mimi_request_consent_request_body": {
       "type": "object",
-      "x-arkret-proof-context": "ak.mimi-request-consent-request-proof-v1",
+      "x-arkret-proof-context": "ak.mimi_request_consent_request_proof.v1",
       "required": [
         "requester_id",
         "target",
@@ -684,7 +684,7 @@
     "mimi_update_consent_request_body": {
       "type": "object",
       "description": "Carries the caller-authored, caller-signed Arkret consent Control Move. The facade verifies the detached MIMI operation signature over the complete unsigned body, then submits consent_event unchanged through ordinary Event admission. decision=accept requires ak.consent.grant; decision=deny or revoke requires ak.consent.revoke. The facade MUST NOT synthesize, rebuild or co-sign the Event.",
-      "x-arkret-proof-context": "ak.mimi-update-consent-request-proof-v1",
+      "x-arkret-proof-context": "ak.mimi_update_consent_request_proof.v1",
       "required": [
         "consent_id",
         "decision",
@@ -838,7 +838,7 @@
     },
     "mimi_identifier_query_request_body": {
       "type": "object",
-      "x-arkret-proof-context": "ak.mimi-identifier-query-request-proof-v1",
+      "x-arkret-proof-context": "ak.mimi_identifier_query_request_proof.v1",
       "required": [
         "identifiers"
       ],
@@ -869,7 +869,7 @@
     },
     "mimi_identifier_query_outcome": {
       "type": "object",
-      "x-arkret-proof-context": "ak.mimi-identifier-query-outcome-proof-v1",
+      "x-arkret-proof-context": "ak.mimi_identifier_query_outcome_proof.v1",
       "required": [
         "matches",
         "has_more"

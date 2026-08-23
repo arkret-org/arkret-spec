@@ -632,7 +632,7 @@
         },
         "device_signature": {
           "$ref": "./event-payload.schema.json#/$defs/signature_material",
-          "description": "Target-device Ed25519 possession proof over ak.device-authorize-accepted-device-possession-proof-v1: this operation always produces authorization_binding_kind=accepted_device, so registration_anchor and pcr_recovery possession domains MUST be rejected here. It MUST be byte-identical to authorize_event.event.payload.device_signature and verify under new_device_pubkey."
+          "description": "Target-device Ed25519 possession proof over ak.device_authorize_accepted_device_possession_proof.v1: this operation always produces authorization_binding_kind=accepted_device, so registration_anchor and pcr_recovery possession domains MUST be rejected here. It MUST be byte-identical to authorize_event.event.payload.device_signature and verify under new_device_pubkey."
         },
         "authorize_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",

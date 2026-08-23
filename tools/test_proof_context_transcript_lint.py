@@ -31,7 +31,7 @@ REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 FIXTURE = ARTIFACTS / "fixtures" / "proof-context-transcript-fixture.json"
 
-SAMPLE_CONTEXT = "ak.accountability-grant-proof-v1"
+SAMPLE_CONTEXT = "ak.accountability_grant_proof.v1"
 SAMPLE_FAMILY = "accountability_grant"
 SAMPLE_VECTOR = "ak.vector.proof_context.transcript.accountability_grant.v1"
 
@@ -99,12 +99,12 @@ class ProofContextTranscriptLintTest(unittest.TestCase):
 
         def add_row(document) -> None:
             row = copy.deepcopy(document["contexts"][0])
-            row["context"] = "ak.new-object-family-proof-v1"
+            row["context"] = "ak.new_object_family_proof.v1"
             row["object_family"] = "new_object_family"
             document["contexts"].append(row)
 
         errors = self._run_with_mutations({REGISTRY: add_row})
-        self.assertAnyContains(errors, "ak.new-object-family-proof-v1 has no transcript vector")
+        self.assertAnyContains(errors, "ak.new_object_family_proof.v1 has no transcript vector")
         self.assertAnyContains(
             errors, "ak.vector.proof_context.transcript.new_object_family.v1"
         )

@@ -258,7 +258,7 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 
 `root` 的 leaf 集 MUST 恰好是 `realm_id` 下位于 `(from_frontier, to_frontier]` 且 actor seq 落入对应 `actor_seq_ranges[]` 的全部 reducer-input Event。每个 leaf 的 `leaf_data` 为下列 closed object 的 canonical JSON UTF-8 bytes：
 
-`proofs[]` 使用 `payload_digest`，不得复用 Event Envelope 的 `event_digest` proof。`payload_digest = sha256(RFC8785_JCS(payload_without_proofs))`；detached JWS MUST 签下列 canonical binding object：`{context:"ak.range-completeness-attestation-proof-v1", payload_digest, issuer, scope, verification_method, created_at, domain?, audience?}`。其中 `scope` 是 closed object `{"realm_id": payload.realm_id, "event_range": payload.event_range}`，不得用页码、查询 URL 或局部响应集合替代。`verification_method` 的 bare full DID 必须投影为 `issuer`，且该 method 必须在 `observed_at` 对应的 issuer method state 中有效。任何 verifier 若未按上述对象族 context 和完整 `scope` 验证 payload proof，必须 fail closed。
+`proofs[]` 使用 `payload_digest`，不得复用 Event Envelope 的 `event_digest` proof。`payload_digest = sha256(RFC8785_JCS(payload_without_proofs))`；detached JWS MUST 签下列 canonical binding object：`{context:"ak.range_completeness_attestation_proof.v1", payload_digest, issuer, scope, verification_method, created_at, domain?, audience?}`。其中 `scope` 是 closed object `{"realm_id": payload.realm_id, "event_range": payload.event_range}`，不得用页码、查询 URL 或局部响应集合替代。`verification_method` 的 bare full DID 必须投影为 `issuer`，且该 method 必须在 `observed_at` 对应的 issuer method state 中有效。任何 verifier 若未按上述对象族 context 和完整 `scope` 验证 payload proof，必须 fail closed。
 
 ```json
 {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.2",
+  "version": "2026-08-23.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-23T15:30:00+08:00",
+  "generated_at": "2026-08-23T21:55:35+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -68,7 +68,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:101555aa7cf1f03913d8cc242099a3873d124d6faca79fd76134bcb1ac669163",
+      "section_digest": "sha256:b376eeec58a2ebf070722046243773aaff3af6a0452669e55d7f1eb541a73e37",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another. Section 6.0.2 fixes one construction for every registered proof context: the unsigned projection deletes the proof carrier member rather than nulling it and never defaults an absent optional, an absent optional binding field is omitted rather than written as null, audience is a single string or a duplicate-free array with the single-value form mandatory for one audience, and the context constant is a binding object member rather than a JWS header parameter, so a signature valid under one object family's context MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -432,7 +432,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:ba4c087d466adec8db090a48dc6e41a207556abc7fbaca404af5a9ffe65648a6",
+      "section_digest": "sha256:386e6ac26ee5887884d7fe0aae2800c29a216b799bd2339bf31977214235f21f",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -454,7 +454,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:ba4c087d466adec8db090a48dc6e41a207556abc7fbaca404af5a9ffe65648a6",
+      "section_digest": "sha256:386e6ac26ee5887884d7fe0aae2800c29a216b799bd2339bf31977214235f21f",
       "requirement": "An accepted ordinary-Realm or managed-Agent closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent. The separately specified human self-principal PCR authority-authored path omits the Ack but not the pending index or covering-Seal obligation.",
       "testability_grade": "vector",
       "evidence_refs": [

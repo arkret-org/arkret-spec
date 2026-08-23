@@ -570,7 +570,7 @@ byte-identical retry MUST 返回首次持久化的 authority Ack；不同 Event 
 或时间字段 MUST `duplicate_conflict`，不得重签延长期限。
 
 member签名 transcript 是
-`JCS({context:"ak.control-proposal-authority-ack-proof-v1",
+`JCS({context:"ak.control_proposal_authority_ack_proof.v1",
 payload_digest:SHA-256(JCS(authority_ack_without_signature)),verification_method,
 created_at:received_at})`；proof的`payload_digest`与`created_at`必须逐字匹配，禁止签任意摘要后
 只比较字段。每个member的`decision_due_at`必须恰等于
@@ -623,7 +623,7 @@ authority signatures))`；同一有效authority集合只有一种排序和一种
 set，并由当前 Ack quorum 对同一 decision payload 产生按 verification method canonical
 排序的 `proofs[]`。`decision_digest=SHA-256(JCS(decision_without_proofs))`，每个proof的
 `payload_digest`必须等于该值、`created_at`必须等于`decided_at`，签名transcript固定为
-`JCS({context:"ak.control-proposal-decision-proof-v1",payload_digest,
+`JCS({context:"ak.control_proposal_decision_proof.v1",payload_digest,
 verification_method,created_at})`；proof不得跨 Ack set、decision kind 或 defer count拼接。它还必须
 原样保留 `absolute_due_at`。`signed_reject` 与 `signed_defer` 是可验证的 authority
 决议，**不是** proposal 被接受，也不提供 finality；只有第 1 项中的 accepted Seal 提供

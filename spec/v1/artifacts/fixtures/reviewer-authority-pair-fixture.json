@@ -17,7 +17,7 @@
     "registry/proof-context-registry.json"
   ],
   "proof_transcript": {
-    "context": "ak.join-application-review-receipt-proof-v1",
+    "context": "ak.join_application_review_receipt_proof.v1",
     "ordered_fields": [
       "receipt_digest",
       "realm_id",

@@ -79,7 +79,7 @@
     },
     "proofs": {
       "type": "array",
-      "description": "Detached receipt proofs sign canonical_json({context:'ak.receipt-proof-v1', payload_digest: receipt_digest, issuer, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag, not a wire field.",
+      "description": "Detached receipt proofs sign canonical_json({context:'ak.receipt_proof.v1', payload_digest: receipt_digest, issuer, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag, not a wire field.",
       "items": {
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },

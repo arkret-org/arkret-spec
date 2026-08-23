@@ -99,7 +99,7 @@
           "type": "string"
         }
       },
-      "description": "Issuer detached proof. payload_digest = sha256(canonical_json(receipt with signature omitted)). The detached JWS signs canonical_json({context:'ak.did-webvh-witness-receipt-proof-v1', payload_digest, issuer_service_id, did, version_id, witness_did, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag and is not a wire field. signature.created_at MUST equal receipt.created_at. signature.verification_method MUST be a currently valid assertion method controlled by issuer_service_id. Receipt audience and proof audience MUST either both be absent or be the same single string; array-valued proof audiences are invalid for this object family."
+      "description": "Issuer detached proof. payload_digest = sha256(canonical_json(receipt with signature omitted)). The detached JWS signs canonical_json({context:'ak.did_webvh_witness_receipt_proof.v1', payload_digest, issuer_service_id, did, version_id, witness_did, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag and is not a wire field. signature.created_at MUST equal receipt.created_at. signature.verification_method MUST be a currently valid assertion method controlled by issuer_service_id. Receipt audience and proof audience MUST either both be absent or be the same single string; array-valued proof audiences are invalid for this object family."
     }
   },
   "additionalProperties": false

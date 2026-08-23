@@ -92,7 +92,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
         """The MIMI provider directory state: a whole object family with no row."""
         errors = self._run_with_mutations(
             {
-                REGISTRY: lambda doc: self._drop_row(doc, "ak.mimi-provider-directory-proof-v1"),
+                REGISTRY: lambda doc: self._drop_row(doc, "ak.mimi_provider_directory_proof.v1"),
                 SCHEMAS
                 / "mimi-interop.schema.json": lambda doc: doc["$defs"]["provider_directory"].pop(
                     "x-arkret-proof-context"
@@ -109,7 +109,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
         """The high-risk key-backup state: three branch use points, zero rows."""
         errors = self._run_with_mutations(
             {
-                REGISTRY: lambda doc: self._drop_row(doc, "ak.key-backup-delete-proof-v1"),
+                REGISTRY: lambda doc: self._drop_row(doc, "ak.key_backup_delete_proof.v1"),
                 SCHEMAS
                 / "high-risk-authority-proof.schema.json": lambda doc: doc.pop(
                     "x-arkret-proof-contexts"
@@ -131,7 +131,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
         """A row claiming an inner family while pointing at the whole file."""
 
         def widen(document) -> None:
-            self._row(document, "ak.account-handoff-authentication-proof-v1")[
+            self._row(document, "ak.account_handoff_authentication_proof.v1")[
                 "schema_ref"
             ] = "schemas/account-operations.schema.json"
 
@@ -142,7 +142,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
         """A fragment that names no node used to pass: only the file part was checked."""
 
         def break_fragment(document) -> None:
-            self._row(document, "ak.snapshot-witness-attestation-proof-v1")[
+            self._row(document, "ak.snapshot_witness_attestation_proof.v1")[
                 "schema_ref"
             ] = "schemas/snapshot.schema.json#/$defs/no_such_family"
 
@@ -154,19 +154,19 @@ class ProofContextClosureLintTest(unittest.TestCase):
         errors = self._run_with_mutations(
             {
                 REGISTRY: lambda doc: self._drop_row(
-                    doc, "ak.snapshot-witness-attestation-proof-v1"
+                    doc, "ak.snapshot_witness_attestation_proof.v1"
                 )
             }
         )
         self.assertAnyContains(
-            errors, "names an unregistered proof context: ak.snapshot-witness-attestation-proof-v1"
+            errors, "names an unregistered proof context: ak.snapshot_witness_attestation_proof.v1"
         )
 
     def test_witness_context_cannot_be_registered_as_a_second_file_level_row(self) -> None:
         """Two rows on one anchor are a multi-consumer family, not a silent alias."""
 
         def flatten(document) -> None:
-            self._row(document, "ak.snapshot-witness-attestation-proof-v1")[
+            self._row(document, "ak.snapshot_witness_attestation_proof.v1")[
                 "schema_ref"
             ] = "schemas/snapshot.schema.json"
 
@@ -177,7 +177,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
         def drift(document) -> None:
             document["$defs"]["snapshot_witness_attestation"][
                 "x-arkret-proof-context"
-            ] = "ak.snapshot-proof-v1"
+            ] = "ak.snapshot_proof.v1"
 
         errors = self._run_with_mutations({SCHEMAS / "snapshot.schema.json": drift})
         self.assertAnyContains(errors, "but the registry binds")
@@ -186,8 +186,8 @@ class ProofContextClosureLintTest(unittest.TestCase):
         """A second high-risk consumer may not inherit the key-backup transcript context."""
 
         def add_consumer(document) -> None:
-            row = copy.deepcopy(self._row(document, "ak.key-backup-delete-proof-v1"))
-            row["context"] = "ak.realm-history-erasure-proof-v1"
+            row = copy.deepcopy(self._row(document, "ak.key_backup_delete_proof.v1"))
+            row["context"] = "ak.realm_history_erasure_proof.v1"
             row["object_family"] = "realm_history_erasure_authority"
             row.pop("consumer_operation")
             document["contexts"].append(row)
@@ -198,15 +198,15 @@ class ProofContextClosureLintTest(unittest.TestCase):
                 SCHEMAS
                 / "high-risk-authority-proof.schema.json": lambda doc: doc[
                     "x-arkret-proof-contexts"
-                ].append("ak.realm-history-erasure-proof-v1"),
+                ].append("ak.realm_history_erasure_proof.v1"),
             }
         )
         self.assertAnyContains(errors, "must each declare consumer_operation")
 
     def test_shared_leaf_annotation_must_enumerate_every_consumer_row(self) -> None:
         def add_consumer(document) -> None:
-            row = copy.deepcopy(self._row(document, "ak.key-backup-delete-proof-v1"))
-            row["context"] = "ak.realm-history-erasure-proof-v1"
+            row = copy.deepcopy(self._row(document, "ak.key_backup_delete_proof.v1"))
+            row["context"] = "ak.realm_history_erasure_proof.v1"
             row["object_family"] = "realm_history_erasure_authority"
             row["consumer_operation"] = "ak.self.keys.backups.command.unlock"
             document["contexts"].append(row)
@@ -216,7 +216,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
 
     def test_consumer_operation_must_be_registered(self) -> None:
         def bogus(document) -> None:
-            self._row(document, "ak.key-backup-delete-proof-v1")[
+            self._row(document, "ak.key_backup_delete_proof.v1")[
                 "consumer_operation"
             ] = "ak.self.keys.backups.command.not_an_operation"
 
@@ -228,16 +228,16 @@ class ProofContextClosureLintTest(unittest.TestCase):
 
         def repack_registry(document) -> None:
             for context in (
-                "ak.directory-resolve-target-request-proof-v1",
-                "ak.directory-resolve-organization-request-proof-v1",
-                "ak.directory-resolve-handle-request-proof-v1",
-                "ak.directory-resolve-agent-selector-request-proof-v1",
-                "ak.directory-list-handles-for-subject-request-proof-v1",
+                "ak.directory_resolve_target_request_proof.v1",
+                "ak.directory_resolve_organization_request_proof.v1",
+                "ak.directory_resolve_handle_request_proof.v1",
+                "ak.directory_resolve_agent_selector_request_proof.v1",
+                "ak.directory_list_handles_for_subject_request_proof.v1",
             ):
                 self._drop_row(document, context)
             document["contexts"].append(
                 {
-                    "context": "ak.directory-operation-proof-v1",
+                    "context": "ak.directory_operation_proof.v1",
                     "object_family": "directory_operation",
                     "binding_fields": ["payload_digest", "issuer", "operation_id"],
                     "defined_in": "zh/discovery/discovery-directory.md",
@@ -270,7 +270,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
         errors = self._run_with_mutations(
             {
                 REGISTRY: lambda doc: self._drop_row(
-                    doc, "ak.mimi-identifier-query-outcome-proof-v1"
+                    doc, "ak.mimi_identifier_query_outcome_proof.v1"
                 ),
                 SCHEMAS
                 / "mimi-operations.schema.json": lambda doc: doc["$defs"][
@@ -292,7 +292,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
             document["domain_separations"] = [
                 row
                 for row in document["domain_separations"]
-                if row.get("domain") != "ak.websocket-auth.v1"
+                if row.get("domain") != "ak.websocket_auth.v1"
             ]
 
         errors = self._run_with_mutations({REGISTRY: drop_namespace})
@@ -301,29 +301,29 @@ class ProofContextClosureLintTest(unittest.TestCase):
     def test_replay_cache_namespace_must_appear_in_its_declared_source(self) -> None:
         def move_source(document) -> None:
             for row in document["domain_separations"]:
-                if row.get("domain") == "ak.websocket-auth.v1":
+                if row.get("domain") == "ak.websocket_auth.v1":
                     row["defined_in"] = "zh/sync/federation.md"
 
         errors = self._run_with_mutations({REGISTRY: move_source})
         self.assertAnyContains(
-            errors, "ak.websocket-auth.v1 is not defined in its declared source"
+            errors, "ak.websocket_auth.v1 is not defined in its declared source"
         )
 
-    def test_replay_cache_namespace_may_not_be_spelled_as_a_proof_context(self) -> None:
+    def test_domain_separation_may_not_reuse_a_proof_context_label(self) -> None:
         def rename(document) -> None:
             for row in document["domain_separations"]:
-                if row.get("domain") == "ak.websocket-auth.v1":
-                    row["domain"] = "ak.websocket-auth-proof-v1"
+                if row.get("domain") == "ak.websocket_auth.v1":
+                    row["domain"] = "ak.event_proof.v1"
 
         errors = self._run_with_mutations({REGISTRY: rename})
         self.assertAnyContains(
-            errors, "MUST NOT be spelled as a proof context"
+            errors, "registered as both context and domain separation"
         )
 
     def test_domain_separation_primitive_is_a_closed_set(self) -> None:
         def widen(document) -> None:
             for row in document["domain_separations"]:
-                if row.get("domain") == "ak.websocket-auth.v1":
+                if row.get("domain") == "ak.websocket_auth.v1":
                     row["primitive"] = "replay_namespace"
 
         errors = self._run_with_mutations({REGISTRY: widen})
@@ -337,13 +337,22 @@ class ProofContextClosureLintTest(unittest.TestCase):
             kat["proof_context"] = kat.pop("replay_cache_namespace")
 
         errors = self._run_with_mutations({WEBSOCKET_FIXTURE: collide})
-        self.assertAnyContains(errors, "is not a registered proof context: 'ak.websocket-auth.v1'")
+        self.assertAnyContains(errors, "is not a registered proof context: 'ak.websocket_auth.v1'")
+
+    def test_domain_separation_label_must_use_dot_and_snake_case(self) -> None:
+        def drift(document) -> None:
+            for row in document["domain_separations"]:
+                if row.get("domain") == "ak.websocket_auth.v1":
+                    row["domain"] = "ak.websocket-auth.v1"
+
+        errors = self._run_with_mutations({REGISTRY: drift})
+        self.assertAnyContains(errors, "canonical dot-separated snake_case v1 label")
 
     def test_main_entrypoint_runs_the_gate_and_fails(self) -> None:
         """The gate is worthless unless artifact-lint's own entrypoint calls it."""
         original_load_json = foundation.load_json
         mutated = copy.deepcopy(original_load_json(Lint(), REGISTRY))
-        self._drop_row(mutated, "ak.mimi-provider-directory-proof-v1")
+        self._drop_row(mutated, "ak.mimi_provider_directory_proof.v1")
         target = REGISTRY.resolve()
 
         def load_json_with_mutation(lint, path):
@@ -361,7 +370,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
 
         combined = stdout.getvalue() + stderr.getvalue()
         self.assertNotEqual(status, 0)
-        self.assertIn("ak.mimi-provider-directory-proof-v1", combined)
+        self.assertIn("ak.mimi_provider_directory_proof.v1", combined)
 
 
 if __name__ == "__main__":

@@ -33,7 +33,7 @@ AuthorizationLease {
 ```
 
 `lease_digest = sha256(canonical_json(lease_without_proofs))`。每个 issuer proof 必须签
-`canonical_json({context:"ak.authorization-lease-proof-v1", payload_digest:lease_digest,
+`canonical_json({context:"ak.authorization_lease_proof.v1", payload_digest:lease_digest,
 authority_set_ref, verification_method, created_at, domain?, audience?})`；proof `created_at` 必须逐字
 等于 lease `issued_at`。proof 条数与唯一 issuer 数必须满足 basis 中已接受的 authority-set policy，
 数组长度本身不等于 quorum。
@@ -127,7 +127,7 @@ IngressReceipt {
 ```
 
 `receipt_digest = sha256(canonical_json(receipt_without_proofs))`。每个 ingress proof 必须签
-`canonical_json({context:"ak.ingress-receipt-proof-v1", payload_digest:receipt_digest,
+`canonical_json({context:"ak.ingress_receipt_proof.v1", payload_digest:receipt_digest,
 authority_set_ref, verification_method, created_at, domain?, audience?})`；proof `created_at` 必须逐字
 等于 `received_at`。同一 verification method 的重复 proof 只计一次。
 

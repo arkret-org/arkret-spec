@@ -2258,7 +2258,7 @@
       "required": ["frontier", "service_proof"],
       "properties": {
         "frontier": {"$ref": "#/$defs/RealmSealFrontierView"},
-        "service_proof": {"$ref": "./event-envelope.schema.json#/$defs/proof", "x-arkret-proof-context": "ak.peer-seal-frontier-proof-v1"}
+        "service_proof": {"$ref": "./event-envelope.schema.json#/$defs/proof", "x-arkret-proof-context": "ak.peer_seal_frontier_proof.v1"}
       },
       "additionalProperties": false,
       "description": "Authenticated peer Seal discovery result. The proof covers the complete frontier including its observation coordinate."
@@ -3736,7 +3736,7 @@
           "items": {
             "$ref": "./event-envelope.schema.json#/$defs/proof"
           },
-          "description": "Detached proofs over canonical_json({context:'ak.organization-registration-control-proof-v1', challenge_id, organization_id, full_id, local_admin_subject, version_id, log_head_digest, verification_method, created_at}). The verifier independently validates the published full_id and requires project(full_id)=organization_id before checking the full DID URL verification_method. Binding the challenge, stable core, full DID, beneficiary admin and exact version together prevents replay across deployments, resolutions or beneficiaries."
+          "description": "Detached proofs over canonical_json({context:'ak.organization_registration_control_proof.v1', challenge_id, organization_id, full_id, local_admin_subject, version_id, log_head_digest, verification_method, created_at}). The verifier independently validates the published full_id and requires project(full_id)=organization_id before checking the full DID URL verification_method. Binding the challenge, stable core, full DID, beneficiary admin and exact version together prevents replay across deployments, resolutions or beneficiaries."
         }
       },
       "allOf": [
@@ -3797,7 +3797,7 @@
           "description": "Current published bare DID for the external organization. The registry MUST independently validate it and require the registered method adapter to project it to organization_id before issuing the challenge."
         },
         "purpose": {
-          "const": "ak.organization-registration-control-proof-v1",
+          "const": "ak.organization_registration_control_proof.v1",
           "description": "Fixed purpose tag, identical to the signing context of OrganizationControlProof.proofs[]. A proof produced for any other purpose MUST NOT verify here."
         },
         "nonce": {
@@ -4007,7 +4007,7 @@
     "OrganizationRegistrationReceipt": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Provider-signed record that this deployment accepted an external Organization DID binding. receipt_claims is exactly the object formed by removing registration_receipt_id and proof from the receipt; registration_receipt_id is ak:organization_registration_receipt:<lowercase hex SHA-256(canonical_json(receipt_claims))>. proof.payload_digest hashes the complete receipt after registration_receipt_id is inserted and proof is removed, so neither digest is self-referential. proof is a detached JWS over the ak.organization-registration-receipt-proof-v1 binding object. The receipt proves acceptance of one generation of one local binding and nothing else: it is not a Realm capability, not membership, not a notary designation, and not a service delegation.",
+      "description": "Provider-signed record that this deployment accepted an external Organization DID binding. receipt_claims is exactly the object formed by removing registration_receipt_id and proof from the receipt; registration_receipt_id is ak:organization_registration_receipt:<lowercase hex SHA-256(canonical_json(receipt_claims))>. proof.payload_digest hashes the complete receipt after registration_receipt_id is inserted and proof is removed, so neither digest is self-referential. proof is a detached JWS over the ak.organization_registration_receipt_proof.v1 binding object. The receipt proves acceptance of one generation of one local binding and nothing else: it is not a Realm capability, not membership, not a notary designation, and not a service delegation.",
       "required": [
         "registration_receipt_id",
         "organization_id",
@@ -4097,7 +4097,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization-registration-receipt-proof-v1', payload_digest, issuer_service_id, registration_receipt_id, organization_id, full_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers validate the registered organization's full_id and project it to organization_id, then independently obtain the issuer service's verified resolution, require its full_id to project to issuer_service_id, and verify verification_method as a signing-time assertionMethod."
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization_registration_receipt_proof.v1', payload_digest, issuer_service_id, registration_receipt_id, organization_id, full_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers validate the registered organization's full_id and project it to organization_id, then independently obtain the issuer service's verified resolution, require its full_id to project to issuer_service_id, and verify verification_method as a signing-time assertionMethod."
         }
       }
     },
@@ -5283,7 +5283,7 @@
     },
     "ServiceRegistrationReceipt": {
       "type": "object",
-      "description": "Provider-signed stable service-registration receipt. registration_receipt_id is ak:service_registration_receipt:<lowercase hex SHA-256(canonical_json(receipt claims))>. service_id is the projected did_core_id and full_id is the verified complete DID. proof is a detached JWS over the ak.service-registration-receipt-proof-v1 binding object; consumers verify the provider through its own full resolution evidence.",
+      "description": "Provider-signed stable service-registration receipt. registration_receipt_id is ak:service_registration_receipt:<lowercase hex SHA-256(canonical_json(receipt claims))>. service_id is the projected did_core_id and full_id is the verified complete DID. proof is a detached JWS over the ak.service_registration_receipt_proof.v1 binding object; consumers verify the provider through its own full resolution evidence.",
       "additionalProperties": false,
       "required": [
         "registration_receipt_id",
@@ -5333,7 +5333,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.service-registration-receipt-proof-v1', payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers resolve the provider full_id, require project(full_id)=provider_service_id, and verify verification_method as a signing-time assertionMethod of that full_id."
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.service_registration_receipt_proof.v1', payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers resolve the provider full_id, require project(full_id)=provider_service_id, and verify verification_method as a signing-time assertionMethod of that full_id."
         }
       }
     },
@@ -5883,7 +5883,7 @@
     "AcceptedDevicePossessionProof": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Accepted-device Ed25519 possession proof shared by human SessionGrant issue and refresh. The signature covers utf8('ak.session-grant-accepted-device-possession-proof-v1\\n') followed by RFC 8785 JCS of this complete object with signature omitted. It is not a server challenge: freshness comes from the <=300 second signed window, the one-time account handoff or predecessor grant, the issuer request identity, and issuer-ledger exact replay. The origin Principal Server MUST verify this proof with the durable current accepted-device key in the same linearization that evaluates current authorization.",
+      "description": "Accepted-device Ed25519 possession proof shared by human SessionGrant issue and refresh. The signature covers utf8('ak.session_grant_accepted_device_possession_proof.v1\\n') followed by RFC 8785 JCS of this complete object with signature omitted. It is not a server challenge: freshness comes from the <=300 second signed window, the one-time account handoff or predecessor grant, the issuer request identity, and issuer-ledger exact replay. The origin Principal Server MUST verify this proof with the durable current accepted-device key in the same linearization that evaluates current authorization.",
       "required": [
         "context",
         "purpose",
@@ -5899,7 +5899,7 @@
       ],
       "properties": {
         "context": {
-          "const": "ak.session-grant-accepted-device-possession-proof-v1"
+          "const": "ak.session_grant_accepted_device_possession_proof.v1"
         },
         "purpose": {
           "enum": [
@@ -6027,7 +6027,7 @@
       ],
       "properties": {
         "context": {
-          "const": "ak.agent-session-refresh-proof-v1"
+          "const": "ak.agent_session_refresh_proof.v1"
         },
         "request_canonical_digest": {
           "type": "string",

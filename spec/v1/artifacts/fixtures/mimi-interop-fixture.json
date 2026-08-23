@@ -245,10 +245,10 @@
     {
       "vector_id": "ak.vector.mimi.provider_directory_signature.v1",
       "name": "provider_directory_signature",
-      "proof_context": "ak.mimi-provider-directory-proof-v1",
+      "proof_context": "ak.mimi_provider_directory_proof.v1",
       "assertions": [
         "the detached JWS covers the exact canonical unsigned provider-directory projection",
-        "the projection's first member is the registered object-family context ak.mimi-provider-directory-proof-v1",
+        "the projection's first member is the registered object-family context ak.mimi_provider_directory_proof.v1",
         "a projection carrying any other registered context yields a different digest and fails closed",
         "routing, cipher-suite, content-profile, and room-policy mutations invalidate the proof",
         "empty required capability arrays, another proof controller, routing-shadow extensions, stale proofs, and development digests fail closed",

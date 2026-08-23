@@ -4,7 +4,7 @@
 transcript, and rule 3 of its ``registry_rules`` requires a verifier to reject a
 valid signature made under another object family's context. That rule is only
 decidable when both sides agree on the transcript bytes, and for a long time only
-``ak.event-proof-v1`` had bytes to agree on: the other 62 rows existed as a field
+``ak.event_proof.v1`` had bytes to agree on: the other 62 rows existed as a field
 array plus prose, so the unsigned projection, the ``audience`` shape and the
 absent-optional encoding were each re-decided per implementation.
 

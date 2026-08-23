@@ -997,8 +997,8 @@
   },
   "snapshot_witness_quorum": {
     "vector_id": "ak.vector.snapshot.witness_quorum_attestation.v1",
-    "proof_context": "ak.snapshot-witness-attestation-proof-v1",
-    "manifest_proof_context": "ak.snapshot-proof-v1",
+    "proof_context": "ak.snapshot_witness_attestation_proof.v1",
+    "manifest_proof_context": "ak.snapshot_proof.v1",
     "assertions": [
       "witness_attestations_are_a_typed_object_family_not_a_bare_proof_list",
       "witness_projection_excludes_every_signature_and_proof_field",
@@ -1080,7 +1080,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1099,7 +1099,7 @@
       }
     },
     "canonical_input": {
-      "context": "ak.snapshot-witness-attestation-proof-v1",
+      "context": "ak.snapshot_witness_attestation_proof.v1",
       "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
       "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -1128,7 +1128,7 @@
       ],
       "snapshot_created_at": "2026-04-26T00:00:00.000Z"
     },
-    "expected_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+    "expected_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
     "cases": [
       {
         "name": "valid_quorum_accepted",
@@ -1138,7 +1138,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1171,7 +1171,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1181,7 +1181,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-2",
-              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1200,7 +1200,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1228,7 +1228,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1257,7 +1257,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1275,7 +1275,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:06d78ff144fc76cc7ae4f69d538552537a1245334b269915ad4083fbb787bbad",
+              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1299,7 +1299,7 @@
       {
         "name": "wrong_context_rejected",
         "canonical_input": {
-          "context": "ak.snapshot-proof-v1",
+          "context": "ak.snapshot_proof.v1",
           "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
           "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -1328,14 +1328,14 @@
           ],
           "snapshot_created_at": "2026-04-26T00:00:00.000Z"
         },
-        "expected_digest": "sha256:0dbf40c64170d4017d132c7e4cd2c150db0d645c9f287d4de48b83d1a8696307",
+        "expected_digest": "sha256:92402ea0dfe04c510c6170e2928842299ff6284bc1dbdbb8684927942d710feb",
         "expected_error": "signature_invalid",
         "note": "reusing the manifest context yields a different transcript digest and MUST be rejected even when the JWS verifies"
       },
       {
         "name": "wrong_projection_rejected",
         "canonical_input": {
-          "context": "ak.snapshot-witness-attestation-proof-v1",
+          "context": "ak.snapshot_witness_attestation_proof.v1",
           "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
           "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -1364,7 +1364,7 @@
           ],
           "snapshot_created_at": "2026-04-26T00:00:00.000Z"
         },
-        "expected_digest": "sha256:21601094ec3db837bbceb286abca636aaf420ac42cdb071e27ea47c83c4ddb8f",
+        "expected_digest": "sha256:293b3030b2e1976c521441fafd994a6ad75f6e6a8f823fd92bc1d81c74ffc5e8",
         "expected_error": "signature_invalid"
       },
       {

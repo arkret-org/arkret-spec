@@ -664,7 +664,7 @@ detached-JWS proof 叶，并对本对象族封闭三个选择——`proof_purpos
 
 ```json
 {
-  "context": "ak.directory-governance-request-proof-v1",
+  "context": "ak.directory_governance_request_proof.v1",
   "payload_digest": "<proof.payload_digest>",
   "operation_id": "<ak.find.directory.command.withdraw | ak.find.directory.command.takedown_appeal>",
   "resource_id": "<request.resource_id>",
@@ -811,11 +811,11 @@ Directory MUST NOT：
 
 | 对象族 | operation | context |
 | --- | --- | --- |
-| `directory_resolve_target_request_body` | `ak.find.directory.read.resolve_target` | `ak.directory-resolve-target-request-proof-v1` |
-| `directory_resolve_organization_request_body` | `ak.find.directory.read.resolve_organization` | `ak.directory-resolve-organization-request-proof-v1` |
-| `directory_resolve_handle_request_body` | `ak.find.directory.read.resolve_handle` | `ak.directory-resolve-handle-request-proof-v1` |
-| `directory_resolve_agent_selector_request_body` | `ak.find.directory.read.resolve_agent_selector` | `ak.directory-resolve-agent-selector-request-proof-v1` |
-| `directory_list_handles_for_subject_request_body` | `ak.find.directory.read.list_handles_for_subject` | `ak.directory-list-handles-for-subject-request-proof-v1` |
+| `directory_resolve_target_request_body` | `ak.find.directory.read.resolve_target` | `ak.directory_resolve_target_request_proof.v1` |
+| `directory_resolve_organization_request_body` | `ak.find.directory.read.resolve_organization` | `ak.directory_resolve_organization_request_proof.v1` |
+| `directory_resolve_handle_request_body` | `ak.find.directory.read.resolve_handle` | `ak.directory_resolve_handle_request_proof.v1` |
+| `directory_resolve_agent_selector_request_body` | `ak.find.directory.read.resolve_agent_selector` | `ak.directory_resolve_agent_selector_request_proof.v1` |
+| `directory_list_handles_for_subject_request_body` | `ak.find.directory.read.list_handles_for_subject` | `ak.directory_list_handles_for_subject_request_proof.v1` |
 
 绑定按 §8.7.1 同一形态构造：先从闭合 request body 删除顶层 `proofs` 成员（不是置为 `null`），
 保留所有实际存在的 optional 字段，计算

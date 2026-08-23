@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.1",
+  "version": "2026-08-23.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-23T14:20:00+08:00",
+  "generated_at": "2026-08-23T21:55:35+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -146,7 +146,7 @@
     "digest_input": "SHA-256(JCS(record fields excluding account_status_record_id and proof))",
     "token_layout": "digest_suite_wire_code || 32-byte digest",
     "sequence_rule": "status_seq starts at 1; seq=1 is active and has no previous_account_status_record_id; every successor is current+1 and names the exact current account_status_record_id",
-    "proof_context": "ak.account-status-record-proof-v1",
+    "proof_context": "ak.account_status_record_proof.v1",
     "storage_identity_key": [
       "account_authority_id",
       "account_id",

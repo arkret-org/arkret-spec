@@ -46,7 +46,7 @@ content digest；网络 URL 只能是获取 hint，不能替代 digest identity�
 
 `manifest_digest = sha256(canonical_json(manifest_without_manifest_digest_and_signatures))`。
 publisher_id proof 必须签
-`canonical_json({context:"ak.extension-manifest-proof-v1", payload_digest:manifest_digest,
+`canonical_json({context:"ak.extension_manifest_proof.v1", payload_digest:manifest_digest,
 extension_id, publisher_id, verification_method, created_at, domain?, audience?})`，其中
 `created_at` 必须逐字等于 `published_at`。`manifest_digest` 不得递归包含自身或 proofs。
 

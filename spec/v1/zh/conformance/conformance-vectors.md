@@ -467,7 +467,7 @@ ak.vector.proof_context.transcript.<object_family>.v1
 ```
 
 其中 `<object_family>` 逐字取自 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)
-同一行的 `object_family`。§1.8 / §1.8.1 只固化 `ak.event-proof-v1` 这一族；本组把同样的字节级
+同一行的 `object_family`。§1.8 / §1.8.1 只固化 `ak.event_proof.v1` 这一族；本组把同样的字节级
 要求扩到 `contexts[]` 的**全部** 63 行，构造规则统一由 [`encoding.md` §6.0.2](./encoding.md) 定义，
 本节不重述。字节来源是 `proof-context-transcript-fixture.json`，由
 `tools/regenerate_proof_context_transcript_fixture.py` 从 registry 与同一把公开测试密钥
@@ -5980,12 +5980,12 @@ Steps:
 
 Expected:
 
-- 正例：`accepted_device` 的 `device_signature` 使用 domain `ak.device-authorize-accepted-device-possession-proof-v1`，签名对象恰为 `{algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key, hpke_key, pairing_challenge_transcript_digest}`，批准设备与 gate 各自重建后验签通过；gate 不接受任何请求方提供的 attestation 副本。
+- 正例：`accepted_device` 的 `device_signature` 使用 domain `ak.device_authorize_accepted_device_possession_proof.v1`，签名对象恰为 `{algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key, hpke_key, pairing_challenge_transcript_digest}`，批准设备与 gate 各自重建后验签通过；gate 不接受任何请求方提供的 attestation 副本。
 - 正例：路径 A 与路径 B 共享同一个 `device_pairing_target_attestation` schema 与同一个 domain；路径判别由 `pairing_challenge_transcript_digest` 所承诺的封闭 challenge transcript 承担。
 - 正例：`hpke_key` 与 `algorithms` 只从验签通过的 attestation 取得；stage 请求与 `DevicePairingBootstrap` 都不承载这两个值。
 - 负例：attestation 的 `pairing_challenge_transcript_digest` 与本次 pairing 重算得到的 `transcript_digest` 不等 MUST 拒绝，且 MUST 在验签之前拒绝。
 - 负例：attestation 的 `hpke_key` 与 `ak.gate.account.command.pair_device` 的 `hpke_key` 或 `authorize_event.event.payload.hpke_key` 不一致 MUST 拒绝；`algorithms` / `device_public_key` / `device_id` 同理。
-- 负例：把 `root_anchored` 的 `ak.device-authorize-possession-proof-v1` transcript 用于 `accepted_device`，或把 `accepted_device` attestation 用于 genesis / re-anchor 的第二条 authorize，双向 MUST 拒绝。
+- 负例：把 `root_anchored` 的 `ak.device_authorize_possession_proof.v1` transcript 用于 `accepted_device`，或把 `accepted_device` attestation 用于 genesis / re-anchor 的第二条 authorize，双向 MUST 拒绝。
 - 负例：attestation 的 `device_public_key` 与 `new_device_pubkey.key` 解码为不同 key，或 `device_id` 与 `new_device_pubkey.kid` 不等，MUST 拒绝。
 - 负例：把 attestation 经免认证 stage / resolve 面回传，或在 `DevicePairingBootstrap` 中镜像 `hpke_key` / `algorithms`，视为不合规。
 - 负例（§5.4.1）：被接受 Event 的 `principal_id` 非用户预期，或 `payload.device_signature` 与目标设备产出的 attestation 签名不逐字节相同，目标设备 MUST fail closed——不使用该身份、不安装或请求该 principal 的密钥材料、不发布 KeyPackage，并向用户告警。
@@ -6533,7 +6533,7 @@ Runner MUST 覆盖：
    `rejected[]`、`quarantine[]` 与 dependency-missing 项 MUST NOT 签发或返回 receipt；self submit outcome 不带该字段。
 2. receipt MUST 与 Event durable acceptance 在同一事务写入。receipt 写入失败 MUST 使该 Event 的接受整体回滚，
    不得出现「Event 已接受但无 receipt」。receipt 有自己的 detached proof（domain
-   `ak.agent-signer-admission-receipt-v1`），HTTP Message Signature MUST NOT 充当替代。
+   `ak.agent_signer_admission_receipt.v1`），HTTP Message Signature MUST NOT 充当替代。
 3. 同一 Event 被多个 receiver 接受时，每个 receiver 各签自己的 receipt，按 `receiver_service_id` 区分为多条
    合法历史分支。
 4. byte-identical 重投 MUST 从 `duplicate[]` 返回第一次保存的 byte-identical receipt；重新生成 `accepted_at`

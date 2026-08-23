@@ -14,7 +14,7 @@
   "$defs": {
     "registration_did_evidence_draft": {
       "type": "object",
-      "description": "Client-authored historical DID evidence before Account Authority acceptance. control_proof signs canonical_json({context:'ak.registration-did-evidence-control-proof-v1',principal_id,full_id,adapter_version,method_history_head,version_id,control_key_digest,method_evidence_digest,verification_method,created_at}); method_evidence_digest is sha256 over RFC 8785 JCS of method_evidence. accepted_at is deliberately absent: the Account Authority adds it only after the exact did_operation has been accepted by the registry.",
+      "description": "Client-authored historical DID evidence before Account Authority acceptance. control_proof signs canonical_json({context:'ak.registration_did_evidence_control_proof.v1',principal_id,full_id,adapter_version,method_history_head,version_id,control_key_digest,method_evidence_digest,verification_method,created_at}); method_evidence_digest is sha256 over RFC 8785 JCS of method_evidence. accepted_at is deliberately absent: the Account Authority adds it only after the exact did_operation has been accepted by the registry.",
       "required": [
         "principal_id",
         "full_id",

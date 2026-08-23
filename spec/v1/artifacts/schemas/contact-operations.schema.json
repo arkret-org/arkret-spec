@@ -2220,7 +2220,7 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.peer-contact.control-receipt.v1"
+          "const": "ak.peer_contact.control_receipt.v1"
         },
         "request_kind": {
           "type": "string",
@@ -2486,7 +2486,7 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.peer-contact.mirror-receipt.v1"
+          "const": "ak.peer_contact.mirror_receipt.v1"
         },
         "request_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"

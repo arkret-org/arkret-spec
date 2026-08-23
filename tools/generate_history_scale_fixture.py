@@ -1349,7 +1349,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]
     container_event_ref = "ak:event:" + b64u(b"\x01" + bytes.fromhex(container_event_digest[7:]))
     source_evidence_digest = digest_marker(0x72)
     event_binding = {
-        "context": "ak.event-proof-v1",
+        "context": "ak.event_proof.v1",
         "event_digest": container_event_digest,
         "actor_id": source_core,
         "verification_method": source_method,
@@ -1422,7 +1422,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]
     }
     replica_proof, replica_proof_transcript = detached_jws(
         source_signing_key,
-        "ak.organization-recovery-archive-replica-proof-v1",
+        "ak.organization_recovery_archive_replica_proof.v1",
         replica_unsigned,
         [
             "kind",
@@ -1447,7 +1447,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]
     }
     receipt_proof, receipt_proof_transcript = detached_jws(
         holder_signing_key,
-        "ak.organization-recovery-archive-replica-receipt-proof-v1",
+        "ak.organization_recovery_archive_replica_receipt_proof.v1",
         receipt_unsigned,
         ["archive_replica_digest", "holder_service_id", "archive_sequence", "accepted_at"],
         holder_method,
@@ -1571,7 +1571,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]
         "container_event": container_event,
         "container_event_producer_bytes_b64u": b64u(jcs(container_event_core)),
         "container_event_proof_transcript": {
-            "context": "ak.event-proof-v1",
+            "context": "ak.event_proof.v1",
             "binding_jcs_b64u": b64u(jcs(event_binding)),
             "detached_payload_b64u": event_payload,
             "signing_input_ascii": event_protected + "." + event_payload,

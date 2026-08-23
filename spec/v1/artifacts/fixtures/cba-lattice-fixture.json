@@ -358,13 +358,14 @@
         "control_event_set_root": "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
         "state_root": "sha256:efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
         "completeness_root": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "availability_receipt_digests": [],
         "notary_seq": 7,
         "sealed_at": "2026-06-11T00:00:00.000Z",
         "hlc": "0189c4d2af00-0000-aabbccdd"
       },
       "expected": {
-        "id": "ak:seal:sha256:eb65177c6b628aa5174d5a0a792a6414f4cec1026e4dbd09ac81ddfeb5dbf63e",
-        "notary_signature_payload_digest": "sha256:eb65177c6b628aa5174d5a0a792a6414f4cec1026e4dbd09ac81ddfeb5dbf63e",
+        "id": "ak:seal:sha256:26131d04594849b99dbf6effe62d1aad7c497c922d366415c29dd5838537b301",
+        "notary_signature_payload_digest": "sha256:26131d04594849b99dbf6effe62d1aad7c497c922d366415c29dd5838537b301",
         "valid_result": "accept"
       },
       "attacks": [

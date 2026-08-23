@@ -201,7 +201,7 @@ human issuance MUST 无条件先调用本 gate，再按 decision 分三路，不
 
 MUST NOT 因绑定取得困难跳过本 gate；current-v1 任何 human success 都必须携完整 `device_binding`，不存在 restricted 例外。
 
-gate receipt 的 proof context 固定为 `ak.device-revocation-gate-decision-proof-v1`。`payload_digest = sha256(JCS(receipt_without_proof))`；`proof.verification_method` 必须逐字等于 receipt `verification_method`，其 controller 投影到 Core 后必须精确等于 `principal_authority.principal_server_id`；`proof.created_at` 必须等于 `linearized_at`。decision 分支封闭：只有 `allow` 携带 origin 派生的 `target_device_authorize_event_id` 与 `target_device_generation_ref`，其余四个 decision MUST NOT 携带二者；`allow` / authority mismatch / generation mismatch 不携 blocker 或 Seal；没有 revoked record 且存在多个 pending 时，pending 只携 lexicographically smallest `proposal_digest` 作为 blocker；存在任一 revoked record 时 decision 固定为 revoked，只携按 `(acceptance_seq, proposal_digest)` 最小 revoked record 的 covering Seal ref，不因另有 surviving pending record 改回 pending。
+gate receipt 的 proof context 固定为 `ak.device_revocation_gate_decision_proof.v1`。`payload_digest = sha256(JCS(receipt_without_proof))`；`proof.verification_method` 必须逐字等于 receipt `verification_method`，其 controller 投影到 Core 后必须精确等于 `principal_authority.principal_server_id`；`proof.created_at` 必须等于 `linearized_at`。decision 分支封闭：只有 `allow` 携带 origin 派生的 `target_device_authorize_event_id` 与 `target_device_generation_ref`，其余四个 decision MUST NOT 携带二者；`allow` / authority mismatch / generation mismatch 不携 blocker 或 Seal；没有 revoked record 且存在多个 pending 时，pending 只携 lexicographically smallest `proposal_digest` 作为 blocker；存在任一 revoked record 时 decision 固定为 revoked，只携按 `(acceptance_seq, proposal_digest)` 最小 revoked record 的 covering Seal ref，不因另有 surviving pending record 改回 pending。
 
 客户端材料处理也按 terminal state 分层：pending 期间 MUST 保留恢复或验证 `signed_reject` 所需的最小可恢复材料，不得把 pending 当永久撤销擦除；accepted covering Seal 后 MUST 擦除仅属于被撤销 device generation 的 session / KeyPackage / to-device 解密与发送材料。already lawfully issued before pending 的 Principal Server admission proof 继续按其 `accepted_at` 离线验证，后续 pending / Seal 不追溯改变历史 Event validity。
 
@@ -290,9 +290,9 @@ identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event i
 
 `device_signature` 的 domain **由 `authorization_binding_kind` 判别**，不是单一固定值。该字段有三个取值，各自对应一个 domain 与一个封闭签名对象：
 
-- `registration_anchor`：PCR genesis 的第二条 authorize；domain `ak.device-authorize-possession-proof-v1`，见 §5.2.1。
-- `pcr_recovery`：PCR-policy 或显式 DID-root recovery unit 的第二条 authorize；domain `ak.device-authorize-recovery-possession-proof-v1`，并绑定 recovery session/policy/generation。
-- `accepted_device`：已有 accepted device 批准新设备；domain `ak.device-authorize-accepted-device-possession-proof-v1`，见 §5.2.2。
+- `registration_anchor`：PCR genesis 的第二条 authorize；domain `ak.device_authorize_possession_proof.v1`，见 §5.2.1。
+- `pcr_recovery`：PCR-policy 或显式 DID-root recovery unit 的第二条 authorize；domain `ak.device_authorize_recovery_possession_proof.v1`，并绑定 recovery session/policy/generation。
+- `accepted_device`：已有 accepted device 批准新设备；domain `ak.device_authorize_accepted_device_possession_proof.v1`，见 §5.2.2。
 
 三个 domain 都登记在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)。verifier MUST 先从 payload 的 `authorization_binding_kind` 选定 domain 与成员集合，MUST NOT 尝试其它 domain，也 MUST NOT 接受跨 binding kind 复用的 transcript。
 
@@ -335,7 +335,7 @@ genesis / recovery 时候选设备自己 author 整个封闭 unit，因此签名
 }
 ```
 
-签名输入是 `UTF8("ak.device-authorize-accepted-device-possession-proof-v1\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS）。`algorithms` 同样必须先按 UTF-8 bytewise 排序去重。该对象没有 optional 成员，因此不存在缺失字段规范化为 `null` 的情形；签名字段、Event id、envelope digest 及其它 proof material 同样不进入该对象。
+签名输入是 `UTF8("ak.device_authorize_accepted_device_possession_proof.v1\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS）。`algorithms` 同样必须先按 UTF-8 bytewise 排序去重。该对象没有 optional 成员，因此不存在缺失字段规范化为 `null` 的情形；签名字段、Event id、envelope digest 及其它 proof material 同样不进入该对象。
 
 **`pairing_challenge_transcript_digest` 是本 attestation 唯一的 replay 边界**：它 MUST 逐字节等于本次 pairing 的 `device_pairing_challenge_proof.transcript_digest`（§2.1.2）。单靠这一个成员已经足够，因为该 digest 本身就承诺了整条挑战：
 
@@ -715,7 +715,7 @@ POST /_arkret/self/keys/claim
 
 `keys/query` 是**跨 principal** 的关系门控面。它的 device row MUST 返回 `algorithms`、`device_signing_key`、`hpke_key`、`trust_algorithms`、`device_status`、`device_authorize_event_id`、`authorized_generation_ref` 与 `device_projection_attestation`；schema 的 `required` 与本句逐项一致。`principal_id` 与 `device_id` **由 `device_keys` 映射的键定位**，不是 row 字段，MUST NOT 作为冗余字段重复出现。设备 row 不得回显 DID Document 的设备或 service authority。
 
-`device_projection_attestation` 是 **origin Principal Server 对 exact device projection 的签名断言**，覆盖 `(principal_id, principal_server_id, device_id, device_signing_key, hpke_key, device_authorize_event_id, authorized_generation_ref, device_status, attested_at, expires_at)`，proof context 为 `ak.device-projection-attestation-proof-v1`（见 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)）。它是本面唯一的验证载体：PCR genesis receipt、device authorization chain 与 accepted Seal **MUST NOT** 出现在本面，它们是 origin Principal Server 的内部账号治理材料，只经 `ak.self.identity.read.resolution_audit` 在 holder / recovery 授权下披露。
+`device_projection_attestation` 是 **origin Principal Server 对 exact device projection 的签名断言**，覆盖 `(principal_id, principal_server_id, device_id, device_signing_key, hpke_key, device_authorize_event_id, authorized_generation_ref, device_status, attested_at, expires_at)`，proof context 为 `ak.device_projection_attestation_proof.v1`（见 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)）。它是本面唯一的验证载体：PCR genesis receipt、device authorization chain 与 accepted Seal **MUST NOT** 出现在本面，它们是 origin Principal Server 的内部账号治理材料，只经 `ak.self.identity.read.resolution_audit` 在 holder / recovery 授权下披露。
 
 receiver MUST 验证：
 

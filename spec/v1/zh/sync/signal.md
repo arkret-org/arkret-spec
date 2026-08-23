@@ -26,7 +26,7 @@ SignalEnvelope {
 ```
 
 Signal 始终是短 TTL encrypted-only transport，不是 Event、history response 或 durable object。Sender proof 使用
-`ak.signal-proof-v1` 并覆盖移除 proof 后的完整 envelope digest。普通/Agent/minimal sender 的 identity 与 current
+`ak.signal_proof.v1` 并覆盖移除 proof 后的完整 envelope digest。普通/Agent/minimal sender 的 identity 与 current
 authorization 按各自 profile 验证。
 
 Signal 的 raw key 必须 per verified sender 派生；exporter scope 可用本 epoch history secret，standard MLS 使用

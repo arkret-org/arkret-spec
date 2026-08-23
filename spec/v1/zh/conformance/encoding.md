@@ -415,7 +415,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 `events[]` 是 set-bound receipt 的 canonical set projection。令 `event_sort_key(x) = UTF8(canonical_json(x))`；签发方 MUST 先按该 byte string 升序排列并删除完全相同的 key，再把结果写回 wire `events[]`。接收方 MUST 在验签前确认相邻 `event_sort_key` 严格递增；否则以 `schema_violation` 拒绝，不得静默归一化一个已签 wire object。
 
-`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。这里的 `receipt_without_proofs.events` MUST 已是上述规范形态。`issuer`、`scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。Event Batch Receipt proof 的 detached bytes MUST 是 canonical binding object `{context:"ak.receipt-proof-v1", payload_digest:receipt_digest, issuer, verification_method, created_at, domain?, audience?}`；`context` 是固定 signing-context domain tag，不在 receipt wire body 中单独携带。
+`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。这里的 `receipt_without_proofs.events` MUST 已是上述规范形态。`issuer`、`scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。Event Batch Receipt proof 的 detached bytes MUST 是 canonical binding object `{context:"ak.receipt_proof.v1", payload_digest:receipt_digest, issuer, verification_method, created_at, domain?, audience?}`；`context` 是固定 signing-context domain tag，不在 receipt wire body 中单独携带。
 
 ## 6. Signature
 
@@ -433,7 +433,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 Proof MUST bind（下列为绑定字段集合；canonical binding object 的实际字节顺序由 §2 canonical JSON 的 JCS key 排序决定，下方 JSON 示例与本清单的列举顺序仅为可读性，不代表签名字节顺序）:
 
-- `context = "ak.event-proof-v1"`：固定 signing-context domain tag；不从 Event envelope 读取，verifier 构造 binding object 时 MUST 写入该常量。
+- `context = "ak.event_proof.v1"`：固定 signing-context domain tag；不从 Event envelope 读取，verifier 构造 binding object 时 MUST 写入该常量。
 - `event_digest = canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`
 - `actor_id`
 - `verification_method`
@@ -455,7 +455,7 @@ Durable Realm Event 是可由多个合规 Realm host 保存和复验的原始事
 
 ```json
 {
-  "context": "ak.event-proof-v1",
+  "context": "ak.event_proof.v1",
   "event_digest": "sha256:<canonical event hash>",
   "actor_id": "<event.actor_id>",
   "verification_method": "<proof.verification_method>",
@@ -474,10 +474,10 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 
 把"被排除"读成"不重要"是错的：`event_id` 的完整性由 §4.0 的重算比对保证，并在完整 digest 已知后一次前向派生。`prev_refs` 中完整 Event ID、语义 refs、事前 `seal_ref` / `seal_basis`、`created_at` 与 payload 均未排除，必须逐字进入 preimage；事后覆盖本 Event 的 Seal / receipt 只能单向承诺该 Event identity，不得反向加入原 Event。
 
-非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族 MUST 在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 登记唯一 context、binding fields、规范定义点与 schema；schema description 只可作镜像注解，不是常量真相源。MUST NOT 复用其它对象族（尤其 `ak.event-proof-v1`）的 context，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。用错误对象族 context 生成的签名即使密码学验签通过也 MUST 拒绝。
+非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族 MUST 在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 登记唯一 context、binding fields、规范定义点与 schema；schema description 只可作镜像注解，不是常量真相源。MUST NOT 复用其它对象族（尤其 `ak.event_proof.v1`）的 context，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。用错误对象族 context 生成的签名即使密码学验签通过也 MUST 拒绝。
 
 AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability-event-bytes-v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / principal-server proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}`，令 `payload_digest=H(JCS(core))`；再签
-`JCS({context:"ak.availability-receipt-proof-v1",payload_digest,...core,verification_method,created_at})` 并得到完整
+`JCS({context:"ak.availability_receipt_proof.v1",payload_digest,...core,verification_method,created_at})` 并得到完整
 `receipt={...core,signature}`；最后 `receipt_digest=H(JCS(receipt))`。Seal 只签入最后这个 full canonical digest。
 任何实现若把外层 `receipt_digest` 放回其自身 preimage、从 digest 中排除 signature，或省略 signer evidence 绑定都必须拒绝。
 
@@ -557,7 +557,7 @@ description 若声明指向 enclosing Event 或同 unit / 同 batch 的兄弟 Ev
 
 #### 6.0.2 Proof binding object 的统一构造（normative）
 
-上面的 `ak.event-proof-v1` 与 §5 的 `ak.receipt-proof-v1` 只是同一构造的两个实例。本节把该构造
+上面的 `ak.event_proof.v1` 与 §5 的 `ak.receipt_proof.v1` 只是同一构造的两个实例。本节把该构造
 提升为**对 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)
 `contexts[]` 每一行都生效的唯一规则**，各对象族正文 MUST NOT 再各自重定其中任何一条；正文只补充
 本族特有的字段取值约束（例如 `audience` 必须是哪一个 service DID），不得改写下面四条的编码语义。
@@ -962,7 +962,7 @@ rank_between(left, right):
 
 `ak.component.calendar.rsvp.v1` 的三元组固定 arity 3；`envelope.actor_id` 是 accountable responder，delegated execution 下不得改用 `executed_by`。实例级 RSVP 的 `payload.occurrence` 是 [`calendar-event.md` §8](../models/calendar-event.md) 的 canonical string——all-day 为 `YYYY-MM-DD`，timed 为整秒 `YYYY-MM-DDTHH:mm:ss[Zone]`，其中 Zone 是已签名的 canonical IANA Zone name。v1 的 timed local anchor 与 occurrence key 都收窄到整秒，因此不存在两个不同 subsecond occurrence 折叠到同一 key 的情况；实现 MUST NOT 接受带小数秒、offset 或 `Z` 的 occurrence，也 MUST NOT 在 receiver 侧把非 canonical 值改写后再派生 subject——cell 地址来自**已签名的原值**，非 canonical 输入 MUST 以 `rsvp_occurrence_not_canonical` 拒绝。series 级 RSVP 的 digest preimage 固定保留 JSON null，例如 `["ak:strand:<44-char-suite-tagged-full-digest-token>",null,"did:..."]`。实现 MUST NOT 把 null 改写成字符串 `"null"`、空串或 `"series"` sentinel。payload 中即使出现同名 `actor_id` 也不得遮蔽 `envelope.actor_id`。`payload.entry` 是该 cell 的 lattice value（见 [`calendar-event.md` §8.3](../models/calendar-event.md)），不参与 subject 派生。
 
-`ak.component.identity.accountability.v1` 的第三个 component 固定使用 `context="ak.accountability-scope-set-v1"` 的 `string_set_digest`。`accountability_scope` 的 string 与 singleton-array 写法、以及同一合法 array 的任意排列，MUST 命中同一 cell；不同 exact scope set MUST 命中不同 cell。`active` 与 `revoked` 状态不进入 subject，因此同一 exact set 的撤销写回同一 `cas_register`。子集 revoke 只命中子集自己的 cell，不得对超集做隐式集合差；同一 issuer/subject 可同时有多个 active exact-set cell，其 projection scope 是所有当前 active cell 的集合并集。
+`ak.component.identity.accountability.v1` 的第三个 component 固定使用 `context="ak.accountability_scope_set.v1"` 的 `string_set_digest`。`accountability_scope` 的 string 与 singleton-array 写法、以及同一合法 array 的任意排列，MUST 命中同一 cell；不同 exact scope set MUST 命中不同 cell。`active` 与 `revoked` 状态不进入 subject，因此同一 exact set 的撤销写回同一 `cas_register`。子集 revoke 只命中子集自己的 cell，不得对超集做隐式集合差；同一 issuer/subject 可同时有多个 active exact-set cell，其 projection scope 是所有当前 active cell 的集合并集。
 
 两个 call capture family 的第二个 component 固定取 **payload** 的 `recording_id`（start event 取 `payload.recording_id`，后续 `ak.call.state` 取 `payload.recording_result.recording_id` 或 `payload.transcript_result.recording_id`），不得改用 Event envelope 的 `event_id`。同一 `recording_id` 的 start 与状态更新因此落入同一 cell；不同 recording 不会共享 cell。`ak.call.recording.start.capture_kind` 决定写 recording 还是 transcript family；`ak.call.state` 只有在相应 `recording_state` / `transcript_state` 出现时才写对应 family。
 

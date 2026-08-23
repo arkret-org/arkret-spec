@@ -179,7 +179,7 @@
         "allow and mismatch carry neither blocker nor Seal",
         "pending carries the lexicographically smallest pending blocker and no Seal while revoked carries the covering Seal of the smallest acceptance_seq then proposal_digest revoked record and no blocker",
         "payload_digest equals sha256 JCS of the complete receipt with proof omitted",
-        "proof context is ak.device-revocation-gate-decision-proof-v1 and the method equals receipt method its controller projects to the exact principal server and proof created_at equals linearized_at"
+        "proof context is ak.device_revocation_gate_decision_proof.v1 and the method equals receipt method its controller projects to the exact principal server and proof created_at equals linearized_at"
       ]
     },
     {

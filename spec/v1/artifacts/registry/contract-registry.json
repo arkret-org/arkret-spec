@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.6",
+  "version": "2026-08-23.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-23T15:31:00+08:00",
+  "generated_at": "2026-08-23T21:55:35+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -2126,7 +2126,7 @@
                 {
                   "kind": "string_set_digest",
                   "field": "payload.accountability_scope",
-                  "context": "ak.accountability-scope-set-v1"
+                  "context": "ak.accountability_scope_set.v1"
                 }
               ]
             },
@@ -10202,7 +10202,7 @@
       "digest_input": "SHA-256(JCS(record fields excluding account_status_record_id and proof))",
       "token_layout": "digest_suite_wire_code || 32-byte digest",
       "sequence_rule": "status_seq starts at 1; seq=1 is active and has no previous_account_status_record_id; every successor is current+1 and names the exact current account_status_record_id",
-      "proof_context": "ak.account-status-record-proof-v1",
+      "proof_context": "ak.account_status_record_proof.v1",
       "storage_identity_key": [
         "account_authority_id",
         "account_id",
@@ -11019,8 +11019,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-23.1",
-    "generated_at": "2026-08-23T14:20:00+08:00"
+    "version": "2026-08-23.2",
+    "generated_at": "2026-08-23T21:55:35+08:00"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -11990,7 +11990,7 @@
         },
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/controller-gate-attestations",
-        "notes": "Account Authority S2S producer operation for Native Agent signer evidence. The request carries agent_authority_service_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(full_id), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_service_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Principal Server is the Agent PCR authority under the managed-Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller-account-gate-v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
+        "notes": "Account Authority S2S producer operation for Native Agent signer evidence. The request carries agent_authority_service_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(full_id), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_service_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Principal Server is the Agent PCR authority under the managed-Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -12180,7 +12180,7 @@
         "http": "POST /_arkret/gate/account/device-pair",
         "grpc": "GateAccount/DevicePair",
         "mq": "gate.account.command.pair_device",
-        "notes": "Authorizes a sibling device only after verified current-device confirmation. This operation always produces authorization_binding_kind=accepted_device, so device_signature MUST verify under ak.device-authorize-accepted-device-possession-proof-v1 and registration_anchor/pcr_recovery domains MUST be rejected. The authority recomputes the pairing transcript, verifies exact request/Event equality and submits the current-device-signed Event through ordinary PCR admission; it never resolves current human DID authority.",
+        "notes": "Authorizes a sibling device only after verified current-device confirmation. This operation always produces authorization_binding_kind=accepted_device, so device_signature MUST verify under ak.device_authorize_accepted_device_possession_proof.v1 and registration_anchor/pcr_recovery domains MUST be rejected. The authority recomputes the pairing transcript, verifies exact request/Event equality and submits the current-device-signed Event through ordinary PCR admission; it never resolves current human DID authority.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
@@ -15646,8 +15646,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-23.2",
-    "generated_at": "2026-08-23T15:30:00+08:00"
+    "version": "2026-08-23.3",
+    "generated_at": "2026-08-23T21:55:35+08:00"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

@@ -71,7 +71,7 @@
           "type": "string"
         }
       },
-      "description": "Registry detached proof. payload_digest = sha256(canonical_json(receipt with signature omitted)). The detached JWS signs canonical_json({context:'ak.identity-receipt-proof-v1', payload_digest, registry_service_id, did, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag and is not a wire field. signature.created_at MUST equal receipt.created_at. signature.verification_method MUST be a currently valid full DID URL assertion method whose bare full_id is independently validated and projected to registry_service_id by the registered method adapter. Receipt audience and proof audience MUST either both be absent or be the same single string; array-valued proof audiences are invalid for this object family."
+      "description": "Registry detached proof. payload_digest = sha256(canonical_json(receipt with signature omitted)). The detached JWS signs canonical_json({context:'ak.identity_receipt_proof.v1', payload_digest, registry_service_id, did, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag and is not a wire field. signature.created_at MUST equal receipt.created_at. signature.verification_method MUST be a currently valid full DID URL assertion method whose bare full_id is independently validated and projected to registry_service_id by the registered method adapter. Receipt audience and proof audience MUST either both be absent or be the same single string; array-valued proof audiences are invalid for this object family."
     }
   },
   "additionalProperties": false

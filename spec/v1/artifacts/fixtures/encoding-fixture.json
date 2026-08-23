@@ -326,10 +326,10 @@
         "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
         "created_at": "2026-04-26T00:00:00.000Z",
         "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
-        "context": "ak.event-proof-v1"
+        "context": "ak.event_proof.v1"
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
-      "expected_digest": "sha256:e338488461ab9101f0c830b084ec67f115328ede1a93fe4209af65d9c116b18a",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:d4ab2a8575824341829c30de9bca2109812a37956759d566b813bebd4b7248ef",
       "rules": [
         "proof MUST bind event_digest, actor DID, verification_method, and created_at",
         "cross-service / cross-domain verification SHOULD additionally bind domain or audience",
@@ -597,10 +597,10 @@
         "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
         "created_at": "2026-04-26T00:00:00.000Z",
         "domain": "sync.service.example",
-        "context": "ak.event-proof-v1"
+        "context": "ak.event_proof.v1"
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
-      "expected_digest": "sha256:f11e62a925720ade48126720b149660ddf7af7e68ec1c1fd424ea0881d5cd1d0",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:edaadc1575431844a04a2c047fcb7af1db0a8079baf09ace198238ec3c3ea099",
       "rules": [
         "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
         "cross-domain verification binds the target service domain via the optional domain field; the canonical bytes sort it between created_at and event_digest",
@@ -616,10 +616,10 @@
         "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
         "created_at": "2026-04-26T00:00:00.000Z",
         "audience": "did:webvh:z6mkfixturesyncexample:sync.example",
-        "context": "ak.event-proof-v1"
+        "context": "ak.event_proof.v1"
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"audience\":\"did:webvh:z6mkfixturesyncexample:sync.example\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
-      "expected_digest": "sha256:ab67132a84ac037af4ffd849166b02865129620b42681bfe9855b9e1ec3e67e9",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"audience\":\"did:webvh:z6mkfixturesyncexample:sync.example\",\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:375da66d5bfe19e4f54ac45298e6898a1283807b3cf04ab007a15588733eb92e",
       "rules": [
         "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
         "audience-constrained verification binds a single audience DID via the optional audience field",
@@ -639,10 +639,10 @@
           "did:webvh:z6mkfixturesyncexample:sync.example",
           "did:webvh:z6mkfixturemediaexample:media.example"
         ],
-        "context": "ak.event-proof-v1"
+        "context": "ak.event_proof.v1"
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"audience\":[\"did:webvh:z6mkfixturesyncexample:sync.example\",\"did:webvh:z6mkfixturemediaexample:media.example\"],\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
-      "expected_digest": "sha256:54f31011476f99fa8c38326176910a1af6d7edb5a4b3b9da9afa4a33c093d4bf",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"audience\":[\"did:webvh:z6mkfixturesyncexample:sync.example\",\"did:webvh:z6mkfixturemediaexample:media.example\"],\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:d28b7639d4b19f966e8e1168a1b60e104a32e6cc6334bc1be243c37afa0e0bd0",
       "rules": [
         "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
         "domain and audience MAY be combined; audience MAY be an array of DIDs whose order is preserved verbatim in the canonical bytes",
@@ -776,7 +776,7 @@
           {
             "kind": "string_set_digest",
             "field": "payload.accountability_scope",
-            "context": "ak.accountability-scope-set-v1"
+            "context": "ak.accountability_scope_set.v1"
           }
         ]
       },
@@ -790,9 +790,9 @@
           "normalized_set": [
             "employment"
           ],
-          "scope_preimage_utf8": "ak.accountability-scope-set-v1\n[\"employment\"]",
-          "scope_set_component": "igkaAexYhN9e_4LvIFv7fkT5zisbmP8cTz82ES2TlIQ",
-          "cell_subject": "BA7lzcDzqW82cz-jK6ARt7IIenlTM0A2rm3AeUa06k8"
+          "scope_preimage_utf8": "ak.accountability_scope_set.v1\n[\"employment\"]",
+          "scope_set_component": "CbgdIHArQNPwYmdaAOdv1G1B9LEmtBtgkYaG6tLR2Bg",
+          "cell_subject": "W6mzmx7aBvbnvJN6X3mC07gxG-W_hGxxlfLoaSmaxD8"
         },
         {
           "name": "singleton_array",
@@ -800,8 +800,8 @@
             "employment"
           ],
           "equivalent_to": "singleton_string",
-          "scope_set_component": "igkaAexYhN9e_4LvIFv7fkT5zisbmP8cTz82ES2TlIQ",
-          "cell_subject": "BA7lzcDzqW82cz-jK6ARt7IIenlTM0A2rm3AeUa06k8"
+          "scope_set_component": "CbgdIHArQNPwYmdaAOdv1G1B9LEmtBtgkYaG6tLR2Bg",
+          "cell_subject": "W6mzmx7aBvbnvJN6X3mC07gxG-W_hGxxlfLoaSmaxD8"
         },
         {
           "name": "two_element_reordered",
@@ -813,8 +813,8 @@
             "agent_operator",
             "employment"
           ],
-          "scope_set_component": "GuBGA6Mm1pfBN0XAk4CD0zuPPBxC5HzVNM-AIdFZRnc",
-          "cell_subject": "01V40-VMq20_58s-0Hl2gI6Qw3sKdjWvOkraWXYGgM0"
+          "scope_set_component": "AWANhOFZ5FNgAQMK9mqCeI3ATOZR6o7qwshmpk3ij3U",
+          "cell_subject": "29WEeBQFbK1yg62tfYg52igsQYx92bIU11NzyScJhMY"
         },
         {
           "name": "all_scopes",
@@ -828,8 +828,8 @@
             "contracted_service",
             "employment"
           ],
-          "scope_set_component": "Adhn2J3Ht1drmR7yf03sMl6AQIUxyDM4wzqSvlGOLDo",
-          "cell_subject": "DkDGjGbMEFNget038_RYuQ-oB4yl2mVGfP2wWKAT2r8"
+          "scope_set_component": "0sKY5mg--AeXwZefBw5FAjz9rpQ3NuCVm22vRPKJrLE",
+          "cell_subject": "6_sumS5Yn0of_lBwL5FMwkjpQQzh3uyEb7_UZa6OysA"
         }
       ],
       "negative_cases": [
@@ -881,7 +881,7 @@
         },
         {
           "name": "wrong_context",
-          "context": "ak.accountability-scope-set-v1-wrong",
+          "context": "ak.accountability_scope_set.v1-wrong",
           "expected_error": "reducer_projection_failed"
         }
       ],

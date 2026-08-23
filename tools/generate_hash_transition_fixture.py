@@ -85,7 +85,7 @@ def availability_receipt(
     }
     payload_digest = sha256(jcs(core).encode())
     transcript = {
-        "context": "ak.availability-receipt-proof-v1",
+        "context": "ak.availability_receipt_proof.v1",
         "payload_digest": payload_digest,
         **core,
         "verification_method": "did:webvh:z6mkholder:holder.example#key-1",

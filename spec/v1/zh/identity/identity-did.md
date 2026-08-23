@@ -464,7 +464,7 @@ Service Identity Provider 的标准操作是：
 
 1. 令 `receipt_claims` 为不含 `registration_receipt_id` 与 `proof` 的对象 `{registration_key, service_id, full_id, version_id, log_head_digest, control_key_digest, issued_at, provider_service_id}`；`registration_receipt_id = "ak:service_registration_receipt:" || hex(SHA-256(canonical_json(receipt_claims)))`。
 2. 令 `document` 为包含 `registration_receipt_id`、但删除整个 `proof` 后的完整 receipt；`payload_digest = "sha256:" || hex(SHA-256(canonical_json(document)))`。
-3. detached JWS MUST 签 `canonical_json({context:"ak.service-registration-receipt-proof-v1", payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?})`。`created_at` MUST 等于 receipt `issued_at`；代码块 / 对象书写顺序不构成 byte order，key 顺序唯一由 [`encoding.md` §2](../conformance/encoding.md) 决定。
+3. detached JWS MUST 签 `canonical_json({context:"ak.service_registration_receipt_proof.v1", payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?})`。`created_at` MUST 等于 receipt `issued_at`；代码块 / 对象书写顺序不构成 byte order，key 顺序唯一由 [`encoding.md` §2](../conformance/encoding.md) 决定。
 4. `provider_service_id` MUST 是 Provider 的稳定 service `did_core_id`。消费者 MUST 取得 Provider 当前 `full_id`，用已登记 method adapter 验证其 method-native history 并要求 `project(full_id) == provider_service_id`；`verification_method` 的 bare controller DID MUST 等于该 `full_id`，且该 method 在 receipt 签发时属于对应 DID Document 的 `assertionMethod`。不得把 `provider_service_id` 当作可解析 DID，也不得把 VM controller full DID 与它直接作字符串相等比较；transport bearer、mTLS、HTTPS 成功或 proof 结构校验均不得替代密码学验证。identity bundle 的离线恢复同样 MUST 完成上述验证。
 
 Provider 是 hosting 方而非控制者。transport bearer、mTLS 或内网凭据只认证部署通道；inception、rotation、endpoint update 与 registration-key migration 仍 MUST 由服务持有的 WebVH control/update key 签名。Provider 不得生成、接收或托管调用方私钥。服务自身必须持久化 active signing key ref、active control key ref、**next control key material**、version 与 receipt；B 类若要求数据库灾难后保持 DID，其可验证 identity bundle backend MUST 同时保存当前与下一代 control key material，否则不得声称可保持 DID。
@@ -629,7 +629,7 @@ ephemeral pairwise actor principal 转为长期关系时也适用本节：它必
 
 ```json
 {
-  "context": "ak.identity-receipt-proof-v1",
+  "context": "ak.identity_receipt_proof.v1",
   "payload_digest": "sha256:<64-hex>",
   "registry_service_id": "ak:did_core:webvh:<registry-core>",
   "did": "did:webvh:<subject>",
@@ -647,7 +647,7 @@ domain tag，不进入 receipt wire body。`signature.created_at` 必须与 rece
 method；不得把 fragment 拼到 `registry_service_id`。顶层 `audience` 与 proof `audience` 必须同时缺失，或同时为相同的单个
 字符串；此对象族禁止 array audience。Verifier 必须先重算并常量时间比较
 `payload_digest`，再构造上述 binding object 验证 JWS。直接签 receipt body、遗漏
-`context`、复用 `ak.event-proof-v1` 或只签 proof 字段都必须拒绝。
+`context`、复用 `ak.event_proof.v1` 或只签 proof 字段都必须拒绝。
 
 ### 4.4 DID 日志的返回形态（normative）
 
@@ -994,7 +994,7 @@ ensure 的幂等姿态与 resource.get 的只读分工、pinned `version_id + lo
 闭合 receipt claims，以及 receipt id / payload digest / detached JWS / signing-time issuer authority 的
 transcript 构造方式。但主体不可借：`ServiceRegistrationKey {service_kind, public_base}`、
 service type/endpoint 校验、`service_id` 主体名、Provider 默认托管 service DID history 的含义，
-以及 `ak.service-registration-receipt-proof-v1` context 都不适用于组织。
+以及 `ak.service_registration_receipt_proof.v1` context 都不适用于组织。
 把 organization 冒充 service 会让"本部署托管它的历史"这一含义随命名一起被继承。
 
 **两阶段是裁决结果，不是可选项。** `prepare` 由 registry 签发并记住 single-use challenge，
@@ -1011,7 +1011,7 @@ service type/endpoint 校验、`service_id` 主体名、Provider 默认托管 se
 禁止第二个意图，**不**把网络超时后的 byte-identical 安全重试变成错误。
 
 **proof MUST 绑定受益管理员。** control proof 的签名 transcript 是
-`canonical_json({context:'ak.organization-registration-control-proof-v1', challenge_id,
+`canonical_json({context:'ak.organization_registration_control_proof.v1', challenge_id,
 organization_id, full_id, local_admin_subject, version_id, log_head_digest, verification_method, created_at})`。
 其中 `organization_id` 是稳定 `did_core_id`，`full_id` 是当前 published bare DID；`ensure.full_id` MUST
 逐字等于 challenge 所载值，且 verifier MUST 独立要求 `project(full_id) == organization_id`。
@@ -1051,7 +1051,7 @@ organization_id, full_id, local_admin_subject, version_id, log_head_digest, veri
 2. `document` 是加入 `registration_receipt_id`、但删除整个 `proof` 后的完整 receipt；
    `proof.payload_digest = "sha256:" || hex(SHA-256(canonical_json(document)))`。
 3. detached JWS MUST 签
-   `canonical_json({context:"ak.organization-registration-receipt-proof-v1", payload_digest,
+   `canonical_json({context:"ak.organization_registration_receipt_proof.v1", payload_digest,
    issuer_service_id, registration_receipt_id, organization_id, full_id, verification_method, created_at,
    domain?, audience?})`；`created_at` MUST 等于 `issued_at`。任何实现把 receipt id 或 proof
    递归放回各自摘要输入都会得到不可构造的自引用合同，MUST 拒绝。

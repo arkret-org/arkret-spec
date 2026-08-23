@@ -487,7 +487,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Origin Principal Server signature with context ak.device-revocation-gate-decision-proof-v1. payload_digest MUST equal sha256(JCS(the complete receipt with proof omitted)); proof.verification_method MUST equal receipt.verification_method; proof.created_at MUST equal linearized_at; and the verification-method controller projected to Core MUST equal principal_authority.principal_server_id."
+          "description": "Origin Principal Server signature with context ak.device_revocation_gate_decision_proof.v1. payload_digest MUST equal sha256(JCS(the complete receipt with proof omitted)); proof.verification_method MUST equal receipt.verification_method; proof.created_at MUST equal linearized_at; and the verification-method controller projected to Core MUST equal principal_authority.principal_server_id."
         }
       },
       "allOf": [

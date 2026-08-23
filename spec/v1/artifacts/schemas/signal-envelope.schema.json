@@ -131,7 +131,7 @@
     },
     "signal_proof": {
       "type": "object",
-      "description": "Detached device proof over canonical_json({context:'ak.signal-proof-v1', envelope_digest, sender_actor_id, sender_device_id, verification_method, created_at, domain?, audience?}). envelope_digest hashes the complete SignalEnvelope with proof removed; created_at MUST equal the outer sent_at.",
+      "description": "Detached device proof over canonical_json({context:'ak.signal_proof.v1', envelope_digest, sender_actor_id, sender_device_id, verification_method, created_at, domain?, audience?}). envelope_digest hashes the complete SignalEnvelope with proof removed; created_at MUST equal the outer sent_at.",
       "required": [
         "kind",
         "verification_method",

@@ -2,7 +2,7 @@
 """Recompute the byte-level transcript KAT for every registered proof context.
 
 ``proof-context-registry.json`` pins which fields enter a detached-proof
-transcript, but for a long time only ``ak.event-proof-v1`` had canonical bytes to
+transcript, but for a long time only ``ak.event_proof.v1`` had canonical bytes to
 compare against. Everything else existed as a field-name array plus prose, so two
 implementations could disagree on the unsigned projection, on the ``audience``
 shape, on whether an absent optional binding field is omitted or written as

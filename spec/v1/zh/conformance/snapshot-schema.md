@@ -170,8 +170,8 @@ Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`
 `did_core_id`，`proof` 是共享 detached proof。
 
 **独立 context**。该族在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)
-登记的唯一 context 是 `ak.snapshot-witness-attestation-proof-v1`；schema 侧的
-`x-arkret-proof-context` 注解与本节 MUST 逐字一致。顶层 `ak.snapshot-proof-v1` MUST NOT 被复用
+登记的唯一 context 是 `ak.snapshot_witness_attestation_proof.v1`；schema 侧的
+`x-arkret-proof-context` 注解与本节 MUST 逐字一致。顶层 `ak.snapshot_proof.v1` MUST NOT 被复用
 为 witness 的隐式别名；用 manifest context 生成的 witness 签名即使密码学验签通过也 MUST 以
 `signature_invalid` 拒绝。
 
@@ -184,7 +184,7 @@ transcript、因而无签名循环的原因：
 
 ```text
 {
-  "context": "ak.snapshot-witness-attestation-proof-v1",
+  "context": "ak.snapshot_witness_attestation_proof.v1",
   "witness_id": <this row's witness_id>,
   "snapshot_id": <manifest.id>,
   "realm_id": <manifest.realm_id>,

@@ -4583,7 +4583,7 @@
     },
     "principal_server_admission_proof": {
       "type": "object",
-      "description": "Origin Principal Server admission proof over canonical_json({context:'ak.principal-server-admission-proof-v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,producer_signer_resolution_evidence_digest?,signer_resolution_evidence_ref,signer_resolution_evidence_digest,accepted_at,verification_method}). The optional producer pair freezes the original producer evidence root when that signer regime has portable evidence; Native Agent federation requires it. The unprefixed signer pair continues to bind the Principal Server proof's own service signer evidence.",
+      "description": "Origin Principal Server admission proof over canonical_json({context:'ak.principal_server_admission_proof.v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,producer_signer_resolution_evidence_ref?,producer_signer_resolution_evidence_digest?,signer_resolution_evidence_ref,signer_resolution_evidence_digest,accepted_at,verification_method}). The optional producer pair freezes the original producer evidence root when that signer regime has portable evidence; Native Agent federation requires it. The unprefixed signer pair continues to bind the Principal Server proof's own service signer evidence.",
       "required": [
         "kind",
         "verification_method",

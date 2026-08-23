@@ -85,6 +85,7 @@ from .fixtures import (
     check_account_data_key_registry,
     check_applet_revoke_saga_contract,
     check_canonical_digest_fixtures,
+    check_cba_seal_canonical_fixture,
     check_content_bound_event_id_fixture,
     check_crypto_signature_fixture,
     check_cryptographic_suite_kat_bindings,
@@ -405,6 +406,7 @@ def main(argv: list[str] | None = None) -> int:
             ("websocket_binding", lambda: check_websocket_binding_fixture(lint)),
             ("crypto_signatures", lambda: check_crypto_signature_fixture(lint)),
             ("canonical_digests", lambda: check_canonical_digest_fixtures(lint)),
+            ("cba_seal_canonical", lambda: check_cba_seal_canonical_fixture(lint)),
             (
                 "direct_conversation_digests",
                 lambda: check_direct_conversation_digest_vectors(lint),

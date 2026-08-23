@@ -306,11 +306,11 @@ def lint_string_set_digest_component(
         lint.fail(path, f"{ref}.context must be non-empty printable ASCII")
     if (
         event_kind == "ak.identity.accountability_grant"
-        and context != "ak.accountability-scope-set-v1"
+        and context != "ak.accountability_scope_set.v1"
     ):
         lint.fail(
             path,
-            f"{ref}.context must be 'ak.accountability-scope-set-v1' for {event_kind}",
+            f"{ref}.context must be 'ak.accountability_scope_set.v1' for {event_kind}",
         )
 
 
@@ -3967,7 +3967,8 @@ def check_text_files_utf8_no_nul(lint: Lint) -> None:
 SHARED_PROOF_LEAF = ("event-envelope.schema.json", "/$defs/proof")
 PROOF_CONTEXT_ANNOTATION = "x-arkret-proof-context"
 PROOF_CONTEXT_SET_ANNOTATION = "x-arkret-proof-contexts"
-PROOF_CONTEXT_PATTERN = r"ak\.[a-z0-9-]+-proof-v1"
+SECURITY_DOMAIN_LABEL_PATTERN = r"ak\.[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*\.v1"
+LEGACY_PROOF_CONTEXT_PATTERN = r"ak\.[a-z0-9-]+-proof-v1"
 REPLAY_CACHE_NAMESPACE_PRIMITIVE = "replay_cache_namespace"
 DOMAIN_SEPARATION_PRIMITIVES = frozenset(
     {
@@ -4188,7 +4189,7 @@ def check_proof_context_registry(lint: Lint) -> None:
         fields = row.get("binding_fields")
         schema_ref = row.get("schema_ref")
         consumer_operation = row.get("consumer_operation")
-        if not isinstance(context, str) or not re.fullmatch(r"ak\.[a-z0-9-]+-proof-v1", context):
+        if not isinstance(context, str) or not re.fullmatch(SECURITY_DOMAIN_LABEL_PATTERN, context):
             lint.fail(path, f"contexts[{index}].context is not a canonical proof context")
             context = None
         elif context in contexts:
@@ -4351,13 +4352,13 @@ def check_proof_context_registry(lint: Lint) -> None:
                             f"{key} at {pointer} names {item}, whose registry schema_ref anchors elsewhere",
                         )
 
-    token_re = re.compile(PROOF_CONTEXT_PATTERN)
-    used: set[str] = set()
+    legacy_token_re = re.compile(LEGACY_PROOF_CONTEXT_PATTERN)
+    legacy_used: set[str] = set()
     for scan_path in SPEC_ROOT.rglob("*"):
         if scan_path.is_file() and scan_path.suffix.lower() in {".json", ".md", ".yaml", ".yml"}:
-            used.update(token_re.findall(scan_path.read_text(encoding="utf-8")))
-    for token in sorted(used - contexts):
-        lint.fail(path, f"proof context literal is not registered: {token}")
+            legacy_used.update(legacy_token_re.findall(scan_path.read_text(encoding="utf-8")))
+    for token in sorted(legacy_used):
+        lint.fail(path, f"legacy proof context spelling is forbidden: {token}")
 
     # Domain separations are the second half of this file: separators that are not
     # signing contexts but still decide security outcomes. A replay-cache namespace
@@ -4379,8 +4380,14 @@ def check_proof_context_registry(lint: Lint) -> None:
         family = row.get("object_family")
         primitive = row.get("primitive")
         fields = row.get("binding_fields")
-        if not isinstance(domain, str) or not domain.startswith("ak."):
-            lint.fail(path, f"domain_separations[{index}].domain must be an ak.* literal")
+        if not isinstance(domain, str) or not re.fullmatch(SECURITY_DOMAIN_LABEL_PATTERN, domain):
+            lint.fail(
+                path,
+                f"domain_separations[{index}].domain must be a canonical dot-separated snake_case v1 label",
+            )
+            domain = None
+        elif domain in contexts:
+            lint.fail(path, f"security domain label is registered as both context and domain separation: {domain}")
             domain = None
         elif domain in domains:
             lint.fail(path, f"duplicate domain separation {domain}")
@@ -4407,11 +4414,6 @@ def check_proof_context_registry(lint: Lint) -> None:
             lint.fail(path, f"domain_separations[{index}].binding_fields must be a non-empty string array")
         if primitive != REPLAY_CACHE_NAMESPACE_PRIMITIVE:
             continue
-        if domain is not None and re.fullmatch(PROOF_CONTEXT_PATTERN, domain):
-            lint.fail(
-                path,
-                f"{domain} is a replay-cache namespace and MUST NOT be spelled as a proof context",
-            )
         defined_in = row.get("defined_in")
         if not isinstance(defined_in, str) or not defined_in:
             lint.fail(

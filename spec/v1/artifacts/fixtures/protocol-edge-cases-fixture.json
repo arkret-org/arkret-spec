@@ -596,8 +596,8 @@
       "expected": {
         "positive_decision": "accept",
         "negative_decision": "reject",
-        "accepted_device_domain": "ak.device-authorize-accepted-device-possession-proof-v1",
-        "root_anchored_domain": "ak.device-authorize-possession-proof-v1",
+        "accepted_device_domain": "ak.device_authorize_accepted_device_possession_proof.v1",
+        "root_anchored_domain": "ak.device_authorize_possession_proof.v1",
         "target_failure_mode": "fail_closed_and_warn_user"
       },
       "assertions": [
