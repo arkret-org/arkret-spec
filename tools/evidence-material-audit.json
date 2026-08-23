@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 254,
+  "audited_occurrence_count": 253,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -762,7 +762,7 @@
     {
       "file": "identity-resolution.schema.json",
       "key": "method_history_evidence_digest",
-      "occurrences": 2,
+      "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Digest qualifier binding the public projection attestation to the exact bounded adapter evidence; it is a commitment over evidence, not an evidence instance."
     },

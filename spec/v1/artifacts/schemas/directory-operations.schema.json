@@ -263,45 +263,6 @@
         "member_add"
       ]
     },
-    "pagination_request": {
-      "type": "object",
-      "properties": {
-        "cursor": {
-          "$ref": "#/$defs/cursor"
-        },
-        "limit": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 100
-        }
-      },
-      "additionalProperties": false
-    },
-    "freshness_fields": {
-      "type": "object",
-      "required": [
-        "as_of",
-        "policy_revision"
-      ],
-      "properties": {
-        "as_of": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "source_refs": {
-          "$ref": "#/$defs/source_refs"
-        },
-        "policy_revision": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "stale": {
-          "type": "boolean"
-        },
-        "divergent": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
     "realm_preview": {
       "type": "object",
       "required": [

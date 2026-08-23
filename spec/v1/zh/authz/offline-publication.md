@@ -105,7 +105,7 @@ threshold猜测分支，也不得把不同recovery proof family的issuer拼成�
 
 ### 1.1 RecoveryTransaction 的 authority ownership
 
-Root-anchored device recovery 不需要另一个账号服务签 replacement authorize，也不为该动作签发 DID-derived device authority lease。RecoveryTransaction 先发布 method-native DID entry，再提交 root-signed re-anchor + replacement-device-signed authorize 原子 unit；内容 authority来自 DID root history、recovery session/policy 与 candidate device possession。Coordinator/service authentication只控制 transport、rate-limit和幂等 correlation。
+PCR-policy device recovery 不需要另一个账号服务签 replacement authorize，也不为该动作签发 DID-derived device authority lease。RecoveryTransaction 直接提交 policy-authorized re-anchor + replacement-device-signed authorize 原子 unit，不发布 DID operation；内容 authority 来自 recovery session/policy、满足策略的 proof 与 candidate device possession。Coordinator/service authentication 只控制 transport、rate-limit 和幂等 correlation。
 
 若 recovery policy 需要离线 quorum，`ak.authority_set.recovery_identity_reanchor.v1` 可以为 policy proof/publication intent签发有界 lease；该 lease不得单独签 `ak.device.authorize`，也不得把账号服务变成 device authority。接受 unit 后 receipt 和 generation fence 是 durable outcome。
 

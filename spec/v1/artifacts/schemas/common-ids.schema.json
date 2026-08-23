@@ -90,12 +90,6 @@
       "maxLength": 2048,
       "description": "Canonical bare did:webvh identity of a durable managed Agent. Its accepted bootstrap history is controller-authored and must contain a continuous inception followed by the create-locked PCR binding update."
     },
-    "ephemeral_pairwise_full_id": {
-      "type": "string",
-      "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-      "maxLength": 2048,
-      "description": "Realm-local ephemeral pairwise actor identifier. It is MLS LeafNode-bound and can never create a Principal Control Realm."
-    },
     "did_key_full_id": {
       "type": "string",
       "pattern": "^did:key:z[A-Za-z0-9]+$",

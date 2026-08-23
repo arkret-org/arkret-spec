@@ -126,9 +126,6 @@
       "additionalProperties": false,
       "description": "Device-local resident received bytes. material_received_sequence is assigned once when this byte instance becomes resident and is immutable; adding origin attribution never refreshes it. Eviction removes this record but not bounded attribution tombstones, and refetch creates a new record with a new sequence. local_authoritative uses a separate record class."
     },
-    "history_candidate_origin_domain": {
-      "enum": ["response_sender", "rrk_archive", "portable_backup"]
-    },
     "history_candidate_origin_attribution": {
       "oneOf": [
         {

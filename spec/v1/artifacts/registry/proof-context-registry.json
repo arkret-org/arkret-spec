@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-22.2",
+  "version": "2026-08-23.1",
   "source_of_truth": true,
   "description": "Canonical security-domain contexts for Arkret detached proofs and non-Event cryptographic transcripts. Proof contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript: it MUST NOT be spelled as a proof context and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
@@ -1525,6 +1525,33 @@
       "binding_fields": [
         "signed_fields",
         "receipt"
+      ]
+    },
+    {
+      "domain": "ak.identity.recovery_proof.v1",
+      "object_family": "recovery_session_factor_transcript",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "schema",
+        "kind",
+        "principal_authority",
+        "requesting_device_id",
+        "trust_domain",
+        "policy_id",
+        "policy_version",
+        "recovery_session_id",
+        "identity_model",
+        "model_generation_ref",
+        "publication_authority_context_digest",
+        "challenge",
+        "expires_at",
+        "created_at",
+        "proof_body?"
+      ],
+      "conditional_binding_rule": "kind=did_root MUST omit proof_body; kind in recovery_unlock|device_quorum|trusted_recovery_service|threshold_recovery MUST include the matching closed signature-independent proof_body projection",
+      "transcript_schema_refs": [
+        "schemas/recovery-session.schema.json#/$defs/did_root_transcript",
+        "schemas/recovery-session.schema.json#/$defs/generic_recovery_transcript"
       ]
     },
     {

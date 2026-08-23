@@ -305,6 +305,10 @@
       "sha256": "a94fdc868c20d876e1f7b5098c2208251afc8a8d35342882a74ab67aad75ae1b"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
+      "sha256": "7b2ed66611bb72a0df1d2e7f0b1aa03cf05f5202dc095165438f5b6c7e7b8697"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
       "sha256": "72f230b99253ae0a09a91e05bc8e914dce09bbcb2653351565118a204405b672"
     },
@@ -322,7 +326,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "c9f39f0aee9fe24e94e7804078fe034dfdbc390a4d17d60998a9169206319635"
+      "sha256": "4de8ca266ca9580935a8c9803e90806655143ec8b84876a5a3ec20bc0df7dd50"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

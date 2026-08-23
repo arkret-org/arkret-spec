@@ -941,14 +941,6 @@ _SUPPLY_CAS_ECHO_RE = re.compile(
     re.I,
 )
 
-# References the caller derives locally from the DID log read surfaces, which
-# cross the wire in the DID method's own form (see the b8cfa51a ruling).
-_SUPPLY_DID_LOG_DERIVED_NAMES = frozenset(
-    {"did_entry_ref", "previous_entry_ref", "expected_entry_ref"}
-)
-
-_SUPPLY_DID_LOG_DERIVED_DEFS = frozenset({"did_generation_ref"})
-
 # Caller-signed objects: the schema pins the signing key to the caller itself,
 # so the caller authors the bytes and no read surface owes them to it.
 # join-policy.md 7 applicant/reviewer receipts; the recovery terminal receipt

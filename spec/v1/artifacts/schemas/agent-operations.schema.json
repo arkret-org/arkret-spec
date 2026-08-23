@@ -1854,47 +1854,6 @@
       },
       "additionalProperties": false
     },
-    "agent_sidecar_context_ref": {
-      "type": "object",
-      "description": "Existing shared Strand or Relation used only as the UI/source context for a native Sidecar projection. It does not create or identify a private Strand.",
-      "required": [
-        "realm_id"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "strand_id": {
-          "$ref": "#/$defs/strand_id"
-        },
-        "relation_id": {
-          "$ref": "#/$defs/relation_id"
-        }
-      },
-      "oneOf": [
-        {
-          "required": [
-            "strand_id"
-          ],
-          "not": {
-            "required": [
-              "relation_id"
-            ]
-          }
-        },
-        {
-          "required": [
-            "relation_id"
-          ],
-          "not": {
-            "required": [
-              "strand_id"
-            ]
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
     "agent_sidecar_ensure_request_body": {
       "$ref": "./principal-operations.schema.json#/$defs/sidecar_ensure_request"
     },

@@ -2526,8 +2526,6 @@
           "ak.schema.keys_operations.v1",
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_session.v1",
-          "ak.schema.security_rotation_local_commit.v1",
-          "ak.schema.security_transaction.v1",
           "ak.schema.service_operation_dtos.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."

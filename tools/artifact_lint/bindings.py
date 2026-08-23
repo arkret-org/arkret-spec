@@ -16,8 +16,6 @@ from .core import (
     _SUPPLY_CALLER_SIGNED_SCHEMAS,
     _SUPPLY_CAS_ECHO_RE,
     _SUPPLY_CLIENT_LOCAL_RE,
-    _SUPPLY_DID_LOG_DERIVED_DEFS,
-    _SUPPLY_DID_LOG_DERIVED_NAMES,
     _SUPPLY_EVIDENCE_RE,
     _SUPPLY_PAYLOAD_SUPPLY_FILES,
     _SUPPLY_STRUCTURAL_SURFACES,
@@ -1989,11 +1987,6 @@ def check_request_material_supply_closure(lint: Lint) -> None:
                 # The complete container is derived from the caller's locally
                 # verified RFC 9420 current/pending group state. Its credential
                 # reference is not a server-state echo or third-party carrier.
-                return False
-            if (
-                name in _SUPPLY_DID_LOG_DERIVED_NAMES
-                or ref_def in _SUPPLY_DID_LOG_DERIVED_DEFS
-            ):
                 return False
             if demand["caller_signed"]:
                 return False

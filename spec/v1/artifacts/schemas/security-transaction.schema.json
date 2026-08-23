@@ -356,20 +356,6 @@
         }
       ]
     },
-    "accepted_publish_did_entry": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/accepted_step"
-        },
-        {
-          "properties": {
-            "step": {
-              "const": "publish_did_entry"
-            }
-          }
-        }
-      ]
-    },
     "accepted_revoke": {
       "allOf": [
         {
@@ -462,7 +448,6 @@
     "any_step": {
       "type": "string",
       "enum": [
-        "publish_did_entry",
         "submit_reanchor_unit",
         "issue_terminal_receipt",
         "revoke",
@@ -762,117 +747,9 @@
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
-    "event_initial_submission": {
-      "type": "object",
-      "required": [
-        "event",
-        "authorization_lease"
-      ],
-      "properties": {
-        "event": {
-          "$ref": "./event-envelope.schema.json"
-        },
-        "authorization_lease": {
-          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
-        },
-        "cba_proof_bundles": {
-          "type": "array",
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
-          }
-        },
-        "control_proposal_ack": {
-          "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
-        }
-      },
-      "additionalProperties": false
-    },
     "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-    },
-    "prepared_did_publication": {
-      "type": "object",
-      "required": [
-        "registry_service_id",
-        "registry_endpoint",
-        "previous_entry_ref",
-        "expected_entry_ref",
-        "canonical_entry_base64url",
-        "entry_digest"
-      ],
-      "properties": {
-        "registry_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "registry_endpoint": {
-          "type": "string",
-          "format": "uri",
-          "pattern": "^https://[^/?#]+/_arkret/root/identity/submit-did-operation$"
-        },
-        "previous_entry_ref": {
-          "type": "string",
-          "minLength": 1
-        },
-        "expected_entry_ref": {
-          "type": "string",
-          "minLength": 1
-        },
-        "canonical_entry_base64url": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
-        },
-        "entry_digest": {
-          "$ref": "#/$defs/digest"
-        }
-      },
-      "additionalProperties": false
-    },
-    "prepared_event_submission_batch": {
-      "type": "object",
-      "description": "Exact typed account-client Event publication batch and its persisted canonical bytes.",
-      "required": [
-        "destination_service_id",
-        "audience",
-        "request",
-        "canonical_request_base64url",
-        "request_digest"
-      ],
-      "properties": {
-        "destination_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "request": {
-          "type": "object",
-          "required": [
-            "events"
-          ],
-          "properties": {
-            "events": {
-              "type": "array",
-              "minItems": 2,
-              "maxItems": 2,
-              "items": {
-                "$ref": "#/$defs/event_initial_submission"
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        "canonical_request_base64url": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
-        },
-        "request_digest": {
-          "$ref": "#/$defs/digest"
-        }
-      },
-      "additionalProperties": false
     },
     "prepared_event_unit": {
       "type": "object",

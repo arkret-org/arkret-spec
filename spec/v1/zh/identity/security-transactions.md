@@ -114,11 +114,9 @@ submit_reanchor_unit -> issue_terminal_receipt
 两条 Event。Account Authority/transport signature 不构成内容 authority；coordinator 不持有 recovery/device
 private key，不生成、更改或代签 Event。
 
-可选 `identity_model="did_root_factor"` 只有在 accepted policy 显式启用且 adapter 满足 history/pre-rotation
-要求时合法。该分支可在 `submit_reanchor_unit` 前增加 `publish_did_entry`，并把 exact method-native
-publication/current-root evidence 固定到 plan。DID publication 与 PCR generation 各自使用独立 CAS；
-publication 已接受而 unit 失败时可 exact resume，但不得令 resolution 自动推进或让 current root 绕过
-PCR policy。`did:key`、`did:web` 或未启用 factor 的账号请求该分支 MUST `unsupported_feature`。
+DID method operation 的发布继续使用 `POST /_arkret/root/identity/submit-did-operation`，但它不是
+RecoveryTransaction 的步骤，也不得进入 recovery binding、prepared plan 或 accepted-step ledger。
+恢复 authority 只来自已接受的 PCR policy/session 与 unit 内闭合 proof；DID current root 不得绕过该策略。
 
 ## 3. SecurityRotationTransaction
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.1",
+  "version": "2026-08-23.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-23T13:00:00+08:00",
+  "generated_at": "2026-08-23T13:02:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -739,7 +739,7 @@
       "schema_id": "ak.schema.recovery_session.v1",
       "file": "schemas/recovery-session.schema.json",
       "status": "active",
-      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and principal_signing recovery proof transcript. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
+      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and did_root plus generic recovery proof transcripts. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
     },
     {
       "schema_id": "ak.schema.recovery_receipt.v1",

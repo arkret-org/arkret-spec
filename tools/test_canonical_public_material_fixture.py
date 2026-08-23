@@ -44,7 +44,7 @@ class CanonicalPublicMaterialFixtureTests(unittest.TestCase):
                 case
                 for case in fixture["schema_validation_cases"]
                 if case["name"]
-                == "root_anchored_recovery_public_did_entry_valid"
+                == "recovery_proof_canonical_public_material_valid"
             )
             material = case["instance"]
             material["value"]["versionId"] = "3-drifted"

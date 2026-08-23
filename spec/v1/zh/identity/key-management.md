@@ -641,11 +641,11 @@ threshold proof；验证通过后原子提交：
 `new_device_generation` 是 PCR-local monotonic generation ref，MUST NOT 等于或派生自 DID `versionId`。
 generation CAS 接受后 fence 全部旧 generation device；resolution cell 不变。
 
-DID-root recovery 是独立可选 factor。只有当前 accepted policy 明确列出 `did_root`、adapter 同时满足
+DID-root recovery 是 accepted policy 可显式启用、可撤销的一种 proof factor。只有 adapter 同时满足
 `verifiable_control_history` 与 `pre_rotation_commitment` 时，re-anchor 才可携带
-`recovery_authority_kind="did_root"` 与 accepted-at current-root evidence。未启用、已撤销或 method 不支持
-时 MUST `unsupported_feature`/`recovery_policy_mismatch`。DID publication/resolution update 仅在该分支或
-用户同时执行 method successor 时出现；即使同一 transaction 协调，两种 cell/CAS 仍正交。
+`recovery_authority_kind="did_root"` 与 recovery-session 已冻结的 current-root evidence。未启用、已撤销或
+method 不支持时 MUST `unsupported_feature`/`recovery_policy_mismatch`。它不在 RecoveryTransaction 中发布
+DID operation，也不推进 resolution；用户另行执行 method successor 时走独立 DID operation 发布流程。
 
 #### 5.0.4 Recovery-material gate（normative）
 

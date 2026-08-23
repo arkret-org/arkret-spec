@@ -52,6 +52,7 @@ from .schemas import (
     check_read_scope_schema_closure,
     check_reducer_payload_closure,
     check_schema_refs,
+    check_security_transaction_schema_closure,
     check_sdk_conformance_contract,
     check_signed_object_closure,
     check_stable_identity_fields_use_core_id,
@@ -174,6 +175,13 @@ from .proof_context_transcripts import (
     check_proof_context_transcript_vectors,
 )
 
+from .recovery_transcripts import (
+    check_recovery_transcript_closure,
+    check_registered_context_schema_duplicates,
+)
+
+from .schema_roots import check_schema_root_reachability
+
 
 
 def run_lint_phase(
@@ -280,6 +288,15 @@ def main(argv: list[str] | None = None) -> int:
         "Schema、profile 与授权闭包",
         [
             ("schema_refs", lambda: check_schema_refs(lint, known)),
+            ("schema_root_reachability", lambda: check_schema_root_reachability(lint)),
+            (
+                "registered_context_schema_duplicates",
+                lambda: check_registered_context_schema_duplicates(lint),
+            ),
+            (
+                "security_transaction_schema_closure",
+                lambda: check_security_transaction_schema_closure(lint),
+            ),
             ("profile_requirements", lambda: check_profile_requirements(lint, known)),
             ("sdk_conformance", lambda: check_sdk_conformance_contract(lint)),
             ("operation_clauses", lambda: check_operation_clause_registry(lint)),
@@ -370,6 +387,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "proof_context_transcripts",
                 lambda: check_proof_context_transcript_vectors(lint),
+            ),
+            (
+                "recovery_transcripts",
+                lambda: check_recovery_transcript_closure(lint),
             ),
             (
                 "declared_schema_fixture_instances",

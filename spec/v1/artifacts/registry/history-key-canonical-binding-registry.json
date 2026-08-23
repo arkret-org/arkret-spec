@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-21.4",
+  "version": "2026-08-23.1",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -53,6 +53,7 @@
     },
     "history_source_agent_observation_digest": {
       "domain": "ak.history-source-agent-observation-v1",
+      "preimage_schema_ref": "schemas/history-key.schema.json#/$defs/history_source_agent_observation_input",
       "preimage": "the complete closed HistoryKeyResponseSigningInput with source_signer_evidence_ref and source_signer_evidence_digest removed",
       "rule": "Native Agent CurrentAdmission current_observation.request_digest equals this digest. The exclusion breaks the signer-evidence content-address cycle while source_proof still signs the complete HistoryKeyResponseSigningInput including both evidence coordinates."
     },
@@ -167,6 +168,7 @@
     },
     "governance_registry_artifact_digest": {
       "domain": "ak.governance-registry-artifact-v1",
+      "decoded_artifact_schema_ref": "schemas/governance-registry-snapshot.schema.json#/$defs/governance_replay_schema_manifest",
       "formula": "sha256:<lowercase hex SHA-256(UTF8('ak.governance-registry-artifact-v1') || 0x00 || decoded canonical_bytes_b64u)>",
       "preimage": "the exact decoded RFC 8785 JCS bytes of the underlying registry artifact named by GovernanceRegistryArtifact.descriptor; the GovernanceRegistryArtifact wrapper is not hashed",
       "rule": "decoded bytes must themselves be canonical JSON, at most 1 MiB, and match the closed descriptor artifact_kind/artifact_id; hashing the wrapper or descriptor would create a different and invalid digest"

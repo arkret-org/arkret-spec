@@ -391,6 +391,69 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
 
 
 
+def check_security_transaction_schema_closure(lint: Lint) -> None:
+    """Require every transaction step and prepared material to have a closed consumer."""
+    path = ARTIFACTS / "schemas" / "security-transaction.schema.json"
+    data = load_json(lint, path)
+    defs = data.get("$defs") if isinstance(data, dict) else None
+    if not isinstance(defs, dict):
+        lint.fail(path, "security transaction schema must define $defs")
+        return
+
+    any_steps = defs.get("any_step")
+    steps = any_steps.get("enum") if isinstance(any_steps, dict) else None
+    if not isinstance(steps, list) or not all(isinstance(step, str) for step in steps):
+        lint.fail(path, "$defs.any_step.enum must be a string array")
+        return
+
+    accepted_tuple_refs: set[str] = set()
+    for def_name, definition in defs.items():
+        if not def_name.endswith("_accepted_steps"):
+            continue
+        accepted_tuple_refs.update(
+            value
+            for _, value, key in walk_json(definition)
+            if key == "$ref"
+            and isinstance(value, str)
+            and value.startswith("#/$defs/accepted_")
+        )
+
+    for step in steps:
+        variant_name = f"accepted_{step}"
+        variant = defs.get(variant_name)
+        if not isinstance(variant, dict):
+            lint.fail(path, f"any_step {step!r} has no $defs/{variant_name} variant")
+            continue
+        constants = {
+            value
+            for _, value, key in walk_json(variant)
+            if key == "const" and isinstance(value, str)
+        }
+        if step not in constants:
+            lint.fail(path, f"$defs/{variant_name} does not constrain step to {step!r}")
+        if f"#/$defs/{variant_name}" not in accepted_tuple_refs:
+            lint.fail(
+                path,
+                f"any_step {step!r} is not consumed by any *_accepted_steps tuple",
+            )
+
+    plan_refs: set[str] = set()
+    for def_name, definition in defs.items():
+        if not def_name.endswith("_plan"):
+            continue
+        plan_refs.update(
+            value
+            for _, value, key in walk_json(definition)
+            if key == "$ref" and isinstance(value, str)
+        )
+    for def_name in sorted(defs):
+        if def_name.startswith("prepared_") and f"#/$defs/{def_name}" not in plan_refs:
+            lint.fail(
+                path,
+                f"orphan prepared material $defs/{def_name} is not referenced by any plan",
+            )
+
+
 def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
     path = ARTIFACTS / "profiles" / "conformance-profiles.json"
     data = load_json(lint, path)

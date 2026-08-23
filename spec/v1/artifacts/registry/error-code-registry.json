@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-23.3",
+  "version": "2026-08-23.5",
   "codes": [
     {
       "code": "json_invalid",
@@ -3973,7 +3973,7 @@
       "applies_to": [
         "pcr_genesis"
       ],
-      "description": "Genesis admission was attempted after the PCR frontier ceased to be empty, or after a PCR genesis receipt already existed. The caller must use device pairing or root-anchored re-anchor."
+      "description": "Genesis admission was attempted after the PCR frontier ceased to be empty, or after a PCR genesis receipt already existed. The caller must use device pairing or PCR-policy re-anchor."
     },
     {
       "code": "pcr_genesis_unit_invalid",
@@ -4495,7 +4495,7 @@
         "schema_validation",
         "device_recovery"
       ],
-      "description": "A recovery policy, receipt, or proof names a proof kind outside the ak.schema.recovery_policy.v1 allowed_proof_kinds enum. Producers MUST use one of principal_signing, recovery_unlock, device_quorum, trusted_recovery_service, or threshold_recovery."
+      "description": "A recovery policy, receipt, or proof names a proof kind outside the ak.schema.recovery_policy.v1 allowed_proof_kinds enum. Producers MUST use one of did_root, recovery_unlock, device_quorum, trusted_recovery_service, or threshold_recovery."
     },
     {
       "code": "recovery_session_challenge_mismatch",
@@ -5450,5 +5450,5 @@
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
   },
-  "generated_at": "2026-08-23T13:00:00+08:00"
+  "generated_at": "2026-08-23T13:02:00+08:00"
 }

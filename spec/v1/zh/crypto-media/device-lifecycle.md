@@ -1403,8 +1403,9 @@ generation fence 使旧 generation 全部失效。`current_device_generation_ref
 MUST NOT 使用或等于 DID `versionId`；resolution cell 不随基础恢复推进。
 
 DID-root 只是在 recovery policy 中显式启用、可撤销的一种 proof kind。当前 DID root 本身不能
-re-anchor；method 不支持 history/pre-rotation 或 policy 未启用时必须拒绝。只有该分支或用户同时执行
-resolution successor 时 transaction 才包含 DID publication；DID host outage 不影响 PCR-policy 分支。
+re-anchor；method 不支持 history/pre-rotation 或 policy 未启用时必须拒绝。RecoveryTransaction 不包含
+DID publication；用户执行 resolution successor 时必须走独立 DID operation 发布流程，且其失败不得改变
+PCR recovery transaction 的 accepted-step ledger。
 
 ### 14.1 Device lifecycle 与 trust 正交状态
 

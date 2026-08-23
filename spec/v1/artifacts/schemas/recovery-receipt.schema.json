@@ -104,11 +104,6 @@
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
-    "did_entry_ref": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 2048
-    },
     "reanchor_batch_receipt_id": {
       "type": "string",
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -385,11 +380,6 @@
             {
               "contains": {
                 "const": "reanchor_batch_receipt_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "did_entry_ref"
               }
             }
           ]

@@ -27,8 +27,8 @@
   ],
   "type_derived_summary": {
     "registry_catalog_symbol": 21,
-    "responsibility_did": 530,
-    "typed_object_id": 880
+    "responsibility_did": 524,
+    "typed_object_id": 873
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -1011,7 +1011,7 @@
       "name": "share_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{1,64}$\"]]",
       "category": "document_local_symbol",
-      "occurrences": 2,
+      "occurrences": 3,
       "example_path": "recovery-policy.schema.json#/$defs/share/properties/share_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     },

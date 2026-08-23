@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-16.1",
+  "version": "2026-08-23.1",
   "source_of_truth": true,
   "description": "Canonical registry of authority-set policy symbols and deterministic projections from accepted CBA control state. Registry rows are templates, not authority: each lease carries the concrete AuthoritySetPolicy and its digest, and verifiers rederive it from basis_ref plus CBA closure.",
   "registry_rules": [
@@ -38,7 +38,7 @@
         "source_digest": "accepted_recovery_policy_canonical_digest",
         "generation_ref": "policy_version(decimal)",
         "basis_ref": "accepted_recovery_policy.acceptance_basis",
-        "authorization_rules": "one rule per allowed proof kind; principal_signing/recovery_unlock/trusted service use threshold 1, device_quorum uses device_quorum.k, threshold_recovery uses its recovered signing key with threshold 1 (Shamir reconstruction k is not a signature quorum)"
+        "authorization_rules": "one rule per allowed proof kind; did_root/recovery_unlock/trusted service use threshold 1, device_quorum uses device_quorum.k, threshold_recovery uses its recovered signing key with threshold 1 (Shamir reconstruction k is not a signature quorum)"
       },
       "defined_in": "zh/crypto-media/device-lifecycle.md#14-pcr-policy-device-recovery"
     },

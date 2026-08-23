@@ -10160,7 +10160,7 @@ paths:
       operationId: ak.gate.account.command.issue_recovery_completion_grant
       security:
       - dpopProof: []
-      summary: Issue a Standard grant after root-anchored recovery completion.
+      summary: Issue a Standard grant after PCR-policy recovery completion.
       description: |
         Uses the still-live Bound AccountHandoff and its HTTP DPoP key to issue
         one Standard grant bound to the accepted replacement device. The caller

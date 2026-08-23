@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.3",
+  "version": "2026-08-23.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-23T13:00:00+08:00",
+  "generated_at": "2026-08-23T13:02:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3488,6 +3488,18 @@
         "spec/v1/zh/identity/key-management.md",
         "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.identity.recovery_transcript.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "recovery-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json"
+      ],
+      "description": "Byte-exact did_root plus four generic recovery factor transcripts, closed proof_body projections, public session tuple binding and mandatory cross-factor replay rejection."
     },
     {
       "vector_id": "ak.vector.identity.registration_saga.v1",
