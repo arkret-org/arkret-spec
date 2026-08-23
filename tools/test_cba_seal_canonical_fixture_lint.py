@@ -43,6 +43,25 @@ class CbaSealCanonicalFixtureLintTest(unittest.TestCase):
         finally:
             lint_artifacts.load_json = original_load_json
 
+    def _lint_fixture_mutation(self, mutate) -> list[str]:
+        original_load_json = lint_artifacts.load_json
+        fixture = original_load_json(lint_artifacts.Lint(), FIXTURE)
+        mutated = copy.deepcopy(fixture)
+        mutate(mutated)
+
+        def load_json_with_mutation(lint, path):
+            if path.resolve() == FIXTURE.resolve():
+                return mutated
+            return original_load_json(lint, path)
+
+        lint_artifacts.load_json = load_json_with_mutation
+        try:
+            lint = lint_artifacts.Lint()
+            lint_artifacts.check_vector_registry(lint)
+            return lint.errors
+        finally:
+            lint_artifacts.load_json = original_load_json
+
     def test_unmodified_fixture_passes(self) -> None:
         lint = lint_artifacts.Lint()
         lint_artifacts.check_cba_seal_canonical_fixture(lint)
@@ -70,6 +89,15 @@ class CbaSealCanonicalFixtureLintTest(unittest.TestCase):
             lambda vector: vector["seal_body"].__setitem__("id", vector["expected"]["id"])
         )
         self.assertTrue(any("self-referential member" in error for error in errors), errors)
+
+    def test_duplicate_top_level_vector_id_fails(self) -> None:
+        errors = self._lint_fixture_mutation(
+            lambda fixture: fixture["vectors"].append(copy.deepcopy(fixture["vectors"][0]))
+        )
+        self.assertTrue(
+            any("vector_id duplicates" in error and "within the fixture" in error for error in errors),
+            errors,
+        )
 
 
 if __name__ == "__main__":

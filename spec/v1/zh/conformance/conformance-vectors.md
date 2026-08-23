@@ -1503,6 +1503,7 @@ ak.vector.cba_lattice.conflict_recovery_move.v1
 - **Case C**：`state_witness` 已位于冲突之后，或与触发 `⊥` 的 sibling Move 有因果路径。
 - **Case D**：`recovery_capability` 未 sealed、未出现在 witness state root 中，或 local frontier 已观察到晚于 witness 的 revoke / supersede。
 - **Case E**：recovery Move 未经控制面 Seal 接受。
+- **Case F — MLS 普通 Commit 绕过**：`ak.component.mls.epoch.v1` 已因并发 Commit 进入 `⊥`，producer 再提交普通 `ak.mls.commit` 试图直接推进 epoch。
 
 期望：
 
@@ -1511,8 +1512,9 @@ ak.vector.cba_lattice.conflict_recovery_move.v1
 - Case C：MUST 拒绝（`recovery_witness_post_conflict`）。
 - Case D：MUST 拒绝（`recovery_capability_not_sealed` / `recovery_witness_revoke_lagging`）。
 - Case E：MUST 拒绝；unsealed recovery Move 不得改变 `⊥` cell。
+- Case F：MUST `failed_bottom`，epoch cell 保持 `⊥`，application send gate 保持关闭；MLS 不得另设恢复入口。
 
-失败条件：普通 Control Move 在 `⊥` 下绕过 recovery 例外；post-conflict witness 被接受；recovery capability 未 sealed 或已撤销仍生效；未 sealed 的 recovery Move 改变 canonical state。
+失败条件：普通 Control Move（包括 `ak.mls.commit`）在 `⊥` 下绕过 recovery 例外；post-conflict witness 被接受；recovery capability 未 sealed 或已撤销仍生效；未 sealed 的 recovery Move 改变 canonical state；同一 fixture 用重复 `vector_id` 另行表达 MLS 特例。
 
 ### 2.21 Vector: `ordered_log` sibling-set join
 

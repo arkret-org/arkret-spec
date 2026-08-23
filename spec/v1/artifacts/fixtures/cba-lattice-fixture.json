@@ -1247,6 +1247,19 @@
             "reason": "recovery_witness_invalid",
             "note": "the state_witness must witness the cell named by payload.target_cell; witnessing a different cell proves nothing about the one being reset."
           }
+        },
+        {
+          "name": "ordinary_mls_commit_cannot_recover_bottom",
+          "target_cell_family": "ak.component.mls.epoch.v1",
+          "cell_status_before": "bottom",
+          "operation": "ak.mls.commit",
+          "base_epoch": 7,
+          "next_epoch": 10,
+          "expected": {
+            "result": "failed_bottom",
+            "cell_remains": "bottom",
+            "application_send_gate": "blocked"
+          }
         }
       ],
       "vector_id": "ak.vector.cba_lattice.conflict_recovery_move.v1"
@@ -1475,45 +1488,6 @@
           "bad_subject_segment": "the empty string (indistinguishable from a truncated wire id)",
           "expected": "schema_violation"
         }
-      ]
-    },
-    {
-      "name": "mls_bottom_recovery_has_one_entrypoint",
-      "vector_id": "ak.vector.cba_lattice.conflict_recovery_move.v1",
-      "inputs": {
-        "base_epoch": 7,
-        "concurrent_commit_next_epochs": [8, 9],
-        "cell_lattice": "cas_register",
-        "bottom": "reject"
-      },
-      "steps": [
-        {
-          "operation": "join_concurrent_commits",
-          "expected_epoch_cell": "bottom",
-          "application_send_gate": "blocked"
-        },
-        {
-          "operation": "ak.mls.commit",
-          "base_epoch": 7,
-          "next_epoch": 10,
-          "expected": "failed_bottom",
-          "epoch_cell_unchanged": "bottom"
-        },
-        {
-          "operation": "ak.conflict.recovery",
-          "resolved_value": {"epoch": 8, "commit_ref": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
-          "recovery_capability": "valid",
-          "pre_conflict_witness": "strict_and_fresh",
-          "expected": "accepted",
-          "application_send_gate": "open_after_full_winning_epoch_validation"
-        }
-      ],
-      "negative_cases": [
-        "ordinary_commit_bypass",
-        "missing_recovery_capability",
-        "missing_pre_conflict_witness",
-        "stale_pre_conflict_witness",
-        "wrong_resolved_epoch"
       ]
     }
   ]

@@ -884,6 +884,27 @@ def check_vector_registry(lint: Lint) -> None:
         fixture = load_json(lint, fixture_path)
         if not isinstance(fixture, dict):
             continue
+        vectors = fixture.get("vectors")
+        if isinstance(vectors, list):
+            seen_fixture_vector_ids: set[str] = set()
+            for index, vector in enumerate(vectors):
+                if not isinstance(vector, dict):
+                    continue
+                vector_id = vector.get("vector_id")
+                if vector_id is None:
+                    continue
+                if not isinstance(vector_id, str) or not VECTOR_ID_TOKEN_RE.fullmatch(vector_id):
+                    lint.fail(
+                        fixture_path,
+                        f"vectors[{index}].vector_id must be a conformance vector id",
+                    )
+                    continue
+                if vector_id in seen_fixture_vector_ids:
+                    lint.fail(
+                        fixture_path,
+                        f"vectors[{index}].vector_id duplicates {vector_id} within the fixture",
+                    )
+                seen_fixture_vector_ids.add(vector_id)
         runner = fixture.get("runner")
         if (
             isinstance(runner, dict)
