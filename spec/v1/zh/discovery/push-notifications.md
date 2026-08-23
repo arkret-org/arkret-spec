@@ -31,7 +31,7 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 
 在 E2EE 场景下，Principal Server sync surface 无法读取消息正文。推送通知的默认行为是**脱敏唤醒 (Blind Wakeup)**：
 - 推送上游（APNs / FCM / Push Gateway）只携带 **per-(recipient_service_id, principal, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 principal DID、sender DID、Realm id、event id、device verification-method DID URL 或任何其它跨 Realm 稳定标识。设备自身没有 DID。具体规则见 [`crypto-media/device-lifecycle.md` §5.6 Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。同一 DID 在个人 Principal Server 与组织 Principal Server 上的推送注册必须不可链接。
-- `push_target_id` 派生 MUST 使用接收服务私有 secret salt / pepper：`HMAC-SHA256(service_push_secret[salt_epoch_id], canonical_json({recipient_service_id, principal_id, device_id, push_route_id, salt_epoch_id}))`，再编码为不含 DID / Realm / device 原文的 pseudonym。`service_push_secret` 原值绝不能上 wire；`ak.server.read.describe.privacy_derivation.push_target_id` 只发布 `derivation_profile`、`salt_epoch_id`、`salt_rotation_seconds` 和输入绑定元数据，供客户端和 conformance 工具确认不同 Principal Server / 组织 / push route 不会复用同一可链接命名空间。
+- `push_target_id` 派生 MUST 使用接收服务私有 secret salt / pepper：`tag = HMAC-SHA256(service_push_secret[salt_epoch_id], canonical_json({recipient_service_id, principal_id, device_id, push_route_id, salt_epoch_id}))`，并把完整 32-octet `tag` 编码为 `ak:pseudonym:push:<canonical unpadded Base64URL(tag)>`。不得截断 HMAC，不得输出 raw Base64URL 或其它长度。接收方 MUST 解码恰好 32 octets 并执行 canonical 重编码校验；唯一 schema 是 `common-ids.schema.json#/$defs/push_target_id`。`service_push_secret` 原值绝不能上 wire；`ak.server.read.describe.privacy_derivation.push_target_id` 只发布 `derivation_profile`、`salt_epoch_id`、`salt_rotation_seconds` 和输入绑定元数据，供客户端和 conformance 工具确认不同 Principal Server / 组织 / push route 不会复用同一可链接命名空间。
 - 客户端被唤醒后自行从 Principal Server sync surface 拉取并解密实际内容；本地通知文案在客户端解密后生成。
 - **`push_hint` 即使在 `plaintext_visible_services` 下也 MUST 受白名单约束**：受信通知服务 MAY 附加 `push_hint` 字段，其封闭枚举的**权威定义在 §5.1**（取值 `new_message` / `incoming_call` / `mention_self`，或哨兵值 `l10n_key`——后者为「形态选择器」，实际本地化键由独立字段 `push_hint_l10n_key` 承载，由客户端在解密后渲染）；本节及 §4.5 一律交叉引用 §5.1，不另列重复枚举。`push_hint` 与 `wakeup_kind` 是**两个独立字段**：`wakeup_kind`（封闭枚举 `message` / `mention` / `assignment` / `schedule` / `reaction` / `call_invite` / `reminder` / `scheduled_send` / `expiry_invalidation`，后三者为 Phase-P2 生产力唤醒类别，同为粗粒度、不带 Realm / sender 信息）是独立的粗粒度唤醒类别字段，**不是** `push_hint` 的子内容，二者 MUST NOT 互相替代或嵌套。`push_hint` **MUST NOT** 携带：正文（任何形态）、sender DID 或 handle、principal_id、Realm id / 名称 / 头像、Strand id / 名称、Space id / 名称、Message id、reaction emoji 实际值、附件文件名、badge / 未读绝对计数明文（计数走 `notification.counts`，且按 §5.1 / §6.2 最小化约束）、stable correlation key、IP / geolocation。`plaintext_visible_services` 是"允许接收明文"的授权而非"放行 metadata"的授权——push gateway 即使被授权也不得变成跨 Realm 行为追踪点。违反此约束的推送实现 MUST 在 conformance lint 中标记为不合规。
 
@@ -91,7 +91,7 @@ Push registration 的作用域是接收该请求的 Principal Server sync surfac
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `ok` | boolean | required | 注册是否被接受 |
-| `push_target_id` | `ak:pseudonym:push:<base64url>` | required | 服务端按 §2.2 派生 profile 生成的 pairwise pseudonym；见下方 normative 约束 |
+| `push_target_id` | `PushTargetId` | required | 服务端按 §2.2 派生的完整 32-octet HMAC-SHA256 typed pairwise pseudonym；见下方 normative 约束 |
 | `registration_id` | id | optional | 服务端分配的注册 ID |
 | `expires_at` | datetime | optional | 本 Sync / Principal Service 上该 push registration 记录的服务端有效期；不表示 APNs / FCM / WebPush provider token 自身过期时间 |
 
@@ -354,7 +354,7 @@ POST /_arkret/edge/push/notify
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
 | `notification` | object | required | 推送通知对象。 |
-| `notification.push_target_id` | string | required | per-(recipient_service_id, principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5.6](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device verification-method DID URL、handle 或可跨 Realm / Principal Server 上下文关联的稳定 ID。 |
+| `notification.push_target_id` | `PushTargetId` | required | per-(recipient_service_id, principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5.6](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device verification-method DID URL、handle 或可跨 Realm / Principal Server 上下文关联的稳定 ID。 |
 | `notification.wakeup_kind` | string | required | 粗粒度唤醒类别，封闭枚举 `message` / `mention` / `assignment` / `schedule` / `reaction` / `call_invite` / `reminder` / `scheduled_send` / `expiry_invalidation`（与 §2.2 一致；后三者为 Phase-P2 生产力唤醒）；只是粗粒度提示，不带 Realm / sender 信息。 |
 | `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示形态选择器，与 `wakeup_kind` 是不同字段：`blind_wakeup` 下其封闭枚举为 `new_message` / `incoming_call` / `mention_self`（见 §4.5），或哨兵值 `l10n_key`。**`l10n_key` 是「形态选择器」而非字面展示 token**：当 `push_hint == "l10n_key"` 时，实际本地化键 MUST 由独立字段 `push_hint_l10n_key` 承载（不得把 l10n key 直接塞进 `push_hint` 值）。不得包含正文、sender DID / handle、Realm id / 名称、Strand / Message id、reaction 实际值或 stable correlation key。 |
 | `notification.push_hint_l10n_key` | string | conditional | 仅当 `push_hint == "l10n_key"` 时出现且 MUST 提供；承载实际本地化键 token（如 `push.new_message`），由客户端在解密后用于本地渲染。MUST NOT 携带正文或任何识别性 metadata。 |
@@ -414,7 +414,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 ```json schema=schemas/push-operations.schema.json#/$defs/push_notify_request_body
 {
   "notification": {
-    "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+    "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
     "wakeup_kind": "message",
     "timing_profile_hint": "default",
     "counts": {
@@ -441,7 +441,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 
 ```json schema=schemas/push-operations.schema.json#/$defs/push_notify_outcome
 {
-  "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+  "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
   "outcomes": [
     {
       "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -460,7 +460,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
-| `push_target_id` | string | required | 回显 `notification.push_target_id`，MUST 与请求一致。 |
+| `push_target_id` | `PushTargetId` | required | 回显 `notification.push_target_id`，MUST 与请求一致。 |
 | `outcomes` | object[] | required | 逐 device 的 gateway 接管结论，`minItems=1`。 |
 | `outcomes[].device_id` | id:device | required | 对应 `notification.devices[].device_id`。逐项身份是 `(push_target_id, device_id)` 复合键——请求侧已经承载它，响应不引入第三套 route identity。 |
 | `outcomes[].gateway_status` | string | required | 封闭枚举 `accepted` / `duplicate` / `rejected`。`accepted`=本次请求 durable 接管该 device route；`duplicate`=此前请求已接管，本次不产生新投递；`rejected`=未接管。 |

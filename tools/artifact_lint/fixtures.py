@@ -3194,10 +3194,52 @@ def check_history_scale_fixture(lint: Lint) -> None:
         required_rrk_mutations = {
             "wrong_curve", "wrong_method_type", "wrong_key_length", "wrong_controller",
             "wrong_holder_proof_domain", "holder_tuple_mismatch", "register_before_realm_create",
-            "rotate_before_register", "rotate_cas_mismatch",
+            "rotate_before_register", "rotate_missing_head_eq", "rotate_stale_head_eq",
+            "rotate_provenance_event_mismatch", "rotate_provenance_seal_mismatch",
         }
         if mutation_names != required_rrk_mutations:
             lint.fail(path, "RRK registration/rotation mutation matrix is incomplete or expanded")
+        register = events.get("register") if isinstance(events, dict) else None
+        rotate = events.get("rotate") if isinstance(events, dict) else None
+        seal = rrk_method.get("accepted_key_evidence_seal")
+        projected_op = rrk_method.get("projected_rotate_op")
+        if isinstance(register, dict) and isinstance(rotate, dict):
+            prior_tuple = {
+                "key_tuple": register.get("payload", {}).get("new_key_tuple"),
+                "accepted_key_evidence_ref": register.get("event_id"),
+                "holder_trusted_basis": register.get("payload", {}).get("holder_trusted_basis"),
+            }
+            expected_precondition = [{
+                "cell": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
+                "predicate": {"op": "head_eq", "value": prior_tuple},
+            }]
+            if rotate.get("preconditions") != expected_precondition:
+                lint.fail(path, "RRK rotate must carry the exact whole-value signed head_eq")
+            if not isinstance(projected_op, dict) or projected_op.get("from") != prior_tuple:
+                lint.fail(path, "RRK production projection KAT must copy head_eq value to op.from")
+            seal_ref_value = (
+                seal.get("seal_id") if isinstance(seal, dict) else None
+            )
+            seal_covered = (
+                seal.get("covered_event_refs", []) if isinstance(seal, dict) else []
+            )
+            rotate_payload = rotate.get("payload", {})
+            if (
+                seal_ref_value != rotate_payload.get("expected_previous_key_evidence_seal_ref")
+                or register.get("event_id") not in seal_covered
+                or rotate_payload.get("expected_previous_key_evidence_ref") != register.get("event_id")
+            ):
+                lint.fail(path, "RRK rotate provenance must cite the accepted Seal covering register")
+        concurrency_names = {
+            row.get("name")
+            for row in rrk_method.get("concurrency_cases", [])
+            if isinstance(row, dict)
+        }
+        if concurrency_names != {
+            "same_seal_sibling_is_rejected_before_join",
+            "incomparable_accepted_branches_join_bottom",
+        }:
+            lint.fail(path, "RRK CAS concurrency cases are incomplete")
 
     predicate_kat = data.get("predicate_registry_digest_kat")
     if not isinstance(predicate_kat, dict):

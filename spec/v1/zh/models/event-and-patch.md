@@ -351,6 +351,13 @@ v1 封闭支持 `server_revision_cas`、`fsm_cas`、`cas_register` 与
 actor-private 只表示状态可见性与归属，不表示可以省略持久化、CAS、签名 envelope 或
 重放校验。
 
+`server_revision_cas` 是对 actor-private whole value 的线性 CAS：producer 在 payload 唯一携带
+`expected_revision`，从未写入的 cell 当前 revision 为 `0`；接受方只在 expected 与当前值相等时
+原子写入并把 accepted revision 设为 `expected_revision + 1`。不匹配、缺失、同 revision sibling
+或旧字节重放均 `cas_conflict` 且零写入。value/tombstone 隐私 GC 不得删除或回退 revision
+high-water；否则离线旧写会复活。它不使用共享 Control Move `preconditions`，也不得被实现成
+arrival-order LWW。
+
 **`reset` 与 `cell_ref`（normative，封闭于单一 kind）**：上述全部 projection 都写入一个由
 registry 字面 `cell_family` + `cell_subject` 静态确定的 cell。唯一例外是
 `ak.conflict.recovery`（[`../authz/event-auth-state-resolution.md` §9.5](../authz/event-auth-state-resolution.md)）：

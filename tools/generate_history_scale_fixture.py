@@ -1057,11 +1057,13 @@ def build_rrk_registration_rotation_kat(
     }
     trusted_basis = archive["holder_trusted_basis"]
 
-    def holder_acceptance(key_tuple: dict[str, Any]) -> dict[str, Any]:
+    def holder_acceptance(
+        key_tuple: dict[str, Any], holder_basis: dict[str, Any]
+    ) -> dict[str, Any]:
         unsigned = {
             "realm_id": REALM,
             "new_key_tuple": key_tuple,
-            "holder_trusted_basis": trusted_basis,
+            "holder_trusted_basis": holder_basis,
         }
         proof = detached_proof(sha256(jcs(unsigned)))
         proof["verification_method"] = key_tuple["holder_signing_ref"]
@@ -1071,7 +1073,7 @@ def build_rrk_registration_rotation_kat(
         "realm_id": REALM,
         "new_key_tuple": register_tuple,
         "holder_trusted_basis": trusted_basis,
-        "holder_acceptance": holder_acceptance(register_tuple),
+        "holder_acceptance": holder_acceptance(register_tuple, trusted_basis),
     }
     rotate_tuple = {
         **register_tuple,
@@ -1079,15 +1081,6 @@ def build_rrk_registration_rotation_kat(
         "key_agreement_ref": "did:web:rrk-holder.example#x25519-2",
         "frozen_public_key_b64u": b64u(b"\x06" * 32),
     }
-    rotate_payload = {
-        "realm_id": REALM,
-        "expected_previous_key_evidence_ref": durability["transition_provenance"]["accepted_key_evidence_ref"],
-        "expected_previous_key_evidence_seal_ref": trusted_basis["leaves"][0],
-        "new_key_tuple": rotate_tuple,
-        "holder_trusted_basis": trusted_basis,
-        "holder_acceptance": holder_acceptance(rotate_tuple),
-    }
-
     def event_from_template(kind: str, payload: dict[str, Any], label: str, actor_seq: int) -> dict[str, Any]:
         event = copy.deepcopy(durability["container_event"])
         event.update({
@@ -1105,8 +1098,53 @@ def build_rrk_registration_rotation_kat(
     register_event = event_from_template(
         "ak.realm.organization_recovery_key.register", register_payload, "rrk-register", 8
     )
+    register_event_digest = register_event["proofs"][0]["event_digest"]
+    accepted_key_evidence_seal_ref = seal_ref("rrk-register-accepted-key-evidence")
+    accepted_key_evidence_seal = {
+        "seal_id": accepted_key_evidence_seal_ref,
+        "body": {
+            "realm_id": REALM,
+            "predecessor_refs": trusted_basis["leaves"],
+            "delta": [register_event_digest],
+            "covered_event_digests": [register_event_digest],
+            "control_event_set_root": sha256(jcs([register_event_digest])),
+            "state_root": sha256(jcs({
+                "cell": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
+                "value": {
+                    "key_tuple": register_tuple,
+                    "accepted_key_evidence_ref": register_event["event_id"],
+                    "holder_trusted_basis": trusted_basis,
+                },
+            })),
+            "notary_seq": 1,
+            "sealed_at": "2026-08-23T00:00:03.000Z",
+        },
+        "covered_event_refs": [register_event["event_id"]],
+        "expected": "accepted",
+    }
+    rotate_trusted_basis = basis(accepted_key_evidence_seal_ref)
+    current_projected_tuple = {
+        "key_tuple": register_tuple,
+        "accepted_key_evidence_ref": register_event["event_id"],
+        "holder_trusted_basis": trusted_basis,
+    }
+    rotate_payload = {
+        "realm_id": REALM,
+        "expected_previous_key_evidence_ref": register_event["event_id"],
+        "expected_previous_key_evidence_seal_ref": accepted_key_evidence_seal_ref,
+        "new_key_tuple": rotate_tuple,
+        "holder_trusted_basis": rotate_trusted_basis,
+        "holder_acceptance": holder_acceptance(rotate_tuple, rotate_trusted_basis),
+    }
     rotate_event = event_from_template(
         "ak.realm.organization_recovery_key.rotate", rotate_payload, "rrk-rotate", 9
+    )
+    rotate_event["preconditions"] = [{
+        "cell": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
+        "predicate": {"op": "head_eq", "value": current_projected_tuple},
+    }]
+    rotate_event["proofs"][0]["event_digest"] = sha256(
+        jcs({key: value for key, value in rotate_event.items() if key != "proofs"})
     )
     schemas.validator("event-payload.schema.json", "organization_recovery_key_register_payload").validate(register_payload)
     schemas.validator("event-payload.schema.json", "organization_recovery_key_rotate_payload").validate(rotate_payload)
@@ -1133,9 +1171,34 @@ def build_rrk_registration_rotation_kat(
             "rotate": did_document(rotate_tuple),
         },
         "events": {"register": register_event, "rotate": rotate_event},
+        "accepted_key_evidence_seal": accepted_key_evidence_seal,
+        "projected_rotate_op": {
+            "cell": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
+            "from": current_projected_tuple,
+            "to": {
+                "key_tuple": rotate_tuple,
+                "accepted_key_evidence_ref": rotate_event["event_id"],
+                "holder_trusted_basis": rotate_trusted_basis,
+            },
+        },
         "reducer_effective_tuples": [
             {"after": "register", "key_tuple": register_tuple, "accepted_key_evidence_ref": register_event["event_id"], "holder_trusted_basis": trusted_basis},
-            {"after": "rotate", "key_tuple": rotate_tuple, "accepted_key_evidence_ref": rotate_event["event_id"], "holder_trusted_basis": trusted_basis},
+            {"after": "rotate", "key_tuple": rotate_tuple, "accepted_key_evidence_ref": rotate_event["event_id"], "holder_trusted_basis": rotate_trusted_basis},
+        ],
+        "concurrency_cases": [
+            {
+                "name": "same_seal_sibling_is_rejected_before_join",
+                "basis": current_projected_tuple,
+                "expected": "rejected_seal",
+                "reason": "cas_conflict",
+                "accepted_writes": 0,
+            },
+            {
+                "name": "incomparable_accepted_branches_join_bottom",
+                "basis": current_projected_tuple,
+                "expected": "bottom",
+                "read_status": "failed_bottom",
+            },
         ],
         "negative_mutations": [
             {"name": "wrong_curve", "target": "/did_documents/register/verificationMethod/0/publicKeyMultibase", "mutation": "replace x25519-pub multicodec with ed25519-pub", "expected": "durability_recovery_recipient_unverified"},
@@ -1146,7 +1209,10 @@ def build_rrk_registration_rotation_kat(
             {"name": "holder_tuple_mismatch", "target": "/events/register/payload/holder_acceptance/new_key_tuple/recovery_key_id", "mutation": "change duplicated field", "expected": "failed_precondition"},
             {"name": "register_before_realm_create", "target": "/events/register", "expected": "failed_precondition"},
             {"name": "rotate_before_register", "target": "/events/rotate", "expected": "failed_precondition"},
-            {"name": "rotate_cas_mismatch", "target": "/events/rotate/payload/expected_previous_key_evidence_ref", "mutation": "change current provenance", "expected": "cas_conflict"},
+            {"name": "rotate_missing_head_eq", "target": "/events/rotate/preconditions", "mutation": "remove the signed whole-value CAS", "expected": "failed_precondition"},
+            {"name": "rotate_stale_head_eq", "target": "/events/rotate/preconditions/0/predicate/value", "mutation": "replace the complete current tuple", "expected": "failed_precondition"},
+            {"name": "rotate_provenance_event_mismatch", "target": "/events/rotate/payload/expected_previous_key_evidence_ref", "mutation": "change current provenance Event while preserving head_eq", "expected": "failed_precondition"},
+            {"name": "rotate_provenance_seal_mismatch", "target": "/events/rotate/payload/expected_previous_key_evidence_seal_ref", "mutation": "cite a Seal that does not make the predecessor Event effective", "expected": "failed_precondition"},
         ],
         "explicit_non_requirement": "DID service designation is neither required nor evaluated; the accepted tuple supplies the exact method id",
         "forbidden_members": ["service_selected_effectiveness_locator", "history_proof_transport_object"],

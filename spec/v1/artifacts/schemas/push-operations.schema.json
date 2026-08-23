@@ -54,11 +54,6 @@
       "type": "string",
       "format": "uri"
     },
-    "push_target_id": {
-      "type": "string",
-      "pattern": "^ak:pseudonym:push:[A-Za-z0-9_-]{22,128}$",
-      "description": "Typed pairwise pseudonym for one (recipient_service_id, principal, device, push_route) tuple. It MUST NOT be a DID, DID URL, Realm id, Strand id, Message id, Event id, or stable cross-Realm correlation key."
-    },
     "push_route_token": {
       "type": "string",
       "pattern": "^[A-Za-z0-9._~-]{22,512}$",
@@ -191,7 +186,7 @@
       ],
       "properties": {
         "push_target_id": {
-          "$ref": "#/$defs/push_target_id"
+          "$ref": "./common-ids.schema.json#/$defs/push_target_id"
         },
         "wakeup_kind": {
           "type": "string",
@@ -298,7 +293,7 @@
       ],
       "properties": {
         "push_target_id": {
-          "$ref": "#/$defs/push_target_id"
+          "$ref": "./common-ids.schema.json#/$defs/push_target_id"
         },
         "wakeup_kind": {
           "type": "string",
@@ -442,7 +437,7 @@
           "const": true
         },
         "push_target_id": {
-          "$ref": "#/$defs/push_target_id",
+          "$ref": "./common-ids.schema.json#/$defs/push_target_id",
           "description": "Server-derived pairwise pseudonym for this registration, derived per push-notifications.md section 2.2 (HMAC-SHA256 over the service-private push secret and the canonical recipient_service_id / principal_id / device_id / push_route_id / salt_epoch_id tuple). The caller and the device MUST use this exact value as the notify target; they MUST NOT mint their own push_target_id."
         },
         "registration_id": {
@@ -630,7 +625,7 @@
       ],
       "properties": {
         "push_target_id": {
-          "$ref": "#/$defs/push_target_id",
+          "$ref": "./common-ids.schema.json#/$defs/push_target_id",
           "description": "Echo of notification.push_target_id. MUST equal the request value."
         },
         "outcomes": {

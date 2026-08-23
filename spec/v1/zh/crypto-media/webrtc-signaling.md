@@ -495,7 +495,7 @@ Candidate payload:
 ```json
 {
   "notification": {
-    "push_target_id": "ak:pseudonym:push:01js0pu0000000000000000000",
+    "push_target_id": "ak:pseudonym:push:lg8aqJ2eJjms1GQpkzloxGn8F802f8RfmfmfsC85eRo",
     "wakeup_kind": "call_invite",
     "timing_profile_hint": "default",
     "push_hint": "incoming_call"

@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "68f7533e5666d433a032bdf2b176b17d509e45d0070f05e8436265d890294b59"
+      "sha256": "2efacaba51aa2029666e032dbe0c56136b3abff4cd96f184b918d6d34651424b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -258,7 +258,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "dbee43bd1f66b39d72fdf88eefc72380461fcd092f57cd933e874930394fecc3"
+      "sha256": "1a63732462c49773f4b4e8e4822f879a77be7aab4892c1c275e333d2819465e6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
@@ -282,7 +282,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
-      "sha256": "41234116839e9b30b4d714195cb6d61fd5e76bf395cc7350121f0bb89305a6d6"
+      "sha256": "d6e0d50e201a69c9a5692ed3bb7a72e423032dda74bab09d6299f30e95cec3a8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-rule-core-fixture.json",

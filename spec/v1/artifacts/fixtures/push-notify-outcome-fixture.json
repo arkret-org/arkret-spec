@@ -3,7 +3,8 @@
   "fixture_kind": "schema_and_semantic",
   "profile": "ak.vector_group.discovery.v1",
   "covers_vectors": [
-    "ak.vector.push.notify_outcome_conservation.v1"
+    "ak.vector.push.notify_outcome_conservation.v1",
+    "ak.vector.push.device_route_revision_cas.v1"
   ],
   "version": "2026-07-27",
   "spec_anchor": "spec/v1/zh/discovery/push-notifications.md#5.2",
@@ -33,7 +34,7 @@
     "notes": "Every response case below is evaluated against this one request. Its devices[] is the conserved input set.",
     "instance": {
       "notification": {
-        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "wakeup_kind": "message",
         "timing_profile_hint": "default",
         "devices": [
@@ -57,7 +58,7 @@
       "semantic_outcome": "accept",
       "notes": "Both input devices durably taken over. Neither outcome carries reason_code or retry_after_ms; the caller owns no further attempt.",
       "instance": {
-        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "outcomes": [
           {
             "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -77,7 +78,7 @@
       "semantic_outcome": "accept",
       "notes": "Second device has no live registration. Cleanup is addressed by (push_target_id, device_id); the response never returns push_key, so the caller can drop the registration without the raw provider token crossing the wire.",
       "instance": {
-        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "outcomes": [
           {
             "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -98,7 +99,7 @@
       "semantic_outcome": "accept",
       "notes": "Unknown push target is a target-level failure. It MUST be expanded into one same-reason rejected outcome per input device rather than collapsing into a target-scoped shape, which is what keeps conservation unconditional.",
       "instance": {
-        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "outcomes": [
           {
             "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -120,7 +121,7 @@
       "semantic_outcome": "accept",
       "notes": "push_gateway_unreachable is one of exactly two caller-retryable reasons. retry_after_ms is the sole wire signal that the caller, not the gateway, owns the next attempt for that device.",
       "instance": {
-        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "outcomes": [
           {
             "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -142,7 +143,7 @@
       "semantic_outcome": "accept",
       "notes": "Replay under the same Idempotency-Key and body. duplicate means an earlier request already took the route over and this one produced no new delivery; like accepted it forbids caller resend. It never means the request repeated a device_id, which devices[] uniqueness already forbids.",
       "instance": {
-        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "outcomes": [
           {
             "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -261,7 +262,7 @@
       "expected_reason_code": "schema_violation",
       "notes": "Schema-valid but the second input device has no outcome. The caller cannot tell whether it was taken over or silently dropped, which is exactly the ambiguity conservation removes. JSON Schema cannot express this cross-field invariant, so a conforming verifier MUST enforce it.",
       "instance": {
-        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "outcomes": [
           {
             "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -279,7 +280,7 @@
       "expected_reason_code": "schema_violation",
       "notes": "Schema-valid but the same device carries two contradictory conclusions. Exactly one outcome per input device_id is required.",
       "instance": {
-        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "outcomes": [
           {
             "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -306,7 +307,7 @@
       "expected_reason_code": "schema_violation",
       "notes": "Schema-valid but the third outcome names a device the request never carried. An outcome set that can exceed its input is not a conservation proof and would let a gateway disclose device ids the caller did not address.",
       "instance": {
-        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "outcomes": [
           {
             "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -332,7 +333,7 @@
       "expected_reason_code": "schema_violation",
       "notes": "Schema-valid but the echo names a different target than the request. The echo exists so an outcome set is self-describing under replay and audit; an echo free to drift provides neither.",
       "instance": {
-        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000001",
+        "push_target_id": "ak:pseudonym:push:UexBBxDU_HwM4WRtsyOi991M5L1tvE3wxicZW-gZeSg",
         "outcomes": [
           {
             "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
@@ -355,7 +356,7 @@
       "notes": "devices[] is a set keyed by device_id. uniqueItems only rejects byte-identical entries, so this pair differing only in app_id passes JSON Schema; the gateway MUST still reject it. Accepting it would make one input device demand two outcomes and break conservation at the source.",
       "instance": {
         "notification": {
-          "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+          "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
           "wakeup_kind": "message",
           "timing_profile_hint": "default",
           "devices": [
@@ -369,6 +370,156 @@
             }
           ]
         }
+      }
+    },
+    {
+      "name": "canonical_full_hmac_push_target_id_is_valid",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/push_target_id",
+      "expect_valid": true,
+      "instance": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8"
+    },
+    {
+      "name": "legacy_short_push_target_id_is_invalid",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/push_target_id",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not match",
+      "instance": "ak:pseudonym:push:ABCDEFGHIJKLMNOPQRSTUV"
+    },
+    {
+      "name": "non_canonical_last_base64url_character_is_invalid",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/push_target_id",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not match",
+      "instance": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm9"
+    },
+    {
+      "name": "device_push_route_active_revision_zero_is_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
+      "expect_valid": true,
+      "instance": {
+        "recipient_service_id": "ak:did_core:webvh:z6mkpushrecipientservice",
+        "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "push_route": "apns_main",
+        "expected_revision": 0,
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
+        "push_gateway_service_id": "ak:did_core:webvh:z6mkpushgatewayservice",
+        "encryption_key": "hpke-public-key",
+        "capabilities": [
+          "blind_wakeup"
+        ]
+      }
+    },
+    {
+      "name": "device_push_route_revoked_revision_two_is_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
+      "expect_valid": true,
+      "instance": {
+        "recipient_service_id": "ak:did_core:webvh:z6mkpushrecipientservice",
+        "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "push_route": "apns_main",
+        "expected_revision": 2,
+        "revoked": true
+      }
+    },
+    {
+      "name": "device_push_route_missing_revision_is_invalid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:not valid under any",
+      "instance": {
+        "recipient_service_id": "ak:did_core:webvh:z6mkpushrecipientservice",
+        "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "push_route": "apns_main",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
+        "push_gateway_service_id": "ak:did_core:webvh:z6mkpushgatewayservice",
+        "encryption_key": "hpke-public-key",
+        "capabilities": [
+          "blind_wakeup"
+        ]
+      }
+    },
+    {
+      "name": "device_push_route_revoked_cannot_retain_active_secrets",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:not valid under any",
+      "instance": {
+        "recipient_service_id": "ak:did_core:webvh:z6mkpushrecipientservice",
+        "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "push_route": "apns_main",
+        "expected_revision": 2,
+        "revoked": true,
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8"
+      }
+    }
+  ],
+  "device_push_route_revision_cases": [
+    {
+      "name": "create_rotate_revoke",
+      "writes": [
+        {
+          "shape": "active",
+          "expected_revision": 0,
+          "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8"
+        },
+        {
+          "shape": "active",
+          "expected_revision": 1,
+          "push_target_id": "ak:pseudonym:push:lg8aqJ2eJjms1GQpkzloxGn8F802f8RfmfmfsC85eRo"
+        },
+        {
+          "shape": "revoked",
+          "expected_revision": 2
+        }
+      ],
+      "expected": {
+        "accepted_writes": 3,
+        "final_revision": 3,
+        "final_state": "revoked"
+      }
+    },
+    {
+      "name": "stale_sibling_and_replay_fail_closed",
+      "initial_revision": 1,
+      "writes": [
+        {
+          "name": "first_sibling",
+          "expected_revision": 1,
+          "expected": "accepted"
+        },
+        {
+          "name": "second_sibling",
+          "expected_revision": 1,
+          "expected": "cas_conflict"
+        },
+        {
+          "name": "old_exact_replay_after_successor",
+          "expected_revision": 0,
+          "expected": "cas_conflict"
+        }
+      ],
+      "expected": {
+        "final_revision": 2,
+        "rejected_write_side_effects": 0
+      }
+    },
+    {
+      "name": "privacy_gc_keeps_revision_high_water",
+      "initial": {
+        "revision": 3,
+        "state": "revoked",
+        "secret_material_present": false,
+        "reversible_mapping_present": false
+      },
+      "stale_write_expected_revision": 0,
+      "expected": {
+        "outcome": "cas_conflict",
+        "final_revision": 3,
+        "old_target_recoverable": false
       }
     }
   ]

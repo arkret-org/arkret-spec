@@ -484,8 +484,16 @@ proof 解析，wire 不自报。多 scope 拆为多 object，backup series 负�
 Realm create → accepted create Seal → `ak.realm.organization_recovery_key.register`（含 holder acceptance，锚定 create Seal 或 holder
 已 pin 的 prior evidence Seal）→ accepted key-evidence Seal → 之后才允许任何选择
 `organization_recovery_key` durability 的 Realm/Circle MLS Genesis。Rotate 使用
-`ak.realm.organization_recovery_key.rotate` 对唯一 active cell CAS，并以 prior trusted evidence Seal 锚定新 holder acceptance；旧 tuple
-保留作历史验证。Circle 不登记独立 key。同一个 Realm key 只服务显式 opt-in scopes。每个
+`ak.realm.organization_recovery_key.rotate` 对唯一 active cell 做通用 whole-value CAS：签名 Event MUST 恰好携带一条
+目标为 `ak:cell:ak.component.realm.organization_recovery_key.v1:null` 的 `head_eq`，其 value MUST 是 producer 在
+`seal_basis` 下观察到的完整 current projected tuple；生产 projector 按
+[`../authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md) 把该值复制到
+lattice `op.from`。不得以 `expected_previous_key_evidence_ref`、Seal ref 或任何 RRK 专用 fallback 代替 `head_eq`。
+payload 中的 `expected_previous_key_evidence_ref` 与 `expected_previous_key_evidence_seal_ref` 只证明 prior tuple provenance：
+前者必须等于 current projected tuple 的 provenance Event，后者必须是使该 Event 生效的 exact accepted Seal；新 holder
+acceptance 的 trusted basis 必须因果覆盖该 Seal。CAS 与 provenance 任一不成立均 fail closed 且整个 Move 零写入。
+同一 frozen predecessor 上的同批 sibling 必须由 Seal 排重；若互斥 sibling 分别进入不可达 accepted Seal branches，通用
+`cas_register` join 产生 `⊥`，不得按到达顺序选 winner。旧 tuple 保留作历史验证。Circle 不登记独立 key。同一个 Realm key 只服务显式 opt-in scopes。每个
 exporter Realm/Circle 独立选择 `none|organization_recovery_key`，不继承父 scope，不复制
 holder/custody tuple。选择后，每个 winning Genesis/Commit Event MUST 在同一签名 Event 中携带
 恰一份本 scope/epoch archive，否则 transition 拒绝。RRK tuple 固定

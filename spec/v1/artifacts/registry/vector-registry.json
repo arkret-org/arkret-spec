@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.4",
+  "version": "2026-08-23.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-23T13:02:00+08:00",
+  "generated_at": "2026-08-23T14:20:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5869,6 +5869,20 @@
       "description": "ak.edge.push.command.notify returns one outcome per input device: every notification.devices[] device_id appears in outcomes[] exactly once, none missing, none duplicated, none unrequested, and a target-level failure is expanded per device instead of collapsing into a second response shape. accepted/duplicate forbid caller resend; only a rejected outcome carrying retry_after_ms, and only for the two registered caller-retryable reasons, transfers the next attempt to the caller. Provider delivery state, provider message ids and raw push tokens never appear in the response.",
       "source_refs": [
         "spec/v1/zh/discovery/push-notifications.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.push.device_route_revision_cas.v1",
+      "status": "active",
+      "domain": "push",
+      "applies_to_fixtures": [
+        "push-notify-outcome-fixture.json"
+      ],
+      "description": "ak.device.push_route uses the actor-private server_revision_cas family for create, whole-value rotation and a secret-free revoked tombstone. Missing or stale expected_revision, concurrent siblings and old exact replay fail closed; privacy GC erases old target/provider material while retaining the revision high-water mark.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/device-lifecycle.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json"
       ]

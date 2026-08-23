@@ -4185,12 +4185,24 @@
       ]
     },
     "device_push_route_payload": {
+      "description": "Closed actor-private push-route write. Active bindings and revoked tombstones are mutually exclusive whole-value shapes and both carry the single server-revision CAS precondition.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/device_push_route_active_shape"
+        },
+        {
+          "$ref": "#/$defs/device_push_route_revoked_shape"
+        }
+      ]
+    },
+    "device_push_route_active_shape": {
       "type": "object",
       "required": [
         "recipient_service_id",
         "principal_id",
         "device_id",
         "push_route",
+        "expected_revision",
         "push_target_id",
         "push_gateway_service_id",
         "encryption_key",
@@ -4210,15 +4222,12 @@
           "type": "string",
           "minLength": 1
         },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
         "push_target_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/push_target_id"
         },
         "push_gateway_service_id": {
           "$ref": "#/$defs/did_core_id"
@@ -4231,6 +4240,43 @@
         },
         "expires_at": {
           "$ref": "#/$defs/nullable_timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_push_route_revoked_shape": {
+      "type": "object",
+      "required": [
+        "recipient_service_id",
+        "principal_id",
+        "device_id",
+        "push_route",
+        "expected_revision",
+        "revoked"
+      ],
+      "properties": {
+        "recipient_service_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "push_route": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "revoked": {
+          "const": true
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"

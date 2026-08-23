@@ -457,7 +457,7 @@
       "operation_id": "ak.edge.push.command.notify",
       "input": {
         "notification": {
-          "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+          "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
           "wakeup_kind": "message",
           "timing_profile_hint": "default",
           "push_hint": "new_message",

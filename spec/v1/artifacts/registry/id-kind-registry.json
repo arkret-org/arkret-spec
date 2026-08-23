@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-21.2",
+  "version": "2026-08-23.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-21T23:50:00+08:00",
+  "generated_at": "2026-08-23T14:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -201,7 +201,7 @@
       "payload_pattern": "[a-z0-9_]+:[A-Za-z0-9_-]+",
       "status": "profile_extension",
       "storage_recommendation": "Store scope and random identifier separately when used in credential tables.",
-      "description": "Realm-scoped pseudonymous credential reference; validated by the E2EE profile. payload_pattern is the core-registered outer value space the profile MUST stay inside; the profile MAY narrow it further but MUST NOT accept an octet outside it. v1 core uses Realm as the boundary; Matrix-style Room terminology is only allowed in MIMI/Matrix interop modules."
+      "description": "Profile-scoped pseudonymous reference. Each consuming profile defines its own scope boundary and narrows the core-registered outer payload_pattern; it MUST NOT accept an octet outside that space. E2EE credential pseudonyms are Realm-scoped, while push pseudonyms are scoped to the registered recipient service, principal, device, route and salt epoch. Matrix-style Room terminology is only allowed in MIMI/Matrix interop modules."
     },
     {
       "kind": "plan",

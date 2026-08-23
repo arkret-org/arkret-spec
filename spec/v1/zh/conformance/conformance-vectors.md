@@ -3989,6 +3989,25 @@ Expected：
 - 变体 E MUST 被 gateway 拒绝（`schema_violation`）：`devices[]` 按 `device_id` 唯一，`uniqueItems` 只能拦截逐字节相同项。
 - 任何 outcome MUST NOT 携带 provider 投递状态、`provider_retries[]` 或未登记的 `reason_code`。
 
+### 10.12.2 Vector: Device Push Route Revision CAS
+
+`vector_id`: `ak.vector.push.device_route_revision_cas.v1`
+
+Steps：
+
+1. 对从未写入的 canonical push-route cell 提交 active payload，`expected_revision=0`。
+2. 读取 current revision 1，以新 `push_target_id` 和完整 active tuple 提交 rotation，`expected_revision=1`。
+3. 读取 current revision 2，提交只含 subject、`expected_revision=2`、`revoked=true` 的 tombstone。
+4. 分别提交缺失 `expected_revision`、旧 `expected_revision`、同 revision sibling 与第 1 步 exact bytes replay。
+5. 对 revoked cell 执行隐私 GC，删除旧 target、gateway/encryption/provider 材料与可逆映射后，再提交 `expected_revision=0` 的离线旧 active 写入。
+
+Expected：
+
+- 第 1–3 步依次接受，accepted revision 为 1、2、3；rotation 是 whole-value successor，revoke schema 不接受任何 active secret 字段。
+- 第 4 步全部 fail closed：缺字段是 `schema_violation`，其余是 `cas_conflict`，且 revision 与 durable value 均不改变。
+- 第 5 步仍返回 `cas_conflict`、revision 保持 3；实现只保留不可恢复旧 target 的 subject digest / revision / outcome 最小状态。
+- 任一实现不得使用 CBA `preconditions`、arrival-order LWW、`cas_register` Bottom 或 `push_gateway_did` 私有别名替代本向量。
+
 ### 10.13 Vector: Events Query Range Completeness Detection
 
 `vector_id`: `ak.vector.sync.range_completeness_client_query.v1`

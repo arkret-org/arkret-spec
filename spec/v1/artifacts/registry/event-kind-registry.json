@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.3",
+  "version": "2026-08-23.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-23T13:02:00+08:00",
+  "generated_at": "2026-08-23T14:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -778,6 +778,7 @@
         "holder_signing_ref resolves current; its controller projects to holder_principal_id; holder_proof.verification_method equals holder_signing_ref byte-for-byte and verifies under that exact key",
         "expected_previous_key_evidence_ref equals the current cell provenance Event and expected_previous_key_evidence_seal_ref is the exact accepted Seal whose state membership makes that Event tuple effective",
         "holder_trusted_basis is the holder-pinned complete accepted Seal antichain and causally covers the prior accepted evidence Seal",
+        "the signed Event carries exactly one whole-value head_eq for ak:cell:ak.component.realm.organization_recovery_key.v1:null whose value equals the current projected cell tuple; the generic projector copies it to op.from",
         "rotation is exact CAS on the prior effective tuple; mismatch, missing or Bottom is failed_precondition with zero write"
       ],
       "concurrency_class": "security_barrier"
@@ -4923,7 +4924,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_service_id, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
+      "payload": "Server-revision-CAS active binding or revoked tombstone for a (recipient_service_id, principal, device, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_service_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "id_source": "not_an_object_id"
     },
@@ -7857,8 +7858,8 @@
         }
       },
       "ak.private.device.push_route.v1": {
-        "merge": "cas_register",
-        "bottom": "reject"
+        "merge": "server_revision_cas",
+        "tombstone": "versioned_tombstone"
       },
       "ak.private.read_cursor.v1": {
         "merge": "causal_then_hlc_then_device",

@@ -27,8 +27,8 @@
   ],
   "type_derived_summary": {
     "registry_catalog_symbol": 21,
-    "responsibility_did": 524,
-    "typed_object_id": 873
+    "responsibility_did": 526,
+    "typed_object_id": 875
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -769,14 +769,6 @@
       "occurrences": 1,
       "example_path": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/provider_id",
       "reason": "MIMI / Matrix interop identifier retained verbatim from the external provider surface."
-    },
-    {
-      "name": "push_target_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/device_push_route_payload/properties/push_target_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
     {
       "name": "push_target_id",
