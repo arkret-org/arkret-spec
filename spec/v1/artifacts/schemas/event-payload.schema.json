@@ -4675,6 +4675,9 @@
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
     },
+    "base64url": {
+      "$ref": "./agent-operations.schema.json#/$defs/base64url"
+    },
     "hierarchy_link_status": {
       "type": "string",
       "enum": [
@@ -6269,7 +6272,7 @@
           "$ref": "#/$defs/device_id"
         },
         "source_envelope_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "room_binding_ref": {
           "$ref": "#/$defs/event_ref"

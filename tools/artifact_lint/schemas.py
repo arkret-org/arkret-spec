@@ -118,7 +118,11 @@ def check_trust_domain_constraints(lint: Lint) -> None:
 
 def ensure_relative_file(lint: Lint, owner: Path, base: Path, ref: str, label: str) -> Path | None:
     if ref.startswith("#"):
-        return None
+        # Local fragments are just as capable of drifting as cross-file ones.
+        # Validate them against the owning JSON document instead of treating
+        # the absence of a file component as success.
+        ensure_cross_file_pointer(lint, owner, owner, ref, label)
+        return owner
     ref_path = split_ref(ref)
     if not ref_path:
         return None
