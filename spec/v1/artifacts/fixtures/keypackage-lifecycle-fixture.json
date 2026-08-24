@@ -409,6 +409,9 @@
       "unsigned_request": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+        "target_device_ids": [
+          "ak:device:0196419b-0000-7000-8000-000000000002"
+        ],
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "requester": "ak:did_core:webvh:z6mkfixture",
         "mls_group_id": "fixture-group",
