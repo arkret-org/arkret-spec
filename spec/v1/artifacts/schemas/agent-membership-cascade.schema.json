@@ -8,7 +8,7 @@
       "$ref": "#/$defs/agent_controller_membership_binding"
     },
     {
-      "$ref": "#/$defs/agent_cleanup_pending_record"
+      "$ref": "#/$defs/agent_cleanup_record"
     }
   ],
   "$defs": {
@@ -56,7 +56,7 @@
       },
       "additionalProperties": false
     },
-    "agent_cleanup_pending_record": {
+    "agent_cleanup_record": {
       "type": "object",
       "required": [
         "schema",
@@ -68,7 +68,6 @@
         "controller_terminal_event_digest",
         "expected_agent_ids",
         "cleanup_intent_digest",
-        "status",
         "accepted_at",
         "cleanup_due_at"
       ],
@@ -107,13 +106,6 @@
           "$ref": "./event-envelope.schema.json#/$defs/digest",
           "description": "sha256 of the RFC 8785 canonical record fields through expected_agent_ids. It is the durable idempotency key for emergency cleanup."
         },
-        "status": {
-          "enum": [
-            "agent_cleanup_pending",
-            "agent_cleanup_completed",
-            "agent_cleanup_overdue"
-          ]
-        },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
@@ -133,39 +125,27 @@
           }
         }
       },
-      "allOf": [
+      "oneOf": [
         {
-          "if": {
-            "properties": {
-              "status": {
-                "const": "agent_cleanup_completed"
+          "required": [
+            "completed_at",
+            "agent_transition_event_ids"
+          ]
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "completed_at"
+                ]
+              },
+              {
+                "required": [
+                  "agent_transition_event_ids"
+                ]
               }
-            },
-            "required": [
-              "status"
             ]
-          },
-          "then": {
-            "required": [
-              "completed_at",
-              "agent_transition_event_ids"
-            ]
-          },
-          "else": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "completed_at"
-                  ]
-                },
-                {
-                  "required": [
-                    "agent_transition_event_ids"
-                  ]
-                }
-              ]
-            }
           }
         }
       ],

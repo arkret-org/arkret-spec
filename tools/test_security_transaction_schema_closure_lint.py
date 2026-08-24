@@ -116,6 +116,14 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
         errors = self._lint(mutate)
         self.assertTrue(any("orphan prepared material" in error for error in errors), errors)
 
+    def test_prepared_event_unit_mirror_fails(self) -> None:
+        def mutate(schema) -> None:
+            unit = schema["$defs"]["prepared_event_unit"]
+            unit["properties"]["destination_service_id"] = {"type": "string"}
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("define only request and request_digest" in error for error in errors), errors)
+
     def test_non_plan_reference_does_not_hide_orphan_prepared_material(self) -> None:
         def mutate(schema) -> None:
             schema["$defs"]["prepared_orphan_probe"] = {

@@ -7,8 +7,8 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "digest_copy_or_commitment": 33,
-    "complete_event_id": 166,
+    "digest_copy_or_commitment": 31,
+    "complete_event_id": 165,
     "external_event_namespace": 1
   },
   "fields": [
@@ -38,19 +38,19 @@
     },
     {
       "schema": "agent-membership-cascade.schema.json",
-      "json_pointer": "/$defs/agent_cleanup_pending_record/properties/agent_transition_event_ids",
+      "json_pointer": "/$defs/agent_cleanup_record/properties/agent_transition_event_ids",
       "field": "agent_transition_event_ids",
       "classification": "complete_event_id"
     },
     {
       "schema": "agent-membership-cascade.schema.json",
-      "json_pointer": "/$defs/agent_cleanup_pending_record/properties/controller_terminal_event_digest",
+      "json_pointer": "/$defs/agent_cleanup_record/properties/controller_terminal_event_digest",
       "field": "controller_terminal_event_digest",
       "classification": "digest_copy_or_commitment"
     },
     {
       "schema": "agent-membership-cascade.schema.json",
-      "json_pointer": "/$defs/agent_cleanup_pending_record/properties/controller_terminal_event_id",
+      "json_pointer": "/$defs/agent_cleanup_record/properties/controller_terminal_event_id",
       "field": "controller_terminal_event_id",
       "classification": "complete_event_id"
     },
@@ -524,12 +524,6 @@
     },
     {
       "schema": "event-batch-receipt.schema.json",
-      "json_pointer": "/$defs/event_receipt_item/properties/event_digest",
-      "field": "event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "event-batch-receipt.schema.json",
       "json_pointer": "/$defs/event_receipt_item/properties/event_id",
       "field": "event_id",
       "classification": "complete_event_id"
@@ -904,18 +898,6 @@
       "schema": "mls-governance-proof-bundle.schema.json",
       "json_pointer": "/$defs/frontier_cell_entry/properties/provenance_event_refs",
       "field": "provenance_event_refs",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "mls-governance-proof-bundle.schema.json",
-      "json_pointer": "/$defs/typed_proof_material/properties/event_descriptors/items/properties/event_digest",
-      "field": "event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "mls-governance-proof-bundle.schema.json",
-      "json_pointer": "/$defs/typed_proof_material/properties/event_descriptors/items/properties/event_id",
-      "field": "event_id",
       "classification": "complete_event_id"
     },
     {

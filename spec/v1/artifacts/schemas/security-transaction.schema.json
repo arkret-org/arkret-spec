@@ -533,40 +533,15 @@
     },
     "prepared_event_unit": {
       "type": "object",
-      "description": "Exact typed Event submit request and persisted canonical bytes. A PCR recovery unit contains reanchor plus replacement authorize for the same account-local lineage/session/generation CAS; candidate possession is verified through the unit-local overlay before mutation and never by resolving current human DID.",
+      "description": "Exact typed Event submit request plus its suite-bearing canonical digest. Operation, request schema, destination and audience are fixed by this unit type and the parent coordinator_service_id; canonical request bytes are RFC 8785 JCS(request), not a second wire input. A PCR recovery unit contains reanchor plus replacement authorize for the same account-local lineage/session/generation CAS; candidate possession is verified through the unit-local overlay before mutation and never by resolving current human DID.",
       "required": [
-        "operation_id",
-        "destination_service_id",
-        "audience",
-        "request_schema",
         "request",
-        "canonical_request_base64url",
         "request_digest"
       ],
       "properties": {
-        "operation_id": {
-          "type": "string",
-          "const": "ak.self.events.command.submit"
-        },
-        "destination_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "request_schema": {
-          "type": "string",
-          "const": "https://arkret.org/v1/schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody"
-        },
         "request": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": true,
-          "description": "Typed value that MUST independently validate against request_schema. The indirection keeps the transaction schema acyclic while preserving a closed schema identity."
-        },
-        "canonical_request_base64url": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody",
+          "description": "Exact typed Event batch submit request; the unit type fixes this sole schema identity."
         },
         "request_digest": {
           "$ref": "#/$defs/digest"

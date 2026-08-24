@@ -468,6 +468,15 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
     if "security_rotation_binding" in defs:
         lint.fail(path, "top-level security_rotation_binding schema is a forbidden plan projection")
 
+    prepared_unit = defs.get("prepared_event_unit")
+    prepared_required = prepared_unit.get("required") if isinstance(prepared_unit, dict) else None
+    prepared_properties = prepared_unit.get("properties") if isinstance(prepared_unit, dict) else None
+    expected_prepared_fields = {"request", "request_digest"}
+    if not isinstance(prepared_required, list) or set(prepared_required) != expected_prepared_fields:
+        lint.fail(path, "$defs/prepared_event_unit must require only request and request_digest")
+    if not isinstance(prepared_properties, dict) or set(prepared_properties) != expected_prepared_fields:
+        lint.fail(path, "$defs/prepared_event_unit must define only request and request_digest")
+
     continue_request = defs.get("continue_request")
     continue_required = continue_request.get("required", []) if isinstance(continue_request, dict) else []
     continue_properties = continue_request.get("properties", {}) if isinstance(continue_request, dict) else {}
@@ -499,10 +508,26 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     principal_path = schema_dir / "principal-operations.schema.json"
     contact_path = schema_dir / "contact-operations.schema.json"
     agent_path = schema_dir / "agent-operations.schema.json"
+    cleanup_path = schema_dir / "agent-membership-cascade.schema.json"
+    account_data_path = schema_dir / "account-data-encrypted-value.schema.json"
+    receipt_path = schema_dir / "event-batch-receipt.schema.json"
+    governance_path = schema_dir / "mls-governance-proof-bundle.schema.json"
     principal = load_json(lint, principal_path)
     contact = load_json(lint, contact_path)
     agent = load_json(lint, agent_path)
-    if not all(isinstance(value, dict) for value in (principal, contact, agent)):
+    cleanup = load_json(lint, cleanup_path)
+    account_data = load_json(lint, account_data_path)
+    receipt = load_json(lint, receipt_path)
+    governance = load_json(lint, governance_path)
+    if not all(isinstance(value, dict) for value in (
+        principal,
+        contact,
+        agent,
+        cleanup,
+        account_data,
+        receipt,
+        governance,
+    )):
         return
 
     principal_defs = principal.get("$defs", {})
@@ -528,6 +553,55 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     expected_ref = "./principal-operations.schema.json#/$defs/prepared_event_draft"
     if contact_refs != {expected_ref}:
         lint.fail(contact_path, "all Contact prepared drafts must reference the generic draft schema")
+    contact_outcome = contact_defs.get("contact_operation_outcome") if isinstance(contact_defs, dict) else None
+    contact_branches = contact_outcome.get("oneOf", []) if isinstance(contact_outcome, dict) else []
+    prepared_contact_branches = [
+        branch
+        for branch in contact_branches
+        if isinstance(branch, dict)
+        and isinstance(branch.get("properties"), dict)
+        and branch["properties"].get("status", {}).get("const") == "prepared"
+    ]
+    if len(prepared_contact_branches) != 5:
+        lint.fail(contact_path, "Contact outcome must define exactly five prepared branches")
+    for branch in prepared_contact_branches:
+        if branch["properties"].get("event_draft") != {"$ref": expected_ref}:
+            lint.fail(contact_path, "Contact prepared event_draft must be the direct generic draft reference")
+
+    cleanup_defs = cleanup.get("$defs", {})
+    cleanup_record = cleanup_defs.get("agent_cleanup_record") if isinstance(cleanup_defs, dict) else None
+    cleanup_required = set(cleanup_record.get("required", [])) if isinstance(cleanup_record, dict) else set()
+    cleanup_properties = set(cleanup_record.get("properties", {})) if isinstance(cleanup_record, dict) else set()
+    if isinstance(cleanup_defs, dict) and "agent_cleanup_pending_record" in cleanup_defs:
+        lint.fail(cleanup_path, "agent cleanup must not retain the obsolete pending-record wire name")
+    if "status" in cleanup_required or "status" in cleanup_properties:
+        lint.fail(cleanup_path, "agent cleanup must derive status from deadline and completion evidence")
+
+    account_required = set(account_data.get("required", []))
+    account_properties = set(account_data.get("properties", {}))
+    duplicated_account_digests = sorted(
+        {"aad_digest", "ciphertext_digest"} & (account_required | account_properties)
+    )
+    if duplicated_account_digests:
+        lint.fail(account_data_path, f"account-data envelope duplicates local digests {duplicated_account_digests}")
+
+    receipt_defs = receipt.get("$defs", {})
+    receipt_item = receipt_defs.get("event_receipt_item") if isinstance(receipt_defs, dict) else None
+    receipt_required = set(receipt_item.get("required", [])) if isinstance(receipt_item, dict) else set()
+    receipt_properties = set(receipt_item.get("properties", {})) if isinstance(receipt_item, dict) else set()
+    if "event_digest" in receipt_required or "event_digest" in receipt_properties:
+        lint.fail(receipt_path, "event receipt item must derive event_digest from event_id")
+
+    governance_defs = governance.get("$defs", {})
+    proof_material = governance_defs.get("typed_proof_material") if isinstance(governance_defs, dict) else None
+    proof_properties = proof_material.get("properties", {}) if isinstance(proof_material, dict) else {}
+    descriptors = proof_properties.get("event_ids") if isinstance(proof_properties, dict) else None
+    descriptor = descriptors.get("items") if isinstance(descriptors, dict) else None
+    expected_event_id_ref = {"$ref": "./common-ids.schema.json#/$defs/event_id"}
+    if descriptor != expected_event_id_ref:
+        lint.fail(governance_path, "MLS governance event_ids must be the direct EventId set")
+    if isinstance(proof_properties, dict) and "event_descriptors" in proof_properties:
+        lint.fail(governance_path, "MLS governance must not retain the obsolete event_descriptors name")
 
     sidecar_outcome = principal_defs.get("sidecar_ensure_outcome") if isinstance(principal_defs, dict) else None
     branches = sidecar_outcome.get("oneOf", []) if isinstance(sidecar_outcome, dict) else []

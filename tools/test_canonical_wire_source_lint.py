@@ -17,6 +17,10 @@ SCHEMA_NAMES = (
     "principal-operations.schema.json",
     "contact-operations.schema.json",
     "agent-operations.schema.json",
+    "agent-membership-cascade.schema.json",
+    "account-data-encrypted-value.schema.json",
+    "event-batch-receipt.schema.json",
+    "mls-governance-proof-bundle.schema.json",
 )
 
 
@@ -73,6 +77,56 @@ class CanonicalWireSourceLintTest(unittest.TestCase):
 
         errors = self._lint("agent-operations.schema.json", mutate)
         self.assertTrue(any("device pair commit duplicates" in error for error in errors), errors)
+
+    def test_contact_draft_kind_specialization_fails(self) -> None:
+        def mutate(schema) -> None:
+            branch = schema["$defs"]["contact_operation_outcome"]["oneOf"][0]
+            branch["properties"]["event_draft"] = {
+                "allOf": [
+                    {"$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"},
+                    {"properties": {"kind": {"const": "contact.request"}}},
+                ]
+            }
+
+        errors = self._lint("contact-operations.schema.json", mutate)
+        self.assertTrue(any("direct generic draft reference" in error for error in errors), errors)
+
+    def test_cleanup_status_mirror_fails(self) -> None:
+        def mutate(schema) -> None:
+            record = schema["$defs"]["agent_cleanup_record"]
+            record["properties"]["status"] = {"type": "string"}
+
+        errors = self._lint("agent-membership-cascade.schema.json", mutate)
+        self.assertTrue(any("derive status" in error for error in errors), errors)
+
+    def test_account_data_digest_mirror_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["properties"]["ciphertext_digest"] = {"type": "object"}
+
+        errors = self._lint("account-data-encrypted-value.schema.json", mutate)
+        self.assertTrue(any("duplicates local digests" in error for error in errors), errors)
+
+    def test_receipt_item_digest_mirror_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["$defs"]["event_receipt_item"]["properties"]["event_digest"] = {"type": "object"}
+
+        errors = self._lint("event-batch-receipt.schema.json", mutate)
+        self.assertTrue(any("derive event_digest from event_id" in error for error in errors), errors)
+
+    def test_governance_descriptor_digest_mirror_fails(self) -> None:
+        def mutate(schema) -> None:
+            descriptors = schema["$defs"]["typed_proof_material"]["properties"]["event_ids"]
+            descriptors["items"] = {
+                "type": "object",
+                "required": ["event_id"],
+                "properties": {
+                    "event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
+                },
+                "additionalProperties": False,
+            }
+
+        errors = self._lint("mls-governance-proof-bundle.schema.json", mutate)
+        self.assertTrue(any("direct EventId set" in error for error in errors), errors)
 
 
 if __name__ == "__main__":

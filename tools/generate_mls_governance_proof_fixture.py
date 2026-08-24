@@ -84,7 +84,7 @@ GROUP = b64u(REALM.encode("utf-8"))
 BASE_GROUP_STATE = content_id("event", "mls-governance-fixture-base-group-state")
 
 
-def frontier_entry(target_ref: str, index: int) -> tuple[dict[str, Any], dict[str, Any], str]:
+def frontier_entry(target_ref: str, index: int) -> tuple[dict[str, Any], str, str]:
     cell = f"ak:cell:ak.component.member.state.v1:did.web.member-{index}.example"
     value = {"head": "join", "target_seal_ref": target_ref}
     event_id = content_id("event", f"mls-governance-frontier-provenance-{index}")
@@ -106,8 +106,7 @@ def frontier_entry(target_ref: str, index: int) -> tuple[dict[str, Any], dict[st
             "siblings": [],
         },
     }
-    descriptor = {"event_id": event_id, "event_digest": sha(bytes([96 + index]) * 32)}
-    return entry, descriptor, leaf_digest
+    return entry, event_id, leaf_digest
 
 
 def empty_range() -> dict[str, Any]:
@@ -138,11 +137,11 @@ def body(refs: list[str], target_refs: list[str], edges: list[tuple[str, str]]) 
         for child, parent in sorted(edges)
     ]
     branches = []
-    event_descriptors = []
+    event_ids = []
     for index, target_ref in enumerate(sorted(target_refs)):
         if len(target_refs) > 1:
-            entry, descriptor, state_root = frontier_entry(target_ref, index)
-            event_descriptors.append(descriptor)
+            entry, event_id, state_root = frontier_entry(target_ref, index)
+            event_ids.append(event_id)
             ranges = [
                 {
                     "cell_family": "ak.component.member.state.v1",
@@ -176,7 +175,7 @@ def body(refs: list[str], target_refs: list[str], edges: list[tuple[str, str]]) 
         "proof_material": {
             "seal_descriptors": descriptors,
             "seal_predecessor_edges": predecessor_edges,
-            "event_descriptors": sorted(event_descriptors, key=lambda item: item["event_id"]),
+            "event_ids": sorted(event_ids),
         },
     }
 

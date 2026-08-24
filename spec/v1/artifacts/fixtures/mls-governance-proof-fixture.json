@@ -87,7 +87,7 @@
             }
           ],
           "seal_predecessor_edges": [],
-          "event_descriptors": []
+          "event_ids": []
         }
       },
       "outcome": {
@@ -128,11 +128,11 @@
             }
           ],
           "seal_predecessor_edges": [],
-          "event_descriptors": []
+          "event_ids": []
         },
-        "page_digest": "sha256:97bd8f1c96a4527fe68a3f93eb250eac979ed932586f5ae9bd72528202de8fe0"
+        "page_digest": "sha256:8b7430443c4c53174a533b2a8cb6b38354adbcba2bc989de6ca43dc996969dee"
       },
-      "expected_page_digest": "sha256:97bd8f1c96a4527fe68a3f93eb250eac979ed932586f5ae9bd72528202de8fe0",
+      "expected_page_digest": "sha256:8b7430443c4c53174a533b2a8cb6b38354adbcba2bc989de6ca43dc996969dee",
       "expected_relation": "equal_antichain"
     },
     {
@@ -206,7 +206,7 @@
             }
           ],
           "seal_predecessor_edges": [],
-          "event_descriptors": []
+          "event_ids": []
         }
       },
       "outcome": {
@@ -247,11 +247,11 @@
             }
           ],
           "seal_predecessor_edges": [],
-          "event_descriptors": []
+          "event_ids": []
         },
-        "page_digest": "sha256:3173a5a8936f21c563d15b3bfee9f6fd92e82bccc7b0023213855d8180f6ef1e"
+        "page_digest": "sha256:3b33df0e4f0d87dc05b712c35b680cb554cc3a33bf785d4f64d4ed843248737d"
       },
-      "expected_page_digest": "sha256:3173a5a8936f21c563d15b3bfee9f6fd92e82bccc7b0023213855d8180f6ef1e",
+      "expected_page_digest": "sha256:3b33df0e4f0d87dc05b712c35b680cb554cc3a33bf785d4f64d4ed843248737d",
       "expected_relation": "equal_antichain"
     },
     {
@@ -334,7 +334,7 @@
               "predecessor_seal_ref": "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101"
             }
           ],
-          "event_descriptors": []
+          "event_ids": []
         }
       },
       "outcome": {
@@ -384,11 +384,11 @@
               "predecessor_seal_ref": "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101"
             }
           ],
-          "event_descriptors": []
+          "event_ids": []
         },
-        "page_digest": "sha256:72ef95a86216bd9214415b2b86042a741d4a87755cfde1235e28636ed0248365"
+        "page_digest": "sha256:3a6c8bf11abe312e30f49288bf89d4ffcc296ff80f62dcc1f27987c769c0cf0d"
       },
-      "expected_page_digest": "sha256:72ef95a86216bd9214415b2b86042a741d4a87755cfde1235e28636ed0248365",
+      "expected_page_digest": "sha256:3a6c8bf11abe312e30f49288bf89d4ffcc296ff80f62dcc1f27987c769c0cf0d",
       "expected_relation": "strict_descendant_antichain"
     },
     {
@@ -550,15 +550,9 @@
               "predecessor_seal_ref": "ak:seal:sha256:0202020202020202020202020202020202020202020202020202020202020202"
             }
           ],
-          "event_descriptors": [
-            {
-              "event_id": "ak:event:AcbSV9RYrFdGJivoqWVfbsL0H7U9qXdzrsD6MPMwX6BA",
-              "event_digest": "sha256:3ba3f5f43b92602683c19aee62a20342b084dd5971ddd33808d81a328879a547"
-            },
-            {
-              "event_id": "ak:event:AfvrAq1HpvtWnJUdItm-GuA1K2J_x5KVF7DAoTlvG8Q3",
-              "event_digest": "sha256:aa7bc047c2a8a59de44239601f765ab9575356b78bae0ced39993e29dee2963b"
-            }
+          "event_ids": [
+            "ak:event:AcbSV9RYrFdGJivoqWVfbsL0H7U9qXdzrsD6MPMwX6BA",
+            "ak:event:AfvrAq1HpvtWnJUdItm-GuA1K2J_x5KVF7DAoTlvG8Q3"
           ]
         }
       },
@@ -686,20 +680,14 @@
               "predecessor_seal_ref": "ak:seal:sha256:0202020202020202020202020202020202020202020202020202020202020202"
             }
           ],
-          "event_descriptors": [
-            {
-              "event_id": "ak:event:AcbSV9RYrFdGJivoqWVfbsL0H7U9qXdzrsD6MPMwX6BA",
-              "event_digest": "sha256:3ba3f5f43b92602683c19aee62a20342b084dd5971ddd33808d81a328879a547"
-            },
-            {
-              "event_id": "ak:event:AfvrAq1HpvtWnJUdItm-GuA1K2J_x5KVF7DAoTlvG8Q3",
-              "event_digest": "sha256:aa7bc047c2a8a59de44239601f765ab9575356b78bae0ced39993e29dee2963b"
-            }
+          "event_ids": [
+            "ak:event:AcbSV9RYrFdGJivoqWVfbsL0H7U9qXdzrsD6MPMwX6BA",
+            "ak:event:AfvrAq1HpvtWnJUdItm-GuA1K2J_x5KVF7DAoTlvG8Q3"
           ]
         },
-        "page_digest": "sha256:ed9c44f23b048087dfc5806f5aae142769d526d1ca41f4626455c00822498cdd"
+        "page_digest": "sha256:7eec08ca99789fa3050bb456050b9e0b878d7f2bbc66b05caa8a6ee7ae168a67"
       },
-      "expected_page_digest": "sha256:ed9c44f23b048087dfc5806f5aae142769d526d1ca41f4626455c00822498cdd",
+      "expected_page_digest": "sha256:7eec08ca99789fa3050bb456050b9e0b878d7f2bbc66b05caa8a6ee7ae168a67",
       "expected_relation": "strict_descendant_antichain"
     }
   ],

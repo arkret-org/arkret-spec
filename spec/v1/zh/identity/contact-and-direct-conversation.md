@@ -57,7 +57,10 @@ prepare **MUST** 保存 operation/idempotency/canonical request digest、预分�
 full-set scope、expiry 与该分支已有的 round/version/predecessor，并返回 branch-typed
 `{unsigned_event_bytes,event_digest}` canonical draft；request/reject不得伪造未来 round 字段。typed digest 携带 suite，
 Event ID 与 kind 分别由 digest 和 canonical bytes 唯一派生，不得作为平行 wire source。draft
-不含holder proof，客户端只可追加该proof。commit移除proof后必须与 reserved unsigned bytes 和 digest
+不含holder proof，客户端只可追加该proof。客户端在签名前 MUST 解码 exact unsigned bytes，并按 operation 分别要求
+`ak.contact.requested`、`ak.contact.accepted`、`ak.contact.rejected`、`ak.contact.scope.update` 或
+`ak.contact.tombstone`；响应上下文与 decoded kind 不符必须 fail closed，不能依赖或接受第二份 `event_draft.kind`。
+commit移除proof后必须与 reserved unsigned bytes 和 digest
 逐字一致，并对最终 Event 执行普通 content-bound ID/kind 校验；任何其它变化返回conflict，不存在接受caller自造Event shape的分支。五类 Contact Event 均为
 Control Move；commit body 可携带`control_proposal_ack`，其结构和验证规则与
 `EventInitialSubmission.control_proposal_ack`完全相同。当接收 Principal Server 不能代表当前 authority set

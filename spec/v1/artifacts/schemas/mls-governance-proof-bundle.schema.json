@@ -100,7 +100,7 @@
     },
     "typed_proof_material": {
       "type": "object",
-      "required": ["seal_descriptors", "seal_predecessor_edges", "event_descriptors"],
+      "required": ["seal_descriptors", "seal_predecessor_edges", "event_ids"],
       "properties": {
         "seal_descriptors": {
           "type": "array",
@@ -116,19 +116,11 @@
             "additionalProperties": false
           }
         },
-        "event_descriptors": {
+        "event_ids": {
           "type": "array",
           "uniqueItems": true,
-          "items": {
-            "type": "object",
-            "required": ["event_id", "event_digest"],
-            "properties": {
-              "event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-              "event_digest": {"$ref": "#/$defs/digest"}
-            },
-            "additionalProperties": false
-          },
-          "description": "Canonical every-and-only descriptors for Events named by sparse frontier provenance entries and boundaries. This array is not a duplicate catalog of every Seal.delta Event in the base-to-target cut; those exact accepted Event selectors come from each resolved signed Seal.delta and are fetched separately for checkpoint replay."
+          "items": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+          "description": "Canonical every-and-only Event ids named by sparse frontier provenance entries and boundaries. Each id losslessly binds its suite-bearing full digest. This array is not a duplicate catalog of every Seal.delta Event in the base-to-target cut; those exact accepted Event selectors come from each resolved signed Seal.delta and are fetched separately for checkpoint replay."
         },
         "seal_predecessor_edges": {
           "type": "array",
@@ -146,7 +138,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Complete every-and-only content-addressed descriptor set for one near-current stateless group_security_frontier response. seal_descriptors are canonical by seal_ref bytes, event_descriptors by event_id bytes, and predecessor edges by their tuple bytes; duplicates are forbidden. Sparse paths live only in typed witnesses. Full signed proof objects are resolved through standard Event/Seal resolve and must match ids/digests byte-for-byte. Complete checkpoint replay additionally resolves the exact Event digest set signed in the resolved Seals' delta arrays; those Events are not duplicated into event_descriptors unless sparse provenance also names them."
+      "description": "Complete every-and-only content-addressed selector set for one near-current stateless group_security_frontier response. seal_descriptors are canonical by seal_ref bytes, event_ids is the direct canonical EventId set, and predecessor edges are canonical by their tuple bytes; duplicates are forbidden. Sparse paths live only in typed witnesses. Full signed proof objects are resolved through standard Event/Seal resolve; each Event's recomputed digest must equal the suite and full digest losslessly encoded by event_id. Complete checkpoint replay additionally resolves the exact Event digest set signed in the resolved Seals' delta arrays; those Events are not duplicated into event_ids unless sparse provenance also names them."
     },
     "frontier_boundary": {
       "type": "object",

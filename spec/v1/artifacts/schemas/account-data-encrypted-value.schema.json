@@ -11,9 +11,7 @@
     "key_ref",
     "nonce",
     "ciphertext",
-    "aad",
-    "aad_digest",
-    "ciphertext_digest"
+    "aad"
   ],
   "properties": {
     "schema": {
@@ -61,14 +59,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "aad_digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
-    },
-    "ciphertext_digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
     }
   },
   "additionalProperties": false

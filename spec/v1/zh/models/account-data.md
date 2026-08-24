@@ -37,7 +37,7 @@ registry 中 `storage="encrypted_account_data"` 的 value MUST 使用 `ak.schema
 
 account secret 属于 `secret_storage`，MUST 进入 key-backup / recovery lifecycle；不同 principal 与不同 `account_data_key` 的派生 key MUST 域隔离。
 
-AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id`、`account_data_key`、`schema`、`version`。该对象即本 domain 在 [`../conformance/encoding.md` §10.2](../conformance/encoding.md) 意义上的 **pre-encryption immutable header**：四个字段全部在 AEAD seal 前确定。`aad_digest` 是该 canonical JSON 的 `sha256:` digest；`ciphertext_digest` 是解码后 ciphertext bytes 的 `sha256:` digest。两者都是 header 之外的字段，MUST NOT 进入 AAD——`ciphertext_digest` 覆盖含 AEAD tag 的完整密文，把它放回 AAD 会形成不可构造循环。Consumer MUST 在解密前验证闭合 schema、AAD 的四个字段绑定（`actor_id` 归属、`account_data_key` 命名空间、`schema` 与 `version`）与两个 digest（`aad_digest` 由 consumer 从 envelope 重建 `aad` 后重算比对，MUST NOT 采信调用方自报值代替 AAD）；任一不匹配 MUST fail closed，且不得以失败结果覆盖本地已验证状态。Server MAY 重算 digest 与验证 envelope 结构，但 MUST NOT 获得 account secret、派生 key 或明文。
+AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id`、`account_data_key`、`schema`、`version`。该对象即本 domain 在 [`../conformance/encoding.md` §10.2](../conformance/encoding.md) 意义上的 **pre-encryption immutable header**：四个字段全部在 AEAD seal 前确定。Envelope 不携 `aad_digest` 或 `ciphertext_digest`：二者分别只是对同一 envelope 内 AAD 与密文的无密钥本地重算值，不能增加 AEAD 或签名认证能力。Consumer MUST 在解密前验证闭合 schema、AAD 的四个字段绑定（`actor_id` 归属、`account_data_key` 命名空间、`schema` 与 `version`）、canonical Base64URL、24-byte nonce 与至少包含 16-byte tag 的 ciphertext，再以 `RFC8785_JCS(aad)` 执行 AEAD open；tag 失败必须 fail closed，且不得以失败结果覆盖本地已验证状态。Server MAY 验证这些 envelope metadata，但 MUST NOT 获得 account secret、派生 key、AEAD 结果或明文。
 
 ## 4. 文档放置规则
 

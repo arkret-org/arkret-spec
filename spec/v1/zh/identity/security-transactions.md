@@ -42,6 +42,11 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 `revoke_unit` 与两项 `backup_rotations[].binding` 等字段纯函数投影，不能使用任意键值或通用步骤 DSL。
 `prepared_plan_digest` 是 coordinator 对完整 plan canonical bytes 重算并返回的只读派生值；create request
 不得携带该值，`prepared_plan` 内也不得携带自身 digest，计算时没有排除字段的隐式规则。
+每个 `prepared_event_unit` 的 wire 形态固定为 `{request,request_digest}`：`request` 必须独立满足
+`EventsSubmitBatchRequestBody`，`request_digest` 必须等于其 digest suite 对 `RFC8785_JCS(request)` 的计算结果。
+该 unit 的 operation 固定为 `ak.self.events.command.submit`，request schema 固定为上述 DTO，destination 与 audience
+都从父 transaction 的 `coordinator_service_id` 取得；这四项与 canonical request bytes 是构造时的 computed view，
+不得作为平行 wire 输入或 durable 真相源。coordinator 必须以同一 `JCS(request)` bytes 执行和持久化。
 `accepted_steps[]` 的每项固定为
 `{prepared_material_digest, acceptor_id, output_ref, output_digest, accepted_at}`；数组位置按下述固定步骤表
 唯一决定 step kind，整个数组必须是连续前缀，不能跳步、重排或为同一步记录第二个 digest。活动事务的下一步

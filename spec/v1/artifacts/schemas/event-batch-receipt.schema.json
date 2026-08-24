@@ -60,7 +60,7 @@
     },
     "events": {
       "type": "array",
-      "description": "Canonical set projection of covered Event canonical digests. Bare event IDs are forbidden because they do not bind Event content. Items MUST be strictly increasing by the UTF-8 bytes of canonical_json(item); producers sort and deduplicate before signing, and receivers reject a non-canonical wire array before digest verification.",
+      "description": "Canonical set projection of covered Events. A bare digest is the compact ordinary form; a typed item carries the Event ID, whose 33-octet token losslessly encodes the suite and full digest, plus kind. Items MUST be strictly increasing by the UTF-8 bytes of canonical_json(item); producers sort and deduplicate before signing, and receivers reject a non-canonical wire array before digest verification.",
       "items": {
         "oneOf": [
           {
@@ -353,15 +353,11 @@
       "type": "object",
       "required": [
         "event_id",
-        "event_digest",
         "kind"
       ],
       "properties": {
         "event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
-        },
-        "event_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "kind": {
           "type": "string",

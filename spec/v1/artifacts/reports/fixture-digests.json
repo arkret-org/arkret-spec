@@ -226,7 +226,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
-      "sha256": "76bd6f9b38c086331dcaec24cddcc95b15bcee7b8a55fd3ec0a84e888bbd141a"
+      "sha256": "073280ff0468b86b04750fd5147322dfb7d689335018e8b2553c549b6396c0d8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",

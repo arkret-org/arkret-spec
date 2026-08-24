@@ -1068,21 +1068,7 @@
               "$ref": "#/$defs/timestamp"
             },
             "event_draft": {
-              "allOf": [
-                {
-                  "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
-                },
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.contact.requested"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              ]
+              "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
             }
           },
           "additionalProperties": false
@@ -1114,21 +1100,7 @@
               "$ref": "#/$defs/timestamp"
             },
             "event_draft": {
-              "allOf": [
-                {
-                  "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
-                },
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.contact.accepted"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              ]
+              "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
             }
           },
           "additionalProperties": false
@@ -1160,21 +1132,7 @@
               "$ref": "#/$defs/timestamp"
             },
             "event_draft": {
-              "allOf": [
-                {
-                  "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
-                },
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.contact.rejected"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              ]
+              "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
             }
           },
           "additionalProperties": false
@@ -1206,21 +1164,7 @@
               "$ref": "#/$defs/timestamp"
             },
             "event_draft": {
-              "allOf": [
-                {
-                  "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
-                },
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.contact.scope.update"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              ]
+              "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
             }
           },
           "additionalProperties": false
@@ -1252,21 +1196,7 @@
               "$ref": "#/$defs/timestamp"
             },
             "event_draft": {
-              "allOf": [
-                {
-                  "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
-                },
-                {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.contact.tombstone"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              ]
+              "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
             }
           },
           "additionalProperties": false
