@@ -98,17 +98,11 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
     "applet_id": {
       "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
     "event_ref": {
       "$ref": "./account-operations.schema.json#/$defs/event_id"
-    },
-    "grant_id": {
-      "$ref": "./agent-operations.schema.json#/$defs/grant_id"
     },
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/sha256_digest"

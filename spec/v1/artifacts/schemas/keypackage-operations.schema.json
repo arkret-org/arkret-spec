@@ -1547,7 +1547,7 @@
           "description": "Signature over the typed revoke request with this field omitted, using the ak.self.keys.keypackages.command.revoke domain."
         },
         "reason": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         }
       },
       "additionalProperties": false

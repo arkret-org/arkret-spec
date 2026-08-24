@@ -8,13 +8,12 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 77,
+    "total_fields": 75,
     "by_classification": {
-      "bounded_free_text": 8,
+      "bounded_free_text": 7,
       "closed_enum": 34,
-      "closed_literal": 14,
-      "validated_open_reason_code": 18,
-      "validated_open_token": 3
+      "closed_literal": 16,
+      "validated_open_reason_code": 18
     },
     "unclassified": 0
   },
@@ -142,27 +141,11 @@
     },
     {
       "schema_file": "agent-operations.schema.json",
-      "shape": "grant_snapshot",
-      "field": "status",
-      "pointer": "#/$defs/grant_snapshot/properties/status",
-      "classification": "validated_open_token",
-      "basis": "open protocol token with schema boundary"
-    },
-    {
-      "schema_file": "agent-operations.schema.json",
       "shape": "operation_status_outcome",
       "field": "status",
       "pointer": "#/$defs/operation_status_outcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "agent-operations.schema.json",
-      "shape": "pending_sidecar_access_reconciliation_item",
-      "field": "reason",
-      "pointer": "#/$defs/pending_sidecar_access_reconciliation_item/properties/reason",
-      "classification": "bounded_free_text",
-      "basis": "human-readable text with schema boundary"
     },
     {
       "schema_file": "agent-signer-evidence-operations.schema.json",
@@ -409,16 +392,16 @@
       "shape": "mimi_report_abuse_outcome",
       "field": "status",
       "pointer": "#/$defs/mimi_report_abuse_outcome/properties/status",
-      "classification": "validated_open_token",
-      "basis": "open protocol token with schema boundary"
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     },
     {
       "schema_file": "mimi-operations.schema.json",
       "shape": "mimi_request_consent_outcome",
       "field": "status",
       "pointer": "#/$defs/mimi_request_consent_outcome/properties/status",
-      "classification": "validated_open_token",
-      "basis": "open protocol token with schema boundary"
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     },
     {
       "schema_file": "mimi-operations.schema.json",

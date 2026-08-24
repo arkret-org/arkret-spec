@@ -66,88 +66,6 @@
     "effective_scope": {
       "$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"
     },
-    "scope_grant": {
-      "$ref": "../schemas/applet-install-plan.schema.json#/$defs/scope_grant"
-    },
-    "approval_request": {
-      "type": "object",
-      "required": [
-        "approve_actions",
-        "ghost_actor_mode",
-        "delegated_native_actors_allowed",
-        "e2ee_join_allowed",
-        "widget_allowed"
-      ],
-      "properties": {
-        "approve_actions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/non_empty_string"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "ghost_actor_mode": {
-          "type": "string",
-          "enum": [
-            "disallowed",
-            "controller_approved",
-            "policy_declared"
-          ],
-          "description": "Ghost actor admission intent echoed from the plan. It is the same three-valued field the commit carries as actor_policy.ghost_actor_mode; the preview MUST echo it verbatim so there is no second spelling to keep consistent."
-        },
-        "delegated_native_actors_allowed": {
-          "type": "boolean"
-        },
-        "e2ee_join_allowed": {
-          "type": "boolean"
-        },
-        "widget_allowed": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
-    "actor_policy": {
-      "type": "object",
-      "properties": {
-        "bot_membership": {
-          "type": "string",
-          "enum": [
-            "invite",
-            "join",
-            "disabled"
-          ]
-        },
-        "ghost_actor_mode": {
-          "type": "string",
-          "enum": [
-            "disallowed",
-            "controller_approved",
-            "policy_declared"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "e2ee_policy": {
-      "type": "object",
-      "properties": {
-        "mls_join_allowed": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
-    "widget_policy": {
-      "type": "object",
-      "properties": {
-        "widget_allowed": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
     "rejected_item": {
       "type": "object",
       "required": [
@@ -203,7 +121,6 @@
     "applet_install_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "install_id",
         "applet_id",
         "registration_event_ref",
@@ -213,16 +130,12 @@
         "bot_actor_provision_ref",
         "bot_principal_control_realm_id",
         "capability_grant_refs",
-        "membership_event_refs",
         "e2ee_authorization_refs",
         "widget_policy_ref",
         "effective_status",
         "rejected"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean"
-        },
         "install_id": {
           "allOf": [
             {
@@ -237,14 +150,7 @@
           "$ref": "#/$defs/applet_id"
         },
         "registration_event_ref": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/event_ref"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/event_ref"
         },
         "registration_epoch": {
           "$ref": "#/$defs/digest"
@@ -265,13 +171,6 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/grant_id"
-          },
-          "uniqueItems": true
-        },
-        "membership_event_refs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/event_ref"
           },
           "uniqueItems": true
         },
@@ -296,8 +195,7 @@
           "type": "string",
           "enum": [
             "installed",
-            "partially_installed",
-            "rejected"
+            "partially_installed"
           ]
         },
         "rejected": {

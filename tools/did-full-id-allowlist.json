@@ -59,6 +59,14 @@
       "category": "registration_or_binding"
     },
     {
+      "pointer": "applet-registration-epoch-evidence.schema.json#/allOf/0/oneOf/0/properties/full_id/$ref",
+      "category": "did_method_log_or_evidence"
+    },
+    {
+      "pointer": "applet-registration-epoch-evidence.schema.json#/properties/full_id/$ref",
+      "category": "did_method_log_or_evidence"
+    },
+    {
       "pointer": "applet-registration-epoch-transcript.schema.json#/$defs/service_did_document/properties/full_id/$ref",
       "category": "resolution_or_did_document"
     },
@@ -108,6 +116,10 @@
     },
     {
       "pointer": "identity-resolution.schema.json#/$defs/service_route_cache_entry/properties/full_id/$ref",
+      "category": "resolution_or_did_document"
+    },
+    {
+      "pointer": "offline-publication.schema.json#/$defs/ingress_receipt/properties/qualified_ingress_id/$ref",
       "category": "resolution_or_did_document"
     },
     {

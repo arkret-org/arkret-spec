@@ -444,9 +444,6 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
           "description": "Realm that owns the capability grant cell and therefore the required ak.capability.revoke write surface."
         },
-        "status": {
-          "$ref": "#/$defs/non_empty_string"
-        },
         "grant_digest": {
           "$ref": "#/$defs/digest"
         },
@@ -1591,7 +1588,7 @@
       ],
       "properties": {
         "reason": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         },
         "lifecycle_event": {
           "allOf": [
@@ -1662,7 +1659,7 @@
       ],
       "properties": {
         "reason": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         },
         "lifecycle_event": {
           "allOf": [
@@ -1841,8 +1838,7 @@
       "type": "object",
       "required": [
         "agent_id",
-        "provisioning_phase",
-        "reason"
+        "provisioning_phase"
       ],
       "properties": {
         "agent_id": {
@@ -1855,10 +1851,8 @@
             "mls_remove",
             "epoch_rotation",
             "device_key_material"
-          ]
-        },
-        "reason": {
-          "$ref": "#/$defs/non_empty_string"
+          ],
+          "description": "Closed reconciliation phase. Clients derive localized explanatory text from this phase; no parallel reason string is carried."
         }
       },
       "additionalProperties": false

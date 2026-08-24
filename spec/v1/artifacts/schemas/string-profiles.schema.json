@@ -71,6 +71,11 @@
       "format": "arkret-short-text",
       "description": "NFC multilingual short text. LF is allowed; CR, other C0/C1 controls, BOM, and bidi embedding/override controls are rejected."
     },
+    "audit_reason_text": {
+      "$ref": "#/$defs/short_text",
+      "maxLength": 1024,
+      "description": "Human-readable audit reason limited to 1024 Unicode code points. It is explanatory text only and never a machine-readable reason code or authorization source."
+    },
     "content_text": {
       "type": "string",
       "pattern": "^[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",

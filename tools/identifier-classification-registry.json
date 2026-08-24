@@ -27,8 +27,8 @@
   ],
   "type_derived_summary": {
     "registry_catalog_symbol": 19,
-    "responsibility_did": 525,
-    "typed_object_id": 873
+    "responsibility_did": 533,
+    "typed_object_id": 890
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -122,14 +122,6 @@
       "example_path": "service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome/properties/appeal_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
-    },
-    {
-      "name": "applet_id",
-      "terminal_signature": "[[\"pattern\", \"^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$\"], [\"pattern\", \"^ak:did_core:[a-z0-9]+:[^\\\\s/?#]+$\"]]",
-      "category": "typed_object_id",
-      "occurrences": 12,
-      "example_path": "account-operations.schema.json#/$defs/session_revoke_request_body/properties/applet_id",
-      "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
     },
     {
       "name": "approval_id",
@@ -356,14 +348,6 @@
       "category": "typed_object_id",
       "occurrences": 2,
       "example_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_ref/properties/device_authorize_event_id",
-      "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
-    },
-    {
-      "name": "device_id",
-      "terminal_signature": "[[\"type\", \"[\\\"string\\\", \\\"null\\\"]\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "key-backup.schema.json#/properties/domain_separation/properties/aead_aad/properties/device_id",
       "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
     },
     {

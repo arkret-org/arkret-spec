@@ -509,8 +509,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "reason": {
-          "type": "string",
-          "maxLength": 1024
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         },
         "rejected_at": {
           "$ref": "#/$defs/timestamp"
@@ -671,8 +670,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "reason": {
-          "type": "string",
-          "maxLength": 1024
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         }
       },
       "additionalProperties": false
@@ -941,8 +939,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "reason": {
-          "type": "string",
-          "maxLength": 1024
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         }
       },
       "additionalProperties": false
@@ -1199,8 +1196,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "reason": {
-          "type": "string",
-          "maxLength": 1024
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         }
       },
       "additionalProperties": false
@@ -1232,8 +1228,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "reason": {
-          "type": "string",
-          "maxLength": 1024
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         }
       },
       "additionalProperties": false

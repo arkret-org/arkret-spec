@@ -318,12 +318,6 @@ revoke 时，请求还 MUST 携 `proof: AccountLifecycleProof`；Principal Serve
 `ak.gate.account.command.revoke_session` applet selector（`applet_id`、`effective_scope`、
 `registration_epoch`、`service_id`、`capability_grant_refs`）并转发给 Account Authority。
 
-### 4b.1 术语:Effective Install 与 Orphan Registration
-
-- **effective install**(有效安装):一个 `ak.applet.registration` 在某 `effective_scope`(Realm 或 Circle)上，至少绑定一个 active `ak.capability.grant` 到同一 `(applet_id, effective_scope, registration_epoch)`。只有进入 effective install,Applet 才在该 scope 取得任何写入 / 调用授权；registration 自身不授权(见 §11 与 [`applet-schema.md`](./applet-schema.md) `requested_scopes` 说明)。
-- **orphan registration**(孤儿注册):registration 已成功写入，但同一 `(applet_id, effective_scope, registration_epoch)` 下没有任何 active grant(commit 时全部 grant 失败，或 grant 事后被全部 revoke)。orphan registration MUST 被标记为无 effective install，并在 local projection / audit 显式显示；它不授予任何能力。
-- 这与 install commit 响应的 `effective_status` 三值对应:`installed`(registration + 完整 grant 集合)、`partially_installed`(registration + 部分 grant，其余 rejected)、`rejected`(registration 成功但无任何 active grant ⇒ orphan registration)。
-
 ## 5. Namespace
 
 Namespace 用于决定：
@@ -551,7 +545,7 @@ Arkret Principal Server sync surface / Events API 向 Applet 推送事件批次�
 transaction push 是 service↔service 调用，**两个方向**都 MUST 携带**逐次投递**的 RFC 9421 HTTP Message Signature（per-delivery source signature），接收方 MUST 在处理任何 event / 副作用前先验签；纯 `Authorization: Bearer`（无 `Signature`）的 transaction push MUST 被拒绝。两方向不可只靠 bearer，也不可只在首次握手时验签一次：
 
 - **node → Applet**（§7.3 上文，Arkret 节点向 Applet 推送）：Applet 端 MUST 按 `Source-Service-ID` 的 accepted service key binding 取得当前有效 verification method，并逐次验证 HTTP Message Signature；逐次验签不等于逐次在线解析 DID。新 service / key、binding invalidation 或显式 freshness 失效时才进入 DID authority resolution。`Destination-Service-ID` MUST 等于接收 Applet registration 的 `service_id`。Applet registration 的 `webhook_auth` 在该方向声明 transaction endpoint 要求 `http_message_signature` 与可接受算法；`webhook_auth.key_ref` MUST NOT 被解释成任意 Arkret 节点的来源 key。
-- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-ID`（service `did_core_id`）找到 active effective install（§4b.1）与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`；接收方从该 DID URL 取得 bare controller `full_id`，用已登记 adapter 验证并要求 `project(full_id) == registration.service_id == Source-Service-ID`，不得把 full DID 与 core header 直接比较，并逐次验签。缺签名、签名无效、投影不一致、`webhook_auth.key_ref` 未被该 Applet service 当前状态授权或无 active install 时 MUST fail closed。
+- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-ID`（service `did_core_id`）找到 §4b 接受的 active install 与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`；接收方从该 DID URL 取得 bare controller `full_id`，用已登记 adapter 验证并要求 `project(full_id) == registration.service_id == Source-Service-ID`，不得把 full DID 与 core header 直接比较，并逐次验签。缺签名、签名无效、投影不一致、`webhook_auth.key_ref` 未被该 Applet service 当前状态授权或无 active install 时 MUST fail closed。
 
 **覆盖 header 集（MUST，与 [`../sync/federation.md` §3.2](../sync/federation.md) service-to-service 签名对称）**：签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header：
 

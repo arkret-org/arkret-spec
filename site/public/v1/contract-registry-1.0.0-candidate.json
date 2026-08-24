@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.6",
+  "version": "2026-08-25.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-24T16:10:33+08:00",
+  "generated_at": "2026-08-25T03:20:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -9867,6 +9867,42 @@
         "description": "Closed Principal Server preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
       },
       {
+        "schema_id": "ak.schema.applet_install_authoring_request_basis.v1",
+        "file": "schemas/applet-install-authoring.schema.json",
+        "fragment": "#/$defs/authoring_request_basis",
+        "status": "active",
+        "description": "Canonical unsigned basis frozen by the Principal Server preview and covered by the install authoring request signature.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "Applet install preview authoring_request.basis",
+          "normative_ref": "zh/extensions/applet-integration.md"
+        }
+      },
+      {
+        "schema_id": "ak.schema.applet_install_authoring_request.v1",
+        "file": "schemas/applet-install-authoring.schema.json",
+        "fragment": "#/$defs/authoring_request",
+        "status": "active",
+        "description": "Principal Server-signed, expiry-bounded Applet install authoring request used by the durable co-sign handshake.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "Applet install preview and author request authoring_request",
+          "normative_ref": "zh/extensions/applet-integration.md"
+        }
+      },
+      {
+        "schema_id": "ak.schema.applet_managed_actor_authoring_bundle.v1",
+        "file": "schemas/applet-install-authoring.schema.json",
+        "fragment": "#/$defs/managed_actor_bundle",
+        "status": "active",
+        "description": "Exact four-Event service-authored managed-actor creation bundle returned by the Applet service after validating an authoring request.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "Applet install author outcome managed_actor_bundle",
+          "normative_ref": "zh/extensions/applet-integration.md"
+        }
+      },
+      {
         "schema_id": "ak.schema.applet_install_operations.v1",
         "file": "schemas/applet-install-operations.schema.json",
         "status": "active",
@@ -10312,8 +10348,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-23.2",
-    "generated_at": "2026-08-23T13:02:00+08:00"
+    "version": "2026-08-25.2",
+    "generated_at": "2026-08-25T03:20:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -11274,8 +11310,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-24.2",
-    "generated_at": "2026-08-24T12:12:00+08:00"
+    "version": "2026-08-25.1",
+    "generated_at": "2026-08-25T03:15:00+08:00"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -15929,8 +15965,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-24.6",
-    "generated_at": "2026-08-24T16:10:33+08:00"
+    "version": "2026-08-25.1",
+    "generated_at": "2026-08-25T03:15:00+08:00"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

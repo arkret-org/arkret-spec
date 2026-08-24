@@ -666,7 +666,7 @@
           "$ref": "#/$defs/consent_id"
         },
         "status": {
-          "$ref": "#/$defs/non_empty_string"
+          "const": "requested"
         },
         "challenge": {
           "$ref": "#/$defs/non_empty_string"
@@ -708,7 +708,7 @@
           "$ref": "#/$defs/signature"
         },
         "reason": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -957,7 +957,7 @@
           "$ref": "#/$defs/report_id"
         },
         "status": {
-          "$ref": "#/$defs/non_empty_string"
+          "const": "queued"
         },
         "routed_to": {
           "type": "array",

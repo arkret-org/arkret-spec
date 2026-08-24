@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 255,
+  "audited_occurrence_count": 262,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -145,6 +145,19 @@
       "reason": "Closed historical-mode aggregate containing the destination-signed admission receipt and its exact admission-time evidence."
     },
     {
+      "file": "applet-install-authoring.schema.json",
+      "key": "registration_epoch_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment",
+        "transcript"
+      ],
+      "reason": "Carries the method-native registration-time identity transcript, document commitment and accepted signing-key material embedded only in the signed registration Event manifest."
+    },
+    {
       "file": "applet-managed-actor.schema.json",
       "key": "method_history_evidence",
       "occurrences": 1,
@@ -155,6 +168,19 @@
         "commitment"
       ],
       "reason": "Carries the complete adapter-selected method history, controller proofs, witness attestations and terminal identity commitments independently verified before managed-actor provisioning."
+    },
+    {
+      "file": "applet-registration-epoch-evidence.schema.json",
+      "key": "method_version_evidence",
+      "occurrences": 4,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment",
+        "transcript"
+      ],
+      "reason": "Selects the closed DID-method-native version transcript whose proofs, witness attestations and commitments establish the exact registration epoch."
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
@@ -611,6 +637,19 @@
       "occurrences": 2,
       "disposition": "qualifier",
       "reason": "Names a digest of the heterogeneous introduction evidence container, not a material instance."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "registration_epoch_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment",
+        "transcript"
+      ],
+      "reason": "The signed Applet registration Event manifest carries the single method-native registration-time identity transcript and its accepted key commitments."
     },
     {
       "file": "history-key-canonical-binding-registry.json",

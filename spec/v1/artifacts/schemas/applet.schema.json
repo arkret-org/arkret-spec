@@ -32,11 +32,6 @@
         }
       },
       "additionalProperties": true
-    },
-    "manifest": {
-      "type": "object",
-      "description": "Applet manifest snapshot at registration time (capability requirements, supported intents, etc.).",
-      "additionalProperties": true
     }
   },
   "patternProperties": {

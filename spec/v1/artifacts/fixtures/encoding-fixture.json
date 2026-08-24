@@ -220,7 +220,6 @@
       "vector_id": "ak.vector.encoding.event_digest.v1",
       "kind": "canonical_json_digest",
       "input": {
-        "event_id": "ak:event:AeagqTDqAC0uoitR-FS57_qbbmvN9B_FdRQPfZ4Vnb8b",
         "kind": "ak.message.create",
         "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "scope_ref": {
@@ -247,8 +246,8 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"actor_seq\":1,\"auth_context\":{\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_id\":\"ak:event:AeagqTDqAC0uoitR-FS57_qbbmvN9B_FdRQPfZ4Vnb8b\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\"},\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
-      "expected_digest": "sha256:ce16d5afc04472c2b01f34ee844b780b3aa705b4f90696f0393ea9bb76f1c2f4",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"actor_seq\":1,\"auth_context\":{\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\"},\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_digest": "sha256:e6a0a930ea002d2ea22b51f854b9effa9b6e6bcdf41fc575140f7d9e159dbf1b",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST be derived from the digest and excluded from its own digest input",

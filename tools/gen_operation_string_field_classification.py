@@ -17,6 +17,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMAS = ROOT / "spec" / "v1" / "artifacts" / "schemas"
@@ -32,33 +33,87 @@ REASON_CODE_PATTERN = "^[a-z][a-z0-9_]{0,63}$"
 AUDITED_FIELDS = ("schema", "status", "reason_code", "reason")
 
 
+class ReferenceResolutionError(ValueError):
+    """Raised when an audited constraint reference cannot be resolved locally."""
+
+
 def dump_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, indent=2) + "\n"
 
 
-def resolve_pointer(document: Any, reference: str) -> Any:
-    if not reference.startswith("#"):
+def resolve_pointer(document: Any, fragment: str) -> Any:
+    if fragment == "":
+        return document
+    if not fragment.startswith("/"):
         return None
     node = document
-    for token in reference.lstrip("#/").split("/"):
+    for token in fragment.lstrip("/").split("/"):
         if not token:
             continue
-        token = token.replace("~1", "/").replace("~0", "~")
+        token = unquote(token).replace("~1", "/").replace("~0", "~")
         if not isinstance(node, dict) or token not in node:
             return None
         node = node[token]
     return node
 
 
-def effective_constraints(document: dict[str, Any], node: Any) -> dict[str, Any]:
+def load_document(path: Path, documents: dict[Path, dict[str, Any]]) -> dict[str, Any]:
+    path = path.resolve()
+    if path not in documents:
+        documents[path] = json.loads(path.read_text(encoding="utf-8"))
+    return documents[path]
+
+
+def resolve_reference(
+    document_path: Path,
+    reference: str,
+    documents: dict[Path, dict[str, Any]],
+) -> tuple[Path, dict[str, Any], Any] | None:
+    resource, separator, fragment = reference.partition("#")
+    if "://" in resource:
+        return None
+    target_path = (document_path.parent / resource).resolve() if resource else document_path
+    try:
+        target_document = load_document(target_path, documents)
+    except (OSError, json.JSONDecodeError):
+        return None
+    target = resolve_pointer(target_document, fragment if separator else "")
+    if target is None:
+        return None
+    return target_path, target_document, target
+
+
+def effective_constraints(
+    document_path: Path,
+    document: dict[str, Any],
+    node: Any,
+    documents: dict[Path, dict[str, Any]],
+    seen: set[tuple[Path, str]] | None = None,
+) -> dict[str, Any]:
     if not isinstance(node, dict):
         return {}
+    seen = set() if seen is None else seen
     result: dict[str, Any] = {}
     reference = node.get("$ref")
     if isinstance(reference, str):
-        target = resolve_pointer(document, reference)
-        if isinstance(target, dict):
-            result.update(effective_constraints(document, target))
+        edge = (document_path.resolve(), reference)
+        if edge not in seen:
+            resolved = resolve_reference(document_path, reference, documents)
+            if resolved is None:
+                raise ReferenceResolutionError(
+                    f"cannot resolve audited local reference {reference!r} "
+                    f"from {document_path.name}"
+                )
+            target_path, target_document, target = resolved
+            result.update(
+                effective_constraints(
+                    target_path,
+                    target_document,
+                    target,
+                    documents,
+                    seen | {edge},
+                )
+            )
     result.update({key: value for key, value in node.items() if key != "$ref"})
     return result
 
@@ -75,13 +130,15 @@ def classify(field: str, constraints: dict[str, Any]) -> tuple[str | None, str]:
         return "validated_open_reason_code", REASON_CODE_PATTERN
 
     if field == "reason":
-        if not any(key in constraints for key in ("minLength", "maxLength", "pattern", "format")):
-            return None, "free-text reason lacks a string boundary"
+        if not isinstance(constraints.get("maxLength"), int):
+            return None, "free-text reason lacks a maximum length boundary"
         return "bounded_free_text", "human-readable text with schema boundary"
 
     if field in {"schema", "status"}:
-        if not any(key in constraints for key in ("minLength", "maxLength", "pattern", "format")):
-            return None, f"open {field} lacks a syntax or length boundary"
+        if not isinstance(constraints.get("maxLength"), int) or not isinstance(
+            constraints.get("pattern"), str
+        ):
+            return None, f"open {field} lacks a token pattern or maximum length boundary"
         return "validated_open_token", "open protocol token with schema boundary"
 
     return None, "unknown audited field"
@@ -90,21 +147,30 @@ def classify(field: str, constraints: dict[str, Any]) -> tuple[str | None, str]:
 def build_report() -> dict[str, Any]:
     paths = sorted(SCHEMAS.glob("*operations.schema.json"))
     paths.append(SCHEMAS / "service-operation-dtos.schema.json")
+    documents: dict[Path, dict[str, Any]] = {}
     rows: list[dict[str, Any]] = []
     errors: list[str] = []
     counts: dict[str, int] = {}
 
     for path in paths:
-        document = json.loads(path.read_text(encoding="utf-8"))
+        document = load_document(path, documents)
         for shape, node in sorted((document.get("$defs") or {}).items()):
             if not isinstance(node, dict) or not isinstance(node.get("properties"), dict):
                 continue
             for field in AUDITED_FIELDS:
                 if field not in node["properties"]:
                     continue
-                constraints = effective_constraints(document, node["properties"][field])
-                classification, basis = classify(field, constraints)
                 target = f"{path.name}#/$defs/{shape}/properties/{field}"
+                try:
+                    constraints = effective_constraints(
+                        path,
+                        document,
+                        node["properties"][field],
+                        documents,
+                    )
+                    classification, basis = classify(field, constraints)
+                except ReferenceResolutionError as error:
+                    classification, basis = None, str(error)
                 row = {
                     "schema_file": path.name,
                     "shape": shape,

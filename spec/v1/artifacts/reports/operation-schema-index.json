@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.6",
+  "version": "2026-08-25.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-24T16:10:33+08:00",
+  "generated_at": "2026-08-25T03:20:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5311,7 +5311,6 @@
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "install_id",
           "applet_id",
           "registration_event_ref",
@@ -5321,14 +5320,12 @@
           "bot_actor_provision_ref",
           "bot_principal_control_realm_id",
           "capability_grant_refs",
-          "membership_event_refs",
           "e2ee_authorization_refs",
           "widget_policy_ref",
           "effective_status",
           "rejected"
         ],
         "properties": [
-          "ok",
           "install_id",
           "applet_id",
           "registration_event_ref",
@@ -5338,7 +5335,6 @@
           "bot_actor_provision_ref",
           "bot_principal_control_realm_id",
           "capability_grant_refs",
-          "membership_event_refs",
           "e2ee_authorization_refs",
           "widget_policy_ref",
           "effective_status",

@@ -68,7 +68,6 @@
     "actor_policy": {
       "type": "object",
       "properties": {
-        "bot_membership": { "enum": ["invite", "join", "disabled"] },
         "ghost_actor_mode": { "enum": ["disallowed", "controller_approved", "policy_declared"] }
       },
       "additionalProperties": false

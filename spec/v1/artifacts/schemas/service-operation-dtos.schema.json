@@ -2062,8 +2062,7 @@
           ]
         },
         "reason": {
-          "type": "string",
-          "maxLength": 512
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         },
         "governance_proof": {
           "$ref": "#/$defs/DirectoryGovernanceProof",

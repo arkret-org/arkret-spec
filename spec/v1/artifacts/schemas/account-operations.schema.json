@@ -1787,9 +1787,7 @@
           "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
         "reason": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 1024
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"

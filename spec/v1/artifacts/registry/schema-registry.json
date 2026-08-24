@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.2",
+  "version": "2026-08-25.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-23T13:02:00+08:00",
+  "generated_at": "2026-08-25T03:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -952,6 +952,42 @@
       "file": "schemas/applet-install-authoring.schema.json",
       "status": "active",
       "description": "Closed Principal Server preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
+    },
+    {
+      "schema_id": "ak.schema.applet_install_authoring_request_basis.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "fragment": "#/$defs/authoring_request_basis",
+      "status": "active",
+      "description": "Canonical unsigned basis frozen by the Principal Server preview and covered by the install authoring request signature.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Applet install preview authoring_request.basis",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_install_authoring_request.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "fragment": "#/$defs/authoring_request",
+      "status": "active",
+      "description": "Principal Server-signed, expiry-bounded Applet install authoring request used by the durable co-sign handshake.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Applet install preview and author request authoring_request",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_managed_actor_authoring_bundle.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "fragment": "#/$defs/managed_actor_bundle",
+      "status": "active",
+      "description": "Exact four-Event service-authored managed-actor creation bundle returned by the Applet service after validating an authoring request.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Applet install author outcome managed_actor_bundle",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
     },
     {
       "schema_id": "ak.schema.applet_install_operations.v1",

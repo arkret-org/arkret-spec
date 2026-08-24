@@ -284,12 +284,6 @@
     },
     {
       "schema": "applet-install-operations.schema.json",
-      "json_pointer": "/$defs/applet_install_outcome/properties/membership_event_refs",
-      "field": "membership_event_refs",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "applet-install-operations.schema.json",
       "json_pointer": "/$defs/applet_install_outcome/properties/registration_event_ref",
       "field": "registration_event_ref",
       "classification": "complete_event_id"
@@ -590,6 +584,18 @@
     },
     {
       "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/mls_keypackage_payload/properties/agent_key_authorize_event_id",
+      "field": "agent_key_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/mls_keypackage_payload/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
       "json_pointer": "/$defs/mls_welcome_payload/properties/agent_key_authorize_event_id",
       "field": "agent_key_authorize_event_id",
       "classification": "complete_event_id"
@@ -722,12 +728,6 @@
     },
     {
       "schema": "identity-resolution.schema.json",
-      "json_pointer": "/$defs/principal_resolution_update_payload/properties/previous_resolution_event_ref",
-      "field": "previous_resolution_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "identity-resolution.schema.json",
       "json_pointer": "/$defs/resolution_projection/properties/resolution_event_ref",
       "field": "resolution_event_ref",
       "classification": "complete_event_id"
@@ -736,6 +736,12 @@
       "schema": "identity-resolution.schema.json",
       "json_pointer": "/$defs/service_resolution_record_core/properties/resolution_event_ref",
       "field": "resolution_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "invite-delivery-request.schema.json",
+      "json_pointer": "/$defs/self_invite_dispatch_request_body/properties/invite_event_id",
+      "field": "invite_event_id",
       "classification": "complete_event_id"
     },
     {
@@ -782,8 +788,8 @@
     },
     {
       "schema": "keypackage-operations.schema.json",
-      "json_pointer": "/$defs/keypackages_consume_request_body/properties/consumer_agent_key_authorize_event_id",
-      "field": "consumer_agent_key_authorize_event_id",
+      "json_pointer": "/$defs/keypackages_upload_request_body/properties/agent_key_authorize_event_id",
+      "field": "agent_key_authorize_event_id",
       "classification": "complete_event_id"
     },
     {
@@ -813,12 +819,6 @@
     {
       "schema": "keys-operations.schema.json",
       "json_pointer": "/$defs/device_projection_attestation_core/properties/device_authorize_event_id",
-      "field": "device_authorize_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "keys-operations.schema.json",
-      "json_pointer": "/$defs/query_device_record/properties/device_authorize_event_id",
       "field": "device_authorize_event_id",
       "classification": "complete_event_id"
     },
@@ -853,8 +853,8 @@
       "classification": "complete_event_id"
     },
     {
-      "schema": "principal-operations.schema.json",
-      "json_pointer": "/$defs/causal_ingress_receipt/properties/event_digest",
+      "schema": "offline-publication.schema.json",
+      "json_pointer": "/$defs/ingress_receipt/properties/event_digest",
       "field": "event_digest",
       "classification": "digest_copy_or_commitment"
     },

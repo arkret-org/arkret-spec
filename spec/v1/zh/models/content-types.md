@@ -454,7 +454,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 响应投票时，客户端发送 `ak.content.poll.response` Content Block，最小形态为 `{ "kind": "ak.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`。`poll_ref` MUST 解析到同一 Realm、同一有效 Circle scope 内已接受且包含目标 `ak.content.poll` block 的 Message；缺失、跨 scope 或不指向 poll 时接收方 MUST 拒绝 response Event。`selections` MUST 非空、无重复，且每个成员都属于该 poll 的闭合 answer-id 集合；去重后的成员数 MUST 不大于 `max_selections`。未知 answer 或超选 MUST 整体拒绝，不得过滤、截断或部分计票。
 
-权威计票由已接受的标准 Message Event 流承担。response Event 保留在 canonical Event log 中作为审计事实，并折叠进目标 poll 的 `PollState`；它不再物化为时间线中的独立 `MessageState`，避免投票动作同时成为第二条可回复 Message。reducer 按 actor 保存一个当前有效 response：若候选的 `causal_refs` 包含当前 response digest，候选替换当前值；若当前 response 的 `causal_refs` 包含候选 digest，保留当前值；否则两者并发，以 canonical Event digest 的 UTF-8 byte order 较大者胜出。该规则与接收顺序无关，重放必须得到相同 tally。未来登记的 poll Morph/Relation profile只能投影此状态，不得成为第二真相源。canonical block schema 见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/content-block-poll.schema.json`。
+权威计票由已接受的标准 Message Event 流承担。response Event 保留在 canonical Event log 中作为审计事实，并折叠进目标 poll 的 `PollState`；它不再物化为时间线中的独立 `MessageState`，避免投票动作同时成为第二条可回复 Message。reducer 按 actor 保存一个当前有效 response：若候选的 `causal_refs` 包含当前 response digest，候选替换当前值；若当前 response 的 `causal_refs` 包含候选 digest，保留当前值；否则两者并发，以 canonical Event digest 的 UTF-8 byte order 较大者胜出。该规则与接收顺序无关，重放必须得到相同 tally。未来登记的 poll Morph/Relation profile只能投影此状态，不得成为第二真相源。canonical block schema 见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/content-block-poll.schema.json`；对应一致性向量为 `ak.vector.message.poll_reducer.v1`。
 
 ### 4.10 复合消息 `ak.content.composite`
 

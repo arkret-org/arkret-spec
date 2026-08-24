@@ -750,7 +750,7 @@
           "$ref": "#/$defs/keys_backups_delete_proof"
         },
         "reason": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         }
       },
       "additionalProperties": false

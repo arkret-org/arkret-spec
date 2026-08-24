@@ -1354,11 +1354,11 @@ components:
               - applet_install_required
               - applet_namespace_conflict
               - applet_package_expired
+              - authoring_request_expired
               - applet_registration_epoch_evidence_mismatch
               - applet_registration_epoch_evidence_missing
               - applet_registration_epoch_signing_key_mismatch
               - applet_transaction_in_progress
-              - bot_actor_revoked
               - enclave_no_upstream_proxy_for_external
               - enclave_not_trusted
               - external_invite_actor_mismatch

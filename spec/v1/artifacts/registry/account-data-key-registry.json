@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-21.1",
+  "version": "2026-08-25.1",
   "source_of_truth": true,
   "description": "Canonical registry of standard Account Data key patterns. Every row explicitly declares its closed writer authorities, holder self-surface operations, cross-device merge primitive, and delete semantics; see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [

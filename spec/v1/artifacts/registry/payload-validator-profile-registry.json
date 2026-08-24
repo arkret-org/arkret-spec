@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-22.1",
+  "version": "2026-08-25.1",
   "source_of_truth": true,
   "description": "Executable validator profiles for Event payload contracts that cannot be expressed by a closed finite JSON Schema document family. Unlisted active Event kinds have no external payload validator and MUST be fully validated by their kind-bound payload schema.",
   "registry_rules": {

@@ -74,6 +74,7 @@ grpc:
       ParticipationSet: ak.self.agent.participation.resource.replace
       ParticipationGet: ak.self.agent.participation.resource.get
     EdgeApplet:
+      AuthorInstall: ak.edge.applet.install.command.author
       Describe: ak.edge.applet.read.describe
       Ping: ak.edge.applet.read.ping
       ProtocolMetadata: ak.edge.applet.read.protocol_metadata

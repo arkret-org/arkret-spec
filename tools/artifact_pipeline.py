@@ -65,6 +65,9 @@ SCHEMA_COVERAGE_SCRIPT = Path(__file__).with_name("gen_schema_consumer_coverage.
 OPERATION_STRING_CLASSIFICATION_SCRIPT = Path(__file__).with_name(
     "gen_operation_string_field_classification.py"
 )
+OPERATION_STRING_CLASSIFICATION_TEST = Path(__file__).with_name(
+    "test_operation_string_field_classification.py"
+)
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
@@ -1172,6 +1175,13 @@ def run_operation_string_classification(mode: str) -> int:
     return result.returncode
 
 
+def run_operation_string_classification_test() -> int:
+    result = subprocess.run(
+        [sys.executable, str(OPERATION_STRING_CLASSIFICATION_TEST)], cwd=ROOT
+    )
+    return result.returncode
+
+
 def cmd_generate(_: argparse.Namespace) -> int:
     write_capability_action_derivations()
     write_id_wire_form_derivations()
@@ -1217,6 +1227,7 @@ def cmd_check(_: argparse.Namespace) -> int:
     presence_status = run_property_presence_manifest("check")
     coverage_status = run_schema_consumer_coverage("check")
     string_classification_status = run_operation_string_classification("check")
+    string_classification_test_status = run_operation_string_classification_test()
     fixture_status = run_fixture_digest_check()
     session_grant_kat_status = run_session_grant_kat_check()
     contact_round_kat_status = run_contact_round_kat_check()
@@ -1231,6 +1242,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         or presence_status
         or coverage_status
         or string_classification_status
+        or string_classification_test_status
         or fixture_status
         or session_grant_kat_status
         or contact_round_kat_status

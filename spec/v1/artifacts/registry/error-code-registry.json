@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-23.6",
+  "version": "2026-08-25.1",
   "codes": [
     {
       "code": "json_invalid",
@@ -1351,6 +1351,12 @@
       "http_status": 400,
       "scope": "endpoint",
       "description": "The submitted applet package has expired."
+    },
+    {
+      "code": "authoring_request_expired",
+      "http_status": 410,
+      "scope": "endpoint",
+      "description": "A first Applet managed-actor authoring or install commit attempt arrived after the Principal Server-signed authoring request expiry. Exact durable replay of an already successful request remains available; the caller must otherwise obtain a fresh preview."
     },
     {
       "code": "applet_registration_epoch_evidence_mismatch",
@@ -5437,5 +5443,5 @@
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
   },
-  "generated_at": "2026-08-23T22:15:22+08:00"
+  "generated_at": "2026-08-25T03:15:00+08:00"
 }
