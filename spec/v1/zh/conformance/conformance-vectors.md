@@ -373,28 +373,24 @@ ak.vector.encoding.event_batch_receipt_digest.v1
   "scope": {
     "actor_id": "ak:did_core:webvh:z6mkfixture"
   },
-  "frontier": {
-    "actor_seq": 2,
-    "event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-  },
   "events": [
     "sha256:1111111111111111111111111111111111111111111111111111111111111111",
     "sha256:2222222222222222222222222222222222222222222222222222222222222222"
   ],
-  "created_at": "2026-04-26T00:00:00Z"
+  "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
 
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111","sha256:2222222222222222222222222222222222222222222222222222222222222222"],"frontier":{"actor_seq":2,"event_digest":"sha256:2222222222222222222222222222222222222222222222222222222222222222"},"issuer":"ak:did_core:webvh:z6mkfixture","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ak.schema.event_batch_receipt.v1","scope":{"actor_id":"ak:did_core:webvh:z6mkfixture"}}
+{"created_at":"2026-04-26T00:00:00.000Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111","sha256:2222222222222222222222222222222222222222222222222222222222222222"],"issuer":"ak:did_core:webvh:z6mkfixture","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ak.schema.event_batch_receipt.v1","scope":{"actor_id":"ak:did_core:webvh:z6mkfixture"}}
 ```
 
 期望 digest：
 
 ```text
-sha256:c94a4851d786f84ce4ef63840ab7f5fcaab7dd63c46fcd7a6472aef03b6aa560
+sha256:7af524696c2f216306f2faa52e98685cda91beb59230254add917d6652c35230
 ```
 
 失败条件：
@@ -402,7 +398,7 @@ sha256:c94a4851d786f84ce4ef63840ab7f5fcaab7dd63c46fcd7a6472aef03b6aa560
 - producer 未先按 `UTF8(canonical_json(item))` 排序去重，或 receiver 接受了非严格升序 / 含重复项的 signed wire 数组。
 - fixture 的 reversed+duplicate constructor input 未规范化为与主向量相同的 `events[]` 与 digest。
 - proof 字段被包含进 receipt digest。
-- `issuer`、`scope`、`frontier` 或 `schema` 被排除在 digest 外。
+- `issuer`、`scope`、`events`、`created_at` 或 `schema` 被排除在 digest 外。
 - `receipt_id` 大小写被实现私自改写。
 
 ### 1.8 Vector: Signature Binding Payload

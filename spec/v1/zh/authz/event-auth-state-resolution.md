@@ -198,7 +198,7 @@ Grant 晚于 producer 最新 seal 签发时，producer MUST 等下一个控制�
 
 数据面传播使用 gossip、anti-entropy 或 RBSR 类集合调和。同步摘要可以作为 federation probe 的 data frontier。
 
-Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Receipt（receipt object，schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，schema id `ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）。单事件确认即 `events[]` 只含该 `event_digest` 的单元素 receipt：`scope` 携带 `realm_id`，`created_at` 为 issuer 看见该事件的时间，`frontier` 为签发时 issuer 前沿。
+Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Receipt（receipt object，schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，schema id `ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）。单事件确认即 `events[]` 只含该 `event_digest` 的单元素 receipt：`scope` 携带 `realm_id`，`created_at` 为 issuer 看见该事件的时间。receipt 不携带 issuer frontier；需要前沿或范围证明时使用标准 frontier probe / range-completeness attestation。
 
 单元素 receipt 与批量 receipt 使用同一语义：它是 best-effort、set-bound integrity hint，不带协议级过期或序列语义。issuer 侧漏发/扣发检测由 [`../sync/operations-sync.md` §6.4](../sync/operations-sync.md) range-completeness attestation 与 frontier probe 承担，equivocation 检测归 Seal 的 `notary_seq`（§7.1）；receipt 的本地保留期由部署 retention policy 决定。
 

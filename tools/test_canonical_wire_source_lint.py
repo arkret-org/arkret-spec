@@ -20,6 +20,8 @@ SCHEMA_NAMES = (
     "agent-membership-cascade.schema.json",
     "account-data-encrypted-value.schema.json",
     "event-batch-receipt.schema.json",
+    "key-backup.schema.json",
+    "key-backup-active-series.schema.json",
     "mls-governance-proof-bundle.schema.json",
 )
 
@@ -112,6 +114,30 @@ class CanonicalWireSourceLintTest(unittest.TestCase):
 
         errors = self._lint("event-batch-receipt.schema.json", mutate)
         self.assertTrue(any("derive event_digest from event_id" in error for error in errors), errors)
+
+    def test_receipt_frontier_mirror_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["properties"]["frontier"] = {"type": "object"}
+
+        errors = self._lint("event-batch-receipt.schema.json", mutate)
+        self.assertTrue(any("must not claim an unscoped partial frontier" in error for error in errors), errors)
+
+    def test_special_scope_digest_mirror_fails(self) -> None:
+        def mutate(schema) -> None:
+            scope = schema["$defs"]["device_reanchor_scope"]
+            scope["properties"]["reanchor_digest"] = {"type": "string"}
+
+        errors = self._lint("event-batch-receipt.schema.json", mutate)
+        self.assertTrue(any("derive typed Event digests" in error for error in errors), errors)
+
+    def test_key_backup_generation_string_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["properties"]["frontier_ref"]["properties"]["device_generation_ref"] = {
+                "type": "string",
+            }
+
+        errors = self._lint("key-backup.schema.json", mutate)
+        self.assertTrue(any("canonical PCR generation integer" in error for error in errors), errors)
 
     def test_governance_descriptor_digest_mirror_fails(self) -> None:
         def mutate(schema) -> None:

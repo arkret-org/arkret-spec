@@ -511,6 +511,8 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     cleanup_path = schema_dir / "agent-membership-cascade.schema.json"
     account_data_path = schema_dir / "account-data-encrypted-value.schema.json"
     receipt_path = schema_dir / "event-batch-receipt.schema.json"
+    key_backup_path = schema_dir / "key-backup.schema.json"
+    active_series_path = schema_dir / "key-backup-active-series.schema.json"
     governance_path = schema_dir / "mls-governance-proof-bundle.schema.json"
     principal = load_json(lint, principal_path)
     contact = load_json(lint, contact_path)
@@ -518,6 +520,8 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     cleanup = load_json(lint, cleanup_path)
     account_data = load_json(lint, account_data_path)
     receipt = load_json(lint, receipt_path)
+    key_backup = load_json(lint, key_backup_path)
+    active_series = load_json(lint, active_series_path)
     governance = load_json(lint, governance_path)
     if not all(isinstance(value, dict) for value in (
         principal,
@@ -526,6 +530,8 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
         cleanup,
         account_data,
         receipt,
+        key_backup,
+        active_series,
         governance,
     )):
         return
@@ -591,6 +597,40 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     receipt_properties = set(receipt_item.get("properties", {})) if isinstance(receipt_item, dict) else set()
     if "event_digest" in receipt_required or "event_digest" in receipt_properties:
         lint.fail(receipt_path, "event receipt item must derive event_digest from event_id")
+    receipt_required_root = set(receipt.get("required", []))
+    receipt_properties_root = set(receipt.get("properties", {}))
+    if "frontier" in receipt_required_root or "frontier" in receipt_properties_root:
+        lint.fail(
+            receipt_path,
+            "Event Batch Receipt must not claim an unscoped partial frontier; use typed frontier contracts",
+        )
+    for scope_name, derived_fields in (
+        ("device_reanchor_scope", {"reanchor_digest", "replacement_authorize_digest"}),
+        ("pcr_genesis_scope", {"create_digest", "founding_authorize_digest"}),
+    ):
+        scope = receipt_defs.get(scope_name) if isinstance(receipt_defs, dict) else None
+        scope_required = set(scope.get("required", [])) if isinstance(scope, dict) else set()
+        scope_properties = set(scope.get("properties", {})) if isinstance(scope, dict) else set()
+        duplicated = sorted(derived_fields & (scope_required | scope_properties))
+        if duplicated:
+            lint.fail(
+                receipt_path,
+                f"{scope_name} must derive typed Event digests from events[].event_id, found {duplicated}",
+            )
+
+    generation_ref = "./recovery-session.schema.json#/$defs/pcr_generation_ref"
+    backup_frontier = key_backup.get("properties", {}).get("frontier_ref", {})
+    series_frontier = active_series.get("$defs", {}).get("frontier_ref", {})
+    for path, frontier in (
+        (key_backup_path, backup_frontier),
+        (active_series_path, series_frontier),
+    ):
+        field = frontier.get("properties", {}).get("device_generation_ref", {})
+        if field.get("$ref") != generation_ref:
+            lint.fail(
+                path,
+                "frontier_ref.device_generation_ref must reuse the canonical PCR generation integer",
+            )
 
     governance_defs = governance.get("$defs", {})
     proof_material = governance_defs.get("typed_proof_material") if isinstance(governance_defs, dict) else None
@@ -2076,7 +2116,7 @@ def check_signed_object_closure(lint: Lint) -> None:
         if batch.get("additionalProperties") is not False:
             lint.fail(batch_path, "event batch receipt root additionalProperties must be false")
         properties = batch.get("properties") or {}
-        for name in ("scope", "frontier"):
+        for name in ("scope",):
             schema = properties.get(name)
             if not is_closed_object_schema(schema):
                 lint.fail(batch_path, f"event batch receipt {name} additionalProperties must be false")
@@ -2383,8 +2423,6 @@ REANCHOR_RETIRED_AUTHORITY_FIELDS = (
 REANCHOR_SCOPE_LOCAL_FIELDS = (
     "kind",
     "realm_id",
-    "reanchor_digest",
-    "replacement_authorize_digest",
 )
 
 

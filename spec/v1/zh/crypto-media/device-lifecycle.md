@@ -1400,7 +1400,7 @@ recovery policy 授权，并提交两条 Event：
    `prev_refs` 只指向 re-anchor Event。
 
 两条 Event 必须原子接受，receipt `scope.kind="device_reanchor_unit"`。该 scope 的封闭字段集恰为
-`{kind, principal_id, principal_server_id, realm_id, previous_device_generation, new_device_generation, reanchor_digest, replacement_authorize_digest}`：它与 `ak.device.reanchor` payload 选择同一个本地 account authority pair，每个同名字段 MUST 与被覆盖 payload 逐字节相等，任一不等以 `device_reanchor_authority_mismatch` fail closed。scope MUST NOT 携带 `did_version_id`、
+`{kind, principal_id, principal_server_id, realm_id, previous_device_generation, new_device_generation}`：它与 `ak.device.reanchor` payload 选择同一个本地 account authority pair，每个同名字段 MUST 与被覆盖 payload 逐字节相等，任一不等以 `device_reanchor_authority_mismatch` fail closed。两条 Event 的 suite-bearing digest 只从 `events[]` 中对应 kind 的唯一 typed `event_id` 派生并通过 resolved Event 重算，不在 scope 复制。scope MUST NOT 携带 `did_version_id`、
 `registry_head` 或任何 DID publication 字段，接收方也 MUST NOT 由 generation ref 反向合成它们。接受后
 generation fence 使旧 generation 全部失效。`current_device_generation_ref` 是 PCR-local monotonic ref，
 MUST NOT 使用或等于 DID `versionId`；resolution cell 不随基础恢复推进。

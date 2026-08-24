@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "9df1658316388cf5c279e88c841d4e46ae48143c689e4f914fd34763f82221c7"
+      "sha256": "2123618ae08781a607d15e3a3a9d7a0afd421a8e976e810b8de4a833fc44374d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "cc72633103d307460a27903f212dbbfd65d52b073ce99e36741fa1ce606ed236"
+      "sha256": "7ce10459774e8b4f00f23b79124263da9e8341caae3b48bfc18e4a8f9591661d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

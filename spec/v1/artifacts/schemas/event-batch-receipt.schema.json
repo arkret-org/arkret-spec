@@ -8,7 +8,6 @@
     "receipt_id",
     "issuer",
     "scope",
-    "frontier",
     "events",
     "created_at",
     "proofs"
@@ -36,27 +35,6 @@
           "$ref": "#/$defs/pcr_genesis_scope"
         }
       ]
-    },
-    "frontier": {
-      "type": "object",
-      "properties": {
-        "actor_seq": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "event_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
-        },
-        "event_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
-        },
-        "hlc": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
-        }
-      },
-      "minProperties": 1,
-      "additionalProperties": false
     },
     "events": {
       "type": "array",
@@ -149,7 +127,7 @@
       }
     },
     {
-      "$comment": "A device re-anchor receipt is a canonical set containing exactly one reanchor and one replacement authorize item. The issuer compares scope.reanchor_digest with the item whose kind is ak.device.reanchor and scope.replacement_authorize_digest with the item whose kind is ak.device.authorize; array position has no domain meaning.",
+      "$comment": "A device re-anchor receipt is a canonical set containing exactly one reanchor and one replacement authorize item. Each typed item carries the canonical Event ID, from which its suite-bearing digest is derived; array position has no domain meaning.",
       "if": {
         "properties": {
           "scope": {
@@ -237,9 +215,7 @@
         "principal_server_id",
         "realm_id",
         "previous_device_generation",
-        "new_device_generation",
-        "reanchor_digest",
-        "replacement_authorize_digest"
+        "new_device_generation"
       ],
       "properties": {
         "kind": {
@@ -264,21 +240,13 @@
           "type": "integer",
           "minimum": 2,
           "description": "Accepted monotonic successor generation. It MUST equal the covered ak.device.reanchor payload new_device_generation and MUST be the immediate successor of previous_device_generation. It is a PCR-local ref and MUST NOT be derived from or rendered as a DID versionId."
-        },
-        "reanchor_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "MUST equal event_digest of the unique events[] item whose kind is ak.device.reanchor."
-        },
-        "replacement_authorize_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "MUST equal event_digest of the unique events[] item whose kind is ak.device.authorize."
         }
       },
       "additionalProperties": false
     },
     "pcr_genesis_scope": {
       "type": "object",
-      "description": "Durable acceptance evidence for the create-once PCR genesis unit. Envelope digests are calculated only after both Events are fully formed and never enter either Event preimage.",
+      "description": "Durable acceptance evidence for the create-once PCR genesis unit. The covered typed Event IDs are calculated only after both Events are fully formed and never enter either Event preimage.",
       "required": [
         "kind",
         "principal_id",
@@ -287,8 +255,6 @@
         "log_head_digest",
         "control_key_digest",
         "registration_evidence_digest",
-        "create_digest",
-        "founding_authorize_digest",
         "accepted_device_id",
         "device_key_digest",
         "hpke_key_digest",
@@ -309,27 +275,19 @@
           "type": "string",
           "pattern": "^(?!ak:)",
           "minLength": 1,
-          "description": "The exact did:webvh inception versionId pinned by the identity-root control proof and used to initialize current_device_generation_ref."
+          "description": "The exact method-native version identifier pinned by the identity-root control proof. It identifies verified DID control evidence and MUST NOT initialize or otherwise determine the PCR-local device generation."
         },
         "log_head_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "The exact DID inception log head digest accepted for this PCR genesis."
+          "description": "The exact verified DID history head digest accepted for this PCR genesis."
         },
         "control_key_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "Digest of the inception identity-root update key pinned by the control proof."
+          "description": "Digest of the active identity-root control key pinned by the control proof."
         },
         "registration_evidence_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest",
           "description": "SHA-256 digest of RFC 8785 JCS of the complete accepted registration_did_evidence relayed to the Principal Server."
-        },
-        "create_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "MUST equal event_digest of the unique events[] item whose kind is ak.realm.create."
-        },
-        "founding_authorize_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "MUST equal event_digest of the unique events[] item whose kind is ak.device.authorize."
         },
         "accepted_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"

@@ -88,8 +88,8 @@
           "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
         },
         "device_generation_ref": {
-          "type": "string",
-          "pattern": "^[1-9][0-9]*-[^\\s]+$"
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "PCR-local monotonic device generation at envelope creation; it is not and MUST NOT be derived from a DID versionId."
         }
       },
       "additionalProperties": false

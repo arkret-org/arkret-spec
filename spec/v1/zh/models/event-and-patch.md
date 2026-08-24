@@ -833,14 +833,15 @@ Schema id: `ak.schema.event_batch_receipt.v1`
 | `receipt_id` | yes | `id:receipt` |  | Receipt ID。 |
 | `issuer` | yes | `did` | 必须控制签名 key。 | 签发者，可以是 principal、Principal Server 或 witness。 |
 | `scope` | yes | `object` | MUST 至少包含 `actor_id`、`realm_id` 或查询范围 hash 之一；Realm-scoped receipt MUST 包含 `realm_id`。 | receipt 覆盖范围。 |
-| `frontier` | yes | `object` | MUST 至少包含 `actor_seq`、`event_id` / `event_digest`、HLC 或 Realm frontier 之一。 | 签发时前沿。 |
 | `events` | yes | `array<hash \| receipt-item>` | canonical set：每项以 `canonical_json(item)` 的 UTF-8 bytes 为排序键严格升序，禁止重复。普通 compact form 使用 bare digest；需要 kind 的 typed item 使用 `event_id + kind`。 | 被 receipt 覆盖的 Event identity；数组位置没有业务语义。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `proofs` | yes | `array<Proof>` |  | Receipt proof。 |
 
 `receipt-item` 的 closed wire 形态为 `{event_id: id:event, kind: string}`。`event_id` 的 33-octet token 已无损编码 digest suite 与完整 32-byte canonical Event digest；consumer 需要 bare digest 时 MUST 从 ID 解码为规范 `<suite>:<lowercase-hex>`，不得接受第二份同源 digest。该 object 整体作为 `events[]` item 进入 canonical JSON、排序键与 `receipt_digest` 输入。`scope.kind="device_reanchor_unit"` 的 B 模型 Recovery Re-anchor Unit 与 `scope.kind="pcr_genesis_unit"` 的 PCR genesis unit 均 MUST 使用此形态；前者具体受理语义见 [`../identity/key-management.md`](../identity/key-management.md) §5.0.3。
 
-签发方 MUST 在计算 `receipt_digest` 前按上述排序键对 `events[]` 排序并去重，并把规范化后的数组作为实际 wire 值签发；接收方 MUST 在验签前确认相邻排序键严格递增。非升序或含重复项的 receipt MUST 以 `schema_violation` 拒绝，不得通过本地静默重排后接受。对于 `scope.kind="device_reanchor_unit"`，数组仍是 canonical set：实现按 item 的 `kind` 找到唯一 `ak.device.reanchor` 与唯一 `ak.device.authorize`，分别把其 `event_id` 解码的 digest 与 `scope.reanchor_digest` / `scope.replacement_authorize_digest` 比对；对于 `scope.kind="pcr_genesis_unit"`，实现同样按 `kind` 找到唯一 `ak.realm.create` 与唯一 `ak.device.authorize`，分别与 `scope.create_digest` / `scope.founding_authorize_digest` 比对。两种 unit 均不得依赖 `[0]` / `[1]` 位置。
+签发方 MUST 在计算 `receipt_digest` 前按上述排序键对 `events[]` 排序并去重，并把规范化后的数组作为实际 wire 值签发；接收方 MUST 在验签前确认相邻排序键严格递增。非升序或含重复项的 receipt MUST 以 `schema_violation` 拒绝，不得通过本地静默重排后接受。对于 `scope.kind="device_reanchor_unit"`，数组仍是 canonical set：实现按 item 的 `kind` 找到唯一 `ak.device.reanchor` 与唯一 `ak.device.authorize`；对于 `scope.kind="pcr_genesis_unit"`，实现同样找到唯一 `ak.realm.create` 与唯一 `ak.device.authorize`。consumer MUST 从每个 typed item 的 `event_id` 解出 suite-bearing digest，按该 ID resolve Event 并重算 canonical digest；缺项、重复 kind、错误 kind、ID 与 resolved Event 不一致均 fail closed。两种 unit 均不得复制同源 digest，也不得依赖 `[0]` / `[1]` 位置。
+
+Event Batch Receipt 不携带 `frontier`。它只承诺 `events[]` 的选择集合，不证明顺序、range completeness、accepted Seal view 或 issuer 的 DAG 前沿；`created_at` 只是签发时间。需要 actor/Realm frontier 或完整性边界的协议必须使用对应的 typed frontier/read/attestation 合同，MUST NOT 从 receipt 的事件集合或时间推断该状态。
 
 ## 6. Reducer 总则
 
