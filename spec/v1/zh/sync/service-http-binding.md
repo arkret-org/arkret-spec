@@ -937,7 +937,7 @@ service-signed lost descriptor。ack token 逐项绑定 normal/lost kind、seque
 
 - **开放条件（全部为 MUST，缺一即不开放）**：holder 持有一条 §3 定义的 **Contact verified mirror**；该 mirror 的 source-signed acceptance receipt 逐字绑定所请求的 exact Event ID 与 `request_digest`；mirror Event 的 `actor_id` 等于 mirror peer；其 payload peer 等于当前 session actor；对应 contact row 的 `contact_state` 仍为 `pending_incoming`。
 - **数据源封闭**：本分支 MUST 只从 Contact verified mirror 读取 exact bytes，**MUST NOT** 查询 realm event store，**MUST NOT** 据此扫描对端 PCR、返回该 exact Event 之外的任何 Event，也 **MUST NOT** 扩大 Realm membership 或把 holder-private mirror row 当作独立 authority。
-- **Event-only surface**：本分支只返回 exact mirror Event 或把 selector 计入 `missing`；Event resolve DTO 没有 `seals[]`，也不接受 SealRef selector。一张 covering Seal 会同时交出 requester PCR 的 `realm_id`、`delta[]`、roots 与 seal 节奏；§3 的验证闭环只有 issuer 签名、`accepted_at` 时点 issuer key 与 receipt 对 Event ref/digest 的绑定三项，从不需要 Seal。
+- **Event-only surface**：本分支只返回 exact mirror Event 或把 selector 计入 `missing`；Event resolve DTO 没有 `seals[]`，也不接受 SealRef selector。一张 covering Seal 会同时交出 requester PCR 的 `realm_id`、`delta[]`、roots 与 seal 节奏；§3 的验证闭环只有 issuer 签名、`accepted_at` 时点 issuer key 与 receipt 对完整 Event ref 及其内嵌 digest 的绑定三项，从不需要 Seal。
 - **与凭据同生命周期**：contact row 离开 `pending_incoming`（进入 `accepted` / `rejected` / `expired` / `tombstoned`）后，§3 已要求同事务清除 `request_receipt`；本分支随之关闭，该 selector MUST 计入 `missing`，与"不存在"不可区分，**MUST NOT** 计入 `unauthorized`——后者会确认该 Event 存在。
 - **统一披露合同**：gate 顺序、`missing` 同形与零 Seal 成功约束由
   `ak.outward_disclosure.contact_pending_verified_mirror.v1` 机读定义；本段不再另造一套错误合并规则。

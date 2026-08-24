@@ -84,7 +84,7 @@ carrier；因此 target 当前离线或不可解析 **MUST NOT** 把本地 prepa
 
 holder source service **MUST** 以本地 `(holder, peer)` admission slot CAS 串行 request/respond/reject，并保证
 任一 request ref 最多被 normal、glare 或 reject 之一消费。每条 accepted request 独立取得 source-signed
-`request_acceptance_receipt`，至少绑定 holder、完整 peer、slot version/predecessor、request Event ref/digest、
+`request_acceptance_receipt`，至少绑定 holder、完整 peer、slot version/predecessor、完整 request Event ref、
 source checkpoint、accepted-at 与 issuer；receipt 不得反向承诺尚未存在的 future round。
 `request_acceptance_receipt_digest` 是 exact closed signed receipt 的 RFC 8785/JCS UTF-8 bytes 的 SHA-256。
 
@@ -134,8 +134,8 @@ H(label, x) = "sha256:" + lowerhex(SHA256(UTF8(label + "\n") || RFC8785_JCS(x)))
 ```
 
 若某字段定义显式指定 decoded ciphertext bytes，则改为 `SHA256(UTF8(label + "\n") || decoded_bytes)` 且不做 JCS。
-receipt中的Event ref/digest、lineage中的
-event ref与current proof head都必须与同一内层Event及分支逐字交叉匹配。carrier只承载
+receipt 中的完整 Event ref、lineage 中的 Event ref 与 current proof head 都必须与同一内层 Event 及分支逐字交叉匹配。所有完整 Event ref 的 digest 都按
+[`../conformance/encoding.md` §4.0](../conformance/encoding.md) 从 suite-tagged full-digest EventId 解码，wire **MUST NOT** 再携同源 digest 镜像；验证方仍必须从内层 Event canonical preimage 重算 digest 并与 EventId 比较。carrier只承载
 `ak.contact.*`，不得承载 `ak.direct_conversation.bound` 或 Realm Event；Direct Conversation binding 只能走
 §5–§7 的 founding admission 与 bootstrap authority。carrier 必须使用 peer Message Signature，并逐字保留内层 bytes；relay
 不得重签、改写、拆批或把 tentative 提升为 accepted。其 response 是独立 closed union
@@ -205,7 +205,7 @@ lineage，也 **MUST NOT** 以同一组值重试。本条的规范执行向量�
 **MUST** 原样抄入，**MUST NOT** 改名、重建或从 `request_event_ref` 拼装。与 `next_prepare_input` 的关键差异在于**签发者**：
 该 receipt 由**对端的** source service 签发，不是 holder 自己的服务器签的。正因如此，把对象本身交给 holder 客户端
 具有真实的跨服务器验证价值——客户端 **MUST** 自行验证 issuer 签名、`accepted_at` 时点的 issuer service key，以及
-receipt 对 exact request Event ref/digest 的绑定，而不是无条件相信自己服务器的转述。
+receipt 对 exact request Event ref 及其内嵌 digest 的绑定，而不是无条件相信自己服务器的转述。
 
 按 `contact_state` 逐值判定：只有 `pending_incoming` **MUST** 携带；`pending_outgoing`、`accepted`、`rejected`、
 `expired`、`tombstoned` **MUST NOT** 携带——`pending_outgoing` 是 holder 自己发起、尚未有结果的提案，没有待回应的
@@ -221,7 +221,7 @@ round 直接投影为 `accepted`，两段都不是 `pending_incoming`——这�
 `ak.vector.contact.pending_incoming_request_receipt.v1`。
 
 **Contact verified mirror 与客户端如何取得原始 Event（normative）**：上段要求客户端验证 receipt 对 exact request
-Event ref/digest 的绑定，因此它必须能取得那条 Event。Contact request 位于 **requester 的** PCR，holder 不是该 PCR
+Event ref 及其内嵌 digest 的绑定，因此它必须能取得那条 Event。Contact request 位于 **requester 的** PCR，holder 不是该 PCR
 member，普通 Realm 可见性结构上给不出它；`ak.peer.contacts.command.submit` 的 carrier 也**不投递** covering Seal。
 本规范因此固定下列封闭形态：
 
@@ -229,7 +229,7 @@ member，普通 Realm 可见性结构上给不出它；`ak.peer.contacts.command
   落库为 **Contact verified mirror**，即 §2 流程图中 "peer 保存 verified mirror" 的那一份。
 - **mirror 的定义钉死为**：ingest 时已完成完整 carrier 验证——canonical decode 后重算 Event ID/digest、验证
   Contact Event producer proof 与 origin Principal Server admission proof、验证 issuer service receipt 签名及
-  `accepted_at` 时点的 issuer service key，并确认 receipt 逐字绑定该 exact Event ref / `request_digest`、Event
+  `accepted_at` 时点的 issuer service key，并确认 receipt 逐字绑定该 exact request Event ref、从该 EventId 解码出的 digest、Event
   actor/payload peer 与 exact target holder——**且**已 CAS 落库的 row。只验 receipt 未验 Event，或只验 Event 未验
   receipt，都不是 verified mirror。可见性检查本身只做
   字段比对，**MUST NOT** 被解释为"检查时验签即可"；未经 ingest 验证的本地行 **MUST NOT** 被当作 mirror。
@@ -241,7 +241,7 @@ member，普通 Realm 可见性结构上给不出它；`ak.peer.contacts.command
   `ak.peer.events.read.resolve` 以 receipt 为凭据向对端 PCR 拉取——那与"不得扫描对端 PCR"只隔一个参数校验。
 - 该分支引用统一披露合同 `ak.outward_disclosure.contact_pending_verified_mirror.v1`；不存在、已终态、mirror 缺失、
   未验证与 binding mismatch 必须进入同一 `missing` 外观，精确原因只进入受限 audit。
-- 本条的验证闭环**只有** §3 上段那三项（issuer 签名、`accepted_at` 时点 issuer key、receipt 对 Event ref/digest
+- 本条的验证闭环**只有** §3 上段那三项（issuer 签名、`accepted_at` 时点 issuer key、receipt 对 Event ref 及其内嵌 digest
   的绑定）。covering Seal **不在**闭环内；客户端 **MUST NOT** 把"缺 Seal"判为验证失败。
 - **与凭据同生命周期**：该分支的授权凭据就是上段的 `request_receipt`，因此可见性与它同生同灭。contact row 迁出
   `pending_incoming` 时，服务端 **MUST** 在同一事务内清除 `request_receipt` 并关闭该 Event 的 resolve 可见性；
@@ -384,7 +384,7 @@ founding_unit_digest = H("ak.direct-conversation.founding-unit.v1",
 
 founder 的 current Principal Server **MUST** 以本地唯一约束保证同一 `(founder_id, trust_domain_id, pair_key)` 至多一组 founding unit 被 accepted。self admission **MUST** 在同一事务内完成：确认该 pair 尚无 accepted DM Realm、CAS 占用 slot、按 §5.4 与 §6 完整验证四条 Event、round 与派生坐标、零项或四项原子接受、签发 `DirectConversationFoundingAcceptanceReceipt`、写入 peer-delivery outbox。acceptance **只固定 caller 已派生的坐标**，**MUST NOT** 分配、替换或重新协商任一 ID；receipt 是该事务的输出，**MUST NOT** 循环要求 caller 预先携带。
 
-receipt **MUST** 绑定 `pair_key`、`founder_id`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/root Contact round 与 evidence digest；controller↔Agent 为 provision ref/digest 与 controller binding digest）、`slot_committed`、issuer service ID、`accepted_at` 与 proof。四条 accepted Event 自身的 `principal_server_id` 与 admission proofs 是 founder 账号 authority 的唯一 carrier。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
+receipt **MUST** 绑定 `pair_key`、`founder_id`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/root Contact round 与 evidence digest；controller↔Agent 为完整 provision Event ref 与 controller binding digest）、`slot_committed`、issuer service ID、`accepted_at` 与 proof。provision digest 必须从 suite-tagged full-digest `agent_provision_ref` 解码，wire **MUST NOT** 另带 `agent_provision_digest`。四条 accepted Event 自身的 `principal_server_id` 与 admission proofs 是 founder 账号 authority 的唯一 carrier。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
 
 
 `proof` 的签名 transcript 是唯一封闭前像，按 §2 的 `H` 固定为：

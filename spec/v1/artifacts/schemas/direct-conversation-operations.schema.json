@@ -107,7 +107,6 @@
               "required": [
                 "kind",
                 "agent_provision_ref",
-                "agent_provision_digest",
                 "controller_binding_digest"
               ],
               "properties": {
@@ -115,10 +114,8 @@
                   "const": "controller_agent"
                 },
                 "agent_provision_ref": {
-                  "$ref": "./principal-operations.schema.json#/$defs/event_id"
-                },
-                "agent_provision_digest": {
-                  "$ref": "./principal-operations.schema.json#/$defs/digest"
+                  "$ref": "./principal-operations.schema.json#/$defs/event_id",
+                  "description": "Complete identity of the accepted Agent provision Event. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel agent_provision_digest is carried."
                 },
                 "controller_binding_digest": {
                   "$ref": "./principal-operations.schema.json#/$defs/digest"

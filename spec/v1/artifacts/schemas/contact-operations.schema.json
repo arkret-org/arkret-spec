@@ -660,7 +660,6 @@
         "contact_round_id",
         "issuer",
         "head_event_ref",
-        "head_digest",
         "terminal",
         "accepted_frontier",
         "complete_through",
@@ -675,10 +674,8 @@
           "$ref": "#/$defs/did_core_id"
         },
         "head_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "head_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
+          "$ref": "#/$defs/event_id",
+          "description": "Complete identity of the signed current-head Event. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel head_digest is carried."
         },
         "terminal": {
           "type": "boolean",
@@ -2048,7 +2045,6 @@
         "contact_round_id",
         "request_receipt",
         "response_event_ref",
-        "response_digest",
         "outgoing_slot_absence_digest",
         "accepted_at",
         "issuer",
@@ -2062,10 +2058,8 @@
           "$ref": "#/$defs/request_acceptance_receipt"
         },
         "response_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "response_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
+          "$ref": "#/$defs/event_id",
+          "description": "Complete identity of the accepted response Event. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel response_digest is carried."
         },
         "outgoing_slot_absence_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest",
@@ -2376,7 +2370,6 @@
         "domain",
         "request_digest",
         "signed_event_ref",
-        "signed_event_digest",
         "outcome",
         "recipient_service_id",
         "received_at",
@@ -2391,10 +2384,8 @@
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "signed_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "signed_event_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
+          "$ref": "#/$defs/event_id",
+          "description": "Complete identity of the mirrored signed Event. Its digest is derived by decoding this suite-tagged full-digest EventId; request_digest remains the distinct digest of the peer submit request."
         },
         "outcome": {
           "type": "string",
@@ -3098,7 +3089,6 @@
       "required": [
         "request_receipt",
         "reject_event_ref",
-        "reject_digest",
         "accepted_at",
         "issuer",
         "signature"
@@ -3108,10 +3098,8 @@
           "$ref": "#/$defs/request_acceptance_receipt"
         },
         "reject_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "reject_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
+          "$ref": "#/$defs/event_id",
+          "description": "Complete identity of the accepted reject Event. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel reject_digest is carried."
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"
@@ -3152,7 +3140,6 @@
         "peer",
         "slot_version",
         "request_event_ref",
-        "request_digest",
         "source_checkpoint",
         "accepted_at",
         "issuer"
@@ -3176,10 +3163,8 @@
           "description": "Present exactly when this accepted request starts a recontact after a prior accepted Contact round became terminal. It MUST equal the requester-signed ak.contact.requested payload field and is covered by receipt_digest/signature. It is distinct from slot_predecessor, which is the issuer-local request-slot CAS predecessor and can also follow a rejected proposal."
         },
         "request_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "request_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
+          "$ref": "#/$defs/event_id",
+          "description": "Complete identity of the accepted request Event. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel request_digest is carried."
         },
         "source_checkpoint": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"

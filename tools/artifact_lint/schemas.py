@@ -2505,6 +2505,13 @@ EVENT_ID_DIGEST_MIRROR_REMOVALS = (
     ("recovery-authority.schema.json", ("$defs", "recovery_completion_attestation"), "device_authorization_event_id", "device_authorization_event_digest"),
     ("relation.schema.json", ("$defs", "relation_conflict_candidate"), "event_id", "event_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "RedactedEventView"), "event_id", "event_digest"),
+    ("contact-operations.schema.json", ("$defs", "contact_current_proof"), "head_event_ref", "head_digest"),
+    ("contact-operations.schema.json", ("$defs", "request_acceptance_receipt_core"), "request_event_ref", "request_digest"),
+    ("contact-operations.schema.json", ("$defs", "normal_response_acceptance_receipt"), "response_event_ref", "response_digest"),
+    ("contact-operations.schema.json", ("$defs", "reject_acceptance_receipt"), "reject_event_ref", "reject_digest"),
+    ("contact-operations.schema.json", ("$defs", "peer_contact_mirror_receipt"), "signed_event_ref", "signed_event_digest"),
+    ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_founding_acceptance_receipt", "properties", "authorization_core", "oneOf", 1), "agent_provision_ref", "agent_provision_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "DirectConversationFoundingAuthorityEvidence", "oneOf", 1), "agent_provision_ref", "agent_provision_digest"),
 )
 
 
@@ -2518,7 +2525,10 @@ def check_event_id_digest_mirror_removals(lint: Lint) -> None:
             for segment in path:
                 node = node[segment]
         except (KeyError, TypeError):
-            lint.fail(schema_path, f"missing registered EventId mirror-removal object {'/'.join(path)}")
+            lint.fail(
+                schema_path,
+                f"missing registered EventId mirror-removal object {'/'.join(map(str, path))}",
+            )
             continue
         properties = node.get("properties", {}) if isinstance(node, dict) else {}
         required = set(node.get("required", [])) if isinstance(node, dict) else set()
