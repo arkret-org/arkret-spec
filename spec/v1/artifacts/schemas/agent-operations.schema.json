@@ -98,12 +98,10 @@
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "did_url": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      "$ref": "./account-operations.schema.json#/$defs/did_url"
     },
     "device_id": {
-      "type": "string",
-      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
     "backup_id": {
       "type": "string",
@@ -114,8 +112,7 @@
       "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "grant_id": {
       "type": "string",
@@ -134,15 +131,13 @@
       "pattern": "^ak:message:[A-Za-z0-9_-]{44}$"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "agent_slug": {
       "$ref": "string-profiles.schema.json#/$defs/agent_slug",
@@ -469,8 +464,7 @@
         "controller_id",
         "principal_control_realm_id",
         "controller_authorization_ref",
-        "requested_scope",
-        "requested_scope_digest"
+        "requested_scope"
       ],
       "properties": {
         "agent_id": {
@@ -488,10 +482,6 @@
         "requested_scope": {
           "$ref": "#/$defs/agent_key_scope",
           "description": "Controller-private projection of the required immutable global Agent key/session ceiling captured at provision time, not a grant. Content actions are the maximum actions that later key scopes, Realm-scoped grants and sessions may allow; an omitted action cannot be added later. Participation is a separate action-time deny gate and cannot add authority. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants. Receiver authority comes from a valid agent-requested-scope-disclosure whose digest matches the accepted-at Agent DID commitment, not this service projection."
-        },
-        "requested_scope_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "sha256 digest of the domain-separated Agent requested_scope commitment fixed in the accepted Agent DID ArkretPrincipalControlRealm service entry; the public entry does not contain the complete scope."
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id",

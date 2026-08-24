@@ -163,7 +163,6 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
   ],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
-    "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
     "key_id": "device-1",
     "key_epoch": 7
   },
@@ -745,7 +744,6 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
-    "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
     "key_id": "device-1",
     "key_epoch": 7
   },

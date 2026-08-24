@@ -117,12 +117,10 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "media_type": {
-      "type": "string",
-      "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+      "$ref": "./blob-operations.schema.json#/$defs/media_type"
     },
     "call_id": {
       "type": "string",
@@ -133,16 +131,13 @@
       "pattern": "^[A-Za-z0-9._-]{1,128}$"
     },
     "event_ref": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "blob_ref": {
-      "type": "string",
-      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "$ref": "./agent-operations.schema.json#/$defs/blob_ref"
     },
     "grant_ref": {
-      "type": "string",
-      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/grant_id"
     },
     "policy_id": {
       "type": "string",

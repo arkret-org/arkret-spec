@@ -130,11 +130,74 @@
       "additionalProperties": false
     },
     "ingress_receipt": {
-      "$ref": "./principal-operations.schema.json#/$defs/causal_ingress_receipt"
+      "type": "object",
+      "description": "Closed multi-proof evidence that a policy-qualified ingress received one exact Event under one exact AuthorizationLease basis and causal frontier before expiry. It proves timely ingress only, never reducer acceptance or finality.",
+      "x-arkret-proof-context": "ak.ingress_receipt_proof.v1",
+      "required": [
+        "receipt_id",
+        "event_digest",
+        "authorization_lease_id",
+        "qualified_ingress_id",
+        "received_at",
+        "ingress_basis",
+        "ingress_frontier",
+        "service_id",
+        "authority_set_ref",
+        "proofs"
+      ],
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "event_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "authorization_lease_id": {
+          "type": "string",
+          "pattern": "^ak:authorization_lease:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "qualified_ingress_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id",
+          "description": "Version-qualified full DID of the ingress service at receipt issuance; it projects exactly to service_id."
+        },
+        "received_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "ingress_basis": {
+          "$ref": "#/$defs/lease_basis_ref",
+          "description": "Exact byte-equivalent copy of the companion AuthorizationLease.basis_ref."
+        },
+        "ingress_frontier": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          },
+          "minItems": 1,
+          "maxItems": 500,
+          "uniqueItems": true,
+          "description": "Non-empty strictly lexicographically ordered causal frontier used for the four-way offline-ingress decision."
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "authority_set_ref": {
+          "$ref": "#/$defs/authority_set_ref"
+        },
+        "proofs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/proof"
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "authority_set_ref": {
       "type": "object",

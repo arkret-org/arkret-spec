@@ -986,9 +986,6 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
     seen: set[str] = set()
     allowed_status = {"active", "reserved", "deprecated"}
     allowed_storage = {"encrypted_account_data", "local_only", "encrypted_account_data_or_local", "plaintext_account_data"}
-    # zh/models/account-data.md §5: the convergence primitive is declared per row,
-    # never defaulted, so an implementation can never guess "CAS/LWW".
-    allowed_merge_strategies = {"cas_register"}
     allowed_deletion_modes = {"physical_delete", "value_tombstone"}
     allowed_writer_authorities = {"holder_event", "principal_server_cas"}
     allowed_holder_self_operations = {"put", "delete"}
@@ -1010,8 +1007,6 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
             lint.fail(path, f"{label}.status must be one of {sorted(allowed_status)}")
         if row.get("storage") not in allowed_storage:
             lint.fail(path, f"{label}.storage must be one of {sorted(allowed_storage)}")
-        if row.get("merge_strategy") not in allowed_merge_strategies:
-            lint.fail(path, f"{label}.merge_strategy must be one of {sorted(allowed_merge_strategies)}")
         if row.get("deletion_mode") not in allowed_deletion_modes:
             lint.fail(path, f"{label}.deletion_mode must be one of {sorted(allowed_deletion_modes)}")
         if not isinstance(row.get("scope"), str) or not row["scope"]:
@@ -1534,7 +1529,7 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
                 continue
 
             # schema-definition-validator-kat.json supplies documents to
-            # ak.schema.define; their $id/schema_id values are definitions,
+            # ak.schema.define; their value.$id values are definitions,
             # not references that must already exist in the registry.
             if path.name != "schema-definition-validator-kat.json":
                 for schema_id in SCHEMA_ID_TOKEN_RE.findall(value):
@@ -1774,7 +1769,8 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
     expected_operations = {
         "upload_batch_required_fields": "ak.self.keys.keypackages.upload.create",
         "upload_entry_signature": "ak.self.keys.keypackages.upload.create",
-        "consume_all_optional_fields": "ak.self.keys.keypackages.command.consume",
+        "consume_single_claim": "ak.self.keys.keypackages.command.consume",
+        "consume_receipt_single_source_coordinates": None,
         "revoke_with_reason": "ak.self.keys.keypackages.command.revoke",
     }
     actual_names = {
@@ -1788,6 +1784,47 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
             lint.fail(fixture_path, f"cases[{index}] must be an object")
             continue
         name = case.get("name")
+        if name == "consume_receipt_single_source_coordinates":
+            signed_receipt = case.get("signed_receipt")
+            domain = case.get("domain")
+            if not isinstance(signed_receipt, dict) or domain != "ak.keypackage.consume_receipt.v1\n":
+                lint.fail(
+                    fixture_path,
+                    "consume receipt transcript needs signed_receipt and the canonical receipt domain",
+                )
+                continue
+            unsigned_receipt = dict(signed_receipt)
+            signature_object = unsigned_receipt.pop("signature", None)
+            canonical = canonical_json(unsigned_receipt)
+            if case.get("canonical_jcs") != canonical:
+                lint.fail(
+                    fixture_path,
+                    "consume receipt canonical_jcs does not equal JCS(receipt without signature)",
+                )
+            expected_signing_input = domain.encode("utf-8") + canonical.encode("utf-8")
+            stated_signing_input = decode_base64url(
+                "consume receipt signing_input_base64url",
+                case.get("signing_input_base64url"),
+            )
+            if stated_signing_input is not None and stated_signing_input != expected_signing_input:
+                lint.fail(
+                    fixture_path,
+                    "consume receipt signing_input_base64url does not encode domain || JCS(unsigned receipt)",
+                )
+            signature_text = case.get("signature")
+            if not isinstance(signature_object, dict) or signature_object.get("sig") != signature_text:
+                lint.fail(fixture_path, "consume receipt inner and fixture signatures must match")
+                continue
+            signature_bytes = decode_base64url("consume receipt signature", signature_text)
+            if signature_bytes is not None:
+                try:
+                    verifying_key.verify(signature_bytes, expected_signing_input)
+                except InvalidSignature:
+                    lint.fail(
+                        fixture_path,
+                        "consume receipt signature does not verify over domain || JCS(unsigned receipt)",
+                    )
+            continue
         operation_id = case.get("operation_id")
         unsigned = case.get("unsigned_request")
         domain = case.get("domain")
@@ -1833,7 +1870,7 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
                 lint.fail(fixture_path, f"{name}.unsigned_request.keypackage must be an object")
                 continue
             instance = copy.deepcopy(entry)
-            instance["device_signature"] = signature_object
+            instance["endpoint_signature"] = signature_object
             schema_ref = "schemas/keypackage-operations.schema.json#/$defs/keypackage_upload_entry"
         else:
             schema_ref = operation_schema_refs.get(operation_id)
@@ -1841,7 +1878,7 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
                 lint.fail(fixture_path, f"{name} operation has no request_schema_ref: {operation_id}")
                 continue
             instance = copy.deepcopy(unsigned)
-            signature_field = "device_signature" if name == "upload_batch_required_fields" else "signature"
+            signature_field = "endpoint_signature" if name == "upload_batch_required_fields" else "signature"
             instance[signature_field] = signature_object
         check_json_instance_against_schema(lint, fixture_path, name, schema_ref, instance)
 
@@ -1942,6 +1979,7 @@ def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> 
     if not isinstance(cases, list) or not cases:
         lint.fail(path, "schema_validation_cases must be a non-empty array when present")
         return
+    named_instances: dict[str, Any] = {}
     for index, case in enumerate(cases):
         label = f"schema_validation_cases[{index}]"
         if not isinstance(case, dict):
@@ -1949,11 +1987,47 @@ def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> 
             continue
         schema_ref = case.get("schema_ref")
         instance = case.get("instance")
+        instance_from = case.get("instance_from")
+        if "instance" not in case and isinstance(instance_from, str):
+            base_instance = named_instances.get(instance_from)
+            mutations = case.get("mutations")
+            if base_instance is None or not isinstance(mutations, list):
+                lint.fail(
+                    path,
+                    f"{label}.instance_from must name an earlier case and mutations must be an array",
+                )
+                continue
+            instance = copy.deepcopy(base_instance)
+            for mutation in mutations:
+                if (
+                    not isinstance(mutation, dict)
+                    or mutation.get("op") != "add"
+                    or not isinstance(mutation.get("path"), str)
+                ):
+                    lint.fail(path, f"{label}.mutations only supports explicit add operations")
+                    instance = None
+                    break
+                tokens = [
+                    token.replace("~1", "/").replace("~0", "~")
+                    for token in mutation["path"].lstrip("/").split("/")
+                    if token
+                ]
+                target = instance
+                for token in tokens[:-1]:
+                    if not isinstance(target, dict) or token not in target:
+                        target = None
+                        break
+                    target = target[token]
+                if not isinstance(target, dict) or not tokens:
+                    lint.fail(path, f"{label}.mutation path does not resolve")
+                    instance = None
+                    break
+                target[tokens[-1]] = mutation.get("value")
         expect_valid = case.get("expect_valid", True)
         if not isinstance(schema_ref, str) or not schema_ref:
             lint.fail(path, f"{label}.schema_ref must be a non-empty string")
             continue
-        if "instance" not in case:
+        if instance is None:
             lint.fail(path, f"{label}.instance is required")
             continue
         if not isinstance(expect_valid, bool):
@@ -1970,6 +2044,7 @@ def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> 
         case_name = case.get("name")
         if not isinstance(case_name, str) or not case_name:
             case_name = label
+        named_instances[case_name] = copy.deepcopy(instance)
         check_json_instance_against_schema(
             lint,
             path,
@@ -2116,8 +2191,19 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
                 if not expected.startswith("sha256:"):
                     # Non-sha256 algorithms are out of scope for this guard.
                     continue
+                canonical_input = case[input_key]
+                if (
+                    case.get("vector_id") == "ak.vector.encoding.event_digest.v1"
+                    and input_key == "input"
+                    and isinstance(canonical_input, dict)
+                ):
+                    canonical_input = {
+                        key: value
+                        for key, value in canonical_input.items()
+                        if key not in {"proofs", "unsigned", "actor_kind", "event_id"}
+                    }
                 try:
-                    canonical = canonical_json(case[input_key])
+                    canonical = canonical_json(canonical_input)
                 except (TypeError, ValueError) as exc:
                     lint.fail(
                         fixture_path,

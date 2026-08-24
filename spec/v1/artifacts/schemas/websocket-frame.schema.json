@@ -13,12 +13,10 @@
   ],
   "$defs": {
     "connection_id": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]{22,128}$"
+      "$ref": "./account-operations.schema.json#/$defs/opaque_registration_id"
     },
     "nonce": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]{22,128}$"
+      "$ref": "./account-operations.schema.json#/$defs/opaque_registration_id"
     },
     "channel_id": {
       "type": "string",
@@ -36,9 +34,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "cursor": {
-      "type": "string",
-      "pattern": "^ak:cursor:[A-Za-z0-9_-]{1,2028}$",
-      "maxLength": 2048
+      "$ref": "./account-subscribe-frame.schema.json#/$defs/cursor_value"
     },
     "event_kind": {
       "type": "string",

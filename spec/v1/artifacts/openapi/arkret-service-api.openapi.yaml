@@ -416,10 +416,16 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
     AppletActorView:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view
+    AppletInstallAuthorOutcome:
+      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/author_outcome
+    AppletInstallAuthorRequestBody:
+      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/author_request_body
     AppletInstallOutcome:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome
     AppletInstallPlan:
       $ref: ../schemas/applet-install-plan.schema.json
+    AppletInstallPreviewOutcome:
+      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/preview_outcome
     AppletInstallPreviewRequestBody:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body
     AppletInstallRequestBody:
@@ -2403,6 +2409,8 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfEventsSubmitOutcome
     SelfGovernanceDependencyResolveRequest:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfGovernanceDependencyResolveRequest
+    SelfInviteDispatchRequestBody:
+      $ref: ../schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body
     ServiceDescribe:
       type: object
       description: |
@@ -6164,17 +6172,17 @@ paths:
         dpopProof: []
       summary: Dispatch an already accepted invite through the inviter Principal Server.
       description: |
-        Accepts the exact invite delivery body from the authenticated inviter.
-        The invite Event must already be accepted by this Principal Server,
-        match its stored canonical bytes, and be authored by the session actor.
-        Remote delivery preserves the exact body in the durable peer outbox;
+        Accepts an accepted invite Event id plus private delivery evidence from
+        the authenticated inviter. The Principal Server resolves its own stored
+        canonical Event bytes and requires their author to be the session actor.
+        Remote delivery constructs the peer body from those exact stored bytes;
         local delivery uses the same receive-policy path without re-authoring.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InviteDeliveryRequestBody'
+              $ref: '#/components/schemas/SelfInviteDispatchRequestBody'
       responses:
         '200':
           description: Generic invite delivery outcome.
@@ -8561,6 +8569,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletThirdPartyLocationList'
+  /_arkret/edge/applet/install/author:
+    post:
+      operationId: ak.edge.applet.install.command.author
+      security: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+        proof_field: authoring_request.proof
+        notes: The Applet service verifies the target Principal Server proof and the package-bound caller-signed administration Event set carried by the closed authoring request.
+      responses:
+        '200':
+          description: Exact service-authored managed actor creation bundle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppletInstallAuthorOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppletInstallAuthorRequestBody'
   /_arkret/self/applets/install/preview:
     post:
       operationId: ak.self.applet.install.command.preview
@@ -8569,11 +8599,11 @@ paths:
         dpopProof: []
       responses:
         '200':
-          description: Applet install preview plan
+          description: Principal Server signed Applet install authoring request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletInstallPlan'
+                $ref: '#/components/schemas/AppletInstallPreviewOutcome'
       requestBody:
         required: true
         content:
@@ -8614,18 +8644,19 @@ paths:
       description: |
         Called by an installed bridge Applet (authenticating as its service DID)
         to provision, or idempotently re-validate, an Applet-managed Ghost Actor
-        profile plus accountability grant for one external user. The server MUST
-        verify the active registration for `applet_id` covers the caller's
-        service DID and that `ghost_actor_id` falls inside the registration's
-        actor namespace before minting `ak.profile.create` /
-        `ak.identity.accountability_grant`. Re-provisioning the same
-        `(applet_id, protocol, tenant, external_user_id)` MUST return the
-        existing refs instead of minting duplicates.
+        for one immutable `external_ref.{protocol,instance_id,external_id}` tuple.
+        The caller supplies the complete signed managed-actor provision, PCR
+        genesis, accountability grant, and profile Event unit. The server MUST
+        validate their exact active registration, authority pair, grant, actor
+        namespace and initial-resolution bindings, then commit all four Events
+        and the durable record atomically; it MUST NOT mint or reconstruct caller
+        proofs. Re-provisioning the same `(applet_id, external_ref.protocol,
+        external_ref.instance_id, external_ref.external_id)` MUST return the
+        existing refs instead of creating a duplicate.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       parameters:
       - in: path

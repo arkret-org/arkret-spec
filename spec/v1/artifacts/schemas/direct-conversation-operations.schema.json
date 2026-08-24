@@ -55,7 +55,6 @@
         "main_strand_id",
         "founding_unit_digest",
         "authorization_core",
-        "slot_committed",
         "issuer_service_id",
         "accepted_at",
         "proof"
@@ -124,9 +123,6 @@
               "additionalProperties": false
             }
           ]
-        },
-        "slot_committed": {
-          "const": true
         },
         "issuer_service_id": {
           "$ref": "./principal-operations.schema.json#/$defs/did_core_id"

@@ -14,6 +14,80 @@
   },
   "schema_validation_cases": [
     {
+      "name": "audit_release_payload_seal_ref_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/audit_release_payload",
+      "expect_valid": true,
+      "instance": {
+        "session_id": "ak:audit_session:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "binding_id": "ak:audit_binding:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        },
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
+        "service_id": "ak:did_core:webvh:z6mkfixtureservice",
+        "release_mode": "targeted_evidence_release",
+        "target_refs": [
+          "ak:event:CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        ],
+        "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "seal_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "approver_actor_id": "ak:did_core:webvh:z6mkfixtureapprover",
+        "notice_ref": "ak:event:DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+        "purpose_kind": "compliance_lawful_access",
+        "legal_basis_ref": "law-1",
+        "policy_version_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "eligibility_proof": {
+          "binding_activation_frontier_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "first_auditable_epoch": 7,
+          "policy_snapshot_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "target_eligibility_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        "wrapped_material_digest": [
+          "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        ],
+        "released_at": "2026-08-24T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "audit_release_payload_missing_seal_ref_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/audit_release_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:'seal_ref' is a required property",
+      "instance": {
+        "session_id": "ak:audit_session:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "binding_id": "ak:audit_binding:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        },
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
+        "service_id": "ak:did_core:webvh:z6mkfixtureservice",
+        "release_mode": "targeted_evidence_release",
+        "target_refs": [
+          "ak:event:CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        ],
+        "seal_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "approver_actor_id": "ak:did_core:webvh:z6mkfixtureapprover",
+        "notice_ref": "ak:event:DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+        "purpose_kind": "compliance_lawful_access",
+        "legal_basis_ref": "law-1",
+        "policy_version_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "eligibility_proof": {
+          "binding_activation_frontier_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "first_auditable_epoch": 7,
+          "policy_snapshot_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "target_eligibility_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        "wrapped_material_digest": [
+          "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        ],
+        "released_at": "2026-08-24T00:00:00.000Z"
+      }
+    },
+    {
       "name": "route_assistance_mirror_carrier_valid",
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/route_assistance",
       "expect_valid": true,
@@ -2753,6 +2827,7 @@
       "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
       "expect_valid": true,
       "instance": {
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "source_service_id": "ak:did_core:webvh:z6mkfixturesourceexample",
         "signals": [
           {
@@ -2796,6 +2871,7 @@
       "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
       "expect_valid": false,
       "instance": {
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "source_service_id": "ak:did_core:webvh:z6mkfixturesourceexample"
       },
       "first_expected_error": "contains:is not valid under any of the given schemas"
@@ -2805,6 +2881,7 @@
       "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
       "expect_valid": false,
       "instance": {
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "source_service_id": "ak:did_core:webvh:z6mkfixturesourceexample",
         "signals": []
       },
@@ -2815,6 +2892,7 @@
       "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
       "expect_valid": false,
       "instance": {
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "source_service_id": "ak:did_core:webvh:z6mkfixturesourceexample",
         "events": []
       },
@@ -2973,9 +3051,6 @@
         },
         "availability_policy": {
           "min_holders": 1,
-          "holder_roles": [
-            "joined_member_principal_server"
-          ],
           "applies_to": [
             "seal_include"
           ]
@@ -3684,6 +3759,85 @@
         },
         "created_by": "ak:did_core:webvh:z6mkfixture",
         "created_at": "2026-08-18T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "ingress_receipt_ten_field_multi_proof_valid",
+      "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt",
+      "expect_valid": true,
+      "instance": {
+        "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
+        "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
+        "authorization_lease_id": "ak:authorization_lease:019c0000-0000-7000-8000-000000000014",
+        "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
+        "received_at": "2026-08-24T08:14:00.000Z",
+        "ingress_basis": "ak:seal:sha256:1515151515151515151515151515151515151515151515151515151515151515",
+        "ingress_frontier": [
+          "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "ak:event:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+        ],
+        "service_id": "ak:did_core:webvh:z6mkfixture:ingress.example",
+        "authority_set_ref": {
+          "authority_set_id": "ak.authority_set.realm_admission.v1",
+          "authority_set_digest": "sha256:1616161616161616161616161616161616161616161616161616161616161616"
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:ingress.example#key-1",
+            "payload_digest": "sha256:1717171717171717171717171717171717171717171717171717171717171717",
+            "created_at": "2026-08-24T08:14:00.000Z",
+            "jws": "a..b"
+          },
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:ingress.example#key-2",
+            "payload_digest": "sha256:1717171717171717171717171717171717171717171717171717171717171717",
+            "created_at": "2026-08-24T08:14:00.000Z",
+            "jws": "c..d"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ingress_receipt_empty_frontier_rejected",
+      "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt",
+      "expect_valid": false,
+      "first_expected_error": "contains:[] should be non-empty",
+      "instance": {
+        "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
+        "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
+        "authorization_lease_id": "ak:authorization_lease:019c0000-0000-7000-8000-000000000014",
+        "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
+        "received_at": "2026-08-24T08:14:00.000Z",
+        "ingress_basis": "ak:seal:sha256:1515151515151515151515151515151515151515151515151515151515151515",
+        "ingress_frontier": [],
+        "service_id": "ak:did_core:webvh:z6mkfixture:ingress.example",
+        "authority_set_ref": {
+          "authority_set_id": "ak.authority_set.realm_admission.v1",
+          "authority_set_digest": "sha256:1616161616161616161616161616161616161616161616161616161616161616"
+        },
+        "proofs": [{"kind":"detached_jws","verification_method":"did:webvh:z6mkfixture:ingress.example#key-1","payload_digest":"sha256:1717171717171717171717171717171717171717171717171717171717171717","created_at":"2026-08-24T08:14:00.000Z","jws":"a..b"}]
+      }
+    },
+    {
+      "name": "ingress_receipt_legacy_single_signature_fields_rejected",
+      "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "instance": {
+        "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
+        "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
+        "authorization_lease_id": "ak:authorization_lease:019c0000-0000-7000-8000-000000000014",
+        "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
+        "received_at": "2026-08-24T08:14:00.000Z",
+        "ingress_basis": "ak:seal:sha256:1515151515151515151515151515151515151515151515151515151515151515",
+        "ingress_frontier": ["ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"],
+        "service_id": "ak:did_core:webvh:z6mkfixture:ingress.example",
+        "authority_set_ref": {"authority_set_id":"ak.authority_set.realm_admission.v1","authority_set_digest":"sha256:1616161616161616161616161616161616161616161616161616161616161616"},
+        "proofs": [{"kind":"detached_jws","verification_method":"did:webvh:z6mkfixture:ingress.example#key-1","payload_digest":"sha256:1717171717171717171717171717171717171717171717171717171717171717","created_at":"2026-08-24T08:14:00.000Z","jws":"a..b"}],
+        "issuer": "ak:did_core:webvh:z6mkfixture:ingress.example",
+        "signature": "legacy-single-signature"
       }
     },
     {

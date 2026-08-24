@@ -202,6 +202,7 @@ Content-Type: application/json
 | `bound_to.policy_server_id` | `did_core_id` | required | 签发该 decision 的 Policy Server 稳定身份；declaration 的 service binding 必须指向同一 core，且 `signature.kid` 的 bare full DID 经 adapter 投影后必须与其一致。 |
 | `decision` | `enum(allow,soft_deny,hard_deny,quarantine,require_review)` | required | 策略决策。 |
 | `reason_code` | `string` | required | 稳定原因码。 |
+| `freshness_state` | `enum(fresh,stale,unknown)` | required | 本 decision 使用的 revocation / authorization frontier 新鲜度；重试与缓存裁决必须消费该值。 |
 | `expires_at` | `datetime` | required | 决策缓存过期时间。 |
 | `auth_state_digest` | `sha256:<hash>` | required | 生成该 decision 时采用的 accepted authorization state hash；调用方命中缓存或跨服务复核时 MUST 与当前值比较。 |
 | `policy_frontier_digest` | `sha256:<hash>` | required | 生成该 decision 时采用的 policy source frontier / digest。 |
@@ -213,19 +214,17 @@ Content-Type: application/json
 | `signature.sig` | `base64url string` | required | detached signature。 |
 
 Policy decision 的 detached signature MUST 签署 closed canonical object
-`{domain="ak.policy.check.transcript.v1", request_id, decision, bound_to, freshness_state, expires_at,
-auth_state_digest, policy_frontier_digest, membership_frontier_digest, reason_code, next_retry_at?, obligations}`；domain 的唯一机器真源是
+`{domain="ak.policy.check.transcript.v1", request_id, decision, bound_to, freshness_state,
+auth_state_digest, policy_frontier_digest, membership_frontier_digest, reason_code, expires_at, next_retry_at?, obligations}`；domain 的唯一机器真源是
 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 的同名 `domain_separations[]` 行。
 `signature.kid` 已作为 detached JWS protected header 的一部分进入 JWS signing input，用于选择并绑定验证方法；它 MUST NOT
 在 canonical payload object 中再复制为第二个 `kid` 字段。verifier 必须同时验证 protected `kid` 的 controller 与
 `bound_to.policy_server_id` 一致。
 
-`policy_frontier_digest` 与 `membership_frontier_digest` 是可跨 issuer 复算的 filtered state roots，不是 issuer-local opaque 值。二者 MUST 复用 [`event-auth-state-resolution.md` §6.2.1/§6.2.2](./event-auth-state-resolution.md#621-治理-state_root-的-merkle-计算规则normative) 的 JCS leaf、排序、hash suite 与 RFC 6962 组合规则：
+`policy_frontier_digest` 与 `membership_frontier_digest` 是可跨 issuer 复算的 filtered state roots，不是 issuer-local opaque 值。二者的 leaf preimage、排序、hash suite 与 RFC 6962 组合规则 MUST 复用 [`event-auth-state-resolution.md` §6.2.1/§6.2.2](./event-auth-state-resolution.md#621-治理-state_root-的-merkle-计算规则normative)：
 
 - `policy_frontier_digest` 枚举 decision `bound_to.realm_id` 当前 accepted Seal view 中全部 non-`⊥` policy control cell（`ak.component.realm.*policy*`、join rule、history visibility、policy components、media service，以及 profile 明确登记的 policy family）。
 - `membership_frontier_digest` 枚举同一 Seal view 中全部影响 `bound_to.actor_id` 的 Realm/Circle membership、account lifecycle、device trust/authorization 与 role cell。
-- 每个 leaf 都是 `canonical_json({"cell":"<cell_wire_id>","state":{"value":<lattice_value>}})` 的 UTF-8 bytes；按 cell id 升序，`leaf=H(0x00||bytes)`、`node=H(0x01||left||right)`，奇数节点原样提升，空集用 `H("")`。
-
 签发者与 verifier MUST 从 decision 绑定的 Seal/frontier 独立枚举并重算；漏报一个 cell、使用本地到达顺序或无法证明 frontier inclusion 时，该结构化比较路径失败，跨 issuer receiver 必须走 §5.1 的本地重跑分支。
 
 响应示例（非完整 schema）：
@@ -242,6 +241,7 @@ auth_state_digest, policy_frontier_digest, membership_frontier_digest, reason_co
   },
   "decision": "allow",
   "reason_code": "ok",
+  "freshness_state": "fresh",
   "expires_at": "2026-04-26T00:05:00.000Z",
   "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "policy_frontier_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -351,26 +351,9 @@ Join 路径上 `challenge` proof 进入 `ak.member.state{join}.gate_proofs[]` �
 
 ## 5. Signature and Replay Protection
 
-Policy decision 签名输入 MUST 包含：
-
-- `request_id`
-- `bound_to.request_canonical_digest`
-- `bound_to.realm_id`（被评估对象所属的 Realm ID;**v1 normative**）
-- `bound_to.actor_id`（被评估 actor 的 `did_core_id`;**v1 normative**）
-- `bound_to.action`（被评估的 capability action token）
-- `bound_to.policy_server_id`
-- decision
-- reason_code
-- `next_retry_at`（仅在字段实际存在时）
-- `obligations[]`（仅在字段实际存在时；保留 response 中的 canonical 数组顺序与完整元素）
-- expires_at
-- auth_state_digest
-- policy_frontier_digest
-- membership_frontier_digest
-- Policy Server id
-- key id
-
-签名对象 MUST 是由上述字段构造的闭合 canonical object：optional 字段缺省时省略对应 key，不得改写为 JSON `null`；字段存在时必须连同其完整值进入 JCS。verifier MUST 从收到的 decision 重建同一对象后验签，任何剥离、追加、重排或修改 `obligations[]`，以及剥离或修改 `next_retry_at`，都 MUST 使签名验证失败。实现不得只验证 allow/deny 主结果后信任未签名的 obligation 或重试时间。
+Policy decision 的签名输入 MUST 是 §4 定义的闭合 canonical object；`signature.kid` 只经 detached JWS protected header
+进入 JWS signing input，不得复制进 canonical payload。optional 字段缺省时省略对应 key，不得改写为 JSON `null`；
+verifier MUST 从收到的 decision 重建同一对象后验签。任何剥离、追加、重排或修改已签成员都 MUST 使验签失败。
 
 `request_canonical_digest` MUST 是 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致；任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通，且 MUST NOT 声明通过 v1 conformance。
 

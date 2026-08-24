@@ -16,16 +16,13 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "did_url": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      "$ref": "./account-operations.schema.json#/$defs/did_url"
     },
     "blob_ref": {
-      "type": "string",
-      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "$ref": "./agent-operations.schema.json#/$defs/blob_ref"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

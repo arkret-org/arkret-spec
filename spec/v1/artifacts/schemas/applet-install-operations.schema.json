@@ -8,6 +8,15 @@
       "$ref": "#/$defs/applet_install_preview_request_body"
     },
     {
+      "$ref": "./applet-install-authoring.schema.json#/$defs/preview_outcome"
+    },
+    {
+      "$ref": "./applet-install-authoring.schema.json#/$defs/author_request_body"
+    },
+    {
+      "$ref": "./applet-install-authoring.schema.json#/$defs/author_outcome"
+    },
+    {
       "$ref": "../schemas/applet-install-plan.schema.json"
     },
     {
@@ -34,28 +43,22 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "applet_id": {
-      "type": "string",
-      "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
     "event_ref": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "grant_id": {
-      "type": "string",
-      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/grant_id"
     },
     "typed_ref": {
-      "type": "string",
-      "pattern": "^ak:[a-z][a-z0-9_]*:[A-Za-z0-9._:-]+$"
+      "$ref": "./account-operations.schema.json#/$defs/typed_ref"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "applet_package": {
       "$ref": "../schemas/applet-package.schema.json"
@@ -165,18 +168,14 @@
       "type": "object",
       "required": [
         "applet_package",
-        "effective_scope",
-        "approval_request"
+        "authoring_request_basis"
       ],
       "properties": {
         "applet_package": {
           "$ref": "#/$defs/applet_package"
         },
-        "effective_scope": {
-          "$ref": "#/$defs/effective_scope"
-        },
-        "approval_request": {
-          "$ref": "#/$defs/approval_request"
+        "authoring_request_basis": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request_basis"
         }
       },
       "additionalProperties": false
@@ -184,73 +183,19 @@
     "applet_install_request_body": {
       "type": "object",
       "required": [
-        "plan_digest",
         "applet_package",
-        "effective_scope",
-        "registration_event",
-        "capability_grant_events"
+        "authoring_request",
+        "managed_actor_bundle"
       ],
       "properties": {
-        "plan_digest": {
-          "$ref": "#/$defs/digest"
-        },
         "applet_package": {
           "$ref": "#/$defs/applet_package"
         },
-        "effective_scope": {
-          "$ref": "#/$defs/effective_scope"
+        "authoring_request": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
         },
-        "registration_event": {
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "ak.applet.registration"
-                }
-              }
-            }
-          ],
-          "description": "Caller-signed formal registration Event. actor_id MUST equal the authenticated install admin, payload MUST exactly equal the registration derived from applet_package, and the controller proof copied into payload.proof remains independently required."
-        },
-        "capability_grant_events": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "allOf": [
-              {
-                "$ref": "./event-envelope.schema.json"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "kind"
-                ],
-                "properties": {
-                  "kind": {
-                    "const": "ak.capability.grant"
-                  }
-                }
-              }
-            ]
-          },
-          "description": "Caller-signed formal capability-grant Events. Each Event actor and grant issuer MUST equal the authenticated install admin; subjects, actions, resources and applet_authority constraints MUST exactly match the recomputed install plan and effective_scope."
-        },
-        "actor_policy": {
-          "$ref": "#/$defs/actor_policy"
-        },
-        "e2ee_policy": {
-          "$ref": "#/$defs/e2ee_policy"
-        },
-        "widget_policy": {
-          "$ref": "#/$defs/widget_policy"
+        "managed_actor_bundle": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
         }
       },
       "additionalProperties": false
@@ -264,6 +209,9 @@
         "registration_event_ref",
         "registration_epoch",
         "bot_actor_id",
+        "bot_actor_principal_server_id",
+        "bot_actor_provision_ref",
+        "bot_principal_control_realm_id",
         "capability_grant_refs",
         "membership_event_refs",
         "e2ee_authorization_refs",
@@ -286,14 +234,7 @@
           ]
         },
         "applet_id": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/did_core_id"
-            },
-            {
-              "$ref": "#/$defs/applet_id"
-            }
-          ]
+          "$ref": "#/$defs/applet_id"
         },
         "registration_event_ref": {
           "oneOf": [
@@ -310,6 +251,15 @@
         },
         "bot_actor_id": {
           "$ref": "#/$defs/did_core_id"
+        },
+        "bot_actor_principal_server_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "bot_actor_provision_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "bot_principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "capability_grant_refs": {
           "type": "array",

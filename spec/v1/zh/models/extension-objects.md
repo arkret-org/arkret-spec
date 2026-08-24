@@ -45,7 +45,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 - **Applet Service**：运行集成逻辑的服务端进程（独立 service DID）。
 - **Applet Controller**：管理该 Applet 的主体（组织、开发者、企业管理员）。
 - **Bot Actor**：Applet 的主要可见 Actor，可以加入 Realm、被 mention、发送消息或执行自动化。
-- **Ghost Actor**：外部网络用户在 Arkret 中的镜像 Actor；MUST 带有 `accountable_principal_ids` 指向 Applet controller，并用 `profile_fields.external_ref` 记录外部网络来源；MUST NOT 伪装成人类 DID。
+- **Ghost Actor**：外部网络用户在 Arkret 中的镜像 Actor；初始 accepted Profile 的 `accountable_principal_ids` MUST 精确等于 `[service_id]`，并由同一 provisioning aggregate 中 Applet service 签名的 active accountability grant 背书；controller 只有另行签发 active accountability grant 后才能加入该数组。`profile_fields.external_ref` 记录外部网络来源；Ghost MUST NOT 伪装成人类 DID。
 - **Portal Realm**：外部网络 location 在 Arkret 中的镜像 Realm。
 
 ### 2.3 行为约束

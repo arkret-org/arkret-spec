@@ -57,9 +57,10 @@ updated: 2026-07-02
 }
 ```
 
-> 示例中 `proof` 字段省略字段不是合法 v1 wire 形态：registration MUST 由 controller DID 签名，
-> `proof` 必须包含 [`models/event-and-patch.md §3`](../models/event-and-patch.md) 列出的全部 required
-> 字段，且 `payload_digest` 覆盖整个 canonical registration object（不含 `proof` 自身）。
+> 示例中 `proof` 字段省略字段不是合法 v1 wire 形态：它必须是 accepted Applet Package
+> 的 controller DID detached proof 的逐字副本，并包含 `detached_proof` schema 的全部 required
+> 字段；`payload_digest` 覆盖 canonical package（不含 package `proof` 自身）。formal registration
+> Event 另由安装管理员签署，且由接收 Principal Server 加 admission proof。
 > 空 `"proof": {}` 形态 MUST 被 receiver 以 `schema_violation` 拒绝。
 
 > **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `ak.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §11](./applet-integration.md)（末段）与 §4.1。
@@ -83,34 +84,20 @@ updated: 2026-07-02
 
 [`applet-registration-epoch-fixture.json`](../../artifacts/fixtures/applet-registration-epoch-fixture.json) 给出 transcript、完整 canonical bytes、expected digest 以及排序重复、null、DID version 分支和安全字段变更的负向向量。实现 MUST 执行这些向量，不得只检查 fixture 文件存在。
 
-`applet_registration_payload.required` 的顺序 MUST 与 schema properties 字段出现顺序一致:
-
-```json
-[
-  "applet_id",
-  "service_id",
-  "controller_id",
-  "base_url",
-  "bot_actor_id",
-  "claimed_profiles",
-  "protocols",
-  "namespaces",
-  "receive_events",
-  "receive_signals",
-  "rate_limited",
-  "requested_scopes",
-  "registration_epoch",
-  "webhook_auth",
-  "proof",
-  "created_at"
-]
-```
-
-该 registration payload 的权威机读 schema 是 [`schemas/event-payload.schema.json` 的 `$defs/applet_registration_payload`](../../artifacts/schemas/event-payload.schema.json)(`applet.schema.json` 仅描述 applet object metadata snapshot,不含本 registration payload)。上述顺序 MUST 与该 `$defs/applet_registration_payload` 的 `properties` 出现顺序一致，可据此链接核验。
+`applet_registration_payload.required` 条目的相对顺序 MUST 与 schema `properties` 字段出现顺序一致；
+required 集合与顺序均直接从 schema 读取，本节不复述派生清单。该 registration payload 的权威机读 schema 是
+[`schemas/event-payload.schema.json` 的 `$defs/applet_registration_payload`](../../artifacts/schemas/event-payload.schema.json)
+（`applet.schema.json` 仅描述 applet object metadata snapshot，不含本 registration payload）。
 
 ## 1a. Applet Package Schema
 
 `ak.schema.applet_package.v1` 是开发者/供应商发布的可安装 package；它不进入 Realm history，不授权写入。安装时 Principal Server / authz service MUST 从 package 派生 canonical `ak.applet.registration` payload，再根据管理员批准生成 grant。
+
+`registration_epoch_evidence` **不是 AppletPackage 字段**。它是安装时验证 DID resolution 与重算
+`registration_epoch` 的 authority input，唯一 wire 载体是 §1b caller-signed
+`registration_event.payload.manifest.registration_epoch_evidence`。AppletPackage 必须拒绝该未知成员；
+`package_digest` 与 controller proof transcript 均不得包含 evidence。Principal Server 与 Applet service 都从
+同一个管理员签名 Event 读取并验证 evidence，accepted value 持久化后供 epoch runtime check 使用。
 
 字段参考:
 
@@ -118,9 +105,9 @@ updated: 2026-07-02
 | --- | --- | --- |
 | `schema` | yes | 固定 `ak.schema.applet_package.v1`。 |
 | `package_id` | yes | typed id 或 DID URL；仅用于 package 分发。 |
-| `applet_id` | yes | DID 或 `ak:applet:<uuidv7>`。 |
+| `applet_id` | yes | 唯一合法形态为 `ak:applet:<uuidv7>`；旧的 service DID 代用形态已删除。 |
 | `service_id` | yes | Applet runtime 的稳定 service `did_core_id`。 |
-| `controller_id` | yes | 对 package / registration 负责的 controller `did_core_id`；proof VM 的 bare `full_id` 必须经 adapter 投影到该值。 |
+| `controller_id` | yes | 对 package 负责的 controller `did_core_id`；package proof VM 的 bare `full_id` 必须经 adapter 投影到该值。 |
 | `base_url` | yes | Applet API base URL。 |
 | `bot_actor_id` | yes | 可见 bot actor 的稳定 `did_core_id`；不得含 `#fragment`。 |
 | `claimed_profiles` | yes | v1 Applet profile id 数组；MUST 至少包含 `ak.profile.applet_service.v1`。 |
@@ -147,7 +134,7 @@ Package -> registration 派生映射:
 
 | `ak.applet.registration` 字段 | Package 来源 | 规则 |
 | --- | --- | --- |
-| `applet_id` | `applet_id` | 原样复制；只接受 DID 或 `ak:applet:<uuidv7>`。 |
+| `applet_id` | `applet_id` | 原样复制；只接受 `ak:applet:<uuidv7>`。 |
 | `service_id` | `service_id` | 原样复制；必须可解析并绑定 Applet endpoint。 |
 | `controller_id` | `controller_id` | 原样复制；必须验证 controller proof。 |
 | `base_url` | `base_url` | 原样复制；必须与 service DID Document binding 一致。 |
@@ -160,88 +147,73 @@ Package -> registration 派生映射:
 | `requested_scopes` | `requested_scopes` | 原样复制；仍只是请求声明。 |
 | `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
 | `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` 的 bare controller `full_id` 经已登记 adapter 投影后 MUST 等于 `service_id`，并绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
-| `manifest` | `claimed_profiles` + `limits` + policies + optional widget declaration | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段；widget snapshot MUST 保持 `ak.schema.applet_widget_declaration.v1` 的闭合形态。 |
-| `proof` | `proof` | detached proof 覆盖 canonical package 或 derived registration object。 |
+| `manifest` | `claimed_profiles` + `limits` + policies + optional widget declaration + install evidence | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段；安装 authoring 时加入唯一 `registration_epoch_evidence`，并由管理员 Event proof 覆盖；widget snapshot MUST 保持 `ak.schema.applet_widget_declaration.v1` 的闭合形态。 |
+| `proof` | `proof` | accepted package 的 controller detached proof 逐字副本；`payload_digest` 只覆盖 canonical package，formal registration Event 使用独立 Event proofs。 |
 | `created_at` | `created_at` | 原样复制。 |
 
 Widget declaration 的字段顺序与 schema 一致：`schema`、`widget_origin`、`csp`、`token_scope`、`consent_required`。`token_scope` 是对象而非字符串数组，至少包含 `actions[]`、`resources[]` 与 `expires_at`；host / node 签发给 widget 的短期 token MUST 是该 scope 的子集，不能回退到用户 full session 权限。
 
+### 1a.1 Applet-managed Actor creation anchor
+
+`ak.schema.applet_managed_actor_provision.v1` 以
+[`applet-managed-actor.schema.json`](../../artifacts/schemas/applet-managed-actor.schema.json) 为唯一闭合
+wire schema。payload 必须携 `actor_id` 与 `actor_principal_server_id` 的完整 authority pair、闭合
+`actor_role=bot|ghost`、`initial_resolution`、v1 唯一合法的完整 WebVH
+`method_history_evidence`、immutable `registration_ref` 与 `applet_authority_ref`。did:web snapshot 与
+did:key expansion 不能为长期可轮换的高风险 managed authority 提供所需 history/version pinning，均非法。Ghost 还必须携
+`external_ref`，Bot 禁止携该字段。contract registry 的 provision cell subject 是 pair 的复合键，不能仅按
+core id 做 CAS。Package/registration/Ghost durable record 只保存 accepted provision Event 与 PCR genesis
+anchor；current resolution ref 不属于这些对象。
+
 ## 1b. Applet Install Operation Objects
 
-Install preview request:
+安装使用管理员、目标 Principal Server 与 Applet service 的两步 co-sign 握手，机器契约分别是
+[`applet-install-operations.schema.json`](../../artifacts/schemas/applet-install-operations.schema.json) 与
+[`applet-install-authoring.schema.json`](../../artifacts/schemas/applet-install-authoring.schema.json)。
+
+Preview request 只含 `applet_package` 与 closed `authoring_request_basis`。basis 必须精确绑定目标 Principal
+Server、安装管理员、typed `applet_id`、Applet `service_id`、`package_digest`、effective scope、审批/策略、
+不超过五分钟的 `requested_expires_at`，并且唯一内嵌管理员签名的 `registration_event` 与
+`capability_grant_events`。registration epoch evidence 只在
+`registration_event.payload.manifest.registration_epoch_evidence` 出现；preview 顶层、basis sibling、package
+及 commit 均不得镜像。
+
+Principal Server 重新验证 package、Event/evidence、当前策略和 namespace，生成 canonical `InstallPlan`，再返回
+`{plan, authoring_request}`。closed `authoring_request` 的 detached proof 覆盖 exact basis、`plan_digest`、
+目标 Applet service audience 与强制短窗 `expires_at`。`authoring_request_id` 从无 proof 的规范字节确定；
+verifier 必须重算，因此同 id 不同 bytes 是冲突，同 bytes 重试幂等。
+
+客户端把 exact signed request relay 到标准
+`POST /_arkret/edge/applet/install/author`（`ak.edge.applet.install.command.author`）。Applet service 必须用
+current trusted Principal Server service identity/key 验证 proof，并逐字校验 package/service/admin
+Event/evidence/actor/plan/expiry 绑定；不得只接受自洽历史 key。Applet service 按既有 creation admission 签
+`ak.applet.managed_actor.provision`、Bot PCR `ak.realm.create`、
+`ak.identity.accountability_grant`、`ak.profile.create` 四个 formal Events：provision/accountability 使用 service actor，
+PCR genesis/Profile 使用 service `executed_by`，不得新增预生效 Bot 直签特例。四个 Event 对象只在 closed
+`managed_actor_bundle` 出现一次；bundle 另由 Applet service 对 exact authoring request digest 与完整 Event
+集合签 aggregate proof。Applet service 必须在响应前把 request id/digest、exact bundle 与 Bot key
+custody/provision state 原子写入 durable authoring ledger；Bot 独立 key 只在 PCR accepted 后用于自签/rotation；restart 后 exact replay 返回原 bundle，同 id 异 digest
+冲突。不得从 request 确定性派生 Bot 私钥或依赖易失内存 cache。
+
+Commit request 只有：
 
 ```json
 {
   "applet_package": {},
-  "effective_scope": {
-    "kind": "realm",
-    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
-  },
-  "approval_request": {
-    "approve_actions": ["ak.message.create"],
-    "ghost_actor_mode": "disallowed",
-    "delegated_native_actors_allowed": false,
-    "e2ee_join_allowed": false,
-    "widget_allowed": false
-  }
+  "authoring_request": {},
+  "managed_actor_bundle": {}
 }
 ```
 
-`InstallPlan` 的机器契约是 [`schemas/applet-install-plan.schema.json`](../../artifacts/schemas/applet-install-plan.schema.json)。它 MUST 包含 `schema="ak.schema.applet_install_plan.v1"`、`plan_id`、`applet_id`、`package_digest`、`registration_epoch`、`effective_scope`、`requested_scopes`、`approved_scopes`、`denied_scopes`、`events_to_submit`、`capability_constraints`、`namespace_conflicts`、`e2ee_effect`、`widget_effect`、`warnings`、`plan_digest`。`plan_digest` 的 canonical input 是按 [`encoding.md`](../conformance/encoding.md) canonical JSON 编码的 InstallPlan object，且在计算输入中省略 `plan_digest` 字段本身。
+Principal Server 从 authoring request 唯一提取管理员 Events/evidence/scope/policies，从 bundle 唯一提取四个
+Applet/Bot Events，重新计算所有 digest、Event refs、plan 与权限，并在一个 durable transaction 内原子提交完整
+formal Event 集合、Applet record、namespace/managed-authority claims 与 idempotency outcome。任何失败必须零
+Event 可见；Principal Server 不得代签、重建或逐条 fan-out。
 
-Install commit request:
-
-```json
-{
-  "plan_digest": "sha256:<install-plan-hash>",
-  "applet_package": {},
-  "effective_scope": {
-    "kind": "realm",
-    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
-  },
-  "registration_event": {
-    "kind": "ak.applet.registration",
-    "actor_id": "ak:did_core:webvh:z6MkAdmin",
-    "payload": {},
-    "proofs": []
-  },
-  "capability_grant_events": [
-    {
-      "kind": "ak.capability.grant",
-      "actor_id": "ak:did_core:webvh:z6MkAdmin",
-      "payload": {
-        "grant_id": "ak:grant:ATpeQcWXS2c6ZR28oxVkSy6uGn4PeNX-6DLuDY50EDTS",
-        "grant": {}
-      },
-      "proofs": []
-    }
-  ],
-  "actor_policy": {
-    "bot_membership": "invite",
-    "ghost_actor_mode": "disallowed"
-  },
-  "e2ee_policy": {
-    "mls_join_allowed": false
-  },
-  "widget_policy": {
-    "widget_allowed": false
-  }
-}
-```
-
-上例只展示字段归属；`registration_event` 与 `capability_grant_events[]` 的省略字段和空
-`proofs`/`grant` 在真实请求中不合法。真实值 MUST 是通过 Event、payload 与 capability
-schema 的完整 admin-caller-signed formal Event，服务端不得代签或重建。
-
-Commit 响应 MUST 通过 [`schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome`](../../artifacts/schemas/applet-install-operations.schema.json) 校验，并包含 `ok`、`install_id`、`applet_id`、`registration_event_ref`、`registration_epoch`、`bot_actor_id`、`capability_grant_refs`、`membership_event_refs`、`e2ee_authorization_refs`、`widget_policy_ref`、`effective_status`、`rejected`。
-
-`effective_scope.kind="realm"` MUST 只包含 `kind` 与 `realm_id`。`effective_scope.kind="circle"` MUST 包含 `kind`、`realm_id` 与 `circle_id`。单次 install operation MUST 只作用于一个 effective_scope。recomputed plan `plan_digest` 不等于提交的 `plan_digest` 时 MUST fail closed，reason=`applet_install_plan_mismatch`。
-
-**preview 与 commit 的 ghost 准入意图是同一字段(normative)**:preview 的
-`approval_request.ghost_actor_mode` 与 commit 的 `actor_policy.ghost_actor_mode` 是**同一个三值字段**
-(`disallowed` / `controller_approved` / `policy_declared`)，preview MUST 逐字回显 plan 中的取值。v1 **没有**
-并行的布尔 `ghost_actors_allowed`：两种拼写会要求一条额外的一致性映射规则，而该规则本身就是漂移点。
-commit 时两处取值不逐字相等 MUST fail closed，reason=`applet_install_plan_mismatch`。
+首次 commit 必须在 `authoring_request.expires_at` 前到达。对于已经成功的相同
+`Idempotency-Key` + exact canonical body，durable replay lookup 必须先于 expiry 检查并返回原 outcome，即使
+authoring request 此时已过期；同 key 不同 body 必须 `duplicate_conflict`。Commit 响应以
+`applet_install_outcome` 为权威。
 
 ## 2. Namespace Pattern
 
@@ -275,12 +247,13 @@ Idempotency-Key: <opaque-string>
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `Idempotency-Key` | header | `string` | required | 发送方生成的幂等 / nonce 键，长度 1..128；接收方 MUST 以 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)` 定位幂等记录，并绑定 canonical body digest 与 `delivery_authentication_record`；重复键但 body digest 或投递认证记录不同 MUST fail closed。 |
+| `Idempotency-Key` | header | `string` | required | 发送方生成的幂等 / nonce 键，长度 1..128；接收方 MUST 以 `(operation_id, direction, applet_id, Source-Service-ID, Destination-Service-ID, Idempotency-Key)` 定位幂等记录，并绑定 canonical body digest 与 `delivery_authentication_record`；重复键但 body digest 或投递认证记录不同 MUST fail closed。 |
 | `Source-Service-ID` | header | `did_core_id` | required | 推送来源 service `did_core_id`；MUST 等于 body `source_service_id`，并进入 HTTP Message Signature transcript。来源 VM 的 bare `full_id` 必须经 adapter 投影到该值。 |
 | `Destination-Service-ID` | header | `did_core_id` | required | 接收方 service `did_core_id`；MUST 等于实际接收服务 identity，并进入 HTTP Message Signature transcript。 |
 | `Content-Digest` | header | `sha-256=:...:` | required | 按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 覆盖 exact canonical HTTP content bytes；接收方 MUST 在 JSON 业务解析与验签前对 exact bytes 重算，拒绝 `sha256=:` alias、非 canonical JSON wire 与 parse-then-canonicalize verification。 |
 | `Signature-Input` | header | `string` | required | RFC 9421 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，并带 `created` / `expires`。 |
 | `Signature` | header | `string` | required | 来源 service 已验证 `full_id` / VM 的逐次 HTTP Message Signature；纯 bearer 不满足 transaction push 认证。 |
+| `applet_id` | body | `applet_id` | required | 精确选择 active install；必须与来源 service、当前 registration epoch/key 唯一交叉绑定，不得按同 service 任取首条安装。 |
 | `source_service_id` | body | `did_core_id` | required | 推送来源 service 的稳定 `did_core_id`。 |
 | `events` | body | `EventEnvelope[]` | conditional | 推送给 Applet 的非空 signed Event 数组；每项必须满足 `event-envelope.schema.json`。与 `signals[]` 至少出现一个。 |
 | `signals` | body | `SignalEnvelope[]` | conditional | 非持久、encrypted-only 的非空 Signal Extension envelope 数组；与 `events[]` 至少出现一个。 |
@@ -291,11 +264,19 @@ Idempotency-Key: <opaque-string>
 
 ```json
 {
+  "applet_id": "ak:applet:01904100-0000-7000-8000-aaaaaaaaaaaa",
   "source_service_id": "ak:did_core:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
-  "events": [],
-  "signals": []
+  "events": [
+    {
+      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+      "kind": "ak.message.create"
+    }
+  ]
 }
 ```
+
+上例只展示 transaction carrier；`events[0]` 的其余 required EventEnvelope 字段必须按
+`event-envelope.schema.json` 补齐，不能把该缩略对象直接发送。
 
 响应字段：
 

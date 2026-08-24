@@ -14,11 +14,11 @@
       "event_kind": "ak.schema.define",
       "payload_def": "schema_define_state_payload",
       "validator_profile_id": "ak.validator.json_schema_2020_12_definition.v1",
-      "selector_pointer": "/schema_id",
+      "selector_pointer": "/value/$id",
       "document_pointer": "/value",
       "meta_schema_uri": "https://json-schema.org/draft/2020-12/schema",
       "document_id_pointer": "/$id",
-      "document_id_must_equal_selector": true,
+      "document_id_must_equal_selector": false,
       "unknown_schema_id_behavior": "validate_and_define",
       "failure_code": "schema_violation",
       "fixture_ref": "fixtures/schema-definition-validator-kat.json"

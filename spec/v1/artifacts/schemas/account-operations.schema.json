@@ -88,15 +88,7 @@
       "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
     },
     "applet_id": {
-      "oneOf": [
-        {
-          "type": "string",
-          "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        {
-          "$ref": "#/$defs/did_core_id"
-        }
-      ]
+      "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
     "typed_ref": {
       "type": "string",
@@ -1730,7 +1722,6 @@
         "status",
         "issued_at",
         "effective_at",
-        "verification_method",
         "proof"
       ],
       "properties": {
@@ -1808,9 +1799,6 @@
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
-        },
-        "verification_method": {
-          "$ref": "#/$defs/did_url"
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof"

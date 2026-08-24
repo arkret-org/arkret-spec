@@ -21,15 +21,15 @@
     "previous_model_generation_ref",
     "result_model_generation_ref",
     "authorization_event_id",
+    "reanchor_event_id",
+    "reanchor_batch_receipt_id",
     "proof_summary",
     "backup_classes_unlocked",
     "welcome_count",
     "outcome",
     "started_at",
     "completed_at",
-    "auth_data",
-    "reanchor_event_id",
-    "reanchor_batch_receipt_id"
+    "auth_data"
   ],
   "properties": {
     "schema": {
@@ -353,8 +353,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     }
   }
 }

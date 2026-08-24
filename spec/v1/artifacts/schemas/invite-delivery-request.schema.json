@@ -33,6 +33,34 @@
   },
   "additionalProperties": false,
   "$defs": {
+    "self_invite_dispatch_request_body": {
+      "type": "object",
+      "required": [
+        "schema",
+        "invite_event_id",
+        "invite_address",
+        "introduction_evidence",
+        "idempotency_key"
+      ],
+      "properties": {
+        "schema": {
+          "$ref": "#/properties/schema"
+        },
+        "invite_event_id": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "invite_address": {
+          "$ref": "#/properties/invite_address"
+        },
+        "introduction_evidence": {
+          "$ref": "#/properties/introduction_evidence"
+        },
+        "idempotency_key": {
+          "$ref": "#/properties/idempotency_key"
+        }
+      },
+      "additionalProperties": false
+    },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
@@ -43,12 +71,10 @@
       "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "event_ref": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "invite_address": {
       "type": "object",

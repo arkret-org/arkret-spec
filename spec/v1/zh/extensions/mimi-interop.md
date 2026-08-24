@@ -29,18 +29,7 @@ updated: 2026-07-02
 
 本 profile 的 active conformance vector 集合以
 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 的 `ak.vector.mimi.*` 行为准
-（清单以该 registry 为唯一权威，本节只是它的可读镜像；两者不一致时以 registry 为准）：
-
-- `ak.vector.mimi.provider_directory_draft_pinning.v1`
-- `ak.vector.mimi.provider_directory_signature.v1`
-- `ak.vector.mimi.room_binding_projection.v1`
-- `ak.vector.mimi.room_update_branched_effect.v1`
-- `ak.vector.mimi.keypackage_claim_lifecycle.v1`
-- `ak.vector.mimi.content_roundtrip.v1`
-- `ak.vector.mimi.identifier_query_privacy.v1`
-- `ak.vector.mimi.consent_isolation.v1`
-- `ak.vector.mimi.proxy_download_policy.v1`
-- `ak.vector.mimi.unsupported_draft_fail_closed.v1`
+（该 registry 是唯一权威；本文不复述清单或计数）。
 
 这些草案仍是 Internet-Draft。实现 MUST 在 `server/describe` 和 MIMI provider directory 中声明实际支持的 draft version。草案更新导致 wire 语义变化时，Arkret MUST 通过新的 interop profile 版本处理，不得改变 v1 核心状态语义。
 
@@ -326,26 +315,16 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret DataEv
 
 MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对具体操作的 detached payload proof，不是 Event Envelope proof。它 MUST 使用 `payload_digest`，MUST NOT 使用只适用于 Event Envelope 的 `event_digest`。单值形态由 `mimi-operations.schema.json#/$defs/signature` 定义，数组形态由各对象族自己内联的 `proofs[]`（元素为 `#/$defs/proof`）定义；两者的 `domain` MUST 等于接收部署的 `trust_domain`，`audience` MUST 覆盖接收 Principal Server service DID。
 
-**每个对象族一个 context（normative）**：`mimi-operations.schema.json` 是 DTO 容器而不是一个对象族，因此**不存在**覆盖全文件的 MIMI operation context。持有 detached proof 的对象族逐个登记独立 context，schema 侧以 `x-arkret-proof-context` 逐字投影，[`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 是唯一真源：
-
-| 对象族 | operation | context |
-| --- | --- | --- |
-| `mimi_key_material_request_body.proofs[]` | `ak.open.mimi.exchange.request_key_material` | `ak.mimi_key_material_request_proof.v1` |
-| `mimi_key_material_outcome.signature` | `ak.open.mimi.exchange.request_key_material` | `ak.mimi_key_material_outcome_proof.v1` |
-| `mimi_group_info_outcome.proofs[]` | `ak.open.mimi.read.group_info` | `ak.mimi_group_info_outcome_proof.v1` |
-| `mimi_request_consent_request_body.proofs[]` | `ak.open.mimi.command.request_consent` | `ak.mimi_request_consent_request_proof.v1` |
-| `mimi_update_consent_request_body.signature` | `ak.open.mimi.command.update_consent` | `ak.mimi_update_consent_request_proof.v1` |
-| `mimi_identifier_query_request_body.proofs[]` | `ak.open.mimi.read.identifiers` | `ak.mimi_identifier_query_request_proof.v1` |
-| `mimi_identifier_query_outcome.proofs[]` | `ak.open.mimi.read.identifiers` | `ak.mimi_identifier_query_outcome_proof.v1` |
+**每个对象族一个 context（normative）**：`mimi-operations.schema.json` 是 DTO 容器而不是一个对象族，因此**不存在**覆盖全文件的 MIMI operation context。持有 detached proof 的对象族逐个登记独立 context，schema 侧以 `x-arkret-proof-context` 逐字投影；对象族、context 与 operation 的对应关系分别以 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 和 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 经 schema ref 连接后的结果为唯一真源，本节不复述派生 join 表。
 
 发送方 MUST 先从 request/outcome body 移除顶层 `signature` 或 `proofs` 成员（删除成员本身，不是置为 `null`），保留所有实际存在的 optional 字段，对剩余完整对象计算 `payload_digest = sha256(canonical_json(unsigned_body))`，再以 canonical JSON 编码并签署下列 transcript：
 
 ```json
 {
-  "context": "<上表中该对象族的 context>",
+  "context": "<该对象族在 proof-context-registry 中登记的 context>",
   "payload_digest": "sha256:<lowercase-hex>",
   "issuer": "<request.actor_id | request.requester | request.requester_id>",
-  "operation_id": "<上表中该对象族的 operation>",
+  "operation_id": "<由 schema ref 在 operation-registry 中连接到的 operation>",
   "verification_method": "<proof.verification_method>",
   "created_at": "<proof.created_at>",
   "domain": "<destination trust_domain>",
@@ -381,6 +360,20 @@ Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致
 4. 将 MIMI content container 映射为 `ak.message.create`、`ak.message.revise`、`ak.message.redact`、`ak.reaction.add`、`ak.reaction.remove` 或 `ak.relation.*`。
 5. 保留原始 MIMI envelope hash、provider id、message id 和 accepted timestamp 作为 interop metadata。
 6. 对无法确认授权、epoch、content 或 policy 的消息返回 `temporarily_unavailable`、`dependency_missing`、`capability_denied` 或 `quarantine`。
+
+**作者与外部归属（normative）**：入站映射生成的
+`ak.message.create` / `ak.message.revise` / `ak.message.redact` Event 必须由 facade
+自己的 service DID 签名，envelope `actor_id` 不得伪装成外部发送者。这三个 kind 的
+admission 是 conditional：payload 省略 `mimi_provenance` 时走普通
+`capability_gated`；携带 `mimi_provenance.provenance="mimi_facade"` 时走
+`service_attested`。`mimi_provenance` 必须同时绑定来源 provider service DID、经 §10
+consent / holder-claim 规则解析出的外部 sender actor、sender device、完整原始 submit
+envelope 的 canonical SHA-256，以及当前 accepted `ak.mimi.room_binding` Event ref。
+Reducer 必须验证 facade service 对目标 Realm/binding 的运营权限、binding 的
+provider/room/Realm/Strand/MLS group 与 current security frontier、来源 provider proof、
+外部 sender 的 consent/membership/action 授权；revise/redact 还必须验证外部 sender 对
+目标 Message 的修改/删除权限。HTTP provider signature 只证明来源传输，不能替代 Event
+proof，也不能把外部 sender 的 authority 转授给 facade。两种 admission 分支不得同时匹配。
 
 Arkret native 客户端发送到 MIMI room 时，facade MUST 将 signed Arkret event 转换为 MIMI message，并把 MIMI provider accepted timestamp / message id 写回可验证 receipt 或 interop metadata。不得把 MIMI provider accepted timestamp 当作 Arkret event 的 creation truth；timeline 排序仍以 Arkret HLC / reducer 规则为准。
 

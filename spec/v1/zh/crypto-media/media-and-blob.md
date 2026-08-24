@@ -104,7 +104,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ## 3. Encrypted Attachment
 
-加密附件的 `key_ref` MUST 使用与 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md) 相同的对象形态：`{algorithm, group_state_ref}`（MLS 场景）或 `{algorithm, key_id}`（其他 profile）。下例中的 `epoch` 字段（MLS 场景）绑定 `key_ref.group_state_ref` 所属的 MLS group epoch，使接收方能确认该附件密钥派生自正确 epoch；其必填性与 wire 形态以 schema [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 为权威源。
+加密附件的 `key_ref` MUST 使用与 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md) 相同的对象形态：`{algorithm, group_state_ref}`（MLS 场景）或 `{algorithm, key_id}`（其他 profile）。MLS 附件 epoch 不在 wire 上重复声明；其唯一派生式为 `attachment_epoch = resolve_exact_winning_group_state(key_ref.group_state_ref).epoch`。Event ref 必须解析到 accepted genesis 或 winning commit，proof hash 必须解析到等价的 exact winning group state；无法解析、非 winning state、hash/ref 歧义或缺少该 state 时 MUST 在密钥派生和解密前 fail closed。
 
 ```json
 {
@@ -114,7 +114,6 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
     "algorithm": "MLS",
     "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
   },
-  "epoch": 42,
   "nonce": "base64url...",
   "ciphertext_digest": "sha256:...",
   "size_bytes": 1234,
@@ -131,7 +130,7 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
 
 2. **AAD binding（normative）**: Blob / attachment envelope 的 AEAD AAD MUST 是 encoding [§10.2](../conformance/encoding.md) 的 **pre-encryption immutable header** 的 canonical bytes。该 header 对整文件形态 (`ak.blob.whole_file_aead.v1`) 至少绑定：
 
-   - `scheme`、`alg`、`key_ref`（canonical 形态）、`epoch`；
+   - `scheme`、`alg`、`key_ref`（canonical 形态）、按本节唯一规则派生的 `epoch`；
    - `nonce`；
    - `purpose = "blob-attachment"`、`aead_profile`；
    - `media_type`；
@@ -251,7 +250,6 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
     "algorithm": "MLS",
     "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
   },
-  "epoch": 42,
   "nonce_prefix": "base64url-N_AEAD-minus-5-bytes",
   "segment_bytes": 262144,
   "ciphertext_digest": "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",

@@ -31,14 +31,7 @@
       "pattern": "^ak:plan:[A-Za-z0-9_-]+$"
     },
     "applet_id": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/did_core_id"
-        },
-        {
-          "$ref": "#/$defs/applet_id"
-        }
-      ]
+      "$ref": "#/$defs/applet_id"
     },
     "package_digest": {
       "$ref": "#/$defs/digest"
@@ -109,24 +102,19 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "applet_id": {
-      "type": "string",
-      "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
     "event_ref": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "grant_id": {
-      "type": "string",
-      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/grant_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "effective_scope": {
       "oneOf": [

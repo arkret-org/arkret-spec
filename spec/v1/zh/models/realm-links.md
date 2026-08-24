@@ -145,26 +145,10 @@ Projection MAY 派生：
 ## 7. Query
 
 Realm link 查询返回 link graph，不返回产品导航树。产品导航应查询 Space hierarchy。
-
-请求字段：
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `realm_id` | `id:realm` | 起点 Realm。 |
-| `link_kind_allow` | `string[]` | 可选 kind 过滤。 |
-| `direction` | `outbound \| inbound \| both` | 默认 outbound。 |
-| `include_unconfirmed` | `boolean` | 是否包含未确认 link。 |
-
-响应项：
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `source_realm_id` | `id:realm` | 源 Realm。 |
-| `target_realm_id` | `id:realm` | 目标 Realm。 |
-| `link_kind` | `string` | link kind。 |
-| `status` | `active \| rejected \| tombstoned` | 本侧 durable cell 的原始状态。 |
-| `edge_status` | `confirmed \| unconfirmed_link \| rejected \| tombstoned` | 派生状态。 |
-| `accessible` | `boolean` | 调用方是否可读取目标 Realm 摘要。 |
+请求 path/query 参数以 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 的
+对应 operation 行为唯一权威；closed 响应项以
+[`realm-link-operations.schema.json`](../../artifacts/schemas/realm-link-operations.schema.json) 为唯一权威。
+§4 的 confirmed / unconfirmed projection 规则不增加未在该 operation artifact 登记的 wire 字段。
 
 ## 8. 与 Space Hierarchy 的关系
 

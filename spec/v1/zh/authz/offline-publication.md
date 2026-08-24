@@ -129,7 +129,10 @@ IngressReceipt {
 `receipt_digest = sha256(canonical_json(receipt_without_proofs))`。每个 ingress proof 必须签
 `canonical_json({context:"ak.ingress_receipt_proof.v1", payload_digest:receipt_digest,
 authority_set_ref, verification_method, created_at, domain?, audience?})`；proof `created_at` 必须逐字
-等于 `received_at`。同一 verification method 的重复 proof 只计一次。
+等于 `received_at`。`qualified_ingress_id` 是签收时 ingress service 的 version-qualified full DID，必须
+投影为 `service_id`，且每个 proof 的 verification method 必须由该 full DID 控制。`proofs[]` 必须按
+verification method 严格排序、不得重复，并满足 companion lease 所绑定 authority-set policy 中选定规则的
+issuer 集合与 threshold；单 proof 只在 threshold 为 1 时成立。
 
 Event 必须在 lease `expires_at` 之前被 policy 接受的 ingress 签收。`received_at` 必须由 issuer
 产生、进入签名，且满足 `issued_at <= received_at <= expires_at`。lease 到期后首次出现且没有
@@ -142,6 +145,10 @@ reducer、已进入数据 projection、已被 peer 看见或已获 Seal finality
 `received_at`只用于签收审计与lease deadline，不决定撤销因果。首次offline ingress必须携完整causal
 ingress basis：lease basis、exact Event digest、qualified ingress ID与ingress frontier。receiver按已验证的
 causal order执行四分判定：
+
+`ingress_basis` 必须与 companion lease 的 `basis_ref` 逐字相等；`ingress_frontier` 必须是非空、严格
+排序且无重复的 EventId 集合，并包含本 receipt 所签 Event 的 exact EventId。任何缺失、乱序、重复或
+与 Event/lease 不一致的 carrier 都在验签及 causal 判定前拒绝。
 
 1. 已知 revoke/ban frontier `≤ ingress_basis`：拒绝authoring；
 2. `ingress_basis < revoke/ban frontier`：接受历史authoring，后继Control仍按正常Lattice/Seal投影并支配

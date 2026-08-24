@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -44,6 +45,7 @@ def rebuild(document: dict) -> tuple[dict, list[str]]:
     seed = b64u_decode(document["test_key"]["private_key_seed"])
     signing_key = Ed25519PrivateKey.from_private_bytes(seed)
     changed: list[str] = []
+    consume_request_digest: str | None = None
 
     for group in ("cases", "negative_cases"):
         for case in document.get(group, []):
@@ -56,6 +58,10 @@ def rebuild(document: dict) -> tuple[dict, list[str]]:
                 group == "negative_cases" and case.get("expect_invalid_signature")
             )
             canonical = canonical_json(case["unsigned_request"])
+            if case.get("name") == "consume_single_claim":
+                consume_request_digest = "sha256:" + hashlib.sha256(
+                    canonical.encode("utf-8")
+                ).hexdigest()
             signing_input = case["domain"].encode("utf-8") + canonical.encode("utf-8")
             signature = b64u(signing_key.sign(signing_input))
             before = (
@@ -76,6 +82,31 @@ def rebuild(document: dict) -> tuple[dict, list[str]]:
                 case["signing_input_base64url"] = b64u(signing_input)
             if "signature" in case and not preserve_invalid_signature:
                 case["signature"] = signature
+
+    for case in document.get("cases", []):
+        if not isinstance(case, dict) or "signed_receipt" not in case:
+            continue
+        receipt = case["signed_receipt"]
+        if consume_request_digest is not None:
+            receipt["request_digest"] = consume_request_digest
+        unsigned_receipt = dict(receipt)
+        unsigned_receipt.pop("signature", None)
+        canonical = canonical_json(unsigned_receipt)
+        signing_input = case["domain"].encode("utf-8") + canonical.encode("utf-8")
+        signature = b64u(signing_key.sign(signing_input))
+        before = (
+            case.get("canonical_jcs"),
+            case.get("signing_input_base64url"),
+            case.get("signature"),
+            receipt.get("signature", {}).get("sig"),
+        )
+        after = (canonical, b64u(signing_input), signature, signature)
+        if before != after:
+            changed.append(case.get("name", "<unnamed>"))
+        case["canonical_jcs"] = canonical
+        case["signing_input_base64url"] = b64u(signing_input)
+        case["signature"] = signature
+        receipt["signature"]["sig"] = signature
     return document, changed
 
 

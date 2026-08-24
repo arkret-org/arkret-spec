@@ -1,0 +1,173 @@
+{
+  "profile": "ak.profile.applet_bridge.v1",
+  "version": "2026-08-24",
+  "suite": "applet_managed_actor_authority",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.applet.managed_actor_authority.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.applet.managed_actor_authority.v1"
+  ],
+  "authority_pair": {
+    "actor_id": "ak:did_core:webvh:z6mkfixtureghost",
+    "actor_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver"
+  },
+  "fixed_bot_unit_order": [
+    "ak.applet.registration",
+    "ak.capability.grant",
+    "ak.applet.managed_actor.provision",
+    "ak.realm.create:applet_managed_control",
+    "ak.identity.accountability_grant",
+    "ak.profile.create"
+  ],
+  "fixed_ghost_unit_order": [
+    "ak.applet.managed_actor.provision",
+    "ak.realm.create:applet_managed_control",
+    "ak.identity.accountability_grant",
+    "ak.profile.create"
+  ],
+  "cases": [
+    {
+      "name": "bot_exact_pair_and_initial_resolution",
+      "mutation": "none",
+      "expect": "accepted"
+    },
+    {
+      "name": "ghost_namespace_matches_verified_full_id",
+      "namespace_input": "initial_resolution.full_id",
+      "expect": "accepted"
+    },
+    {
+      "name": "ghost_external_tuple_is_single_closed_carrier",
+      "mutation": "none",
+      "external_ref": {
+        "protocol": "bridge",
+        "instance_id": "tenant-1",
+        "external_id": "user-1"
+      },
+      "expect": "accepted"
+    },
+    {
+      "name": "ghost_external_tuple_rejects_legacy_or_extra_mirrors",
+      "mutation": "add top-level protocol/tenant/external_user_id or external_ref.unknown",
+      "expect": "schema_violation"
+    },
+    {
+      "name": "ghost_provision_requires_registration_service_signature",
+      "mutation": "omit or corrupt RFC 9421 signature while retaining a bearer session",
+      "expect": "http_signature_required_or_invalid"
+    },
+    {
+      "name": "remote_principal_server_claim",
+      "mutation": "actor_principal_server_id != receiving_principal_server_id",
+      "expect": "applet_managed_actor_provision_invalid"
+    },
+    {
+      "name": "actor_reuses_service_or_controller",
+      "mutation": "actor_id == service_id || actor_id == controller_id",
+      "expect": "applet_managed_actor_provision_invalid"
+    },
+    {
+      "name": "bot_does_not_equal_registration_bot",
+      "mutation": "provision.actor_id != registration.bot_actor_id",
+      "expect": "applet_managed_actor_provision_invalid"
+    },
+    {
+      "name": "ghost_core_used_for_full_did_namespace",
+      "mutation": "namespace_input = actor_id",
+      "expect": "applet_namespace_mismatch"
+    },
+    {
+      "name": "invalid_method_history_or_witness",
+      "mutation": "method_history_evidence terminal/proof/witness invalid",
+      "expect": "identity_method_evidence_invalid"
+    },
+    {
+      "name": "non_webvh_method_evidence_is_not_a_managed_authority",
+      "mutation": "replace webvh_log with did_web_document or did_key_expansion",
+      "expect": "schema_violation"
+    },
+    {
+      "name": "pcr_genesis_cross_binding_mismatch",
+      "mutation": "provision_ref or initial_resolution differs",
+      "expect": "applet_managed_pcr_genesis_invalid"
+    },
+    {
+      "name": "ordinary_submit_cannot_create_applet_managed_pcr",
+      "mutation": "submit purpose=applet_managed_control ak.realm.create outside the closed install/Ghost aggregate",
+      "expect": "applet_managed_pcr_genesis_requires_closed_aggregate"
+    },
+    {
+      "name": "peer_federation_cannot_split_managed_authority",
+      "mutation": "submit the applet PCR genesis through ak.peer.events.command.submit with a peer_federated_event admission",
+      "expect": "applet_managed_pcr_genesis_requires_closed_aggregate"
+    },
+    {
+      "name": "pcr_genesis_materializes_resolution_and_history_only",
+      "mutation": "none",
+      "expect_cells": [
+        "ak.component.identity.resolution.v1",
+        "ak.component.realm.history_access.v1=since_join"
+      ],
+      "forbid_cells": [
+        "ak.component.agent.status.v1"
+      ]
+    },
+    {
+      "name": "unit_failure_is_zero_visible",
+      "mutation": "profile proof invalid after all prior rows preflight",
+      "expect": "no_event_no_projection_no_record_no_idempotency_result"
+    },
+    {
+      "name": "concurrent_ghost_append_uses_exact_applet_record_cas",
+      "mutation": "two formal Ghost aggregates validate against the same prior Applet record",
+      "expect": "one_commit_one_cas_conflict_no_event_or_record_loss"
+    },
+    {
+      "name": "revoke_cannot_overwrite_concurrent_ghost_append",
+      "mutation": "revoke reads the prior Applet record before a Ghost formal aggregate commits",
+      "expect": "stale_revoke_cas_retries_and_preserves_ghost_anchor"
+    },
+    {
+      "name": "rotation_keeps_creation_anchor",
+      "mutation": "accept ordinary resolution.update with exact PCR realm, head_eq successor and a separate active grant whose action/resource/registration epoch cover ak.identity.resolution.update",
+      "expect": "current_cell_changes_business_anchor_unchanged"
+    },
+    {
+      "name": "rotation_cannot_reuse_creation_only_grant",
+      "mutation": "resolution.update authorization_ref names the immutable provisioning grant, but that grant does not cover ak.identity.resolution.update and the PCR resource",
+      "expect": "capability_denied"
+    },
+    {
+      "name": "rotation_wrong_authority_pair",
+      "mutation": "same actor_id but actor_principal_server_id selects a different lineage",
+      "expect": "applet_managed_actor_authority_mismatch"
+    },
+    {
+      "name": "genesis_resolution_index_rebuild",
+      "mutation": "drop rebuildable principal_resolutions row after accepting the PCR genesis, then replay canonical Events",
+      "expect": "exact_authority_pair_current_resolution_restored"
+    },
+    {
+      "name": "restart_replays_genesis_and_rotation",
+      "mutation": "restart after accepted applet PCR genesis and one accepted resolution.update",
+      "expect": "projection_state_has_since_join_and_exact_latest_resolution_without_agent_status"
+    },
+    {
+      "name": "revoked_applet_direct_self_signed_write",
+      "mutation": "ordinary Event submit after registration revoke",
+      "expect": "applet_revoked"
+    },
+    {
+      "name": "managed_actor_portal_membership_is_not_delegated_bypass",
+      "mutation": "submit the same managed actor portal Event before join, after current join, and after leave",
+      "expect": "rejected_then_accepted_then_rejected"
+    },
+    {
+      "name": "revoked_applet_history_read",
+      "mutation": "identity resolution audit after registration revoke",
+      "expect": "accepted"
+    }
+  ]
+}

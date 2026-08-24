@@ -52,24 +52,10 @@
   ],
   "$defs": {
     "blob_ref": {
-      "type": "string",
-      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "$ref": "./agent-operations.schema.json#/$defs/blob_ref"
     },
     "principal_authority_key": {
-      "type": "object",
-      "required": [
-        "principal_id",
-        "principal_server_id"
-      ],
-      "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "principal_server_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./agent-membership-cascade.schema.json#/$defs/principal_authority_key"
     },
     "bilateral_continuity_checkpoint_core": {
       "type": "object",
@@ -78,7 +64,6 @@
         "context",
         "participants",
         "root_basis",
-        "root_basis_digest",
         "covered_through_contact_round_id",
         "prefix_accumulator_root",
         "covered_prefix_count",
@@ -112,9 +97,6 @@
             }
           ],
           "description": "Portable uncheckpointed root Contact round evidence. It is retained so founder and root identity remain independently derivable after prefix compaction."
-        },
-        "root_basis_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "covered_through_contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/digest",
@@ -1940,8 +1922,7 @@
       "$ref": "#/$defs/contact_tombstone_request"
     },
     "cursor": {
-      "type": "string",
-      "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
+      "$ref": "./authz-operations.schema.json#/$defs/cursor"
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -1979,8 +1960,7 @@
       "additionalProperties": false
     },
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "glare_concurrency_attestation": {
       "type": "object",
@@ -2036,8 +2016,7 @@
       "description": "Source-signed evidence that the issuer had accepted both directional request receipts while neither request slot had yet been consumed by a normal response or rejection. Exactly one attestation from each pair member is required by the glare evidence bundle."
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "normal_response_acceptance_receipt": {
       "type": "object",
@@ -3205,8 +3184,7 @@
       "additionalProperties": false
     },
     "strand_id": {
-      "type": "string",
-      "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/strand_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

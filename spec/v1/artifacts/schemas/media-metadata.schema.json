@@ -135,15 +135,13 @@
   "unevaluatedProperties": false,
   "$defs": {
     "blob_ref": {
-      "type": "string",
-      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "$ref": "./agent-operations.schema.json#/$defs/blob_ref"
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     }
   }
 }

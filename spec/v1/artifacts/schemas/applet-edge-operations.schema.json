@@ -37,20 +37,16 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "applet_id": {
-      "type": "string",
-      "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "blob_ref": {
-      "type": "string",
-      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "$ref": "./agent-operations.schema.json#/$defs/blob_ref"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "protocol": {
       "type": "string",
@@ -208,9 +204,14 @@
       "type": "object",
       "description": "Body for ak.edge.applet.command.transaction. Transport-layer requirements are mandatory but not body fields: RFC 9421 Signature/Signature-Input, Source-Service-ID, Destination-Service-ID, Content-Digest, Idempotency-Key, received_at audit metadata, and a persisted delivery_authentication_record. See zh/extensions/applet-integration.md section 7.3.1.",
       "required": [
+        "applet_id",
         "source_service_id"
       ],
       "properties": {
+        "applet_id": {
+          "$ref": "#/$defs/applet_id",
+          "description": "Exact active Applet registration selected for signature and epoch verification; service_id alone is not unique."
+        },
         "source_service_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Must exactly match the Source-Service-ID header and the signed source-service-id component. It identifies the source service only; each Event still requires independent actor/applet/capability signature verification."

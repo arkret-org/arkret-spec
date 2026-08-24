@@ -374,7 +374,6 @@
         "authority_realm_id",
         "seal_basis",
         "current_gate_projection",
-        "current_gate_projection_digest",
         "authority_sequence",
         "observed_at",
         "expires_at"
@@ -387,10 +386,6 @@
             {"$ref": "#/$defs/realm_current_gate_projection"},
             {"$ref": "#/$defs/circle_current_gate_projection"}
           ]
-        },
-        "current_gate_projection_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256(UTF8('ak.history-current-gate-projection-v1') || 0x00 || JCS(current_gate_projection))."
         },
         "authority_sequence": {"type": "integer", "minimum": 0},
         "observed_at": {"$ref": "#/$defs/timestamp"},
@@ -1798,7 +1793,6 @@
       "type": "object",
       "required": [
         "kind",
-        "verifier_profile_id",
         "predicate_registry_digest",
         "source_record_digest",
         "response_id",
@@ -1817,7 +1811,8 @@
         "source_kind",
         "accepted_at",
         "expires_at",
-        "accepted_authority_views"
+        "accepted_authority_views",
+        "verifier_profile_id"
       ],
       "properties": {
         "kind": {
@@ -2109,11 +2104,11 @@
         "sequence",
         "cursor",
         "record_digest",
-        "source_record",
         "sent_at",
         "release_service_signer_evidence_ref",
         "release_service_signer_evidence_digest",
-        "service_proof"
+        "service_proof",
+        "source_record"
       ],
       "properties": {
         "sequence": {

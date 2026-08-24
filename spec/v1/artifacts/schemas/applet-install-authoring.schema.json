@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/applet-install-authoring.schema.json",
+  "title": "Arkret Applet Install Co-sign Authoring DTOs",
+  "oneOf": [
+    { "$ref": "#/$defs/authoring_request_basis" },
+    { "$ref": "#/$defs/authoring_request" },
+    { "$ref": "#/$defs/preview_outcome" },
+    { "$ref": "#/$defs/author_request_body" },
+    { "$ref": "#/$defs/managed_actor_bundle" },
+    { "$ref": "#/$defs/author_outcome" }
+  ],
+  "$defs": {
+    "digest": { "$ref": "./account-operations.schema.json#/$defs/sha256_digest" },
+    "did_core_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
+    "did_url": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
+    "timestamp": { "$ref": "./time.schema.json#/$defs/timestamp" },
+    "registration_epoch_evidence": {
+      "$ref": "./applet-registration-epoch-evidence.schema.json"
+    },
+    "registration_event": {
+      "allOf": [
+        { "$ref": "./event-envelope.schema.json" },
+        {
+          "type": "object",
+          "required": ["kind", "payload"],
+          "properties": {
+            "kind": { "const": "ak.applet.registration" },
+            "payload": {
+              "type": "object",
+              "required": ["manifest"],
+              "properties": {
+                "manifest": {
+                  "type": "object",
+                  "required": ["registration_epoch_evidence"],
+                  "properties": {
+                    "registration_epoch_evidence": { "$ref": "#/$defs/registration_epoch_evidence" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "capability_grant_event": {
+      "allOf": [
+        { "$ref": "./event-envelope.schema.json" },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": { "kind": { "const": "ak.capability.grant" } }
+        }
+      ]
+    },
+    "approval_request": {
+      "type": "object",
+      "required": ["approve_actions", "ghost_actor_mode", "delegated_native_actors_allowed", "e2ee_join_allowed", "widget_allowed"],
+      "properties": {
+        "approve_actions": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "ghost_actor_mode": { "enum": ["disallowed", "controller_approved", "policy_declared"] },
+        "delegated_native_actors_allowed": { "type": "boolean" },
+        "e2ee_join_allowed": { "type": "boolean" },
+        "widget_allowed": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "actor_policy": {
+      "type": "object",
+      "properties": {
+        "bot_membership": { "enum": ["invite", "join", "disabled"] },
+        "ghost_actor_mode": { "enum": ["disallowed", "controller_approved", "policy_declared"] }
+      },
+      "additionalProperties": false
+    },
+    "e2ee_policy": {
+      "type": "object",
+      "properties": { "mls_join_allowed": { "type": "boolean" } },
+      "additionalProperties": false
+    },
+    "widget_policy": {
+      "type": "object",
+      "properties": { "widget_allowed": { "type": "boolean" } },
+      "additionalProperties": false
+    },
+    "authoring_request_basis": {
+      "type": "object",
+      "required": ["schema", "target_principal_server_id", "install_actor_id", "applet_id", "service_id", "package_digest", "effective_scope", "approval_request", "requested_at", "requested_expires_at", "registration_event", "capability_grant_events"],
+      "properties": {
+        "schema": { "const": "ak.schema.applet_install_authoring_request_basis.v1" },
+        "target_principal_server_id": { "$ref": "#/$defs/did_core_id" },
+        "install_actor_id": { "$ref": "#/$defs/did_core_id" },
+        "applet_id": { "$ref": "./common-ids.schema.json#/$defs/applet_id" },
+        "service_id": { "$ref": "#/$defs/did_core_id" },
+        "package_digest": { "$ref": "#/$defs/digest" },
+        "effective_scope": { "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope" },
+        "approval_request": { "$ref": "#/$defs/approval_request" },
+        "actor_policy": { "$ref": "#/$defs/actor_policy" },
+        "e2ee_policy": { "$ref": "#/$defs/e2ee_policy" },
+        "widget_policy": { "$ref": "#/$defs/widget_policy" },
+        "requested_at": { "$ref": "#/$defs/timestamp" },
+        "requested_expires_at": { "$ref": "#/$defs/timestamp" },
+        "registration_event": { "$ref": "#/$defs/registration_event" },
+        "capability_grant_events": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/capability_grant_event" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "authoring_proof": {
+      "type": "object",
+      "required": ["kind", "verification_method", "payload_digest", "created_at", "domain", "audience", "jws"],
+      "properties": {
+        "kind": { "const": "detached_jws" },
+        "verification_method": { "$ref": "#/$defs/did_url" },
+        "payload_digest": { "$ref": "#/$defs/digest" },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "domain": { "enum": ["arkret.applet.install.authoring-request.v1", "arkret.applet.install.managed-actor-bundle.v1"] },
+        "audience": { "$ref": "#/$defs/did_core_id" },
+        "jws": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "authoring_request": {
+      "type": "object",
+      "required": ["schema", "authoring_request_id", "basis", "plan_digest", "expires_at", "proof"],
+      "properties": {
+        "schema": { "const": "ak.schema.applet_install_authoring_request.v1" },
+        "authoring_request_id": { "type": "string", "pattern": "^ak:operation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+        "basis": { "$ref": "#/$defs/authoring_request_basis" },
+        "plan_digest": { "$ref": "#/$defs/digest" },
+        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "proof": { "$ref": "#/$defs/authoring_proof" }
+      },
+      "additionalProperties": false
+    },
+    "preview_outcome": {
+      "type": "object",
+      "required": ["plan", "authoring_request"],
+      "properties": {
+        "plan": { "$ref": "./applet-install-plan.schema.json" },
+        "authoring_request": { "$ref": "#/$defs/authoring_request" }
+      },
+      "additionalProperties": false
+    },
+    "author_request_body": {
+      "type": "object",
+      "required": ["authoring_request"],
+      "properties": { "authoring_request": { "$ref": "#/$defs/authoring_request" } },
+      "additionalProperties": false
+    },
+    "managed_actor_bundle": {
+      "type": "object",
+      "required": ["schema", "authoring_request_digest", "bot_actor_provision_event", "bot_pcr_genesis_event", "bot_accountability_grant_event", "bot_profile_event", "proof"],
+      "properties": {
+        "schema": { "const": "ak.schema.applet_managed_actor_authoring_bundle.v1" },
+        "authoring_request_digest": { "$ref": "#/$defs/digest" },
+        "bot_actor_provision_event": { "allOf": [{ "$ref": "./event-envelope.schema.json" }, { "properties": { "kind": { "const": "ak.applet.managed_actor.provision" } }, "required": ["kind"] }] },
+        "bot_pcr_genesis_event": { "allOf": [{ "$ref": "./event-envelope.schema.json" }, { "properties": { "kind": { "const": "ak.realm.create" } }, "required": ["kind"] }] },
+        "bot_accountability_grant_event": { "allOf": [{ "$ref": "./event-envelope.schema.json" }, { "properties": { "kind": { "const": "ak.identity.accountability_grant" } }, "required": ["kind"] }] },
+        "bot_profile_event": { "allOf": [{ "$ref": "./event-envelope.schema.json" }, { "properties": { "kind": { "const": "ak.profile.create" } }, "required": ["kind"] }] },
+        "proof": { "$ref": "#/$defs/authoring_proof" }
+      },
+      "additionalProperties": false
+    },
+    "author_outcome": {
+      "type": "object",
+      "required": ["managed_actor_bundle"],
+      "properties": { "managed_actor_bundle": { "$ref": "#/$defs/managed_actor_bundle" } },
+      "additionalProperties": false
+    }
+  }
+}

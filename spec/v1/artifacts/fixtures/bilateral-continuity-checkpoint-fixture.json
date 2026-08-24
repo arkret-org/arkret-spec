@@ -18,6 +18,25 @@
   ],
   "cases": [
     {
+      "name": "root_basis_digest_is_sha256_of_jcs_and_not_wire_state",
+      "root_basis": {
+        "contact_round_id": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "contact_round": {
+          "kind": "normal",
+          "sorted_pair_members": [
+            "ak:did_core:webvh:z6mkfixturealice",
+            "ak:did_core:webvh:z6mkfixturebob"
+          ],
+          "request_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "request_acceptance_receipt_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "request_receipts": [],
+        "current_proofs": []
+      },
+      "expected_root_basis_digest": "sha256:b2d4dfdbc9a9bf3ef0191f7553872fe0bb312a90309d68d05f29273ab27eaffc",
+      "wire_member": false
+    },
+    {
       "name": "history_beyond_64_uses_checkpoint_and_bounded_tail",
       "covered_prefix_count": 64,
       "uncompressed_tail_count": 64,

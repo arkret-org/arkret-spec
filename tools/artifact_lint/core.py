@@ -409,7 +409,13 @@ CELL_WRITE_DERIVATIONS = {
 # encoding.md 9.5.1: a registered path is dot-separated *named* fields only.
 # Array indices, wildcards and empty segments have no defined evaluation, so a
 # registry carrying one would pass lint yet be underivable.
-FIELD_PATH_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$")
+# JSON Schema documents carry their canonical identity in the reserved `$id`
+# member. Registry field paths are JSON object-member paths (not language
+# identifiers), so permit that exact reserved segment while keeping indexes,
+# wildcards and arbitrary `$` names closed.
+FIELD_PATH_RE = re.compile(
+    r"^(?:[A-Za-z_][A-Za-z0-9_]*|\$id)(?:\.(?:[A-Za-z_][A-Za-z0-9_]*|\$id))*$"
+)
 
 
 
@@ -918,7 +924,7 @@ _SUPPLY_CLIENT_LOCAL_RE = re.compile(
     r"^payload_bytes$|^ciphertext|plaintext|^password|^locale$|^timezone$|"
     r"^limit$|^cursor$|^page|^filter|^query$|^purpose$|^kind$|^mode$|^scope$|"
     r"_proof$|^proof$|proof_kind|proof_jwt|^code$|code_verifier|redirect_uri|"
-    r"blinded|^auth_data$|^proofPurpose$|^proofValue$|^verificationMethod$|"
+    r"blinded|^introduction_evidence$|^auth_data$|^proofPurpose$|^proofValue$|^verificationMethod$|"
     r"^cryptosuite$|^argument_digest$|recovery_secret)",
     re.I,
 )
@@ -1193,10 +1199,23 @@ def check_event_envelope_candidates(
     label: str = "",
     negative_context: bool = False,
 ) -> None:
+    def reject_legacy_auth_context_actor(
+        event: dict[str, Any],
+        event_path: str,
+    ) -> None:
+        auth_context = event.get("auth_context")
+        if isinstance(auth_context, dict) and "actor_id" in auth_context:
+            lint.fail(
+                owner,
+                f"{label}{event_path}.auth_context contains forbidden legacy actor_id; "
+                "derive the signer from executed_by or actor_id",
+            )
+
     for json_path, event, is_negative in event_envelope_candidates(
         value,
         negative_context=negative_context,
     ):
+        reject_legacy_auth_context_actor(event, json_path)
         if is_negative:
             continue
         kind = event.get("kind")
@@ -1214,6 +1233,31 @@ def check_event_envelope_candidates(
                 owner,
                 f"{label}{json_path}.auth_context contains forbidden legacy capability_refs",
             )
+
+    # Canonical transcript fixtures carry Event digest preimages as JSON strings.
+    # Parse only the registered transcript field names so a removed wire member
+    # cannot survive lint merely because it was escaped inside a string.
+    transcript_fields = {
+        "canonical_event_payload",
+        "expected_canonical_bytes_utf8",
+        "unsigned_jcs",
+        "wire_utf8",
+    }
+    preimage_fields = {"kind", "actor_id", "actor_seq", "auth_context", "payload"}
+    for string_path, child, key in walk_json(value):
+        if key not in transcript_fields or not isinstance(child, str):
+            continue
+        try:
+            parsed = json.loads(child)
+        except json.JSONDecodeError:
+            continue
+        for parsed_path, candidate, _ in event_envelope_candidates(parsed):
+            reject_legacy_auth_context_actor(candidate, f"{string_path}:{parsed_path}")
+        if isinstance(parsed, dict) and preimage_fields.issubset(parsed):
+            reject_legacy_auth_context_actor(parsed, f"{string_path}:$")
+        for parsed_path, candidate, _ in walk_json(parsed):
+            if isinstance(candidate, dict) and preimage_fields.issubset(candidate):
+                reject_legacy_auth_context_actor(candidate, f"{string_path}:{parsed_path}")
 
 
 

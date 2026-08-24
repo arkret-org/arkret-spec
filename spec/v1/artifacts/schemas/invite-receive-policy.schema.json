@@ -142,15 +142,7 @@
       ]
     },
     "introduction_kind": {
-      "type": "string",
-      "enum": [
-        "locator_ref",
-        "consent_grant",
-        "shared_realm",
-        "handle_claim",
-        "same_principal_server",
-        "explicit_address"
-      ]
+      "$ref": "./invite-quarantine.schema.json#/$defs/introduction_kind"
     },
     "disclosure_level": {
       "type": "string",

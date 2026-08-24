@@ -1,0 +1,109 @@
+{
+  "profile": "ak.profile.mls_governance_binding.full.v1",
+  "version": "2026-08-24",
+  "suite": "keypackage_pairwise_welcome",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.crypto.keypackage_lifecycle.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1"
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "minimal_metadata_pairwise_welcome_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_welcome_payload",
+      "expect_valid": true,
+      "instance": {
+        "mls_group_id": "fixture-group",
+        "epoch": 1,
+        "recipient_pairwise_actor_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "recipient_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "claim_id": "pairwise-claim-1",
+        "claim_ref": {
+          "claim_id": "pairwise-claim-1",
+          "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "keypackage_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "capabilities_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "pairwise_actor_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+          "pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE"
+        },
+        "claim_envelope": {
+          "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "keypackage_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "claim_id": "pairwise-claim-1",
+          "requester_actor_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+          "requester_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+          "nonce": "AAAAAAAAAAAAAAAAAAAAAg",
+          "welcome_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "created_at": "2026-08-24T00:01:00.000Z",
+          "signature": {
+            "kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+            "signature_algorithm": "Ed25519",
+            "sig": "AA"
+          }
+        },
+        "claim_receipt": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAg",
+          "request_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "claims_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "source_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "destination_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "request": {
+            "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAg",
+            "target_principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+            "requester": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+            "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "mls_group_id": "fixture-group",
+            "claim_purpose": "realm_membership",
+            "required_capabilities": ["mls"],
+            "expires_at": "2026-08-24T00:05:00.000Z",
+            "target_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE"
+          },
+          "claimed_at": "2026-08-24T00:00:30.000Z",
+          "expires_at": "2026-08-24T00:05:00.000Z",
+          "signature": {
+            "kid": "did:webvh:z6mkfixture:ps.example#notary-key",
+            "signature_algorithm": "Ed25519",
+            "sig": "AA"
+          }
+        },
+        "ciphertext": "AA",
+        "commit_ref": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+        "governance_binding": {
+          "binding_version": 1,
+          "encoding_profile": "cbor-deterministic-rfc8949-v1",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "mls_group_id": "fixture-group",
+          "previous_epoch": 0,
+          "next_epoch": 1,
+          "security_frontier_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+          "content_scheme": "mls_rfc9420",
+          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+          "reducer_profile": "ak.reducer.full.v1"
+        },
+        "expires_at": "2026-08-24T00:05:00.000Z"
+      }
+    },
+    {
+      "name": "minimal_metadata_pairwise_welcome_rejects_device_mixture",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_welcome_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:not valid under any of the given schemas",
+      "instance_from": "minimal_metadata_pairwise_welcome_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/recipient_device_id",
+          "value": "ak:device:0196419b-0000-7000-8000-000000000001"
+        }
+      ]
+    }
+  ]
+}

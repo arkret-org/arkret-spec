@@ -168,28 +168,23 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "hlc": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "transfer_id": {
       "type": "string",
       "pattern": "^[A-Za-z0-9._~=-]{22,128}$"
     },
     "blob_ref": {
-      "type": "string",
-      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "$ref": "./agent-operations.schema.json#/$defs/blob_ref"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "media_type": {
-      "type": "string",
-      "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+      "$ref": "./blob-operations.schema.json#/$defs/media_type"
     },
     "device_id": {
-      "type": "string",
-      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
     "base64url": {
       "type": "string",
@@ -389,43 +384,12 @@
       "type": "object",
       "required": [
         "transfer_id",
-        "blob_ref",
-        "aead_profile",
-        "content_digest",
         "key_envelope",
         "expires_at"
       ],
       "properties": {
         "transfer_id": {
           "$ref": "#/$defs/transfer_id"
-        },
-        "blob_ref": {
-          "$ref": "#/$defs/blob_ref"
-        },
-        "aead_profile": {
-          "type": "string",
-          "enum": [
-            "ak.aead.xchacha20_poly1305.v1"
-          ]
-        },
-        "nonce": {
-          "$ref": "#/$defs/base64url"
-        },
-        "nonce_prefix": {
-          "$ref": "#/$defs/base64url"
-        },
-        "segment_bytes": {
-          "type": "integer",
-          "minimum": 1024,
-          "maximum": 8388608
-        },
-        "segment_count": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 1048576
-        },
-        "content_digest": {
-          "$ref": "#/$defs/digest"
         },
         "key_envelope": {
           "$ref": "#/$defs/key_envelope"
@@ -434,46 +398,6 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "oneOf": [
-        {
-          "$comment": "whole-file file-transfer key message: single nonce, no stream segment parameters",
-          "required": [
-            "nonce"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "nonce_prefix"
-                ]
-              },
-              {
-                "required": [
-                  "segment_bytes"
-                ]
-              },
-              {
-                "required": [
-                  "segment_count"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "$comment": "streaming file-transfer key message: nonce_prefix and fixed segment parameters, no whole-file nonce",
-          "required": [
-            "nonce_prefix",
-            "segment_bytes",
-            "segment_count"
-          ],
-          "not": {
-            "required": [
-              "nonce"
-            ]
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "key_envelope": {

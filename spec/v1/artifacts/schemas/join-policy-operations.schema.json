@@ -34,8 +34,7 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "event_ref": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "grant_id": {
       "$ref": "./common-ids.schema.json#/$defs/grant_id"

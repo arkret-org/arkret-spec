@@ -904,6 +904,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         "ak.open.device_pairing.command.stage",
         "ak.open.device_pairing.read.resolve",
         "ak.open.device_pairing.read.status",
+        "ak.edge.applet.install.command.author",
     }
     recovery_session_grant_operations = {
         "ak.root.identity.recovery_policy.command.publish",

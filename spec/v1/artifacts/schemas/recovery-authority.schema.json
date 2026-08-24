@@ -41,12 +41,10 @@
       "minimum": 1
     },
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "issue_recovery_completion_grant_outcome": {
       "type": "object",
@@ -111,8 +109,7 @@
       "additionalProperties": false
     },
     "receipt_id": {
-      "type": "string",
-      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./erasure-receipt-operations.schema.json#/$defs/receipt_id"
     },
     "recovery_completion_attestation": {
       "type": "object",
@@ -200,8 +197,7 @@
       "additionalProperties": false
     },
     "recovery_session_id": {
-      "type": "string",
-      "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./key-backup-unlock-proof.schema.json#/$defs/recovery_session_id"
     },
     "transaction_id": {
       "type": "string",

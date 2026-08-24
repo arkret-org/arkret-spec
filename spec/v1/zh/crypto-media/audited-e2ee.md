@@ -131,7 +131,7 @@ Receiver MUST 校验 request 的 scope、purpose 和 release mode 均被 binding
 
 Authorize payload MUST 引用 `session_id`、`binding_id`、`approver_actor_id`、批准的 epoch / target 范围、release mode、notice policy、expiry、`approved_recipient_audit_actor_id` 与 `approved_recipient_public_key_ref`。`approved_recipient_public_key_ref` MUST 解析为 `approved_recipient_audit_actor_id` 当前 DID 文档或该 actor 已 accepted device/key registry 中授权用于 audit release 的 verification method；若该 key 由专用 audit key registry / hardware attestation key 承载，authorize payload MUST 同时绑定对应 registry / attestation evidence digest。批准范围不得超过 request、binding、release window policy 与每个目标加密时 eligibility snapshot 的交集。
 
-Authorization 只授予一个有界 release 窗口，不是一次性永久凭证。`ak.audit.release` 被 accepted 时，reducer MUST 重新校验对应 `ak.audit.applet_binding.status == "active"`，authorize payload 的 `expiry` 尚未到期，且 release 的 `recipient_audit_actor_id` / `recipient_public_key_ref` 与 authorize payload 中批准的 `approved_recipient_audit_actor_id` / `approved_recipient_public_key_ref` 逐字节一致；任一条件不满足，release MUST 被拒绝（binding 非 active 使用 `audit_release_binding_inactive`，authorize 过期使用 `auth_expired` 或更具体的 release expiry reason；recipient/key mismatch 使用 `audit_release_manifest_invalid`）。Attested release service 在输出 wrapped material 或明文 evidence 前 MUST 执行同一 guard，并且不得仅凭先前见过的 authorize 事件继续 release。
+Authorization 只授予一个有界 release 窗口，不是一次性永久凭证。`ak.audit.release` 被 accepted 时，reducer MUST 重新校验对应 `ak.audit.applet_binding.status == "active"` 且 authorize payload 的 `expiry` 尚未到期；release recipient actor/key 唯一取自该 session 当前 accepted authorize payload 的 `approved_recipient_audit_actor_id` / `approved_recipient_public_key_ref`，release manifest 不再重复携带。任一条件不满足，release MUST 被拒绝（binding 非 active 使用 `audit_release_binding_inactive`，authorize 过期使用 `auth_expired` 或更具体的 release expiry reason）。Attested release service 在输出 wrapped material 或明文 evidence 前 MUST 执行同一 guard，并且不得仅凭先前见过的 authorize 事件继续 release。
 
 ### 4.3 Notice
 
@@ -153,7 +153,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `release_id` | yes | `ak:audit_release:<44-char-event-token>`。 |
+| `release_id` | derived / wire absent | `retype(release_event.event_id, "audit_release")`；payload MUST NOT 携带第二份 identity。 |
 | `session_id` | yes | 对应 session。 |
 | `binding_id` | yes | 对应 active binding。 |
 | `realm_id` / `effective_scope` | yes | release scope。 |
@@ -161,9 +161,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 | `release_mode` | yes | `targeted_evidence_release` 或 `sealed_epoch_key_release`。 |
 | `sealed_epoch_range` | conditional | release 覆盖 epoch 时必填；不得包含当前 active epoch。 |
 | `target_refs` | conditional | target-based release 时必填。 |
-| `seal_ref` / `seal_digest` | yes | release 所依赖的 accepted history seal。 |
-| `recipient_audit_actor_id` | yes | 接收材料的审计主体。 |
-| `recipient_public_key_ref` | yes | release material 加密目标 key；MUST 等于 authorize payload 的 `approved_recipient_public_key_ref`，并解析为 `recipient_audit_actor_id` 授权的 audit release 接收 key。 |
+| `seal_ref` / `seal_digest` | yes | release 所依赖的 accepted history Seal；`seal_ref` 的 canonical wire 形态只能是 `ak:seal:<suite>:<hex>`，不得使用 EventId。 |
 | `approver_actor_id` | yes | 授权者。 |
 | `notice_ref` | yes | 对应 `ak.audit.session.notice`。 |
 | `purpose_kind` / `legal_basis_ref` | yes | 目的与依据。 |
@@ -172,9 +170,9 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 | `sealed_by_commit_ref` | conditional | 若 release 涉及 MLS epoch，MUST 引用把 active epoch 推进后的 `ak.mls.commit`。 |
 | `wrapped_material_digest[]` | yes | 已输出材料的 digest 列表；不内联明文。 |
 
-Release event MUST 先 accepted，并取得有效 `ak.audit.ryw_receipt` 后，attested release service 才能输出 wrapped material。输出前，release service MUST 重新解析并验证 `recipient_public_key_ref` 仍是 `recipient_audit_actor_id` 授权的 audit release 接收 key；不得把 material 加密给 release manifest 自带但未被 authorize 批准、或不属于该审计主体的 key。`disclosed_policy` 也 MUST 按同一顺序记录，但其保证是流程性。
+Release event MUST 先 accepted，并取得有效 `ak.audit.ryw_receipt` 后，attested release service 才能输出 wrapped material。输出前，release service MUST 从该 session 当前 accepted authorize payload 读取批准的 recipient actor/key，重新解析并验证该 key 仍是该 actor 授权的 audit release 接收 key；不得把 material 加密给未被 authorize 批准、或不属于该审计主体的 key。`disclosed_policy` 也 MUST 按同一顺序记录，但其保证是流程性。
 
-Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_proof` 与 binding policy 不一致、`sealed_epoch_range.first_epoch < first_auditable_epoch`，或 target 在其 encryption-time eligibility snapshot 中未包含该 binding / release mode 的 release。Release 被 accepted 时还 MUST 重新校验 binding 仍为 `active`、session accepted current head 为 `notice`、authorize 未过 expiry、authorize 批准的 recipient actor/key 与 release manifest 一致、`recipient_public_key_ref` 解析到 `recipient_audit_actor_id` 授权 key、notice 已按 scope 留痕且 session 未 close。该拒绝使用 `audit_release_retroactive_scope_forbidden`、`audit_release_manifest_invalid`、`audit_release_binding_inactive`、`auth_expired` 或 `failed_precondition`，取决于错误是越过不可追溯边界、manifest 自身不一致、binding 已暂停 / revoked、授权窗口已过期，还是 session FSM head 不允许 release。
+Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_proof` 与 binding policy 不一致、`sealed_epoch_range.first_epoch < first_auditable_epoch`，或 target 在其 encryption-time eligibility snapshot 中未包含该 binding / release mode 的 release。Release 被 accepted 时还 MUST 重新校验 binding 仍为 `active`、session accepted current head 为 `notice`、authorize 未过 expiry、authorize 批准的 recipient key 解析到批准的 recipient actor、notice 已按 scope 留痕且 session 未 close。该拒绝使用 `audit_release_retroactive_scope_forbidden`、`audit_release_manifest_invalid`、`audit_release_binding_inactive`、`auth_expired` 或 `failed_precondition`，取决于错误是越过不可追溯边界、manifest 自身不一致、binding 已暂停 / revoked、授权窗口已过期，还是 session FSM head 不允许 release。
 
 ### 4.5 Close
 
@@ -186,7 +184,7 @@ Session close 后不得追加新的 `ak.audit.release`；需要更多材料必�
 
 ### 5.1 `targeted_evidence_release`（默认）
 
-默认 release mode 是目标证据 release：只针对 `target_refs[]` 输出最小 evidence package。Evidence package SHOULD 由当前持有明文的成员设备、授权保管服务或符合 Realm policy 的受控服务加密给 `recipient_public_key_ref`。该模式不 release MLS epoch secret，也不让审计 applet 获得后续消息能力。
+默认 release mode 是目标证据 release：只针对 `target_refs[]` 输出最小 evidence package。Evidence package SHOULD 由当前持有明文的成员设备、授权保管服务或符合 Realm policy 的受控服务加密给当前 accepted authorize payload 的 `approved_recipient_public_key_ref`。该模式不 release MLS epoch secret，也不让审计 applet 获得后续消息能力。
 
 `targeted_evidence_release` 的 evidence package MAY 包含被请求消息的明文、附件 digest、原始 encrypted envelope、franking proof、reporter / custodian 签名和必要上下文；MUST NOT 包含无关消息、超出授权范围的历史 key，或未被 `target_refs[]` 与 `eligibility_proof` 同时覆盖的同 epoch 明文。每个明文 item MUST 对应一个通过 §4.4 eligibility proof 的 `target_ref`，并满足该 target 的 encryption-time eligibility snapshot、`first_auditable_epoch` 与 release window。成员或 custodian 能解密某个 epoch 的更多明文，不等于可以把整 epoch 明文打包进 targeted evidence；超出 target 交集的明文 MUST 被拒绝并记录为 `audit_release_manifest_invalid` 或 `audit_release_retroactive_scope_forbidden`。
 

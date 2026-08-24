@@ -10,7 +10,7 @@ updated: 2026-07-30
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-本章是 CBA finality profile、控制操作并发类别、genesis、proposal 决议义务及依赖 bundle
+本章是 CBA finality profile、控制操作并发类别、genesis 及依赖 bundle
 的唯一规范来源。Seal 是唯一控制状态接受事实。
 
 ## 1. Finality profile
@@ -177,31 +177,10 @@ ordinary Realm、re-anchor/recovery 与任意 threshold/mixed notary 继续走�
 transport-origin attestation。实现不得因 admission proof 的存在把已接受 Event 误判为多 producer，
 也不得把 admission proof 当作 producer authority 或接受两个 producer proofs。
 
-Realm 可通过 `proposal_decision_window_ms`、`proposal_absolute_deadline_ms` 与
-`max_proposal_defers` 声明更严格的有效值；协议硬上限：
-
-- `decision_due_at - received_at` 不得超过 24 hours；
-- 最多 2 次 signed defer；
-- 每次 defer 必须带 closed `reason_code` 和新的 `decision_due_at`；
-- `absolute_due_at - received_at` 不得超过 72 hours，且 defer 不得改变 `absolute_due_at`。
-- Realm 参数 MUST 满足
-  `proposal_decision_window_ms <= proposal_absolute_deadline_ms`；若
-  `max_proposal_defers > 0`，该关系 MUST 为严格小于。两窗口相等时
-  `max_proposal_defers` MUST 为 `0`。Realm create / policy reducer 必须在写入前校验，
-  违反时以 `schema_violation` 拒绝整个 Control Move。
-
-每个 defer MUST 引用完整canonical Ack-set digest，绑定同一 proposal / Realm /
-authority set，并由该receipt set要求的quorum对同一payload产生canonical `proofs[]`；
-`defer_count` 恰好加一，且不得改变 `absolute_due_at`。期限内必须出现 include in
-accepted Seal、signed reject 或 signed defer。reject 与 defer 只是
-可验证决议，不提供 finality；只有 include 后的 Seal 提供 finality。超过绝对期限仍无决议时，
-客户端可生成 censorship evidence 并进入 authority health/recovery/rotation；协议不能强迫
-停机或恶意 authority 接受 proposal。
-
-不得把该义务称作“接受 SLA”，也不得声称 deadline 本身提供 finality。
-
-机读合同为
-[`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。
+Proposal 决议窗口上限、Realm 参数跨字段约束、signed defer、terminal decision、逾期
+censorship evidence、finality 边界与机读合同的唯一规范来源是
+[`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation)。
+本节只定义上述 ingress authority 与 Ack-less 例外，不复述决议参数或 deadline 语义。
 
 ## 5. CbaProofBundle
 

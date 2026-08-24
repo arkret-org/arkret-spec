@@ -409,17 +409,9 @@ v1 的 peer pull **只有**这一种带 JSON body 的 `QUERY` 形态，没有无
 
 **Pull 授权 freshness（normative，与 §8.5.1 互补）**：§8.5.1 处理的是 push 路径——把 service key state 一起进入 idempotency cache key，从而在 cache hit 时仍重做授权检查；而 pull 路径根本**不进幂等缓存**：无 body 的 `GET` pull 省略 `Content-Digest`（§3.2），因此不像 push 那样把 receiver-computed canonical body digest 纳入幂等缓存键。两条路径用**不同机制**关闭同一个"撤销后重放"窗口（push 靠 cache-key 绑定 + cache hit 重校验，pull 靠每次请求强制重新解析 service binding freshness），互为补充而非镜像对称。每次 pull 请求，接收方（被拉取的源服务）MUST 在返回事件前重新解析并校验请求方 `Source-Service-ID` 的 service binding freshness——当前 `verification_method` 仍 active、未 revoke，且该 source 在目标 Realm policy 下仍持有 `federation_peer` 角色——并 MUST NOT 因 `(Source-Service-ID, query)` 命中任何幂等 / 响应缓存而豁免该重新授权检查。请求方 service key 已 revoke 或 service binding 已被 Realm policy 移除时，MUST 返回 `capability_denied` / `policy_denied`，不得从缓存回放历史事件批次给已失权的 puller。
 
-`snapshot_bootstrap` 字段（存在时）：
-
-| 字段 | 类型 | 必填 | 说明与约束 |
-| --- | --- | --- | --- |
-| `snapshot_ref` | `id` | optional | 外部快照指针，MUST 等于 Snapshot manifest 的 `id`。 |
-| `state_digest` | `string` | optional | 快照状态根，必须与快照 frontier 对应。 |
-| `snapshot_frontier` | `id[]` | optional | 需要从该 frontier 之后开始增量回放。 |
-| `signature` | `object` | optional | 标准 Snapshot detached proof；接收方 MUST 验证该 proof 覆盖的 manifest `id` 与本对象的 `snapshot_ref` 相等。 |
-| `signature.verification_method` | `string` | optional | 用于信任锚点的 DID verification method。 |
-| `signature.alg` | `string` | optional | 签名算法。 |
-| `signature.jws` | `string` | optional | detached JWS。 |
+`snapshot_bootstrap` 的 closed 字段形态以本节响应表和
+[`service-operation-dtos.schema.json#/$defs/EventsQueryOutcome`](../../artifacts/schemas/service-operation-dtos.schema.json)
+为唯一权威；§9.1 不再复述内层字段。
 
 ### 4.3 重复与幂等
 
@@ -851,15 +843,11 @@ managed/native Agent Event 与其它普通 Event 使用相同 in-envelope Princi
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `snapshot_bootstrap` | `object` | optional | 可选，携带可验证的快照入口，不改变操作集合语义。 |
-| `snapshot_bootstrap.snapshot_ref` | `id` | optional | 触发本次增量前可选的 snapshot 外部指针，MUST 等于 Snapshot manifest 的 `id`。 |
-| `snapshot_bootstrap.state_digest` | `string` | optional | snapshot 的状态摘要。 |
-| `snapshot_bootstrap.snapshot_frontier` | `id[]` | optional | snapshot 覆盖的 frontier。 |
-| `snapshot_bootstrap.signature` | `object` | optional | 标准 Snapshot detached proof；接收方必须验证签名、state_digest 与 `snapshot_frontier` 一致性。 |
+| `snapshot_bootstrap` | `object` | optional | 字段形态以 §4.2 与 `EventsQueryOutcome` schema 为唯一权威；可选入口不改变操作集合语义。 |
 
 校验规则：
 
-- 客户端在接收到 `snapshot_bootstrap` 时，先执行 `signature`、签名者授权、`state_digest` 和 chunk digest 校验。
+- 客户端在接收到 `snapshot_bootstrap` 时，MUST 按 [`snapshot-schema.md` §5](../conformance/snapshot-schema.md) 的唯一通用校验清单验证 manifest 与 chunks。
 - 接受快照后，增量回放起点必须以 `snapshot_frontier` 为锚点，不得把 snapshot 当成无因果前沿的新 genesis。
 - 快照校验失败时，必须退回到纯 Event 增量回放，并将该来源记入 `quarantine` 或 `rate_limited` 分支进行观察。
 

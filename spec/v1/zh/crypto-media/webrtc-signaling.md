@@ -197,8 +197,6 @@ Content-Type: application/json
   },
   "signature": {
     "kid": "did:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L:media.example.com#key-1",
-    "signature_input": "ak.media.ice_config.v1",
-    "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "sig": "base64url...",
     "signature_algorithm": "Ed25519"
   }
@@ -230,7 +228,7 @@ Content-Type: application/json
     ```
 
     第一段是固定 ASCII 域分隔 label（逐字节等于 `ak.media.ice_config.v1`），随后单字节 `0x00` 分隔，再接去掉 `signature` 自身后的响应对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。该 label MUST 与 [`media-service-binding.md` §3.1](./media-service-binding.md) 媒体签名 domain label 分离表登记的常量逐字节一致，且 MUST 区别于 `ak.media.participant_binding.v1`——这把 ICE config 签名与 participant binding 签名隔离，防止同一 issuer key 的签名被跨用途重解释。任何 media service MUST 按此构造，任何客户端 MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 复用 participant_binding label。
-  - `signature.signature_input` MUST 显式携带该固定 label（`ak.media.ice_config.v1`），`signature.payload_digest` MUST 等于 `sha256:` + SHA-256(canonical_json(响应对象去除顶层 `signature` 字段))。这两个字段用于调试、审计与跨实现互操作校验；它们不改变上面的签名字节定义，验签时仍只把顶层 `signature` 字段整体移除。
+  - 固定 label 与 payload digest 都是 verifier 的内部确定性输入，不是 `signature` 的 wire 成员。Verifier MUST 固定使用 `ak.media.ice_config.v1`，并从去除顶层 `signature` 后的权威对象重算 canonical JSON 与 SHA-256 诊断摘要；不得接受 caller 提供的 label、digest 回声或用其替代上述签名字节重算。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
 - 高隐私 Realm MAY 设置 `turn_required=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
 

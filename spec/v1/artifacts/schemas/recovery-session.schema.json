@@ -9,35 +9,28 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "did_url": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      "$ref": "./account-operations.schema.json#/$defs/did_url"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "policy_id": {
-      "type": "string",
-      "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./call-recording-artifact.schema.json#/$defs/policy_id"
     },
     "device_id": {
-      "type": "string",
-      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
     "request_id": {
-      "type": "string",
-      "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./account-operations.schema.json#/$defs/request_id"
     },
     "recovery_session_id": {
-      "type": "string",
-      "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./key-backup-unlock-proof.schema.json#/$defs/recovery_session_id"
     },
     "transaction_id": {
-      "type": "string",
-      "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./recovery-authority.schema.json#/$defs/transaction_id"
     },
     "trust_domain": {
       "$ref": "./common-ids.schema.json#/$defs/trust_domain"
@@ -52,25 +45,10 @@
       "description": "The v1 base recovery model: an accepted PCR recovery policy directly authorizes the next device generation. Current DID control is not implicit."
     },
     "pcr_generation_ref": {
-      "type": "integer",
-      "minimum": 1
+      "$ref": "./recovery-authority.schema.json#/$defs/pcr_generation_ref"
     },
     "recovery_policy_ref": {
-      "type": "object",
-      "required": [
-        "policy_id",
-        "policy_version"
-      ],
-      "properties": {
-        "policy_id": {
-          "$ref": "#/$defs/policy_id"
-        },
-        "policy_version": {
-          "type": "integer",
-          "minimum": 1
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./recovery-policy.schema.json#/$defs/recovery_policy_ref"
     },
     "session_state": {
       "type": "string",
@@ -180,17 +158,17 @@
         "policy_id",
         "policy_version",
         "identity_model",
+        "current_device_generation_ref",
+        "device_generation_status",
+        "registry_head",
+        "accepted_seal_frontier",
         "publication_authority_context",
         "publication_authority_context_digest",
         "challenge",
         "state",
         "expires_at",
         "created_at",
-        "updated_at",
-        "current_device_generation_ref",
-        "device_generation_status",
-        "registry_head",
-        "accepted_seal_frontier"
+        "updated_at"
       ],
       "properties": {
         "schema": {
@@ -744,34 +722,81 @@
     "recovery_unlock_proof_body": {
       "type": "object",
       "description": "Signature-independent recovery_unlock projection. signature and unlock_commitment are deleted, never replaced by null, before transcript canonicalization.",
-      "required": ["kind", "challenge", "recovery_secret_ref", "verification_method", "signature_algorithm"],
+      "required": [
+        "kind",
+        "challenge",
+        "recovery_secret_ref",
+        "verification_method",
+        "signature_algorithm"
+      ],
       "properties": {
-        "kind": {"const": "recovery_unlock"},
-        "challenge": {"$ref": "#/$defs/challenge"},
-        "recovery_secret_ref": {"type": "string", "minLength": 1},
-        "verification_method": {"$ref": "#/$defs/did_url"},
-        "signature_algorithm": {"type": "string", "enum": ["Ed25519", "ML-DSA-65"]}
+        "kind": {
+          "const": "recovery_unlock"
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "recovery_secret_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
+        }
       },
       "additionalProperties": false
     },
     "device_quorum_proof_body": {
       "type": "object",
       "description": "Signature-independent device_quorum projection. Each nested signature member is deleted while its device, key and algorithm coordinates remain bound.",
-      "required": ["kind", "challenge", "threshold", "signatures"],
+      "required": [
+        "kind",
+        "challenge",
+        "threshold",
+        "signatures"
+      ],
       "properties": {
-        "kind": {"const": "device_quorum"},
-        "challenge": {"$ref": "#/$defs/challenge"},
-        "threshold": {"type": "integer", "minimum": 2},
+        "kind": {
+          "const": "device_quorum"
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 2
+        },
         "signatures": {
           "type": "array",
           "minItems": 2,
           "items": {
             "type": "object",
-            "required": ["device_id", "verification_method", "signature_algorithm"],
+            "required": [
+              "device_id",
+              "verification_method",
+              "signature_algorithm"
+            ],
             "properties": {
-              "device_id": {"$ref": "#/$defs/device_id"},
-              "verification_method": {"$ref": "#/$defs/did_url"},
-              "signature_algorithm": {"type": "string", "enum": ["Ed25519", "ML-DSA-65"]}
+              "device_id": {
+                "$ref": "#/$defs/device_id"
+              },
+              "verification_method": {
+                "$ref": "#/$defs/did_url"
+              },
+              "signature_algorithm": {
+                "type": "string",
+                "enum": [
+                  "Ed25519",
+                  "ML-DSA-65"
+                ]
+              }
             },
             "additionalProperties": false
           }
@@ -782,38 +807,98 @@
     "trusted_recovery_service_proof_body": {
       "type": "object",
       "description": "Signature-independent trusted_recovery_service projection. signature is deleted while optional attestation_ref is present only when supplied.",
-      "required": ["kind", "challenge", "service_id", "audience", "verification_method", "signature_algorithm"],
+      "required": [
+        "kind",
+        "challenge",
+        "service_id",
+        "audience",
+        "verification_method",
+        "signature_algorithm"
+      ],
       "properties": {
-        "kind": {"const": "trusted_recovery_service"},
-        "challenge": {"$ref": "#/$defs/challenge"},
-        "service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-        "audience": {"type": "string", "minLength": 1},
-        "verification_method": {"$ref": "#/$defs/did_url"},
-        "signature_algorithm": {"type": "string", "enum": ["Ed25519", "ML-DSA-65"]},
-        "attestation_ref": {"type": "string", "minLength": 1}
+        "kind": {
+          "const": "trusted_recovery_service"
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "audience": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
+        },
+        "attestation_ref": {
+          "type": "string",
+          "minLength": 1
+        }
       },
       "additionalProperties": false
     },
     "threshold_recovery_proof_body": {
       "type": "object",
       "description": "Signature-independent threshold_recovery projection. Each nested share-release signature is deleted while the share identity and transcript digest remain bound.",
-      "required": ["kind", "challenge", "threshold", "share_releases"],
+      "required": [
+        "kind",
+        "challenge",
+        "threshold",
+        "share_releases"
+      ],
       "properties": {
-        "kind": {"const": "threshold_recovery"},
-        "challenge": {"$ref": "#/$defs/challenge"},
-        "threshold": {"type": "integer", "minimum": 2},
+        "kind": {
+          "const": "threshold_recovery"
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 2
+        },
         "share_releases": {
           "type": "array",
           "minItems": 2,
           "items": {
             "type": "object",
-            "required": ["share_id", "holder", "transcript_digest", "verification_method", "signature_algorithm"],
+            "required": [
+              "share_id",
+              "holder",
+              "transcript_digest",
+              "verification_method",
+              "signature_algorithm"
+            ],
             "properties": {
-              "share_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"},
-              "holder": {"$ref": "#/$defs/did_core_id"},
-              "transcript_digest": {"$ref": "#/$defs/digest"},
-              "verification_method": {"$ref": "#/$defs/did_url"},
-              "signature_algorithm": {"type": "string", "enum": ["Ed25519", "ML-DSA-65"]}
+              "share_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{1,64}$"
+              },
+              "holder": {
+                "$ref": "#/$defs/did_core_id"
+              },
+              "transcript_digest": {
+                "$ref": "#/$defs/digest"
+              },
+              "verification_method": {
+                "$ref": "#/$defs/did_url"
+              },
+              "signature_algorithm": {
+                "type": "string",
+                "enum": [
+                  "Ed25519",
+                  "ML-DSA-65"
+                ]
+              }
             },
             "additionalProperties": false
           }
@@ -907,10 +992,18 @@
         },
         "proof_body": {
           "oneOf": [
-            {"$ref": "#/$defs/recovery_unlock_proof_body"},
-            {"$ref": "#/$defs/device_quorum_proof_body"},
-            {"$ref": "#/$defs/trusted_recovery_service_proof_body"},
-            {"$ref": "#/$defs/threshold_recovery_proof_body"}
+            {
+              "$ref": "#/$defs/recovery_unlock_proof_body"
+            },
+            {
+              "$ref": "#/$defs/device_quorum_proof_body"
+            },
+            {
+              "$ref": "#/$defs/trusted_recovery_service_proof_body"
+            },
+            {
+              "$ref": "#/$defs/threshold_recovery_proof_body"
+            }
           ],
           "description": "Closed signature-independent projection selected by kind. Carrier signatures and commitments identified by the selected branch are deleted before canonicalization."
         }
@@ -918,20 +1011,80 @@
       "additionalProperties": false,
       "allOf": [
         {
-          "if": {"properties": {"kind": {"const": "recovery_unlock"}}, "required": ["kind"]},
-          "then": {"properties": {"proof_body": {"$ref": "#/$defs/recovery_unlock_proof_body"}}}
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "recovery_unlock"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "proof_body": {
+                "$ref": "#/$defs/recovery_unlock_proof_body"
+              }
+            }
+          }
         },
         {
-          "if": {"properties": {"kind": {"const": "device_quorum"}}, "required": ["kind"]},
-          "then": {"properties": {"proof_body": {"$ref": "#/$defs/device_quorum_proof_body"}}}
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "device_quorum"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "proof_body": {
+                "$ref": "#/$defs/device_quorum_proof_body"
+              }
+            }
+          }
         },
         {
-          "if": {"properties": {"kind": {"const": "trusted_recovery_service"}}, "required": ["kind"]},
-          "then": {"properties": {"proof_body": {"$ref": "#/$defs/trusted_recovery_service_proof_body"}}}
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "trusted_recovery_service"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "proof_body": {
+                "$ref": "#/$defs/trusted_recovery_service_proof_body"
+              }
+            }
+          }
         },
         {
-          "if": {"properties": {"kind": {"const": "threshold_recovery"}}, "required": ["kind"]},
-          "then": {"properties": {"proof_body": {"$ref": "#/$defs/threshold_recovery_proof_body"}}}
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "threshold_recovery"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "proof_body": {
+                "$ref": "#/$defs/threshold_recovery_proof_body"
+              }
+            }
+          }
         }
       ]
     }

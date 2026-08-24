@@ -480,7 +480,7 @@ quota authority MUST 同时满足：
 | `grant_id` 或 `proposal_id` | id | 该 approval 所针对的具体 grant id（§9.1 路径）或 proposal Event id（§9.2 路径）。两者互斥，必填其一。 |
 | `request_canonical_digest` | hash | 被批准的请求 body 的 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) SHA-256 摘要（`sha256:` 前缀）。同一 approver 给"批准 Alice 写 message X"的签名不能被改写后用于"批准 Alice 写 message Y"。 |
 | `approver_did` | did | 签发该 approval 的 actor DID。 |
-| `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + hard_future_skew_ms` 或 `approved_at < grant.not_before`。此处 `hard_future_skew_ms` 取 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §2 登记的协议级硬上界（默认 300_000，即 5 分钟）——approval 属授权 state event，采用硬上界作为 future-drift reject 边界；实现 MUST NOT 自定义更宽容差。该 5 分钟容差与 [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) §5.4.3 presign TTL 校验采用的 `expected_future_skew_ms`（30 秒软容差）以及 [`capabilities.md` §18.2](./capabilities.md) 服务协商参数 `clock_skew_tolerance_ms` 是**不同场景的独立阈值**：presign 是短 TTL bearer URL，取更紧的软容差；approval 取硬上界；`clock_skew_tolerance_ms` 只用于 freshness 状态分级。三者不得互相代入。 |
+| `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + hard_future_skew_ms` 或 `approved_at < grant.effective_not_before`。此处 `hard_future_skew_ms` 取 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §2 登记的协议级硬上界（默认 300_000，即 5 分钟）——approval 属授权 state event，采用硬上界作为 future-drift reject 边界；实现 MUST NOT 自定义更宽容差。该 5 分钟容差与 [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) §5.4.3 presign TTL 校验采用的 `expected_future_skew_ms`（30 秒软容差）以及 [`capabilities.md` §18.2](./capabilities.md) 服务协商参数 `clock_skew_tolerance_ms` 是**不同场景的独立阈值**：presign 是短 TTL bearer URL，取更紧的软容差；approval 取硬上界；`clock_skew_tolerance_ms` 只用于 freshness 状态分级。三者不得互相代入。 |
 | `nonce` | string | approver 私有的、per-approval 唯一的随机字符串（≥ 128 bit 熵）。reducer MUST 在每个 grant / proposal 范围内拒绝同 `(approver_did, nonce)` 的第二次出现。 |
 | `action` | string | 被批准的 capability action token（与 grant `actions[]` 中的元素一致）。 |
 | `realm_id` | id | 被批准动作所在的 Realm ID。防止跨 Realm 重放（同一 approver 在 Realm A 的批准不能被用于 Realm B 的同 action）。 |
@@ -490,7 +490,7 @@ quota authority MUST 同时满足：
 1. reducer MUST 校验 approval signature 由 `approver_did` 的当前 active verification method 签发，且 verification method 在 `approved_at` 时间点未被 revoke;
 2. reducer MUST 维护 per-(grant_id 或 proposal_id, approver_did) 的 nonce 集合; 同 `(approver_did, nonce)` 的二次提交 MUST 返回 `failed_precondition` reason=`approval_nonce_reused`;
 3. `timeout` 过期后，所有未达 threshold 的 approval signature MUST 被视为失效——后续即便补够数量，也 MUST 重新由 approver 在新 nonce 下重签;
-4. `approval_mode=before_commit` 与 `approval_mode=proposal_then_approve` 都适用本节; `after_commit_review`(若 profile 注册) 单独定义自己的 replay 边界。
+4. `approval_mode=before_commit` 与 `approval_mode=proposal_then_approve` 都适用本节。
 
 > **理由**: 没有 nonce 与完整 canonical input 绑定时,attacker 可以收集 approver 一次合法批准的签名，把它附加到任意 body hash 相同但语义不同的请求中(canonical hash 碰撞 / 上下文混淆),或把它跨 Realm / 跨 grant 重放。固定 input 集合 + nonce 是 Authority forgery 防线的必要条件。
 
@@ -1002,7 +1002,7 @@ function matches_field_access(operation, constraint):
       "constraint_subkind": "approval",
       "effect": "require_review",
       "approval_required": true,
-      "approval_mode": "after_commit_review"
+      "approval_mode": "before_commit"
     }
   ]
 }

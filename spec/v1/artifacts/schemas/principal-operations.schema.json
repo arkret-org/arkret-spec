@@ -23,9 +23,6 @@
       "$ref": "#/$defs/history_share_contract"
     },
     {
-      "$ref": "#/$defs/causal_ingress_receipt"
-    },
-    {
       "$ref": "#/$defs/keypackage_terminal_command"
     },
     {
@@ -37,56 +34,7 @@
   ],
   "$defs": {
     "base64url": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$"
-    },
-    "causal_ingress_receipt": {
-      "type": "object",
-      "required": [
-        "lease_basis",
-        "event_digest",
-        "qualified_ingress_id",
-        "received_at",
-        "ingress_frontier",
-        "issuer",
-        "signature"
-      ],
-      "properties": {
-        "lease_basis": {
-          "$ref": "#/$defs/digest"
-        },
-        "event_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "qualified_ingress_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/opaque_id"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "received_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "ingress_frontier": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/event_id"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "issuer": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "signature": {
-          "$ref": "#/$defs/signature"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./file-transfer.schema.json#/$defs/base64url"
     },
     "circle_id": {
       "$ref": "./common-ids.schema.json#/$defs/circle_id"
@@ -98,12 +46,10 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     },
     "history_share_contract": {
       "type": "object",
@@ -227,11 +173,7 @@
       "additionalProperties": false
     },
     "history_access": {
-      "type": "string",
-      "enum": [
-        "since_join",
-        "all_history_for_current_members"
-      ]
+      "$ref": "./event-payload.schema.json#/$defs/history_access_value"
     },
     "keypackage_terminal_command": {
       "oneOf": [
@@ -1139,8 +1081,7 @@
       ]
     },
     "strand_id": {
-      "type": "string",
-      "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/strand_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

@@ -1577,15 +1577,9 @@
       "primitive": "detached_signature",
       "binding_fields": [
         "domain",
-        "claim_request_id",
-        "claim_ids",
-        "keypackage_refs",
+        "request_digest",
+        "claim_id",
         "recipient_durable_receipt",
-        "welcome_ref",
-        "realm_id",
-        "mls_group_id",
-        "mls_epoch",
-        "source_service_id",
         "consumed_at"
       ]
     },

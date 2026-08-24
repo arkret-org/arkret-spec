@@ -402,7 +402,7 @@
       "kind": "payload_validator_profile_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Executable validator profiles for Event payload documents that cannot be represented as a finite closed schema family. The only v1 profile validates ak.schema.define as JSON Schema 2020-12 and enforces schema_id=value.$id. Consumed by tools/check_payload_validator_profiles.py."
+      "description": "Executable validator profiles for Event payload documents that cannot be represented as a finite closed schema family. The only v1 profile validates ak.schema.define.value as JSON Schema 2020-12 and takes schema identity solely from value.$id. Consumed by tools/check_payload_validator_profiles.py."
     },
     {
       "name": "event_kind_vector_gaps",

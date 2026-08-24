@@ -147,16 +147,12 @@
     },
     "auth_context": {
       "type": "object",
-      "description": "DataEvent only. Pins the signing DID and key epoch used to verify authorization at seal_ref. Effective capabilities are derived from the accepted governance basis, never selected by the producer.",
+      "description": "DataEvent only. Pins the signing key id and epoch used to verify authorization at seal_ref. The signing DID is derived as executed_by when present, otherwise actor_id. Effective capabilities are derived from the accepted governance basis, never selected by the producer.",
       "required": [
-        "actor_id",
         "key_id",
         "key_epoch"
       ],
       "properties": {
-        "actor_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
         "key_id": {
           "type": "string",
           "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,128}$"
@@ -3955,6 +3951,87 @@
       }
     },
     {
+      "$comment": "An applet_managed_control PCR genesis is reachable only through one immutable Applet-managed actor provision authority Event. The admission verifier cross-binds the provision payload and initial_resolution; this shape cannot fall through to generic realm.create authority.",
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.create"
+          },
+          "payload": {
+            "type": "object",
+            "properties": {
+              "object": {
+                "type": "object",
+                "properties": {
+                  "purpose": {
+                    "const": "applet_managed_control"
+                  }
+                },
+                "required": [
+                  "purpose"
+                ]
+              }
+            },
+            "required": [
+              "object"
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "payload"
+        ]
+      },
+      "then": {
+        "required": [
+          "executed_by",
+          "authorization_ref",
+          "applet_id",
+          "refs"
+        ],
+        "properties": {
+          "refs": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "const": "applet_managed_actor_provision"
+                },
+                "critical": {
+                  "const": true
+                }
+              },
+              "required": [
+                "role",
+                "critical"
+              ]
+            },
+            "minContains": 1,
+            "maxContains": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.applet.managed_actor.provision"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/applet_managed_actor_provision_payload"
+          }
+        }
+      }
+    },
+    {
       "$comment": "Reject these top-level field names. The Event Envelope root is closed (additionalProperties=false); extension data belongs in payload or requirements.critical_extensions. The root field names type / auth_refs / target_ref / operation_id are dropped and MUST NOT appear at the root; use kind / refs[role=authorized_by] / payload.* fields / SDK-internal id instead (see operations-sync.md §5).",
       "not": {
         "anyOf": [
@@ -4136,8 +4213,7 @@
   ],
   "$defs": {
     "applet_id": {
-      "type": "string",
-      "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -4200,8 +4276,7 @@
       "description": "Canonical Event Envelope/proof timestamp. UTC Z form with exactly three millisecond digits; whole-second shorthand, finer fractions, and numeric offsets are forbidden."
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "profile_ref": {
       "type": "string",
@@ -4338,28 +4413,23 @@
       "pattern": "^[0-9A-Za-z]{1,128}$"
     },
     "space_id": {
-      "type": "string",
-      "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
+      "$ref": "#/$defs/board_space_id"
     },
     "board_space_id": {
       "type": "string",
       "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
     },
     "list_space_id": {
-      "type": "string",
-      "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
+      "$ref": "#/$defs/board_space_id"
     },
     "strand_id": {
-      "type": "string",
-      "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/strand_id"
     },
     "track_name": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+      "$ref": "./agent-sidecar-exchange-projection.schema.json#/$defs/track_name"
     },
     "relation_id": {
-      "type": "string",
-      "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/relation_id"
     },
     "event_ref": {
       "type": "string",
@@ -4367,8 +4437,7 @@
       "description": "Complete Event reference carrying the suite wire_code and all 32 digest octets. It is suitable for authorization, equality, deduplication, Seal coverage, and exact replay after normal recomputation and acceptance checks."
     },
     "grant_ref": {
-      "type": "string",
-      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/grant_id"
     },
     "did_delegation_ref": {
       "type": "string",
@@ -4480,24 +4549,58 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["id", "role", "critical", "proof"],
+          "required": [
+            "id",
+            "role",
+            "critical",
+            "proof"
+          ],
           "properties": {
-            "id": {"$ref": "#/$defs/seal_ref"},
-            "role": {"enum": ["state_witness", "inclusion_proof"]},
-            "critical": {"const": true},
-            "proof": {"$ref": "#/$defs/semantic_ref_merkle_proof"}
+            "id": {
+              "$ref": "#/$defs/seal_ref"
+            },
+            "role": {
+              "enum": [
+                "state_witness",
+                "inclusion_proof"
+              ]
+            },
+            "critical": {
+              "const": true
+            },
+            "proof": {
+              "$ref": "#/$defs/semantic_ref_merkle_proof"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["id", "role", "critical"],
+          "required": [
+            "id",
+            "role",
+            "critical"
+          ],
           "properties": {
-            "id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-            "role": {
-              "enum": ["authorized_by", "attestation", "parent_event", "after", "audit_pair", "recovery_capability", "did_inception", "did_recovery_anchor", "accountability"]
+            "id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
             },
-            "critical": {"type": "boolean"}
+            "role": {
+              "enum": [
+                "authorized_by",
+                "attestation",
+                "parent_event",
+                "after",
+                "audit_pair",
+                "recovery_capability",
+                "did_inception",
+                "did_recovery_anchor",
+                "accountability"
+              ]
+            },
+            "critical": {
+              "type": "boolean"
+            }
           },
           "additionalProperties": false
         }
@@ -4506,16 +4609,51 @@
     },
     "semantic_ref_merkle_proof": {
       "type": "object",
-      "required": ["kind", "root_field", "root_digest", "leaf_canonical_preimage_b64u", "leaf_digest", "audit_path", "leaf_index", "leaf_count"],
+      "required": [
+        "kind",
+        "root_field",
+        "root_digest",
+        "leaf_canonical_preimage_b64u",
+        "leaf_digest",
+        "audit_path",
+        "leaf_index",
+        "leaf_count"
+      ],
       "properties": {
-        "kind": {"const": "rfc6962_merkle"},
-        "root_field": {"enum": ["state_root", "control_event_set_root"]},
-        "root_digest": {"$ref": "#/$defs/digest"},
-        "leaf_canonical_preimage_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
-        "leaf_digest": {"$ref": "#/$defs/digest"},
-        "audit_path": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/digest"}},
-        "leaf_index": {"type": "integer", "minimum": 0},
-        "leaf_count": {"type": "integer", "minimum": 1}
+        "kind": {
+          "const": "rfc6962_merkle"
+        },
+        "root_field": {
+          "enum": [
+            "state_root",
+            "control_event_set_root"
+          ]
+        },
+        "root_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "leaf_canonical_preimage_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "leaf_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "audit_path": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/digest"
+          }
+        },
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "leaf_count": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
       "additionalProperties": false
     },

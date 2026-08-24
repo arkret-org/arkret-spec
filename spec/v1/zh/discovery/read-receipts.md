@@ -77,7 +77,7 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 `ak.receipt.read` 的披露要求。需要让 Strand 时间线与父 Realm 在 read receipt policy 上分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](../models/circle.md)（参见 [`../models/strand-and-message.md` §5](../models/strand-and-message.md)）；effective policy 由父 Realm `ak.realm.read_receipt_policy` 与 Circle 自身策略取更严格者。Track 级别 override 不在 v1 范围内。该 policy 由它自己的 Event kind 写入 `ak.component.realm.read_receipt_policy.v1` cell，**不**在 `ak.realm.policy_bundle` payload 内重复声明。它由普通 Event/CBA/Seal admission 保护，但不改变 MLS key access，因此按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 明确排除在 `security_frontier_digest` 外。
 
-> **Realm 作用域** 由 enclosing Event envelope 的 `realm_id` 决定；payload 本身不重复 `realm_id`。Payload schema 在 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为闭合对象（`additionalProperties: false`），任何未识别字段或 `receipt_compliance_opt_in` 子字段拼写错误在 wire 解析阶段就会以 `schema_violation` 拒绝。Payload **MUST 至少包含一个字段**（schema `minProperties: 1`）：空 `{}` 在语义上与"从不写该 event"等价，因此 MUST 被拒绝；想要"用默认值"的 Realm 直接省略该 event 即可。
+> **Realm 作用域** 由 enclosing Event envelope 的 `realm_id` 决定；payload 本身不重复 `realm_id`。Payload schema 在 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为闭合对象（`additionalProperties: false`），任何未识别字段或字段拼写错误在 wire 解析阶段就会以 `schema_violation` 拒绝。Payload **MUST 至少包含一个字段**（schema `minProperties: 1`）：空 `{}` 在语义上与"从不写该 event"等价，因此 MUST 被拒绝；想要"用默认值"的 Realm 直接省略该 event 即可。
 
 ```json
 {
@@ -96,8 +96,8 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 发送客户端 MUST NOT 生成、接收客户端 MUST 丢弃该 scope 的 `ak.receipt.read`。 |
 | `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Strand 的 effective scope 可见性允许的全部观察者；`members` = Strand effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人。**执行点在客户端**：服务端看不到加密 `SignalEnvelope` 内的 `event_id`，只能按签名 `scope_ref` 收窄 fanout，不能按发送者定向投递（判据见下方规则表）。**警告**：`history_access=all_history_for_current_members` 只扩大当前成员可恢复的正文 epoch range，不扩大 receipt 观察者集合；metadata-private 场景仍 SHOULD 把 receipt-policy 收紧为 `members` 或 `private`。 |
-| `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。disclosure 的合规下限禁止从父 `required` 降到 `optional` 或 `disabled`，除非父 policy 显式声明 `receipt_compliance_opt_in.child_privacy_tightening_against_required=true`。 |
-| `receipt_compliance_opt_in` | closed object | absent（false） | 只含 `child_privacy_tightening_against_required` 的合规旁路；对象 / 子字段缺失或为 false 均等价未 opt-in，未知子字段 `schema_violation`。历史访问二态不在这里另设旁路。 |
+| `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。 |
+| `child_privacy_tightening_against_required` | `bool` | `false` | 父 policy 是否允许 child 将 `required` 收紧为 `optional` 或 `disabled`；这是顶层唯一合规旁路，历史访问二态不在这里另设旁路。 |
 
 规则：
 
@@ -110,7 +110,7 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
   `private` 的执行点固定在客户端：加密 `SignalEnvelope` 的服务端看不到内部
   `event_id` 或 signal kind，只能执行外层 scope 收窄。实现 MUST NOT 为定向
   receipt fanout 在 Signal 外层增加产品语义选择器。
-- Child Realm policy MUST 等于或更严格于父策略，同时不得破坏父策略声明的合规下限。visibility 仅允许 `public→members→private` 方向收紧。disclosure 的隐私收紧方向是 `optional→disabled`；父策略为 `required` 时，child 不得降到 `optional` 或 `disabled`，除非父 policy 显式声明 `receipt_compliance_opt_in.child_privacy_tightening_against_required=true`。放宽方向 MUST 被 reducer 拒绝。
+- Child Realm policy MUST 等于或更严格于父策略，同时不得破坏父策略声明的合规下限。visibility 仅允许 `public→members→private` 方向收紧。disclosure 的隐私收紧方向是 `optional→disabled`；父策略为 `required` 时，child 不得降到 `optional` 或 `disabled`，除非父 policy 顶层显式声明 `child_privacy_tightening_against_required=true`。放宽方向 MUST 被 reducer 拒绝。
 - 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
 
 #### 2.5.1 合规旁路（normative）
@@ -124,14 +124,12 @@ v1 合规旁路只保留 child policy 隐私收紧这一项；旧公开历史旁
 
 ```json
 {
-  "receipt_compliance_opt_in": {
-    "child_privacy_tightening_against_required": false
-  }
+  "child_privacy_tightening_against_required": false
 }
 ```
 
-- 对象缺省、子字段缺省或为 `false` 均按未 opt-in 处理。
-- read_receipt_policy payload schema MUST 对 `receipt_compliance_opt_in` 对象本身及其子字段集合声明 `additionalProperties=false`，未识别子字段 MUST 以 `schema_violation` 在 wire 解析阶段拒绝。
+- 字段缺省或为 `false` 均按未 opt-in 处理。
+- read_receipt_policy payload schema MUST 在顶层声明 `additionalProperties=false`，未识别字段 MUST 以 `schema_violation` 在 wire 解析阶段拒绝。
 - [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 已以 closed object 落地该结构；正文与 schema 共同构成单一现行契约。
 
 ## 3. Read Cursor (私有游标)

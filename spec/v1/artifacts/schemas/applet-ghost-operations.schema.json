@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-ghost-operations.schema.json",
   "title": "Arkret Applet Ghost Actor Operation DTOs",
-  "description": "Closed request/response DTOs for ak.self.applet.ghost.command.provision. An installed Applet service / bridge submits a complete service-signed accountability Event and delegated Ghost profile Event for one external user. The Principal Server MUST re-check their applet / service / realm / namespace / capability bindings and commit the pair atomically; it MUST NOT mint either proof with a server notary key.",
+  "description": "Closed request/response DTOs for ak.self.applet.ghost.command.provision. An installed Applet service submits the fixed caller-signed managed-actor provision, Applet-managed PCR genesis, accountability grant, and Ghost profile Event unit for one external identity tuple. The Principal Server MUST re-check every applet / service / authority-pair / realm / namespace / capability binding and commit all four Events plus the durable Ghost record atomically; it MUST NOT mint or reconstruct any caller proof.",
   "oneOf": [
     {
       "$ref": "#/$defs/ghost_actor_provision_request_body"
@@ -16,41 +16,56 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "applet_id": {
-      "type": "string",
-      "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
     "realm_id": {
       "type": "string",
       "pattern": "^ak:realm:[A-Za-z0-9_-]{44}$"
     },
     "event_ref": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "grant_ref": {
-      "type": "string",
-      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/grant_id"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
-    "external_ref": {
-      "$ref": "./event-envelope.schema.json#/$defs/external_ref"
+    "ghost_external_tuple": {
+      "type": "object",
+      "required": ["protocol", "instance_id", "external_id"],
+      "properties": {
+        "protocol": {
+          "$ref": "./applet-edge-operations.schema.json#/$defs/protocol"
+        },
+        "instance_id": {
+          "allOf": [
+            { "$ref": "#/$defs/non_empty_string" },
+            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+          ]
+        },
+        "external_id": {
+          "allOf": [
+            { "$ref": "#/$defs/non_empty_string" },
+            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "ghost_actor_provision_request_body": {
       "type": "object",
-      "description": "Request body for ak.self.applet.ghost.command.provision. ghost_actor_id MUST fall inside the actor namespace declared by the applet_id registration; protocol / tenant / external_user_id identify the external principal being mirrored.",
+      "description": "Request body for ak.self.applet.ghost.command.provision. ghost_actor_id MUST fall inside the actor namespace declared by the applet_id registration; external_ref.protocol / instance_id / external_id are the sole immutable tuple identifying the external principal being mirrored.",
       "required": [
         "schema",
         "applet_id",
         "service_id",
         "ghost_actor_id",
-        "protocol",
-        "tenant",
-        "external_user_id",
+        "actor_principal_server_id",
         "realm_id",
         "external_ref",
+        "managed_actor_provision_event",
+        "pcr_genesis_event",
         "accountability_grant_event",
         "profile_event"
       ],
@@ -67,22 +82,8 @@
         "ghost_actor_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "protocol": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
-        },
-        "tenant": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "external_user_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+        "actor_principal_server_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -91,15 +92,90 @@
           "$ref": "#/$defs/realm_id"
         },
         "external_ref": {
-          "$ref": "#/$defs/external_ref"
+          "$ref": "#/$defs/ghost_external_tuple",
+          "description": "Sole immutable external tuple carrier: protocol, instance_id, and external_id are all required. No mirrored top-level tuple fields exist."
+        },
+        "managed_actor_provision_event": {
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.applet.managed_actor.provision"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ]
+        },
+        "pcr_genesis_event": {
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.create"
+                },
+                "payload": {
+                  "properties": {
+                    "object": {
+                      "properties": {
+                        "purpose": {
+                          "const": "applet_managed_control"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "payload"
+              ]
+            }
+          ]
         },
         "accountability_grant_event": {
           "description": "Complete ak.identity.accountability_grant Event signed by the installed Applet service DID. Its nested accountability proof MUST be signed by the same service identity.",
-          "$ref": "./event-envelope.schema.json"
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.identity.accountability_grant"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ]
         },
         "profile_event": {
           "description": "Complete ak.profile.create Event for ghost_actor_id, delegated and signed by service_id. authorization_ref MUST identify the active ak.applet.ghost.provision capability grant and refs MUST bind the accountability Event.",
-          "$ref": "./event-envelope.schema.json"
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.profile.create"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -109,6 +185,9 @@
       "description": "Response for ak.self.applet.ghost.command.provision. Carries the durable event refs the Principal Server atomically accepted (or re-confirmed on an identical idempotent replay). authorization_ref is the active Applet provisioning capability grant used by the submitted pair; the accountability grant is not an authorization grant for later Ghost actions.",
       "required": [
         "ghost_actor_id",
+        "actor_principal_server_id",
+        "managed_actor_provision_ref",
+        "principal_control_realm_id",
         "profile_event_ref",
         "accountability_grant_ref",
         "authorization_ref"
@@ -117,14 +196,23 @@
         "ghost_actor_id": {
           "$ref": "#/$defs/did_core_id"
         },
+        "actor_principal_server_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "managed_actor_provision_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "principal_control_realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
         "profile_event_ref": {
           "$ref": "#/$defs/event_ref"
         },
         "accountability_grant_ref": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/event_ref"
         },
         "authorization_ref": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/grant_ref"
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"

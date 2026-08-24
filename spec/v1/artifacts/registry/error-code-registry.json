@@ -367,7 +367,7 @@
       "code": "read_receipt_compliance_floor_violated",
       "http_status": 422,
       "scope": "both",
-      "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' → child 'optional' or 'disabled') without the parent explicitly setting receipt_compliance_opt_in.child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md §2.5."
+      "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' → child 'optional' or 'disabled') without the parent explicitly setting child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md §2.5."
     },
     {
       "code": "signal_class_denied",
@@ -1375,12 +1375,6 @@
       "http_status": 409,
       "scope": "endpoint",
       "description": "Another applet transaction is already in progress."
-    },
-    {
-      "code": "bot_actor_revoked",
-      "http_status": 403,
-      "scope": "endpoint",
-      "description": "The bot actor has been revoked and may not act."
     },
     {
       "code": "enclave_no_upstream_proxy_for_external",
@@ -3147,7 +3141,7 @@
         "auth_decision",
         "event_envelope"
       ],
-      "description": "A capability grant's normalized effective validity window is empty: effective_not_before >= effective_expires_at after combining top-level not_before/expires_at with temporal not_before/expires_at constraints. Reducer MUST reject the grant. See zh/authz/capabilities.md §6.1."
+      "description": "A capability grant's normalized effective validity window is empty: effective_not_before >= effective_expires_at after intersecting its temporal constraints. Reducer MUST reject the grant. See zh/authz/capabilities.md §6.1."
     },
     {
       "code": "handle_holder_acceptance_missing",
@@ -3373,21 +3367,14 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch carries an invite_event whose signing actor is not the authenticated session actor. The service MUST NOT co-sign or re-author the Event; see zh/sync/invite-addressing.md §7."
-    },
-    {
-      "code": "invite_event_bytes_mismatch",
-      "applies_to": [
-        "service_call"
-      ],
-      "description": "Sub-reason for failed_precondition when the invite_event supplied to ak.self.invites.command.dispatch is not byte-for-byte equal to the canonical Event bytes this service already accepted. Clients MUST read the Event back through ak.self.events.read.resolve instead of re-authoring it; see zh/sync/invite-addressing.md §7."
+      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch resolves invite_event_id to an accepted Event whose signing actor is not the authenticated session actor. The request carries only the Event ID; the service MUST NOT co-sign or re-author the resolved Event; see zh/sync/invite-addressing.md §7."
     },
     {
       "code": "invite_event_unaccepted",
       "applies_to": [
         "service_call"
       ],
-      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch references an invite_event this Principal Server has not accepted. Private delivery only starts from an already accepted durable ak.invite.create; see zh/sync/invite-addressing.md §7."
+      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch supplies an invite_event_id that this Principal Server cannot resolve to an accepted durable ak.invite.create Event. Private delivery only starts from that resolved accepted Event; see zh/sync/invite-addressing.md §7."
     },
     {
       "code": "invite_kind_requires_revoke",

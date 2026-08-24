@@ -50,19 +50,16 @@
       "$ref": "./common-ids.schema.json#/$defs/did_full_id"
     },
     "did_url": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      "$ref": "./account-operations.schema.json#/$defs/did_url"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "string_set": {
       "type": "array",
@@ -93,15 +90,7 @@
           "const": "ak.applet.registration"
         },
         "applet_id": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/did_core_id"
-            },
-            {
-              "type": "string",
-              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -192,7 +181,14 @@
       },
       "oneOf": [
         {
+          "required": [
+            "method",
+            "unversioned_refetch"
+          ],
           "properties": {
+            "method": {
+              "const": "did:web"
+            },
             "unversioned_refetch": {
               "const": true
             }
@@ -214,22 +210,41 @@
         },
         {
           "properties": {
+            "method": {
+              "enum": [
+                "did:webvh",
+                "did:key"
+              ]
+            },
             "unversioned_refetch": {
               "const": false
             }
           },
-          "anyOf": [
-            {
-              "required": [
-                "version_id"
-              ]
-            },
-            {
-              "required": [
-                "version_time"
-              ]
-            }
+          "required": [
+            "method",
+            "version_id",
+            "unversioned_refetch"
           ]
+        },
+        {
+          "required": [
+            "method",
+            "version_time",
+            "unversioned_refetch"
+          ],
+          "properties": {
+            "method": {
+              "const": "did:webvh"
+            },
+            "unversioned_refetch": {
+              "const": false
+            }
+          },
+          "not": {
+            "required": [
+              "version_id"
+            ]
+          }
         }
       ],
       "additionalProperties": false

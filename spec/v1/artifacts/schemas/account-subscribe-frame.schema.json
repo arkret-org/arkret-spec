@@ -108,8 +108,8 @@
       "type": "object",
       "required": [
         "id",
-        "notification_kind",
-        "action"
+        "action",
+        "notification_kind"
       ],
       "properties": {
         "id": {
@@ -119,8 +119,7 @@
         "action": {
           "type": "string",
           "enum": [
-            "add",
-            "update",
+            "upsert",
             "remove"
           ]
         },
@@ -144,10 +143,7 @@
           "if": {
             "properties": {
               "action": {
-                "enum": [
-                  "add",
-                  "update"
-                ]
+                "const": "upsert"
               }
             },
             "required": [

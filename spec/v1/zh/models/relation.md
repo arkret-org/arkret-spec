@@ -33,8 +33,8 @@ Schema id: `ak.schema.relation.v1`
 | `id` | yes | `id:relation` | 以 `ak:relation:` 开头。 | Relation ID。 |
 | `schema` | yes | `ak.schema.relation.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | Relation 所在 Realm。 | 所属 Realm。 |
-| `scope_circle_id` | no | `id:circle` | submit payload 提供的 Realm 内 Circle scope；`confidential_discussion_of` 按 §3.1 MUST 指向 private Strand 的 Circle。Sidecar context mapping 使用原生 `ak.component.sidecar.context.v1`，不是 Relation。 | 该 Relation 事实的 Circle 作用域。 |
-| `effective_scope` | no | `object` | 只读对象投影，MUST 等于创建 Event 的签名 `scope_ref`；actor 不在 relation content 内重复提交。create 时 receiver 从 `scope_circle_id` 与端点冻结前态复核，结构关系 MUST NOT 宽于参与端点中最窄的作用域。 | 派生的有效作用域。 |
+| `scope_circle_id` | no | `id:circle` | 通用 scope 派生与校验以 [`circle.md` §6](./circle.md) 为唯一权威；`confidential_discussion_of` 按 §3.1 MUST 指向 private Strand 的 Circle。Sidecar context mapping 使用原生 `ak.component.sidecar.context.v1`，不是 Relation。 | 该 Relation 事实的 Circle 作用域。 |
+| `effective_scope` | no | `object` | 通用只读 projection 规则以 [`circle.md` §6](./circle.md) 为唯一权威；结构关系 MUST NOT 宽于参与端点中最窄的作用域。 | 派生的有效作用域。 |
 | `relation_kind` | yes | `string` | 标准值见 §3。 | 关系语义。 |
 | `from_ref` | yes | `string` | MUST 是 `ak:<kind>:...` 或 DID。 | 起点对象/Actor/Realm 引用。 |
 | `to_ref` | yes | `string` | MUST 是 `ak:<kind>:...` 或 DID。 | 终点对象/Actor/Realm 引用。 |

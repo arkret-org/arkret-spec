@@ -40,8 +40,7 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -139,7 +138,10 @@
           ]
         },
         "content_scheme": {
-          "enum": ["mls_rfc9420", "mls_exporter_aead_v1"]
+          "enum": [
+            "mls_rfc9420",
+            "mls_exporter_aead_v1"
+          ]
         },
         "mls_group_id": {
           "type": "string",
@@ -148,7 +150,10 @@
         },
         "durability_policy": {
           "type": "string",
-          "enum": ["none", "organization_recovery_key"]
+          "enum": [
+            "none",
+            "organization_recovery_key"
+          ]
         },
         "state": {
           "$ref": "#/$defs/circle_state"
@@ -185,20 +190,90 @@
       },
       "allOf": [
         {
-          "if": {"properties": {"encryption_profile": {"const": "none"}}},
-          "then": {"not": {"anyOf": [{"required": ["content_scheme"]}, {"required": ["mls_group_id"]}, {"required": ["durability_policy"]}]}}
+          "if": {
+            "properties": {
+              "encryption_profile": {
+                "const": "none"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "content_scheme"
+                  ]
+                },
+                {
+                  "required": [
+                    "mls_group_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "durability_policy"
+                  ]
+                }
+              ]
+            }
+          }
         },
         {
-          "if": {"properties": {"encryption_profile": {"const": "mls_rfc9420"}}},
-          "then": {"required": ["content_scheme", "mls_group_id"]}
+          "if": {
+            "properties": {
+              "encryption_profile": {
+                "const": "mls_rfc9420"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "content_scheme",
+              "mls_group_id"
+            ]
+          }
         },
         {
-          "if": {"properties": {"content_scheme": {"const": "mls_rfc9420"}}, "required": ["content_scheme"]},
-          "then": {"properties": {"history_access": {"const": "since_join"}}, "not": {"required": ["durability_policy"]}}
+          "if": {
+            "properties": {
+              "content_scheme": {
+                "const": "mls_rfc9420"
+              }
+            },
+            "required": [
+              "content_scheme"
+            ]
+          },
+          "then": {
+            "properties": {
+              "history_access": {
+                "const": "since_join"
+              }
+            },
+            "not": {
+              "required": [
+                "durability_policy"
+              ]
+            }
+          }
         },
         {
-          "if": {"properties": {"content_scheme": {"const": "mls_exporter_aead_v1"}}, "required": ["content_scheme"]},
-          "then": {"required": ["durability_policy"]}
+          "if": {
+            "properties": {
+              "content_scheme": {
+                "const": "mls_exporter_aead_v1"
+              }
+            },
+            "required": [
+              "content_scheme"
+            ]
+          },
+          "then": {
+            "required": [
+              "durability_policy"
+            ]
+          }
         }
       ],
       "additionalProperties": false

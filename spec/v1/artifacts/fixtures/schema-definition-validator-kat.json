@@ -10,7 +10,6 @@
     {
       "name": "valid_closed_object_schema",
       "payload": {
-        "schema_id": "ak.schema.example.v1",
         "value": {
           "$schema": "https://json-schema.org/draft/2020-12/schema",
           "$id": "ak.schema.example.v1",
@@ -27,7 +26,6 @@
     {
       "name": "previously_unknown_schema_id_is_a_definition_not_a_dispatch_error",
       "payload": {
-        "schema_id": "ak.schema.vendor_extension.v1",
         "value": {
           "$schema": "https://json-schema.org/draft/2020-12/schema",
           "$id": "ak.schema.vendor_extension.v1",
@@ -37,11 +35,10 @@
       "expected_valid": true
     },
     {
-      "name": "missing_selector",
+      "name": "missing_document_id",
       "payload": {
         "value": {
           "$schema": "https://json-schema.org/draft/2020-12/schema",
-          "$id": "ak.schema.example.v1",
           "type": "string"
         }
       },
@@ -50,29 +47,13 @@
     },
     {
       "name": "missing_document",
-      "payload": {
-        "schema_id": "ak.schema.example.v1"
-      },
-      "expected_valid": false,
-      "expected_failure_code": "schema_violation"
-    },
-    {
-      "name": "document_id_mismatch",
-      "payload": {
-        "schema_id": "ak.schema.example.v1",
-        "value": {
-          "$schema": "https://json-schema.org/draft/2020-12/schema",
-          "$id": "ak.schema.other.v1",
-          "type": "string"
-        }
-      },
+      "payload": {},
       "expected_valid": false,
       "expected_failure_code": "schema_violation"
     },
     {
       "name": "invalid_json_schema_keyword_value",
       "payload": {
-        "schema_id": "ak.schema.example.v1",
         "value": {
           "$schema": "https://json-schema.org/draft/2020-12/schema",
           "$id": "ak.schema.example.v1",
@@ -85,7 +66,6 @@
     {
       "name": "unknown_payload_field",
       "payload": {
-        "schema_id": "ak.schema.example.v1",
         "value": {
           "$schema": "https://json-schema.org/draft/2020-12/schema",
           "$id": "ak.schema.example.v1",
@@ -99,7 +79,6 @@
     {
       "name": "wrong_json_schema_dialect",
       "payload": {
-        "schema_id": "ak.schema.example.v1",
         "value": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "$id": "ak.schema.example.v1",

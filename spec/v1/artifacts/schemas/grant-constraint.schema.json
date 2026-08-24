@@ -498,8 +498,7 @@
       ]
     },
     "applet_id": {
-      "type": "string",
-      "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "$ref": "./common-ids.schema.json#/$defs/applet_id",
       "description": "authority_control(constraint_subkind=applet_authority) binding to the accepted Applet registration."
     },
     "executed_by": {
@@ -569,8 +568,7 @@
       "type": "string",
       "enum": [
         "before_commit",
-        "proposal_then_approve",
-        "after_commit_review"
+        "proposal_then_approve"
       ]
     },
     "approval_actor_ids": {

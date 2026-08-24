@@ -341,6 +341,7 @@
       "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
       "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
       "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=managed_agent_control Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
+      "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds actor_id, exact PrincipalAuthorityKey, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Native Agent or human PCR admission.",
       "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
       "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(full_id)=actor_id; current DID state after registration is irrelevant.",
       "pcr_recovery": "Admitted only for ak.device.reanchor under the account-local lineage's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching account-local lineage and policy cannot enter this class.",
@@ -716,6 +717,32 @@
           }
         ],
         "concurrency_class": "exclusive"
+      },
+      "ak.applet.managed_actor.provision": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
+          {
+            "cell_family": "ak.component.applet.managed_actor_provision.v1",
+            "cell_subject": {
+              "components": [
+                "payload.actor_id",
+                "payload.actor_principal_server_id"
+              ],
+              "kind": "composite"
+            },
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "initial_value": "__unset__",
+            "effect_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload"
+              }
+            }
+          }
+        ],
+        "concurrency_class": "security_barrier"
       },
       "ak.applet.registration": {
         "plane": "control",
@@ -3013,6 +3040,10 @@
         "cell_writes": [
           {
             "cell_family": "ak.component.mls.welcome.v1",
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.recipient_device_id"
+            },
             "cell_subject": {
               "kind": "composite",
               "components": [
@@ -3034,6 +3065,74 @@
                 "payload.mls_group_id",
                 "payload.recipient_principal_id",
                 "payload.recipient_device_id"
+              ]
+            },
+            "lattice": "ordered_log",
+            "bottom": "expose",
+            "effect_projection": {
+              "kind": "append",
+              "value": {
+                "field": "payload"
+              },
+              "issuer_seq": {
+                "envelope_field": "actor_seq"
+              }
+            }
+          },
+          {
+            "cell_family": "ak.component.mls.welcome.v1",
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.recipient_agent_id"
+            },
+            "cell_subject": {
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "select",
+                  "selector": "payload.governance_binding.effective_scope.kind",
+                  "branches": {
+                    "realm": {
+                      "field": "payload.governance_binding.effective_scope.realm_id"
+                    },
+                    "circle": {
+                      "field": "payload.governance_binding.effective_scope.circle_id"
+                    },
+                    "sidecar": {
+                      "field": "payload.governance_binding.effective_scope.sidecar_id"
+                    }
+                  }
+                },
+                "payload.mls_group_id",
+                "payload.recipient_agent_id",
+                "payload.recipient_agent_verification_method"
+              ]
+            },
+            "lattice": "ordered_log",
+            "bottom": "expose",
+            "effect_projection": {
+              "kind": "append",
+              "value": {
+                "field": "payload"
+              },
+              "issuer_seq": {
+                "envelope_field": "actor_seq"
+              }
+            }
+          },
+          {
+            "cell_family": "ak.component.mls.welcome.v1",
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.recipient_pairwise_actor_id"
+            },
+            "cell_subject": {
+              "kind": "composite",
+              "components": [
+                "payload.claim_envelope.intended_realm_id",
+                "payload.mls_group_id",
+                "payload.recipient_pairwise_actor_id",
+                "payload.recipient_pairwise_verification_method"
               ]
             },
             "lattice": "ordered_log",
@@ -3900,6 +3999,26 @@
               "kind": "field_equals",
               "field": "payload.object.purpose",
               "const": "managed_agent_control"
+            },
+            "effect_projection": {
+              "kind": "transition",
+              "from": {
+                "const": null
+              },
+              "to": {
+                "const": "since_join"
+              }
+            }
+          },
+          {
+            "cell_family": "ak.component.realm.history_access.v1",
+            "cell_subject": null,
+            "lattice": "fsm",
+            "bottom": "reject",
+            "condition": {
+              "kind": "field_equals",
+              "field": "payload.object.purpose",
+              "const": "applet_managed_control"
             },
             "effect_projection": {
               "kind": "transition",
@@ -4794,7 +4913,7 @@
             "cell_family": "ak.component.schema.definition.v1",
             "cell_subject": {
               "kind": "string",
-              "field": "payload.schema_id"
+              "field": "payload.value.$id"
             },
             "lattice": "cas_register",
             "bottom": "reject",
@@ -5553,6 +5672,20 @@
           {
             "when": {
               "payload_path": "object.purpose",
+              "const": "applet_managed_control",
+              "ref_role": "applet_managed_actor_provision",
+              "ref_critical": true,
+              "ref_exact_count": 1,
+              "top_level_fields_present": [
+                "executed_by",
+                "authorization_ref"
+              ]
+            },
+            "admission": "applet_managed_pcr_genesis"
+          },
+          {
+            "when": {
+              "payload_path": "object.purpose",
               "const": "principal_control",
               "ref_role": "did_inception",
               "ref_exact_count": 0,
@@ -5829,7 +5962,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / receipt_compliance_opt_in); see zh/discovery/read-receipts.md §2.5 for the closed compliance opt-in object",
+        "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / child_privacy_tightening_against_required); see zh/discovery/read-receipts.md §2.5",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
         "id_source": "not_an_object_id"
       },
@@ -6472,8 +6605,32 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
+        "admission": "conditional",
+        "admission_variants": [
+          {
+            "when": {
+              "payload_path": "mimi_provenance.provenance",
+              "const": "mimi_facade"
+            },
+            "admission": "service_attested"
+          },
+          {
+            "when": {
+              "otherwise": true
+            },
+            "admission": "capability_gated"
+          }
+        ],
         "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the creating Event's full 33-byte / 44-character content-bound token.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_create_payload",
+        "reducer_effects": [
+          "for ak.content.poll, materialize the accepted Message as the sole poll definition in its exact Realm and Circle scope",
+          "for ak.content.poll.response, reject missing/cross-scope poll refs, unknown answers and over-selection without filtering or truncation",
+          "retain one response per actor by causal dominance, then canonical Event-digest ordering for concurrent responses"
+        ],
+        "conformance_vectors": [
+          "ak.vector.message.poll_reducer.v1"
+        ],
         "id_source": "event_derived",
         "id_kind": "message"
       },
@@ -6495,6 +6652,22 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
+        "admission": "conditional",
+        "admission_variants": [
+          {
+            "when": {
+              "payload_path": "mimi_provenance.provenance",
+              "const": "mimi_facade"
+            },
+            "admission": "service_attested"
+          },
+          {
+            "when": {
+              "otherwise": true
+            },
+            "admission": "capability_gated"
+          }
+        ],
         "payload": "Message edit patch",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_revise_payload",
         "id_source": "not_an_object_id"
@@ -6506,6 +6679,22 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
+        "admission": "conditional",
+        "admission_variants": [
+          {
+            "when": {
+              "payload_path": "mimi_provenance.provenance",
+              "const": "mimi_facade"
+            },
+            "admission": "service_attested"
+          },
+          {
+            "when": {
+              "otherwise": true
+            },
+            "admission": "capability_gated"
+          }
+        ],
         "payload": "Message-scoped redaction; does not grant generic redaction authority",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_redact_payload",
         "id_source": "not_an_object_id"
@@ -7535,6 +7724,47 @@
         "payload": "Bridge failure",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_bridge_error_payload",
         "id_source": "reference"
+      },
+      {
+        "event_kind": "ak.applet.managed_actor.provision",
+        "category": "applet",
+        "status": "active",
+        "verb_form": "base",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "admission": "conditional",
+        "admission_variants": [
+          {
+            "when": {
+              "payload_path": "actor_role",
+              "const": "bot"
+            },
+            "admission": "service_attested"
+          },
+          {
+            "when": {
+              "payload_path": "actor_role",
+              "const": "ghost"
+            },
+            "admission": "capability_gated"
+          },
+          {
+            "when": {
+              "otherwise": true
+            },
+            "admission": "deny"
+          }
+        ],
+        "payload": "Immutable Applet-managed Bot/Ghost principal creation authority",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_managed_actor_provision_payload",
+        "id_source": "reference",
+        "admission_checks": [
+          "envelope actor_id and proof signer equal payload.service_id; applet_id equals payload.applet_id",
+          "registration_ref resolves to the exact active registration whose service_id and applet_id match",
+          "applet_authority_ref resolves to an active scope-matching grant; actor_role=ghost additionally requires action ak.applet.ghost.provision",
+          "the separately submitted applet_managed_control genesis derives its Realm id from its own Event id and carries exactly one critical provision ref, avoiding a provision/genesis hash cycle",
+          "the exact PrincipalAuthorityKey is unused and initial_resolution projects to actor_id"
+        ]
       },
       {
         "event_kind": "ak.applet.registration",
@@ -9591,6 +9821,23 @@
         "description": "Controller-signed package used by ak.self.applet.command.install preview/commit to derive ak.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
       },
       {
+        "schema_id": "ak.schema.applet_managed_actor_provision.v1",
+        "file": "schemas/applet-managed-actor.schema.json",
+        "status": "active",
+        "description": "Immutable service-authored Bot/Ghost creation authority cross-bound to an applet_managed_control PCR genesis.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "ak.applet.managed_actor.provision",
+          "normative_ref": "zh/extensions/applet-integration.md"
+        }
+      },
+      {
+        "schema_id": "ak.schema.applet_registration_epoch_evidence.v1",
+        "file": "schemas/applet-registration-epoch-evidence.schema.json",
+        "status": "active",
+        "description": "Closed install-time service DID document, method-version and accepted signing-key snapshot carried only by the caller-signed Applet registration Event manifest."
+      },
+      {
         "schema_id": "ak.schema.applet_registration_epoch_transcript.v1",
         "file": "schemas/applet-registration-epoch-transcript.schema.json",
         "status": "active",
@@ -9611,7 +9858,13 @@
         "schema_id": "ak.schema.applet_install_plan.v1",
         "file": "schemas/applet-install-plan.schema.json",
         "status": "active",
-        "description": "Canonical Applet InstallPlan returned by ak.self.applet.install.command.preview and recomputed by ak.self.applet.command.install before commit. plan_digest is calculated over this object with plan_digest omitted."
+        "description": "Canonical Applet InstallPlan nested in the Principal Server-signed authoring request and recomputed by install commit before admission. plan_digest is calculated over this object with plan_digest omitted."
+      },
+      {
+        "schema_id": "ak.schema.applet_install_authoring.v1",
+        "file": "schemas/applet-install-authoring.schema.json",
+        "status": "active",
+        "description": "Closed Principal Server preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
       },
       {
         "schema_id": "ak.schema.applet_install_operations.v1",
@@ -10136,7 +10389,6 @@
         "not_before",
         "expires_at",
         "session_id",
-        "cnf",
         "credential_class",
         "device_binding?",
         "holder_binding",
@@ -11416,6 +11668,7 @@
           "ak.edge.applet.actor.read.resolve",
           "ak.edge.applet.realm.read.resolve",
           "ak.edge.applet.read.protocol_metadata",
+          "ak.edge.applet.install.command.author",
           "ak.edge.applet.third_party_users.read.list",
           "ak.edge.applet.third_party_locations.read.list"
         ],
@@ -12860,12 +13113,12 @@
         "http": "POST /_arkret/self/invites/dispatch",
         "grpc": "SelfInvites/Dispatch",
         "mq": "self.invites.command.dispatch",
-        "notes": "Authenticated client dispatch of private invite evidence through the inviter Principal Server. The carried invite Event must already be accepted by this service, be authored by the current session actor, and match the stored canonical Event bytes exactly. Local delivery reuses the peer receive policy path; remote delivery enters the exact-body durable S2S outbox without re-authoring the Event.",
+        "notes": "Authenticated client dispatch of private invite evidence through the inviter Principal Server. invite_event_id must resolve to an Event already accepted by this service and authored by the current session actor. The service reads its own stored canonical Event bytes; local delivery reuses the peer receive policy path and remote delivery builds the peer request from those bytes.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
-        "request_schema_ref": "schemas/invite-delivery-request.schema.json",
+        "request_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body",
         "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
         "durable_effect": {
           "kind": "none",
@@ -13704,7 +13957,11 @@
           "kind": "event_log",
           "event_kinds": [
             "ak.applet.registration",
-            "ak.capability.grant"
+            "ak.capability.grant",
+            "ak.applet.managed_actor.provision",
+            "ak.realm.create",
+            "ak.identity.accountability_grant",
+            "ak.profile.create"
           ]
         }
       },
@@ -13760,6 +14017,8 @@
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
+            "ak.applet.managed_actor.provision",
+            "ak.realm.create",
             "ak.identity.accountability_grant",
             "ak.profile.create"
           ]
@@ -13775,10 +14034,28 @@
         "idempotency_mechanism": "none",
         "retry_safe": true,
         "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
-        "response_schema_ref": "schemas/applet-install-plan.schema.json",
+        "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/preview_outcome",
         "durable_effect": {
           "kind": "none",
           "rationale": "read_only_preview_despite_post_binding"
+        }
+      },
+      {
+        "operation_id": "ak.edge.applet.install.command.author",
+        "http": "POST /_arkret/edge/applet/install/author",
+        "grpc": "EdgeApplet/InstallAuthor",
+        "mq": "edge.applet.install.command.author",
+        "notes": "Applet service verifies the current target Principal Server proof and the package-bound admin Event set, then returns the exact service-authored/service-executed four-Event creation bundle. The independently held Bot key is used only after its PCR is accepted. Exact request bytes are idempotent; a reused derived authoring_request_id with changed bytes is a conflict. This operation does not admit Events to Principal Server history.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "canonical_hash",
+        "canonical_hash_input": "/authoring_request",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_request_body",
+        "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "The operation admits no Arkret Event and therefore has no registry-classified durable effect; independently, the Applet service MUST atomically persist request id/digest, exact bundle, and Bot key custody before returning, while Principal Server Event admission occurs only at install commit"
         }
       },
       {
@@ -15805,12 +16082,14 @@
         "required_evaluator_checks": [
           "active_applet_registration_exact",
           "ghost_actor_namespace_match",
-          "ghost_provision_pair_atomic"
+          "ghost_managed_actor_provision_unit_atomic"
         ],
-        "target_event_kinds": [],
+        "target_event_kinds": [
+          "ak.applet.managed_actor.provision"
+        ],
         "profile": "ak.profile.applet_bridge.v1",
-        "event_mapping_kind": "non_event_surface",
-        "notes": "Authorizes the installed Applet service to invoke the closed Ghost Actor provisioning aggregate for one exact effective Realm scope. The operation accepts the caller-signed ak.identity.accountability_grant + ak.profile.create pair atomically; it is not a generic authorization for either Event kind."
+        "event_mapping_kind": "aggregate_admin",
+        "notes": "Authorizes only actor_role=ghost ak.applet.managed_actor.provision inside the closed four-Event Ghost unit: provision, applet_managed_control PCR genesis, accountability grant and profile create. The conditional Event admission and operation validator require the exact active registration/grant/scope and atomic set."
       },
       {
         "action": "ak.approval.vote",
@@ -18079,10 +18358,10 @@
       "DID URLs are constructed and compared from the verified full_id under the adapter's DID URL rules. A did_core_id is never used as a DID URL base.",
       "A full_id is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
       "For a generic Event proof, the verifier extracts the canonical bare full_id base from proof.verification_method, validates the active adapter and key at the cited accepted-at method history, projects that full_id, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. registration_anchor and pcr_recovery are the only registered special admissions and never convert current DID control into generic human PCR authority.",
-      "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell and MUST cross-bind payload.previous_resolution_event_ref and payload.previous_method_history_head."
+      "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors."
     ],
     "principal_resolution_contract": {
-      "version": "2026-08-21.1",
+      "version": "2026-08-24.1",
       "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
       "cell_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
       "profile_write_policy": {
@@ -18121,8 +18400,8 @@
           "cardinality": 1
         },
         "predecessor_rules": [
-          "payload.previous_resolution_event_ref == precondition.value.resolution_event_ref",
-          "payload.previous_method_history_head == precondition.value.method_history_head",
+          "precondition.value equals the accepted current resolution_projection field for field",
+          "payload.next is a method-valid successor of precondition.value.method_history_head",
           "project(payload.next.full_id) == event.actor_id"
         ],
         "projection_rule": "cell_value = payload.next + {resolution_event_ref:event.event_id, updated_at:event.created_at}"
@@ -18152,7 +18431,7 @@
           "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",
           "if current_resolution_event is principal_genesis_event then predecessor_resolution_events is empty; otherwise predecessor_resolution_events[0] is the current Event's guarded immediate predecessor when history_depth is nonzero",
           "the supplied resolution events form a contiguous immediate-predecessor segment backward from current_resolution_event under the exact guarded whole-cell values; the segment never exceeds request history_depth items and never skips an intermediate Event",
-          "history_complete is true exactly when the segment terminates at principal_genesis_event or at the exclusive request after_resolution_event_ref ancestor; otherwise history_complete is false, next_audit_cursor equals previous_resolution_event_ref of the oldest supplied Event, and omitted history is never treated as absent",
+          "history_complete is true exactly when the segment terminates at principal_genesis_event or at the exclusive request after_resolution_event_ref ancestor; otherwise history_complete is false, next_audit_cursor equals value.resolution_event_ref in the exact head_eq precondition of the oldest supplied Event (its guarded immediate predecessor), and omitted history is never treated as absent",
           "accepted_seal.realm_id == principal_control_realm_id and accepted_seal recursively covers both principal_genesis_event.event_digest and current_resolution_event.event_digest",
           "the registered resolution reducer applied to current_resolution_event yields the response's current resolution projection and project(full_id) == principal_id",
           "method_history_evidence boundary and currentness validate under the adapter selected by that current resolution projection's full_id"

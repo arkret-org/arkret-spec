@@ -158,8 +158,7 @@
   ],
   "$defs": {
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

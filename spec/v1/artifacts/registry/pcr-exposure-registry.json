@@ -212,7 +212,7 @@
           "direction": "response",
           "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
           "json_pointers": [
-            "/$defs/query_device_record/properties/device_authorize_event_id"
+            "/$defs/device_projection_attestation_core/properties/device_authorize_event_id"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.relationship_or_shared_context.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
@@ -229,7 +229,7 @@
           "direction": "response",
           "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
           "json_pointers": [
-            "/$defs/query_device_record/properties/device_signing_key"
+            "/$defs/device_projection_attestation_core/properties/device_signing_key"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.relationship_or_shared_context.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
@@ -246,7 +246,7 @@
           "direction": "response",
           "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
           "json_pointers": [
-            "/$defs/query_device_record/properties/authorized_generation_ref"
+            "/$defs/device_projection_attestation_core/properties/authorized_generation_ref"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.relationship_or_shared_context.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
@@ -263,7 +263,7 @@
           "direction": "response",
           "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
           "json_pointers": [
-            "/$defs/query_device_record/properties/device_status"
+            "/$defs/device_projection_attestation_core/properties/device_status"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.relationship_or_shared_context.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"

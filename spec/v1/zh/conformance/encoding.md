@@ -380,19 +380,9 @@ managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/pr
 
 ### 4.4 Field Naming: `_id` / `_ref` / `_did`（normative）
 
-Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/common-fields.md#21-identifier-字段命名约定normative)。本节只给出编码层摘要：字段后缀表达 wire value category，不表达授权、同步、retention 或 E2EE 级联语义。
-
-| 用途 | 命名后缀 | 说明 |
-| --- | --- | --- |
-| 对象自身 ID（primary key） | `id` | canonical object 的主 ID，无下划线前缀。例：`id`。 |
-| 单一具体 protocol object kind | `<role>_<kind>_id` | 例：`realm_id`、`parent_space_id`、`scope_circle_id`、`policy_id`。 |
-| 协议责任主体（`did_core_id` 作为主体 ID） | `<role>_id` | 例：`actor_id`、`principal_id`、`subject_id`；wire 为 `ak:did_core:<method>:<core>`。 |
-| 因果 / finality / proof / schema-profile reference | `<noun>_ref` / `<noun>_refs` | 例：`prev_refs`、`seal_ref`、`schema_refs`、`policy_event_ref`。 |
-| Blob / content-addressed / polymorphic reference | `<noun>_ref` / `<noun>_refs` | 例：`blob_ref`、`target_ref`、`from_ref`、`to_ref`。 |
-| Service identity（wire value 为 `did_core_id`） | `service_id` / `<role>_service_id` | 例：`service_id`、`recipient_service_id`、`source_service_id`、`verification_service_id`。 |
-| 其它原始 DID ecosystem material | `<role>_did` | 例：`pairwise_did`、`operator_principal_id`；v1 不再为跨 DID continuity 定义专用字段。 |
-
-`full_id` 是标准 bare DID，保留 method resolution material，用于注册、resolution 与 method-native operation；它不是通用 typed `ak:<kind>:` ID。`project(full_id) -> did_core_id` 与 DID URL canonicalization 都由已登记 method adapter 定义。实现 MUST NOT 把 `full_id` 当成 `did_core_id` 的字符串后缀，MUST NOT 把 DID URL fragment 拼到 `did_core_id`，也 MUST NOT 以字符串前缀判断 DID URL controller；比较前必须按 adapter 解析并验证其 base `full_id` 与目标 `did_core_id` 的投影关系。
+Identifier 字段命名、`did_core_id` / `full_id` 边界与 DID URL adapter 规则的唯一规范来源是
+[`common-fields.md` §2.1 / §4.1](../models/common-fields.md#21-identifier-字段命名约定normative)。
+本节不复述后缀分类表或 adapter 规则；字段后缀表达 wire value category，不表达授权、同步、retention 或 E2EE 级联语义。
 
 ## 5. Event Batch Receipt Hash
 

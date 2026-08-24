@@ -279,12 +279,10 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "policy_id": {
-      "type": "string",
-      "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./call-recording-artifact.schema.json#/$defs/policy_id"
     },
     "subject_ref": {
       "type": "string",

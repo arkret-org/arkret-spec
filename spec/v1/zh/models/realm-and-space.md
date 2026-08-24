@@ -92,7 +92,7 @@ Schema id: `ak.schema.realm.v1`
 | `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md)）。 |
 | `notary` | yes | closed union | Genesis notary control cell 初值；`kind=single_signer|threshold|open_set|mixed` 是唯一 profile discriminator。每个 slot 是冻结的 signer descriptor（actor did_core_id、DID URL、exact key bytes/digest、JOSE alg）；不存在并行 `notary_profile` 字段。 | 当前与历史 Seal 签发规则。 |
 | `capability_action_registry_digest` | yes | `string` | create-locked。`sha256:<64 hex>`，MUST 等于 receiver 当前内嵌 `capability-action-registry.json` 的 JCS 重算值；reducer 原样复制进 authority-root cell（§2.5 步骤 6）。 | Realm authority root 的 capability registry basis。 |
-| `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,holder_roles:["joined_member_principal_server"],applies_to:["seal_include"],minimum_retention_ms:86400000}`。 | bytes availability receipt 门槛。 |
+| `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,applies_to:["seal_include"],minimum_retention_ms:86400000}`。eligible holders 只从 predecessor accepted joined membership 的 routable `delivery_binding.recipient_service_id` 去重派生。 | bytes availability receipt 门槛。 |
 | `audit_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省时不得采信 range-completeness / transparency witness attestation。 | completeness / transparency witness policy。 |
 | `revocation_freshness_window_ms` | no | `integer` | 默认 24h；用于 DataEvent `seal_ref` 和 Control Move `seal_basis` 的历史 basis 宽限判定，精确表示旧 basis Seal 与后继撤销 Seal 的 notary-committed Seal distance 上限，不随 Event 签发、首次投递、接收或回放时间老化。高风险写入的 effective 值固定为 0。 | CBA 撤销 Seal-distance grace 上限。 |
 | `recovery_witness_freshness_window_ms` | no | `integer` | 默认 24h，最大 7d；按签名覆盖的 `Seal.sealed_at` DAG 时间差计算。 | conflict-recovery witness freshness 上限。 |
@@ -569,14 +569,8 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 - **默认资源边界**：创建 Strand / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id` 与需要的 `scope_circle_id`；`default_realm_id` 只提供 Realm 初值。若 Space tree 的 home Realm 与默认子资源 Realm 不同，不能用 home Realm 的 Circle 作为子资源 scope。
 - **子边界升级**：若 Space subtree 或单个 Strand 只需要 Realm 内的子事件 / 子消息边界，创建 Circle，并让子资源显式写入 `scope_circle_id`，必要时用 `child_scope_policy` 强制指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation / Policy Server / capability registry 时才创建新的 Realm。
 
-**两字段速查表（normative）**：Space 上两个 scope 相关字段语义不同，分别由 reducer 强制：
-
-| 字段 | 语义 | 谁强制 |
-| --- | --- | --- |
-| `Space.scope_circle_id` | 本 Space 自身的 effective scope | reducer（写本 Space 时校验） |
-| `Space.child_scope_policy.require_scope_circle_id` | 子资源 scope 的 reducer-enforced 约束 | reducer（写子资源时校验） |
-
-这两个字段不是冗余：自身 scope ≠ 子资源约束，实现 MUST 分别消费。
+Space 自身 `scope_circle_id` 与子资源 `child_scope_policy` 的区别及 reducer 责任以
+[`circle.md` §6.3](./circle.md) 为唯一规范来源；二者不可互相替代。
 
 ### 3.4 Lifecycle 与 Cascade 规则
 

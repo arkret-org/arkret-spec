@@ -173,8 +173,7 @@
   "additionalProperties": false,
   "$defs": {
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "registry_content_ref": {
       "type": "object",

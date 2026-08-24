@@ -79,24 +79,20 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "strand_id": {
-      "type": "string",
-      "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/strand_id"
     },
     "message_id": {
-      "type": "string",
-      "pattern": "^ak:message:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/message_id"
     },
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "subscription_id": {
       "type": "string",
       "pattern": "^ak:subscription:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "cursor": {
-      "type": "string",
-      "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
+      "$ref": "./authz-operations.schema.json#/$defs/cursor"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -108,8 +104,7 @@
       "$ref": "string-profiles.schema.json#/$defs/agent_slug"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "proof": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",

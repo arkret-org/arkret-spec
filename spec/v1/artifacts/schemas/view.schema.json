@@ -351,27 +351,10 @@
       "pattern": "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$"
     },
     "view_renderer": {
-      "type": "string",
-      "enum": [
-        "board",
-        "list",
-        "table",
-        "calendar",
-        "gantt",
-        "timeline",
-        "thread",
-        "chat",
-        "forum",
-        "graph",
-        "tree",
-        "document",
-        "dashboard",
-        "custom"
-      ]
+      "$ref": "./query.schema.json#/$defs/view_renderer"
     },
     "cursor": {
-      "type": "string",
-      "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
+      "$ref": "./authz-operations.schema.json#/$defs/cursor"
     },
     "state_frontier": {
       "type": "object",
@@ -1298,16 +1281,13 @@
       "additionalProperties": true
     },
     "timeline_config": {
-      "type": "object",
-      "additionalProperties": true
+      "$ref": "./morph.schema.json#/$defs/facet_config"
     },
     "graph_config": {
-      "type": "object",
-      "additionalProperties": true
+      "$ref": "./morph.schema.json#/$defs/facet_config"
     },
     "document_config": {
-      "type": "object",
-      "additionalProperties": true
+      "$ref": "./morph.schema.json#/$defs/facet_config"
     },
     "dashboard_config": {
       "type": "object",

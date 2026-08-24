@@ -250,7 +250,6 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
   "reason_code": "abuse_review",
   "effective_at": "2026-04-26T00:00:00.000Z",
   "issued_at": "2026-04-26T00:00:00.000Z",
-  "verification_method": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#account-status-key",
   "proof": {
     "kind": "detached_jws",
     "verification_method": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#account-status-key",
@@ -261,7 +260,7 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
 }
 ```
 
-`AccountStatusRecord` 的 signer MUST 是对该 `account_id` 具有权威性的 Account Authority。holder 自助请求、appeal、管理员、风控服务或 Principal Server 只能提交 authenticated transition command；它们不得直接签发 portable record。`verification_method`、proof controller 与 `account_authority_id` 必须解析到同一 Account Authority，且 key 在 `issued_at` 对应的历史窗口内 active。record 的 account/principal/binding tuple 必须逐字匹配 Account Authority 本地已接受 binding。
+`AccountStatusRecord` 的 signer MUST 是对该 `account_id` 具有权威性的 Account Authority。holder 自助请求、appeal、管理员、风控服务或 Principal Server 只能提交 authenticated transition command；它们不得直接签发 portable record。`proof.verification_method` 的 controller 与 `account_authority_id` 必须解析到同一 Account Authority，且 key 在 `issued_at` 对应的历史窗口内 active。record 的 account/principal/binding tuple 必须逐字匹配 Account Authority 本地已接受 binding。
 
 ### 3.1 Account Authority issuer ledger 与复制载体（normative）
 
@@ -272,7 +271,7 @@ Account Authority 的本地 issuer ledger 是该 `account_id` 的唯一 lifecycl
 1. 首次 account binding commit MUST 在同一数据库事务创建 `status_seq=1,status=active` 的 genesis record；它没有 `previous_account_status_record_id`，不查询 Principal Server frontier，也不等待 holder/Seal。
 2. successor MUST 对 `(account_authority_id,account_id)` current head 做 CAS，且 `status_seq=current+1`、`previous_account_status_record_id=current.account_status_record_id`。同 request identity + 同 canonical intent exact replay 返回首次 bytes；异 intent 返回 `duplicate_conflict` 且零写入。
 3. account row、immutable record、transition audit 与传播 outbox MUST 原子提交。record identity 是 `0x01 || SHA-256(JCS(closed unsigned core))` 的 canonical Base64URL typed token；unsigned core 是除 `account_status_record_id` 与 `proof` 外的全部 record 字段。
-4. `proof` context 固定为 `ak.account_status_record_proof.v1`；proof payload digest 覆盖同一 unsigned core，`verification_method` 必须与 proof 内字段逐字相同并受 `account_authority_id` 控制。
+4. `proof` context 固定为 `ak.account_status_record_proof.v1`；proof payload digest 覆盖同一 unsigned core，`proof.verification_method` 必须受 `account_authority_id` 控制。
 5. `binding_version` 只能随已接受 account binding 单调推进；同 version 不同 principal authority/PCR tuple 是 fork，较低 version 是 rollback。Account Authority 不得在 binding 尚未权威提交时签 record。
 
 Account Authority 向 Principal Server 复制状态的唯一写 operation 是 `ak.peer.account_status.command.submit`（`POST /_arkret/peer/account-status`）。request 只携 exact signed record；下游 fanout MAY 附带此前 receiver 的 `account_status_receipts[]`，但不得重建、重签或改变 record bytes。

@@ -300,9 +300,6 @@
           "type": "object",
           "additionalProperties": true
         },
-        "body_digest": {
-          "$ref": "#/$defs/digest"
-        },
         "tombstone": {
           "const": true
         },
@@ -1280,15 +1277,7 @@
       ],
       "properties": {
         "applet_id": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/did_core_id"
-            },
-            {
-              "type": "string",
-              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1343,7 +1332,7 @@
     },
     "applet_registration_payload": {
       "type": "object",
-      "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot / Ghost Actor namespace). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / authorized registry-authz service; a self-signed registration alone MUST NOT write to a Realm (reason=applet_registration_unauthorized). registration MUST be signed by the controller DID (proof per models/event-and-patch.md §3).",
+      "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot / Ghost Actor namespace). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / authorized registry-authz service. The formal Event is signed by that installing administrator and admitted by the target Principal Server; payload.proof is the exact controller-signed package proof and is not an Event proof.",
       "required": [
         "applet_id",
         "service_id",
@@ -1359,21 +1348,14 @@
         "requested_scopes",
         "registration_epoch",
         "webhook_auth",
+        "manifest",
         "proof",
         "created_at"
       ],
       "properties": {
         "applet_id": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/did_core_id"
-            },
-            {
-              "type": "string",
-              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            }
-          ],
-          "description": "Stable applet identifier: a DID or the typed-id form ak:applet:<uuidv7>."
+          "$ref": "./common-ids.schema.json#/$defs/applet_id",
+          "description": "Stable canonical Applet identifier; service identity is carried separately in service_id."
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -1406,9 +1388,8 @@
           "$ref": "#/$defs/string_list"
         },
         "namespaces": {
-          "type": "object",
-          "description": "Applet namespace claims (actors / realms / handles patterns). Namespace match alone never grants write capability.",
-          "additionalProperties": true
+          "$ref": "applet-package.schema.json#/$defs/applet_namespaces",
+          "description": "Applet namespace claims (actors / realms / handles patterns). Namespace match alone never grants write capability."
         },
         "receive_events": {
           "type": "boolean"
@@ -1435,19 +1416,60 @@
         },
         "manifest": {
           "type": "object",
-          "additionalProperties": true,
-          "description": "Applet manifest snapshot (capability requirements, supported intents, etc.)."
+          "description": "Closed package-derived manifest and the sole registration-epoch evidence carrier.",
+          "required": [
+            "claimed_profiles",
+            "limits",
+            "ghost_policy",
+            "delegation_policy",
+            "e2ee_policy",
+            "registration_epoch_evidence"
+          ],
+          "properties": {
+            "claimed_profiles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/profile_id"
+              },
+              "minItems": 1,
+              "uniqueItems": true,
+              "contains": {
+                "const": "ak.profile.applet_service.v1"
+              }
+            },
+            "limits": {
+              "$ref": "applet-package.schema.json#/$defs/limits"
+            },
+            "ghost_policy": {
+              "$ref": "applet-package.schema.json#/$defs/ghost_policy"
+            },
+            "delegation_policy": {
+              "$ref": "applet-package.schema.json#/$defs/delegation_policy"
+            },
+            "e2ee_policy": {
+              "$ref": "applet-package.schema.json#/$defs/e2ee_policy"
+            },
+            "widget": {
+              "$ref": "applet-package.schema.json#/$defs/widget"
+            },
+            "registration_epoch_evidence": {
+              "$ref": "applet-registration-epoch-evidence.schema.json"
+            }
+          },
+          "additionalProperties": false
         },
         "proof": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Controller-DID detached signature over the canonical registration object (excluding proof). An empty proof object MUST be rejected as schema_violation; required proof fields per models/event-and-patch.md §3."
+          "$ref": "applet-package.schema.json#/$defs/detached_proof",
+          "description": "Exact controller-DID detached package proof copied from the accepted Applet package. payload_digest binds the canonical package, while the enclosing formal registration Event has its own Event proof and Principal Server admission proof."
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
+    },
+    "applet_managed_actor_provision_payload": {
+      "$ref": "./applet-managed-actor.schema.json#/$defs/applet_managed_actor_provision_payload"
     },
     "audience_mention_node": {
       "type": "object",
@@ -1640,15 +1662,7 @@
           "$ref": "#/$defs/effective_scope"
         },
         "applet_id": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/did_core_id"
-            },
-            {
-              "type": "string",
-              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -1809,9 +1823,8 @@
         "applet_id",
         "service_id",
         "release_mode",
+        "seal_ref",
         "seal_digest",
-        "recipient_audit_actor_id",
-        "recipient_public_key_ref",
         "approver_actor_id",
         "notice_ref",
         "purpose_kind",
@@ -1835,15 +1848,7 @@
           "$ref": "#/$defs/effective_scope"
         },
         "applet_id": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/did_core_id"
-            },
-            {
-              "type": "string",
-              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -1867,17 +1872,10 @@
           "uniqueItems": true
         },
         "seal_ref": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "./seal.schema.json#/$defs/seal_ref"
         },
         "seal_digest": {
           "$ref": "#/$defs/digest"
-        },
-        "recipient_audit_actor_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "recipient_public_key_ref": {
-          "$ref": "#/$defs/verification_method",
-          "description": "Release material encryption target. MUST equal the authorize payload's approved_recipient_public_key_ref and resolve to recipient_audit_actor_id's authorized audit-release key."
         },
         "approver_actor_id": {
           "$ref": "#/$defs/did_core_id"
@@ -2108,15 +2106,7 @@
           ]
         },
         "applet_id": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/did_core_id"
-            },
-            {
-              "type": "string",
-              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -2129,11 +2119,11 @@
         },
         "approved_recipient_audit_actor_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Audit subject approved to receive release material. Required on ak.audit.session.authorize; ak.audit.release.recipient_audit_actor_id MUST match it byte-for-byte."
+          "description": "Audit subject approved to receive release material. Required on ak.audit.session.authorize. The accepted authorize record is the sole recipient source for ak.audit.release; the release payload does not echo this field."
         },
         "approved_recipient_public_key_ref": {
           "$ref": "#/$defs/verification_method",
-          "description": "Audit release recipient key approved by ak.audit.session.authorize. MUST resolve to approved_recipient_audit_actor_id's authorized audit-release key; ak.audit.release.recipient_public_key_ref MUST match it byte-for-byte."
+          "description": "Audit release recipient key approved by ak.audit.session.authorize. MUST resolve to approved_recipient_audit_actor_id's authorized audit-release key. The accepted authorize record is the sole key source for ak.audit.release; the release payload does not echo this field."
         },
         "closer_actor_id": {
           "$ref": "#/$defs/did_core_id"
@@ -3095,12 +3085,6 @@
             "issued_at": {
               "$ref": "./capability-grant.schema.json#/properties/issued_at"
             },
-            "not_before": {
-              "$ref": "./capability-grant.schema.json#/properties/not_before"
-            },
-            "expires_at": {
-              "$ref": "./capability-grant.schema.json#/properties/expires_at"
-            },
             "issuer_authority_refs": {
               "$ref": "./capability-grant.schema.json#/properties/issuer_authority_refs"
             }
@@ -3132,8 +3116,8 @@
     "capability_derived_payload": {
       "type": "object",
       "required": [
-        "grant_id",
-        "grant"
+        "grant",
+        "grant_id"
       ],
       "description": "Reducer-authored cross-Realm capability derivation. Unlike capability genesis this references an existing Grant and therefore carries the already-derived grant_id and complete projected grant body, including the source grant's issuer_principal_server_id. A derived projection preserves that authority pair and MUST NOT replace it with a local reducer or receiving service identity.",
       "properties": {
@@ -4106,8 +4090,7 @@
       "additionalProperties": false
     },
     "device_id": {
-      "type": "string",
-      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
     "device_list_update_payload": {
       "type": "object",
@@ -4689,16 +4672,13 @@
       "$ref": "./erasure-receipt.schema.json"
     },
     "event_ref": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "grant_id": {
-      "type": "string",
-      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/grant_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "hierarchy_link_status": {
       "type": "string",
@@ -4717,8 +4697,12 @@
       "properties": {
         "from": {
           "oneOf": [
-            {"type": "null"},
-            {"$ref": "#/$defs/history_access_value"}
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/history_access_value"
+            }
           ]
         },
         "to": {
@@ -4733,17 +4717,31 @@
     },
     "circle_history_access_payload": {
       "type": "object",
-      "required": ["circle_id", "from", "to"],
+      "required": [
+        "circle_id",
+        "from",
+        "to"
+      ],
       "properties": {
-        "circle_id": {"$ref": "./common-ids.schema.json#/$defs/circle_id"},
+        "circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
+        },
         "from": {
           "oneOf": [
-            {"type": "null"},
-            {"$ref": "#/$defs/history_access_value"}
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/history_access_value"
+            }
           ]
         },
-        "to": {"$ref": "#/$defs/history_access_value"},
-        "reason": {"type": "string"}
+        "to": {
+          "$ref": "#/$defs/history_access_value"
+        },
+        "reason": {
+          "type": "string"
+        }
       },
       "additionalProperties": false,
       "description": "Dedicated per-Circle history-access FSM transition. Circle create initializes from=null. The only post-create edge is all_history_for_current_members to since_join; exact replay is idempotent and widening is permanently rejected. Generic ak.circle.update patches cannot touch history_access."
@@ -6061,13 +6059,9 @@
             }
           ]
         },
-        "identity_payload_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "sha256 over RFC 8785 JCS canonical JSON of the exact identity_payload carrier object. It is a cache invalidation key, not a substitute for signature or MLS verification."
-        },
         "expected_state_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Optional optimistic concurrency guard for the current effective set of this (realm_id, actor_id, segment). When present, it MUST equal the writer-observed effective-set digest before applying this event: sha256 over RFC 8785 JCS canonical JSON {realm_id, actor_id, segment, effective_events:[{event_id, segment, payload_digest}]}, with effective_events sorted by (segment,event_id). It is not the identity_payload_digest and not a roster member_display_state_digest."
+          "description": "Optional optimistic concurrency guard for the current effective set of this (realm_id, actor_id, segment). When present, it MUST equal the writer-observed effective-set digest before applying this event: sha256 over RFC 8785 JCS canonical JSON {realm_id, actor_id, segment, effective_events:[{event_id, segment, payload_digest}]}, with effective_events sorted by (segment,event_id). It is distinct from the locally derived identity_payload carrier digest and from a roster member_display_state_digest."
         }
       },
       "additionalProperties": false
@@ -6255,6 +6249,39 @@
       },
       "additionalProperties": false
     },
+    "mimi_message_provenance": {
+      "type": "object",
+      "description": "External attribution for a message Event authored and signed by a MIMI facade service. This object never transfers the attributed sender's signing authority to the facade.",
+      "required": [
+        "provenance",
+        "source_provider",
+        "attributed_sender_actor_id",
+        "attributed_sender_device_id",
+        "source_envelope_digest",
+        "room_binding_ref"
+      ],
+      "properties": {
+        "provenance": {
+          "const": "mimi_facade"
+        },
+        "source_provider": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "attributed_sender_actor_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "attributed_sender_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "source_envelope_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "room_binding_ref": {
+          "$ref": "#/$defs/event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
     "message_create_payload": {
       "type": "object",
       "not": {
@@ -6366,6 +6393,9 @@
             }
           },
           "additionalProperties": false
+        },
+        "mimi_provenance": {
+          "$ref": "#/$defs/mimi_message_provenance"
         }
       },
       "additionalProperties": false
@@ -6401,8 +6431,7 @@
       "description": "MLS-protected Message metadata bound to its one canonical decrypted schema."
     },
     "message_id": {
-      "type": "string",
-      "pattern": "^ak:message:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/message_id"
     },
     "message_metadata": {
       "type": "object",
@@ -6584,6 +6613,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "mimi_provenance": {
+          "$ref": "#/$defs/mimi_message_provenance"
         }
       },
       "additionalProperties": false
@@ -6648,6 +6680,9 @@
         },
         "reason": {
           "type": "string"
+        },
+        "mimi_provenance": {
+          "$ref": "#/$defs/mimi_message_provenance"
         }
       },
       "additionalProperties": false
@@ -7034,12 +7069,24 @@
         "frozen_public_key_b64u"
       ],
       "properties": {
-        "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
-        "holder_principal_id": {"$ref": "#/$defs/did_core_id"},
-        "holder_service_id": {"$ref": "#/$defs/did_core_id"},
-        "key_agreement_ref": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
-        "holder_signing_ref": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
-        "hpke_suite": {"const": "ak.hpke_x25519_aead_chacha20poly1305.v1"},
+        "recovery_key_id": {
+          "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
+        },
+        "holder_principal_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "holder_service_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "key_agreement_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "holder_signing_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "hpke_suite": {
+          "const": "ak.hpke_x25519_aead_chacha20poly1305.v1"
+        },
         "frozen_public_key_b64u": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{43}$",
@@ -7051,11 +7098,22 @@
     },
     "organization_recovery_holder_acceptance": {
       "type": "object",
-      "required": ["realm_id", "new_key_tuple", "holder_trusted_basis", "holder_proof"],
+      "required": [
+        "realm_id",
+        "new_key_tuple",
+        "holder_trusted_basis",
+        "holder_proof"
+      ],
       "properties": {
-        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
-        "new_key_tuple": {"$ref": "#/$defs/organization_recovery_key_tuple"},
-        "holder_trusted_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "new_key_tuple": {
+          "$ref": "#/$defs/organization_recovery_key_tuple"
+        },
+        "holder_trusted_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
         "holder_proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
           "x-arkret-proof-context": "ak.organization_recovery_key_holder_acceptance_proof.v1",
@@ -7066,26 +7124,58 @@
     },
     "organization_recovery_key_register_payload": {
       "type": "object",
-      "required": ["realm_id", "new_key_tuple", "holder_trusted_basis", "holder_acceptance"],
+      "required": [
+        "realm_id",
+        "new_key_tuple",
+        "holder_trusted_basis",
+        "holder_acceptance"
+      ],
       "properties": {
-        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
-        "new_key_tuple": {"$ref": "#/$defs/organization_recovery_key_tuple"},
-        "holder_trusted_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
-        "holder_acceptance": {"$ref": "#/$defs/organization_recovery_holder_acceptance"}
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "new_key_tuple": {
+          "$ref": "#/$defs/organization_recovery_key_tuple"
+        },
+        "holder_trusted_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
+        "holder_acceptance": {
+          "$ref": "#/$defs/organization_recovery_holder_acceptance"
+        }
       },
       "additionalProperties": false,
       "description": "Closed Realm Control Move that registers the first active organization recovery key after Realm create is already activated. All duplicated acceptance fields must match byte-for-byte. holder_trusted_basis is the complete canonical holder-pinned accepted Seal antichain containing the Realm-create evidence, or a later holder-pinned basis that causally covers it. Registration is a CAS from no active tuple."
     },
     "organization_recovery_key_rotate_payload": {
       "type": "object",
-      "required": ["realm_id", "expected_previous_key_evidence_ref", "expected_previous_key_evidence_seal_ref", "new_key_tuple", "holder_trusted_basis", "holder_acceptance"],
+      "required": [
+        "realm_id",
+        "expected_previous_key_evidence_ref",
+        "expected_previous_key_evidence_seal_ref",
+        "new_key_tuple",
+        "holder_trusted_basis",
+        "holder_acceptance"
+      ],
       "properties": {
-        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
-        "expected_previous_key_evidence_ref": {"$ref": "#/$defs/event_ref"},
-        "expected_previous_key_evidence_seal_ref": {"$ref": "./event-envelope.schema.json#/$defs/seal_ref"},
-        "new_key_tuple": {"$ref": "#/$defs/organization_recovery_key_tuple"},
-        "holder_trusted_basis": {"$ref": "./event-envelope.schema.json#/properties/seal_basis"},
-        "holder_acceptance": {"$ref": "#/$defs/organization_recovery_holder_acceptance"}
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "expected_previous_key_evidence_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "expected_previous_key_evidence_seal_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "new_key_tuple": {
+          "$ref": "#/$defs/organization_recovery_key_tuple"
+        },
+        "holder_trusted_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+        },
+        "holder_acceptance": {
+          "$ref": "#/$defs/organization_recovery_holder_acceptance"
+        }
       },
       "additionalProperties": false,
       "description": "Closed CAS rotation of the unique active Realm recovery-key tuple. expected_previous_key_evidence_ref/Seal must equal the current effective tuple provenance. The new holder acceptance anchor must be that prior holder-trusted evidence Seal or a holder-pinned accepted successor. Historical tuples remain verifiable and archives are never rewritten."
@@ -7125,7 +7215,9 @@
         "transition_digest": {
           "$ref": "#/$defs/digest"
         },
-        "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
+        "recovery_key_id": {
+          "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
+        },
         "holder_principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
@@ -7389,14 +7481,39 @@
       "type": "object",
       "required": [
         "principal_id",
-        "device_id",
         "keypackage_ref",
         "keypackage_digest",
         "cipher_suites",
         "state",
         "expires_at",
         "created_at",
-        "device_signature"
+        "endpoint_signature"
+      ],
+      "oneOf": [
+        {
+          "required": ["device_id", "device_authorize_event_id"],
+          "not": {"anyOf": [
+            {"required": ["endpoint_verification_method"]},
+            {"required": ["agent_key_authorize_event_id"]},
+            {"required": ["intended_realm_id"]}
+          ]}
+        },
+        {
+          "required": ["endpoint_verification_method", "agent_key_authorize_event_id"],
+          "not": {"anyOf": [
+            {"required": ["device_id"]},
+            {"required": ["device_authorize_event_id"]},
+            {"required": ["intended_realm_id"]}
+          ]}
+        },
+        {
+          "required": ["endpoint_verification_method", "intended_realm_id"],
+          "not": {"anyOf": [
+            {"required": ["device_id"]},
+            {"required": ["device_authorize_event_id"]},
+            {"required": ["agent_key_authorize_event_id"]}
+          ]}
+        }
       ],
       "properties": {
         "keypackage_id": {
@@ -7414,6 +7531,18 @@
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
+        },
+        "endpoint_verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "device_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "agent_key_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "intended_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "keypackage_ref": {
           "$ref": "#/$defs/keypackage_ref"
@@ -7453,7 +7582,7 @@
         "created_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "device_signature": {
+        "endpoint_signature": {
           "$ref": "#/$defs/signature_material"
         }
       },
@@ -7465,19 +7594,9 @@
         "mls_group_id",
         "base_epoch",
         "proposal_type",
+        "proposal_bytes_b64",
+        "proposal_digest",
         "governance_binding"
-      ],
-      "anyOf": [
-        {
-          "required": [
-            "proposal_digest"
-          ]
-        },
-        {
-          "required": [
-            "proposal_message_ref"
-          ]
-        }
       ],
       "properties": {
         "mls_group_id": {
@@ -7506,11 +7625,13 @@
             "app_custom"
           ]
         },
-        "proposal_message_ref": {
-          "$ref": "#/$defs/object_ref"
+        "proposal_bytes_b64": {
+          "$ref": "#/$defs/base64url",
+          "description": "Unpadded base64url encoding of the complete RFC 9420 MLS Proposal message. The bytes are always inline so restart and offline replay never depend on a process-local proposal store or an auxiliary object route."
         },
         "proposal_digest": {
-          "$ref": "#/$defs/digest"
+          "$ref": "#/$defs/digest",
+          "description": "SHA-256 digest of the decoded proposal_bytes_b64 bytes. Receivers MUST verify it before admitting the Proposal to an MLS proposal store."
         },
         "target_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -7530,14 +7651,27 @@
       "allOf": [
         {
           "if": {
-            "properties": {"proposal_type": {"const": "add"}},
-            "required": ["proposal_type"]
+            "properties": {
+              "proposal_type": {
+                "const": "add"
+              }
+            },
+            "required": [
+              "proposal_type"
+            ]
           },
           "then": {
-            "required": ["target_principal_id", "target_authorization_incarnation"]
+            "required": [
+              "target_principal_id",
+              "target_authorization_incarnation"
+            ]
           },
           "else": {
-            "not": {"required": ["target_authorization_incarnation"]}
+            "not": {
+              "required": [
+                "target_authorization_incarnation"
+              ]
+            }
           }
         }
       ]
@@ -7547,9 +7681,7 @@
       "required": [
         "mls_group_id",
         "epoch",
-        "recipient_principal_id",
         "keypackage_ref",
-        "keypackage_digest",
         "claim_id",
         "claim_ref",
         "claim_envelope",
@@ -7561,6 +7693,7 @@
       "oneOf": [
         {
           "required": [
+            "recipient_principal_id",
             "recipient_device_id"
           ],
           "not": {
@@ -7579,19 +7712,79 @@
                 "required": [
                   "agent_key_authorize_event_id"
                 ]
+              },
+              {
+                "required": [
+                  "recipient_pairwise_actor_id"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_pairwise_verification_method"
+                ]
               }
             ]
           }
         },
         {
           "required": [
+            "recipient_principal_id",
             "recipient_agent_id",
             "recipient_agent_verification_method",
             "agent_key_authorize_event_id"
           ],
           "not": {
-            "required": [
-              "recipient_device_id"
+            "anyOf": [
+              {
+                "required": [
+                  "recipient_device_id"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_pairwise_actor_id"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_pairwise_verification_method"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "recipient_pairwise_actor_id",
+            "recipient_pairwise_verification_method"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "recipient_principal_id"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_device_id"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_agent_id"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_agent_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "agent_key_authorize_event_id"
+                ]
+              }
             ]
           }
         }
@@ -7643,15 +7836,19 @@
         "agent_key_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
+        "recipient_pairwise_actor_id": {
+          "type": "string",
+          "pattern": "^ak:did_core:key:z6Mk[A-Za-z0-9]+$"
+        },
+        "recipient_pairwise_verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "Exact did:key:<multibase>#<same-multibase> method for recipient_pairwise_actor_id; receivers MUST verify canonical Ed25519 multibase equality."
+        },
         "sender_device_id": {
           "$ref": "#/$defs/device_id"
         },
         "keypackage_ref": {
           "$ref": "#/$defs/keypackage_ref"
-        },
-        "keypackage_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Canonical hash of the claimed MLS KeyPackage bytes. MUST equal the referenced ak.mls.keypackage.payload.keypackage_digest and claim_ref.keypackage_digest."
         },
         "claim_id": {
           "allOf": [
@@ -7665,7 +7862,7 @@
         },
         "claim_ref": {
           "type": "object",
-          "description": "KeyPackage claim binding validated before Welcome decryption. Exactly one trust binding is present: device_authorize_event_id for a PCR-authorized device or agent_key_authorize_event_id for an independently authorized Native Agent runtime.",
+          "description": "KeyPackage claim binding validated before Welcome decryption. Exactly one trust branch is present: PCR-authorized device, independently authorized Native Agent runtime, or Realm-local minimal-metadata pairwise did:key endpoint.",
           "required": [
             "claim_id",
             "keypackage_ref",
@@ -7678,8 +7875,22 @@
                 "device_authorize_event_id"
               ],
               "not": {
-                "required": [
-                  "agent_key_authorize_event_id"
+                "anyOf": [
+                  {
+                    "required": [
+                      "agent_key_authorize_event_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "pairwise_actor_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "pairwise_verification_method"
+                    ]
+                  }
                 ]
               }
             },
@@ -7688,8 +7899,42 @@
                 "agent_key_authorize_event_id"
               ],
               "not": {
-                "required": [
-                  "device_authorize_event_id"
+                "anyOf": [
+                  {
+                    "required": [
+                      "device_authorize_event_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "pairwise_actor_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "pairwise_verification_method"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "required": [
+                "pairwise_actor_id",
+                "pairwise_verification_method"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "device_authorize_event_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "agent_key_authorize_event_id"
+                    ]
+                  }
                 ]
               }
             }
@@ -7720,13 +7965,20 @@
             "agent_key_authorize_event_id": {
               "$ref": "#/$defs/non_empty_string",
               "description": "Accepted active ak.agent.key.authorize Event for the claimed Native Agent runtime key."
+            },
+            "pairwise_actor_id": {
+              "type": "string",
+              "pattern": "^ak:did_core:key:z6Mk[A-Za-z0-9]+$"
+            },
+            "pairwise_verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
             }
           },
           "additionalProperties": false
         },
         "claim_envelope": {
           "type": "object",
-          "description": "Closed requester device-or-Native-Agent signature binding the claimed KeyPackage to this Welcome, Realm, claim nonce and Welcome digest before decrypting the Welcome. Signer authority is established by the accepted authorization Events and their in-envelope Principal Server admission proofs; no signer-evidence sidecar is carried.",
+          "description": "Closed requester device, Native-Agent, or Realm-local pairwise signature binding the claimed KeyPackage to this Welcome, Realm, exact claim_request_id challenge and Welcome digest before decrypting the Welcome. Device/Agent signer authority is established by accepted authorization Events and their in-envelope Principal Server admission proofs; the pairwise signer is established by its exact did:key method and Realm-local actor. No signer-evidence sidecar is carried.",
           "required": [
             "keypackage_ref",
             "keypackage_digest",
@@ -7760,6 +8012,11 @@
                     "required": [
                       "requester_agent_key_authorize_event_id"
                     ]
+                  },
+                  {
+                    "required": [
+                      "requester_pairwise_verification_method"
+                    ]
                   }
                 ]
               }
@@ -7780,6 +8037,45 @@
                   {
                     "required": [
                       "requester_device_authorize_event_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "requester_pairwise_verification_method"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "required": [
+                "requester_pairwise_verification_method"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "requester_device_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "requester_device_authorize_event_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "requester_agent_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "requester_agent_verification_method"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "requester_agent_key_authorize_event_id"
                     ]
                   }
                 ]
@@ -7824,8 +8120,12 @@
             "requester_agent_key_authorize_event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
             },
+            "requester_pairwise_verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
             "nonce": {
-              "$ref": "#/$defs/non_empty_string"
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Exact claim_request_id of the durable KeyPackage claim. This field keeps the generic claim-envelope transcript name nonce but is not a second random value."
             },
             "welcome_digest": {
               "$ref": "#/$defs/digest"
@@ -8252,8 +8552,7 @@
       "additionalProperties": false
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "notary_fault_censorship_payload": {
       "type": "object",
@@ -8551,75 +8850,142 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind", "did"],
+          "required": [
+            "kind",
+            "did"
+          ],
           "properties": {
-            "kind": {"enum": ["actor", "device", "organization"]},
-            "did": {"$ref": "./common-ids.schema.json#/$defs/did_full_id"}
+            "kind": {
+              "enum": [
+                "actor",
+                "device",
+                "organization"
+              ]
+            },
+            "did": {
+              "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "device_id"],
+          "required": [
+            "kind",
+            "device_id"
+          ],
           "properties": {
-            "kind": {"const": "device"},
-            "device_id": {"type": "string", "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"}
+            "kind": {
+              "const": "device"
+            },
+            "device_id": {
+              "type": "string",
+              "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "did_core_id"],
+          "required": [
+            "kind",
+            "did_core_id"
+          ],
           "properties": {
-            "kind": {"const": "service_id"},
-            "did_core_id": {"$ref": "#/$defs/did_core_id"}
+            "kind": {
+              "const": "service_id"
+            },
+            "did_core_id": {
+              "$ref": "#/$defs/did_core_id"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "domain"],
+          "required": [
+            "kind",
+            "domain"
+          ],
           "properties": {
-            "kind": {"const": "domain"},
-            "domain": {"type": "string", "pattern": "^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"},
-            "match_subdomains": {"type": "boolean"}
+            "kind": {
+              "const": "domain"
+            },
+            "domain": {
+              "type": "string",
+              "pattern": "^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+            },
+            "match_subdomains": {
+              "type": "boolean"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "trust_domain"],
+          "required": [
+            "kind",
+            "trust_domain"
+          ],
           "properties": {
-            "kind": {"const": "trust_domain"},
-            "trust_domain": {"$ref": "./common-ids.schema.json#/$defs/trust_domain"}
+            "kind": {
+              "const": "trust_domain"
+            },
+            "trust_domain": {
+              "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "claim_kind", "issuer"],
+          "required": [
+            "kind",
+            "claim_kind",
+            "issuer"
+          ],
           "properties": {
-            "kind": {"const": "claim_selector"},
-            "claim_kind": {"$ref": "#/$defs/non_empty_string"},
-            "issuer": {"$ref": "#/$defs/did_core_id"}
+            "kind": {
+              "const": "claim_selector"
+            },
+            "claim_kind": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "issuer": {
+              "$ref": "#/$defs/did_core_id"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "digest"],
+          "required": [
+            "kind",
+            "digest"
+          ],
           "properties": {
-            "kind": {"const": "media_digest"},
-            "digest": {"$ref": "#/$defs/digest"}
+            "kind": {
+              "const": "media_digest"
+            },
+            "digest": {
+              "$ref": "#/$defs/digest"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "label"],
+          "required": [
+            "kind",
+            "label"
+          ],
           "properties": {
-            "kind": {"const": "content_label"},
-            "label": {"$ref": "#/$defs/non_empty_string"}
+            "kind": {
+              "const": "content_label"
+            },
+            "label": {
+              "$ref": "#/$defs/non_empty_string"
+            }
           },
           "additionalProperties": false
         }
@@ -8860,8 +9226,8 @@
             "required": [
               "service_id",
               "service_kind",
-              "data_classes",
               "purposes",
+              "data_classes",
               "visibility"
             ],
             "properties": {
@@ -9191,8 +9557,7 @@
       "additionalProperties": false
     },
     "profile_id": {
-      "type": "string",
-      "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$"
+      "$ref": "./applet-package.schema.json#/$defs/profile_id"
     },
     "profile_realm_override_payload": {
       "type": "object",
@@ -9230,8 +9595,7 @@
       "additionalProperties": false
     },
     "rank": {
-      "type": "string",
-      "pattern": "^[0-9A-Za-z]{1,128}$"
+      "$ref": "./event-envelope.schema.json#/$defs/rank"
     },
     "reaction_encrypted_payload_plaintext": {
       "type": "object",
@@ -9308,7 +9672,7 @@
       "additionalProperties": false
     },
     "read_receipt_policy_payload": {
-      "$comment": "Payload for ak.realm.read_receipt_policy. Closed object so typos in receipt_compliance_opt_in or its sub-fields cause schema_violation. The enclosing Event carries realm_id; payload does not duplicate it. minProperties=1 rejects an empty no-op policy. The sole compliance exception is child_privacy_tightening_against_required; history_access has no read-receipt compatibility branch. See zh/discovery/read-receipts.md §2.5.1.",
+      "$comment": "Payload for ak.realm.read_receipt_policy. Closed object so typos cause schema_violation. The enclosing Event carries realm_id; payload does not duplicate it. minProperties=1 rejects an empty no-op policy. The sole compliance exception is child_privacy_tightening_against_required; history_access has no read-receipt compatibility branch. See zh/discovery/read-receipts.md §2.5.1.",
       "type": "object",
       "minProperties": 1,
       "properties": {
@@ -9331,16 +9695,9 @@
         "scope_overrides_allowed": {
           "type": "boolean"
         },
-        "receipt_compliance_opt_in": {
-          "type": "object",
-          "description": "Closed child-policy privacy-floor opt-in. Absent object or absent/false child_privacy_tightening_against_required means not opted in. No history-access/public-receipt escape switch exists.",
-          "properties": {
-            "child_privacy_tightening_against_required": {
-              "type": "boolean",
-              "description": "Privacy-floor escape switch. When the parent policy sets disclosure='required' and this is true, a child Realm MAY tighten disclosure to 'optional' or 'disabled'; otherwise the reducer rejects with read_receipt_compliance_floor_violated."
-            }
-          },
-          "additionalProperties": false
+        "child_privacy_tightening_against_required": {
+          "type": "boolean",
+          "description": "Privacy-floor escape switch. When the parent policy sets disclosure='required' and this is true, a child Realm MAY tighten disclosure to 'optional' or 'disabled'; otherwise the reducer rejects with read_receipt_compliance_floor_violated. Absent means false."
         }
       },
       "additionalProperties": false
@@ -10440,8 +10797,7 @@
       "description": "Relation creation. The payload carries the whole relation object under `relation`: the registered effect_projection is set value = payload.relation, and event-and-patch.md 2.4.2 permits a projection to move an existing root path wholesale but never to assemble one, so a flat {relation_id, kind, from_ref, to_ref} form has no derivable cell value."
     },
     "relation_id": {
-      "type": "string",
-      "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/relation_id"
     },
     "relation_tombstone_payload": {
       "type": "object",
@@ -10705,16 +11061,11 @@
     },
     "schema_define_state_payload": {
       "type": "object",
-      "description": "Schema definition payload. value is a JSON Schema 2020-12 document validated by the executable ak.validator.json_schema_2020_12_definition.v1 profile; schema_id is the stable definition cell subject and MUST equal value.$id.",
+      "description": "Schema definition payload. value is a JSON Schema 2020-12 document validated by the executable ak.validator.json_schema_2020_12_definition.v1 profile; value.$id is the stable definition cell subject.",
       "required": [
-        "schema_id",
         "value"
       ],
       "properties": {
-        "schema_id": {
-          "type": "string",
-          "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
-        },
         "value": {
           "type": "object",
           "required": [
@@ -10736,8 +11087,7 @@
       "additionalProperties": false
     },
     "seal_ref": {
-      "type": "string",
-      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+      "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
     },
     "sidecar_context_attach_payload": {
       "type": "object",
@@ -10979,8 +11329,7 @@
       "additionalProperties": false
     },
     "space_id": {
-      "type": "string",
-      "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
+      "$ref": "./event-envelope.schema.json#/$defs/board_space_id"
     },
     "space_object_tombstone_payload": {
       "type": "object",
@@ -11629,8 +11978,7 @@
       "additionalProperties": false
     },
     "strand_id": {
-      "type": "string",
-      "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/strand_id"
     },
     "strand_move_payload": {
       "type": "object",
@@ -11897,12 +12245,7 @@
       ]
     },
     "string_list": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/non_empty_string"
-      },
-      "uniqueItems": true
+      "$ref": "./applet-package.schema.json#/$defs/non_empty_string_array"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

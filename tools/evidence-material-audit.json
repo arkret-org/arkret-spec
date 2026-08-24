@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 253,
+  "audited_occurrence_count": 255,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -143,6 +143,18 @@
         "commitment"
       ],
       "reason": "Closed historical-mode aggregate containing the destination-signed admission receipt and its exact admission-time evidence."
+    },
+    {
+      "file": "applet-managed-actor.schema.json",
+      "key": "method_history_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Carries the complete adapter-selected method history, controller proofs, witness attestations and terminal identity commitments independently verified before managed-actor provisioning."
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
@@ -814,7 +826,7 @@
     {
       "file": "invite-delivery-request.schema.json",
       "key": "introduction_evidence",
-      "occurrences": 2,
+      "occurrences": 3,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",

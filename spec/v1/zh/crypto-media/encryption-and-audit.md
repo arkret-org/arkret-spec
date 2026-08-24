@@ -62,7 +62,7 @@ sequenceDiagram
 
 - **`ak.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `ak.mls.commit` 类型的 Event 提交至 Realm Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
 - **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。Welcome MUST 通过 durable `ak.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付，直到被消费、撤销或过期。Principal Server sync surface 的 Signal Extension 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
-- **投递不得降维**：Delivery / Principal Server sync surface 把 accepted `ak.mls.welcome` 投影为 to-device message 时，MUST 原样保留其规范 payload，至少包括 `mls_group_id`、`epoch`、`recipient_principal_id`、`recipient_device_id`、`claim_ref`、`claim_envelope`、`governance_binding`、`commit_ref` 与 ciphertext / durable ciphertext pointer。服务端不得只转发 MLS ciphertext 或重新构造一个缺少 claim / governance 字段的缩减信封；接收端必须能在解密和入组前独立复算 Welcome digest、验证邀请方签名，并将同一个 `governance_binding` 与 MLS GroupContext extension 及 Seal 证明逐字段比较。
+- **投递不得降维**：Delivery / Principal Server sync surface 把 accepted `ak.mls.welcome` 投影为 endpoint delivery 时，MUST 原样保留其规范 payload，至少包括 `mls_group_id`、`epoch`、closed recipient endpoint（ordinary `recipient_principal_id + recipient_device_id`、Native-Agent identity/method/authorization，或 minimal-metadata pairwise actor/method）、`claim_ref`、`claim_envelope`、`governance_binding`、`commit_ref` 与 ciphertext / durable ciphertext pointer。服务端不得只转发 MLS ciphertext 或重新构造一个缺少 claim / governance 字段的缩减信封；接收端必须能在解密和入组前独立复算 Welcome digest、验证邀请方签名，并将同一个 `governance_binding` 与 MLS GroupContext extension 及 Seal 证明逐字段比较。
 
 **发送方 admission saga（normative）**：一次 Add admission 的 Commit、面向全部目标设备的 Welcome、以及 Commit 后本地 MLS group state 是同一不可拆分的恢复单元。发送客户端在完成必要的 KeyPackage claim、构造出该 admission 后，MUST 在首次 Commit / Welcome 网络写入前，把以下材料原子写入 crash-recoverable outbound state：精确签名后的 `ak.mls.commit` Event、每条精确签名后的 `ak.mls.welcome` Event，以及仅在投递完成后安装的 post-Commit group state。网络时序 MUST 是 Commit accepted / duplicate 后才投递与其 `commit_ref` 绑定的 Welcome；不得先投递 Welcome，也不得在 Commit 未被接受时安装 post-Commit group state。
 
@@ -361,8 +361,9 @@ published -> claimed -> consumed
 {
   "kind": "ak.mls.keypackage",
   "keypackage_id": "ak:mls:kp:01JS...",
-  "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+  "principal_id": "ak:did_core:key:z6MkPairwise...",
+  "endpoint_verification_method": "did:key:z6MkPairwise...#z6MkPairwise...",
+  "intended_realm_id": "ak:realm:...",
   "keypackage_ref": "sha256:...",
   "keypackage_digest": "sha256:canonical_keypackage_bytes",
   "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
@@ -370,7 +371,7 @@ published -> claimed -> consumed
   "state": "published",
   "created_at": "2026-04-30T00:00:00Z",
   "expires_at": "2026-05-07T00:00:00Z",
-  "device_signature": "base64url..."
+  "endpoint_signature": {"kid":"did:key:z6MkPairwise...#z6MkPairwise...","signature_algorithm":"Ed25519","sig":"base64url..."}
 }
 ```
 
@@ -378,7 +379,7 @@ published -> claimed -> consumed
 
 Claim 请求 MUST 绑定：
 
-- requester principal / service DID 和 device proof。
+- requester principal / service DID，以及 closed device、Native Agent 或 Realm-local pairwise endpoint proof。
 - intended `realm_id` 或 `mls_group_id`。
 - required capabilities / content profiles / cipher suites。
 - 是否允许 minimal-metadata pseudonymous credential。
@@ -386,17 +387,17 @@ Claim 请求 MUST 绑定：
 
 Claim 成功后：
 
-- KeyPackage 进入 `claimed`，并绑定 claim/requester/intended Realm、capability/digest、expiry 与 claimed endpoint 的 accepted authorization ref。普通 device 必须且只能使用 `device_authorize_event_id`；Native Agent runtime 必须且只能使用 `agent_key_authorize_event_id`。
+- KeyPackage 进入 `claimed`，并绑定 claim/requester/intended Realm、capability/digest、expiry 与 claimed endpoint 的 closed authority。普通 device 必须且只能使用 `device_authorize_event_id`；Native Agent runtime 必须且只能使用 `agent_key_authorize_event_id`；minimal-metadata endpoint 必须且只能使用 exact `did:key` method + `intended_realm_id`，不得伪造前两类 authorization ref。
 - 同一 KeyPackage 不得被第二个 Realm/group、requester 或 Welcome 重复使用。
-- Welcome `claim_ref` 携带 `{claim_id,keypackage_ref,keypackage_digest,capabilities_digest}` 加上述二选一 authorization ref，并进入 governance/AAD transcript。origin Principal Server 在 claim admission 前验证 account-local current generation、未撤销状态与 MLS LeafNode/signature key；对端验证 target service 的签名 claim，不接收 PCR history sidecar。
+- Welcome `claim_ref` 携带 `{claim_id,keypackage_ref,keypackage_digest,capabilities_digest}` 加上述三分支之一的 authority binding，并进入 governance/AAD transcript。origin Principal Server 在 claim admission 前验证 device/Agent 的 current generation 与未撤销状态，或独立验证 pairwise actor、exact `did:key` method、MLS LeafNode BasicCredential 与 signature key 逐字节一致；对端验证 target service 的签名 claim，不接收 PCR history sidecar。
 - 若 device 在 claim 与 Welcome 之间 revoke、re-anchor fenced 或其 authorization 被替换，未消费 claim 失效；发送方必须以 current `device_authorize_event_id` 新建 claim。Agent authorization revoke/supersede/expiry 同理。
-- 返回 KeyPackage 时必须附 target Principal Server 的 endpoint signature，并由 `claims_digest` 与 target service receipt 覆盖 exact claim bytes。claim 不携 device/PCR/Agent signer history sidecar；服务签名提供对本地 admission 决定的可验证归责。device 与 Native Agent authorization refs 仍是 closed XOR，不能互相 fallback。
+- 返回 KeyPackage 时必须附 destination Principal Server 签发的 claim receipt；该 receipt 以 `claims_digest` 覆盖 exact claim bytes，并与 destination durable claim ledger、request digest 和服务签名逐字绑定。upload endpoint signature 只在发布准入时验证，claim record 不复制无法由其自身重建验证前像的签名。claim 不携 device/PCR/Agent signer history sidecar；destination service receipt 提供对本地 admission 决定的可验证归责。device、Native Agent 与 pairwise method 三分支是 closed XOR，不能互相 fallback。
 
 #### 2.6.1 Welcome `claim_envelope` 签名（normative）
 
-KeyPackage 发布时 Realm 尚未确定，因此 per-Welcome `claim_envelope` 必须由 requester 当前 accepted signer 签署并至少绑定：`keypackage_ref`、`keypackage_digest`、`intended_realm_id`、`claim_id`、`requester_actor_id`、`nonce`、`welcome_digest`、`created_at`，以及精确二选一的 `requester_device_id + device_authorize_event_id` 或 `agent_key_authorize_event_id`。
+per-Welcome `claim_envelope` 必须由 requester 当前 accepted signer 签署并至少绑定：`keypackage_ref`、`keypackage_digest`、`intended_realm_id`、`claim_id`、`requester_actor_id`、`nonce`、`welcome_digest`、`created_at`，以及精确三选一的 `requester_device_id + device_authorize_event_id`、Native-Agent method + `agent_key_authorize_event_id`，或与 `requester_actor_id` 精确投影一致的 pairwise `did:key` method。
 
-普通 device signature 必须按 PCR authorization chain 解析到 current generation 的 accepted `device_public_key`；Native Agent 必须解析其 current active `ak.agent.key.authorize`。接收端还必须验证 intended Realm 与 Welcome group 一致、claim nonce/digests 一致、authorization ref 在消费时仍 current，以及 `welcome_digest` 等于 canonical Welcome bytes。任何失败都拒绝 Welcome，reason=`keypackage_welcome_envelope_mismatch`。Delivery Service key、目标 KeyPackage 自身的 publish signature或裸服务断言都不能替代 requester signature。
+普通 device signature 必须按 PCR authorization chain 解析到 current generation 的 accepted `device_public_key`，且 envelope 中 `requester_device_authorize_event_id` 必须逐字等于该 current binding；Native Agent 必须解析其 current active `ak.agent.key.authorize`，并逐字绑定同一 Event 中的 verification method；pairwise branch 必须直接从 exact `did:key` method 解析 Ed25519 key，并验证其 controller 投影、requester actor、KeyPackage LeafNode BasicCredential、signature key 与签名逐字节一致。接收端还必须从 `claim_ref.keypackage_digest` 与权威 claim record/receipt 重算 KeyPackage digest（不得再接收平行 top-level digest），验证 intended Realm 与 Welcome group 一致、claim nonce/capabilities digest 一致、pairwise claim endpoint 与 top-level recipient endpoint 逐字相等、authority binding 在消费时仍成立，以及 `welcome_digest` 等于 canonical Welcome bytes。任何失败都拒绝 Welcome，reason=`keypackage_welcome_envelope_mismatch`。Delivery Service key、目标 KeyPackage 自身的 publish signature或裸服务断言都不能替代 requester signature。
 
 #### 2.6.2 Last-Resort KeyPackage（可选语义）
 
@@ -409,13 +410,13 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 **状态与多次使用（normative）**：
 
 - last-resort KeyPackage 在发布时 MUST 标记 `last_resort=true`，并 MUST NOT 进入单次 `claimed` / `consumed` 状态。每次领取由独立 `keypackage_claim_record` 表达，KeyPackage 本身保持 `published`，直到轮换、过期或显式吊销时转入 `revoked`；account deactivation 可按 [`device-lifecycle.md` §9.1](./device-lifecycle.md) 转入 `retired`。
-- `last_resort` 是 Arkret 应用层标记，MUST 包含在 KeyPackage 发布条目的 `device_signature` 签名输入中；接收方 MUST 验证该签名，不得从未签名元数据推断或改写此标记。v1 不为尚未进入 IANA MLS 注册表的应用组件分配私有 wire codepoint。
+- `last_resort` 是 Arkret 应用层标记，MUST 包含在 KeyPackage 发布条目的 `endpoint_signature` 签名输入中；接收方 MUST 验证该签名，不得从未签名元数据推断或改写此标记。v1 不为尚未进入 IANA MLS 注册表的应用组件分配私有 wire codepoint。
 - 池中存在普通（单次）KeyPackage 时，claim 响应 MUST 优先返回普通包；仅当普通包池为空时，claim 响应 MAY 返回 last-resort 包。
 - claim 响应返回 last-resort 包时 MUST 在对应 `keypackage_claim_record` 中置 `last_resort=true`，使 requester 与 holder 都能识别本次 join 走的是 last-resort 路径。
 - last-resort 包**不走** §2.6 的单次 `consume` 路径：服务端 MUST NOT 因一次 Welcome 消费而把它转入 `consumed` 或从池中移除。`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` 的调用 MUST 被服务端识别为幂等（返回成功但不改变 `published` 状态），不得返回 `keypackage_already_consumed`。
-- §2.6 / §2.6.1 的其余校验（`keypackage_digest` / `capabilities_digest` / current authorization ref 匹配、`claim_envelope` 签名、Realm 反向 resolve）对 last-resort 包**仍然全部适用**；放宽的只有"单次性"。
+- §2.6 / §2.6.1 的其余校验（从 claim record 完整 bytes/capabilities 重算 digest 并与 Welcome claim_ref / published digest 匹配、current authorization ref、`claim_envelope` 签名、Realm 反向 resolve）对 last-resort 包**仍然全部适用**；放宽的只有"单次性"。
 
-**消费审计（normative）**：每次 last-resort 包被 claim / 用于 Welcome，MUST 进入 §2.6 既有审计链。实现 MUST 为每次消费追加一条独立 `keypackage_claim_record` 审计记录，至少携带 `keypackage_ref`、`keypackage_digest`、`claim_id`、`last_resort=true`、消费的 `intended_realm_id`（见下文 Realm affinity）与时间戳。该记录不是第二条 `ak.mls.keypackage` 状态 Event，也不得触发 KeyPackage FSM transition；KeyPackage 本身保持 `published`。审计链 MUST 保留每次消费的独立记录（append-only，不得覆盖前次），使审计员能枚举"该 last-resort 包被哪些 Realm / requester 在哪些时点使用"。
+**消费审计（normative）**：每次 last-resort 包被 claim / 用于 Welcome，MUST 进入 §2.6 既有审计链。实现 MUST 为每次消费追加一条独立 `keypackage_claim_record` 审计记录，至少携带 `keypackage_ref`、完整 `keypackage` bytes 与 capabilities（供重算 digest）、`claim_id`、`last_resort=true`、消费的 `intended_realm_id`（见下文 Realm affinity）与时间戳。该记录不是第二条 `ak.mls.keypackage` 状态 Event，也不得触发 KeyPackage FSM transition；KeyPackage 本身保持 `published`。审计链 MUST 保留每次消费的独立记录（append-only，不得覆盖前次），使审计员能枚举"该 last-resort 包被哪些 Realm / requester 在哪些时点使用"。
 
 **强制轮换时点（normative）**：
 
@@ -453,6 +454,16 @@ domain 中必须是该 canonical did_core_id 的同一组 UTF-8 bytes。proof `v
 推断真实 principal/device 聚合。持有 encrypted `identity_link` 的成员可在本地聚合并批量移除已知 actors；协议不声称
 服务端能证明已发现某真实 principal 的全部 endpoint。该 profile 隐藏真实 principal、global DeviceId 和跨 Realm
 关联，但不隐藏同一 Realm/Circle 中 actor、request range 或 timing 的可关联性。
+
+pairwise endpoint 发布 KeyPackage 时只携 `principal_id`（即上述 Realm-local actor）、exact
+`pairwise_verification_method` 与 `intended_realm_id`，不得携 account/device/Agent carrier。upload、durable
+`ak.mls.keypackage`、claim record、Welcome recipient/claim envelope、durable receipt 与 consume 必须保持同一 closed
+第三分支。接受端必须解析 KeyPackage LeafNode，要求 BasicCredential identity 等于 `principal_id` UTF-8、LeafNode
+signature key 等于 `did:key` raw key，并用同一 key 验证 batch 与每条 entry 的 `endpoint_signature`；只验证外层签名而
+不验证 KeyPackage 内部 leaf 是不合规的。Welcome 的 durable private index 以
+`(recipient_pairwise_actor_id, recipient_pairwise_verification_method, intended_realm_id)` 路由；它不得制造
+`recipient_device_id` sentinel，也不得向 ordinary to-device queue 投影。重启 hydration 必须从现存 durable 行恢复该
+endpoint index，接收端通过其 pairwise-authenticated Realm event/backfill surface取得完整 accepted Welcome payload。
 
 Ordinary human 的 credential identity 必须逐字等于 canonical DeviceId UTF-8；Native Agent 必须逐字等于 canonical
 Agent ActorId UTF-8。三种 profile 的 receiver 都只从 Event 钉住的 exact historical active leaf 取 sender domain；
@@ -698,7 +709,7 @@ HTTP caller MUST 使用 §3 的 service-to-service authentication，并且是该
 
 ### 5.2 意图与生效的分离
 组员的增删改是两阶段流程：
-1. **意图上链 (Proposal)**：成员发出 `ak.mls.proposal`（例如移除某成员的意图）。这只是一条明文路由加上密码学签名的操作意图。此阶段 group epoch 尚未推进，先前密钥仍有效，被提议移除的成员仍在 group 内。
+1. **意图上链 (Proposal)**：成员发出 `ak.mls.proposal`（例如移除某成员的意图）。payload MUST 同时携带未填充 base64url 编码的完整 RFC 9420 Proposal message `proposal_bytes_b64`，以及其解码后字节的 SHA-256 `proposal_digest`；receiver MUST 在写入 durable Event store 之前逐字验证 digest、MLS group id、base epoch 与 proposal type，并在处理 by-reference Commit 前从该 final Proposal Event 恢复 bytes 写入 MLS proposal store。v1 不存在 `proposal_message_ref` 或 digest-only 分支。此阶段 group epoch 尚未推进，先前密钥仍有效，被提议移除的成员仍在 group 内。
 2. **正式生效 (Commit)**：MUST 有成员针对上述 Proposal 构造并广播 `ak.mls.commit`。一旦 Commit 被 accepted Seal 覆盖，epoch 推进，ratchet tree 据此更新，新 group secret 仅分发给剩余成员（不含被移除成员）；自该 epoch 起，被移除成员无法解密后续 application message。
 
 ### 5.3 Committer 失联与 Commit 接管 (Takeover)
@@ -739,6 +750,7 @@ MLS authoring authority 立即停止，同一 binding 投影为 `suspended`，�
 
 MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
+- `proposal_bytes_b64` / `proposal_digest` 属于每条被引用 `ak.mls.proposal`，分别是完整 RFC 9420 Proposal message 的未填充 base64url 和其解码后字节的 SHA-256。Committer、重启后的 receiver 与离线追赶 receiver 都必须从 durable Proposal Event 恢复 exact bytes；不得依赖同批 HTTP body、进程内 OpenMLS proposal store、发送端 outbox 或私有 blob route。
 - `mls_group_id`：目标 MLS group。
 - `base_epoch`：Commit 构造时读取的当前 epoch。
 - `base_epoch_ref`：本地认为当前 effective 的 `ak.mls.commit` Control Move 或 `ak.mls.genesis` Control Move / genesis group state ref；epoch 由 effective commit 机械派生，协议不定义独立的 `ak.mls.epoch` seal event。

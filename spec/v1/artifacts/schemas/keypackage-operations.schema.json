@@ -40,28 +40,22 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "device_id": {
-      "type": "string",
-      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
     "strand_id": {
-      "type": "string",
-      "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/strand_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "base64url": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$",
-      "minLength": 1
+      "$ref": "./agent-operations.schema.json#/$defs/base64url"
     },
     "object_ref": {
       "type": "string",
@@ -69,12 +63,7 @@
       "description": "Opaque content-addressed or service-scoped reference. Hash-shaped refs MUST use keypackage_digest for digest bytes."
     },
     "string_list": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/non_empty_string"
-      },
-      "minItems": 1,
-      "uniqueItems": true
+      "$ref": "./applet-package.schema.json#/$defs/non_empty_string_array"
     },
     "signature": {
       "type": "object",
@@ -135,7 +124,6 @@
       "required": [
         "keypackage_id",
         "keypackage_ref",
-        "keypackage_digest",
         "keypackage",
         "cipher_suites",
         "capabilities",
@@ -155,9 +143,6 @@
         },
         "keypackage_ref": {
           "$ref": "#/$defs/object_ref"
-        },
-        "keypackage_digest": {
-          "$ref": "#/$defs/digest"
         },
         "keypackage": {
           "$ref": "#/$defs/base64url",
@@ -184,13 +169,13 @@
         "created_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "device_signature": {
+        "endpoint_signature": {
           "$ref": "#/$defs/signature",
-          "description": "Optional defense-in-depth entry signature over the upload entry transcript registered by device-lifecycle.md section 9.0. It never replaces the required request-level batch signature."
+          "description": "Optional defense-in-depth endpoint signature over the upload entry transcript. It is produced by the selected human device, Native Agent runtime, or minimal-metadata pairwise did:key endpoint and never replaces the required request-level batch signature."
         },
         "last_resort": {
           "type": "boolean",
-          "description": "When true, this entry is a reusable last-resort KeyPackage (RFC 9420 Section 10). It remains published across claims and never enters the single-use claimed or consumed states; rotation, expiry, or explicit revocation transitions it to revoked with a registered revocation_reason. This application-layer flag is covered by the upload entry's device_signature. Optional capability gated by ak.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
+          "description": "When true, this entry is a reusable last-resort KeyPackage (RFC 9420 Section 10). It remains published across claims and never enters the single-use claimed or consumed states; rotation, expiry, or explicit revocation transitions it to revoked with a registered revocation_reason. This application-layer flag is covered by the upload entry's endpoint_signature. Optional capability gated by ak.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
         }
       },
       "additionalProperties": false
@@ -200,13 +185,10 @@
       "required": [
         "claim_id",
         "keypackage_ref",
-        "keypackage_digest",
         "principal_id",
         "keypackage",
         "capabilities",
-        "capabilities_digest",
-        "expires_at",
-        "device_signature"
+        "expires_at"
       ],
       "oneOf": [
         {
@@ -230,6 +212,11 @@
                 "required": [
                   "agent_verification_method"
                 ]
+              },
+              {
+                "required": [
+                  "pairwise_verification_method"
+                ]
               }
             ]
           }
@@ -251,7 +238,26 @@
                 "required": [
                   "device_id"
                 ]
+              },
+              {
+                "required": [
+                  "pairwise_verification_method"
+                ]
               }
+            ]
+          }
+        },
+        {
+          "required": [
+            "pairwise_verification_method"
+          ],
+          "not": {
+            "anyOf": [
+              { "required": ["device_id"] },
+              { "required": ["device_authorize_event_id"] },
+              { "required": ["agent_id"] },
+              { "required": ["agent_verification_method"] },
+              { "required": ["agent_key_authorize_event_id"] }
             ]
           }
         }
@@ -270,9 +276,6 @@
         "keypackage_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "keypackage_digest": {
-          "$ref": "#/$defs/digest"
-        },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
@@ -287,14 +290,15 @@
           "$ref": "./common-ids.schema.json#/$defs/did_url",
           "description": "Native-Agent runtime method that signed the exact KeyPackage; MUST match agent_key_authorize_event_id and the KeyPackage signature byte for byte."
         },
+        "pairwise_verification_method": {
+          "type": "string",
+          "pattern": "^did:key:([^#]+)#\\1$"
+        },
         "keypackage": {
           "$ref": "#/$defs/base64url"
         },
         "capabilities": {
           "$ref": "#/$defs/string_list"
-        },
-        "capabilities_digest": {
-          "$ref": "#/$defs/digest"
         },
         "device_authorize_event_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -305,9 +309,6 @@
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
-        },
-        "device_signature": {
-          "$ref": "#/$defs/signature"
         },
         "revocation_status": {
           "type": "string",
@@ -325,15 +326,43 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed KeyPackage claim record. Human-device and Native-Agent branches bind their accepted authorization Event ids; the destination Principal Server claim receipt authenticates the record. No portable PCR, device, or Agent signer-evidence sidecar is accepted."
+      "description": "Closed KeyPackage claim record. Human-device, Native-Agent, and Realm-local minimal-metadata pairwise branches are an exact XOR. In the pairwise branch principal_id is the Realm-local actor projected from the exact did:key method; no account, Device, PCR, Agent evidence, or mirrored actor field is carried."
     },
     "keypackages_upload_request_body": {
       "type": "object",
       "required": [
         "principal_id",
-        "device_id",
         "keypackages",
-        "device_signature"
+        "endpoint_signature"
+      ],
+      "oneOf": [
+        {
+          "required": ["device_id"],
+          "not": {
+            "anyOf": [
+              {"required": ["pairwise_verification_method"]},
+              {"required": ["intended_realm_id"]},
+              {"required": ["agent_verification_method"]},
+              {"required": ["agent_key_authorize_event_id"]}
+            ]
+          }
+        },
+        {
+          "required": ["pairwise_verification_method", "intended_realm_id"],
+          "not": {"anyOf": [
+            {"required": ["device_id"]},
+            {"required": ["agent_verification_method"]},
+            {"required": ["agent_key_authorize_event_id"]}
+          ]}
+        },
+        {
+          "required": ["agent_verification_method", "agent_key_authorize_event_id"],
+          "not": {"anyOf": [
+            {"required": ["device_id"]},
+            {"required": ["pairwise_verification_method"]},
+            {"required": ["intended_realm_id"]}
+          ]}
+        }
       ],
       "properties": {
         "principal_id": {
@@ -342,6 +371,20 @@
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
+        "pairwise_verification_method": {
+          "type": "string",
+          "pattern": "^did:key:([^#]+)#\\1$",
+          "description": "Minimal-metadata branch only. principal_id MUST equal ak:did_core:key:<same multibase>; no durable Device or account identity is created."
+        },
+        "intended_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "agent_verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "agent_key_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
         "keypackages": {
           "type": "array",
           "items": {
@@ -349,9 +392,9 @@
           },
           "minItems": 1
         },
-        "device_signature": {
+        "endpoint_signature": {
           "$ref": "#/$defs/signature",
-          "description": "Required authoritative batch signature over the typed upload request with the top-level signature and all entry signatures omitted, using the ak.self.keys.keypackages.upload.create domain. Ordinary devices and Native Agent runtimes share the same transcript."
+          "description": "Required authoritative batch signature over the typed upload request with the top-level signature and all entry signatures omitted, using the ak.self.keys.keypackages.upload.create domain. The selected human device, Native Agent runtime, or minimal-metadata pairwise did:key endpoint signs the same transcript."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -389,7 +432,8 @@
           }
         },
         "keypackage_refs": {
-          "$ref": "#/$defs/keypackage_ref_array"
+          "$ref": "#/$defs/keypackage_ref_array",
+          "description": "Accepted KeyPackage refs in request order; batch upload may accept more than one entry."
         },
         "available_count": {
           "type": "integer",
@@ -399,7 +443,7 @@
       "additionalProperties": false
     },
     "requester_authorization": {
-      "description": "Closed human-device or Native-Agent detached authorization by the requesting participant. The signature transcript, verification-method ownership, freshness, and exact request binding are normative in device-lifecycle.md section 9.2.",
+      "description": "Closed human-device, Native-Agent, or Realm-local minimal-metadata pairwise detached authorization by the requesting participant. The pairwise branch signs with the exact did:key method projected by requester and carries no account-local authorization Event.",
       "oneOf": [
         {
           "type": "object",
@@ -464,6 +508,30 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "verification_method",
+            "signed_at",
+            "signature"
+          ],
+          "properties": {
+            "kind": {
+              "const": "minimal_metadata_pairwise"
+            },
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "signed_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "signature": {
+              "$ref": "#/$defs/signature"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -477,7 +545,6 @@
         "mls_group_id",
         "claim_purpose",
         "required_capabilities",
-        "claim_nonce",
         "expires_at"
       ],
       "properties": {
@@ -515,10 +582,6 @@
         "required_capabilities": {
           "$ref": "#/$defs/string_list"
         },
-        "claim_nonce": {
-          "$ref": "#/$defs/base64url",
-          "minLength": 22
-        },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
@@ -546,8 +609,10 @@
           "$ref": "./common-ids.schema.json#/$defs/event_id",
           "description": "Native-Agent exact-target branch current accepted ak.agent.key.authorize Event."
         },
-        "minimal_metadata_allowed": {
-          "type": "boolean"
+        "target_pairwise_verification_method": {
+          "type": "string",
+          "pattern": "^did:key:([^#]+)#\\1$",
+          "description": "Minimal-metadata exact-target branch. target_principal_id MUST be the Realm-local ak:did_core:key actor projected from this method."
         },
         "timeout_ms": {
           "type": "integer",
@@ -589,25 +654,11 @@
           }
         },
         {
-          "if": {
-            "required": [
-              "target_keypackage_ref"
-            ]
-          },
-          "then": {
-            "required": [
-              "target_keypackage_ref"
-            ],
-            "oneOf": [
+          "oneOf": [
               {
                 "required": [
                   "target_device_ids"
                 ],
-                "properties": {
-                  "target_device_ids": {
-                    "maxItems": 1
-                  }
-                },
                 "not": {
                   "anyOf": [
                     {
@@ -624,6 +675,11 @@
                       "required": [
                         "target_agent_key_authorize_event_id"
                       ]
+                    },
+                    {
+                      "required": [
+                        "target_pairwise_verification_method"
+                      ]
                     }
                   ]
                 }
@@ -635,15 +691,35 @@
                   "target_agent_key_authorize_event_id"
                 ],
                 "not": {
-                  "required": [
-                    "target_device_ids"
+                  "anyOf": [
+                    { "required": ["target_device_ids"] },
+                    { "required": ["target_pairwise_verification_method"] }
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "target_pairwise_verification_method"
+                ],
+                "not": {
+                  "anyOf": [
+                    { "required": ["target_device_ids"] },
+                    { "required": ["target_agent_id"] },
+                    { "required": ["target_agent_verification_method"] },
+                    { "required": ["target_agent_key_authorize_event_id"] }
                   ]
                 }
               }
-            ],
+            ]
+        },
+        {
+          "if": {
+            "required": ["target_keypackage_ref"]
+          },
+          "then": {
             "properties": {
-              "claim_purpose": {
-                "const": "direct_conversation"
+              "target_device_ids": {
+                "maxItems": 1
               },
               "last_resort_allowed": {
                 "const": false
@@ -681,7 +757,6 @@
         "mls_group_id",
         "claim_purpose",
         "required_capabilities",
-        "claim_nonce",
         "expires_at",
         "service_binding",
         "requester_authorization"
@@ -721,10 +796,6 @@
         "required_capabilities": {
           "$ref": "#/$defs/string_list"
         },
-        "claim_nonce": {
-          "$ref": "#/$defs/base64url",
-          "minLength": 22
-        },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
@@ -749,8 +820,9 @@
         "target_agent_key_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
-        "minimal_metadata_allowed": {
-          "type": "boolean"
+        "target_pairwise_verification_method": {
+          "type": "string",
+          "pattern": "^did:key:([^#]+)#\\1$"
         },
         "timeout_ms": {
           "type": "integer",
@@ -798,25 +870,11 @@
           }
         },
         {
-          "if": {
-            "required": [
-              "target_keypackage_ref"
-            ]
-          },
-          "then": {
-            "required": [
-              "target_keypackage_ref"
-            ],
-            "oneOf": [
+          "oneOf": [
               {
                 "required": [
                   "target_device_ids"
                 ],
-                "properties": {
-                  "target_device_ids": {
-                    "maxItems": 1
-                  }
-                },
                 "not": {
                   "anyOf": [
                     {
@@ -833,6 +891,11 @@
                       "required": [
                         "target_agent_key_authorize_event_id"
                       ]
+                    },
+                    {
+                      "required": [
+                        "target_pairwise_verification_method"
+                      ]
                     }
                   ]
                 }
@@ -844,15 +907,35 @@
                   "target_agent_key_authorize_event_id"
                 ],
                 "not": {
-                  "required": [
-                    "target_device_ids"
+                  "anyOf": [
+                    { "required": ["target_device_ids"] },
+                    { "required": ["target_pairwise_verification_method"] }
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "target_pairwise_verification_method"
+                ],
+                "not": {
+                  "anyOf": [
+                    { "required": ["target_device_ids"] },
+                    { "required": ["target_agent_id"] },
+                    { "required": ["target_agent_verification_method"] },
+                    { "required": ["target_agent_key_authorize_event_id"] }
                   ]
                 }
               }
-            ],
+            ]
+        },
+        {
+          "if": {
+            "required": ["target_keypackage_ref"]
+          },
+          "then": {
             "properties": {
-              "claim_purpose": {
-                "const": "direct_conversation"
+              "target_device_ids": {
+                "maxItems": 1
               },
               "last_resort_allowed": {
                 "const": false
@@ -1248,6 +1331,11 @@
                 "required": [
                   "agent_key_authorize_event_id"
                 ]
+              },
+              {
+                "required": [
+                  "recipient_pairwise_verification_method"
+                ]
               }
             ]
           }
@@ -1269,7 +1357,26 @@
                 "required": [
                   "device_verification_method"
                 ]
+              },
+              {
+                "required": [
+                  "recipient_pairwise_verification_method"
+                ]
               }
+            ]
+          }
+        },
+        {
+          "required": [
+            "recipient_pairwise_verification_method"
+          ],
+          "not": {
+            "anyOf": [
+              { "required": ["recipient_device_id"] },
+              { "required": ["device_verification_method"] },
+              { "required": ["recipient_agent_id"] },
+              { "required": ["recipient_agent_verification_method"] },
+              { "required": ["agent_key_authorize_event_id"] }
             ]
           }
         }
@@ -1292,6 +1399,9 @@
         "recipient_device_id": {
           "$ref": "#/$defs/device_id"
         },
+        "device_verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
         "recipient_agent_id": {
           "$ref": "#/$defs/did_core_id"
         },
@@ -1300,6 +1410,10 @@
         },
         "agent_key_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "recipient_pairwise_verification_method": {
+          "type": "string",
+          "pattern": "^did:key:([^#]+)#\\1$"
         },
         "recipient_service_id": {
           "$ref": "#/$defs/did_core_id"
@@ -1330,29 +1444,20 @@
         "durable_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "device_verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
         "signature": {
           "$ref": "#/$defs/signature"
         }
       },
       "additionalProperties": false,
-      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome and matching it to the claimed KeyPackage, Realm, group and epoch. Closed XOR: a human device binds recipient_device_id/device_verification_method; a Native Agent binds recipient_agent_id, recipient_agent_verification_method and agent_key_authorize_event_id. The claim record, Welcome recipient, KeyPackage signer and this receipt branch MUST match byte for byte; no signer-evidence sidecar is carried."
+      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome. Closed XOR: human device, Native Agent, or Realm-local minimal-metadata pairwise did:key. In the pairwise branch recipient_principal_id is the pairwise actor and no account, Device, or Agent evidence appears."
     },
     "keypackage_consume_receipt": {
       "type": "object",
       "required": [
         "domain",
-        "claim_request_id",
-        "claim_ids",
-        "keypackage_refs",
+        "request_digest",
+        "claim_id",
         "recipient_durable_receipt",
-        "welcome_ref",
-        "realm_id",
-        "mls_group_id",
-        "mls_epoch",
-        "source_service_id",
         "consumed_at",
         "signature"
       ],
@@ -1360,54 +1465,17 @@
         "domain": {
           "const": "ak.keypackage.consume_receipt.v1"
         },
-        "claim_request_id": {
-          "$ref": "#/$defs/base64url",
-          "minLength": 22,
-          "maxLength": 128
+        "request_digest": {
+          "$ref": "#/$defs/digest"
         },
-        "claim_ids": {
-          "type": "array",
-          "items": {
-            "allOf": [
-              {
-                "$ref": "#/$defs/non_empty_string"
-              },
-              {
-                "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-              }
-            ]
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "keypackage_refs": {
-          "$ref": "#/$defs/keypackage_ref_array"
+        "claim_id": {
+          "allOf": [
+            { "$ref": "#/$defs/non_empty_string" },
+            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+          ]
         },
         "recipient_durable_receipt": {
           "$ref": "#/$defs/recipient_mls_durable_receipt"
-        },
-        "welcome_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "mls_group_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "mls_epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "source_service_id": {
-          "$ref": "#/$defs/did_core_id"
         },
         "consumed_at": {
           "$ref": "#/$defs/timestamp"
@@ -1417,120 +1485,29 @@
         }
       },
       "additionalProperties": false,
-      "description": "Owner Principal Server signed single-use CAS receipt. It embeds the exact device-or-Native-Agent-signed recipient_mls_durable_receipt so the authorized original peer claim source can recover and independently verify the complete durable proof through the consumed claim query. It is issued only after atomically transitioning every listed ordinary KeyPackage claim to consumed. Same exact consume replays this receipt; any coordinate, signer-branch or evidence mismatch conflicts."
+      "description": "Recipient Principal Server signed durable consume acknowledgement. recipient_durable_receipt is the sole carrier of claim request, KeyPackage, Welcome, Realm, MLS group, epoch, and recipient service coordinates. The service-generated request_digest, claim_id, and consumed_at plus the complete nested durable receipt are covered by signature. For an ordinary KeyPackage it is issued only after the exact single-use claim transitions to consumed. For a reusable last-resort KeyPackage it terminally acknowledges only that exact claim audit while the KeyPackage row remains published. Same exact consume replays this receipt; any claim, coordinate, signer-branch or evidence mismatch conflicts."
     },
     "keypackages_consume_request_body": {
       "type": "object",
       "required": [
-        "owner_account_id",
-        "keypackage_refs",
-        "claim_ids",
-        "welcome_ref",
+        "claim_id",
         "recipient_durable_receipt",
         "signature"
       ],
-      "oneOf": [
-        {
-          "required": [
-            "consumer_device_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "consumer_agent_id"
-                ]
-              },
-              {
-                "required": [
-                  "consumer_agent_verification_method"
-                ]
-              },
-              {
-                "required": [
-                  "consumer_agent_key_authorize_event_id"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "consumer_agent_id",
-            "consumer_agent_verification_method",
-            "consumer_agent_key_authorize_event_id"
-          ],
-          "not": {
-            "required": [
-              "consumer_device_id"
-            ]
-          }
-        }
-      ],
       "properties": {
-        "owner_account_id": {
-          "$ref": "#/$defs/did_core_id"
+        "claim_id": {
+          "allOf": [
+            { "$ref": "#/$defs/non_empty_string" },
+            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+          ]
         },
-        "keypackage_refs": {
-          "$ref": "#/$defs/keypackage_ref_array"
-        },
-        "consumer_device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "consumer_agent_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "consumer_agent_verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "consumer_agent_key_authorize_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        "recipient_durable_receipt": {
+          "$ref": "#/$defs/recipient_mls_durable_receipt",
+          "description": "Sole consume authority and coordinate carrier. Its closed device, Native-Agent, or minimal-metadata pairwise signer branch authorizes the command and binds the owner, KeyPackage, Welcome, Realm, MLS group, epoch, and recipient service."
         },
         "signature": {
           "$ref": "#/$defs/signature",
           "description": "Signature over the typed consume request with this field omitted, using the ak.self.keys.keypackages.command.consume domain."
-        },
-        "claim_ids": {
-          "type": "array",
-          "items": {
-            "allOf": [
-              {
-                "$ref": "#/$defs/non_empty_string"
-              },
-              {
-                "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-              }
-            ]
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "welcome_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "recipient_durable_receipt": {
-          "$ref": "#/$defs/recipient_mls_durable_receipt",
-          "description": "Closed device-or-Native-Agent signer proof that the exact Welcome is durable. Its branch MUST match the consume requester and exact claim record. Consume MUST NOT run before this proof exists."
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "strand_id": {
-          "$ref": "#/$defs/strand_id"
-        },
-        "mls_group_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "epoch": {
-          "type": "integer",
-          "minimum": 0
         }
       },
       "additionalProperties": false
@@ -1538,21 +1515,11 @@
     "keypackages_consume_outcome": {
       "type": "object",
       "required": [
-        "consumed",
         "consume_receipt"
       ],
       "properties": {
-        "consumed": {
-          "$ref": "#/$defs/keypackage_ref_array"
-        },
         "consume_receipt": {
           "$ref": "#/$defs/keypackage_consume_receipt"
-        },
-        "failures": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/failure"
-          }
         }
       },
       "additionalProperties": false

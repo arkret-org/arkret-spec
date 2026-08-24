@@ -153,6 +153,7 @@ from .prose import (
 from .safety import (
     check_action_reference_closure,
     check_alg_registry,
+    check_applet_install_epoch_evidence_carrier,
     check_device_messages_cursor_binding,
     check_error_code_closure,
     check_error_code_registry_uniqueness,
@@ -506,6 +507,10 @@ def main(argv: list[str] | None = None) -> int:
             ("required_field_tables", lambda: check_model_required_field_table_coverage(lint)),
             ("exporter_labels", lambda: check_exporter_label_registry(lint)),
             ("algs", lambda: check_alg_registry(lint)),
+            (
+                "applet_install_epoch_evidence",
+                lambda: check_applet_install_epoch_evidence_carrier(lint),
+            ),
             ("mls_bounds", lambda: check_mls_governance_proof_bounds(lint)),
             ("mls_pq", lambda: check_mls_pq_suite_registration(lint)),
             ("service_kinds", lambda: check_service_kind_registry(lint)),

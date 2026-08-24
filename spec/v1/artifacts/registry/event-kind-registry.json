@@ -14,6 +14,7 @@
     "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
     "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
     "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=managed_agent_control Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
+    "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds actor_id, exact PrincipalAuthorityKey, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Native Agent or human PCR admission.",
     "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
     "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(full_id)=actor_id; current DID state after registration is irrelevant.",
     "pcr_recovery": "Admitted only for ak.device.reanchor under the account-local lineage's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching account-local lineage and policy cannot enter this class.",
@@ -142,6 +143,20 @@
             ]
           },
           "admission": "delegated_pcr_genesis"
+        },
+        {
+          "when": {
+            "payload_path": "object.purpose",
+            "const": "applet_managed_control",
+            "ref_role": "applet_managed_actor_provision",
+            "ref_critical": true,
+            "ref_exact_count": 1,
+            "top_level_fields_present": [
+              "executed_by",
+              "authorization_ref"
+            ]
+          },
+          "admission": "applet_managed_pcr_genesis"
         },
         {
           "when": {
@@ -280,6 +295,26 @@
             "kind": "field_equals",
             "field": "payload.object.purpose",
             "const": "managed_agent_control"
+          },
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "since_join"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.realm.history_access.v1",
+          "cell_subject": null,
+          "lattice": "fsm",
+          "bottom": "reject",
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.object.purpose",
+            "const": "applet_managed_control"
           },
           "effect_projection": {
             "kind": "transition",
@@ -1075,7 +1110,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / receipt_compliance_opt_in); see zh/discovery/read-receipts.md §2.5 for the closed compliance opt-in object",
+      "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / child_privacy_tightening_against_required); see zh/discovery/read-receipts.md §2.5",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
@@ -2103,7 +2138,7 @@
           "cell_family": "ak.component.schema.definition.v1",
           "cell_subject": {
             "kind": "string",
-            "field": "payload.schema_id"
+            "field": "payload.value.$id"
           },
           "lattice": "cas_register",
           "bottom": "reject",
@@ -3004,8 +3039,32 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
+      "admission": "conditional",
+      "admission_variants": [
+        {
+          "when": {
+            "payload_path": "mimi_provenance.provenance",
+            "const": "mimi_facade"
+          },
+          "admission": "service_attested"
+        },
+        {
+          "when": {
+            "otherwise": true
+          },
+          "admission": "capability_gated"
+        }
+      ],
       "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the creating Event's full 33-byte / 44-character content-bound token.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_create_payload",
+      "reducer_effects": [
+        "for ak.content.poll, materialize the accepted Message as the sole poll definition in its exact Realm and Circle scope",
+        "for ak.content.poll.response, reject missing/cross-scope poll refs, unknown answers and over-selection without filtering or truncation",
+        "retain one response per actor by causal dominance, then canonical Event-digest ordering for concurrent responses"
+      ],
+      "conformance_vectors": [
+        "ak.vector.message.poll_reducer.v1"
+      ],
       "id_source": "event_derived",
       "id_kind": "message",
       "plane": "data",
@@ -3071,6 +3130,22 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
+      "admission": "conditional",
+      "admission_variants": [
+        {
+          "when": {
+            "payload_path": "mimi_provenance.provenance",
+            "const": "mimi_facade"
+          },
+          "admission": "service_attested"
+        },
+        {
+          "when": {
+            "otherwise": true
+          },
+          "admission": "capability_gated"
+        }
+      ],
       "payload": "Message edit patch",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_revise_payload",
       "id_source": "not_an_object_id",
@@ -3101,6 +3176,22 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
+      "admission": "conditional",
+      "admission_variants": [
+        {
+          "when": {
+            "payload_path": "mimi_provenance.provenance",
+            "const": "mimi_facade"
+          },
+          "admission": "service_attested"
+        },
+        {
+          "when": {
+            "otherwise": true
+          },
+          "admission": "capability_gated"
+        }
+      ],
       "payload": "Message-scoped redaction; does not grant generic redaction authority",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_redact_payload",
       "id_source": "not_an_object_id",
@@ -5284,6 +5375,10 @@
       "cell_writes": [
         {
           "cell_family": "ak.component.mls.welcome.v1",
+          "condition": {
+            "kind": "field_present",
+            "field": "payload.recipient_device_id"
+          },
           "cell_subject": {
             "kind": "composite",
             "components": [
@@ -5305,6 +5400,74 @@
               "payload.mls_group_id",
               "payload.recipient_principal_id",
               "payload.recipient_device_id"
+            ]
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.mls.welcome.v1",
+          "condition": {
+            "kind": "field_present",
+            "field": "payload.recipient_agent_id"
+          },
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                }
+              },
+              "payload.mls_group_id",
+              "payload.recipient_agent_id",
+              "payload.recipient_agent_verification_method"
+            ]
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.mls.welcome.v1",
+          "condition": {
+            "kind": "field_present",
+            "field": "payload.recipient_pairwise_actor_id"
+          },
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              "payload.claim_envelope.intended_realm_id",
+              "payload.mls_group_id",
+              "payload.recipient_pairwise_actor_id",
+              "payload.recipient_pairwise_verification_method"
             ]
           },
           "lattice": "ordered_log",
@@ -6338,6 +6501,71 @@
           }
         }
       ]
+    },
+    {
+      "event_kind": "ak.applet.managed_actor.provision",
+      "category": "applet",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "admission": "conditional",
+      "admission_variants": [
+        {
+          "when": {
+            "payload_path": "actor_role",
+            "const": "bot"
+          },
+          "admission": "service_attested"
+        },
+        {
+          "when": {
+            "payload_path": "actor_role",
+            "const": "ghost"
+          },
+          "admission": "capability_gated"
+        },
+        {
+          "when": {
+            "otherwise": true
+          },
+          "admission": "deny"
+        }
+      ],
+      "payload": "Immutable Applet-managed Bot/Ghost principal creation authority",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_managed_actor_provision_payload",
+      "id_source": "reference",
+      "admission_checks": [
+        "envelope actor_id and proof signer equal payload.service_id; applet_id equals payload.applet_id",
+        "registration_ref resolves to the exact active registration whose service_id and applet_id match",
+        "applet_authority_ref resolves to an active scope-matching grant; actor_role=ghost additionally requires action ak.applet.ghost.provision",
+        "the separately submitted applet_managed_control genesis derives its Realm id from its own Event id and carries exactly one critical provision ref, avoiding a provision/genesis hash cycle",
+        "the exact PrincipalAuthorityKey is unused and initial_resolution projects to actor_id"
+      ],
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.applet.managed_actor_provision.v1",
+          "cell_subject": {
+            "components": [
+              "payload.actor_id",
+              "payload.actor_principal_server_id"
+            ],
+            "kind": "composite"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.applet.registration",

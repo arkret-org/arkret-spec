@@ -97,14 +97,6 @@
       "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Grant issuance time — carries the 'creation time' semantics for a Capability Grant in place of the generic created_at (models/common-fields.md §3.2). Retention / audit / ordering queries MUST use issued_at / expires_at / revoked_at rather than falling back to created_at."
     },
-    "not_before": {
-      "$ref": "./time.schema.json#/$defs/timestamp",
-      "description": "Top-level grant validity start. Authorization evaluates this together with temporal constraints: effective_not_before = max(not_before, every temporal.not_before present)."
-    },
-    "expires_at": {
-      "$ref": "./time.schema.json#/$defs/timestamp",
-      "description": "Top-level grant validity end. Authorization evaluates this together with temporal constraints: effective_expires_at = min(expires_at, every temporal.expires_at present). A grant MUST NOT outlast the effective_expires_at of the refs that cover a given action."
-    },
     "updated_by": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Reducer-derived actor that produced the most recent grant lifecycle update. Ordinary grant body fields remain immutable; revocation still uses revoked_by/revoked_at."

@@ -153,12 +153,14 @@
       "required_evaluator_checks": [
         "active_applet_registration_exact",
         "ghost_actor_namespace_match",
-        "ghost_provision_pair_atomic"
+        "ghost_managed_actor_provision_unit_atomic"
       ],
-      "target_event_kinds": [],
+      "target_event_kinds": [
+        "ak.applet.managed_actor.provision"
+      ],
       "profile": "ak.profile.applet_bridge.v1",
-      "event_mapping_kind": "non_event_surface",
-      "notes": "Authorizes the installed Applet service to invoke the closed Ghost Actor provisioning aggregate for one exact effective Realm scope. The operation accepts the caller-signed ak.identity.accountability_grant + ak.profile.create pair atomically; it is not a generic authorization for either Event kind."
+      "event_mapping_kind": "aggregate_admin",
+      "notes": "Authorizes only actor_role=ghost ak.applet.managed_actor.provision inside the closed four-Event Ghost unit: provision, applet_managed_control PCR genesis, accountability grant and profile create. The conditional Event admission and operation validator require the exact active registration/grant/scope and atomic set."
     },
     {
       "action": "ak.approval.vote",

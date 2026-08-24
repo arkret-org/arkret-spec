@@ -18,12 +18,12 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 257,
+    "total_operations": 258,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 247
+      "typed_schema": 248
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -42,7 +42,7 @@
       },
       "interop_bridge": {
         "service_describe": 1,
-        "typed_schema": 19
+        "typed_schema": 20
       }
     }
   },
@@ -70,6 +70,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AppletTransactionRequestBody",
         "response": "#/components/schemas/AppletTransactionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.edge.applet.install.command.author",
+      "surface_class": "interop_bridge",
+      "http": "POST /_arkret/edge/applet/install/author",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_request_body",
+      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AppletInstallAuthorRequestBody",
+        "response": "#/components/schemas/AppletInstallAuthorOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1957,10 +1971,10 @@
       "http": "POST /_arkret/self/applets/install/preview",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
-      "response_schema_ref": "schemas/applet-install-plan.schema.json",
+      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/preview_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/AppletInstallPreviewRequestBody",
-        "response": "#/components/schemas/AppletInstallPlan"
+        "response": "#/components/schemas/AppletInstallPreviewOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2733,10 +2747,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/invites/dispatch",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/invite-delivery-request.schema.json",
+      "request_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body",
       "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/InviteDeliveryRequestBody",
+        "request": "#/components/schemas/SelfInviteDispatchRequestBody",
         "response": "#/components/schemas/InviteDeliveryOutcome"
       },
       "completeness_class": "typed_schema",

@@ -44,6 +44,13 @@ MUST 同时携带 `delivery_binding`；reducer 在同一 Control Move 内验证�
 
 注意：`payload.delivery_binding` / `member_delivery_binding.recipient_service_id` 描述成员加入后接收 events、sync、to-device、push、KeyPackage 的目标 Principal Server。`join_candidates[]` 则是 invitee Principal Server 从 signed invite / 当前 joined-member delivery binding 裁剪出的 federation forwarding 提示；客户端不得直投 candidate。Join builder 和 reducer MUST NOT 把 candidate 复制为 invitee 加入后的 `delivery_binding`，该 binding 必须由 invitee 自签。`service_resolution` 只解决该 service DID 如何到达当前 URL，不产生 admission authority。
 
+同一个 accepted binding 也是 availability holder eligibility 的唯一 predecessor carrier：对每个 effective
+`membership="join"` 且 `delivery_status="routable"` 的成员，replay 在完整验证 binding 后把
+`recipient_service_id` 加入 eligible holder set，并按 DID core id 去重。不得从 Membership payload 增加
+`principal_authority`，也不得从 actor id、`via_service_ids`、DID Document、当前 route cache 或 notary 身份
+推导第二套 holder。binding 过期或被 accepted rebind/leave 取代后只影响后继 Seal；已经 accepted Seal 继续
+按其冻结 predecessor view 验证。
+
 ## 3. `binding_source` 与责任方
 
 > **默认 allowlist 警示（normative）**：下表列出 6 类 `binding_source`，但**并非默认全部可用**。未配置 `ak.realm.delivery_binding_policy`（§4）时，`allowed_binding_sources` 默认仅含最弱来源 `did_document_default`（见 §4 字段表）。组织 / 合规 Realm MUST 显式收窄 `allowed_binding_sources` 并把 `did_document_default_allowed` 设为 `false`，否则成员可凭 DID Document 默认条目自行决定投递目标，绕过治理背书。

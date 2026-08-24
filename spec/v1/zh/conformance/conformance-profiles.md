@@ -491,7 +491,7 @@ MUST 支持：
 - 跨域事件审计
 - grant / invite / membership 撤销
 - 外部成员移除后 MLS epoch 轮换
-- sender-constrained（proof-of-possession）会话出示：所有受保护 `ak.self.*` operation MUST 用 `session_public_key` 的 RFC 9421 HTTP Message Signature 出示（见下文与 `conformance-profiles.json#profile_requirements` 的 `additional_requirements.sender_constrained_session_pop_must`），纯 `Authorization: Bearer`（无 `Signature`）对这些操作 MUST 被拒绝
+- sender-constrained（proof-of-possession）会话出示：完整规则见 §15.1 与 `conformance-profiles.json#profile_requirements` 的 `additional_requirements.sender_constrained_session_pop_must`
 
 MUST NOT：
 
@@ -591,7 +591,7 @@ Deployment profile 用于发布与验收，不替代实现 profile。完整 depl
 - auditable E2EE 或受控 plaintext-visible boundary
 - break-glass audit
 - server ACL 和 quarantine
-- sender-constrained（PoP）会话出示：所有受保护 `ak.self.*` operation MUST 用 `session_public_key` 的 RFC 9421 HTTP Message Signature 出示；生产 current-v1 受保护 endpoint 对裸 bearer 的拒绝规则见 §15.1
+- sender-constrained（PoP）会话出示：完整适用面、签名绑定与裸 bearer 拒绝规则见 §15.1
 
 `ak.profile.isolated_sovereign_network.v1` MUST cover：
 

@@ -49,11 +49,10 @@ plaintext value，并在写入 account-data 前加密。`message_payload` MUST �
 
 同一 `scheduled_send_id` 的计划更新完全沿用 encrypted account-data `cas_register`：
 写入方携带 `expected_revision`，revision 不匹配返回 `cas_conflict` 并由客户端解密、
-合并后重试；服务端不得解密或比较 `message_payload_digest`，也不得为该 key 另造
+合并后重试；服务端不得解密 payload，也不得为该 key 另造
 `duplicate_conflict`。
 
-`message_payload_digest` MUST 是 canonical `message_payload` 的 `sha256:<hex>` digest。到期 dispatch
-MUST 先完成 `ak.message.create` 除 `event_id`、`proofs` 外的全部 producer-authored envelope 字段，
+到期 dispatch MUST 先完成 `ak.message.create` 除 `event_id`、`proofs` 外的全部 producer-authored envelope 字段，
 再按 Event digest 规则派生完整 `EventId`，并由同一 33-byte token 派生 `MessageId`。只有此时最终
 Event / Message 身份才存在。
 

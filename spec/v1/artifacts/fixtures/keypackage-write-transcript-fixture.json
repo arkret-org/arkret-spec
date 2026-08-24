@@ -28,7 +28,6 @@
           {
             "keypackage_id": "keypackage-fixture-001",
             "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-            "keypackage_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "keypackage": "AA",
             "cipher_suites": [
               "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
@@ -42,9 +41,9 @@
           }
         ]
       },
-      "canonical_jcs": "{\"device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"keypackages\":[{\"capabilities\":[\"mimi.content.v1\",\"ak.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-07-22T00:00:00.000Z\",\"expires_at\":\"2026-07-29T00:00:00.000Z\",\"keypackage\":\"AA\",\"keypackage_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"keypackage_id\":\"keypackage-fixture-001\",\"keypackage_ref\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}],\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\"}",
-      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLnVwbG9hZC5jcmVhdGUKeyJkZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5NjQxMzctMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDBkIiwia2V5cGFja2FnZXMiOlt7ImNhcGFiaWxpdGllcyI6WyJtaW1pLmNvbnRlbnQudjEiLCJhay5jb250ZW50LnYxIl0sImNpcGhlcl9zdWl0ZXMiOlsiTUxTXzEyOF9ESEtFTVgyNTUxOV9BRVMxMjhHQ01fU0hBMjU2X0VkMjU1MTkiXSwiY3JlYXRlZF9hdCI6IjIwMjYtMDctMjJUMDA6MDA6MDAuMDAwWiIsImV4cGlyZXNfYXQiOiIyMDI2LTA3LTI5VDAwOjAwOjAwLjAwMFoiLCJrZXlwYWNrYWdlIjoiQUEiLCJrZXlwYWNrYWdlX2RpZ2VzdCI6InNoYTI1NjoxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwia2V5cGFja2FnZV9pZCI6ImtleXBhY2thZ2UtZml4dHVyZS0wMDEiLCJrZXlwYWNrYWdlX3JlZiI6InNoYTI1NjoxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIn1dLCJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZWFnZW50ZXhhbXBsZSJ9",
-      "signature": "4IfrrfC-TKsXJ9Kii1LA0qohzx5jbfyLmKY_tyQVF2RNQhYjwAED7nLLm6BaljO936U7_NWTN-Gru8MFszrcDw"
+      "canonical_jcs": "{\"device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"keypackages\":[{\"capabilities\":[\"mimi.content.v1\",\"ak.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-07-22T00:00:00.000Z\",\"expires_at\":\"2026-07-29T00:00:00.000Z\",\"keypackage\":\"AA\",\"keypackage_id\":\"keypackage-fixture-001\",\"keypackage_ref\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}],\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\"}",
+      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLnVwbG9hZC5jcmVhdGUKeyJkZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5NjQxMzctMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDBkIiwia2V5cGFja2FnZXMiOlt7ImNhcGFiaWxpdGllcyI6WyJtaW1pLmNvbnRlbnQudjEiLCJhay5jb250ZW50LnYxIl0sImNpcGhlcl9zdWl0ZXMiOlsiTUxTXzEyOF9ESEtFTVgyNTUxOV9BRVMxMjhHQ01fU0hBMjU2X0VkMjU1MTkiXSwiY3JlYXRlZF9hdCI6IjIwMjYtMDctMjJUMDA6MDA6MDAuMDAwWiIsImV4cGlyZXNfYXQiOiIyMDI2LTA3LTI5VDAwOjAwOjAwLjAwMFoiLCJrZXlwYWNrYWdlIjoiQUEiLCJrZXlwYWNrYWdlX2lkIjoia2V5cGFja2FnZS1maXh0dXJlLTAwMSIsImtleXBhY2thZ2VfcmVmIjoic2hhMjU2OjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEifV0sInByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlYWdlbnRleGFtcGxlIn0",
+      "signature": "Ld1lIpfpea-njDk9RmvbWnErgoFC0ikVZoxusXeCdwXxMB32Gqi88EoPUZam74lnkN29u3omUgW2NqRO0gkcDg"
     },
     {
       "name": "upload_entry_signature",
@@ -56,7 +55,6 @@
         "keypackage": {
           "keypackage_id": "keypackage-fixture-001",
           "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "keypackage_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "keypackage": "AA",
           "cipher_suites": [
             "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
@@ -69,24 +67,48 @@
           "created_at": "2026-07-22T00:00:00.000Z"
         }
       },
-      "canonical_jcs": "{\"device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"keypackage\":{\"capabilities\":[\"mimi.content.v1\",\"ak.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-07-22T00:00:00.000Z\",\"expires_at\":\"2026-07-29T00:00:00.000Z\",\"keypackage\":\"AA\",\"keypackage_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"keypackage_id\":\"keypackage-fixture-001\",\"keypackage_ref\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\"}",
-      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLnVwbG9hZC5jcmVhdGUKeyJkZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5NjQxMzctMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDBkIiwia2V5cGFja2FnZSI6eyJjYXBhYmlsaXRpZXMiOlsibWltaS5jb250ZW50LnYxIiwiYWsuY29udGVudC52MSJdLCJjaXBoZXJfc3VpdGVzIjpbIk1MU18xMjhfREhLRU1YMjU1MTlfQUVTMTI4R0NNX1NIQTI1Nl9FZDI1NTE5Il0sImNyZWF0ZWRfYXQiOiIyMDI2LTA3LTIyVDAwOjAwOjAwLjAwMFoiLCJleHBpcmVzX2F0IjoiMjAyNi0wNy0yOVQwMDowMDowMC4wMDBaIiwia2V5cGFja2FnZSI6IkFBIiwia2V5cGFja2FnZV9kaWdlc3QiOiJzaGEyNTY6MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsImtleXBhY2thZ2VfaWQiOiJrZXlwYWNrYWdlLWZpeHR1cmUtMDAxIiwia2V5cGFja2FnZV9yZWYiOiJzaGEyNTY6MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJ9LCJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZWFnZW50ZXhhbXBsZSJ9",
-      "signature": "LQjUtDszhzJWflnJmCpuVFe1MWIwS3OGOcvMlPwZlBvFYizKkvTsShx4WKgY8XbovNemjSB6f3uURCUluxk3Ag"
+      "canonical_jcs": "{\"device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"keypackage\":{\"capabilities\":[\"mimi.content.v1\",\"ak.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-07-22T00:00:00.000Z\",\"expires_at\":\"2026-07-29T00:00:00.000Z\",\"keypackage\":\"AA\",\"keypackage_id\":\"keypackage-fixture-001\",\"keypackage_ref\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\"}",
+      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLnVwbG9hZC5jcmVhdGUKeyJkZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5NjQxMzctMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDBkIiwia2V5cGFja2FnZSI6eyJjYXBhYmlsaXRpZXMiOlsibWltaS5jb250ZW50LnYxIiwiYWsuY29udGVudC52MSJdLCJjaXBoZXJfc3VpdGVzIjpbIk1MU18xMjhfREhLRU1YMjU1MTlfQUVTMTI4R0NNX1NIQTI1Nl9FZDI1NTE5Il0sImNyZWF0ZWRfYXQiOiIyMDI2LTA3LTIyVDAwOjAwOjAwLjAwMFoiLCJleHBpcmVzX2F0IjoiMjAyNi0wNy0yOVQwMDowMDowMC4wMDBaIiwia2V5cGFja2FnZSI6IkFBIiwia2V5cGFja2FnZV9pZCI6ImtleXBhY2thZ2UtZml4dHVyZS0wMDEiLCJrZXlwYWNrYWdlX3JlZiI6InNoYTI1NjoxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIn0sInByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlYWdlbnRleGFtcGxlIn0",
+      "signature": "S06O2SKNCHDK71pKZHraSXz-yd0LQFMtZ3_ksWmk6nawPSJX1Q6UjYWWBDq3fLTunQ_wupZo_KvTP1ghbExOBw"
     },
     {
-      "name": "consume_all_optional_fields",
+      "name": "consume_single_claim",
       "operation_id": "ak.self.keys.keypackages.command.consume",
       "domain": "ak.self.keys.keypackages.command.consume\n",
       "unsigned_request": {
-        "owner_account_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-        "keypackage_refs": [
-          "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-        ],
-        "consumer_device_id": "ak:device:01964137-0000-7000-8000-00000000000d",
-        "claim_ids": [
-          "claim-fixture-001"
-        ],
-        "welcome_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "claim_id": "claim-fixture-001",
+        "recipient_durable_receipt": {
+          "domain": "ak.mls.recipient_durable_receipt.v1",
+          "claim_request_id": "Y2xhaW0tZml4dHVyZS0wMDE",
+          "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "recipient_principal_id": "ak:did_core:webvh:z6mkfixtureagentexample",
+          "recipient_device_id": "ak:device:01964137-0000-7000-8000-00000000000d",
+          "recipient_service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+          "realm_id": "ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8",
+          "mls_group_id": "mls-fixture-group",
+          "mls_epoch": 1,
+          "welcome_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "welcome_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "durable_at": "2026-07-22T00:00:00.000Z",
+          "device_verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#runtime-1",
+          "signature": {
+            "kid": "did:webvh:z6mkfixtureagentexample:agent.example#runtime-1",
+            "sig": "AA",
+            "signature_algorithm": "Ed25519"
+          }
+        }
+      },
+      "canonical_jcs": "{\"claim_id\":\"claim-fixture-001\",\"recipient_durable_receipt\":{\"claim_request_id\":\"Y2xhaW0tZml4dHVyZS0wMDE\",\"device_verification_method\":\"did:webvh:z6mkfixtureagentexample:agent.example#runtime-1\",\"domain\":\"ak.mls.recipient_durable_receipt.v1\",\"durable_at\":\"2026-07-22T00:00:00.000Z\",\"keypackage_ref\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"mls_epoch\":1,\"mls_group_id\":\"mls-fixture-group\",\"realm_id\":\"ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8\",\"recipient_device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"recipient_principal_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\",\"recipient_service_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"signature\":{\"kid\":\"did:webvh:z6mkfixtureagentexample:agent.example#runtime-1\",\"sig\":\"AA\",\"signature_algorithm\":\"Ed25519\"},\"welcome_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"welcome_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"}}",
+      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLmNvbW1hbmQuY29uc3VtZQp7ImNsYWltX2lkIjoiY2xhaW0tZml4dHVyZS0wMDEiLCJyZWNpcGllbnRfZHVyYWJsZV9yZWNlaXB0Ijp7ImNsYWltX3JlcXVlc3RfaWQiOiJZMnhoYVcwdFptbDRkSFZ5WlMwd01ERSIsImRldmljZV92ZXJpZmljYXRpb25fbWV0aG9kIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlYWdlbnRleGFtcGxlOmFnZW50LmV4YW1wbGUjcnVudGltZS0xIiwiZG9tYWluIjoiYWsubWxzLnJlY2lwaWVudF9kdXJhYmxlX3JlY2VpcHQudjEiLCJkdXJhYmxlX2F0IjoiMjAyNi0wNy0yMlQwMDowMDowMC4wMDBaIiwia2V5cGFja2FnZV9yZWYiOiJzaGEyNTY6MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsIm1sc19lcG9jaCI6MSwibWxzX2dyb3VwX2lkIjoibWxzLWZpeHR1cmUtZ3JvdXAiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFZNGRJeFZTa2U4U2R3SVJ0emQwbkxQNU9xekwwMm9FTmJNa1NHRGYwbHU4IiwicmVjaXBpZW50X2RldmljZV9pZCI6ImFrOmRldmljZTowMTk2NDEzNy0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMGQiLCJyZWNpcGllbnRfcHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVhZ2VudGV4YW1wbGUiLCJyZWNpcGllbnRfc2VydmljZV9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlcHJpbmNpcGFsZXhhbXBsZSIsInNpZ25hdHVyZSI6eyJraWQiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVhZ2VudGV4YW1wbGU6YWdlbnQuZXhhbXBsZSNydW50aW1lLTEiLCJzaWciOiJBQSIsInNpZ25hdHVyZV9hbGdvcml0aG0iOiJFZDI1NTE5In0sIndlbGNvbWVfZGlnZXN0Ijoic2hhMjU2OjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIiLCJ3ZWxjb21lX3JlZiI6InNoYTI1NjoyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyIn19",
+      "signature": "x8_bnC4Txj6NqVCpY6M01KyRhQlC--eKxxR0hbAdLwS_RuqN6AYEyZyFrlDVIMKZO_eyqu7W5KrhTH4mEQ8qCw"
+    },
+    {
+      "name": "consume_receipt_single_source_coordinates",
+      "domain": "ak.keypackage.consume_receipt.v1\n",
+      "signed_receipt": {
+        "domain": "ak.keypackage.consume_receipt.v1",
+        "request_digest": "sha256:447357bed1af33f0cdc9d7cdcd2ed68def7248606199909aab66a5f1cc0151d5",
+        "claim_id": "claim-fixture-001",
         "recipient_durable_receipt": {
           "domain": "ak.mls.recipient_durable_receipt.v1",
           "claim_request_id": "Y2xhaW0tZml4dHVyZS0wMDE",
@@ -107,14 +129,16 @@
             "signature_algorithm": "Ed25519"
           }
         },
-        "realm_id": "ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8",
-        "strand_id": "ak:strand:AX6dq9_mc2yCHVf6YkcoNFVb3OyV-bo2WGAzyAWvDuii",
-        "mls_group_id": "mls-fixture-group",
-        "epoch": 1
+        "consumed_at": "2026-07-22T00:00:01.000Z",
+        "signature": {
+          "kid": "did:webvh:z6mkfixtureagentexample:agent.example#runtime-1",
+          "sig": "LZt2j_-bhgl9dVP4BPgvS_Exb5qKEW1SHDwfXjRwPGacMAzG2FOLuTLpTgvJC67OwO-d8om1ISEYV3voPaUdDA",
+          "signature_algorithm": "Ed25519"
+        }
       },
-      "canonical_jcs": "{\"claim_ids\":[\"claim-fixture-001\"],\"consumer_device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"epoch\":1,\"keypackage_refs\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"mls_group_id\":\"mls-fixture-group\",\"owner_account_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\",\"realm_id\":\"ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8\",\"recipient_durable_receipt\":{\"claim_request_id\":\"Y2xhaW0tZml4dHVyZS0wMDE\",\"device_verification_method\":\"did:webvh:z6mkfixtureagentexample:agent.example#runtime-1\",\"domain\":\"ak.mls.recipient_durable_receipt.v1\",\"durable_at\":\"2026-07-22T00:00:00.000Z\",\"keypackage_ref\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"mls_epoch\":1,\"mls_group_id\":\"mls-fixture-group\",\"realm_id\":\"ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8\",\"recipient_device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"recipient_principal_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\",\"recipient_service_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"signature\":{\"kid\":\"did:webvh:z6mkfixtureagentexample:agent.example#runtime-1\",\"sig\":\"AA\",\"signature_algorithm\":\"Ed25519\"},\"welcome_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"welcome_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"strand_id\":\"ak:strand:AX6dq9_mc2yCHVf6YkcoNFVb3OyV-bo2WGAzyAWvDuii\",\"welcome_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
-      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLmNvbW1hbmQuY29uc3VtZQp7ImNsYWltX2lkcyI6WyJjbGFpbS1maXh0dXJlLTAwMSJdLCJjb25zdW1lcl9kZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5NjQxMzctMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDBkIiwiZXBvY2giOjEsImtleXBhY2thZ2VfcmVmcyI6WyJzaGEyNTY6MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJdLCJtbHNfZ3JvdXBfaWQiOiJtbHMtZml4dHVyZS1ncm91cCIsIm93bmVyX2FjY291bnRfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZWFnZW50ZXhhbXBsZSIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVk0ZEl4VlNrZThTZHdJUnR6ZDBuTFA1T3F6TDAyb0VOYk1rU0dEZjBsdTgiLCJyZWNpcGllbnRfZHVyYWJsZV9yZWNlaXB0Ijp7ImNsYWltX3JlcXVlc3RfaWQiOiJZMnhoYVcwdFptbDRkSFZ5WlMwd01ERSIsImRldmljZV92ZXJpZmljYXRpb25fbWV0aG9kIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlYWdlbnRleGFtcGxlOmFnZW50LmV4YW1wbGUjcnVudGltZS0xIiwiZG9tYWluIjoiYWsubWxzLnJlY2lwaWVudF9kdXJhYmxlX3JlY2VpcHQudjEiLCJkdXJhYmxlX2F0IjoiMjAyNi0wNy0yMlQwMDowMDowMC4wMDBaIiwia2V5cGFja2FnZV9yZWYiOiJzaGEyNTY6MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsIm1sc19lcG9jaCI6MSwibWxzX2dyb3VwX2lkIjoibWxzLWZpeHR1cmUtZ3JvdXAiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFZNGRJeFZTa2U4U2R3SVJ0emQwbkxQNU9xekwwMm9FTmJNa1NHRGYwbHU4IiwicmVjaXBpZW50X2RldmljZV9pZCI6ImFrOmRldmljZTowMTk2NDEzNy0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMGQiLCJyZWNpcGllbnRfcHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVhZ2VudGV4YW1wbGUiLCJyZWNpcGllbnRfc2VydmljZV9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlcHJpbmNpcGFsZXhhbXBsZSIsInNpZ25hdHVyZSI6eyJraWQiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVhZ2VudGV4YW1wbGU6YWdlbnQuZXhhbXBsZSNydW50aW1lLTEiLCJzaWciOiJBQSIsInNpZ25hdHVyZV9hbGdvcml0aG0iOiJFZDI1NTE5In0sIndlbGNvbWVfZGlnZXN0Ijoic2hhMjU2OjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIiLCJ3ZWxjb21lX3JlZiI6InNoYTI1NjoyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyIn0sInN0cmFuZF9pZCI6ImFrOnN0cmFuZDpBWDZkcTlfbWMyeUNIVmY2WWtjb05GVmIzT3lWLWJvMldHQXp5QVd2RHVpaSIsIndlbGNvbWVfcmVmIjoic2hhMjU2OjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIifQ",
-      "signature": "aIPJ-HrD7HoSLpx7OGIDAWXDFHHzirYMWzG07vJ7qjaiamUK07hSGWfyhBJqqjRq0MxspYrBy7BDhgswBim_Bg"
+      "canonical_jcs": "{\"claim_id\":\"claim-fixture-001\",\"consumed_at\":\"2026-07-22T00:00:01.000Z\",\"domain\":\"ak.keypackage.consume_receipt.v1\",\"recipient_durable_receipt\":{\"claim_request_id\":\"Y2xhaW0tZml4dHVyZS0wMDE\",\"device_verification_method\":\"did:webvh:z6mkfixtureagentexample:agent.example#runtime-1\",\"domain\":\"ak.mls.recipient_durable_receipt.v1\",\"durable_at\":\"2026-07-22T00:00:00.000Z\",\"keypackage_ref\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"mls_epoch\":1,\"mls_group_id\":\"mls-fixture-group\",\"realm_id\":\"ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8\",\"recipient_device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"recipient_principal_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\",\"recipient_service_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"signature\":{\"kid\":\"did:webvh:z6mkfixtureagentexample:agent.example#runtime-1\",\"sig\":\"AA\",\"signature_algorithm\":\"Ed25519\"},\"welcome_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"welcome_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"request_digest\":\"sha256:447357bed1af33f0cdc9d7cdcd2ed68def7248606199909aab66a5f1cc0151d5\"}",
+      "signing_input_base64url": "YWsua2V5cGFja2FnZS5jb25zdW1lX3JlY2VpcHQudjEKeyJjbGFpbV9pZCI6ImNsYWltLWZpeHR1cmUtMDAxIiwiY29uc3VtZWRfYXQiOiIyMDI2LTA3LTIyVDAwOjAwOjAxLjAwMFoiLCJkb21haW4iOiJhay5rZXlwYWNrYWdlLmNvbnN1bWVfcmVjZWlwdC52MSIsInJlY2lwaWVudF9kdXJhYmxlX3JlY2VpcHQiOnsiY2xhaW1fcmVxdWVzdF9pZCI6IlkyeGhhVzB0Wm1sNGRIVnlaUzB3TURFIiwiZGV2aWNlX3ZlcmlmaWNhdGlvbl9tZXRob2QiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVhZ2VudGV4YW1wbGU6YWdlbnQuZXhhbXBsZSNydW50aW1lLTEiLCJkb21haW4iOiJhay5tbHMucmVjaXBpZW50X2R1cmFibGVfcmVjZWlwdC52MSIsImR1cmFibGVfYXQiOiIyMDI2LTA3LTIyVDAwOjAwOjAwLjAwMFoiLCJrZXlwYWNrYWdlX3JlZiI6InNoYTI1NjoxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwibWxzX2Vwb2NoIjoxLCJtbHNfZ3JvdXBfaWQiOiJtbHMtZml4dHVyZS1ncm91cCIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVk0ZEl4VlNrZThTZHdJUnR6ZDBuTFA1T3F6TDAyb0VOYk1rU0dEZjBsdTgiLCJyZWNpcGllbnRfZGV2aWNlX2lkIjoiYWs6ZGV2aWNlOjAxOTY0MTM3LTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwZCIsInJlY2lwaWVudF9wcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZWFnZW50ZXhhbXBsZSIsInJlY2lwaWVudF9zZXJ2aWNlX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVwcmluY2lwYWxleGFtcGxlIiwic2lnbmF0dXJlIjp7ImtpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZWFnZW50ZXhhbXBsZTphZ2VudC5leGFtcGxlI3J1bnRpbWUtMSIsInNpZyI6IkFBIiwic2lnbmF0dXJlX2FsZ29yaXRobSI6IkVkMjU1MTkifSwid2VsY29tZV9kaWdlc3QiOiJzaGEyNTY6MjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsIndlbGNvbWVfcmVmIjoic2hhMjU2OjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIifSwicmVxdWVzdF9kaWdlc3QiOiJzaGEyNTY6NDQ3MzU3YmVkMWFmMzNmMGNkYzlkN2NkY2QyZWQ2OGRlZjcyNDg2MDYxOTk5MDlhYWI2NmE1ZjFjYzAxNTFkNSJ9",
+      "signature": "LZt2j_-bhgl9dVP4BPgvS_Exb5qKEW1SHDwfXjRwPGacMAzG2FOLuTLpTgvJC67OwO-d8om1ISEYV3voPaUdDA"
     },
     {
       "name": "revoke_with_reason",
@@ -140,9 +164,19 @@
       "expected": "device_signature_invalid"
     },
     {
-      "name": "optional_field_null_is_not_omission",
-      "mutation": "insert null mls_group_id instead of omitting it",
-      "expected": "device_signature_invalid"
+      "name": "legacy_coordinate_mirror_is_forbidden",
+      "mutation": "insert the removed realm_id mirror beside recipient_durable_receipt",
+      "expected": "schema_violation"
+    },
+    {
+      "name": "consume_receipt_top_level_coordinate_is_forbidden",
+      "mutation": "insert claim_request_id, keypackage_ref, welcome_ref, realm_id, mls_group_id, mls_epoch, or source_service_id beside consume receipt recipient_durable_receipt",
+      "expected": "schema_violation"
+    },
+    {
+      "name": "consume_outcome_keypackage_ref_mirror_is_forbidden",
+      "mutation": "insert consumed_keypackage_ref beside consume_receipt",
+      "expected": "schema_violation"
     },
     {
       "name": "entry_signature_does_not_replace_batch",

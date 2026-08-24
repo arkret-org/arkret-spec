@@ -312,27 +312,23 @@ POST /_arkret/self/invites/dispatch
 operation_id = ak.self.invites.command.dispatch
 ```
 
-请求 body 复用 `ak.schema.invite_delivery_request.v1`。其中 `invite_event` MUST 已由当前 Principal
-Server 接受、MUST 由当前认证 session actor 签署，并且 MUST 与服务端保存的 canonical Event bytes
-逐字节相等；服务端 MUST NOT 代签、重新 author 或重建该 Event。客户端 MUST 用
-`ak.self.events.read.resolve` 回读该已接受 Event 的服务端视图来填充该字段，MUST NOT 由本地状态
-重新 author 一份等价 Event——本地重建无法保证与持久化 canonical bytes 逐字节相等。三条前置的拒绝
-语义是封闭的：Event 未被本服务接受 MUST `failed_precondition` / `invite_event_unaccepted`；签署者
-不等于当前认证 session actor MUST `failed_precondition` / `invite_event_actor_mismatch`；与持久化
-canonical bytes 不逐字节相等 MUST `failed_precondition` / `invite_event_bytes_mismatch`。这三类拒绝
-MUST NOT 产生任何投递、outbox 入队或 holder-private 写入。判定顺序是封闭的：服务端 MUST 先按
-`event_id` 取出本服务已接受的 canonical bytes 再逐字节比对，本 operation MUST NOT 重新验签一条已在
-admission 阶段验过的 Event；因此被篡改的 body 一律落在 `invite_event_bytes_mismatch`，MUST NOT 回落
-为通用签名错误——否则这三类拒绝就不再封闭。
+请求 body 使用 `ak.schema.invite_delivery_request.v1#/$defs/self_invite_dispatch_request`，只携
+`invite_event_id`、`invite_address`、`introduction_evidence` 与 `idempotency_key`。服务端 MUST 以
+`invite_event_id` 读取自己已接受并持久化的 canonical Event bytes；客户端不得回声、代签、重新 author
+或重建该 Event。两条前置的拒绝语义是封闭的：Event 未被本服务接受 MUST
+`failed_precondition` / `invite_event_unaccepted`；持久化 Event 的签署者不等于当前认证 session actor
+MUST `failed_precondition` / `invite_event_actor_mismatch`。两类拒绝 MUST NOT 产生任何投递、outbox
+入队或 holder-private 写入。由于 self wire 不再承载 Event bytes，不存在客户端 Event bytes
+不一致的协议分支。
 
 这个 self operation 只接受 raw evidence 并启动投递，不把它写入 Realm history。目标
 `recipient_service_id` 等于本机 service id 时，服务端 MUST 从下述接收验证的**第 4 步**开始执行同一套
 验证、receive policy 与 holder-private projection；第 1–3 步是 service-to-service 专属绑定，本地分支
-MUST 以"已认证 self session + 上述三条 `invite_event` 前置"作为等价绑定，MUST NOT 合成 federation
+MUST 以"已认证 self session + 上述两条 accepted-event 前置"作为等价绑定，MUST NOT 合成 federation
 trust header、伪造 peer session 或自签 S2S 认证材料来走 peer 路径。目标为其它 Principal Server 时，
 服务端 MUST 把 exact canonical request body 交给下述 peer operation，并以 body 内 `idempotency_key`
 绑定 durable retry / outbox。客户端在投递结果不确定时 MUST 用同一 body 与同一 `idempotency_key`
-重试，不得替换 evidence 或 Event。
+重试，不得替换 evidence 或 `invite_event_id`。
 
 邀请方 Principal Server 使用：
 

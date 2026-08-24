@@ -13,16 +13,8 @@
       "const": "ak.schema.applet.v1"
     },
     "applet_id": {
-      "description": "Stable applet identifier. MUST be either a did_core_id or the registered typed-id form ak:applet:<uuidv7>. Arbitrary opaque strings are not valid wire identifiers; bridge-specific aliases belong in namespace / external_ref fields.",
-      "oneOf": [
-        {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        {
-          "type": "string",
-          "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        }
-      ]
+      "description": "Stable canonical Applet identifier. Service identity is carried separately in service_id.",
+      "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
     "service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",

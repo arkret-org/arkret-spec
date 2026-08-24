@@ -1,0 +1,77 @@
+{
+  "version": "2026-08-25",
+  "suite": "message_poll_reducer",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.message.poll_reducer.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.message.poll_reducer.v1"
+  ],
+  "poll": {
+    "realm_id": "ak:realm:AZpEa1TBWdyQensfzl-MJg8_sdcSNKSeAKHbyCN5ZXjb",
+    "scope_circle_id": "ak:circle:AVH4Dy1ng6HIwqHRIemmcRdGF6ErKqNeNOzRpc2sGDV2",
+    "poll_ref": "ak:message:AVH4Dy1ng6HIwqHRIemmcRdGF6ErKqNeNOzRpc2sGDV2",
+    "answer_ids": [
+      "yes",
+      "no"
+    ],
+    "max_selections": 1
+  },
+  "cases": [
+    {
+      "name": "valid_single_selection",
+      "selections": [
+        "yes"
+      ],
+      "expected": "accepted"
+    },
+    {
+      "name": "valid_multi_selection",
+      "max_selections": 2,
+      "selections": [
+        "yes",
+        "no"
+      ],
+      "expected": "accepted"
+    },
+    {
+      "name": "unknown_answer_rejected",
+      "selections": [
+        "unknown"
+      ],
+      "expected": "poll_selection_unknown"
+    },
+    {
+      "name": "over_selection_rejected_without_truncation",
+      "selections": [
+        "yes",
+        "no"
+      ],
+      "expected": "poll_selection_limit_exceeded"
+    },
+    {
+      "name": "cross_scope_poll_ref_rejected",
+      "scope_circle_id": "ak:circle:AR8FzptqPhujyMqtDIr2CTaKC301-QQGktovEDdHy_6R",
+      "selections": [
+        "yes"
+      ],
+      "expected": "poll_ref_cross_scope"
+    },
+    {
+      "name": "causal_successor_replaces_actor_vote",
+      "current_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "candidate_event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "candidate_causal_refs": [
+        "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      ],
+      "expected": "candidate"
+    },
+    {
+      "name": "concurrent_digest_order_is_arrival_independent",
+      "left_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "right_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "expected_winner_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    }
+  ]
+}

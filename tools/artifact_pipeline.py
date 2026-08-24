@@ -69,6 +69,8 @@ SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
 CLASSIFICATION_FIELD_REGISTRY_PATH = REGISTRY / "classification-field-registry.json"
+OPENAPI_PATH = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
+OPENAPI_HIGH_SECURITY_POLICY_KEY = "x-arkret-high-security-session-authentication-policy"
 
 
 def load_json(path: Path) -> Any:
@@ -436,6 +438,73 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
             **section_payload,
         }
     return payloads
+
+
+def openapi_high_security_policy_block(catalog: dict[str, Any]) -> str:
+    operation_registry = catalog.get("operation_registry")
+    if not isinstance(operation_registry, dict):
+        raise SystemExit("contract registry missing operation_registry")
+    policy = operation_registry.get("high_security_session_authentication_policy")
+    if not isinstance(policy, dict):
+        raise SystemExit(
+            "contract registry missing operation_registry.high_security_session_authentication_policy"
+        )
+    prefix = policy.get("applies_to_operation_id_prefix")
+    protected_default = policy.get("protected_operation_default")
+    public_operations = policy.get("unauthenticated_public_projection_operations")
+    new_operation_rule = policy.get("new_operation_rule")
+    if not isinstance(prefix, str) or not prefix:
+        raise SystemExit("high-security policy prefix must be a non-empty string")
+    if not isinstance(protected_default, str) or not protected_default:
+        raise SystemExit("high-security policy protected default must be a non-empty string")
+    if not isinstance(public_operations, list) or any(
+        not isinstance(operation, str) or not operation for operation in public_operations
+    ):
+        raise SystemExit("high-security policy public operations must be non-empty strings")
+    if not isinstance(new_operation_rule, str) or not new_operation_rule:
+        raise SystemExit("high-security policy new-operation rule must be a non-empty string")
+    lines = [
+        f"{OPENAPI_HIGH_SECURITY_POLICY_KEY}:",
+        f"  appliesToOperationIdPrefix: {prefix}",
+        f"  protectedOperationDefault: {protected_default}",
+        "  unauthenticatedPublicProjectionOperations:",
+        *(f"  - {operation}" for operation in public_operations),
+        "  newOperationsFailClosed: true",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def projected_openapi_text(catalog: dict[str, Any]) -> str:
+    text = OPENAPI_PATH.read_text(encoding="utf-8")
+    pattern = re.compile(
+        rf"(?ms)^{re.escape(OPENAPI_HIGH_SECURITY_POLICY_KEY)}:\n.*?(?=^info:)"
+    )
+    replacement = openapi_high_security_policy_block(catalog)
+    projected, count = pattern.subn(replacement, text, count=1)
+    if count != 1:
+        raise SystemExit(
+            f"{OPENAPI_PATH.relative_to(ROOT).as_posix()} must contain exactly one "
+            f"{OPENAPI_HIGH_SECURITY_POLICY_KEY} block before info"
+        )
+    return projected
+
+
+def write_openapi_policy_projection() -> None:
+    projected = projected_openapi_text(load_contract_registry())
+    OPENAPI_PATH.write_text(projected, encoding="utf-8", newline="\n")
+    print(f"updated {OPENAPI_PATH.relative_to(ROOT).as_posix()} high-security policy projection")
+
+
+def check_openapi_policy_projection() -> list[str]:
+    actual = OPENAPI_PATH.read_text(encoding="utf-8")
+    expected = projected_openapi_text(load_contract_registry())
+    if actual == expected:
+        return []
+    return [
+        "OpenAPI high-security session authentication policy drift: "
+        f"{OPENAPI_PATH.relative_to(ROOT).as_posix()} "
+        "(run python tools/artifact_pipeline.py generate)"
+    ]
 
 
 def resolve_schema_pointer(document: Any, fragment: str) -> Any:
@@ -1106,6 +1175,7 @@ def run_operation_string_classification(mode: str) -> int:
 def cmd_generate(_: argparse.Namespace) -> int:
     write_capability_action_derivations()
     write_id_wire_form_derivations()
+    write_openapi_policy_projection()
     write_derived_registry_views()
     write_operation_schema_index()
     write_public_registry_snapshot()
@@ -1127,6 +1197,7 @@ def cmd_generate(_: argparse.Namespace) -> int:
 def cmd_check(_: argparse.Namespace) -> int:
     errors = check_capability_action_derivations()
     errors.extend(check_id_wire_form_derivations())
+    errors.extend(check_openapi_policy_projection())
     errors.extend(check_derived_registry_views())
     errors.extend(check_operation_schema_index())
     errors.extend(check_public_registry_snapshot())

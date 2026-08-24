@@ -13,8 +13,7 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -23,8 +22,7 @@
       "$ref": "./time.schema.json#/$defs/nullable_timestamp"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "relationship": {
       "type": "string",

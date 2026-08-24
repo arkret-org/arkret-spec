@@ -394,6 +394,7 @@
         "ak.edge.applet.actor.read.resolve",
         "ak.edge.applet.realm.read.resolve",
         "ak.edge.applet.read.protocol_metadata",
+        "ak.edge.applet.install.command.author",
         "ak.edge.applet.third_party_users.read.list",
         "ak.edge.applet.third_party_locations.read.list"
       ],
@@ -1838,12 +1839,12 @@
       "http": "POST /_arkret/self/invites/dispatch",
       "grpc": "SelfInvites/Dispatch",
       "mq": "self.invites.command.dispatch",
-      "notes": "Authenticated client dispatch of private invite evidence through the inviter Principal Server. The carried invite Event must already be accepted by this service, be authored by the current session actor, and match the stored canonical Event bytes exactly. Local delivery reuses the peer receive policy path; remote delivery enters the exact-body durable S2S outbox without re-authoring the Event.",
+      "notes": "Authenticated client dispatch of private invite evidence through the inviter Principal Server. invite_event_id must resolve to an Event already accepted by this service and authored by the current session actor. The service reads its own stored canonical Event bytes; local delivery reuses the peer receive policy path and remote delivery builds the peer request from those bytes.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/invite-delivery-request.schema.json",
+      "request_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body",
       "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
       "durable_effect": {
         "kind": "none",
@@ -2682,7 +2683,11 @@
         "kind": "event_log",
         "event_kinds": [
           "ak.applet.registration",
-          "ak.capability.grant"
+          "ak.capability.grant",
+          "ak.applet.managed_actor.provision",
+          "ak.realm.create",
+          "ak.identity.accountability_grant",
+          "ak.profile.create"
         ]
       }
     },
@@ -2738,6 +2743,8 @@
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
+          "ak.applet.managed_actor.provision",
+          "ak.realm.create",
           "ak.identity.accountability_grant",
           "ak.profile.create"
         ]
@@ -2753,10 +2760,28 @@
       "idempotency_mechanism": "none",
       "retry_safe": true,
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
-      "response_schema_ref": "schemas/applet-install-plan.schema.json",
+      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/preview_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "read_only_preview_despite_post_binding"
+      }
+    },
+    {
+      "operation_id": "ak.edge.applet.install.command.author",
+      "http": "POST /_arkret/edge/applet/install/author",
+      "grpc": "EdgeApplet/InstallAuthor",
+      "mq": "edge.applet.install.command.author",
+      "notes": "Applet service verifies the current target Principal Server proof and the package-bound admin Event set, then returns the exact service-authored/service-executed four-Event creation bundle. The independently held Bot key is used only after its PCR is accepted. Exact request bytes are idempotent; a reused derived authoring_request_id with changed bytes is a conflict. This operation does not admit Events to Principal Server history.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/authoring_request",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_request_body",
+      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "The operation admits no Arkret Event and therefore has no registry-classified durable effect; independently, the Applet service MUST atomically persist request id/digest, exact bundle, and Bot key custody before returning, while Principal Server Event admission occurs only at install commit"
       }
     },
     {

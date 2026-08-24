@@ -22,7 +22,10 @@
       "assertions": [
         "multi-segment plaintext with a short final segment decrypts byte-for-byte",
         "incremental segment verification accepts only ascending segment indices",
-        "ciphertext_digest is recomputed over the concatenated ciphertext and mismatches fail with digest_mismatch"
+        "ciphertext_digest is recomputed over the concatenated ciphertext and mismatches fail with digest_mismatch",
+        "Event refs and proof-hash refs both resolve the exact winning group state and derive the same epoch without carrying epoch on the attachment wire object",
+        "an unresolved or non-winning group_state_ref fails before key derivation with attachment_group_state_unresolved",
+        "resolving a different winning epoch changes AAD and causes authentication failure"
       ]
     },
     {

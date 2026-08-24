@@ -32,8 +32,7 @@
   },
   "$defs": {
     "digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     },
     "introduction_kind": {
       "type": "string",

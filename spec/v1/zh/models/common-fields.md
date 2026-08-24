@@ -353,7 +353,7 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 | `did_core_id` | `ak:did_core:<method>:<core>` | Event、principal / service reference、membership、capability、业务数据库关联与相等判断。 |
 | `full_id` | 标准 bare DID，例如 `did:webvh:<scid>:<host>` | 注册、DID resolution、method-native operation、DID Document / history 验证。 |
 
-`full_id ≅ did_core_id + method-specific resolution` 只是 adapter 语义，不是字符串拼接格式。只有已登记 DID method adapter 可以从 `full_id` 投影 `did_core_id`；普通业务代码 MUST NOT 自行拆解或反向构造。一个 `full_id` 投影到的 `did_core_id` 必须唯一。DID URL 不属于 `full_id`：`verification_method` 等 DID URL 必须在验证 `full_id` 后由相同 adapter 处理，禁止把 fragment 直接拼到 `did_core_id`。
+`full_id ≅ did_core_id + method-specific resolution` 只是 adapter 语义，不是字符串拼接格式。只有已登记 DID method adapter 可以从 `full_id` 投影 `did_core_id`；普通业务代码 MUST NOT 自行拆解或反向构造。一个 `full_id` 投影到的 `did_core_id` 必须唯一。DID URL 不属于 `full_id`：`verification_method` 等 DID URL 必须在验证 `full_id` 后由相同 adapter 处理，禁止把 fragment 直接拼到 `did_core_id`。实现 MUST NOT 以字符串前缀判断 DID URL controller；比较前必须由 adapter 解析 DID URL，并验证其 base `full_id` 到目标 `did_core_id` 的唯一投影关系。
 
 `did_core_id` 是 Arkret 的稳定主体标识，`full_id` 是其当前 DID resolution material；二者都不是普通协作对象 ID。标准协作对象（Realm / Circle / Space /
 Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用

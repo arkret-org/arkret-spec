@@ -74,7 +74,7 @@ class KeyPackageWriteTranscriptLintTest(unittest.TestCase):
 
     def test_full_did_in_nested_recipient_core_field_fails_schema(self) -> None:
         def mutate(fixture):
-            case = self._case(fixture, "consume_all_optional_fields")
+            case = self._case(fixture, "consume_single_claim")
             receipt = case["unsigned_request"][
                 "recipient_durable_receipt"
             ]

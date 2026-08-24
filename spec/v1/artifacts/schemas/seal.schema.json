@@ -12,8 +12,8 @@
     "control_event_set_root",
     "state_root",
     "completeness_root",
-    "availability_receipt_digests",
     "notary_seq",
+    "availability_receipt_digests",
     "notary_signature",
     "sealed_at",
     "hlc"
@@ -72,7 +72,9 @@
       "type": "array",
       "maxItems": 65536,
       "uniqueItems": true,
-      "items": {"$ref": "#/$defs/digest"},
+      "items": {
+        "$ref": "#/$defs/digest"
+      },
       "description": "Canonical bytewise-sorted, duplicate-free full canonical content digests of every and only AvailabilityReceipt required for this Seal's delta admission. Empty when no receipt is required. The receiver resolves every digest through the registered governance-dependency surface and verifies the full signed receipt; missing or surplus receipts reject the Seal. This list replaces the redundant availability_root."
     },
     "covered_event_digests": {
@@ -143,8 +145,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "seal_ref": {
-      "type": "string",
-      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+      "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
     },
     "event_digest": {
       "type": "string",
@@ -154,12 +155,10 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "hlc": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+      "$ref": "./agent-sidecar-exchange-projection.schema.json#/$defs/hlc"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "signature": {
       "type": "object",

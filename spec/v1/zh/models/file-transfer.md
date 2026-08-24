@@ -76,7 +76,7 @@ Producer MUST NOT 写入任何明文文件 digest / hash 字段（例如 `plaint
 
 文件传输默认是服务端不可读内容。Producer MUST 对每个 transfer 生成 fresh content key，并使用 `ak.aead.xchacha20_poly1305.v1` 加密文件明文。除非 profile 后续显式定义可证明安全的 key-reuse 形态，content key MUST NOT 在多个 transfer 间复用。
 
-大文件 SHOULD 使用分块流式 AEAD 形态（`ak.blob.stream_aead.v1`，见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3），使接收设备能边下边验、内存有界，并在收到合法末段并通过整体 `ciphertext_digest` 校验前不把文件视为完整。选用该形态时，transfer record 的 `encryption` descriptor 与 `ak.file_transfer.key.v1` 的 key envelope MUST 按该 scheme 携带 `nonce_prefix` / `segment_bytes` / `segment_count`（而非整文件形态的单 `nonce`）；§4.2 的字段一致性校验相应比对 `key_message.nonce_prefix == record.encryption.nonce_prefix`、segment 参数一致。小文件与缩略图 MAY 继续使用整文件形态（`ak.blob.whole_file_aead.v1`）。无论形态如何，`content_digest` 仍是 Blob 密文字节摘要的唯一字段。
+大文件 SHOULD 使用分块流式 AEAD 形态（`ak.blob.stream_aead.v1`，见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3），使接收设备能边下边验、内存有界，并在收到合法末段并通过整体 `ciphertext_digest` 校验前不把文件视为完整。选用该形态时，transfer record 的 `encryption` descriptor 按该 scheme 携带 `nonce_prefix` / `segment_bytes` / `segment_count`（而非整文件形态的单 `nonce`）；`ak.file_transfer.key.v1` 只投递 content-key envelope，不回声这些 record 字段。小文件与缩略图 MAY 继续使用整文件形态（`ak.blob.whole_file_aead.v1`）。无论形态如何，`content_digest` 仍是 Blob 密文字节摘要的唯一字段。
 
 AEAD AAD MUST 至少绑定：
 
@@ -98,7 +98,7 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 当 `access.visibility="device_bound"` 时，`access.recipient_device_ids` 是目标设备集合的唯一真相源，且 `encryption.key_delivery.method` MUST 是 `to_device_wrapped_key`。Producer MUST 为 `access.recipient_device_ids` 中的每个目标设备发送一条 `kind="ak.file_transfer.key.v1"` 的 to-device message；message `content` MUST validate as `ak.schema.file_transfer.v1#/$defs/file_transfer_key_message`。
 
-`ak.file_transfer.key.v1` 的 `key_envelope` MUST 使用接收设备的 HPKE / device key 加密 content key。服务端只可转发该 envelope，不得看到 content key 明文。Receiver MUST 校验 to-device message 中的字段与 account-data transfer record 的对应字段完全一致：`key_message.transfer_id == record.transfer_id`、`key_message.blob_ref == record.blob_ref`、`key_message.aead_profile == record.encryption.aead_profile`、`key_message.content_digest == record.content_digest`。若 `record.encryption.scheme == "ak.blob.whole_file_aead.v1"`，还 MUST 校验 `key_message.nonce == record.encryption.nonce`，且两侧均不得携带 stream 字段；若 `record.encryption.scheme == "ak.blob.stream_aead.v1"`，则 MUST 校验 `key_message.nonce_prefix == record.encryption.nonce_prefix`、`key_message.segment_bytes == record.encryption.segment_bytes`、`key_message.segment_count == record.encryption.segment_count`，且两侧均不得携带 whole-file `nonce`。不一致 MUST 拒绝该 key envelope。
+`ak.file_transfer.key.v1` 的 `key_envelope` MUST 使用接收设备的 HPKE / device key 加密 content key。服务端只可转发该 envelope，不得看到 content key 明文。该 message 的权威内容只有 `transfer_id`、`key_envelope` 与 `expires_at`；Receiver MUST 以 `transfer_id` 选择已认证、已解密的 exact account-data transfer record，并只从该 record 取得 `blob_ref`、AEAD profile、ciphertext digest、nonce/nonce_prefix 与 segment 参数。`expires_at` 过期、record 不存在/未认证、envelope 无法在该 record 的 recipient/device context 下解开时 MUST 拒绝；不得接受 message 对这些 record 字段的回声或用回声替代 record 校验。
 
 未列入 `recipient_device_ids` 的设备即使收到了 account-data record，也 MUST 把该 transfer 视为不可解密，不得尝试从其它本地缓存或历史消息中恢复 key。
 
@@ -106,7 +106,7 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 每个 file-transfer item 是独立 account-data 值，MUST NOT 使用一个不断增长的大列表作为唯一真相源。
 
-状态更新（例如 `downloaded`、`dismissed`、`deleted`）写回同一个 `ak.file_transfer.v1:<transfer_key>`。该 key 的 registry row 声明 `merge_strategy=cas_register` 与 `deletion_mode=value_tombstone`：所有写入 MUST 走 [`account-data.md` §5](./account-data.md) 的 compare-and-set 循环，服务端只做 `expected_revision` 比较，下述状态规则 MUST 由客户端在解密明文上执行。
+状态更新（例如 `downloaded`、`dismissed`、`deleted`）写回同一个 `ak.file_transfer.v1:<transfer_key>`。v1 对该 key 固定采用 `cas_register` 合并语义，registry row 只登记 `deletion_mode=value_tombstone`，不再复制 merge-strategy 常量：所有写入 MUST 走 [`account-data.md` §5](./account-data.md) 的 compare-and-set 循环，服务端只做 `expected_revision` 比较，下述状态规则 MUST 由客户端在解密明文上执行。
 
 三个非 terminal 状态 `available`、`downloaded`、`dismissed` 之间允许双向迁移：重新下载可写 `downloaded`，从 UI 收起可写 `dismissed`，重新发送到同一授权设备集合前可写回 `available`；它们之间的冲突按 `(actor, transfer_key)` 做 last-writer-wins，比较源为 `updated_hlc`。`deleted` 是该 `transfer_key` 的不可逆 terminal tombstone，且 MUST 作为 value 永久保留在同一 key（而不是通过 `ak.self.account_data.resource.delete` 物理删除），使任何长期离线设备重连后仍能观察删除事实：任一副本一旦观察到 `status="deleted"`，同一 `transfer_key` 后续或并发的非 deleted 状态 MUST NOT 复活该 transfer；需要重新发送时必须生成新的 `transfer_id` 与新的 `transfer_key`。多个 deleted tombstone 之间 MAY 用较新的 `updated_hlc` 更新保留元数据。
 

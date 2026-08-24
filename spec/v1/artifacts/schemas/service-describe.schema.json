@@ -1123,8 +1123,7 @@
   ],
   "$defs": {
     "trust_domain": {
-      "type": "string",
-      "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+      "$ref": "./common-ids.schema.json#/$defs/trust_domain"
     },
     "directory_resource_kind": {
       "type": "string",

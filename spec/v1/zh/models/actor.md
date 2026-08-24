@@ -78,7 +78,7 @@ Schema id: `ak.schema.actor_profile.v1`
 - `team`、`agent`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_principal_ids` 指向控制/责任 principal；它们不会因为 `accountable_principal_ids` 自动继承权限。
 - `actor_kind` 的 wire enum 不包含 `agent_native`、`agent_ghost` 或 `ghost`。Native personal agent 使用 `actor_kind="agent"`，并由 `ak.profile.personal_agent_provisioning.v1` provisioning state 区分；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值（外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`）。Realm policy 必须能通过 Applet provenance、`accountable_principal_ids`、profile 与 capability 分别控制 native personal agent 与 Applet / Ghost Actor，不得合并为单一 "automation allowed" 开关：
   - **Native personal agent**:由 controller 通过 `ak.self.agent.command.provision` 直接创建的一等 Arkret actor principal,拥有独立 DID document、`ak.identity.accountability_grant` 指向 controller、`ak.agent.key.authorize` 绑定的运行时 key。可被 mention / grant / revoke / pause / deactivate。
-  - **Ghost Actor**([`../extensions/applet-integration.md`](../extensions/applet-integration.md)):Applet 管辖 namespace 下的外部 / 集成 actor 镜像或 Applet 托管 automation。`actor_id` / Actor Profile `principal_id` MUST 是无 fragment 的 DID；DID URL fragment 只用于 `verification_method`。其 `accountable_principal_ids` 指向 Applet controller / 外部系统；生命周期由 Applet registration 管理。
+  - **Ghost Actor**([`../extensions/applet-integration.md`](../extensions/applet-integration.md)):Applet 管辖 namespace 下的外部 / 集成 actor 镜像或托管 automation。`actor_id` / Actor Profile `principal_id` MUST 是无 fragment 的 `did_core_id`；完整 DID 仅进入已验证 resolution commitment，DID URL fragment 只用于 `verification_method`。其初始 `accountable_principal_ids` 恰为签署同 provisioning aggregate accountability grant 的 `[service_id]`；controller 只有另行签发 active grant 才可加入。每个 Ghost 有独立 `PrincipalAuthorityKey` 与 purpose=`applet_managed_control` PCR，rotation 走普通 resolution update；active registration/install grant/revoke fence 控制新写入，历史与 resolution audit 不因撤销而删除。
 - **Agent 三轴正交（normative）**：Native Personal Agent 通用 list/get 恰好暴露 lifecycle、readiness、presence。lifecycle (`active|paused|deactivated`) 只表达 controller intent；generic readiness (`ready|not_ready`) 的 closed blockers 只从主体级 durable runtime key 与 open pairing 派生，即 `runtime_key_missing|pairing_open`，不得复制 backup、session、KeyPackage、target grant/membership/reply/MLS facts；presence (`online|offline|unknown` + expiry/refresh) 只表达短时可达性。target-specific 事实只进入对应 operation 或 SDK local plan。pairing poll 的 `runtime_state` 只是 handle-local 诊断，不得进入 generic view/key_state 或成为第四轴。
 - **Realm membership 从属性（normative）**：Native Personal Agent 的 canonical Realm membership 是独立、caller-signed 的 `ak.member.state`；它的 effective membership 还必须与 controller 当前状态做确定性 AND。Agent 的 `join` payload MUST 携 `agent_controller_binding`，逐字绑定 controller 的 exact `PrincipalAuthorityKey` 与当前 accepted controller `join` Event ID（该 Event ID 就是 membership generation ref）。只有 `agent_member_cell == join`、controller 当前 cell 仍由该 exact join Event 建立且为 `join`、Agent lifecycle 为 `active`、provision/accountability 绑定仍有效时，Agent 才是 effective member。controller 后续 rejoin 产生新的 join Event ID，旧 Agent join 永远不能自动复活。
 - controller 已是 active member 时，MAY 直接把自己控制且 lifecycle 为 `active` 的 Native Personal Agent 从 `leave` 转为 `join`；该动作是 controller 对受控 principal 的显式授权，不是发给 agent runtime 的邀请，因此 MUST NOT 创建 pending invite、MUST NOT 要求 agent opt-in，也 MUST NOT 走 `ak.invite.accept`。Reducer MUST 校验 active provisioning state、`ak.identity.accountability_grant`、Realm native-agent policy、join policy 与 E2EE/MLS admission；仅凭 `accountable_principal_ids` 字面声明不得放行。普通成员不得用此路径加入其他 controller 的 agent 或任意第三方 principal。
@@ -134,14 +134,7 @@ Accountability 状态按 `(issuer, subject, normalized exact scope set)` 独立�
 
 ## 4. 跨链路引用对照
 
-| 字段 | 出现对象 | 含义 |
-| --- | --- | --- |
-| `actor_id` | Event Envelope、Read Cursor、Notification | 直接执行该 Event / 拥有该私有状态的 actor `did_core_id`。 |
-| `principal_id` | Actor Profile | Profile 对应的 principal `did_core_id`；权限根。 |
-| `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。 |
-| `accountable_principal_ids` | Actor Profile | Agent / 托管账号的责任主体；不传染 capability。 |
-
-完整跨字段对照见 [common-fields.md §4](./common-fields.md)。
+主体引用字段的完整跨字段对照与语义以 [common-fields.md §4](./common-fields.md) 为唯一规范来源。
 
 ## 5. Actor 与协作图
 

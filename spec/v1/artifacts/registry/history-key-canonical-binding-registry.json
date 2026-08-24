@@ -160,12 +160,6 @@
       "preimage": "the complete closed AcceptedAuthorityViewVector",
       "rule": "object property names are fixed by schema; absent optional profile slots are absent rather than null"
     },
-    "current_gate_projection_digest": {
-      "domain": "ak.history-current-gate-projection-v1",
-      "formula": "SHA-256(UTF8('ak.history-current-gate-projection-v1') || 0x00 || JCS(current_gate_projection))",
-      "preimage": "the complete closed RealmCurrentGateProjection or CircleCurrentGateProjection",
-      "rule": "the enclosing SealViewLocator carries the complete canonical accepted non-quarantined seal_basis. At first chunk enqueue the service re-resolves the exact basis, requires no known successor, recomputes this projection from that basis and CAS-compares the digest and every projection field before writing anything"
-    },
     "governance_registry_artifact_digest": {
       "domain": "ak.governance-registry-artifact-v1",
       "decoded_artifact_schema_ref": "schemas/governance-registry-snapshot.schema.json#/$defs/governance_replay_schema_manifest",

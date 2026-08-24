@@ -58,7 +58,7 @@ Schema id: `ak.schema.strand.v1`
 | `id` | yes | `id:strand` | 以 `ak:strand:` 开头。 | Strand ID。 |
 | `schema` | yes | `ak.schema.strand.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
-| `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 active Circle。producer 据此填写签名 `Event.scope_ref`，receiver 对冻结前态复核；对象 read projection 可物化同值 `effective_scope`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Strand 的 effective scope（含所有 track）。未设置时 Strand 落在 Realm-default scope；设置时整个 Strand落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。 |
+| `scope_circle_id` | no | `id:circle` | scope 派生、CBA 基线校验、`Event.scope_ref` 对照、只读 projection 与 rebind 规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 整个 Strand 的 effective scope（含所有 track）。未设置时 Strand 落在 Realm-default scope；设置时整个 Strand落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。 |
 | `schema_refs` | no | `array<string>` | 出现时至少 1 项且唯一，每项形如 `ak.schema.<name>.v1`。容器 self-schema `ak.schema.strand.v1` MUST NOT 出现在此（同 [`morph.md` §4](./morph.md)）。**该 pattern 比 Realm / Morph 的同名字段更严格是有意的**：Realm 的 `schema_refs` 允许同时承载 `ak.profile.*` 判别式（见 [`../identity/contact-and-direct-conversation.md` §7](../identity/contact-and-direct-conversation.md)），而 Strand 的激活轴 MUST 只接受 schema id——否则 conformance profile id 会再次变成对象激活 token，正是本字段要消除的歧义。与 Morph 不同，本字段可选：没有 profile 子树的普通讨论 Strand MUST 整体省略，而不是填占位 schema id。**双向共现（normative）**：每个被列出的 profile schema 与其在 `metadata.fields` 下的命名空间子树 MUST 在 post-patch 对象上同时出现或同时不出现，任一方向缺失均 `schema_violation`（Calendar 用 `reason=calendar_activation_mismatch`）。因此 ref 与子树可增可减，但只能整体成对增减。该规则对每一对已登记的 `(schema id, metadata.fields 命名空间)` 生效，并 MUST 在 `strand.schema.json` 中逐对以 `if/then` 机器强制；v1 只登记一对：`ak.schema.calendar_event.v1` ↔ `metadata.fields.calendar`。新增 Strand profile 子树时 MUST 在同一处补齐该对的双向分支，MUST NOT 只写正文。写入端 MUST 同时在 Event `requirements.schema[]` 绑定同一 schema id，replay 用该绑定而不是对象当前值（见 [`event-and-patch.md` §2.7](./event-and-patch.md)）。 | `metadata.fields` 下 profile 子树的权威 schema 集合，也是唯一的 profile 激活轴。`metadata.fields.profile` / `profile_refs` 等替代形态 MUST 被拒绝。 |
 | `agent_participation` | no | `object{native_agent:{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf:boolean}}` | component省略时继承有效Circle/Realm父级；一旦出现五位全部required且closed，只能逐位收紧，unknown/stale/fork全deny。旧三位/`reply`别名拒绝。第三方mention gate见§9.4.5。 | native personal agent在Strand scope内的治理上限。 |
 | `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Strand metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
@@ -66,9 +66,9 @@ Schema id: `ak.schema.strand.v1`
 | `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)；与 `encrypted_content` 二选一。 | Strand 自身的正文，即 UI 的 **Description**。它不属于 synthesis / discussion 任一 track。 |
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Strand Description 的 ContentBlock。 |
 | `tracks` | yes | `map<TrackName, StrandTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
-| `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`ak.strand.archive` MUST 来自 `active`（否则 `strand_not_active`）；`ak.strand.restore` MUST 来自 `archived`（否则 `strand_not_archived`）；`ak.redaction` 指向 Strand 时 MUST 来自 `{active, archived}`（否则 `strand_already_terminal`）。same-state self-transition MUST fail。**Strand 不引入独立 `tombstoned` 终态**；deletion 语义通过指向该 Strand 的 `ak.redaction` 表达，见 [common-fields.md §5.1](./common-fields.md)。 | 物化状态（物理生命周期）。 |
+| `state` | no | `enum(active, archived, redacted)` | lifecycle 转换与 reason_code 以 [common-fields.md §5.1](./common-fields.md) 的 Strand 行为唯一权威。**Strand 不引入独立 `tombstoned` 终态**；deletion 语义通过指向该 Strand 的 `ak.redaction` 表达。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ak.strand.create` 时 MAY 省略；若携带，必须是 [common-fields.md §5.3](./common-fields.md) 的 8 值之一。普通业务 Strand SHOULD 填写；DM 主 Strand MAY 省略或选填合法值。变更只能通过 `ak.strand.stage.set`（详见 §3.2）；`ak.strand.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`metadata.fields.stage` / `metadata.fields.status` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `ak.strand.stage.set` event。 | 可选业务进度阶段（与 `state` 正交）。 |
+| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | 枚举、唯一写入路径、reserved-name guard 与 reducer 硬约束以 [common-fields.md §5.3](./common-fields.md) 为唯一权威。普通业务 Strand SHOULD 填写；DM 主 Strand MAY 省略或选填合法值。Strand 的人类解释写入 discussion Message 并 `references` stage event。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：仅当 `stage` 存在且实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；MUST NOT 在缺少 `stage` 时单独出现；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `did_core_id` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -121,18 +121,18 @@ Schema id: `ak.schema.strand.v1`
 
 `stage` 是 Strand 的可选业务进度字段，表达"这件事走到哪了"。普通业务 Strand SHOULD 填写；DM 主 Strand MAY 省略或选填合法值。它与 `state`（物理生命周期）正交：archive 一个 `stage=in_progress` 的 Strand 不会自动改 stage；`stage=done` 也不会自动 archive。
 
-**枚举值**（与 [common-fields.md §5.3.2](./common-fields.md) 共用，固定 8 值）：
+完整枚举与 bucket 映射以 [common-fields.md §5.3.2](./common-fields.md) 为唯一权威；下表只保留说明性的典型来源：
 
-| 值 | bucket | 典型来源 |
-| --- | --- | --- |
-| `draft` | `todo` | 默认起点，正在 scoping。 |
-| `proposed` | `todo` | 待评审 / 决策。 |
-| `planned` | `todo` | 已接受，排期中。 |
-| `in_progress` | `doing` | 当前推进中。 |
-| `blocked` | `doing` | 依赖未解。 |
-| `done` | `closed` | 成功完成。 |
-| `cancelled` | `closed` | 主动放弃。 |
-| `superseded` | `closed` | 被另一个 Strand 取代，SHOULD 写 Relation `superseded_by --> strand:<successor>`。 |
+| 值 | 典型来源（informative） |
+| --- | --- |
+| `draft` | 默认起点，正在 scoping。 |
+| `proposed` | 待评审 / 决策。 |
+| `planned` | 已接受，排期中。 |
+| `in_progress` | 当前推进中。 |
+| `blocked` | 依赖未解。 |
+| `done` | 成功完成。 |
+| `cancelled` | 主动放弃。 |
+| `superseded` | 被另一个 Strand 取代，SHOULD 写 Relation `superseded_by --> strand:<successor>`。 |
 
 **Wire 写入路径**：唯一 event 是 `ak.strand.stage.set`，payload 形态：
 
@@ -159,15 +159,7 @@ Schema id: `ak.schema.strand.v1`
 
 **Capability**：`ak.strand.stage.set`（low risk_tier）—— 允许把推进 Strand 进度的权限授予 reporter / assignee / member，而无需授予任何正文编辑权限。Description 与 Synthesis 是两个独立写入面：前者的 canonical path 是 `content` / `encrypted_content`，后者是 `tracks.synthesis.content` / `tracks.synthesis.encrypted_content`。两者虽都通过 `ak.strand.update` event 写入，但 grant MUST 使用该 action 强制要求的 `allowed_write_fields` 逐路径授权；获准编辑其中一面 MUST NOT 推导出另一面的编辑权。Track 的启用、关闭、primary 与 profile 仍由独立的 `ak.strand.tracks.update` action 管理。
 
-**Reducer 硬约束**（来自 [common-fields.md §5.3.3](./common-fields.md)）：
-
-1. `state ∈ {redacted}` → `failed_precondition` `reason=strand_already_terminal`（这是 [common-fields.md §5.3.3](./common-fields.md) 通用规则 `state ∈ {redacted, tombstoned, deleted}` 在 Strand 上的实例化：Strand **无 `tombstoned` / `deleted` 终态**，其 state 枚举只有 `active` / `archived` / `redacted`，故 `{redacted}` 已等价于通用规则在 Strand 上的终态全集，此处复述等价于上游规则，并非窄化）
-2. `state = archived` → `failed_precondition` `reason=strand_not_active`
-3. `stage_changed_at` reducer-derived，忽略 wire 上 actor-supplied 值
-4. same-value self-transition → reducer 接受但不更新 `stage_changed_at`、不产生审计变更
-5. `ak.strand.update` patch path 出现 `stage` / `stage_changed_at` → `schema_violation`
-6. `strand.metadata.fields.stage` / `strand.metadata.fields.status` / `strand.metadata.fields.stage_reason` / `strand.metadata.fields.lifecycle` / `strand.metadata.fields.progress_state` → `schema_violation`（forbidden-wire reserved-name guard）
-7. `ak.strand.update` MAY patch `schema_refs`，但 reducer MUST 对 **post-patch 完整对象**重新求值 §3 的双向共现，而不是只看被 patch 的路径；同一 patch 未成对增删 ref 与 profile 子树时 `schema_violation`。携带 profile 子树的 create / update 还 MUST 在 `requirements.schema[]` 绑定同一 schema id，缺绑定时 `schema_violation`
+**Reducer 硬约束**以 [common-fields.md §5.3.3](./common-fields.md) 为唯一权威。Strand 另有一条对象专属约束：`ak.strand.update` MAY patch `schema_refs`，但 reducer MUST 对 **post-patch 完整对象**重新求值 §3 的双向共现，而不是只看被 patch 的路径；同一 patch 未成对增删 ref 与 profile 子树时 `schema_violation`。携带 profile 子树的 create / update 还 MUST 在 `requirements.schema[]` 绑定同一 schema id，缺绑定时 `schema_violation`。
 
 **与 workflow profile 的关系**：未启用自定义 workflow 时，actor 可直接调用 `ak.strand.stage.set`。启用 workflow profile 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— 携带 `stage` 的 Strand 使用该字段作为 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
 
@@ -326,7 +318,7 @@ Strand 永远只有**一个** effective scope。整个 Strand（含所有 track�
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `scope_circle_id` | no | `id:circle` | 引用的 Circle MUST `realm_id` 与 Strand.realm_id 一致（否则 `schema_violation` `reason=circle_realm_mismatch`）；引用的 Circle MUST `state=active`（否则 `failed_precondition` `reason=circle_not_active`）。 | 整个 Strand 的 effective scope。`null`（缺省）表示 Realm-default scope；指向 Circle 表示落在该 Circle 的 membership / history visibility / delivery / query / encryption profile 内。 |
+| `scope_circle_id` | no | `id:circle` | 派生与校验规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 整个 Strand 的 effective scope。`null`（缺省）表示 Realm-default scope；指向 Circle 表示落在该 Circle 的 membership / history visibility / delivery / query / encryption profile 内。 |
 
 ```json
 {
@@ -338,12 +330,8 @@ Strand 永远只有**一个** effective scope。整个 Strand（含所有 track�
 }
 ```
 
-规则（详尽 normative 见 [`circle.md` §6](./circle.md)）：
+scope 派生、`scope_ref` 对照、projection 与 rebind 的详尽规则以 [`circle.md` §6](./circle.md) 为唯一权威。
 
-- `scope_circle_id=null` 时，Strand 与所有 track 的事件落在父 Realm 的 Realm-default scope；reducer 把 `effective_scope` 物化为 `{kind:"realm", realm_id}`。
-- `scope_circle_id` 指向 Circle 时，整个 Strand 与所有 track 的事件落在该 Circle 的 membership / history / delivery / query / encryption profile scope；reducer 把 `effective_scope` 物化为 `{kind:"circle", realm_id, circle_id}`。
-- 每个 Event 的 `scope_ref` 由 producer 签名并进入 `event_digest`、E2EE AAD / MLS governance binding。reducer 从 Strand/Message 引用派生后复核；后续 `scope_circle_id` 改绑不得重解释旧 Event。
-- 改绑 `scope_circle_id` 默认 reducer 拒绝（`failed_precondition` `reason=scope_rebind_forbidden`）；profile MAY 允许，但 MUST audit-paired high-risk update，且既有历史保留在原 scope，新内容才进新 scope。
 - 跨 Strand 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Strand + `confidential_discussion_of` Relation。
 - Watch、通知、生命周期、metadata 加密 floor 等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述；本文件不定义额外特例。
 

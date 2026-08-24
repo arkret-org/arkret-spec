@@ -421,89 +421,23 @@
     },
     "domain_separation": {
       "type": "object",
-      "description": "Signed key-backup domain separation transcript. Binds HKDF info and AEAD/HPKE AAD to the envelope fields used by key-management.md §7.1 / §7.5 so implementations do not infer subdomain semantics from ciphertext or local state.",
+      "description": "Signed key-backup domain separation inputs. The HKDF info and fixed AEAD/HPKE AAD base are derived exactly from the envelope by key-management.md §7.2; only the subdomain and genuine x_* AAD extensions are carried on the wire.",
       "required": [
-        "hkdf_info",
-        "subdomain",
-        "aead_aad"
+        "subdomain"
       ],
       "properties": {
-        "hkdf_info": {
-          "type": "string",
-          "pattern": "^arkret-key-backup/(secret_storage|mls_history)/[a-z][a-z0-9_]{0,63}/v1$"
-        },
         "subdomain": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
-        "aead_aad": {
+        "aead_aad_extensions": {
           "type": "object",
-          "required": [
-            "schema",
-            "actor_id",
-            "device_id",
-            "backup_kind",
-            "backup_version",
-            "created_at",
-            "item_kinds"
-          ],
-          "properties": {
-            "schema": {
-              "const": "ak.schema.key_backup.v1"
-            },
-            "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            "device_id": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "minLength": 1,
-              "description": "The envelope's device_id bound into the AEAD AAD. The top-level device_id is optional, so an envelope sealed without an originating device MUST bind null here rather than omitting the key or substituting an empty string: the AAD transcript keeps a fixed field set so sealer and opener reconstruct it byte-identically (key-management.md §7.2). See the secret_storage_no_device KAT case in fixtures/key-backup-hardening-fixture.json."
-            },
-            "backup_kind": {
-              "type": "string",
-              "enum": [
-                "secret_storage",
-                "mls_history"
-              ]
-            },
-            "backup_version": {
-              "type": "string",
-              "pattern": "^kb_[A-Za-z0-9_-]+$"
-            },
-            "created_at": {
-              "$ref": "#/$defs/timestamp"
-            },
-            "item_kinds": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "recipient_method": {
-              "type": "string",
-              "enum": [
-                "passphrase_kdf",
-                "recovery_public_key",
-                "secret_storage_key"
-              ],
-              "description": "SEC-04: the envelope's encryption.recipient_method bound into the AEAD AAD so a ciphertext can never be cross-opened under the wrong recipient interpretation. Sealer and opener reconstruct it byte-identically from the stored envelope; receivers MUST fail closed on a method/AAD mismatch."
-            },
-            "recipient_key_ref": {
-              "type": "string",
-              "description": "SEC-04: the envelope's encryption.recipient_key_ref (recipient key / verification method) bound into the AEAD AAD so the recipient identity is part of the authenticated context."
-            }
-          },
+          "description": "Optional producer-chosen AEAD/HPKE AAD extensions. Every member name MUST be x_*; implementations merge these members into the fixed derived AAD base before RFC 8785 canonicalization and MUST reject collisions.",
           "patternProperties": {
             "^x_[a-z][a-z0-9_]{0,63}$": true
           },
           "additionalProperties": false
         }
-      },
-      "patternProperties": {
-        "^x_[a-z][a-z0-9_]{0,63}$": true
       },
       "additionalProperties": false
     },
@@ -901,8 +835,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     }
   }
 }

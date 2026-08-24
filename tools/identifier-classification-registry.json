@@ -26,9 +26,9 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "registry_catalog_symbol": 20,
+    "registry_catalog_symbol": 19,
     "responsibility_did": 525,
-    "typed_object_id": 876
+    "typed_object_id": 873
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -232,24 +232,16 @@
       "name": "claim_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "unregistered_object_identifier",
-      "occurrences": 7,
+      "occurrences": 9,
       "example_path": "directory-operations.schema.json#/$defs/directory_presented_claim/properties/claim_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
     },
     {
-      "name": "claim_ids",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 2,
-      "example_path": "keypackage-operations.schema.json#/$defs/keypackage_consume_receipt/properties/claim_ids",
-      "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
-    },
-    {
       "name": "claim_request_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 9,
+      "occurrences": 8,
       "example_path": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_unsigned_request/properties/claim_request_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
@@ -435,7 +427,7 @@
       "name": "external_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 2,
+      "occurrences": 3,
       "example_path": "applet-edge-operations.schema.json#/$defs/external_ref/properties/external_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
@@ -445,14 +437,6 @@
       "category": "external_system_identifier",
       "occurrences": 1,
       "example_path": "event-envelope.schema.json#/$defs/external_ref/properties/external_id",
-      "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
-    },
-    {
-      "name": "external_user_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "external_system_identifier",
-      "occurrences": 1,
-      "example_path": "applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body/properties/external_user_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
     {
@@ -574,7 +558,7 @@
       "name": "instance_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 3,
+      "occurrences": 4,
       "example_path": "applet-edge-operations.schema.json#/$defs/external_ref/properties/instance_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
@@ -654,7 +638,7 @@
       "name": "mls_group_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 14,
+      "occurrences": 12,
       "example_path": "agent-operations.schema.json#/$defs/agent_sidecar_mls_context/properties/mls_group_id",
       "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
     },
@@ -779,14 +763,6 @@
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
     {
-      "name": "qualified_ingress_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "principal-operations.schema.json#/$defs/causal_ingress_receipt/properties/qualified_ingress_id",
-      "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
-    },
-    {
       "name": "question_id",
       "terminal_signature": "[[\"pattern\", \"^[a-z][a-z0-9_-]{0,63}$\"]]",
       "category": "document_local_symbol",
@@ -880,7 +856,7 @@
       "name": "resource_id",
       "terminal_signature": "[[\"pattern\", \"^(?:ak:(realm):[A-Za-z0-9_-]{44}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$\"], [\"pattern\", \"^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$\"], [\"pattern\", \"^ak:did_core:[a-z0-9]+:[^\\\\s/?#]+$\"]]",
       "category": "typed_object_id",
-      "occurrences": 3,
+      "occurrences": 2,
       "example_path": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody/properties/resource_id",
       "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
     },

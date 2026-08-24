@@ -446,6 +446,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.applet.managed_actor_authority.v1",
+      "status": "active",
+      "domain": "applet",
+      "applies_to_fixtures": [
+        "applet-managed-actor-fixture.json"
+      ],
+      "description": "Applet-managed Bot/Ghost creation uses an exact PrincipalAuthorityKey, independently verified method evidence, immutable provision/PCR anchors, fixed atomic units, full-id namespace matching, ordinary PCR rotation and a generic registration/grant/revoke write fence.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.applet.registration_epoch_transcript.v1",
       "status": "active",
       "domain": "applet",
@@ -691,7 +703,7 @@
       "applies_to_fixtures": [
         "blob-stream-aead-fixture.json"
       ],
-      "description": "Streaming chunked AEAD (ak.blob.stream_aead.v1) happy path: multi-segment plaintext with a short final segment is split, per-segment AEAD encrypted, segment-wise downloaded and incrementally verified, and the top-level ciphertext_digest is recomputed and matches per media-and-blob.md section 3.3.",
+      "description": "Streaming chunked AEAD (ak.blob.stream_aead.v1) happy path: Event and proof-hash group-state refs derive the exact winning epoch without a wire epoch; multi-segment plaintext with a short final segment is split, per-segment AEAD encrypted, incrementally verified, and the top-level ciphertext_digest is recomputed. Unresolved/non-winning refs and a different derived epoch fail closed.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json"
@@ -1765,7 +1777,7 @@
         "spec/v1/zh/crypto-media/device-lifecycle.md",
         "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json"
       ],
-      "description": "KeyPackage upload, entry upload, consume, and revoke signatures use one byte-exact operation-id domain plus typed unsigned-request JCS transcript shared by ordinary devices and Native Agent runtimes."
+      "description": "KeyPackage upload, entry upload, minimal consume command, consume service receipt, and revoke signatures use byte-exact domain-separated typed JCS transcripts. Consume authority and all owner/KeyPackage/Welcome/service coordinates have one carrier in recipient_durable_receipt; wrapper mirrors and legacy selectors fail closed."
     },
     {
       "vector_id": "ak.vector.cursor.revoke_high_assurance.v1",
@@ -3774,6 +3786,21 @@
       ]
     },
     {
+      "vector_id": "ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json",
+        "keypackage-pairwise-welcome-fixture.json"
+      ],
+      "description": "Realm-local minimal-metadata pairwise endpoint completes publish, exact claim, Welcome, recipient durable receipt and singular consume without an Account, Device, Native Agent or transport-session identity carrier; every stage binds the exact did:key method, current joined Realm delivery authority and intended Realm, and all mixed branches fail closed.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
+        "spec/v1/artifacts/fixtures/keypackage-pairwise-welcome-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.keypackage.peer_claim_atomic_idempotency.v1",
       "status": "active",
       "domain": "keypackage",
@@ -3806,7 +3833,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Self and peer KeyPackage claim share one closed device|native_agent requester authorization bound to exact claim fields and stable source/destination service DIDs. The source service admits current durable requester authority before local CAS or durable remote relay; uncertain remote outcomes are queried by the original claim id and request digest before any exact resend. The destination-authority ledger atomically binds request digest, KeyPackage CAS and signed receipt; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
+      "description": "Self and peer KeyPackage claim share one closed device|native_agent|minimal_metadata_pairwise requester authorization bound to exact claim fields and stable source/destination service DIDs. The source service admits current durable requester authority before local CAS or durable remote relay; uncertain remote outcomes are queried by the original claim id and request digest before any exact resend. The destination-authority ledger atomically binds request digest, KeyPackage CAS and signed receipt; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
@@ -4104,6 +4131,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.message.poll_reducer.v1",
+      "status": "active",
+      "domain": "message",
+      "applies_to_fixtures": [
+        "poll-reducer-fixture.json"
+      ],
+      "description": "Accepted Message Events are the sole poll definition and response truth source; exact scope, answer closure, selection limit and deterministic per-actor replacement are fail-closed.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/poll-reducer-fixture.json",
+        "spec/v1/zh/models/content-types.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.mimi.consent_isolation.v1",
       "status": "active",
       "domain": "mimi",
@@ -4112,9 +4152,7 @@
       ],
       "description": "MIMI consent state is isolated from Arkret Realm read/write capability grants.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-        "spec/v1/zh/extensions/mimi-interop.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json"
       ]
     },
     {
@@ -4126,9 +4164,7 @@
       ],
       "description": "MIMI message/content ingress preserves the original envelope digest and MIMI message identity when mapping into Arkret events.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-        "spec/v1/zh/extensions/mimi-interop.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json"
       ]
     },
     {
@@ -4140,9 +4176,7 @@
       ],
       "description": "MIMI identifier queries use private-contact-discovery semantics and do not expose a raw contact graph or reachability proof.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-        "spec/v1/zh/extensions/mimi-interop.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json"
       ]
     },
     {
@@ -4154,9 +4188,7 @@
       ],
       "description": "MIMI key-material exchange maps to the Arkret KeyPackage claim lifecycle: the claimed package is single-use, becomes consumed after Welcome, and enumeration-sensitive failures share one public shape.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-        "spec/v1/zh/extensions/mimi-interop.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json"
       ]
     },
     {
@@ -4168,9 +4200,7 @@
       ],
       "description": "MIMI Provider Facade directory claims are accepted only when the Arkret profile and pinned MIMI Internet-Draft versions match.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-        "spec/v1/zh/extensions/mimi-interop.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json"
       ]
     },
     {
@@ -4195,9 +4225,7 @@
       ],
       "description": "MIMI proxy download obeys asset privacy policy and does not return direct object-store URLs when provider proxying is required.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-        "spec/v1/zh/extensions/mimi-interop.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json"
       ]
     },
     {
@@ -4209,9 +4237,7 @@
       ],
       "description": "ak.mimi.room_binding projects a MIMI room onto a Realm or Strand scope without making the MIMI room canonical truth.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-        "spec/v1/zh/extensions/mimi-interop.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json"
       ]
     },
     {
@@ -4236,9 +4262,7 @@
       ],
       "description": "Unsupported MIMI draft versions fail closed or require a new profile without silently mutating the v1 reducer profile.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-        "spec/v1/zh/extensions/mimi-interop.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json"
       ]
     },
     {

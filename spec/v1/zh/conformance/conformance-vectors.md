@@ -26,7 +26,7 @@ updated: 2026-08-11
 14. Encryption Floor Ratchet
 15. Moderation / Policy Server / Key Backup / Federation Ingress
 
-MIMI Provider Facade 的 active interop vectors 为 `ak.vector.mimi.provider_directory_draft_pinning.v1`、`ak.vector.mimi.room_binding_projection.v1`、`ak.vector.mimi.keypackage_claim_lifecycle.v1`、`ak.vector.mimi.content_roundtrip.v1`、`ak.vector.mimi.identifier_query_privacy.v1`、`ak.vector.mimi.consent_isolation.v1`、`ak.vector.mimi.proxy_download_policy.v1` 与 `ak.vector.mimi.unsupported_draft_fail_closed.v1`；详细语义见 [`mimi-interop.md`](../extensions/mimi-interop.md)，可执行数据见 [`mimi-interop-fixture.json`](../../artifacts/fixtures/mimi-interop-fixture.json)。
+MIMI Provider Facade 的 active interop vector 集合与数量以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中 active 的 `ak.vector.mimi.*` 登记为唯一权威；详细语义见 [`mimi-interop.md`](../extensions/mimi-interop.md)，可执行数据见 [`mimi-interop-fixture.json`](../../artifacts/fixtures/mimi-interop-fixture.json)。
 
 可执行向量数据集位于 [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/)；
 本文档把对应规范条款与文件入口集中呈现，便于一致性测试 runner 引用。
@@ -335,14 +335,14 @@ preimage 中：
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"ak:did_core:webvh:z6mkfixture","actor_seq":1,"auth_context":{"actor_id":"ak:did_core:webvh:z6mkfixture","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","refs":[],"scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"ak:did_core:webvh:z6mkfixture","actor_seq":1,"auth_context":{"key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","refs":[],"scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest 与由它前向派生的 `event_id`：
 
 ```text
-sha256:25864e3bb5007e6b8bcda2142d1bfa5653725c8546e388f136a06988aae590f6
-ak:event:ASWGTju1AH5ri82iFC0b-lZTclyFRuOI8TagaYiq5ZD2
+sha256:e6a0a930ea002d2ea22b51f854b9effa9b6e6bcdf41fc575140f7d9e159dbf1b
+ak:event:AeagqTDqAC0uoitR-FS57_qbbmvN9B_FdRQPfZ4Vnb8b
 ```
 
 判定规则：
@@ -942,14 +942,14 @@ occupied tree leaves 得到 leaf index；runner 若从 KeyPackage 顺序、数�
 
 Steps：
 
-1. KeyPackage claim response 返回 `keypackage_ref=K`、`keypackage_digest=H1`、`capabilities_digest=C`、`requester_device_id=D`、`device_authorization_event_id=E` 与 `model_generation_ref=G`；`E` 必须是 PCR 中授权 `D` 且仍属于 active generation `G` 的当前有效设备授权 Event。
-2. 攻击者提交 `ak.mls.welcome`，顶层 `keypackage_ref=K`，但 `payload.keypackage_digest=H2` 或 `payload.claim_ref.keypackage_digest=H2`。
-3. Welcome ciphertext、claim_id、capabilities_digest 和 signature envelope 其它字段均有效。
+1. KeyPackage claim response 返回 `keypackage_ref=K`、完整 `keypackage` bytes、`capabilities`、`requester_device_id=D`、`device_authorization_event_id=E` 与 `model_generation_ref=G`；receiver 从 bytes 重算 `H1`，从 capabilities 重算 `C`。`E` 必须是 PCR 中授权 `D` 且仍属于 active generation `G` 的当前有效设备授权 Event。
+2. 攻击者提交 `ak.mls.welcome`，顶层 `keypackage_ref=K`，但 `payload.claim_ref.keypackage_digest=H2`（或 `payload.claim_ref.capabilities_digest` 不等于重算的 `C`）。
+3. Welcome ciphertext、claim_id 和 signature envelope 其它字段均有效。
 
 Expected：
 
-- Receiver MUST 先验证 `D/E/G` 的当前 PCR accepted-device 投影，再校验三个位置的 KeyPackage digest；任一步不一致都必须在解密或接受 Welcome 前拒绝。
-- `payload.keypackage_digest`、`payload.claim_ref.keypackage_digest`、claim record `keypackage_digest` 和已发布 `ak.mls.keypackage.payload.keypackage_digest` MUST 全部一致。
+- Receiver MUST 先验证 `D/E/G` 的当前 PCR accepted-device 投影，再从 claim record 的完整 bytes/capabilities 重算两个 digest；任一步不一致都必须在解密或接受 Welcome 前拒绝。
+- `payload.claim_ref.keypackage_digest` MUST 等于 claim record bytes 的重算值和已发布 `ak.mls.keypackage.payload.keypackage_digest`；`payload.claim_ref.capabilities_digest` MUST 等于 claim record capabilities 的重算值。Welcome 顶层与 claim record 不得携带同源 digest 回声。
 
 ### 2.5.4 Vector: RFC 9420 MTI Ciphersuite Byte-Level KAT
 
@@ -3629,16 +3629,34 @@ Expected：
 
 Steps：
 
-1. requester 以 closed `device` 或 `native_agent` requester authorization 提交 canonical claim；authorization 签名覆盖 exact claim fields 与 `service_binding={source_service_id,destination_service_id}`，并由 current accepted authorization Event / pairing 与 active generation 证明当前授权。source Principal Server 在任何 remote call 前完成 durable admission，destination 只以同一请求执行唯一 CAS。authority 在 destination 接受后丢失响应。
+1. requester 每次新尝试只生成一个至少 128-bit CSPRNG `claim_request_id`，并分别以 closed `device`、`native_agent` 与 `minimal_metadata_pairwise` requester authorization 提交 canonical claim；同一值同时作为 `Idempotency-Key`、durable ledger identity 与后续 `claim_envelope.nonce` challenge，不得生成第二个 `claim_nonce`。authorization 签名覆盖 exact claim fields 与 `service_binding={source_service_id,destination_service_id}`。device/Agent 分支由 current accepted authorization Event / pairing 与 active generation 证明当前授权；pairwise 分支由 exact `ak:did_core:key:<mb>` + `did:key:<mb>#<mb>` key 和 Realm current membership/delivery binding 证明。source Principal Server 在任何 remote call 前完成 durable admission，destination 只以同一请求执行唯一 CAS。authority 在 destination 接受后丢失响应。
 2. source Principal Server 先按同一 `claim_request_id + request_digest` 查询不确定结果；若为 `unknown` 才原样重发 command。再以同一 identity 修改 target / Realm / selector 得到另一 digest。
-3. 分别施加缺 authorization、开放 branch、wrong service binding、wrong authorized Event/method、stale/future authorization、短 nonce、未被 PCR 接受的设备、已 fence/revoke 的设备或 generation、Agent/service key 冒充普通设备、仅 bearer token、以及 authorization 有效但 target policy 不满足的单点变异。
+3. 分别施加缺 authorization、混合/开放 branch、wrong service binding、wrong authorized Event/method、stale/future authorization、短 `claim_request_id`、额外旧 `claim_nonce`、未被 PCR 接受的设备、已 fence/revoke 的设备或 generation、Agent/service key 冒充普通设备、pairwise actor 与 method multibase 不一致、pairwise actor 不在 intended Realm、current delivery service 不等于 signed source、仅 bearer token、以及 authorization 有效但 target policy 不满足的单点变异。
 
 Expected：
 
 - 正例必须按 `ak.keypackage-claim-authorization-v1` transcript 重建并验证 participant authorization；KeyPackage `published -> claimed` CAS、`(source_service_id, claim_request_id, request_digest)` ledger 与签名 receipt/outcome 只有一个线性化点，CAS 次数恰为 1。
 - 相同 identity/digest 的重试或 query 返回原 outcome，不得再次选择 KeyPackage；冲突 digest 在 inventory lookup 前以统一 `claim_failed` fail closed，内部 reason 为 `duplicate_conflict`。
-- 所有 proof/schema/freshness/authority 变异都在读取 target inventory 或改变状态前失败；proof 不替代 sender-constrained transport authentication、当前 revoke/lifecycle 检查、target consent/policy 或后续 MLS claim envelope。
-- 首次到达的过期请求绝不创建 claim；已有 terminal ledger 只能向当前仍被授权的同一 requester/session binding 返回原 outcome，nonce 重放在任何时间都不能创建第二次 claim。
+- 所有 proof/schema/freshness/authority 变异都在读取 target inventory 或改变状态前失败；proof 不替代 sender-constrained transport authentication、当前 revoke/lifecycle 或 Realm delivery-binding 检查、target policy 或后续 MLS claim envelope。pairwise actor 不得被要求创建 account/device，也不得由 transport session actor 推断。
+- 首次到达的过期请求绝不创建 claim；已有 terminal ledger 只能向当前仍被授权的同一 requester/session binding 返回原 outcome。同一 `claim_request_id` 的 exact replay 返回 byte-identical 原 outcome，payload drift 冲突；新的 claim 尝试必须生成新的 `claim_request_id`，任何重放都不能创建第二次 claim。
+
+### 10.3.5 Vector: Minimal-metadata Pairwise KeyPackage Full Lifecycle
+
+`vector_id`: `ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1`
+
+Steps：
+
+1. Realm-local actor `A=ak:did_core:key:<mb>` 以 exact `M=did:key:<mb>#<mb>` 发布 KeyPackage；transport session 只承担访问与限流，不要求 session actor 等于 A。服务端验证 A/M、current Realm membership 与本服务 delivery binding，并逐条验证 MLS Leaf BasicCredential 和 signature key。
+2. requester 以 `minimal_metadata_pairwise` authorization 领取 exact A/M KeyPackage；source 与 destination 分别验证 requester/target current delivery binding，destination CAS 后签发 claim receipt。
+3. sender 提交 closed pairwise `ak.mls.welcome`，claim record、claim receipt、claim envelope 与 top-level recipient 逐字绑定 A/M/Realm/KeyPackage；recipient 用 M 接受并签发 durable receipt。
+4. A/M 以 single-claim consume request 原子消费，服务返回首次签发的 signed consume receipt；同一 canonical request 重放必须返回 byte-identical receipt。
+
+Expected：
+
+- 全链不得创建或要求 account、Device、PCR 或 Native-Agent authorization；真实 transport identity 不得进入 pairwise durable Event。
+- 对 A/M multibase 不一致、wrong Realm、wrong current delivery service、混入 device/Agent 字段、Leaf credential/key 属于另一 endpoint、claim/Welcome/receipt 坐标交叉拼接、membership leave/rebind/revoke 后继续 publish/claim/Welcome/consume 的每个单点变异都必须在状态改变前 fail closed。
+- source/destination relay 必须验证 service receipt controller、durable claim ledger 与 exact request digest；普通本地 Welcome 不得绕过同一 ledger admission。
+- consume request 和 outcome 采用 singular claim 模型；exact replay 返回原 receipt，任何 request 或 nested durable receipt 漂移均为 conflict。
 
 ### 10.4 Vector：国际化标识符 profile 与 authority-local 冲突索引
 
@@ -4155,7 +4173,7 @@ Expected:
 
 Steps:
 
-1. Runtime `R1` 对 open pairing handle 提交 key `K1`；服务端按 [`key-management.md` §3.6.2](../identity/key-management.md) 计算 stable binding digest，生成 approval/notification id 并发送 notification `add`。
+1. Runtime `R1` 对 open pairing handle 提交 key `K1`；服务端按 [`key-management.md` §3.6.2](../identity/key-management.md) 计算 stable binding digest，生成 approval/notification id 并发送 notification `upsert`。
 2. `R1` 以相同 Agent、handle、verification method、public key 和 attestation 重试；权威 pairing code、challenge、audience 不变，只刷新 PoP `created_at` / `expires_at` / `transcript_digest` / `signature`，服务端重算 stable digest 与 current pairing-request digest。
 3. Runtime `R2` 在同一 handle 提交不同 public key `K2`。
 4. Controller device `C0` 读取 proof `P1` 并签审批；提交前同一 stable binding 刷新为 `P2`，`C0` 再提交绑定 `P1` digest 的旧审批。
@@ -4164,7 +4182,7 @@ Steps:
 Expected:
 
 - 第 1 步得到 fixture 固定的 `public_key_digest`、`attestation_digest` 与 `expected_binding_digest`；helper 输出必须逐字匹配。
-- 第 2 步 stable digest、approval id、notification id 不变，projection action 为 `update`；freshness 字段不进入 stable digest，但 `proof_of_possession_digest` 与 pairing-request digest 必须改变。
+- 第 2 步 stable digest、approval id、notification id 不变，projection action 仍为 `upsert`；freshness 字段不进入 stable digest，但 `proof_of_possession_digest` 与 pairing-request digest 必须改变。
 - 第 3 步 MUST HTTP 409 `agent_runtime_request_conflict`，不得覆盖 K1、approval id 或 notification id。
 - 第 4 步 MUST fail closed；旧 proof/prompt 不得消费 handle 或激活 key。
 - 第 5 步服务端必须从当前持久化 request 与 pairing record 重算 stable binding、PoP transcript/digest/signature 和 `ak.agent.key_pairing_request_binding.v1`；只有 controller 签名绑定当前值时审批成功，并在 durable authorize accepted 后发 `remove(reason=approved)`。全部单点变异都必须在状态改变前 fail closed。
@@ -4288,8 +4306,8 @@ Steps:
 
 1. Runtime 用 K1 作为 MLS LeafNode signature key 生成 KeyPackage，并用 K1 签署发布 transcript；服务端从当前 accepted Agent key projection 写入 `agent_key_authorize_event_id=E1`。
 2. Requester claim 该 KeyPackage，并把返回的 `agent_key_authorize_event_id=E1` 原样写入 Welcome `claim_ref`。
-3. Receiver 在解密 Welcome 前 resolve E1，校验 E1 仍是 A 的 active accepted authorization，`verification_method=K1`，并校验发布 `device_signature.kid` 与 MLS LeafNode signature key 都绑定 K1。
-4. 负向变体依次为：额外携带普通设备的 `device_authorize_event_id`；把 E1 填入该字段；Event ref 属于另一 Agent；`device_signature.kid` 或 MLS LeafNode signature key 为 K2；E1 被 revoke、被 replacement `supersedes[]` 替换或可选 `expires_at` 已到期；只有 service-local Agent row 而无 accepted E1。
+3. Receiver 在解密 Welcome 前 resolve E1，校验 E1 仍是 A 的 active accepted authorization，`verification_method=K1`，并校验发布 `endpoint_signature.kid` 与 MLS LeafNode signature key 都绑定 K1。
+4. 负向变体依次为：额外携带普通设备的 `device_authorize_event_id`；把 E1 填入该字段；Event ref 属于另一 Agent；`endpoint_signature.kid` 或 MLS LeafNode signature key 为 K2；E1 被 revoke、被 replacement `supersedes[]` 替换或可选 `expires_at` 已到期；只有 service-local Agent row 而无 accepted E1。
 5. E1 被 E2 replacement 后，以 K2 发布新 KeyPackage并重新 claim，得到新 `claim_id` 与 `agent_key_authorize_event_id=E2`。
 
 Expected:
@@ -4307,14 +4325,15 @@ fixture：`spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json`
 Steps:
 
 1. 用 fixture 的 typed upload request删除顶层与 entry signatures，通过 SDK `keypackages_upload_signing_input`生成 bytes；另对单 entry调用 `keypackage_upload_entry_signing_input`。
-2. 用 typed consume/revoke request分别删除其 `signature`，通过 SDK helper生成 bytes。
-3. 对每条 bytes比较 fixture `canonical_jcs`、`signing_input_base64url`，并以 fixture Ed25519 test key验证 `signature`。
-4. 负向依次替换为旧 `ak.keypackage-upload-v1` domain、从 upload移除 `principal_id`、把缺省 optional字段写成 `null`、仅保留合法 entry signature但破坏 batch signature。
+2. 用最小 typed consume command `{claim_id,recipient_durable_receipt}` 与 typed revoke request 通过 SDK helper 生成 bytes；consume 的 owner、KeyPackage、Welcome 与 signer branch 只存在于 nested durable receipt。
+3. 从 signed `keypackage_consume_receipt` 删除 service `signature`，验证 receipt transcript 仍完整覆盖 `request_digest + claim_id + recipient_durable_receipt + consumed_at`，且 wrapper 不携任何 nested 坐标或 service-id 镜像。
+4. 对每条 bytes 比较 fixture `canonical_jcs`、`signing_input_base64url`，并以 fixture Ed25519 test key 验证 `signature`。
+5. 负向依次替换为旧 `ak.keypackage-upload-v1` domain、从 upload 移除 `principal_id`、向 consume command/receipt/outcome 插入已删除的镜像或 selector、把缺省 optional 字段写成 `null`、仅保留合法 entry signature 但破坏 batch signature。
 
 Expected:
 
-- Steps 1–3 MUST byte-identical通过；普通 device与 Native Agent runtime不得产生不同 bytes。
-- Step 4 全部 MUST fail closed。entry signature不替代 required batch signature，服务端不得尝试旧 transcript或本地 principal-type fallback。
+- Steps 1–4 MUST byte-identical 通过；同一 closed endpoint 产生的 command bytes 只由 nested durable receipt branch 决定。
+- Step 5 全部 MUST fail closed。entry signature 不替代 required batch signature，服务端不得尝试旧 transcript、已删除字段 alias 或本地 principal-type fallback。
 
 ### 11.3 Vector: Agent Session Grant Replay Protection
 
@@ -5427,7 +5446,7 @@ Expected：支持 `ak.reducer.core.v1` 时普通 Event 继续 admission；本地
 
 Steps：
 
-1. 取一份明文，长度使派生段数 `N = max(1, ceil(plaintext_size / segment_bytes))` 且末段严格短于 `segment_bytes`（含短末段路径）；envelope 走 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 `ak.blob.stream_aead.v1` 分支，声明 `scheme`、`nonce_prefix`（per-object 随机，长度 `N_AEAD - 5`）、`segment_bytes`、`ciphertext_digest` 与 `size_bytes`，不声明段数。
+1. 取一份明文，长度使派生段数 `N = max(1, ceil(plaintext_size / segment_bytes))` 且末段严格短于 `segment_bytes`（含短末段路径）；envelope 走 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 `ak.blob.stream_aead.v1` 分支，声明 `scheme`、`nonce_prefix`（per-object 随机，长度 `N_AEAD - 5`）、`segment_bytes`、`ciphertext_digest` 与 `size_bytes`，不声明段数或 `epoch`。分别以 accepted winning commit Event ref 与等价 proof hash 构造 `key_ref.group_state_ref`，并从 exact winning group state 唯一派生 epoch。
 2. 对每个 segment 用同一 content key、nonce = `nonce_prefix || u32_be(segment_index) || last_segment_flag` 加密，并把 `segment_index` / `last_segment_flag`（及 `media-and-blob.md` §3.3.3 要求字段）纳入 AAD；末段 `last_segment_flag = 0x01` 且 `segment_index == N - 1`。
 3. 接收方按 `segment_index` 从 `0` 起严格升序分段下载（SHOULD 按 `segment_bytes` 整数倍偏移做 Range），逐段做 per-segment AEAD tag 校验并安全释放对应明文。
 4. 全部 segment 接收完毕后，按 `media-and-blob.md` §3.3.5 对全部 segment 密文（每段含其 AEAD tag）按 `segment_index` 升序拼接重算 `ciphertext_digest`，与 envelope 声明值比对。
@@ -5436,6 +5455,7 @@ Expected：
 
 - 逐段 AEAD tag 校验全部通过，整体 `ciphertext_digest` 重算等于 envelope 声明值；接收方还原出 byte-for-byte 等于原明文的内容，并仅在见到合法末段（`last_segment_flag=0x01` 且 `segment_index==N-1`）后才标记附件完整。
 - per-segment 增量校验提供边下边验，顶层 `ciphertext_digest` 提供整体完整性；二者都 MUST 校验通过才允许最终持久化 / 标记完整。
+- Event ref 与 proof hash 必须派生相同 winning epoch 并通过；无法解析、解析到非 winning state 时在密钥派生前以 `attachment_group_state_unresolved` 拒绝，解析到另一 epoch 时因 AAD 不同而 tag 校验失败。旧 wire `epoch` 成员必须按 closed schema 拒绝。
 - 反例（顺带覆盖）：将任一 segment 密文整体替换为另一份相同 segment_index 的合法密文，使 per-segment tag 仍可能通过但拼接后整体 digest 不符时，`media-and-blob.md` §3.3.6 步骤 7 MUST 以 `digest_mismatch`（与该文 §5 一致）拒绝、丢弃全部明文、不渲染不持久化。
 
 ### 16.2 Vector: Streaming AEAD Truncation Rejected
@@ -5649,7 +5669,13 @@ Expected：
 - **Case D**：完全相同的 replay MUST 重算出相同 record digest，返回原 outcome 或等价成功且不得重复副作用；同一幂等 identity 但 body digest 或重算后的 `delivery_authentication_record_digest` 不一致时 MUST fail closed，认证已通过时 reason=`duplicate_conflict`，认证未通过时使用相应认证失败 reason。
 - **Case E**：无 active install MUST fail closed，reason=`applet_registration_unauthorized`；actor / namespace / grant 混淆 MUST fail closed（`applet_namespace_mismatch`、`capability_denied` 或 `applet_registration_unauthorized`），不得把来源 service 签名当成 native actor 授权。
 
-### 19.2 Vector: Registration Epoch Transcript
+### 19.2 Vector: Applet-managed Actor Authority
+
+`vector_id`: `ak.vector.applet.managed_actor_authority.v1`
+
+Runner MUST 执行 [`applet-managed-actor-fixture.json`](../../artifacts/fixtures/applet-managed-actor-fixture.json) 的固定 Bot/Ghost 原子单元，验证 exact authority pair、receiving Principal Server、独立 method history/witness、verified full-id namespace、provision/PCR initial-resolution 交叉绑定与零可见失败。Rotation 只改 PCR current cell 而保持 creation anchors；Applet/Ghost revoke 后，通过普通 Event submit 的 self-signed write 也必须 `applet_revoked`，但历史 resolution/audit 仍可读。
+
+### 19.3 Vector: Registration Epoch Transcript
 
 `vector_id`: `ak.vector.applet.registration_epoch_transcript.v1`
 

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/applet-managed-actor.schema.json",
+  "title": "Arkret Applet-managed Actor Provision",
+  "$ref": "#/$defs/applet_managed_actor_provision_payload",
+  "$defs": {
+    "applet_managed_actor_provision_payload": {
+      "type": "object",
+      "description": "Immutable service-authored authority for one Applet-managed Bot or Ghost principal. It precedes and is cross-bound to the principal's applet_managed_control PCR genesis; it is not the actor's mutable resolution head.",
+      "required": [
+        "schema",
+        "applet_id",
+        "service_id",
+        "actor_id",
+        "actor_principal_server_id",
+        "actor_role",
+        "initial_resolution",
+        "method_history_evidence",
+        "registration_ref",
+        "applet_authority_ref"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.applet_managed_actor_provision.v1"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "actor_principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Principal Server half of the actor's immutable PrincipalAuthorityKey; all PCR lineage and runtime current-resolution lookup uses the exact (actor_id, actor_principal_server_id) pair."
+        },
+        "actor_role": {
+          "type": "string",
+          "enum": [
+            "bot",
+            "ghost"
+          ]
+        },
+        "initial_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+        },
+        "method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence",
+          "description": "Complete did:webvh inception/current log and witness evidence independently verified at provision acceptance. Applet-managed principals are long-lived rotatable high-risk authorities, so v1 rejects did:web snapshots and did:key expansions; service attestation and core projection never replace WebVH chain verification."
+        },
+        "registration_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "applet_authority_ref": {
+          "$ref": "./agent-operations.schema.json#/$defs/grant_id"
+        },
+        "external_ref": {
+          "$ref": "./applet-ghost-operations.schema.json#/$defs/ghost_external_tuple"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "actor_role": {
+                "const": "bot"
+              }
+            },
+            "required": [
+              "actor_role"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "external_ref"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "actor_role": {
+                "const": "ghost"
+              }
+            },
+            "required": [
+              "actor_role"
+            ]
+          },
+          "then": {
+            "required": [
+              "external_ref"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -590,6 +590,25 @@ def check_field_order(lint: Lint) -> None:
                 enforce_leading_group,
             )
             if isinstance(required, list):
+                required_set = {
+                    member for member in required if isinstance(member, str)
+                }
+                local_required = [
+                    member
+                    for member in required
+                    if isinstance(member, str) and member in props
+                ]
+                expected_local_required = [
+                    member for member in props if member in required_set
+                ]
+                if local_required != expected_local_required:
+                    lint.fail(
+                        path,
+                        f"{json_path}.required: locally declared members MUST follow "
+                        f"properties order; expected {expected_local_required}, "
+                        f"got {local_required}",
+                    )
+
                 # Check required entries in the order they are declared. A field
                 # listed in required but absent from properties is left to the
                 # existing schema-shape checks; we only order known property keys.
@@ -924,6 +943,94 @@ def check_alg_registry(lint: Lint) -> None:
             "webhook_auth.accepted_signature_algorithms must exactly match active "
             f"http_message_signature_algorithm mappings: {sorted(http_message_signature_algorithms)!r}",
         )
+
+
+def check_applet_install_epoch_evidence_carrier(lint: Lint) -> None:
+    package_path = ARTIFACTS / "schemas" / "applet-package.schema.json"
+    install_path = ARTIFACTS / "schemas" / "applet-install-operations.schema.json"
+    authoring_path = ARTIFACTS / "schemas" / "applet-install-authoring.schema.json"
+    package = load_json(lint, package_path)
+    install = load_json(lint, install_path)
+    authoring = load_json(lint, authoring_path)
+    if not isinstance(package, dict) or not isinstance(install, dict) or not isinstance(authoring, dict):
+        return
+
+    package_properties = package.get("properties")
+    if not isinstance(package_properties, dict):
+        lint.fail(package_path, "AppletPackage properties must be an object")
+    elif "registration_epoch_evidence" in package_properties:
+        lint.fail(
+            package_path,
+            "registration_epoch_evidence must not enter the controller-signed AppletPackage",
+        )
+    if package.get("additionalProperties") is not False:
+        lint.fail(package_path, "AppletPackage must reject unknown evidence placement")
+    if "patternProperties" in package:
+        lint.fail(package_path, "AppletPackage must not retain a top-level extension escape hatch")
+
+    definitions = install.get("$defs")
+    if not isinstance(definitions, dict):
+        lint.fail(install_path, "install operation $defs must be an object")
+        return
+    authoring_defs = authoring.get("$defs")
+    if not isinstance(authoring_defs, dict):
+        lint.fail(authoring_path, "install authoring $defs must be an object")
+        return
+    evidence = authoring_defs.get("registration_epoch_evidence")
+    if evidence != {"$ref": "./applet-registration-epoch-evidence.schema.json"}:
+        lint.fail(
+            authoring_path,
+            "registration_epoch_evidence must reference the canonical closed evidence schema",
+        )
+
+    registration_all_of = authoring_defs.get("registration_event", {}).get("allOf", [])
+    registration_overlay = registration_all_of[1] if len(registration_all_of) == 2 else {}
+    manifest_evidence_ref = json_pointer_get(
+        registration_overlay,
+        "/properties/payload/properties/manifest/properties/registration_epoch_evidence/$ref",
+    )
+    if manifest_evidence_ref != "#/$defs/registration_epoch_evidence":
+        lint.fail(
+            authoring_path,
+            "caller-signed registration Event manifest must be the sole registration_epoch_evidence carrier",
+        )
+
+    for definition_name in (
+        "applet_install_preview_request_body",
+        "applet_install_request_body",
+    ):
+        request = definitions.get(definition_name)
+        properties = request.get("properties") if isinstance(request, dict) else None
+        if not isinstance(properties, dict):
+            lint.fail(install_path, f"{definition_name} properties must be an object")
+            continue
+        forbidden = {
+            "registration_epoch_evidence",
+            "registration_event",
+            "capability_grant_events",
+            "plan_digest",
+            "effective_scope",
+            "bot_actor_provision_event",
+            "bot_pcr_genesis_event",
+            "bot_accountability_grant_event",
+            "bot_profile_event",
+        }
+        mirrored = sorted(forbidden.intersection(properties))
+        if mirrored:
+            lint.fail(
+                install_path,
+                f"{definition_name} must not mirror authoring carriers: {mirrored}",
+            )
+
+    basis_properties = json_pointer_get(authoring, "/$defs/authoring_request_basis/properties")
+    if not isinstance(basis_properties, dict):
+        lint.fail(authoring_path, "authoring_request_basis properties must be an object")
+    else:
+        if "registration_epoch_evidence" in basis_properties:
+            lint.fail(authoring_path, "authoring_request_basis must not mirror registration evidence")
+        for event_field in ("registration_event", "capability_grant_events"):
+            if event_field not in basis_properties:
+                lint.fail(authoring_path, f"authoring_request_basis must uniquely carry {event_field}")
 
 
 

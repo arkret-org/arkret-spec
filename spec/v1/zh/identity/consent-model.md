@@ -283,7 +283,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 #### 6.1.2 `ak.self.consent.command.request`（normative）
 
-该 self-surface operation 只把陌生 peer 的请求提交给上述 quarantine/anti-abuse pipeline；它**不**创建 consent grant dot、pending consent state 或 contact fact。`peer_principal_id` 省略时取 authenticated actor，出现时 MUST 与 actor 相等；否则拒绝 `unauthorized`。
+该 self-surface operation 只把 authenticated actor 的请求提交给上述 quarantine/anti-abuse pipeline；它**不**创建 consent grant dot、pending consent state 或 contact fact。peer principal 只取认证上下文，不由 request body 携带。
 
 服务端对 holder 不存在、holder policy deny、per-holder 限速、静默丢弃与成功进入 quarantine MUST 返回完全相同的 `consent_request_outcome {ok:true, accepted_for_processing:true}`，并 SHOULD 做统一时序填充。响应 MUST NOT 包含 cell id、state、dots、expiry、request timestamp、account-existence flag 或可关联 queue id。写入 quarantine 时必须执行 §6.1.1 的总量/速率上限；`require_explicit_consent` profile 下请求被静默丢弃，仍返回相同 opaque outcome。
 

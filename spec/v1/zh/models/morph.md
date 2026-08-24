@@ -41,10 +41,10 @@ Schema id: `ak.schema.morph.v1`
 | `content` | no | `object` | 富文本/parts 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
 | `encrypted_content` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
-| `scope_circle_id` | no | `id:circle` | create 时 MUST 指向同一 Realm 的 Circle；reducer 校验它与 Event 签名 `scope_ref` 相等。rebind 默认拒绝；允许 rebind 的 profile 也只能影响后续 Event，新 Event 使用新的签名 scope，旧 Event 不重解释。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
-| `state` | no | `enum(active, archived, redacted)` | 状态转换必须有事件来源。`archived` 是**可逆中间态**（可经 `ak.morph.restore` 回到 `active`），不是终态；唯一不可逆终态是 `redacted`。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`ak.morph.archive` MUST 来自 `active`（否则 `morph_not_active`）；`ak.morph.restore` MUST 来自 `archived`（否则 `morph_not_archived`）；`ak.redaction` 指向 Morph 时 MUST 来自 `{active, archived}`（否则 `morph_already_terminal`）；进入 `redacted` 后 MUST NOT 被任何 lifecycle event 修改。same-state self-transition MUST fail。 | 物化状态（物理生命周期）。 |
+| `scope_circle_id` | no | `id:circle` | scope 派生、CBA 基线校验、签名 `scope_ref` 对照与 rebind 规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
+| `state` | no | `enum(active, archived, redacted)` | lifecycle 转换与 reason_code 以 [common-fields.md §5.1](./common-fields.md) 的 Morph 行为唯一权威；`archived` 可逆，唯一不可逆终态是 `redacted`。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | generic Morph 可省略；需要进度轴的 `morph_kind` profile MAY 将其收紧为 create 必填。缺失时首条 `ak.morph.stage.set` 可初始化为任一合法值，此后按 [common-fields.md §5.3](./common-fields.md) 转换。变更只能通过 `ak.morph.stage.set`；`ak.morph.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时由附加在 Morph 上的讨论性对象承担。 | 可选业务进度阶段（与 `state` 正交）。 |
+| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | 枚举、唯一写入路径、reserved-name guard 与 reducer 规则以 [common-fields.md §5.3](./common-fields.md) 为唯一权威。generic Morph 可省略；需要进度轴的 `morph_kind` profile MAY 收紧为 create 必填，缺失时首条 `ak.morph.stage.set` 可初始化为任一合法值。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：每次 `stage` 实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `did_core_id` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |

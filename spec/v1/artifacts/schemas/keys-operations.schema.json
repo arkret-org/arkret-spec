@@ -52,63 +52,34 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "device_id": {
-      "type": "string",
-      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "backup_id": {
-      "type": "string",
-      "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./agent-operations.schema.json#/$defs/backup_id"
     },
     "backup_series_id": {
-      "type": "string",
-      "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./agent-operations.schema.json#/$defs/backup_series_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "cursor": {
-      "type": "string",
-      "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
+      "$ref": "./authz-operations.schema.json#/$defs/cursor"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "base64url": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$",
-      "minLength": 1
+      "$ref": "./agent-operations.schema.json#/$defs/base64url"
     },
     "signature": {
-      "type": "object",
-      "required": [
-        "kid",
-        "sig"
-      ],
-      "properties": {
-        "kid": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "signature_algorithm": {
-          "type": "string",
-          "enum": [
-            "Ed25519",
-            "ML-DSA-65"
-          ]
-        },
-        "sig": {
-          "$ref": "#/$defs/base64url"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./keypackage-operations.schema.json#/$defs/signature"
     },
     "request_id": {
       "$ref": "#/$defs/base64url",
@@ -161,14 +132,6 @@
       "type": "string",
       "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
       "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ak.device.authorize.payload.device_public_key (device-lifecycle.md §5.2 / §5.4). To check SignalEnvelope and durable Event proofs, receivers resolve a verification_method DID URL under the verified principal full_id, validate its bare full_id through the registered adapter, require project(full_id) to equal the actor/principal did_core_id, and require its fragment to equal the full ak:device:<uuidv7> id. Constructing a verification method by appending a fragment to did_core_id is forbidden."
-    },
-    "device_status": {
-      "type": "string",
-      "enum": [
-        "active",
-        "revoked"
-      ],
-      "description": "Usable directory status of the (principal_id, device_id) pair at query time. active requires an accepted, non-revoked authorization, device_generation_status=active, and authorized_generation_ref=current_device_generation_ref. Servers omit usable key material for revoked, unverified, fenced, or conflicted devices."
     },
     "device_generation_state": {
       "type": "object",
@@ -276,24 +239,12 @@
       "description": "Per-(principal_id, device_id) entry in keys_query_outcome. principal_id and device_id are the device_keys map keys, not row fields. Every returned row is complete and attested: the origin Principal Server signs the exact projection, so a relationship-gated third party can verify the row without ever seeing PCR material. A device whose generation is fenced or conflicted, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
       "required": [
         "algorithms",
-        "device_signing_key",
-        "hpke_key",
         "trust_algorithms",
-        "device_status",
-        "device_authorize_event_id",
-        "authorized_generation_ref",
         "device_projection_attestation"
       ],
       "properties": {
         "algorithms": {
           "$ref": "#/$defs/algorithm_key_records"
-        },
-        "device_signing_key": {
-          "$ref": "#/$defs/did_key"
-        },
-        "hpke_key": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "The device HPKE public key used for secret / key envelope sealing, echoed verbatim from the authoritative ak.device.authorize.payload.hpke_key (device-lifecycle.md §5.2/§5.4). MUST only be returned for verified, non-revoked devices; services MUST NOT substitute this value in projection."
         },
         "trust_algorithms": {
           "type": "array",
@@ -302,22 +253,9 @@
           },
           "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ak.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the §5.2 ak.device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
         },
-        "device_status": {
-          "$ref": "#/$defs/device_status",
-          "const": "active",
-          "description": "Only usable devices are returned on this surface, so the value is constant. A revoked, fenced or conflicted device is omitted or reported through failures rather than disclosed as a status."
-        },
-        "device_authorize_event_id": {
-          "$ref": "#/$defs/event_id",
-          "description": "Accepted ak.device.authorize Event id anchoring the current device-set projection."
-        },
-        "authorized_generation_ref": {
-          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "Reducer-managed PCR-local monotonic generation that authorized this device. Producers cannot self-report it; it must equal current_device_generation_ref for the device to be usable and MUST NOT be represented as a DID versionId."
-        },
         "device_projection_attestation": {
           "$ref": "#/$defs/device_projection_attestation",
-          "description": "Origin-Principal-Server signature over this exact row. Every other field above MUST equal the corresponding attested field verbatim; a row whose attestation is missing, whose controller does not project onto principal_server_id, or which disagrees with the row in any covered field MUST NOT be used for E2EE, Signal verification or a KeyPackage claim."
+          "description": "Origin-Principal-Server signature over the authoritative device projection. Consumers read device_signing_key, hpke_key, device_status, device_authorize_event_id and authorized_generation_ref from the verified attestation. A row whose attestation is missing or whose controller does not project onto principal_server_id MUST NOT be used for E2EE, Signal verification or a KeyPackage claim."
         }
       },
       "additionalProperties": false
@@ -441,11 +379,7 @@
       "additionalProperties": false
     },
     "backup_kind": {
-      "type": "string",
-      "enum": [
-        "secret_storage",
-        "mls_history"
-      ]
+      "$ref": "./key-backup-active-series.schema.json#/$defs/backup_kind"
     },
     "backup_metadata": {
       "type": "object",

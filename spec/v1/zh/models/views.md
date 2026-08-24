@@ -326,25 +326,11 @@ View 应通过结构化 query 表达对象范围。
 }
 ```
 
-### 5.3 Strand 上下文查询示例
+### 5.3 Strand 上下文权限裁剪
 
-```json
-{
-  "context_ref": "ak:strand:AVK8GYTWvWfnkNjO2MMRJaNYukVBNiB0s6v8tdxK1nmu",
-  "include": [
-    "relations",
-    "synthesis",
-    "discussion_preview",
-    "activity_events",
-    "audit_events"
-  ],
-  "authorization": {
-    "locked_discussion_policy": "lazy_link"
-  }
-}
-```
-
-Strand context MUST NOT 因为 actor 可读 Strand synthesis 就展开未被有效 access policy 授权的 discussion timeline。
+使用 `query.schema.json#/$defs/query_request_body` 登记的 `context_ref` 查询 Strand 时，projection
+MUST NOT 因为 actor 可读 Strand synthesis 就展开未被有效 access policy 授权的 discussion timeline。
+请求不得携带该 closed schema 未声明的投影或授权控制字段。
 
 ## 6. Board Projection
 

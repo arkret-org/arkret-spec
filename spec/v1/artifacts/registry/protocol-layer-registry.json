@@ -125,6 +125,7 @@
       "ak.agent.sidecar.exchange.control",
       "ak.applet.bridge_error",
       "ak.applet.discovery",
+      "ak.applet.managed_actor.provision",
       "ak.applet.registration",
       "ak.call.create",
       "ak.call.recording.start",

@@ -57,10 +57,10 @@
         "peer_principal_id",
         "consent_scope",
         "state",
+        "updated_at",
         "active_grant_dots",
         "grant_dots",
-        "revoked_dots",
-        "updated_at"
+        "revoked_dots"
       ],
       "properties": {
         "ok": {
@@ -207,15 +207,12 @@
     },
     "consent_request_request_body": {
       "type": "object",
-      "description": "Body for opaque contact/consent request submission. peer_principal_id defaults to the authenticated actor and MUST equal it. Holder existence is deliberately not a precondition visible to the caller.",
+      "description": "Body for opaque contact/consent request submission. The peer principal is the authenticated actor and is never caller-supplied. Holder existence is deliberately not a precondition visible to the caller.",
       "required": [
         "holder_principal_id"
       ],
       "properties": {
         "holder_principal_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "peer_principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "consent_scope": {

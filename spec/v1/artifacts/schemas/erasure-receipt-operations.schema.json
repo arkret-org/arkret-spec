@@ -22,8 +22,7 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     },
     "receipt_id": {
       "type": "string",
@@ -52,7 +51,9 @@
           "properties": {
             "receipt": {
               "not": {
-                "required": ["retained_stub"]
+                "required": [
+                  "retained_stub"
+                ]
               }
             }
           }

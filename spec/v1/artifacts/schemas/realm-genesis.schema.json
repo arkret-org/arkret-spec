@@ -26,7 +26,8 @@
         "collaboration",
         "direct_conversation",
         "principal_control",
-        "managed_agent_control"
+        "managed_agent_control",
+        "applet_managed_control"
       ]
     },
     "genesis_salt": {
@@ -104,7 +105,8 @@
           "purpose": {
             "enum": [
               "principal_control",
-              "managed_agent_control"
+              "managed_agent_control",
+              "applet_managed_control"
             ]
           }
         },
@@ -178,9 +180,34 @@
       "if": {
         "properties": {
           "purpose": {
+            "const": "applet_managed_control"
+          }
+        },
+        "required": [
+          "purpose"
+        ]
+      },
+      "then": {
+        "properties": {
+          "initial_resolution": {
+            "properties": {
+              "full_id": {
+                "$ref": "./common-ids.schema.json#/$defs/applet_managed_actor_full_id"
+              }
+            }
+          }
+        }
+      },
+      "description": "Applet-managed PCR genesis commits exactly the initial resolution already frozen by its accepted provision Event."
+    },
+    {
+      "if": {
+        "properties": {
+          "purpose": {
             "enum": [
               "principal_control",
-              "managed_agent_control"
+              "managed_agent_control",
+              "applet_managed_control"
             ]
           }
         },

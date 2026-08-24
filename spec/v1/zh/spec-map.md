@@ -178,7 +178,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
-| `authz/cba-profiles.md` | CBA 授权集合 profile、并发类别、proof bundle 与提案终态。 |
+| `authz/cba-profiles.md` | CBA 授权集合 profile、并发类别、genesis ingress authority 与 proof bundle；提案有界决议和终态见 `authz/event-auth-state-resolution.md` §7.2。 |
 | `authz/offline-publication.md` | AuthorizationLease、IngressReceipt 与离线发布窗口。 |
 | `authz/constraint-schema.md` | Capability / policy 约束表达式、条件字段和组合语义。 |
 | `authz/resource-selector-grammar.md` | Resource selector 的语法、匹配范围和解析规则。 |

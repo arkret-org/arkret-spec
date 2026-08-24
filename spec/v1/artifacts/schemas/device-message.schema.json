@@ -417,16 +417,13 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "device_id": {
-      "type": "string",
-      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ak:realm:[A-Za-z0-9_-]{44}$"
+      "$ref": "./applet-ghost-operations.schema.json#/$defs/realm_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

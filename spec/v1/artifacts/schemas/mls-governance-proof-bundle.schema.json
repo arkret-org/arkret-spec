@@ -100,7 +100,7 @@
     },
     "typed_proof_material": {
       "type": "object",
-      "required": ["seal_descriptors", "seal_predecessor_edges", "event_ids"],
+      "required": ["seal_descriptors", "event_ids", "seal_predecessor_edges"],
       "properties": {
         "seal_descriptors": {
           "type": "array",

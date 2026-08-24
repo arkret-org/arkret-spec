@@ -471,7 +471,7 @@ def build_case(
                     name in removed_members
                     or name == carrier
                     or name in PROOF_SIDE_FIELDS
-                    or name in SELF_DIGEST_FIELDS
+                    or name == digest_field
                 ):
                     continue
                 body[name] = body_value(name, properties.get(name), index, schema_file)
@@ -480,6 +480,28 @@ def build_case(
                 if name in PROOF_SIDE_FIELDS or name in SELF_DIGEST_FIELDS or name in body:
                     continue
                 body[name] = body_value(name, properties.get(name), index, schema_file)
+
+    if family == "ingress_receipt":
+        body.update(
+            {
+                "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
+                "event_digest": "sha256:" + "14" * 32,
+                "authorization_lease_id": (
+                    "ak:authorization_lease:019c0000-0000-7000-8000-000000000014"
+                ),
+                "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
+                "received_at": "2026-05-02T00:00:00.000Z",
+                "ingress_basis": "ak:seal:sha256:" + "15" * 32,
+                "ingress_frontier": [
+                    "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                ],
+                "service_id": "ak:did_core:webvh:z6mkfixture:ingress.example",
+                "authority_set_ref": {
+                    "authority_set_id": "ak.authority_set.realm_admission.v1",
+                    "authority_set_digest": "sha256:" + "16" * 32,
+                },
+            }
+        )
 
     case: dict[str, Any] = {
         "vector_id": f"ak.vector.proof_context.transcript.{family}.v1",

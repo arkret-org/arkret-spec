@@ -8,18 +8,64 @@
   },
   "schema_validation_cases": [
     {
+      "name": "minimal_metadata_pairwise_keypackage_upload_valid",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body",
+      "expect_valid": true,
+      "instance": {
+        "principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "keypackages": [{
+          "keypackage_id": "pairwise-kp-1",
+          "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "keypackage": "AQID",
+          "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
+          "capabilities": ["ak.content.v1"],
+          "expires_at": "2026-08-24T01:00:00.000Z",
+          "created_at": "2026-08-24T00:00:00.000Z"
+        }],
+        "endpoint_signature": {
+          "kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+          "signature_algorithm": "Ed25519",
+          "sig": "AA"
+        }
+      }
+    },
+    {
+      "name": "minimal_metadata_pairwise_upload_rejects_device_mixture",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body",
+      "expect_valid": false,
+      "first_expected_error": "contains:not valid under any of the given schemas",
+      "instance": {
+        "principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+        "pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "keypackages": [{
+          "keypackage_id": "pairwise-kp-1",
+          "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "keypackage": "AQID",
+          "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
+          "capabilities": ["ak.content.v1"],
+          "expires_at": "2026-08-24T01:00:00.000Z",
+          "created_at": "2026-08-24T00:00:00.000Z"
+        }],
+        "endpoint_signature": {"kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE", "sig": "AA"}
+      }
+    },
+    {
       "name": "local_and_remote_claim_share_closed_authorization_carrier",
       "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
       "expect_valid": true,
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+        "target_device_ids": ["ak:device:0196419b-0000-7000-8000-000000000002"],
         "requester": "ak:did_core:webvh:z6mkfixture",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
         "required_capabilities": ["mls"],
-        "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
         "expires_at": "2026-07-31T00:05:00.000Z",
         "service_binding": {
           "source_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
@@ -43,12 +89,12 @@
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+        "target_device_ids": ["ak:device:0196419b-0000-7000-8000-000000000002"],
         "requester": "ak:did_core:webvh:z6mkfixture",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
         "required_capabilities": ["mls"],
-        "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
         "expires_at": "2026-07-31T00:05:00.000Z",
         "requester_authorization": {
           "kind": "device",
@@ -58,6 +104,112 @@
           "signed_at": "2026-07-31T00:00:00.000Z",
           "signature": {"kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001", "sig": "AA"}
         }
+      }
+    },
+    {
+      "name": "minimal_metadata_pairwise_claim_selects_exact_target_authority",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "expect_valid": true,
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAg",
+        "target_principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "requester": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "mls_group_id": "fixture-group",
+        "claim_purpose": "realm_membership",
+        "required_capabilities": ["mls"],
+        "expires_at": "2026-08-24T00:05:00.000Z",
+        "target_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "service_binding": {
+          "source_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "destination_service_id": "ak:did_core:webvh:z6mkfixturepsexample"
+        },
+        "requester_authorization": {
+          "kind": "minimal_metadata_pairwise",
+          "verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+          "signed_at": "2026-08-24T00:00:00.000Z",
+          "signature": {"kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE", "signature_algorithm": "Ed25519", "sig": "AA"}
+        }
+      }
+    },
+    {
+      "name": "minimal_metadata_pairwise_claim_record_has_reconstructible_facts_only",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_claim_record",
+      "expect_valid": true,
+      "instance": {
+        "claim_id": "pairwise-claim-1",
+        "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "keypackage": "AQID",
+        "capabilities": ["mls"],
+        "expires_at": "2026-08-24T00:05:00.000Z"
+      }
+    },
+    {
+      "name": "claim_record_rejects_unreconstructible_upload_signature_echo",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_claim_record",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "instance": {
+        "claim_id": "pairwise-claim-1",
+        "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "keypackage": "AQID",
+        "capabilities": ["mls"],
+        "expires_at": "2026-08-24T00:05:00.000Z",
+        "endpoint_signature": {"kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE", "sig": "AA"}
+      }
+    },
+    {
+      "name": "minimal_metadata_pairwise_consume_single_claim_valid",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
+      "expect_valid": true,
+      "instance": {
+        "claim_id": "pairwise-claim-1",
+        "recipient_durable_receipt": {
+          "domain": "ak.mls.recipient_durable_receipt.v1",
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAg",
+          "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "recipient_principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+          "recipient_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+          "recipient_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "mls_group_id": "fixture-group",
+          "mls_epoch": 1,
+          "welcome_ref": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+          "welcome_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "durable_at": "2026-08-24T00:01:00.000Z",
+          "signature": {"kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE", "signature_algorithm": "Ed25519", "sig": "AA"}
+        },
+        "signature": {"kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE", "signature_algorithm": "Ed25519", "sig": "AA"}
+      }
+    },
+    {
+      "name": "minimal_metadata_pairwise_consume_rejects_device_mixture",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "instance": {
+        "consumer_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+        "claim_id": "pairwise-claim-1",
+        "recipient_durable_receipt": {
+          "domain": "ak.mls.recipient_durable_receipt.v1",
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAg",
+          "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "recipient_principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+          "recipient_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+          "recipient_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "mls_group_id": "fixture-group",
+          "mls_epoch": 1,
+          "welcome_ref": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+          "welcome_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "durable_at": "2026-08-24T00:01:00.000Z",
+          "signature": {"kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE", "signature_algorithm": "Ed25519", "sig": "AA"}
+        },
+        "signature": {"kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE", "signature_algorithm": "Ed25519", "sig": "AA"}
       }
     }
   ],
@@ -69,6 +221,7 @@
     "ak.vector.keypackage.peer_claim_atomic_idempotency.v1",
     "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
     "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
+    "ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1",
     "ak.vector.mls.welcome_keypackage_hash.v1"
   ],
   "cases": [
@@ -223,7 +376,8 @@
         "command_commits_but_response_is_lost",
         "query_original_claim_request_id_and_digest",
         "duplicate_transport_delivery_of_the_original_command",
-        "reuse_claim_request_id_with_conflicting_digest"
+        "reuse_claim_request_id_with_conflicting_digest",
+        "new_attempt_uses_new_claim_request_id"
       ],
       "expected": {
         "published_to_claimed_cas_count": 1,
@@ -235,10 +389,12 @@
       },
       "assertions": [
         "claim ledger uniqueness is scoped by source_service_id and claim_request_id",
+        "claim_envelope.nonce is byte-identical to claim_request_id and no second claim random value exists",
         "claim CAS, target portable evidence and the serialized success outcome commit at one linearization boundary",
         "an uncertain caller queries the original request instead of issuing a fresh claim",
         "same request id with another canonical digest cannot mutate KeyPackage state",
-        "exact replay and query return byte-identical target evidence rather than regenerating it against a later authority snapshot"
+        "exact replay and query return byte-identical target evidence rather than regenerating it against a later authority snapshot",
+        "a genuinely new claim attempt uses a newly generated claim_request_id"
       ]
     },
     {
@@ -260,7 +416,6 @@
         "required_capabilities": [
           "mls"
         ],
-        "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
         "expires_at": "2026-07-31T00:05:00.000Z"
       },
       "service_binding": {
@@ -281,7 +436,7 @@
         "authorization_branch_mismatch",
         "service_destination_mismatch",
         "stale_or_future_signed_at",
-        "short_claim_nonce",
+        "short_claim_request_id",
         "unaccepted_or_fenced_device_signer",
         "revoked_requester_device",
         "bearer_token_without_sender_constraint",
@@ -300,7 +455,7 @@
         "the authorization signer is the requester's accepted current-generation device method",
         "the device authorization Event and model generation are replay-verified before accepting the authorization",
         "participant authorization is independent of sender-constrained service transport authentication and target policy",
-        "claim CAS, nonce ledger and serialized outcome commit at one linearization boundary",
+        "claim CAS, claim_request_id ledger and serialized outcome commit at one linearization boundary",
         "same identity and digest replay returns the original outcome without selecting another package",
         "conflicting identity reuse fails before target inventory lookup"
       ]
@@ -357,13 +512,24 @@
       ]
     },
     {
+      "name": "minimal_metadata_pairwise_full_lifecycle",
+      "vector_id": "ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1",
+      "kind": "closed_pairwise_publish_claim_welcome_consume",
+      "assertions": [
+        "pairwise upload binds one did:key actor and verification method to a Realm-local RFC 9420 BasicCredential and LeafNode signature key",
+        "pairwise claim uses an exact target endpoint selector and a separately signed requester authorization without creating an Account or Device",
+        "Welcome claim_ref, recipient endpoint, durable receipt and current Realm delivery affinity remain one exact pairwise authority",
+        "consume derives all authority and coordinates from the required durable receipt and rejects Device or Native Agent branch mixtures"
+      ]
+    },
+    {
       "name": "welcome_keypackage_hash",
       "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
       "kind": "welcome_keypackage_digest_binding",
       "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-      "keypackage_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "keypackage_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
       "mismatched_keypackage_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "capabilities_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "capabilities_digest": "sha256:1dddd1c146153efd457143a70e15d7120851a13a38e0e5ba49ffcdf01eeee531",
       "claim_id": "mls-keypackage-claim-normal-1",
       "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "requester_actor_id": "ak:did_core:webvh:z6mkfixture",
@@ -371,7 +537,7 @@
       "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
       "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
       "model_generation_ref": 1,
-      "claim_nonce": "claim-nonce-01",
+      "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
       "welcome_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "expected": {
         "reject_before_decrypt": true,
@@ -379,9 +545,8 @@
         "all_digest_fields_equal": true
       },
       "assertions": [
-        "Welcome keypackage_digest must match the claim record digest",
-        "Welcome claim_ref.keypackage_digest must match the same claim record digest",
-        "published ak.mls.keypackage payload digest participates in the same equality check",
+        "Welcome claim_ref.keypackage_digest must match the digest recomputed from the claimed KeyPackage bytes",
+        "published ak.mls.keypackage payload digest participates in the same recomputed equality check",
         "the claim signer is an accepted current-generation requester device",
         "a mismatch is rejected before decrypting or accepting the Welcome"
       ]

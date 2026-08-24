@@ -198,16 +198,16 @@ Account subscribe `delta` frame 包含以下 stream：
 
 ### 3.1 Account notification delta（normative）
 
-顶层 `notifications` 的 wire 形态固定为 `{items: NotificationDelta[]}`，不再复用 `{events: EventEnvelope[]}`。`NotificationDelta` 是闭合对象 `{id, notification_kind, action, data?}`：`id` 为 `ak:notification:*`，`notification_kind="agent"`，`action` 只能为 `add | update | remove`。当前 v1 数据分支只登记 `data.kind="agent_runtime_approval"`：
+顶层 `notifications` 的 wire 形态固定为 `{items: NotificationDelta[]}`，不再复用 `{events: EventEnvelope[]}`。`NotificationDelta` 是闭合对象 `{id, notification_kind, action, data?}`：`id` 为 `ak:notification:*`，`notification_kind="agent"`，`action` 只能为 `upsert | remove`。当前 v1 数据分支只登记 `data.kind="agent_runtime_approval"`：
 
-- `add` / `update` 的 `data` MUST 含 `approval_request_id`、`agent_id`、`requested_at`、`expires_at`，并且不得含 pairing code、runtime public key、PoP、attestation、display name 或 slug。客户端必须在显示和审批前通过认证的 `ak.self.agent.resource.get` 读取当前完整投影。
+- `upsert` 的 `data` MUST 含 `approval_request_id`、`agent_id`、`requested_at`、`expires_at`，并且不得含 pairing code、runtime public key、PoP、attestation、display name 或 slug。客户端必须在显示和审批前通过认证的 `ak.self.agent.resource.get` 读取当前完整投影。
 - `remove` 的 `data` MAY 省略；若存在，必须是闭合 `{kind="agent_runtime_approval", reason}`，其中 `reason` 只能为 `approved | expired | renewed | deactivated | superseded`。
-- 客户端 projector MUST 按 `add=插入`、`update=按同 id 完整替换`、`remove=删除` 应用 delta；把所有 action 都当 insert 的实现不得声明支持该 notification delta。
-- `add` / `update` 后，客户端 MUST 重读 Agent，要求当前 `approval_request_id` 相同、`key_state.pairing_request_id` / `pairing_mode` / `pairing_expires_at` 共同表明 pairing 仍 open 且未过期，并要求通用 `agent.readiness.blockers` 含 `pairing_open`；`pairing_mode=bootstrap` 时还必须含 `runtime_key_missing`，`replacement` 时必须存在 active authorization 且显示 runtime key replacement 警告。通用 view/key_state 不含 `runtime_state`；该字段只在 runtime pairing poll 响应出现。lifecycle 意图与 open handle 不互锁，pause / resume 不被 replacement 阻塞。服务端在 handle consumed 或过期后 MUST 原子清除上述 open-handle 投影（以及 `pairing_code`）并重算 readiness。审批前 MUST 再次读取或依赖服务端 current-request CAS。匹配 `remove` 必须关闭 prompt并清除本地缓存。Local dismiss 只影响当前设备 UI，不写 durable dismissed state。
+- 客户端 projector MUST 按 `upsert=按同 id 插入或完整替换`、`remove=删除` 应用 delta；把所有 action 都当 insert 的实现不得声明支持该 notification delta。
+- `upsert` 后，客户端 MUST 重读 Agent，要求当前 `approval_request_id` 相同、`key_state.pairing_request_id` / `pairing_mode` / `pairing_expires_at` 共同表明 pairing 仍 open 且未过期，并要求通用 `agent.readiness.blockers` 含 `pairing_open`；`pairing_mode=bootstrap` 时还必须含 `runtime_key_missing`，`replacement` 时必须存在 active authorization 且显示 runtime key replacement 警告。通用 view/key_state 不含 `runtime_state`；该字段只在 runtime pairing poll 响应出现。lifecycle 意图与 open handle 不互锁，pause / resume 不被 replacement 阻塞。服务端在 handle consumed 或过期后 MUST 原子清除上述 open-handle 投影（以及 `pairing_code`）并重算 readiness。审批前 MUST 再次读取或依赖服务端 current-request CAS。匹配 `remove` 必须关闭 prompt并清除本地缓存。Local dismiss 只影响当前设备 UI，不写 durable dismissed state。
 
 Notification 是 account-private projection，不是 Realm Event。服务端必须从认证的 provision/session 上下文派生 `controller_account_id` 与 `recipient_service_id`，调用方不得提交它们；selection 必须同时绑定 account context、principal 与 service。若同一服务允许一个 principal 绑定多个本地 account，session 与 cursor 也 MUST 绑定本地 account id，仅按 DID 过滤不充分。该 notification 没有 `realm_id`，不得经过 `realm_id_accessible`。
 
-每次 add/update/remove 都 MUST 在持久化事务中分配严格单调的 notification projection position；不得用可改写的 `created_at` 加 id 拼 position。Opaque account cursor 内部保存其 high-water。Initial sync 必须把当前 account context 下全部仍 open 的 `agent_runtime_approval` 作为 `add` baseline 返回；该子集是完整集合，客户端应用前必须删除同一 account context 本地缓存中 baseline 未出现的 open approval。Incremental sync 只返回 cursor position 之后的变化；终止 tombstone 至少保留到 account cursor 最大生命周期加安全窗口。
+每次 upsert/remove 都 MUST 在持久化事务中分配严格单调的 notification projection position；不得用可改写的 `created_at` 加 id 拼 position。Opaque account cursor 内部保存其 high-water。Initial sync 必须把当前 account context 下全部仍 open 的 `agent_runtime_approval` 作为 `upsert` baseline 返回；该子集是完整集合，客户端应用前必须删除同一 account context 本地缓存中 baseline 未出现的 open approval。Incremental sync 只返回 cursor position 之后的变化；终止 tombstone 至少保留到 account cursor 最大生命周期加安全窗口。
 
 服务端提交 projection 事务后 MAY 发 account-context-scoped 内存 wakeup 以降低长轮询延迟。持久 projection 与 cursor 是权威；丢失 wakeup 后，有界 long poll 超时或重连必须仍可从 durable position 恢复，不要求仅为 wakeup 建 durable outbox。Push provider 只能收到现有 blind wakeup，notification body、Agent DID 和 approval id 均不得进入 provider-visible payload。
 
@@ -454,7 +454,7 @@ event_id ASC
 | `handle_claim_digests` | hash array | MAY | 当前对调用方可见且可用于该 Realm context 的 effective handle claims 的 canonical digest 集合。每个 digest 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 的 `claim_digest(c)` 定义计算。该字段是跨上下文稳定标识，MUST NOT 在 `subject_id` 未披露时返回。 |
 | `handle_claims` | handle claim array | MAY | 可选内联的完整 `ak.schema.handle_claim.v1` objects。它们是当前 handle 授权 evidence，不是 roster 自己生成的 display 字段。该字段 MUST NOT 在 `subject_id` 未披露时返回；若返回，每个 claim 的 `subject` MUST 等于 `subject_id`。服务端 MAY 因隐私、体积或 freshness 省略，客户端可用 `subject_id` 调 `ak.find.directory.read.list_handles_for_subject` 补拉。 |
 | `handle_claims_limited` | boolean | MAY | `true` 表示 `handle_claims[]` 被截断或仅含 digest hints；客户端 MUST NOT 把缺失 claim 解释为该 subject 没有 handle。该字段只在 `subject_id` 已披露且 handle claim set 对调用方可见时返回。 |
-| `member_display_state_digest` | hash | MAY | `sha256` over RFC 8785 JCS canonical JSON：`{realm_id, actor_id, effective_events:[{event_id, segment, payload_digest}], handle_claims:[{claim_digest,binding_state,expires_at}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序，`handle_claims` 按 `(claim_digest)` 排序。用于 roster display cache 失效和重复响应去重；不同于 `ak.member.identity.update` 事件内的 `identity_payload_digest`。 |
+| `member_display_state_digest` | hash | MAY | `sha256` over RFC 8785 JCS canonical JSON：`{realm_id, actor_id, effective_events:[{event_id, segment, payload_digest}], handle_claims:[{claim_digest,binding_state,expires_at}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序，`handle_claims` 按 `(claim_digest)` 排序。用于 roster display cache 失效和重复响应去重；不同于本地从 `ak.member.identity.update.payload.identity_payload` 推导的 carrier digest。 |
 | `identity_events` | Event array | MAY | 可选内联的原始 `ak.member.identity.update` Event envelope。服务端不得把它改写成查询时合成 payload。该字段可能明文或可解密地披露同一 member `subject_id`，因此 `subject_id` 未披露时 MUST 省略。 |
 
 `handle_claim_digests[]` 是跨上下文稳定的 claim identifier；完整 `handle_claims[]` 又直接携带 claim `subject`，`identity_events[]` 也可能披露 `MemberIdentity.subject_id`。因此，当 `subject_id` 因 Realm disclosure policy 未披露时，服务端 MUST 同时省略 `identity_events`、`handle_claim_digests`、`handle_claims` 和 `handle_claims_limited`，不得把 digest hint 或原始 identity event 当作隐私安全的替代披露。返回完整 `handle_claims[]` 时，服务端 MUST 确保每个 claim 的 `subject` 等于同一 roster entry 的 `subject_id`；不匹配的 claim MUST 被丢弃或导致该 roster entry 失败 closed。
@@ -485,7 +485,6 @@ event_id ASC
       "ciphertext": "base64url"
     }
   },
-  "identity_payload_digest": "sha256:...",
   "expected_state_digest": "sha256:..."
 }
 ```
@@ -498,8 +497,8 @@ event_id ASC
 - `replaces[]` 引用未知 event、其它 `(realm_id, actor_id, segment)` 的 event，或 digest 不匹配时，该 replacement edge 无效；实现 MUST NOT 因此把被引用 event 从 effective set 移除。
 - 当前 effective set 是候选集中未被有效 replacement edge 指向的事件集合。成员身份查询 / roster hint SHOULD 只返回这个 effective set；历史 backfill / audit 查询 MAY 返回已被替代的旧事件。
 - effective set MAY 因并发写入或 replacement 冲突包含多个未被替代的事件。查询层 MUST 原样暴露该多值状态，MUST NOT 按本地排序、到达顺序或 last-writer-wins 规则静默收敛为单一 MemberIdentity。需要单一 MemberIdentity 的显示路径（例如 mention renderer）MUST 按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) 处理：不唯一即 Realm-scoped projection 路径失败，进入 live / as-of resolve 或 fallback。
-- `identity_payload_digest` 是当前事件 `payload.identity_payload` carrier wrapper 的 digest，只用于 payload cache / 去重，不代表当前 effective set。
-- `expected_state_digest` 是可选 optimistic concurrency guard。若存在，它 MUST 等于 writer 观察到的同一 `(realm_id, actor_id, segment)` 当前 effective set digest：`sha256` over RFC 8785 JCS canonical JSON `{realm_id, actor_id, segment, effective_events:[{event_id, segment, payload_digest}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序。不匹配时服务端 / reducer MUST reject 或 quarantine，不得把该事件作为有效 replacement 应用。它不同于 `identity_payload_digest`，也不同于 roster 的 `member_display_state_digest`。
+- 当前事件 `payload.identity_payload` carrier wrapper 的 digest 由消费者从本体本地推导，只用于 payload cache / replacement edge 校验，不在 wire 上重复。
+- `expected_state_digest` 是可选 optimistic concurrency guard。若存在，它 MUST 等于 writer 观察到的同一 `(realm_id, actor_id, segment)` 当前 effective set digest：`sha256` over RFC 8785 JCS canonical JSON `{realm_id, actor_id, segment, effective_events:[{event_id, segment, payload_digest}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序。不匹配时服务端 / reducer MUST reject 或 quarantine，不得把该事件作为有效 replacement 应用。它不同于本地 carrier digest，也不同于 roster 的 `member_display_state_digest`。
 
 MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `encrypted_payload.ciphertext` 解密结果）：
 
@@ -721,7 +720,7 @@ cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-bind
 1. 客户端 MUST 清空本地 cursor 缓存（含该流的 `after=` 高水位）；**MUST NOT** 把已失效的旧 cursor 复用为任何 `after=` / `before=` 起点或 backfill 续传位置。`filter_digest`、未确认写入和最后可验证 frontier 可保留用于 backfill 停止判定，但 frontier 不得当作 cursor 使用。
 2. 客户端从下列两条合法新起点二选一，二者都不复用旧 cursor：
    - **(A) 重做 initial sync**：无 `after` 重新建立 `ak.self.account.stream.subscribe?catchup=true`（`after=` 缺省 + `catchup=true`），由服务端发 baseline `delta` 重新签发新 cursor。
-   - **(B) snapshot 加速 bootstrap**：调用 `ak.self.snapshot.read.manifest_head` 取 `ak.schema.snapshot.v1` manifest，MUST 先验证签名、签名者授权、`state_digest`、`frontier`、`event_set_commitment` 和每个 chunk digest（[`service-http-binding.md` §6.1](./service-http-binding.md)、§13）。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ak.self.events.read.scan` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到 `frontier.event_ids` 中每一个 head 都已在本地命中，且窗口内所有已拉事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内；在此之前 timeline MUST 保持 `limited` / provisional，不得声称历史完整。账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
+   - **(B) snapshot 加速 bootstrap**：调用 `ak.self.snapshot.read.manifest_head` 取 `ak.schema.snapshot.v1` manifest，MUST 先完成 [`snapshot-schema.md` §5](../conformance/snapshot-schema.md) 的唯一通用校验清单。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ak.self.events.read.scan` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到 `frontier.event_ids` 中每一个 head 都已在本地命中，且窗口内所有已拉事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内；在此之前 timeline MUST 保持 `limited` / provisional，不得声称历史完整。账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
 3. 若 snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.snapshot.read.manifest_head`，客户端 MUST 回退到 (A) 的 initial sync 或纯 Event history replay，**不得**把未验证 snapshot 作为 accepted state，也不得退回复用旧 cursor。
 
 #### 12.3.2 `frontier_stale`（旧 cursor 仍有效，可继续 backfill）
@@ -752,14 +751,14 @@ Accept: application/x-ndjson
 - 返回 device list delta 的完整 baseline。
 
 此外，baseline `delta` MUST 把当前 account context 下全部仍 open 的
-`agent_runtime_approval` notification 作为 `action=add` 的权威完整集合返回；即使其它
+`agent_runtime_approval` notification 作为 `action=upsert` 的权威完整集合返回；即使其它
 notification 历史受限也不得截断该子集。
 
-对当前 membership 为 `join` 且 `encryption_profile=mls_rfc9420` 的 Realm，baseline 还 MUST 提供可验证的**当前安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则提供同一 frontier 下可验证的缺省/空值证明），以及足以验证当前 membership / MLS governance frontier 的 state/proof material；这些材料可直接位于 `state.events`，或由已验证 snapshot + 可 backfill refs 等价提供。`history_access` 只裁剪 data-plane timeline 和调用者无权读取的历史正文，不得裁掉客户端验证当前写入、选择 `content_scheme`、处理 Welcome 或判断 `epoch_update_required` 所必需的当前 control/security state。该义务不要求泄露 join 前旧 policy revisions 或其它不可见历史；只要求当前 effective singleton/control evidence。客户端在基线完整前 MUST 保持 `encryption_policy_pending` / `encryption_transition_pending`，不得把字段缺失解释为 policy 缺省或 membership 未发生变化。
+对当前 membership 为 `join` 的每个可写 Realm，baseline 还 MUST 提供可验证的**当前对象/安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则提供同一 frontier 下可验证的缺省/空值证明）、验证当前 read/write capability 所需的 current governance closure、Realm 当前 `default_strand_id`，以及该指针所指 non-tombstoned Strand 的最小当前投影。MLS-backed Realm 还必须提供足以验证 current membership / MLS governance frontier、选择 `content_scheme`、处理 Welcome 与判断 `epoch_update_required` 的 state/proof material。上述材料可直接位于 `state.events`，或由已验证 snapshot + current-state proof / 可 backfill refs 等价提供。`history_access` 只裁剪 data-plane timeline、旧 object revisions 和调用者无权读取的历史正文，不得裁掉上述 current baseline；即使建立当前值的 Event 位于 `since_join` frontier 之前也相同。该义务不泄露 join 前 Message、旧 policy/metadata revisions 或历史密钥。客户端在基线完整且 Realm pointer 与 Strand `is_default` 的同-frontier 一致性验证通过前 MUST 保持 `governance_baseline_pending`（MLS Realm 另保持 `encryption_policy_pending` / `encryption_transition_pending`），不得把字段缺失解释为 policy 缺省、membership 未变化或 default Strand 未设置。
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 
-大型 Realm 的当前态 MAY 在 initial sync 中通过 snapshot bootstrap 加速：客户端先调用 `ak.self.snapshot.read.manifest_head` 获取 `ak.schema.snapshot.v1` manifest，完成签名、authority binding、`event_set_commitment`、`state_digest` 与 chunk digest 校验后，把 snapshot frontier 作为该 Realm 的恢复起点；随后仍 MUST 从该 frontier 之后继续执行 `ak.self.events.read.scan` / backfill，直至账号 baseline 与 Realm event stream 收敛。snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.snapshot.read.manifest_head` 时，客户端 MUST 回退到原始 Event history replay，不得把未验证 snapshot 作为 accepted state。
+大型 Realm 的当前态 MAY 在 initial sync 中通过 snapshot bootstrap 加速：客户端先调用 `ak.self.snapshot.read.manifest_head` 获取 `ak.schema.snapshot.v1` manifest，完成 [`snapshot-schema.md` §5](../conformance/snapshot-schema.md) 的唯一通用校验清单后，把 snapshot frontier 作为该 Realm 的恢复起点；随后仍 MUST 从该 frontier 之后继续执行 `ak.self.events.read.scan` / backfill，直至账号 baseline 与 Realm event stream 收敛。snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.snapshot.read.manifest_head` 时，客户端 MUST 回退到原始 Event history replay，不得把未验证 snapshot 作为 accepted state。
 
 ## 14. E2EE Requirements
 

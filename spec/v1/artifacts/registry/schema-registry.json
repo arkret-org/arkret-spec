@@ -908,6 +908,23 @@
       "description": "Controller-signed package used by ak.self.applet.command.install preview/commit to derive ak.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
     },
     {
+      "schema_id": "ak.schema.applet_managed_actor_provision.v1",
+      "file": "schemas/applet-managed-actor.schema.json",
+      "status": "active",
+      "description": "Immutable service-authored Bot/Ghost creation authority cross-bound to an applet_managed_control PCR genesis.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.applet.managed_actor.provision",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_registration_epoch_evidence.v1",
+      "file": "schemas/applet-registration-epoch-evidence.schema.json",
+      "status": "active",
+      "description": "Closed install-time service DID document, method-version and accepted signing-key snapshot carried only by the caller-signed Applet registration Event manifest."
+    },
+    {
       "schema_id": "ak.schema.applet_registration_epoch_transcript.v1",
       "file": "schemas/applet-registration-epoch-transcript.schema.json",
       "status": "active",
@@ -928,7 +945,13 @@
       "schema_id": "ak.schema.applet_install_plan.v1",
       "file": "schemas/applet-install-plan.schema.json",
       "status": "active",
-      "description": "Canonical Applet InstallPlan returned by ak.self.applet.install.command.preview and recomputed by ak.self.applet.command.install before commit. plan_digest is calculated over this object with plan_digest omitted."
+      "description": "Canonical Applet InstallPlan nested in the Principal Server-signed authoring request and recomputed by install commit before admission. plan_digest is calculated over this object with plan_digest omitted."
+    },
+    {
+      "schema_id": "ak.schema.applet_install_authoring.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "status": "active",
+      "description": "Closed Principal Server preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
     },
     {
       "schema_id": "ak.schema.applet_install_operations.v1",

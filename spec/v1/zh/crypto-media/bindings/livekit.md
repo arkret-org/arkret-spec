@@ -104,18 +104,9 @@ LiveKit Cloud SFU mesh 是 backend-internal 概念；Arkret 通过 `foci[].casca
 
 ## 10. Conformance Vectors
 
-实现声明 `ak.profile.media_service_binding.livekit.v1` 时，至少通过 [`../../../zh/conformance/conformance-vectors.md`](../../../zh/conformance/conformance-vectors.md) 中的：
-
-- `ak.vector.media_binding.focus_selection_oldest_membership.v1`
-- `ak.vector.media_binding.session_focus_no_split_brain.v1`
-- `ak.vector.media_binding.token_exchange_minimal.v1`
-- `ak.vector.media_binding.token_issuer_unauthorised.v1`
-- `ak.vector.media_binding.participant_binding_required.v1`
-- `ak.vector.media_binding.unknown_type_fail_closed.v1`
-- `ak.vector.media_binding.e2ee_key_source.v1`
-- `ak.vector.media_binding.participant_identity_unrecognised.v1`
-- `ak.vector.media_binding.recording_artifact_via_arkret_blob.v1`
-- `ak.vector.media_binding.recording_exporter_label.v1`
+实现声明 `ak.profile.media_service_binding.livekit.v1` 时，适用的 active normative vector 集合与数量以
+[`vector-registry.json`](../../../artifacts/registry/vector-registry.json) 中 active 的
+`ak.vector.media_binding.*` profile 登记为唯一权威，本节不复述清单或计数。
 
 LiveKit-specific vectors (JWT claim shape conformance、SFrame key injection cross-check) 在 v1 cycle 内非 normative；录制 exporter label 已由 `ak.vector.media_binding.recording_exporter_label.v1` 固定，任何 label/context 变更都必须开新 profile。
 

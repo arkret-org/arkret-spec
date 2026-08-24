@@ -6,17 +6,13 @@
   "$ref": "#/$defs/public_key",
   "$defs": {
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "base64url": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$",
-      "minLength": 1
+      "$ref": "./agent-operations.schema.json#/$defs/base64url"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     },
     "public_key": {
       "type": "object",

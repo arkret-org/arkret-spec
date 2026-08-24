@@ -78,12 +78,10 @@
       "description": "Authoritative limit is 16 KiB of valid UTF-8, enforced after decryption by a byte validator. maxLength is a not-wider code-point fast bound. LF, CR and TAB are allowed; other C0 controls and DEL are forbidden."
     },
     "message_id": {
-      "type": "string",
-      "pattern": "^ak:message:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/message_id"
     },
     "strand_id": {
-      "type": "string",
-      "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+      "$ref": "./agent-operations.schema.json#/$defs/strand_id"
     },
     "keyframe": {
       "allOf": [

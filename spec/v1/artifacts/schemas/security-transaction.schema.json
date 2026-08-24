@@ -221,8 +221,7 @@
       "description": "Evidence accepted at one position in the kind-specific fixed step order. The position, not a duplicated label, determines the step kind."
     },
     "backup_id": {
-      "type": "string",
-      "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./agent-operations.schema.json#/$defs/backup_id"
     },
     "backup_object_ref": {
       "type": "object",
@@ -309,8 +308,7 @@
       "additionalProperties": false
     },
     "backup_series_id": {
-      "type": "string",
-      "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./agent-operations.schema.json#/$defs/backup_series_id"
     },
     "client_step_attestation": {
       "type": "object",
@@ -509,16 +507,13 @@
       ]
     },
     "pcr_generation_ref": {
-      "type": "integer",
-      "minimum": 1
+      "$ref": "./recovery-authority.schema.json#/$defs/pcr_generation_ref"
     },
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "prepared_event_unit": {
       "type": "object",
@@ -539,8 +534,7 @@
       "additionalProperties": false
     },
     "receipt_id": {
-      "type": "string",
-      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./erasure-receipt-operations.schema.json#/$defs/receipt_id"
     },
     "recovery_create_request": {
       "type": "object",
@@ -572,8 +566,7 @@
       "additionalProperties": false
     },
     "recovery_session_id": {
-      "type": "string",
-      "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./key-backup-unlock-proof.schema.json#/$defs/recovery_session_id"
     },
     "pcr_policy_accepted_steps": {
       "type": "array",
@@ -942,8 +935,7 @@
       ]
     },
     "transaction_id": {
-      "type": "string",
-      "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./recovery-authority.schema.json#/$defs/transaction_id"
     }
   }
 }

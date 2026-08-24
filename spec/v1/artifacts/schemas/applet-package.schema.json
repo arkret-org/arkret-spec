@@ -41,14 +41,7 @@
       "description": "Distribution identifier only. Not a grant subject."
     },
     "applet_id": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/did_core_id"
-        },
-        {
-          "$ref": "#/$defs/applet_id"
-        }
-      ]
+      "$ref": "#/$defs/applet_id"
     },
     "service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -135,23 +128,20 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "applet_id": {
-      "type": "string",
-      "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
     "profile_id": {
       "type": "string",
       "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "non_empty_string_array": {
       "type": "array",
@@ -207,8 +197,7 @@
       "additionalProperties": false
     },
     "did_url": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      "$ref": "./account-operations.schema.json#/$defs/did_url"
     },
     "http_message_signature_algorithm": {
       "type": "string",
@@ -272,9 +261,9 @@
     "webhook_auth": {
       "description": "HTTP message signature verification policy for transaction push. key_ref is the Applet service DID URL used to verify the app/bridge->arkret inbound HTTP message signature. Verifiers MUST take its bare controller full_id, validate it with the registered method adapter, and require project(full_id) to equal service_id (did_core_id); direct full-DID/core-id string comparison is forbidden. The key is bound to the effective registration_epoch. accepted_signature_algorithms pins the acceptable RFC 9421 signature algorithms.",
       "required": [
-        "kind",
         "key_ref",
-        "accepted_signature_algorithms"
+        "accepted_signature_algorithms",
+        "kind"
       ],
       "properties": {
         "key_ref": {
@@ -444,9 +433,6 @@
       "$ref": "./applet-widget-declaration.schema.json",
       "description": "Optional Applet widget declaration. When present, it MUST validate ak.schema.applet_widget_declaration.v1."
     }
-  },
-  "patternProperties": {
-    "^x_[a-z][a-z0-9_]{0,63}$": true
   },
   "additionalProperties": false
 }

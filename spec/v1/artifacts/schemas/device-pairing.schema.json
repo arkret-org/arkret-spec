@@ -28,13 +28,10 @@
   ],
   "$defs": {
     "non_empty_string": {
-      "type": "string",
-      "minLength": 1
+      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
     "base64url": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$",
-      "minLength": 1
+      "$ref": "./agent-operations.schema.json#/$defs/base64url"
     },
     "algorithm_list": {
       "type": "array",
@@ -49,8 +46,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
     },
     "pairing_nonce": {
       "type": "string",
@@ -187,12 +183,10 @@
       "$ref": "./agent-operations.schema.json#/$defs/device_pairing_code"
     },
     "device_id": {
-      "type": "string",
-      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
     "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "public_key": {
       "$ref": "./public-key.schema.json#/$defs/public_key",

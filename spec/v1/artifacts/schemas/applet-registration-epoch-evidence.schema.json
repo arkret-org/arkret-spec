@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/applet-registration-epoch-evidence.schema.json",
+  "title": "Arkret Applet Registration Epoch Evidence",
+  "type": "object",
+  "required": [
+    "full_id",
+    "did_document_digest",
+    "method_version_evidence",
+    "accepted_signing_keys"
+  ],
+  "properties": {
+    "full_id": { "$ref": "./common-ids.schema.json#/$defs/did_full_id" },
+    "did_document_digest": { "$ref": "./account-operations.schema.json#/$defs/sha256_digest" },
+    "method_version_evidence": {
+      "$ref": "./applet-registration-epoch-transcript.schema.json#/$defs/did_method_version"
+    },
+    "accepted_signing_keys": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./applet-registration-epoch-transcript.schema.json#/$defs/accepted_signing_key"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "properties": {
+            "full_id": { "$ref": "./common-ids.schema.json#/$defs/webvh_full_id" },
+            "method_version_evidence": {
+              "properties": { "method": { "const": "did:webvh" } }
+            }
+          }
+        },
+        {
+          "properties": {
+            "full_id": { "type": "string", "pattern": "^did:web:[^\\s/?#]+$", "maxLength": 2048 },
+            "method_version_evidence": {
+              "properties": { "method": { "const": "did:web" } }
+            }
+          }
+        },
+        {
+          "properties": {
+            "full_id": { "type": "string", "pattern": "^did:key:[^\\s/?#]+$", "maxLength": 2048 },
+            "method_version_evidence": {
+              "properties": { "method": { "const": "did:key" } }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "additionalProperties": false
+}

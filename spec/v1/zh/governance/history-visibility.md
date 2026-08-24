@@ -116,6 +116,19 @@ deliverable(N, recipient) =
   AND current membership/device/account/source/scope/safety/audit gates pass
 ```
 
+上述 `allow_event` 只裁剪历史 Event/body 与旧 revision，不裁剪 active member 使用当前 Realm 所必需的
+**current object/control projection baseline**。对每个当前 active membership，服务 MUST 以同一 accepted
+frontier 提供：验证当前 read/write authorization 所需的 effective singleton/control closure、Realm 当前
+`default_strand_id`，以及该指针所指向 non-tombstoned Strand 的最小当前投影。该投影 MAY 由已验证 snapshot
+或 current-state proof 提供，即使建立它的 Event 位于 join frontier 之前；它 MUST NOT 因此泄露加入前 Message
+timeline、旧治理 revision、旧 Strand metadata revision 或历史密钥。`default_strand_id=null` 仍必须作为明确
+当前值表达，不能用“字段缺失”同时表示未知与未设置。
+
+`ProjectionStrandRow.is_default` 对每个返回行都是 required current-derived boolean，且必须逐行满足
+`is_default == (strand_id == Realm.default_strand_id)`。当默认指针非 null 时，Strand 列表的 current baseline
+MUST 包含恰好一条 `is_default=true` 的对应 non-tombstoned 行；Realm pointer 与 Strand row 必须来自同一
+frontier。服务不能以 `since_join` 为由同时隐藏两条默认入口发现路径。
+
 由于 ratchet 永不放宽，current policy 本身就是历史最窄值，不需要 event/epoch ceiling、activation-policy witness 或 policy meet。
 direct Seal replay 仍验证 winning MLS transition、epoch continuity、requester incarnation 与 join floor，但不在 activation Seal 采样
 history policy。MLS Genesis 只校验 content scheme 与 initial policy 兼容，不复制或选择 `history_access`；后续 Commit 和 MLS security frontier
@@ -298,23 +311,16 @@ encapsulation。唯一 info/AAD context 是下面的 canonical bytes；发送方
 ```text
 history_chunk_context = JCS({
   purpose: "history_secret_chunk",
-  request_digest,
-  request_receipt_digest,
-  manifest_digest,
   manifest_admission_digest,
   chunk_response_id,
   chunk_index,
-  effective_scope,
   source_actor_id,
-  source_sender_domain,
-  requester_actor_id,
-  requester_sender_domain,
-  covered_epoch_range,
-  expires_at
+  source_sender_domain
 })
 ```
 
-recipient 字段来自已签 request 而不是 transport route。manifest descriptor 只绑定 `chunk_response_id,chunk_index,covered_epoch_range`；
+request、receipt、manifest、effective scope、authorized ranges 与 expiry 已由 `manifest_admission_digest` 闭包承诺，不得重复进入
+context。recipient public key 来自已签 request 而不是 transport route，仅用于 HPKE `SetupBaseS`，不是 context 成员。manifest descriptor 只绑定 `chunk_response_id,chunk_index,covered_epoch_range`；
 不存在 selection digest、range key 或 page root。sealed chunk wire 仅携
 `{kind,manifest_digest,manifest_admission_digest,chunk_index,enc,ciphertext}`，不得重复 range。Manifest 首次
 admission 必须从 receipt target 按 predecessor_refs 反向取得完整 closed cut 和 registered dependencies，再从 base basis 按拓扑 `apply_seal`

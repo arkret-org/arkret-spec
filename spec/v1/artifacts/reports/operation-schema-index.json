@@ -34,9 +34,11 @@
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
         "schema_kind": "object",
         "required": [
+          "applet_id",
           "source_service_id"
         ],
         "properties": [
+          "applet_id",
           "source_service_id",
           "events",
           "signals"
@@ -255,16 +257,12 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
         "schema_kind": "object",
         "required": [
-          "resource_kind",
-          "resource_id",
           "discovery_event",
           "source_refs",
           "as_of",
           "principal_server_service_id"
         ],
         "properties": [
-          "resource_kind",
-          "resource_id",
           "discovery_event",
           "source_refs",
           "as_of",
@@ -3371,18 +3369,18 @@
       "operation_id": "ak.self.invites.command.dispatch",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/invite-delivery-request.schema.json",
+        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body",
         "schema_kind": "object",
         "required": [
           "schema",
-          "invite_event",
+          "invite_event_id",
           "invite_address",
           "introduction_evidence",
           "idempotency_key"
         ],
         "properties": [
           "schema",
-          "invite_event",
+          "invite_event_id",
           "invite_address",
           "introduction_evidence",
           "idempotency_key"
@@ -3418,7 +3416,6 @@
           "mls_group_id",
           "claim_purpose",
           "required_capabilities",
-          "claim_nonce",
           "expires_at",
           "service_binding",
           "requester_authorization"
@@ -3431,14 +3428,13 @@
           "mls_group_id",
           "claim_purpose",
           "required_capabilities",
-          "claim_nonce",
           "expires_at",
           "target_device_ids",
           "target_keypackage_ref",
           "target_agent_id",
           "target_agent_verification_method",
           "target_agent_key_authorize_event_id",
-          "minimal_metadata_allowed",
+          "target_pairwise_verification_method",
           "timeout_ms",
           "strand_id",
           "pair_key",
@@ -3740,12 +3736,12 @@
           "id",
           "realm_id",
           "reducer_profile",
+          "security_class",
           "schema_profile_refs",
           "state_digest",
           "frontier",
           "event_set_commitment",
           "chunks",
-          "security_class",
           "created_by",
           "created_at",
           "authority_binding",
@@ -4164,17 +4160,17 @@
           "policy_id",
           "policy_version",
           "identity_model",
+          "current_device_generation_ref",
+          "device_generation_status",
+          "registry_head",
+          "accepted_seal_frontier",
           "publication_authority_context",
           "publication_authority_context_digest",
           "challenge",
           "state",
           "expires_at",
           "created_at",
-          "updated_at",
-          "current_device_generation_ref",
-          "device_generation_status",
-          "registry_head",
-          "accepted_seal_frontier"
+          "updated_at"
         ],
         "properties": [
           "schema",
@@ -4255,17 +4251,17 @@
           "policy_id",
           "policy_version",
           "identity_model",
+          "current_device_generation_ref",
+          "device_generation_status",
+          "registry_head",
+          "accepted_seal_frontier",
           "publication_authority_context",
           "publication_authority_context_digest",
           "challenge",
           "state",
           "expires_at",
           "created_at",
-          "updated_at",
-          "current_device_generation_ref",
-          "device_generation_status",
-          "registry_head",
-          "accepted_seal_frontier"
+          "updated_at"
         ],
         "properties": [
           "schema",
@@ -5300,21 +5296,14 @@
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body",
         "schema_kind": "object",
         "required": [
-          "plan_digest",
           "applet_package",
-          "effective_scope",
-          "registration_event",
-          "capability_grant_events"
+          "authoring_request",
+          "managed_actor_bundle"
         ],
         "properties": [
-          "plan_digest",
           "applet_package",
-          "effective_scope",
-          "registration_event",
-          "capability_grant_events",
-          "actor_policy",
-          "e2ee_policy",
-          "widget_policy"
+          "authoring_request",
+          "managed_actor_bundle"
         ],
         "closed": true
       },
@@ -5328,6 +5317,9 @@
           "registration_event_ref",
           "registration_epoch",
           "bot_actor_id",
+          "bot_actor_principal_server_id",
+          "bot_actor_provision_ref",
+          "bot_principal_control_realm_id",
           "capability_grant_refs",
           "membership_event_refs",
           "e2ee_authorization_refs",
@@ -5342,6 +5334,9 @@
           "registration_event_ref",
           "registration_epoch",
           "bot_actor_id",
+          "bot_actor_principal_server_id",
+          "bot_actor_provision_ref",
+          "bot_principal_control_realm_id",
           "capability_grant_refs",
           "membership_event_refs",
           "e2ee_authorization_refs",
@@ -5410,11 +5405,11 @@
           "applet_id",
           "service_id",
           "ghost_actor_id",
-          "protocol",
-          "tenant",
-          "external_user_id",
+          "actor_principal_server_id",
           "realm_id",
           "external_ref",
+          "managed_actor_provision_event",
+          "pcr_genesis_event",
           "accountability_grant_event",
           "profile_event"
         ],
@@ -5423,12 +5418,12 @@
           "applet_id",
           "service_id",
           "ghost_actor_id",
-          "protocol",
-          "tenant",
-          "external_user_id",
+          "actor_principal_server_id",
           "display_name",
           "realm_id",
           "external_ref",
+          "managed_actor_provision_event",
+          "pcr_genesis_event",
           "accountability_grant_event",
           "profile_event"
         ],
@@ -5439,12 +5434,18 @@
         "schema_kind": "object",
         "required": [
           "ghost_actor_id",
+          "actor_principal_server_id",
+          "managed_actor_provision_ref",
+          "principal_control_realm_id",
           "profile_event_ref",
           "accountability_grant_ref",
           "authorization_ref"
         ],
         "properties": [
           "ghost_actor_id",
+          "actor_principal_server_id",
+          "managed_actor_provision_ref",
+          "principal_control_realm_id",
           "profile_event_ref",
           "accountability_grant_ref",
           "authorization_ref",
@@ -5461,54 +5462,50 @@
         "schema_kind": "object",
         "required": [
           "applet_package",
-          "effective_scope",
-          "approval_request"
+          "authoring_request_basis"
         ],
         "properties": [
           "applet_package",
-          "effective_scope",
-          "approval_request"
+          "authoring_request_basis"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-install-plan.schema.json",
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/preview_outcome",
         "schema_kind": "object",
         "required": [
-          "schema",
-          "plan_id",
-          "applet_id",
-          "package_digest",
-          "registration_epoch",
-          "effective_scope",
-          "requested_scopes",
-          "approved_scopes",
-          "denied_scopes",
-          "events_to_submit",
-          "capability_constraints",
-          "namespace_conflicts",
-          "e2ee_effect",
-          "widget_effect",
-          "warnings",
-          "plan_digest"
+          "plan",
+          "authoring_request"
         ],
         "properties": [
-          "schema",
-          "plan_id",
-          "applet_id",
-          "package_digest",
-          "registration_epoch",
-          "effective_scope",
-          "requested_scopes",
-          "approved_scopes",
-          "denied_scopes",
-          "events_to_submit",
-          "capability_constraints",
-          "namespace_conflicts",
-          "e2ee_effect",
-          "widget_effect",
-          "warnings",
-          "plan_digest"
+          "plan",
+          "authoring_request"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.edge.applet.install.command.author",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_request_body",
+        "schema_kind": "object",
+        "required": [
+          "authoring_request"
+        ],
+        "properties": [
+          "authoring_request"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
+        "schema_kind": "object",
+        "required": [
+          "managed_actor_bundle"
+        ],
+        "properties": [
+          "managed_actor_bundle"
         ],
         "closed": true
       }
@@ -5762,12 +5759,12 @@
         "schema_kind": "object",
         "required": [
           "focus_id",
-          "backend_kind",
           "connect_url",
           "backend_token",
           "participant_identity",
           "participant_binding",
-          "expires_at"
+          "expires_at",
+          "backend_kind"
         ],
         "properties": [
           "focus_id",
@@ -6183,10 +6180,10 @@
           "peer_principal_id",
           "consent_scope",
           "state",
+          "updated_at",
           "active_grant_dots",
           "grant_dots",
-          "revoked_dots",
-          "updated_at"
+          "revoked_dots"
         ],
         "properties": [
           "ok",
@@ -6216,7 +6213,6 @@
         ],
         "properties": [
           "holder_principal_id",
-          "peer_principal_id",
           "consent_scope"
         ],
         "closed": true
@@ -6259,10 +6255,10 @@
           "peer_principal_id",
           "consent_scope",
           "state",
+          "updated_at",
           "active_grant_dots",
           "grant_dots",
-          "revoked_dots",
-          "updated_at"
+          "revoked_dots"
         ],
         "properties": [
           "ok",
@@ -6311,10 +6307,10 @@
           "peer_principal_id",
           "consent_scope",
           "state",
+          "updated_at",
           "active_grant_dots",
           "grant_dots",
-          "revoked_dots",
-          "updated_at"
+          "revoked_dots"
         ],
         "properties": [
           "ok",
@@ -7259,8 +7255,8 @@
           "control_event_set_root",
           "state_root",
           "completeness_root",
-          "availability_receipt_digests",
           "notary_seq",
+          "availability_receipt_digests",
           "notary_signature",
           "sealed_at",
           "hlc"
@@ -8111,7 +8107,6 @@
           "mls_group_id",
           "claim_purpose",
           "required_capabilities",
-          "claim_nonce",
           "expires_at",
           "service_binding",
           "requester_authorization"
@@ -8124,14 +8119,13 @@
           "mls_group_id",
           "claim_purpose",
           "required_capabilities",
-          "claim_nonce",
           "expires_at",
           "target_device_ids",
           "target_keypackage_ref",
           "target_agent_id",
           "target_agent_verification_method",
           "target_agent_key_authorize_event_id",
-          "minimal_metadata_allowed",
+          "target_pairwise_verification_method",
           "timeout_ms",
           "strand_id",
           "pair_key",
@@ -8162,44 +8156,27 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
-        "schema_kind": "oneOf",
-        "required": [],
-        "properties": [],
-        "closed": false,
-        "variants": [
-          {
-            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
-            "schema_kind": null,
-            "required": [
-              "consumer_device_id"
-            ],
-            "properties": [],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
-            "schema_kind": null,
-            "required": [
-              "consumer_agent_id",
-              "consumer_agent_verification_method",
-              "consumer_agent_key_authorize_event_id"
-            ],
-            "properties": [],
-            "closed": false
-          }
-        ]
+        "schema_kind": "object",
+        "required": [
+          "claim_id",
+          "recipient_durable_receipt",
+          "signature"
+        ],
+        "properties": [
+          "claim_id",
+          "recipient_durable_receipt",
+          "signature"
+        ],
+        "closed": true
       },
       "response": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_outcome",
         "schema_kind": "object",
         "required": [
-          "consumed",
           "consume_receipt"
         ],
         "properties": [
-          "consumed",
-          "consume_receipt",
-          "failures"
+          "consume_receipt"
         ],
         "closed": true
       }
@@ -8243,23 +8220,41 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body",
-        "schema_kind": "object",
-        "required": [
-          "principal_id",
-          "device_id",
-          "keypackages",
-          "device_signature"
-        ],
-        "properties": [
-          "principal_id",
-          "device_id",
-          "keypackages",
-          "device_signature",
-          "expires_at",
-          "strand_id",
-          "mls_group_id"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body",
+            "schema_kind": null,
+            "required": [
+              "device_id"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body",
+            "schema_kind": null,
+            "required": [
+              "pairwise_verification_method",
+              "intended_realm_id"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body",
+            "schema_kind": null,
+            "required": [
+              "agent_verification_method",
+              "agent_key_authorize_event_id"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_outcome",
@@ -8499,6 +8494,7 @@
           "bound_to",
           "decision",
           "reason_code",
+          "freshness_state",
           "expires_at",
           "auth_state_digest",
           "policy_frontier_digest",
@@ -8510,6 +8506,7 @@
           "bound_to",
           "decision",
           "reason_code",
+          "freshness_state",
           "expires_at",
           "auth_state_digest",
           "policy_frontier_digest",
@@ -9431,12 +9428,12 @@
           "id",
           "realm_id",
           "reducer_profile",
+          "security_class",
           "schema_profile_refs",
           "state_digest",
           "frontier",
           "event_set_commitment",
           "chunks",
-          "security_class",
           "created_by",
           "created_at",
           "authority_binding",

@@ -452,7 +452,9 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 | `poll_response.poll_ref` | `id:message` | MUST | 指向承载该 poll 的 Message。 |
 | `poll_response.selections` | `array<string>` | MUST | 所选 answer `id` 列表；数量 MUST ≤ 对应 poll 的 `max_selections`。 |
 
-响应投票时，客户端发送 `ak.content.poll.response` Content Block，最小形态为 `{ "kind": "ak.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`，其中 `poll_ref` 指向承载该 poll 的 Message，`selections` 列出所选 answer `id`（数量 MUST ≤ 对应 poll 的 `max_selections`）。该 block 的 canonical schema 与 `poll` block 一同定义在 `ak.content.poll` 的 content-block schema（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/` 下的 content-block schema）。投票的权威计票仍按 §9 v1 扩展规则由 `poll` Morph / Relation / event reducer 承担，content block 只作为入口或摘要。
+响应投票时，客户端发送 `ak.content.poll.response` Content Block，最小形态为 `{ "kind": "ak.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`。`poll_ref` MUST 解析到同一 Realm、同一有效 Circle scope 内已接受且包含目标 `ak.content.poll` block 的 Message；缺失、跨 scope 或不指向 poll 时接收方 MUST 拒绝 response Event。`selections` MUST 非空、无重复，且每个成员都属于该 poll 的闭合 answer-id 集合；去重后的成员数 MUST 不大于 `max_selections`。未知 answer 或超选 MUST 整体拒绝，不得过滤、截断或部分计票。
+
+权威计票由已接受的标准 Message Event 流承担。response Event 保留在 canonical Event log 中作为审计事实，并折叠进目标 poll 的 `PollState`；它不再物化为时间线中的独立 `MessageState`，避免投票动作同时成为第二条可回复 Message。reducer 按 actor 保存一个当前有效 response：若候选的 `causal_refs` 包含当前 response digest，候选替换当前值；若当前 response 的 `causal_refs` 包含候选 digest，保留当前值；否则两者并发，以 canonical Event digest 的 UTF-8 byte order 较大者胜出。该规则与接收顺序无关，重放必须得到相同 tally。未来登记的 poll Morph/Relation profile只能投影此状态，不得成为第二真相源。canonical block schema 见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/content-block-poll.schema.json`。
 
 ### 4.10 复合消息 `ak.content.composite`
 
@@ -491,22 +493,6 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `parts` | ContentBlock[] | MUST | 按展示顺序排列的 Content Block 数组。`parts` 是 `ak.content.composite` 的 canonical wire 字段名；旧拼写 `blocks` MUST 被 schema 以 `schema_violation` 拒绝（见 [`spec/v1/artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
-
-## 5. Mixin 机制 (附加属性)
-
-参考 Matrix 的 Extensible Events (MSC1767) 理念，某些修饰性状态（Mixins）可以附加到任何 `Content Block` 上，改变其渲染或处理行为，但不改变其核心类型。
-
-例如：`automated` 标志表明该消息是由 Bot 自动生成的，`spoiler` 标志表明内容包含剧透。
-
-```json
-{
-  "kind": "ak.content.text",
-  "body": "Daily build succeeded.",
-  "mixins": {
-    "ak.automated": true
-  }
-}
-```
 
 ## 6. 引用与回复 (Reply)
 
@@ -558,6 +544,6 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 ## 9. v1 扩展规则
 
 - Emoji / Sticker MUST 作为 `ak.content.image` 或 `ak.content.file` block 表达，并引用 content-addressed blob；v1 **没有**注册 `ak.content.sticker`，`ak.content.*` 前缀只能由 Arkret 注册，因此实现不得自行发明该 kind。客户端不得从未授权 URL 热加载私有表情资源。
-- 投票 / 表单等交互式消息 SHOULD 使用 `poll` Morph、Relation 和 event reducer 表达；消息中的 content block 只能作为入口或摘要，不能成为唯一计票真相源。
+- 投票的 v1 权威来源是已接受的标准 Message Event 流及 §4.9 reducer；可选 `poll` Morph/Relation 只能作确定性投影。其它表单类扩展 MAY 登记独立 Morph/Relation profile，但不得覆盖已登记 Event reducer 的状态。
 - URL 预览 MUST 作为可丢弃的 rendering hint 或受控 preview blob 表达。服务端抓取私有链接前必须有用户或 Realm policy 授权，预览服务若接触正文或页面内容，MUST 列入 `plaintext_visible_services`。
 - E2EE 场景下缩略图 SHOULD 由客户端生成并加密上传；服务端生成缩略图前必须被声明为 plaintext-visible service，并遵守 `media-and-blob.md` 的 MIME、缓存和授权规则。

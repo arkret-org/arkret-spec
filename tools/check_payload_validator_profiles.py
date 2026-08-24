@@ -26,17 +26,14 @@ def load(path: Path) -> dict[str, Any]:
 
 
 def validate_schema_definition(payload: Any) -> bool:
-    if not isinstance(payload, dict) or set(payload) != {"schema_id", "value"}:
+    if not isinstance(payload, dict) or set(payload) != {"value"}:
         return False
-    schema_id = payload.get("schema_id")
     document = payload.get("value")
-    if not isinstance(schema_id, str) or SCHEMA_ID_RE.fullmatch(schema_id) is None:
-        return False
     if not isinstance(document, dict):
         return False
     if document.get("$schema") != JSON_SCHEMA_2020_12:
         return False
-    if document.get("$id") != schema_id:
+    if not isinstance(document.get("$id"), str) or SCHEMA_ID_RE.fullmatch(document["$id"]) is None:
         return False
     try:
         Draft202012Validator.check_schema(document)
@@ -61,11 +58,11 @@ def main() -> int:
         "event_kind": "ak.schema.define",
         "payload_def": "schema_define_state_payload",
         "validator_profile_id": PROFILE_ID,
-        "selector_pointer": "/schema_id",
+        "selector_pointer": "/value/$id",
         "document_pointer": "/value",
         "meta_schema_uri": JSON_SCHEMA_2020_12,
         "document_id_pointer": "/$id",
-        "document_id_must_equal_selector": True,
+        "document_id_must_equal_selector": False,
         "unknown_schema_id_behavior": "validate_and_define",
         "failure_code": "schema_violation",
         "fixture_ref": "fixtures/schema-definition-validator-kat.json",
@@ -85,8 +82,8 @@ def main() -> int:
         errors.append("ak.schema.define is not bound to schema_define_state_payload")
 
     payload_def = defs.get("schema_define_state_payload", {})
-    if set(payload_def.get("required", [])) != {"schema_id", "value"}:
-        errors.append("schema_define_state_payload MUST require schema_id and value")
+    if set(payload_def.get("required", [])) != {"value"}:
+        errors.append("schema_define_state_payload MUST require value only")
     if payload_def.get("additionalProperties") is not False:
         errors.append("schema_define_state_payload wrapper MUST be closed")
 
@@ -122,9 +119,8 @@ def main() -> int:
             required_cases = {
                 "valid_closed_object_schema",
                 "previously_unknown_schema_id_is_a_definition_not_a_dispatch_error",
-                "missing_selector",
+                "missing_document_id",
                 "missing_document",
-                "document_id_mismatch",
                 "invalid_json_schema_keyword_value",
                 "unknown_payload_field",
                 "wrong_json_schema_dialect",
@@ -137,7 +133,8 @@ def main() -> int:
             print(f"payload-validator-profile-check: {error}")
         return 1
     print(
-        "payload-validator-profile-check: immutable ak.schema.define profile and 8 KAT cases passed"
+        "payload-validator-profile-check: immutable ak.schema.define profile and "
+        f"{len(cases)} KAT cases passed"
     )
     return 0
 

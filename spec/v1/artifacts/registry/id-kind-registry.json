@@ -77,7 +77,6 @@
       "not_before",
       "expires_at",
       "session_id",
-      "cnf",
       "credential_class",
       "device_binding?",
       "holder_binding",

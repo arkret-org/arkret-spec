@@ -40,8 +40,7 @@
       ]
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -365,10 +364,10 @@
           "if": {
             "properties": {
               "action_class": {
-                  "enum": [
-                    "session_grant_issue",
-                    "returning_session_grant_issue"
-                  ]
+                "enum": [
+                  "session_grant_issue",
+                  "returning_session_grant_issue"
+                ]
               }
             },
             "required": [

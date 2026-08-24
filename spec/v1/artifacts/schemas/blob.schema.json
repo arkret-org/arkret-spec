@@ -12,7 +12,6 @@
         "encrypted",
         "encryption_algorithm",
         "key_ref",
-        "epoch",
         "ciphertext_digest",
         "size_bytes",
         "media_type"
@@ -69,10 +68,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "epoch": {
-          "type": "integer",
-          "minimum": 0
         },
         "ciphertext_digest": {
           "type": "string",

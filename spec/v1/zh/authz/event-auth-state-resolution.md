@@ -91,7 +91,6 @@ DataEvent 的 `auth_context` MUST pin 事件签名时 producer 声称的身份�
 
 ```text
 auth_context {
-  actor_id
   key_id
   key_epoch
   credential_epoch?
@@ -100,7 +99,7 @@ auth_context {
 
 Verifier MUST 证明：
 
-1. `proofs[].verification_method` 对应 `auth_context.actor_id#key_id` 或等价 DID verification method。
+1. 先派生 `signer_id = executed_by ?? actor_id`；`proofs[].verification_method` 的已验证 controller 投影 MUST 等于该 `signer_id`，且所选密钥 MUST 等于 `auth_context.key_id`。实现不得把 `did_core_id` 与 fragment 直接拼接成 DID URL。
 2. `key_epoch` / `credential_epoch` 在 `seal_ref` 对应 seal 的控制面状态下有效。
 3. verifier 从 `seal_ref` 的治理 `state_root` 解析 actor 对该 kind、`scope_ref` 和派生目标所需的全部 capability；producer 不选择候选 grant。
 
@@ -733,7 +732,7 @@ AvailabilityReceipt {
 
 规则：
 
-- `Realm.availability_policy` 是本义务的唯一机器承载，结构见 `realm.schema.json`。缺失时按 `{min_holders:1, holder_roles:["joined_member_principal_server"], applies_to:["seal_include"], minimum_retention_ms:86400000}` 解释；不得按“Realm 大小”或产品类别自行选择隐式门槛。
+- `Realm.availability_policy` 是本义务的唯一机器承载，结构见 `realm.schema.json`。缺失时按 `{min_holders:1, applies_to:["seal_include"], minimum_retention_ms:86400000}` 解释；不得按“Realm 大小”或产品类别自行选择隐式门槛。v1 不携 `holder_roles`：eligible holder 集合唯一派生为 predecessor accepted state 中全部 effective、`delivery_status="routable"` 的 joined membership payload 的 `delivery_binding.recipient_service_id` 去重集合。`recipient_service_kind` 必须逐字等于 schema 常量 `principal_server`，且该 binding 已按 `member-delivery-binding.md` 完整验证；unroutable、leave/ban、失效/过期 binding、`via_service_ids`、Event actor、notary、当前 resolver 与本批 post-state 均不产生 holder。服务 actor 若作为成员加入，也只通过它自己的 canonical recipient Principal Server binding 贡献 holder，不存在第二个 `joined_service_actor` role。
 - notary 在 Seal include 一个 Control Move 前 MUST 收集满足 effective policy 的签名 AvailabilityReceipt；`apply_seal` receiver MUST 按 §6.3 step 5 独立验证 full canonical digest、receipt 的 event/digest、holder DID、签发时冻结的 `AuthenticatedSignerResolutionEvidence`、accepted holder role、互异 holder 数与 `retention_expires_at >= Seal.sealed_at + minimum_retention_ms`。不得用 current resolver 代替历史签名 key；不满足时拒绝 Seal，而不是降级为诊断。
 - policy 的 `applies_to` 含 `snapshot` 或 `backfill` 时，相关签发服务在作出 bytes-available 承诺前 MUST 收集同样门槛的 receipts，并把 receipt digest / proof 随响应或承诺 root 暴露给 verifier；verifier 缺少可验证门槛时 MUST NOT 声称 availability 已满足。
 - 数据面默认 SHOULD 在 relay 签 Event Batch Receipt（§4.4）时同时签 availability 承诺；高对抗部署 MAY 要求更高 storage quorum。

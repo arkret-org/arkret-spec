@@ -41,15 +41,15 @@ Schema 在 wire 上以 schema id（如 `ak.schema.strand.v1`、`ak.schema.messag
 
 `ak.schema.define` 的 payload MUST 严格匹配
 [`schema_define_state_payload`](../../artifacts/schemas/event-payload.schema.json)：只允许 required
-`schema_id` 与 required `value`，不得携带旧通用 wrapper 的 `state` / `reason`。`value` MUST 是声明
+`value`，不得携带旧 `schema_id` 回声或通用 wrapper 的 `state` / `reason`。`value` MUST 是声明
 `$schema="https://json-schema.org/draft/2020-12/schema"` 与 `$id` 的 JSON Schema 2020-12 文档；receiver
 MUST 执行 [`payload-validator-profile-registry.json`](../../artifacts/registry/payload-validator-profile-registry.json)
-的 `ak.validator.json_schema_2020_12_definition.v1`，并要求 `schema_id` 与 `value.$id` 逐字相等。合法但此前
-未登记的 `schema_id` 正是 define 的输入，不按 unknown family 拒绝；meta-schema validation 失败、dialect
-错误、`$id` 不等或 wrapper 未知字段统一以 `schema_violation` 拒绝。
+的 `ak.validator.json_schema_2020_12_definition.v1`。合法但此前未登记的 `value.$id` 正是 define 的
+selector 与输入，不按 unknown family 拒绝；meta-schema validation 失败、dialect 错误、缺少/非法 `$id`
+或 wrapper 未知字段统一以 `schema_violation` 拒绝。
 
 v1 schema id 是 create-once 的不可变定义，不存在 `ak.schema.update` Event。首次合法 `ak.schema.define` 占用
-`schema_id`；相同 canonical Event 的重放按普通 Event 幂等规则处理，对已占用 `schema_id` 提交不同 bytes 必须
+`value.$id`；相同 canonical Event 的重放按普通 Event 幂等规则处理，对已占用 `$id` 提交不同 bytes 必须
 `schema_violation` 且零覆盖。任何演进都使用新的 versioned `$id` / `schema_id`（例如 `.v2`），并由引用方显式切换
 `schema_refs`。因此 v1 不定义 predecessor 字段、兼容性图、原地 breaking update 或第二套 schema CAS 生命周期。
 

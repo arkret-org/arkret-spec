@@ -451,105 +451,24 @@ Audit action 只授权受控审计 applet / release service 执行绑定、阶�
 
 ## 6. Constraints
 
-Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-constraint.schema.json` 属性分组一致）。**allow 与 deny 两侧都属于 v1 受支持约束**；deny / `denied_*` / `*_deny` 字段不是扩展私货，它们与对应 allow 字段同源，命中即按 §15 “任一 deny 命中即生效”裁决：
-
-**temporal**
-
-- `expires_at`
-- `not_before`
-- `message_edit_window`
-- `message_redact_window`
-- `redact_after_window_allowed`
-
-**field_access**
-
-- `allowed_write_fields`
-- `denied_write_fields`
-- `allowed_read_fields`
-- `denied_read_fields`
-- `sensitive_fields`
-- `sensitive_handling`
-
-**kind_restriction**
-
-- `allowed_object_kinds`
-- `denied_object_kinds`
-- `allowed_morph_kinds`
-- `denied_morph_kinds`
-- `allowed_space_kinds`
-- `denied_space_kinds`
-- `allowed_facets`
-- `denied_facets`
-
-**scope_limitation**
-
-- `allowed_strand_ids` / `denied_strand_ids`
-- `allowed_space_ids` / `denied_space_ids`
-- `allowed_view_ids`
-- `allowed_view_kinds` / `denied_view_kinds`
-- `allowed_view_renderers` / `denied_view_renderers`
-- `allowed_circle_ids`（限定 Circle-scoped capability 动作（`ak.circle.manage` / `ak.circle.member.manage` 等）到列出的 Circle id；配合 `resource-selector-grammar.md` §2.2 的 Circle selector 使用。Realm-wide 无收窄的 Circle 管理 grant 不是正常授权形态）
-- `allowed_tracks` / `denied_tracks`
-- `allowed_relation_kinds`（**kanban extension**，profile-gated `ak.profile.kanban_mvp.v1`；未声明该 profile 的实现 MUST fail closed，见 [`constraint-schema.md` §2.2](./constraint-schema.md)）
-- `allowed_from_container_refs`（同上，kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed）
-- `allowed_to_container_refs`（同上，kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed）
-- `wip_limit_override`（同上，kanban extension）
-- `blob_presign_scope`
-- `allowed_data_labels`
-- `allowed_endpoints`
-
-**authority_control**（普通再授权控制求值规则见 [`constraint-schema.md` §7.4](./constraint-schema.md)：`authority_regrant_allowed=false` ⇒ child `max_authority_depth` MUST=0；`authority_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则；Applet grant 绑定见同文 §7.3）
-
-- `max_authority_depth`
-- `authority_path`
-- `authority_regrant_allowed`
-- `authority_scope`
-
-**quota**
-
-- `rate_limit`（`max_operations` + `period` + `constraint_scope`，可选 `burst`）
-- `resource_limit`（`max_resources` + `resource_kind` + `constraint_scope`，可选 `period`；见 [`constraint-schema.md` §8.2](./constraint-schema.md)）
-- `blob_max_bytes`
-- `blob_presign_max_ttl_seconds`
-- `max_total_blob_bytes`
-- `max_artifact_bytes`
-
-**claim_based**
-
-- `approval_required`
-- `approval_mode`
-- `approval_actor_ids`
-- `approval_relation`
-- `accountability_required`
-- `guardian_approval_required`
-- `controller_approval_required`
-- `required_claims`
-- `trusted_claim_issuers`
-- `claim_refresh_required`
-- `claim_max_age`
-
-**confidentiality**
-
-- `allowed_history_access_values`
-- `redacted_history_allowed`（布尔 allow 开关；仅逐字 `true` 允许读取 redacted stub，见 constraint-schema §13.1）
-- `encryption_required`
-
-**moderation 缓存依赖标记**
-
-- `depends_on_moderation_state`（缓存失效 hint，默认 `false`；当 grant 的授权决策依赖 `ak.component.moderation_state.v1` cell 时 MUST 显式声明 `true`，触发条件与静态 lint 规则见 §18.1。它本身不是 allow/deny 约束，而是 fast-path cache 失效绑定，定义见 [`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json) 与 [`constraint-schema.md` §18.1 引用](./constraint-schema.md)）
-
-上表中的扁平名称是 `constraint-schema.md` 中 typed constraint 对象的 shorthand 别名。完整约束结构和求值规则以 `constraint-schema.md` 为准；机读权威源是 [`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json)。
+Arkret v1 支持的完整 shorthand inventory、typed family/subkind 与承载字段统一列在本节下方的映射表中，
+不再维护第二份分组清单。**allow 与 deny 两侧都属于 v1 受支持约束**；deny / `denied_*` / `*_deny`
+字段不是扩展私货，它们与对应 allow 字段同源，命中即按 §15 “任一 deny 命中即生效”裁决。
+完整约束结构和求值规则以 [`constraint-schema.md`](./constraint-schema.md) 为准；机读权威源是
+[`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json)。普通再授权控制的
+`authority_regrant_allowed` / `max_authority_depth` / `authority_scope` 组合规则见该文 §7.4，Applet grant
+绑定见 §7.3。
 
 ### 6.1 Effective Validity Window
 
-Grant 的 wire schema 同时允许顶层 `not_before` / `expires_at` 和 `constraints[]` 中的 temporal `not_before` / `expires_at`。它们不是两套独立有效期；授权解析 MUST 先归一化为单一 effective window：
+Grant 的有效期只由 `constraints[]` 中的 temporal constraint 承载。全局有效期必须写成一条不含 `applies_to_actions` 与 `recurrence`、`effect=allow` 的独立 temporal constraint；不得把它结构合并进带局部 action 或 recurrence 语义的 constraint。授权解析 MUST 从 constraint 集合计算单一 effective window：
 
 ```text
-effective_not_before = max(grant.not_before?, temporal.not_before[]?)
-effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
+effective_not_before = max(temporal.not_before[]?)
+effective_expires_at = min(temporal.expires_at[]?)
 ```
 
-缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但 agent / service principal 的高风险 action 与 registry `required_constraints` 明列 `expires_at` 的 action 仍按 §8 风险分层 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、issuer-authority 收窄和 revoke freshness 判断都 MUST 使用 effective window，MUST NOT 分别按顶层字段和 temporal constraint 做两次不一致判断。
+缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但 agent / service principal 的高风险 action 与 registry `required_constraints` 明列 `expires_at` 的 action 仍按 §8 风险分层 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、issuer-authority 收窄和 revoke freshness 判断都 MUST 使用 effective window。
 
 | 扁平名称 | Typed `constraint_kind` | `constraint_subkind` | 对应字段 |
 |----------|------------------------|----------|----------|
@@ -578,7 +497,7 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `denied_view_kinds` | `scope_limitation` | — | `denied_view_kinds` |
 | `allowed_view_renderers` | `scope_limitation` | — | `allowed_view_renderers` |
 | `denied_view_renderers` | `scope_limitation` | — | `denied_view_renderers` |
-| `allowed_circle_ids` | `scope_limitation` | — | `allowed_circle_ids`（限定 Circle-scoped 动作到列出的 Circle id，配合 Circle selector） |
+| `allowed_circle_ids` | `scope_limitation` | — | `allowed_circle_ids`（限定 Circle-scoped capability 动作到列出的 Circle id，配合 `resource-selector-grammar.md` §2.2 的 Circle selector；Realm-wide 无收窄的 Circle 管理 grant 不是正常授权形态） |
 | `allowed_tracks` | `scope_limitation` | — | `allowed_tracks` |
 | `denied_tracks` | `scope_limitation` | — | `denied_tracks` |
 | `allowed_relation_kinds` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_relation_kinds` |

@@ -6,7 +6,6 @@
   "required": [
     "schema",
     "title",
-    "created_by",
     "trust_domain",
     "schema_refs",
     "default_discoverability",
@@ -16,6 +15,7 @@
     "encryption_profile",
     "notary",
     "capability_action_registry_digest",
+    "created_by",
     "created_at"
   ],
   "not": {
@@ -89,7 +89,8 @@
           "type": "string",
           "enum": [
             "principal_control",
-            "managed_agent_control"
+            "managed_agent_control",
+            "applet_managed_control"
           ]
         },
         "collaboration_role": {
@@ -291,10 +292,9 @@
     },
     "availability_policy": {
       "type": "object",
-      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Every holder MUST be an effective joined member Principal Server or an explicit joined service actor; this policy never creates an out-of-membership replication target. Absent means {min_holders:1,holder_roles:['joined_member_principal_server'],applies_to:['seal_include'],minimum_retention_ms:86400000}. A self-asserted role is insufficient.",
+      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Eligible holders are derived only from canonical recipient_service_id values in effective routable joined-member delivery bindings frozen at the predecessor view. The policy never creates an out-of-membership replication target. Absent means {min_holders:1,applies_to:['seal_include'],minimum_retention_ms:86400000}.",
       "required": [
         "min_holders",
-        "holder_roles",
         "applies_to"
       ],
       "properties": {
@@ -302,18 +302,6 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 16
-        },
-        "holder_roles": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "enum": [
-              "joined_member_principal_server",
-              "joined_service_actor"
-            ]
-          }
         },
         "applies_to": {
           "type": "array",
@@ -511,8 +499,14 @@
       "if": {
         "properties": {
           "notary": {
-            "properties": {"kind": {"const": "single_signer"}},
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "single_signer"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           }
         },
         "required": [
@@ -601,7 +595,8 @@
               "purpose": {
                 "enum": [
                   "principal_control",
-                  "managed_agent_control"
+                  "managed_agent_control",
+                  "applet_managed_control"
                 ]
               }
             },
@@ -663,10 +658,10 @@
         "required": [
           "encryption_profile",
           "content_scheme",
-          "fields",
           "content_encryption_floor",
           "metadata_encryption_floor",
-          "history_access"
+          "history_access",
+          "fields"
         ],
         "properties": {
           "encryption_profile": {
@@ -689,7 +684,8 @@
               "purpose": {
                 "enum": [
                   "principal_control",
-                  "managed_agent_control"
+                  "managed_agent_control",
+                  "applet_managed_control"
                 ]
               }
             },
@@ -772,10 +768,10 @@
           "encryption_profile",
           "content_scheme",
           "default_join_rule",
-          "fields",
           "content_encryption_floor",
           "metadata_encryption_floor",
-          "history_access"
+          "history_access",
+          "fields"
         ],
         "properties": {
           "encryption_profile": {
@@ -919,27 +915,69 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["actor_id", "verification_method", "key_kind", "jose_algorithm", "frozen_public_key_b64u", "frozen_public_key_digest"],
+          "required": [
+            "actor_id",
+            "verification_method",
+            "key_kind",
+            "jose_algorithm",
+            "frozen_public_key_b64u",
+            "frozen_public_key_digest"
+          ],
           "properties": {
-            "actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-            "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
-            "key_kind": {"const": "ed25519_raw32"},
-            "jose_algorithm": {"const": "Ed25519"},
-            "frozen_public_key_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"},
-            "frozen_public_key_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "key_kind": {
+              "const": "ed25519_raw32"
+            },
+            "jose_algorithm": {
+              "const": "Ed25519"
+            },
+            "frozen_public_key_b64u": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            },
+            "frozen_public_key_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["actor_id", "verification_method", "key_kind", "jose_algorithm", "frozen_public_key_b64u", "frozen_public_key_digest"],
+          "required": [
+            "actor_id",
+            "verification_method",
+            "key_kind",
+            "jose_algorithm",
+            "frozen_public_key_b64u",
+            "frozen_public_key_digest"
+          ],
           "properties": {
-            "actor_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-            "verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
-            "key_kind": {"const": "p256_sec1_compressed33"},
-            "jose_algorithm": {"const": "ES256"},
-            "frozen_public_key_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]{44}$"},
-            "frozen_public_key_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "key_kind": {
+              "const": "p256_sec1_compressed33"
+            },
+            "jose_algorithm": {
+              "const": "ES256"
+            },
+            "frozen_public_key_b64u": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{44}$"
+            },
+            "frozen_public_key_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
           },
           "additionalProperties": false
         }
@@ -950,45 +988,126 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind", "signer"],
+          "required": [
+            "kind",
+            "signer"
+          ],
           "properties": {
-            "kind": {"const": "single_signer"},
-            "signer": {"$ref": "#/$defs/notary_signer_descriptor"},
-            "recovery_members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/notary_signer_descriptor"}},
-            "controller_organization": {"$ref": "#/$defs/did_core_id"},
-            "recovery_controller_organizations": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/did_core_id"}}
+            "kind": {
+              "const": "single_signer"
+            },
+            "signer": {
+              "$ref": "#/$defs/notary_signer_descriptor"
+            },
+            "recovery_members": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/notary_signer_descriptor"
+              }
+            },
+            "controller_organization": {
+              "$ref": "#/$defs/did_core_id"
+            },
+            "recovery_controller_organizations": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "members", "threshold", "forensic_attribution"],
+          "required": [
+            "kind",
+            "members",
+            "threshold",
+            "forensic_attribution"
+          ],
           "properties": {
-            "kind": {"const": "threshold"},
-            "members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/notary_signer_descriptor"}},
-            "threshold": {"type": "integer", "minimum": 1},
-            "forensic_attribution": {"enum": ["quorum_intersection", "waived"]}
+            "kind": {
+              "const": "threshold"
+            },
+            "members": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/notary_signer_descriptor"
+              }
+            },
+            "threshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "forensic_attribution": {
+              "enum": [
+                "quorum_intersection",
+                "waived"
+              ]
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "members"],
+          "required": [
+            "kind",
+            "members"
+          ],
           "properties": {
-            "kind": {"const": "open_set"},
-            "members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/notary_signer_descriptor"}}
+            "kind": {
+              "const": "open_set"
+            },
+            "members": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/notary_signer_descriptor"
+              }
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "signer", "recovery_members"],
+          "required": [
+            "kind",
+            "signer",
+            "recovery_members"
+          ],
           "properties": {
-            "kind": {"const": "mixed"},
-            "signer": {"$ref": "#/$defs/notary_signer_descriptor"},
-            "recovery_members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/notary_signer_descriptor"}},
-            "controller_organization": {"$ref": "#/$defs/did_core_id"},
-            "recovery_controller_organizations": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/did_core_id"}}
+            "kind": {
+              "const": "mixed"
+            },
+            "signer": {
+              "$ref": "#/$defs/notary_signer_descriptor"
+            },
+            "recovery_members": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/notary_signer_descriptor"
+              }
+            },
+            "controller_organization": {
+              "$ref": "#/$defs/did_core_id"
+            },
+            "recovery_controller_organizations": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did_core_id"
+              }
+            }
           },
           "additionalProperties": false
         }
@@ -999,8 +1118,7 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "trust_domain": {
-      "type": "string",
-      "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+      "$ref": "./common-ids.schema.json#/$defs/trust_domain"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

@@ -143,8 +143,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-requested-scope-disclosure.schema.json",
   "title": "Arkret Agent Requested Scope Disclosure",
-  "description": "Controller-signed, verifier-bound private disclosure of a managed Agent's immutable requested_scope. This object is authorization evidence, not a grant. It MUST travel only over an authenticated confidential presentation/operation channel and MUST NOT be written to a public DID Document, durable Realm Event, public registry, pairing code, or notification. The verifier consumes request_id/challenge once, validates the short presentation window, verifies a current controller proof, recomputes requested_scope_digest against the accepted-at Agent DID commitment, and then applies the Agent ceiling subset rules. After successful one-time admission, an implementation MAY retain the object only as encrypted verifier-private evidence keyed by (agent_id, requested_scope_digest, verifier_service_id, audience).",
+  "description": "Controller-signed, verifier-bound private disclosure of a managed Agent's immutable requested_scope. This object is authorization evidence, not a grant. It MUST travel only over an authenticated confidential presentation/operation channel and MUST NOT be written to a public DID Document, durable Realm Event, public registry, pairing code, or notification. The verifier consumes request_id/challenge once, validates the short presentation window, verifies a current controller proof, recomputes the requested-scope commitment against the accepted-at Agent DID commitment, and then applies the Agent ceiling subset rules. After successful one-time admission, an implementation MAY retain the object only as encrypted verifier-private evidence keyed by the recomputed digest, verifier_service_id and audience.",
   "type": "object",
   "required": [
     "schema",
@@ -10,7 +10,6 @@
     "agent_id",
     "controller_id",
     "requested_scope",
-    "requested_scope_digest",
     "verifier_service_id",
     "audience",
     "challenge",
@@ -36,11 +35,6 @@
     "requested_scope": {
       "$ref": "./event-payload.schema.json#/$defs/agent_key_scope",
       "description": "Complete immutable Agent ceiling disclosed only to the bound verifier. It does not grant any action or resource."
-    },
-    "requested_scope_digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "MUST equal sha256(RFC8785/JCS({agent_id, controller_id, kind:'ak.agent.requested_scope_commitment.v1', requested_scope})) and the digest in the accepted-at Agent DID service binding."
     },
     "verifier_service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
