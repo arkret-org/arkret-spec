@@ -2561,6 +2561,7 @@
       "type": "object",
       "required": [
         "archive_sequence",
+        "archive_replica_digest",
         "archive",
         "container_event_ref",
         "history_traversal_retention"
@@ -2570,6 +2571,10 @@
           "type": "integer",
           "minimum": 0,
           "description": "Strictly monotonic sequence assigned by holder_service_id on first durable acceptance of this immutable archive replica."
+        },
+        "archive_replica_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Exact canonical digest of the holder's first durably accepted organization_recovery_archive_replica. The holder MUST copy this value into SelfHistoryTraversalAccess.archive_replica_digest; archive_digest, traversal_intent_digest and container_event_ref are not substitutes."
         },
         "archive": {
           "$ref": "#/$defs/organization_recovery_archive"
@@ -2582,7 +2587,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "A content-addressed row. history_traversal_retention uses organization_recovery_archive/archive_lifetime, starts from this tuple's holder_trusted_basis, has requested_ranges exactly [{from_epoch:archive.epoch,to_epoch:archive.epoch}], and replays to a target basis that proves both the accepted key tuple and this one winning archive transition. container_event_ref equals the winning transition Event. No proof page, package root or singular activation Seal is carried."
+      "description": "A content-addressed row. archive_replica_digest is the exact holder-accepted replica identity and the only access coordinate for the self traversal surfaces. history_traversal_retention uses organization_recovery_archive/archive_lifetime, starts from this tuple's holder_trusted_basis, has requested_ranges exactly [{from_epoch:archive.epoch,to_epoch:archive.epoch}], and replays to a target basis that proves both the accepted key tuple and this one winning archive transition. container_event_ref equals the winning transition Event. No proof page, package root or singular activation Seal is carried."
     },
     "organization_recovery_archive_list_outcome": {
       "type": "object",

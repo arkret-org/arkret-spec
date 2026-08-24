@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10287,
+    "total_properties": 10288,
     "total_schema_documents": 164,
     "by_presence_class": {
       "optional": 2834,
       "optional_defaulted": 68,
-      "required": 7028,
+      "required": 7029,
       "required_nullable": 141,
       "tristate": 216
     },
@@ -8296,6 +8296,7 @@
         "/$defs/minimal_metadata_mls_leaf_signer_evidence/properties/winning_group_state_transition_ref": "required",
         "/$defs/minimal_metadata_mls_leaf_signer_evidence/properties/winning_mls_transition_digest": "required",
         "/$defs/organization_recovery_archive_list_item/properties/archive": "required",
+        "/$defs/organization_recovery_archive_list_item/properties/archive_replica_digest": "required",
         "/$defs/organization_recovery_archive_list_item/properties/archive_sequence": "required",
         "/$defs/organization_recovery_archive_list_item/properties/container_event_ref": "required",
         "/$defs/organization_recovery_archive_list_item/properties/history_traversal_retention": "required",

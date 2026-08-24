@@ -1467,6 +1467,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]
     }
     list_item = {
         "archive_sequence": 1,
+        "archive_replica_digest": archive_replica_digest,
         "archive": archive,
         "container_event_ref": container_event_ref,
         "history_traversal_retention": traversal_retention,
@@ -1585,6 +1586,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]
         "barrier_query": list_query,
         "barrier_resolve_outcome": list_outcome,
         "exact_reread_assertions": {
+            "archive_replica_digest": archive_replica_digest,
             "archive": archive,
             "container_event_ref": container_event_ref,
             "history_traversal_retention": traversal_retention,
@@ -1634,6 +1636,16 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]
             },
         ],
         "negative_mutations": [
+            {
+                "name": "barrier_missing_archive_replica_digest",
+                "mutation": "remove archive_replica_digest from barrier_resolve_outcome item",
+                "expected_decision": "schema_violation",
+            },
+            {
+                "name": "barrier_archive_replica_digest_substitution",
+                "mutation": {"archive_replica_digest": archive_digest},
+                "expected_decision": "failed_precondition",
+            },
             {
                 "name": "same_semantic_archive_changed_replicated_at",
                 "mutation": {"replicated_at": "2026-08-23T00:00:03.000Z"},

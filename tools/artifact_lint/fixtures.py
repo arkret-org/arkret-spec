@@ -3608,6 +3608,8 @@ def check_history_scale_fixture(lint: Lint) -> None:
             assertions = rrk["exact_reread_assertions"]
             if any(reread[field] != assertions[field] for field in assertions):
                 raise ValueError("barrier resolve is not the exact frozen archive row")
+            if reread["archive_replica_digest"] != replica_digest:
+                raise ValueError("barrier resolve does not expose the exact accepted replica digest")
             ledger = rrk["coverage_ledger"]
             steps = {step["name"]: step for step in rrk["steps"]}
             if set(steps) != {
@@ -3640,6 +3642,8 @@ def check_history_scale_fixture(lint: Lint) -> None:
                 raise ValueError("coverage-ledger initial/intermediate/final states drifted")
             negative_names = {row["name"] for row in rrk["negative_mutations"]}
             if negative_names != {
+                "barrier_missing_archive_replica_digest",
+                "barrier_archive_replica_digest_substitution",
                 "same_semantic_archive_changed_replicated_at",
                 "barrier_archive_bytes_mismatch",
             }:

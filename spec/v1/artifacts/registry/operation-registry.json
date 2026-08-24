@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.5",
+  "version": "2026-08-24.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-24T12:12:00+08:00",
+  "generated_at": "2026-08-24T16:10:33+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4512,7 +4512,7 @@
       "http": "POST /_arkret/self/organization-recovery-archives/read",
       "grpc": "SelfHistoryKey/OrganizationRecoveryArchiveList",
       "mq": "self.organization_recovery_archives.read.list",
-      "notes": "Recipient-bound byte-paged archive list. Query and cursor bind scope/key tuple, accepted evidence Event, complete holder_trusted_basis, holder authority and last ordering tuple. Every row carries archive-lifetime direct traversal retention for its singleton epoch. The holder may resolve every Control Move/Seal/dependency required by that replay, including membership/policy/control metadata; unrelated DataEvents and generic timeline scan remain forbidden. Unknown/unauthorized/tuple mismatch is same-shape not_found.",
+      "notes": "Recipient-bound byte-paged archive list. Query and cursor bind scope/key tuple, accepted evidence Event, complete holder_trusted_basis, holder authority and last ordering tuple. Every row carries the exact holder-accepted archive_replica_digest plus archive-lifetime direct traversal retention for its singleton epoch. The holder MUST use that digest as the closed SelfHistoryTraversalAccess coordinate and may resolve every Control Move/Seal/dependency required by that replay, including membership/policy/control metadata; archive/traversal digests, unrelated DataEvents and generic timeline scan are forbidden substitutes. Unknown/unauthorized/tuple mismatch is same-shape not_found.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 8388608,
       "success_shape_kind": "typed_response",

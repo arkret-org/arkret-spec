@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.5",
+  "version": "2026-08-24.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-24T12:09:00+08:00",
+  "generated_at": "2026-08-24T16:10:33+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -15534,7 +15534,7 @@
         "http": "POST /_arkret/self/organization-recovery-archives/read",
         "grpc": "SelfHistoryKey/OrganizationRecoveryArchiveList",
         "mq": "self.organization_recovery_archives.read.list",
-        "notes": "Recipient-bound byte-paged archive list. Query and cursor bind scope/key tuple, accepted evidence Event, complete holder_trusted_basis, holder authority and last ordering tuple. Every row carries archive-lifetime direct traversal retention for its singleton epoch. The holder may resolve every Control Move/Seal/dependency required by that replay, including membership/policy/control metadata; unrelated DataEvents and generic timeline scan remain forbidden. Unknown/unauthorized/tuple mismatch is same-shape not_found.",
+        "notes": "Recipient-bound byte-paged archive list. Query and cursor bind scope/key tuple, accepted evidence Event, complete holder_trusted_basis, holder authority and last ordering tuple. Every row carries the exact holder-accepted archive_replica_digest plus archive-lifetime direct traversal retention for its singleton epoch. The holder MUST use that digest as the closed SelfHistoryTraversalAccess coordinate and may resolve every Control Move/Seal/dependency required by that replay, including membership/policy/control metadata; archive/traversal digests, unrelated DataEvents and generic timeline scan are forbidden substitutes. Unknown/unauthorized/tuple mismatch is same-shape not_found.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
@@ -15652,8 +15652,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-24.5",
-    "generated_at": "2026-08-24T12:12:00+08:00"
+    "version": "2026-08-24.6",
+    "generated_at": "2026-08-24T16:10:33+08:00"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

@@ -241,7 +241,6 @@ VALUE_TABLE: dict[str, Any] = {
     "share_kind": "realm_history",
     "snapshot_created_at": "2026-04-26T00:00:00.000Z",
     "snapshot_id": "ak:snapshot:01965000-0000-7000-8000-000000000002",
-    "source_authorization_ref": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
     "source_service_id": "ak:did_core:webvh:z6mkfixturesourceexample",
     "state": "archived",
     "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
