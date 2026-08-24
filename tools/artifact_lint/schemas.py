@@ -2123,6 +2123,87 @@ def check_signed_object_closure(lint: Lint) -> None:
 
 
 
+def check_derived_signature_projection_closure(lint: Lint) -> None:
+    """Keep the seven current-v1 signed object families free of wire projection lists."""
+
+    schema_names = (
+        "key-backup.schema.json",
+        "key-backup-active-series.schema.json",
+        "key-backup-unlock-proof.schema.json",
+        "recovery-policy.schema.json",
+        "recovery-receipt.schema.json",
+        "recovery-authority.schema.json",
+        "security-transaction.schema.json",
+    )
+
+    def reject_signed_fields(path: Path, value: Any, pointer: str = "") -> None:
+        if isinstance(value, dict):
+            if "signed_fields" in value:
+                lint.fail(path, f"{pointer or '/'} must not reintroduce derived wire field signed_fields")
+            for key, child in value.items():
+                reject_signed_fields(path, child, f"{pointer}/{key}")
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                reject_signed_fields(path, child, f"{pointer}/{index}")
+        elif value == "signed_fields":
+            lint.fail(path, f"{pointer or '/'} must not reintroduce derived wire field signed_fields")
+
+    documents: dict[str, Any] = {}
+    for name in schema_names:
+        path = ARTIFACTS / "schemas" / name
+        document = load_json(lint, path)
+        documents[name] = document
+        reject_signed_fields(path, document)
+
+    canonical_ref = "./recovery-session.schema.json#/$defs/pcr_generation_ref"
+    generation_paths = {
+        "key-backup.schema.json": ("properties", "frontier_ref", "properties", "device_generation_ref"),
+        "key-backup-active-series.schema.json": (
+            "$defs",
+            "frontier_ref",
+            "properties",
+            "device_generation_ref",
+        ),
+    }
+    for name, keys in generation_paths.items():
+        node = documents.get(name)
+        try:
+            for key in keys:
+                node = node[key]
+        except (KeyError, TypeError):
+            lint.fail(ARTIFACTS / "schemas" / name, "missing frontier_ref.device_generation_ref")
+            continue
+        if not isinstance(node, dict) or node.get("$ref") != canonical_ref:
+            lint.fail(
+                ARTIFACTS / "schemas" / name,
+                "frontier_ref.device_generation_ref must reuse recovery-session pcr_generation_ref",
+            )
+
+    authority_path = ARTIFACTS / "schemas" / "recovery-authority.schema.json"
+    try:
+        completion = documents["recovery-authority.schema.json"]["$defs"][
+            "recovery_completion_attestation"
+        ]
+        completion_properties = completion["properties"]
+        signature_description = completion_properties["auth_data"]["properties"]["signature"][
+            "description"
+        ]
+    except (KeyError, TypeError):
+        completion_properties = {}
+        signature_description = ""
+    if "device_authorization_event_digest" in completion_properties:
+        lint.fail(
+            authority_path,
+            "recovery completion attestation signature projection must derive the Event digest from device_authorization_event_id",
+        )
+    if "device_authorization_event_id" not in signature_description:
+        lint.fail(
+            authority_path,
+            "recovery completion attestation signature projection must bind device_authorization_event_id",
+        )
+
+
+
 def preimage_identity_candidate(name: str, description: str) -> bool:
     """True when a schema property is in scope for the 6.0.1 gate."""
     if name in PREIMAGE_IDENTITY_EXACT_NAMES or name.endswith(PREIMAGE_IDENTITY_NAME_SUFFIXES):
@@ -2413,6 +2494,43 @@ def check_reducer_payload_closure(lint: Lint) -> None:
 
 
 
+EVENT_ID_DIGEST_MIRROR_REMOVALS = (
+    ("agent-membership-cascade.schema.json", ("$defs", "agent_cleanup_record"), "controller_terminal_event_id", "controller_terminal_event_digest"),
+    ("agent-signer-evidence-operations.schema.json", ("$defs", "historical_query_selector"), "event_id", "event_digest"),
+    ("agent-signer-evidence.schema.json", ("$defs", "account_status_event_basis"), "status_event_id", "status_event_digest"),
+    ("agent-signer-evidence.schema.json", ("$defs", "event_admission_receipt"), "event_id", "event_digest"),
+    ("audit-ryw-receipt.schema.json", (), "audit_event_id", "audit_event_digest"),
+    ("event-payload.schema.json", ("$defs", "audit_accessed_payload"), "paired_event_id", "paired_event_digest"),
+    ("history-key.schema.json", ("$defs", "event_candidate_binding", "properties", "event_binding_key"), "event_id", "event_digest"),
+    ("recovery-authority.schema.json", ("$defs", "recovery_completion_attestation"), "device_authorization_event_id", "device_authorization_event_digest"),
+    ("relation.schema.json", ("$defs", "relation_conflict_candidate"), "event_id", "event_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "RedactedEventView"), "event_id", "event_digest"),
+)
+
+
+def check_event_id_digest_mirror_removals(lint: Lint) -> None:
+    """Complete Event IDs are the sole wire source for their encoded digest."""
+    schema_dir = ARTIFACTS / "schemas"
+    for file_name, path, id_field, digest_field in EVENT_ID_DIGEST_MIRROR_REMOVALS:
+        schema_path = schema_dir / file_name
+        node = load_json(lint, schema_path)
+        try:
+            for segment in path:
+                node = node[segment]
+        except (KeyError, TypeError):
+            lint.fail(schema_path, f"missing registered EventId mirror-removal object {'/'.join(path)}")
+            continue
+        properties = node.get("properties", {}) if isinstance(node, dict) else {}
+        required = set(node.get("required", [])) if isinstance(node, dict) else set()
+        if id_field not in properties:
+            lint.fail(schema_path, f"{id_field} must remain the complete Event identity source")
+        if digest_field in properties or digest_field in required:
+            lint.fail(
+                schema_path,
+                f"{digest_field} must be derived from {id_field}, not restored as a wire mirror",
+            )
+
+
 REANCHOR_RETIRED_AUTHORITY_FIELDS = (
     "did_version_id",
     "did_version_number",
@@ -2448,6 +2566,24 @@ def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
     scope_props = scope.get("properties", {})
     payload_required = set(payload.get("required", []))
     scope_required = set(scope.get("required", []))
+
+    for name in ("reanchor_digest", "replacement_authorize_digest"):
+        if name in scope_props or name in scope_required:
+            lint.fail(
+                receipt_path,
+                f"$defs.device_reanchor_scope.{name} duplicates the digest encoded by the unique typed events[] item",
+            )
+
+    pcr_scope = receipt_schema.get("$defs", {}).get("pcr_genesis_scope")
+    if isinstance(pcr_scope, dict):
+        pcr_props = pcr_scope.get("properties", {})
+        pcr_required = set(pcr_scope.get("required", []))
+        for name in ("create_digest", "founding_authorize_digest"):
+            if name in pcr_props or name in pcr_required:
+                lint.fail(
+                    receipt_path,
+                    f"$defs.pcr_genesis_scope.{name} duplicates the digest encoded by the unique typed events[] item",
+                )
 
     for name in REANCHOR_RETIRED_AUTHORITY_FIELDS:
         if name in payload_props:

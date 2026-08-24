@@ -213,7 +213,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 
 ### 3.2 Agent signer evidence bundle（normative）
 
-声明 `ak.profile.agent_signer_evidence.v1` 的 sync producer MUST 在 sync response 顶层支持可选 `agent_signer_evidence_bundle`，其 shape为 `agent-signer-evidence-operations.schema.json#/$defs/sync_bundle`。Event不新增字段，也不得把transport evidence写进producer canonical bytes。historical evidence按完整 `(event_id,event_digest,receiver_service_id)` 去重并由Event的`executed_by ?? actor_id`与proof method再交叉选择；current evidence仅按完整 `(agent_id,verification_method,operation_id,request_digest,verifier_id,audience,challenge)` 精确匹配目标请求，不得作为通用Agent状态缓存。
+声明 `ak.profile.agent_signer_evidence.v1` 的 sync producer MUST 在 sync response 顶层支持可选 `agent_signer_evidence_bundle`，其 shape为 `agent-signer-evidence-operations.schema.json#/$defs/sync_bundle`。Event不新增字段，也不得把transport evidence写进producer canonical bytes。historical evidence按完整 `(event_id,receiver_service_id)` 去重；event digest 必须从 suite-bearing `event_id` 解码，并由Event的`executed_by ?? actor_id`与proof method再交叉选择。current evidence仅按完整 `(agent_id,verification_method,operation_id,request_digest,verifier_id,audience,challenge)` 精确匹配目标请求，不得作为通用Agent状态缓存。
 
 服务端只可为requester与Agent当前共享Realm/session/contact/controller上下文的Event携带evidence；不得借initial sync枚举其他Agent或其私有scope。minimal-metadata Realm bucket禁止携带或触发Agent/device principal query。
 
@@ -712,7 +712,7 @@ Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 �
 
 > **frontier 不是 cursor（前置约定）**：`account/describe`（`ServiceDescribe` 私有 frontier 扩展字段）与 `snapshot/head`（`ak.schema.snapshot.v1` manifest 的 `frontier.event_ids`）返回的 frontier 是 **boundary head event id 集合**，不是 stream cursor（`ak:cursor:<base64url>`）。`ak.self.events.read.scan` / `ak.self.account.stream.subscribe` 的 `before=` / `after=` 参数类型严格是 `cursor`（见 [`service-http-binding.md` §3.3.2](./service-http-binding.md)），任何其它边界参数 MUST 触发 `param_invalid`。因此客户端 **MUST NOT** 把 frontier event id 直接填入 `after=` / `before=`；frontier 在恢复中只作为 backfill 的**集合停止判据**：必须命中 `frontier.event_ids` 中的每一个 head，且已拉窗口内所有可见事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内，才算接上当前态。续传位置由 `ak.self.events.read.scan` 响应返回的 `prev_cursor` / `next_cursor` 决定。
 
-上述“命中 frontier head”不要求 caller 获得无权查看的完整 Event。每个 head 必须以以下三种可验证形态之一命中：(a) 完整 Event Envelope；(b) 保留 `event_id`、digest、scope 与必要因果引用的 `RedactedEventView`；(c) `ReferenceLockedEventStub`，携带服务签名并证明该 id 因 visibility 被裁剪。三者都必须能与 manifest 的 `frontier.event_ids` 和 `event_set_commitment` 验证绑定；服务端 MUST 对 caller 不可见的 head 返回 (b)/(c) 或等价 membership proof，MUST NOT 令客户端无限 backfill 等待永不可见的完整 Event。客户端不得从 stub 推断被裁剪 payload，但验证全部 head 已由上述形态覆盖后可满足停止判据。
+上述“命中 frontier head”不要求 caller 获得无权查看的完整 Event。每个 head 必须以以下三种可验证形态之一命中：(a) 完整 Event Envelope；(b) 保留 suite-bearing `event_id`、scope 与必要因果引用的 `RedactedEventView`，event digest 从 ID 解码；(c) `ReferenceLockedEventStub`，携带服务签名并证明该 id 因 visibility 被裁剪。三者都必须能与 manifest 的 `frontier.event_ids` 和 `event_set_commitment` 验证绑定；服务端 MUST 对 caller 不可见的 head 返回 (b)/(c) 或等价 membership proof，MUST NOT 令客户端无限 backfill 等待永不可见的完整 Event。客户端不得从 stub 推断被裁剪 payload，但验证全部 head 已由上述形态覆盖后可满足停止判据。
 
 #### 12.3.1 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`（旧 cursor MUST 废弃）
 

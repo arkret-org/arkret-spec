@@ -447,12 +447,12 @@ resident instance 并取得新 sequence。每 `(scope,group,epoch)` 最多 8 份
 `backup_origin_id` 必须为 `backup:<BackupId>`；无 canonical BackupId 时为 `backup:sha256:<hex of exact envelope bytes>`。
 origin ref 只用于 refetch，换 response/archive/envelope 不得换 quota domain 或伪装 sender。每 material key 最多 4 条、每 exact
 `(scope,group,epoch,origin_domain,origin_quota_domain)` 最多 64 条、每 `(scope,group,epoch)` 总计最多 256 条。
-`expires_at=first_observed_at+2592000` 秒，且 duplicate/refetch 不可刷新。先删过期项；仍超任一 cap 时仅保留 canonical tuple
-`(expires_at,candidate_digest,origin_domain,JCS(origin_quota_domain),JCS(origin_ref))` 最小集合。origin ledger 不得复制 secret bytes 或改变 material sequence。
+每行有效期固定为 `first_observed_at+2592000` 秒，由 reader / GC 计算而不持久化 `expires_at`；duplicate/refetch 不可刷新 `first_observed_at`。时间加法溢出 canonical timestamp 可表示范围时 MUST fail closed。先删过期项；仍超任一 cap 时仅保留 canonical tuple
+`(first_observed_at,candidate_digest,origin_domain,JCS(origin_quota_domain),JCS(origin_ref))` 最小集合（固定同加 30 天不改变顺序）。origin ledger 不得复制 secret bytes 或改变 material sequence。
 
 使用 candidate 前必须先验证外层 Event proof、scope/group/epoch、verified sender domain、重构 AAD、schema 与 replay gate。AEAD
 成功/失败都只向独立 `EventCandidateBinding` 账本写
-`(event_binding_key,candidate_digest,outcome)`；`event_binding_key=(scope,group,epoch,event_id,event_digest,verified_sender_domain)`，
+`(event_binding_key,candidate_digest,outcome)`；`event_binding_key=(scope,group,epoch,event_id,verified_sender_domain)`，其中 Event digest 从 suite-bearing `event_id` 解码，
 `outcome=success|failure`。该 key 不含 origin，也不得从 binding 反推 origin。binding 只保存 digest、结果与 attribution，**不得 pin secret bytes**；
 两者均不得 epoch-level promote、隔离或删除其它候选。
 恶意作者的 fake secret 加 fake ciphertext 至多影响其自身签名 Event，不能锁死另一 sender。插入超配额时按两级确定性驱逐 received bytes：
@@ -461,8 +461,8 @@ origin ref 只用于 refetch，换 response/archive/envelope 不得换 quota dom
 驱逐只删除 secret bytes 与该 resident sequence，保留可供 refetch 的有界 origin attribution/Event binding tombstone；
 只有 `local_authoritative` 永不成为 victim，且它不阻塞 received 槽位。
 
-`EventCandidateBinding` 每 `(scope,group,epoch)` 最多 256 条，`expires_at=first_observed_at+2592000` 秒，且不可延长。超限先删已过期项，
-再按 `(expires_at,event_id,event_digest,verified_sender_domain,candidate_digest,outcome)` 升序确定性裁剪。binding 到期或裁剪不得改写独立 ciphertext replay ledger、
+`EventCandidateBinding` 每 `(scope,group,epoch)` 最多 256 条，有效期固定为 `first_observed_at+2592000` 秒，由 reader / GC 计算且不可延长；时间加法溢出时 MUST fail closed。超限先删已过期项，
+再按 `(first_observed_at,event_id,verified_sender_domain,candidate_digest,outcome)` 升序确定性裁剪。binding 到期或裁剪不得改写独立 ciphertext replay ledger、
 `local_authoritative` 或 epoch authority。恢复 material 只进 decrypt store，不恢复 leaf signer、ratchet、proposal 或 counter。
 
 终态 reason 只有 `decryption_unavailable_by_policy` 和 `decryption_unavailable_by_profile_floor`，

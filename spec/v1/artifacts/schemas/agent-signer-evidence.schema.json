@@ -393,7 +393,6 @@
       "required": [
         "kind",
         "status_event_id",
-        "status_event_digest",
         "status_frontier_digest"
       ],
       "properties": {
@@ -402,9 +401,6 @@
         },
         "status_event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
-        },
-        "status_event_digest": {
-          "$ref": "#/$defs/digest"
         },
         "status_frontier_digest": {
           "$ref": "#/$defs/digest"
@@ -472,7 +468,6 @@
       "required": [
         "schema",
         "event_id",
-        "event_digest",
         "realm_id",
         "producer_accepted_at",
         "accepted_at",
@@ -489,9 +484,6 @@
         },
         "event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
-        },
-        "event_digest": {
-          "$ref": "#/$defs/digest"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

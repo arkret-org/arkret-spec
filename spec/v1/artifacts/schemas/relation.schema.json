@@ -183,18 +183,12 @@
     "relation_conflict_candidate": {
       "type": "object",
       "required": [
-        "event_id",
-        "event_digest"
+        "event_id"
       ],
       "properties": {
         "event_id": {
           "type": "string",
           "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-        },
-        "event_digest": {
-          "type": "string",
-          "description": "Canonical signed Event digest (<digest-suite>:<hex>), retained as evidence and used only for stable presentation order; it does not select a winner.",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
         "reason": {
           "type": "string",

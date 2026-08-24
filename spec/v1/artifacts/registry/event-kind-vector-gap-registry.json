@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-23.2",
+  "version": "2026-08-24.1",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -35,7 +35,6 @@
     {"event_kind": "ak.profile.realm_override", "priority": "high", "rationale": "Realm profile override lacks a directly searchable vector."},
     {"event_kind": "ak.moderation.appeal.review", "priority": "high", "rationale": "Moderation appeal review lacks a directly searchable vector."},
     {"event_kind": "ak.moderation.appeal.close", "priority": "high", "rationale": "Moderation appeal closure lacks a directly searchable vector."},
-    {"event_kind": "ak.call.create", "priority": "normal", "rationale": "Call creation lacks a directly searchable vector."},
-    {"event_kind": "ak.realm.owner.transfer", "priority": "critical", "rationale": "Realm ownership transfer lacks a directly searchable vector."}
+    {"event_kind": "ak.call.create", "priority": "normal", "rationale": "Call creation lacks a directly searchable vector."}
   ]
 }

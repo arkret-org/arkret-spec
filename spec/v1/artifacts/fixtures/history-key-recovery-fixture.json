@@ -563,7 +563,7 @@
           "outer producer proof verifies",
           "scope/group/epoch/sender domain/AAD/schema/replay checks pass"
         ],
-        "result": "bind exact {event_id,event_digest} to candidate_digest metadata; do not pin candidate bytes, promote the candidate for the epoch, or evict another sender candidate as an immediate verification side effect"
+        "result": "bind exact suite-bearing event_id to candidate_digest metadata and derive its digest from the ID; do not pin candidate bytes, promote the candidate for the epoch, or evict another sender candidate as an immediate verification side effect"
       },
       {
         "name": "failed_candidate_attribution",
@@ -602,10 +602,9 @@
       "origin_domain",
       "origin_quota_domain",
       "origin_ref",
-      "first_observed_at",
-      "expires_at"
+      "first_observed_at"
     ],
-    "origin_attribution_rule": "origin_ref is retrieval-only and never selects quota identity. Exact duplicate is a no-op. Keep at most 4 rows per candidate, 64 per exact scope/group/epoch/origin_domain/origin_quota_domain and 256 total per epoch. expires_at is immutable first_observed_at+2592000 seconds. Prune expired first, then retain the minimum (expires_at,candidate_digest,origin_domain,JCS(origin_quota_domain),JCS(origin_ref)) tuples. Origin attribution never duplicates bytes or changes material_received_sequence.",
+    "origin_attribution_rule": "origin_ref is retrieval-only and never selects quota identity. Exact duplicate is a no-op. Keep at most 4 rows per candidate, 64 per exact scope/group/epoch/origin_domain/origin_quota_domain and 256 total per epoch. Expiry is computed as immutable first_observed_at+2592000 seconds and is not stored; overflow fails closed. Prune expired first, then retain the minimum (first_observed_at,candidate_digest,origin_domain,JCS(origin_quota_domain),JCS(origin_ref)) tuples. Origin attribution never duplicates bytes or changes material_received_sequence.",
     "event_candidate_binding_key": [
       "event_binding_key",
       "candidate_digest",
@@ -628,19 +627,17 @@
         "event_binding_key",
         "candidate_digest",
         "outcome",
-        "first_observed_at",
-        "expires_at"
+        "first_observed_at"
       ],
       "outcomes": [
         "success",
         "failure"
       ],
-      "expiry_rule": "expires_at equals immutable first_observed_at plus 2592000 seconds",
+      "expiry_rule": "expiry is computed as immutable first_observed_at plus 2592000 seconds, is not stored, and timestamp overflow fails closed",
       "prune_order": [
         "expired rows first",
-        "expires_at ascending",
+        "first_observed_at ascending",
         "event_id ascending",
-        "event_digest ascending",
         "verified_sender_domain ascending",
         "candidate_digest ascending",
         "outcome ascending"

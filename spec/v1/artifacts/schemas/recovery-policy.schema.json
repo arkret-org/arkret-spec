@@ -360,8 +360,7 @@
       "required": [
         "verification_method",
         "signature_algorithm",
-        "signature",
-        "signed_fields"
+        "signature"
       ],
       "properties": {
         "verification_method": {
@@ -377,62 +376,8 @@
         },
         "signature": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
-        },
-        "signed_fields": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string"
-          },
-          "allOf": [
-            {
-              "contains": {
-                "const": "schema"
-              }
-            },
-            {
-              "contains": {
-                "const": "policy_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "principal_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "version"
-              }
-            },
-            {
-              "contains": {
-                "const": "supersedes"
-              }
-            },
-            {
-              "contains": {
-                "const": "trust_domain"
-              }
-            },
-            {
-              "contains": {
-                "const": "allowed_proof_kinds"
-              }
-            },
-            {
-              "contains": {
-                "const": "publication_authorization_rules"
-              }
-            },
-            {
-              "contains": {
-                "const": "issued_at"
-              }
-            }
-          ]
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "base64url signature over UTF8('ak.identity.recovery_policy.signature.v1\\n') followed by RFC 8785 JCS of all present top-level policy members except auth_data. The closed policy shape fixes the projection; absent optional members are omitted and null is retained only where the schema explicitly admits null."
         }
       },
       "additionalProperties": false
@@ -505,220 +450,13 @@
     {
       "if": {
         "required": [
-          "threshold"
-        ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "threshold"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "device_quorum"
-        ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "device_quorum"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "trusted_recovery_services"
-        ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "trusted_recovery_services"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "approval_requirement"
-        ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "approval_requirement"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "audit"
-        ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "audit"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
           "recovery_keys"
         ]
       },
       "then": {
         "required": [
           "recovery_key_agreements"
-        ],
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "recovery_keys"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "recovery_key_agreements"
         ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "recovery_key_agreements"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "not_before"
-        ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "not_before"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "expires_at"
-        ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "expires_at"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
       }
     },
     {

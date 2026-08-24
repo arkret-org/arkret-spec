@@ -231,7 +231,7 @@ Relation conflict 的默认处理为：候选先通过格式、签名、授权�
 
 **与 over-fork sibling 上限的分层关系（normative 澄清）**：本 relation fanout 上限（按去重 key `(realm_id, relation_kind, from_ref, to_ref)` 计数）与 [`event-and-patch.md` §2.6](./event-and-patch.md) 的 actor_seq sibling 上限（按 `(actor_id, actor_seq, prev_frontier_digest)` 计数）是**两层正交的限流**，作用于不同分桶。二者都 MUST 作为**收敛后候选集的纯函数**求值——即对给定的已收敛候选集，触发与否只取决于集合本身，**不依赖到达顺序、分桶处理先后或本地接收时序**；因此任意观察到相同候选集的 receiver 计算出相同的 quarantine / reject 子集，两层限流的触发先后不产生跨 receiver 分歧。pre-convergence(尚未收齐全部并发候选)的瞬态拒绝是 fail-closed 安全的，补齐缺失候选后重判收敛到同一结果。
 
-`require_review` 输出的 conflict 诊断对象使用 [`relation.schema.json`](../../artifacts/schemas/relation.schema.json) 的 `$defs/relation_conflict_diagnostic`，并列出完整 head set；conflict 诊断是 projection-only evidence，`reducer_input` MUST 为 `false`，MUST NOT 被当作 canonical event bytes、winner 或 dedupe authority。
+`require_review` 输出的 conflict 诊断对象使用 [`relation.schema.json`](../../artifacts/schemas/relation.schema.json) 的 `$defs/relation_conflict_diagnostic`，并列出完整 head set；每个 candidate 只携 suite-bearing `event_id`，稳定排序与 digest 比较均从 ID 解码，不再携同源 `event_digest`。conflict 诊断是 projection-only evidence，`reducer_input` MUST 为 `false`，MUST NOT 被当作 canonical event bytes、winner 或 dedupe authority。
 
 ## 7. 常见关系（按对象）
 

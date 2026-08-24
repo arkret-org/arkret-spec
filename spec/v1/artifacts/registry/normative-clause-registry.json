@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.3",
+  "version": "2026-08-24.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-24T09:12:00+08:00",
+  "generated_at": "2026-08-24T12:09:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -28,7 +28,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#2-canonical-json",
-      "section_digest": "sha256:455bb1c1183298dd9b93ad53d1a436cf613a46cbf74cba8b79ae61704a3609c8",
+      "section_digest": "sha256:8281b6f61d03c8b51e09923c7709b4f93c6f3e746acac1229eb6725c5776763a",
       "requirement": "Canonical JSON serialization (key order, number form, NFC strings, duplicate-key rejection) is the single encoding used for every digest, signature and canonical comparison.",
       "testability_grade": "vector",
       "evidence_refs": [

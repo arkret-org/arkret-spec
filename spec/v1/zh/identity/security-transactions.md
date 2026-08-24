@@ -93,9 +93,9 @@ recovery session，并在同一 durable commit 中 CAS 绑定该 session；Secur
 必须等于 prepared plan 中预留的 `terminal_receipt_id` / `local_commit_digest`。attestation 必须携带
 typed `artifact`：前者是完整 `ak.schema.recovery_receipt.v1`，后者是
 `ak.schema.security_rotation_local_commit.v1`。`attestation_digest` 必须等于
-`SHA-256(JCS(artifact))`；外层 Ed25519 `auth_data.signed_fields` 必须逐字等于
-`step, output_ref, transaction_id, transaction_request_digest, prepared_plan_digest,
-attestation_digest` 的有序集合并签该 JCS projection。coordinator 必须重算 artifact digest，
+`SHA-256(JCS(artifact))`；外层 Ed25519 签名输入固定为
+`RFC8785_JCS({step, output_ref, transaction_id, transaction_request_digest, prepared_plan_digest,
+attestation_digest})`，wire 上不携字段名清单。coordinator 必须重算 artifact digest，
 验证 outer attestation；recovery 还必须验证 receipt 自己的 device signature transcript。其它 step
 携带 client attestation 必须拒绝。`get` 是 response loss、restart 与
 跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
@@ -125,6 +125,13 @@ submit_reanchor_unit -> issue_terminal_receipt
 单向承诺、Event predecessor、candidate possession、monotonic generation CAS 与 old-device fence，再原子接受
 两条 Event。Account Authority/transport signature 不构成内容 authority；coordinator 不持有 recovery/device
 private key，不生成、更改或代签 Event。
+
+coordinator 在 terminal receipt 接受与完成 ledger 同一原子提交中生成
+`ak.schema.recovery_completion_attestation.v1`。其 Ed25519 签名输入固定为
+`RFC8785_JCS({schema, transaction_id, transaction_request_digest, prepared_plan_digest, principal_id,
+coordinator_service_id, recovery_session_id, terminal_receipt_id, terminal_receipt_digest,
+replacement_device_id, device_authorization_event_id, result_model_generation_ref, completed_at})`，wire 上不携字段名清单。
+Event digest 必须由 suite-bearing `device_authorization_event_id` 解码；修改该 ID 会同时修改派生 digest 并使签名失败。
 
 DID method operation 的发布继续使用 `POST /_arkret/root/identity/submit-did-operation`，但它不是
 RecoveryTransaction 的步骤，也不得进入 recovery binding、prepared plan 或 accepted-step ledger。

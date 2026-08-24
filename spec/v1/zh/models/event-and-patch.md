@@ -246,9 +246,8 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   cell 的闭合 FSM 表校验到 `to` 的迁移。它适用于 KeyPackage 等由 payload 声明目标状态、
   但不允许 producer 伪造前态的状态机。
 - `{"kind":"set","value":source}` 只用于 `mv_register` / `cas_register`，精确派生 `{"kind":"set","value":...}`。source 求值结果 MAY 是任意 JSON 值，包含完整 object——例如 `ak.realm.create` 的 `{"field":"payload.object"}` 与 `ak.rsvp.set` 的 `{"field":"payload.entry"}`，二者的 lattice value 都是整个子对象。这不引入第二套 object-construction DSL：投影只能整体搬运一个已存在的 Event 根路径或 `const`，MUST NOT 在 projection 内拼装、改名或裁剪字段。
-- `{"kind":"apply_patch","patch":source,"expected_prestate"?:source}` 只用于 `mv_register` /
-  `cas_register`；reducer 对冻结前态应用 schema-defined Patch。失败拒绝整个 Event，不能存储
-  Patch 本身作为 cell value。
+- `{"kind":"apply_patch","patch"?:source,"increment_members"?:string[],"expected_prestate"?:source}` 只用于 `mv_register` /
+  `cas_register`；`patch` 与 `increment_members` 至少出现一个。`patch` 出现时 reducer 对冻结前态应用 schema-defined Patch；省略时表示没有 author-supplied Patch，而不是一份违反 `ak.schema.patch.v1` `minProperties=1` 的空 Patch。`increment_members` 只允许用于 `cas_register` 且出现时 `expected_prestate` 必须同时存在；它必须是非空、按 UTF-8 升序、无重复的 cell member 名列表。每个成员必须在 CAS 冻结前态中是 0..9007199254740991 的 JSON safe integer，且不得同时出现在 Patch 中。reducer 在同一原子 op 中把每个列出的成员置为 `checked_add(prestate[member],1)`；缺失、类型不符、重复覆盖或溢出均以 `reducer_projection_failed` fail closed。失败拒绝整个 Event，不能存储 Patch 本身作为 cell value。该列表来自 registry 而非 Event wire，因此 producer 不能选择是否递增或选择增量。
 
   **prestate binding（normative）**：可选成员 `expected_prestate` 是 prestate binding 的**唯一
   机器可读来源**。它 MUST 是 `payload.<path>` 形态的 field source——binding 是 producer 对

@@ -4104,7 +4104,8 @@ paths:
         Local Realm acceptance atomically freezes the complete distinct remote
         target set and outbox intents. A missing verified route creates durable
         `pending_route`; it does not reject the Event. The response exposes only
-        aggregate `delivery_state` and `pending_delivery_count`.
+        `pending_delivery_count`; clients derive aggregate state as pending iff
+        the count is non-zero.
       responses:
         '200':
           description: Event accepted (or duplicate / partial; see status field)

@@ -1518,9 +1518,6 @@
         "paired_event_id": {
           "$ref": "#/$defs/event_ref"
         },
-        "paired_event_digest": {
-          "$ref": "#/$defs/digest"
-        },
         "late_recovery_original_event_id": {
           "$ref": "#/$defs/event_ref",
           "description": "Required when access_kind=e2ee_late_recovery; identifies the original encrypted event whose plaintext became available through late key recovery."
@@ -1575,7 +1572,6 @@
               "target_actor_id",
               "target_cell_id",
               "paired_event_id",
-              "paired_event_digest",
               "cell_head_before",
               "cell_head_after"
             ]
@@ -9444,7 +9440,6 @@
       "required": [
         "realm_id",
         "expected_state_digest",
-        "patch",
         "destructive_confirmation"
       ],
       "properties": {
@@ -9455,21 +9450,6 @@
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
           "description": "JCS SHA-256 digest of the authority-root cell value this Event expects to replace. The reducer MUST compare-and-swap against it and reject a stale value rather than overwrite."
-        },
-        "patch": {
-          "type": "object",
-          "required": [
-            "authority_generation"
-          ],
-          "properties": {
-            "authority_generation": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "MUST equal the expected value's authority_generation + 1."
-            }
-          },
-          "additionalProperties": false,
-          "description": "The authority-root members this Event changes. Every member absent here is preserved verbatim by the reducer."
         },
         "destructive_confirmation": {
           "type": "string",
@@ -10013,26 +9993,20 @@
         "patch": {
           "type": "object",
           "required": [
-            "controller_id",
-            "controller_epoch"
+            "controller_id"
           ],
           "properties": {
             "controller_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id",
               "description": "Stable did_core_id of the successor principal that becomes the root controller. Its control proof verification_method remains a full DID URL and MUST project to this value through the registered method adapter."
-            },
-            "controller_epoch": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "MUST equal the expected value's controller_epoch + 1."
             }
           },
           "additionalProperties": false,
-          "description": "The authority-root members this Event changes. Every member absent here is preserved verbatim by the reducer."
+          "description": "The authority-root member selected by the author. The reducer also increments controller_epoch from the CAS-frozen pre-state; every other member is preserved verbatim."
         },
         "successor_acceptance": {
           "$ref": "#/$defs/signature_material",
-          "description": "Independent acceptance proof from the successor. The current controller proof, this proof, the payload and the expected root value MUST all enter the same signing transcript, so neither party can be bound to a transfer it did not see."
+          "description": "Independent acceptance proof from the successor. The current controller proof, this proof, the payload and expected_state_digest MUST all enter the same signing transcript. The successor controller_epoch is uniquely computed from the expected pre-state, so neither party signs a producer-supplied counter."
         }
       },
       "additionalProperties": false

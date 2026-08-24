@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-23.7",
+  "version": "2026-08-24.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-23T21:55:35+08:00",
+  "generated_at": "2026-08-24T12:09:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1157,7 +1157,7 @@
       "applies_to_fixtures": [
         "capability-fixture.json"
       ],
-      "description": "Grant-ref liveness follows upstream revocation without cascade writes, root refs survive controller transfer but fail after generation reset, and root-control terminal events reject ordinary grant-based authorization.",
+      "description": "Grant-ref liveness follows upstream revocation without cascade writes; root refs survive controller transfer but fail after generation reset. Transfer authoring supplies only controller_id, reset supplies no patch, registered increment_members computes the respective successor counter from the CAS-frozen pre-state, and safe-integer overflow fails closed with zero write. Root-control terminal events reject ordinary grant-based authorization.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]

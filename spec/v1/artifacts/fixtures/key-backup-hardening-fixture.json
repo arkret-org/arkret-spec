@@ -185,20 +185,7 @@
         "auth_data": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#device-2",
           "signature_algorithm": "Ed25519",
-          "signature": "c2lnbmF0dXJl",
-          "signed_fields": [
-            "schema",
-            "recovery_session_id",
-            "principal_id",
-            "requesting_device_id",
-            "backup_id",
-            "backup_kind",
-            "series_id",
-            "ciphertext_digest",
-            "proof_kind",
-            "proof_digest",
-            "issued_at"
-          ]
+          "signature": "c2lnbmF0dXJl"
         }
       },
       "plaintext": {

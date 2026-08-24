@@ -138,6 +138,8 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 1. **root authority**——[`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `ak.component.realm.authority_root.v1` cell 的 current controller。该分支的 operational authorization **MUST** 使用该 cell 在同一 Seal basis 下的 registered inclusion proof；**MUST NOT** 回退到 `realm_state.owner`、membership 或 `created_by`。
 2. **co-owner grant**——一条 active 的普通 `ak.realm.owner` grant。它给予 owner 的 operational / grant authority，但**不**给予 root-control authority：持有人不控制 authority-root cell。
 
+**Authority-root successor counters（normative）**：`ak.realm.owner.transfer` 与 `ak.realm.authority.reset` 都以签名内的 `expected_state_digest` 对 authority-root cell 做 CAS，故 successor counter 没有 author 可选值。transfer 的 `payload.patch` 只允许 `controller_id`；registered reducer contract 必须从该 digest 锁定的冻结前态计算 `controller_epoch = checked_add(prestate.controller_epoch, 1)`。reset 不携带 `patch`；contract 必须计算 `authority_generation = checked_add(prestate.authority_generation, 1)`。两项加法均受 [`encoding.md` §1](../conformance/encoding.md) JSON safe-integer 上限约束，溢出 MUST fail closed；不得 wrap、饱和或保留旧值。transfer 保留 authority generation 与 registry digest，reset 保留 controller、controller epoch 与 registry digest。`successor_acceptance` 覆盖完整 payload 及 `expected_state_digest`，因此也唯一绑定 computed successor epoch，无需在 wire 上复述它。并发或 stale 前态仍由同一 CAS 拒绝。
+
 Profile 对 non-event action 的显式授权规则必须登记在
 `conformance-profiles.json#/profile_requirements/<profile>/non_event_grant_authority_rules[]`；
 散文声明或只把 action 列入 `required_capability_actions[]` 不构成权限来源。每条规则必须逐字

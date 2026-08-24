@@ -720,13 +720,40 @@ def lint_effect_projection(
             lint_effect_source(lint, path, f"{ref}.value", projection["value"])
         return
     if projection_kind == "apply_patch":
-        unknown = set(projection) - {"kind", "patch", "expected_prestate"}
+        unknown = set(projection) - {
+            "kind", "patch", "increment_members", "expected_prestate"
+        }
         if unknown:
             lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
-        if "patch" not in projection:
-            lint.fail(path, f"{ref}.patch is required")
-        else:
+        increment_members = projection.get("increment_members")
+        if "patch" not in projection and increment_members is None:
+            lint.fail(path, f"{ref} requires patch and/or increment_members")
+        elif "patch" in projection:
             lint_effect_source(lint, path, f"{ref}.patch", projection["patch"])
+        if increment_members is not None:
+            if lattice != "cas_register":
+                lint.fail(path, f"{ref}.increment_members requires cas_register")
+            if "expected_prestate" not in projection:
+                lint.fail(path, f"{ref}.increment_members requires expected_prestate")
+            if (
+                not isinstance(increment_members, list)
+                or not increment_members
+                or not all(
+                    isinstance(member, str)
+                    and "." not in member
+                    and FIELD_PATH_RE.fullmatch(member)
+                    for member in increment_members
+                )
+            ):
+                lint.fail(
+                    path,
+                    f"{ref}.increment_members must be a non-empty array of member names",
+                )
+            elif increment_members != sorted(set(increment_members), key=lambda value: value.encode("utf-8")):
+                lint.fail(
+                    path,
+                    f"{ref}.increment_members must be unique and sorted by UTF-8 bytes",
+                )
         # The optional prestate guard has to name a payload path, because it is
         # a producer-signed claim about the frozen pre-state. envelope_field,
         # const, dot and projected_value would either be unsigned by the

@@ -63,8 +63,7 @@
       "required": [
         "verification_method",
         "signature_algorithm",
-        "signature",
-        "signed_fields"
+        "signature"
       ],
       "properties": {
         "verification_method": {
@@ -81,72 +80,7 @@
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "base64url signature over canonical_json(unlock proof without auth_data.signature)."
-        },
-        "signed_fields": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string"
-          },
-          "allOf": [
-            {
-              "contains": {
-                "const": "schema"
-              }
-            },
-            {
-              "contains": {
-                "const": "recovery_session_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "principal_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "requesting_device_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "backup_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "backup_kind"
-              }
-            },
-            {
-              "contains": {
-                "const": "series_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "ciphertext_digest"
-              }
-            },
-            {
-              "contains": {
-                "const": "proof_kind"
-              }
-            },
-            {
-              "contains": {
-                "const": "proof_digest"
-              }
-            },
-            {
-              "contains": {
-                "const": "issued_at"
-              }
-            }
-          ]
+          "description": "base64url signature over RFC 8785 JCS(unlock proof without auth_data.signature). The closed proof shape fixes the authenticated projection, including challenge exactly when present."
         }
       },
       "additionalProperties": false

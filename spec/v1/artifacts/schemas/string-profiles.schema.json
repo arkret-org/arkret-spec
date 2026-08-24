@@ -13,7 +13,7 @@
       "maxLength": 128,
       "pattern": "^[^\\s:@/#?\\\\]+$",
       "format": "arkret-human-identifier",
-      "description": "Canonical RFC 8265 UsernameCaseMapped-derived localpart. Maximum 128 Unicode code points and 512 UTF-8 octets."
+      "description": "Canonical RFC 8265 UsernameCaseMapped-derived localpart. Maximum 128 Unicode code points in prepared form."
     },
     "agent_slug": {
       "type": "string",
@@ -21,7 +21,7 @@
       "maxLength": 64,
       "pattern": "^[^\\s:@/#?\\\\]+$",
       "format": "arkret-agent-slug",
-      "description": "Canonical controller-scoped native personal Agent selector slug. Maximum 64 Unicode code points and 256 UTF-8 octets."
+      "description": "Canonical controller-scoped native personal Agent selector slug. Maximum 64 Unicode code points in prepared form."
     },
     "canonical_domain": {
       "type": "string",
@@ -37,7 +37,7 @@
       "maxLength": 382,
       "pattern": "^[^\\s:@/#?\\\\]+:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$",
       "format": "arkret-canonical-handle",
-      "description": "Canonical <prepared-localpart>:<lowercase-A-label-domain> handle or realm alias. The localpart maximum is 128 Unicode code points / 512 UTF-8 octets; the domain maximum is 253 ASCII octets."
+      "description": "Canonical <prepared-localpart>:<lowercase-A-label-domain> handle or realm alias. The prepared localpart maximum is 128 Unicode code points; the domain maximum is 253 ASCII octets."
     },
     "acct_uri": {
       "type": "string",
@@ -57,12 +57,12 @@
     "display_text_256": {
       "$ref": "#/$defs/single_line_display_text",
       "maxLength": 256,
-      "description": "Single-line display text limited to 256 Unicode code points and 1024 UTF-8 octets."
+      "description": "Single-line display text limited to 256 Unicode code points in prepared form."
     },
     "display_text_512": {
       "$ref": "#/$defs/single_line_display_text",
       "maxLength": 512,
-      "description": "Single-line display text limited to 512 Unicode code points and 2048 UTF-8 octets."
+      "description": "Single-line display text limited to 512 Unicode code points in prepared form."
     },
     "short_text": {
       "type": "string",

@@ -239,8 +239,7 @@
       "required": [
         "verification_method",
         "signature_algorithm",
-        "signature",
-        "signed_fields"
+        "signature"
       ],
       "properties": {
         "verification_method": {
@@ -257,132 +256,8 @@
         },
         "signature": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
-        },
-        "signed_fields": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string"
-          },
-          "allOf": [
-            {
-              "contains": {
-                "const": "schema"
-              }
-            },
-            {
-              "contains": {
-                "const": "receipt_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "transaction_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "transaction_request_digest"
-              }
-            },
-            {
-              "contains": {
-                "const": "prepared_plan_digest"
-              }
-            },
-            {
-              "contains": {
-                "const": "principal_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "recovery_session_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "policy_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "policy_version"
-              }
-            },
-            {
-              "contains": {
-                "const": "trust_domain"
-              }
-            },
-            {
-              "contains": {
-                "const": "new_device_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "identity_model"
-              }
-            },
-            {
-              "contains": {
-                "const": "previous_model_generation_ref"
-              }
-            },
-            {
-              "contains": {
-                "const": "result_model_generation_ref"
-              }
-            },
-            {
-              "contains": {
-                "const": "authorization_event_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "proof_summary"
-              }
-            },
-            {
-              "contains": {
-                "const": "backup_classes_unlocked"
-              }
-            },
-            {
-              "contains": {
-                "const": "welcome_count"
-              }
-            },
-            {
-              "contains": {
-                "const": "outcome"
-              }
-            },
-            {
-              "contains": {
-                "const": "started_at"
-              }
-            },
-            {
-              "contains": {
-                "const": "completed_at"
-              }
-            },
-            {
-              "contains": {
-                "const": "reanchor_event_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "reanchor_batch_receipt_id"
-              }
-            }
-          ]
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "base64url signature over UTF8('ak.identity.recovery_receipt.signature.v1\\n') followed by RFC 8785 JCS of all present top-level receipt members except auth_data. The closed receipt shape fixes the projection; absent optional members are omitted and every present optional member is authenticated."
         }
       },
       "additionalProperties": false
@@ -462,46 +337,7 @@
       "then": {
         "required": [
           "outcome_reason_code"
-        ],
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "outcome_reason_code"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "welcome_realm_summary"
         ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "welcome_realm_summary"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
       }
     }
   ],

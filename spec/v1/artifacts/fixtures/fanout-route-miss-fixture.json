@@ -24,7 +24,7 @@
       "invariants": [
         "canonical Event, complete distinct target set and all outbox intents commit in one transaction",
         "the missing-route target is durable pending_route",
-        "submit returns delivery_state pending and pending_delivery_count 1",
+        "submit returns pending_delivery_count 1 and clients derive pending state",
         "submit exposes no target_id or service_id",
         "service_unavailable is not used to roll back the admitted Event"
       ]
@@ -60,7 +60,7 @@
         "the dispatcher rechecks authority before network send",
         "the intent advances through pending_delivery to delivered",
         "retries use the original idempotency key and create no second target",
-        "delivery status becomes complete with pending_delivery_count 0"
+        "delivery status targets contain no pending row, so clients derive count 0 and complete state"
       ]
     },
     {

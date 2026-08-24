@@ -89,7 +89,7 @@
         },
         "device_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "PCR-local monotonic device generation at envelope creation; it is not and MUST NOT be derived from a DID versionId."
+          "description": "PCR-local monotonic device generation. This is not a DID versionId and MUST equal the accepted current_device_generation_ref at the referenced frontier."
         }
       },
       "additionalProperties": false
@@ -641,7 +641,6 @@
         "verification_method",
         "signature_algorithm",
         "signature",
-        "signed_fields",
         "device_authorize_event_id"
       ],
       "properties": {
@@ -664,68 +663,7 @@
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "base64url-encoded signature over canonical_json(envelope without auth_data.signature)."
-        },
-        "signed_fields": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1,
-          "uniqueItems": true,
-          "allOf": [
-            {
-              "contains": {
-                "const": "backup_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "actor_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "backup_kind"
-              }
-            },
-            {
-              "contains": {
-                "const": "backup_version"
-              }
-            },
-            {
-              "contains": {
-                "const": "series_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "series_seq"
-              }
-            },
-            {
-              "contains": {
-                "const": "encryption"
-              }
-            },
-            {
-              "contains": {
-                "const": "domain_separation"
-              }
-            },
-            {
-              "contains": {
-                "const": "contents"
-              }
-            },
-            {
-              "contains": {
-                "const": "ciphertext_digest"
-              }
-            }
-          ],
-          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_kind, backup_version, series_id, series_seq, encryption, domain_separation, contents, ciphertext_digest, and when present supersedes, supersedes_digest, frontier_ref, and recovery_policy_ref."
+          "description": "base64url-encoded signature over RFC 8785 JCS(envelope without auth_data.signature). Every present closed envelope member, including optional and x_* members, is authenticated; no wire field list selects the projection."
         },
         "device_authorize_event_id": {
           "type": "string",
@@ -773,18 +711,7 @@
       "then": {
         "required": [
           "recovery_policy_ref"
-        ],
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "contains": {
-                  "const": "recovery_policy_ref"
-                }
-              }
-            }
-          }
-        }
+        ]
       },
       "description": "Every recovery_public_key envelope is bound to one accepted recovery-policy version. The recipient_key_ref resolves only within that policy's recovery_key_agreements array, and recovery_policy_ref is signed even when backup_kind is secret_storage or mls_history."
     },
@@ -898,78 +825,12 @@
           "supersedes": {
             "type": "string",
             "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-          },
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "supersedes"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "const": "supersedes_digest"
-                    }
-                  }
-                ]
-              }
-            }
           }
         },
         "required": [
           "supersedes",
           "supersedes_digest"
         ]
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "frontier_ref"
-        ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "frontier_ref"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "recovery_policy_ref"
-        ]
-      },
-      "then": {
-        "properties": {
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "recovery_policy_ref"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
       }
     },
     {

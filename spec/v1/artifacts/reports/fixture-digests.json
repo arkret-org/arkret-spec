@@ -78,7 +78,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "0824a89b94564adc9801786e78e30e7c2aa5cfdde65bd1ded9e4f4e84fe66436"
+      "sha256": "b6c56149dad51d112ffda957ab2e819a5c764e5e7ce31213a8d717c86b429e8c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
@@ -158,11 +158,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
-      "sha256": "3abcc6da7a64b3ec592e395a85866b4c4c6b643287976f9056a5426c45ae550c"
+      "sha256": "bc8053b8c03601c2e162df2abb4be0507f828d0fa7604d58e3c23a3356e7ef8a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "f20661b47cc5ea9fff3e6fd181f5734880be222fb72dffab2cb1af0bd5ca9c7c"
+      "sha256": "f47673bfa09c3359f2e3e12a682352d88fe60f9b7dcc1c83f7b2bc7c64870af5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "98e836ae3b1a1663709adee7ace353f597090e1063e9e898307e4ace728ee911"
+      "sha256": "6943cc0e6116e2f3cbf3cca1572e0ce83cdab4c29de9bbb7e605f49b62ede15a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -190,11 +190,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "01eac3471533535fe1870d045da3639fe02d5300a65b462c8cc1581a5539110d"
+      "sha256": "ce53328da69b1e878a5dd1a4afffc8514e00a384fa4722af7e2ef9839af93c28"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
-      "sha256": "a38def7f7bf8f9493ef4f9c5a3aff9ee03a3f9ea98e9b3efb3963f1396c71569"
+      "sha256": "bb62a7fe916fbca2290db483f083b062ede27a9d4887cf149079ac8e5c317b91"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-transparency-fixture.json",
@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "7ce10459774e8b4f00f23b79124263da9e8341caae3b48bfc18e4a8f9591661d"
+      "sha256": "bd111079bafcc31617079ec6035a30f0bbba38d478a3352f02026b2036aa6aa3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -302,7 +302,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-policy-fixture.json",
-      "sha256": "a94fdc868c20d876e1f7b5098c2208251afc8a8d35342882a74ab67aad75ae1b"
+      "sha256": "238dd4149c51a86ed4e5223126763716b3a76fbd7d7d55f8cafea3d2d49367f4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",

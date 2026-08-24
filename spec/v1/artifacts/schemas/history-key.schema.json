@@ -130,7 +130,7 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at", "expires_at"],
+          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at"],
           "properties": {
             "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
             "origin_domain": {"const": "response_sender"},
@@ -152,14 +152,13 @@
               },
               "additionalProperties": false
             },
-            "first_observed_at": {"$ref": "#/$defs/timestamp"},
-            "expires_at": {"$ref": "#/$defs/timestamp"}
+            "first_observed_at": {"$ref": "#/$defs/timestamp"}
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at", "expires_at"],
+          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at"],
           "properties": {
             "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
             "origin_domain": {"const": "rrk_archive"},
@@ -184,14 +183,13 @@
               },
               "additionalProperties": false
             },
-            "first_observed_at": {"$ref": "#/$defs/timestamp"},
-            "expires_at": {"$ref": "#/$defs/timestamp"}
+            "first_observed_at": {"$ref": "#/$defs/timestamp"}
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at", "expires_at"],
+          "required": ["material_key", "origin_domain", "origin_quota_domain", "origin_ref", "first_observed_at"],
           "properties": {
             "material_key": {"$ref": "#/$defs/history_candidate_material_key"},
             "origin_domain": {"const": "portable_backup"},
@@ -217,38 +215,35 @@
               },
               "additionalProperties": false
             },
-            "first_observed_at": {"$ref": "#/$defs/timestamp"},
-            "expires_at": {"$ref": "#/$defs/timestamp"}
+            "first_observed_at": {"$ref": "#/$defs/timestamp"}
           },
           "additionalProperties": false
         }
       ],
-      "description": "Independent origin ledger row keyed by (material_key,origin_domain,origin_ref), with a separate stable origin_quota_domain. origin_ref is only a retrieval coordinate and never selects quota identity. expires_at is exactly immutable first_observed_at+2592000 seconds. It never duplicates secret bytes or refreshes material_received_sequence."
+      "description": "Independent origin ledger row keyed by (material_key,origin_domain,origin_ref), with a separate stable origin_quota_domain. origin_ref is only a retrieval coordinate and never selects quota identity. The fixed expiry is computed as immutable first_observed_at+2592000 seconds and is not stored. It never duplicates secret bytes or refreshes material_received_sequence."
     },
     "event_candidate_binding": {
       "type": "object",
-      "required": ["event_binding_key", "candidate_digest", "outcome", "first_observed_at", "expires_at"],
+      "required": ["event_binding_key", "candidate_digest", "outcome", "first_observed_at"],
       "properties": {
         "event_binding_key": {
           "type": "object",
-          "required": ["effective_scope", "mls_group_id", "epoch", "event_id", "event_digest", "verified_sender_domain"],
+          "required": ["effective_scope", "mls_group_id", "epoch", "event_id", "verified_sender_domain"],
           "properties": {
             "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
             "mls_group_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
             "epoch": {"type": "integer", "minimum": 0},
             "event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-            "event_digest": {"$ref": "#/$defs/digest"},
             "verified_sender_domain": {"type": "string", "minLength": 1, "maxLength": 512}
           },
           "additionalProperties": false
         },
         "candidate_digest": {"$ref": "#/$defs/digest"},
         "outcome": {"enum": ["success", "failure"]},
-        "first_observed_at": {"$ref": "#/$defs/timestamp"},
-        "expires_at": {"$ref": "#/$defs/timestamp"}
+        "first_observed_at": {"$ref": "#/$defs/timestamp"}
       },
       "additionalProperties": false,
-      "description": "Independent Event binding keyed by (event_binding_key,candidate_digest,outcome). It contains no origin and must not be used to infer one or pin candidate bytes. expires_at is exactly first_observed_at+2592000 seconds."
+      "description": "Independent Event binding keyed by (event_binding_key,candidate_digest,outcome). It contains no origin and must not be used to infer one or pin candidate bytes. The fixed expiry is computed as first_observed_at+2592000 seconds and is not stored."
     },
     "authorization_incarnation": {
       "$ref": "./event-payload.schema.json#/$defs/history_authorization_incarnation"

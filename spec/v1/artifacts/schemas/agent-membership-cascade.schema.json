@@ -65,7 +65,6 @@
         "controller_membership_generation_ref",
         "initiator_authority",
         "controller_terminal_event_id",
-        "controller_terminal_event_digest",
         "expected_agent_ids",
         "cleanup_intent_digest",
         "accepted_at",
@@ -89,9 +88,6 @@
         },
         "controller_terminal_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "controller_terminal_event_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "expected_agent_ids": {
           "type": "array",

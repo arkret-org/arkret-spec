@@ -49,19 +49,7 @@
               "auth_data": {
                 "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
                 "signature_algorithm": "Ed25519",
-                "signature": "c2lnbmF0dXJl",
-                "signed_fields": [
-                  "schema",
-                  "policy_id",
-                  "principal_id",
-                  "version",
-                  "supersedes",
-                  "trust_domain",
-                  "allowed_proof_kinds",
-                  "publication_authorization_rules",
-                  "issued_at",
-                  "expires_at"
-                ]
+                "signature": "c2lnbmF0dXJl"
               }
             }
           },
@@ -171,19 +159,7 @@
           "auth_data": {
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
             "signature_algorithm": "Ed25519",
-            "signature": "c2lnbmF0dXJl",
-            "signed_fields": [
-              "schema",
-              "policy_id",
-              "principal_id",
-              "version",
-              "supersedes",
-              "trust_domain",
-              "allowed_proof_kinds",
-              "publication_authorization_rules",
-              "issued_at",
-              "expires_at"
-            ]
+            "signature": "c2lnbmF0dXJl"
           }
         }
       }
@@ -209,19 +185,7 @@
           "auth_data": {
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
             "signature_algorithm": "Ed25519",
-            "signature": "c2lnbmF0dXJl",
-            "signed_fields": [
-              "schema",
-              "policy_id",
-              "principal_id",
-              "version",
-              "supersedes",
-              "trust_domain",
-              "allowed_proof_kinds",
-              "publication_authorization_rules",
-              "issued_at",
-              "expires_at"
-            ]
+            "signature": "c2lnbmF0dXJl"
           }
         },
         "state": "active"
@@ -248,19 +212,7 @@
           "auth_data": {
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
             "signature_algorithm": "Ed25519",
-            "signature": "c2lnbmF0dXJl",
-            "signed_fields": [
-              "schema",
-              "policy_id",
-              "principal_id",
-              "version",
-              "supersedes",
-              "trust_domain",
-              "allowed_proof_kinds",
-              "publication_authorization_rules",
-              "issued_at",
-              "expires_at"
-            ]
+            "signature": "c2lnbmF0dXJl"
           }
         },
         "reason": "rotation"
@@ -361,21 +313,7 @@
         "auth_data": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
           "signature_algorithm": "Ed25519",
-          "signature": "c2lnbmF0dXJl",
-          "signed_fields": [
-            "schema",
-            "policy_id",
-            "principal_id",
-            "version",
-            "supersedes",
-            "trust_domain",
-            "allowed_proof_kinds",
-            "publication_authorization_rules",
-            "threshold",
-            "recovery_keys",
-            "recovery_key_agreements",
-            "issued_at"
-          ]
+          "signature": "c2lnbmF0dXJl"
         }
       }
     }

@@ -905,6 +905,12 @@
       "cases": [
         {
           "name": "controller_transfer_preserves_chain",
+          "author_supplied_patch": {
+            "controller_id": "did:web:bob.example"
+          },
+          "registered_increment_members": [
+            "controller_epoch"
+          ],
           "next_root": {
             "controller_id": "did:web:bob.example",
             "controller_epoch": 1,
@@ -923,6 +929,10 @@
         },
         {
           "name": "generation_reset_invalidates_chain",
+          "author_supplied_patch_absent": true,
+          "registered_increment_members": [
+            "authority_generation"
+          ],
           "next_root": {
             "controller_id": "did:web:alice.example",
             "controller_epoch": 0,
@@ -932,6 +942,18 @@
           "expected": {
             "accepted": true,
             "active_grants": []
+          }
+        },
+        {
+          "name": "successor_counter_safe_integer_overflow_rejected",
+          "prestate_counter": 9007199254740991,
+          "registered_increment_members": [
+            "controller_epoch"
+          ],
+          "expected": {
+            "accepted": false,
+            "reason_code": "reducer_projection_failed",
+            "state_unchanged": true
           }
         },
         {

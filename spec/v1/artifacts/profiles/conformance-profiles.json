@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-23.2",
-  "generated_at": "2026-08-23T15:30:00+08:00",
+  "version": "2026-08-24.1",
+  "generated_at": "2026-08-24T12:09:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1370,7 +1370,7 @@
           "allowed_root_control_actions": [
             "ak.realm.authority.basis_update",
             "ak.realm.authority.reset",
-            "ak.realm.authority.transfer"
+            "ak.realm.owner.transfer"
           ],
           "transfer_successor_rule": "other_nonterminal_participant_with_successor_acceptance_and_same_stable_coordinates",
           "ordinary_grants_default": "deny",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.1",
+  "version": "2026-08-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-24T01:30:00+08:00",
+  "generated_at": "2026-08-24T12:12:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -451,7 +451,7 @@
       "category": "media",
       "status": "active",
       "wire_form": "ak:rtc_participant:<uuidv7>",
-      "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_id, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern.",
+      "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_id, ice_bucket(issued_at))` by the media service token issuer, where v1 ice_bucket is the fixed 300-second UTC bucket. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

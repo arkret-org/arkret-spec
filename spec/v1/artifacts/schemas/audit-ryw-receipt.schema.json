@@ -10,7 +10,6 @@
     "issuer",
     "issuer_role",
     "audit_event_id",
-    "audit_event_digest",
     "realm_id",
     "trust_domain",
     "realm_operator_organization",
@@ -44,10 +43,6 @@
     "audit_event_id": {
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
-    "audit_event_digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -108,18 +103,9 @@
     "witness_attestation": {
       "type": "object",
       "required": [
-        "kind",
         "witnesses"
       ],
       "properties": {
-        "kind": {
-          "type": "string",
-          "enum": [
-            "federation_witness_attested",
-            "single_source"
-          ],
-          "description": "Attestation kind derived from witnesses[]. 'federation_witness_attested' MUST be used iff witnesses[] contains >= 2 distinct entries (distinct issuer.did AND distinct controlling_organization AND distinct verification_method), each issuer.did is listed by Realm policy under audit.ryw_witnesses[], and no witness controlling organization equals or is ultimately controlled by realm_operator_organization. 'single_source' MUST be used iff witnesses[] contains exactly 1 entry. Any mismatch between 'kind' and the witnesses[] cardinality / distinctness / Realm policy listing / operator independence MUST be rejected with audit_receipt_invalidated. The value is externally verifiable from the witness list, not a self-claim."
-        },
         "witnesses": {
           "type": "array",
           "minItems": 1,
@@ -137,11 +123,11 @@
               },
               "verification_method": {
                 "$ref": "./common-ids.schema.json#/$defs/did_url",
-                "description": "DID URL of the key the witness used to sign (e.g. did:web:...#key-1). MUST be distinct from other witnesses' verification_method values for 'federation_witness_attested' to be valid."
+                "description": "DID URL of the key the witness used to sign (e.g. did:web:...#key-1). Federation-grade verification requires this value to be distinct from every other witness verification_method."
               },
               "controlling_organization": {
                 "$ref": "#/$defs/did_core_id",
-                "description": "DID of the organization that controls the witness. This value is not self-attested: verifiers MUST resolve issuer DID Document and confirm its controller / service ownership chain matches controlling_organization. For 'federation_witness_attested', all witnesses' controlling_organization values MUST be pairwise distinct and MUST NOT equal the audit actor's controlling organization or realm_operator_organization, including common ultimate controllers."
+                "description": "DID of the organization that controls the witness. This value is not self-attested: verifiers MUST resolve issuer DID Document and confirm its controller / service ownership chain matches controlling_organization. Federation-grade verification requires all witnesses' controlling_organization values to be pairwise distinct and not equal to the audit actor's controlling organization or realm_operator_organization, including common ultimate controllers."
               },
               "attested_at": {
                 "$ref": "#/$defs/timestamp",
@@ -150,7 +136,7 @@
             },
             "additionalProperties": true
           },
-          "description": "Externally verifiable list of witnesses attesting that the audit_event_id+audit_event_digest reached accepted state. The 'kind' field MUST be derivable from this list per the rules in §4.1.1."
+          "description": "Externally verifiable list of witnesses attesting that audit_event_id reached accepted state. Its suite-bearing digest is decoded from audit_event_id. Verifiers derive the attestation class from this list, the accepted Realm audit policy and the verified operator control chain; producers do not declare a class on wire."
         }
       },
       "additionalProperties": false,
@@ -184,69 +170,6 @@
       "description": "Optional machine-readable code, set only when this RYW receipt covers a ak.audit.accessed Event emitted via the Late Key Recovery path (see zh/crypto-media/encryption-and-audit.md §2.3.5 and zh/crypto-media/audited-e2ee.md §4.1). Payload value, not an error-code-registry reason_code. Used by audit projections to distinguish late-key-triggered accesses from first-access reads. When absent, the receipt covers a normal (first-access) ak.audit.accessed Event."
     }
   },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "witness_attestation": {
-            "properties": {
-              "kind": {
-                "const": "federation_witness_attested"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          }
-        },
-        "required": [
-          "witness_attestation"
-        ]
-      },
-      "then": {
-        "properties": {
-          "witness_attestation": {
-            "properties": {
-              "witnesses": {
-                "minItems": 2
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "witness_attestation": {
-            "properties": {
-              "kind": {
-                "const": "single_source"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          }
-        },
-        "required": [
-          "witness_attestation"
-        ]
-      },
-      "then": {
-        "properties": {
-          "witness_attestation": {
-            "properties": {
-              "witnesses": {
-                "minItems": 1,
-                "maxItems": 1
-              }
-            }
-          }
-        }
-      }
-    }
-  ],
   "$defs": {
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"

@@ -153,9 +153,6 @@ Content-Type: application/json
 | `ttl_seconds` | `int` | required | ICE 配置有效期（秒）。建议 ≤ 1 小时。 |
 | `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`。schema 合法范围为 `minimum=10`、`maximum=1800`。**服务端 MUST 保证 `refresh_lead_seconds` 严格小于 `ttl_seconds`**（否则客户端在签发瞬间即判定 credential 需刷新，陷入刷新风暴)。推荐 floor 60s 仅在 `60 < ttl_seconds` 时适用，否则 `refresh_lead_seconds < ttl_seconds` 优先于推荐 floor（floor 让位的完整论证与取值规则见 §4.2 服务端规则）。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |
 | `issued_at` | `timestamp` | required | 服务端签发时间，进入签名 canonical bytes。 |
-| `issued_at_bucket` | `timestamp` | required | TURN pseudonym 派生的粗粒度 bucket 起点；MUST 等于 `floor(issued_at / bucket_seconds) * bucket_seconds`，进入签名 canonical bytes。 |
-| `bucket_seconds` | `int` | required | v1 固定为 `300` 秒；客户端 SHOULD 在跨越下一 bucket 前 refresh。 |
-| `expires_at` | `timestamp` | optional | 等于 `issued_at + ttl_seconds`；冗余字段，便于客户端判定。 |
 | `ice_servers` | `object[]` | required | STUN/TURN server 配置数组。 |
 | `ice_servers[].urls` | `string[]` | required | STUN/TURN URL。 |
 | `ice_servers[].username` | `string` | TURN 时 required | TURN 用户名（per-call pairwise pseudonym，REST-style: `<expiry-unix>:<pseudonym>`）。 |
@@ -177,8 +174,6 @@ Content-Type: application/json
   "ttl_seconds": 600,
   "refresh_lead_seconds": 60,
   "issued_at": "2026-04-26T00:00:00Z",
-  "issued_at_bucket": "2026-04-26T00:00:00Z",
-  "bucket_seconds": 300,
   "ice_servers": [
     {
       "urls": [
@@ -214,17 +209,18 @@ Content-Type: application/json
 
 - TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential（draft-uberti-rtcweb-turn-rest-00 风格 username = `<expiry-unix>:<pairwise-pseudonym>`，password = `HMAC-SHA256(turn_shared_secret, username)`；实现不得降级为 HMAC-SHA1）。
 - TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `ak_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；该不可关联性只针对 TURN 运营方成立，不对铸造 pseudonym 的 Arkret media service 成立。
-- Pseudonym 生成 MUST 使用每次通话的新随机种子或 media service 私有密钥派生，且至少绑定 `(realm_id, call_id, actor_id, device_id, issued_at_bucket, media_service_id)`；推荐：
+- v1 固定 `ice_bucket(t)=UTC_timestamp(floor(unix_seconds(t)/300)*300)`。server 与 client MUST 从签名覆盖的 `issued_at` 计算该值；不得在 response wire 中另传 bucket 常量或 bucket 起点。客户端 SHOULD 在跨越下一 300 秒 bucket 前 refresh。credential expiry 同样只计算为 `issued_at + ttl_seconds`，不得另传 `expires_at`；canonical timestamp 加法溢出 MUST fail closed。
+- Pseudonym 生成 MUST 使用每次通话的新随机种子或 media service 私有密钥派生，且至少绑定 `(realm_id, call_id, actor_id, device_id, ice_bucket(issued_at), media_service_id)`；推荐：
 
   ```text
   pseudonym = "ak_pseudonym_call_" ||
     base64url(HMAC-SHA256(media_service_pseudonym_secret,
-      canonical_json({realm_id, call_id, actor_id, device_id, issued_at_bucket, nonce})
+      canonical_json({realm_id, call_id, actor_id, device_id, ice_bucket: ice_bucket(issued_at), nonce})
     )[0:16])
   ```
 
   `nonce` MUST 对每个 `(call_id, actor_id, device_id)` fresh，media service MUST 在签名 ICE config 的内部审计记录中保留 nonce freshness evidence，且不得把 nonce 或其稳定派生值写入 TURN username 之外的可跨 Realm 关联字段。Refresh 时同一 active call leg MAY 复用 pseudonym 以避免 TURN 误判为不同会话，但新 call、new device leg、超过 `ttl_seconds + refresh grace` 的恢复、或 policy 要求匿名重置时 MUST 生成新 pseudonym。Pseudonym 不得仅由稳定 ID 确定性派生。
-- ICE config response MUST 由 media service 签名；`signature.signature_algorithm` MUST 是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 中 `status=active` 且 `proof_kinds` 包含 `detached_jws` 的 `raw_signature_algorithm` 值。default v1 部署使用 `Ed25519`；高保证或部署特定 profile MAY 要求 registry 中的其它 active 算法，但签名 canonical bytes 与本节 domain label 不变。签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`issued_at_bucket`、`bucket_seconds`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
+- ICE config response MUST 由 media service 签名；`signature.signature_algorithm` MUST 是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 中 `status=active` 且 `proof_kinds` 包含 `detached_jws` 的 `raw_signature_algorithm` 值。default v1 部署使用 `Ed25519`；高保证或部署特定 profile MAY 要求 registry 中的其它 active 算法，但签名 canonical bytes 与本节 domain label 不变。签名 canonical bytes MUST 覆盖 response 去除 `signature` 后的完整权威对象，包括 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`ttl_seconds`、`ice_servers[]` 与策略字段；derived bucket 与 expiry 由这些已签输入唯一决定，不进入 wire。TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
   - **签名 domain label（normative，跨实现互通契约）**：ICE config response `signature.sig` MUST 是 issuer 私钥（对应 `signature.kid`）按 `signature.signature_algorithm` 指定算法对下列字节串产生的签名；`signature.signature_algorithm="Ed25519"` 时该签名为 Ed25519。`ES256`、`ML-DSA-65` 等其它允许 detached JWS 的 active `signature_algorithm` 值只改变验签算法和 key type，不改变本 signing input、domain label 或 payload digest：
 
     ```text

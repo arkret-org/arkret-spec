@@ -3,7 +3,7 @@
   "fixture_kind": "schema_only",
   "profile": "ak.profile.key_backup.memory_hard.v1",
   "version": "2026-05-26",
-  "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ak.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, managed Agent PCR binding across public/plaintext/AAD views, auth_data.signed_fields coverage required for series fields, and minimal ak.schema.recovery_policy.v1 / ak.schema.recovery_receipt.v1 binding cases. Per identity/key-management.md §7.5.6 / §7.6 / §8, identity/security-transactions.md §2, and crypto-media/device-lifecycle.md §12 / §14. Lint runs tools/artifact_lint against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes.",
+  "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ak.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, managed Agent PCR binding across public/plaintext/AAD views, derived whole-object signature projections, and minimal ak.schema.recovery_policy.v1 / ak.schema.recovery_receipt.v1 binding cases. Per identity/key-management.md §7.5.6 / §7.6 / §8, identity/security-transactions.md §2, and crypto-media/device-lifecycle.md §12 / §14. Lint runs tools/artifact_lint against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes.",
   "runner": {
     "kind": "json_schema_validation_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -97,21 +97,7 @@
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
           "signature_algorithm": "Ed25519",
-          "signature": "signature-base64url-placeholder",
-          "signed_fields": [
-            "schema",
-            "policy_id",
-            "principal_id",
-            "version",
-            "supersedes",
-            "trust_domain",
-            "allowed_proof_kinds",
-            "publication_authorization_rules",
-            "threshold",
-            "recovery_keys",
-            "recovery_key_agreements",
-            "issued_at"
-          ]
+          "signature": "signature-base64url-placeholder"
         }
       }
     },
@@ -174,19 +160,7 @@
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
           "signature_algorithm": "Ed25519",
-          "signature": "signature-base64url-placeholder",
-          "signed_fields": [
-            "schema",
-            "policy_id",
-            "principal_id",
-            "version",
-            "supersedes",
-            "trust_domain",
-            "allowed_proof_kinds",
-            "publication_authorization_rules",
-            "threshold",
-            "issued_at"
-          ]
+          "signature": "signature-base64url-placeholder"
         }
       }
     },
@@ -215,18 +189,7 @@
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
           "signature_algorithm": "Ed25519",
-          "signature": "signature-base64url-placeholder",
-          "signed_fields": [
-            "schema",
-            "policy_id",
-            "principal_id",
-            "version",
-            "supersedes",
-            "trust_domain",
-            "allowed_proof_kinds",
-            "device_quorum",
-            "issued_at"
-          ]
+          "signature": "signature-base64url-placeholder"
         }
       }
     },
@@ -290,20 +253,7 @@
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
-          "signature": "signature-base64url-placeholder",
-          "signed_fields": [
-            "schema",
-            "policy_id",
-            "principal_id",
-            "version",
-            "supersedes",
-            "trust_domain",
-            "allowed_proof_kinds",
-            "publication_authorization_rules",
-            "recovery_keys",
-            "recovery_key_agreements",
-            "issued_at"
-          ]
+          "signature": "signature-base64url-placeholder"
         }
       }
     },
@@ -352,20 +302,7 @@
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
-          "signature": "signature-base64url-placeholder",
-          "signed_fields": [
-            "schema",
-            "policy_id",
-            "principal_id",
-            "version",
-            "supersedes",
-            "trust_domain",
-            "allowed_proof_kinds",
-            "publication_authorization_rules",
-            "recovery_keys",
-            "recovery_key_agreements",
-            "issued_at"
-          ]
+          "signature": "signature-base64url-placeholder"
         }
       }
     },
@@ -387,19 +324,7 @@
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
           "signature_algorithm": "Ed25519",
-          "signature": "signature-base64url-placeholder",
-          "signed_fields": [
-            "schema",
-            "policy_id",
-            "principal_id",
-            "version",
-            "supersedes",
-            "trust_domain",
-            "allowed_proof_kinds",
-            "publication_authorization_rules",
-            "expires_at",
-            "issued_at"
-          ]
+          "signature": "signature-base64url-placeholder"
         }
       }
     },
@@ -422,21 +347,39 @@
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",
-          "signature": "signature-base64url-placeholder",
-          "signed_fields": [
-            "schema",
-            "recovery_session_id",
-            "principal_id",
-            "requesting_device_id",
-            "backup_id",
-            "backup_kind",
-            "series_id",
-            "ciphertext_digest",
-            "proof_kind",
-            "proof_digest",
-            "issued_at"
-          ]
+          "signature": "signature-base64url-placeholder"
         }
+      }
+    },
+    {
+      "name": "key_backup_frontier_integer_generation_valid",
+      "schema_ref": "schemas/key-backup-active-series.schema.json#/$defs/frontier_ref",
+      "expect_valid": true,
+      "instance": {
+        "frontier_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "device_generation_ref": 7
+      }
+    },
+    {
+      "name": "key_backup_frontier_compound_string_generation_rejected",
+      "schema_ref": "schemas/key-backup-active-series.schema.json#/$defs/frontier_ref",
+      "expect_valid": false,
+      "first_expected_error": "$.device_generation_ref: '7-did-version' is not of type 'integer'",
+      "instance": {
+        "frontier_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "device_generation_ref": "7-did-version"
+      }
+    },
+    {
+      "name": "key_backup_unlock_legacy_signed_fields_rejected",
+      "schema_ref": "schemas/key-backup-unlock-proof.schema.json#/properties/auth_data",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('signed_fields' was unexpected)",
+      "instance": {
+        "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
+        "signature_algorithm": "Ed25519",
+        "signature": "signature-base64url-placeholder",
+        "signed_fields": []
       }
     }
   ]

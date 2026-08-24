@@ -400,6 +400,7 @@ sha256:7af524696c2f216306f2faa52e98685cda91beb59230254add917d6652c35230
 - proof 字段被包含进 receipt digest。
 - `issuer`、`scope`、`events`、`created_at` 或 `schema` 被排除在 digest 外。
 - `receipt_id` 大小写被实现私自改写。
+- frontier 未严格落入三个 closed branch 之一：typed head（`event_id`）、digest-only head（本向量）或仅含 `actor_seq` / `hlc` 的 coarse observation。尤其同时携带 `event_id` 与 `event_digest` 必须 schema-invalid；typed head 的 digest 只能从 Event ID 解码。
 
 ### 1.8 Vector: Signature Binding Payload
 
@@ -6340,7 +6341,7 @@ superseded、unresolved、跨verifier重放及字段混拼分支；state witness
 [`../identity/key-management.md` §3.6.1](../identity/key-management.md) 与
 [`../sync/federation.md` §4.1.1](../sync/federation.md)。Runner MUST 覆盖：
 
-1. 逻辑唯一键是 selector tuple `(agent_id, verification_method, event_id, event_digest, receiver_service_id)`。
+1. 逻辑唯一键是 selector tuple `(agent_id, verification_method, event_id, receiver_service_id)`；Event digest 从 suite-bearing `event_id` 解码，不作为第二个 selector 字段。
    同 tuple、同 receipt digest、同 canonical historical root MUST 是 exact replay / no-op；materializer MUST 在
    签发新 outer attestation 前按该 tuple 读既有 root，MUST NOT 先签再靠 digest 主键冲突发现重复，
    `additional_historical_roots_published` 恒为 0。
@@ -6499,7 +6500,7 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 
 1. 本地 Event、按 service DID 去重后的完整 frozen target set 与所有 intents 必须同事务；第二个 target 写入
    fault 时 Event、target 和 intent 全部不存在。
-2. route miss 的唯一 submit 结果是本地 accepted 且 `delivery_state=pending`；不得返回
+2. route miss 的唯一 submit 结果是本地 accepted 且 `pending_delivery_count=1`，consumer 派生 state 为 pending；不得返回
    `service_unavailable`，不得漏 target，也不得泄露 service topology。
 3. `pending_route` 与 `pending_delivery` 跨重启、cache eviction 和尝试阈值保留；阈值只触发 operator alert，
    authority 仍有效时不得 dead-letter。
@@ -6511,8 +6512,7 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 7. `ak.self.events.read.delivery_status` 对可见 Event 返回按 opaque target_id 排序的完整 target set；service_id
    只在 caller 当前可读对应 member delivery-binding 时出现。unknown 与不可见 Event 统一 `not_found`，query
    不得触发 route lookup、retry 或状态转换。
-8. submit/read 两个 outcome 的 `pending_delivery_count` 必须精确等于 pending_route 与 pending_delivery rows 数；
-   计数为零当且仅当 aggregate state 为 complete。
+8. submit outcome 保留的 `pending_delivery_count` 必须精确等于 pending_route 与 pending_delivery rows 数；read outcome 由完整 `targets[]` 现算该 count。两者的 aggregate state 均由 count 唯一派生：零为 complete，非零为 pending，wire 不重复携带 state。
 
 ## 37. Agent Event admission receipt handoff closure vector
 

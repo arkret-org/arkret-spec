@@ -137,7 +137,6 @@
         "agent_id",
         "verification_method",
         "event_id",
-        "event_digest",
         "receiver_service_id"
       ],
       "properties": {
@@ -154,9 +153,6 @@
         },
         "event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
-        },
-        "event_digest": {
-          "$ref": "./agent-signer-evidence.schema.json#/$defs/digest"
         },
         "receiver_service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"

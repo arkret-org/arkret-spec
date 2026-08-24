@@ -177,13 +177,13 @@ v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 | 签名点 | domain label 常量 | signing_input 覆盖 | 定义处 |
 | --- | --- | --- | --- |
 | `participant_binding.sig` | `ak.media.participant_binding.v1` | `label \|\| 0x00 \|\| canonical_json({actor_id, call_id, device_id, expires_at, focus_id, participant_identity, realm_id})`（7 元组，见 §3） | §3（已字节锁，本节仅引用，不改） |
-| ICE config response `signature` | `ak.media.ice_config.v1` | `label \|\| 0x00 \|\| canonical_json(ICE config response 去除 `signature` 字段后的权威字段：`realm_id, call_id, actor_id, device_id, issued_at, issued_at_bucket, bucket_seconds, ttl_seconds, ice_servers, 及策略字段`) | [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) |
+| ICE config response `signature` | `ak.media.ice_config.v1` | `label \|\| 0x00 \|\| canonical_json(ICE config response 去除 `signature` 字段后的完整权威对象)`；300 秒 bucket 与 expiry 由已签 `issued_at, ttl_seconds` 计算，不进入 wire | [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) |
 | `backend_token.sig`（`backend_kind="arkret_native"`） | `ak.media.backend_token.v1` | `label \|\| 0x00 \|\| canonical_json(backend_token.payload)` | [`bindings/arkret-native.md` §2](./bindings/arkret-native.md) |
 | `sfu_signature.sig`（`backend_kind="arkret_native"`） | `ak.media.sfu_answer.v1` | `label \|\| 0x00 \|\| canonical_json({call_id, focus_id, participant_identity, realm_id, sdp})` | [`bindings/arkret-native.md` §3](./bindings/arkret-native.md) |
 
 约束细则：
 
-- **ICE config response 签名 MUST 用 distinct label `ak.media.ice_config.v1`（normative）**：ICE config 响应签名覆盖的字段集合（`realm_id` / `call_id` / `actor_id` / `device_id` / `issued_at` / `issued_at_bucket` / `bucket_seconds` / `ttl_seconds` / `ice_servers[]` 与策略字段）与 participant_binding 的 7 元组**不同用途、部分字段重叠**；若两者复用同一 label，则一个 issuer key 对 ICE config 的签名可能被在 participant_binding 验证路径下重解释（反之亦然）。因此 ICE config 签名 MUST 以 `ak.media.ice_config.v1` 前缀其 signing_input。canonical 定义见 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md)。
+- **ICE config response 签名 MUST 用 distinct label `ak.media.ice_config.v1`（normative）**：ICE config 响应签名覆盖的完整权威对象（包括 `realm_id` / `call_id` / `actor_id` / `device_id` / `issued_at` / `ttl_seconds` / `ice_servers[]` 与策略字段）与 participant_binding 的 7 元组**不同用途、部分字段重叠**；若两者复用同一 label，则一个 issuer key 对 ICE config 的签名可能被在 participant_binding 验证路径下重解释（反之亦然）。因此 ICE config 签名 MUST 以 `ak.media.ice_config.v1` 前缀其 signing_input。canonical 定义见 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md)。
 - **不在本 label 体系内的媒体凭证**（据实说明各自的域，MUST NOT 强加 Ed25519 label）：
   - `backend_token`（LiveKit 部署）是 **LiveKit JWT**，自带 `alg` / `iss` 等 JOSE header 与 issuer 标识，其签名域由 JWT 标准与 LiveKit API Key/Secret 决定（见 [`bindings/livekit.md` §2](./bindings/livekit.md)），不进入本节 Ed25519 label 体系。
   - TURN REST 凭证不是 Ed25519 签名而是 **HMAC**：`credential = HMAC-SHA256(turn_shared_secret, username)`，其中 `username = "<expiry-unix>:<per-call-pairwise-pseudonym>"`（见 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md)）；pseudonym 本身亦由 HMAC 派生。HMAC 的域由其 `turn_shared_secret` 与 username 输入构造决定，不属于 Ed25519 签名 domain label 范畴。

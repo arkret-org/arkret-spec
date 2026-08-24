@@ -54,7 +54,6 @@
         "verification_method",
         "signature_algorithm",
         "signature",
-        "signed_fields",
         "device_authorize_event_id"
       ],
       "properties": {
@@ -71,57 +70,7 @@
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "base64url signature over canonical_json(record without auth_data.signature)."
-        },
-        "signed_fields": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string"
-          },
-          "allOf": [
-            {
-              "contains": {
-                "const": "schema"
-              }
-            },
-            {
-              "contains": {
-                "const": "actor_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "backup_kind"
-              }
-            },
-            {
-              "contains": {
-                "const": "active_series_id"
-              }
-            },
-            {
-              "contains": {
-                "const": "series_pointer_version"
-              }
-            },
-            {
-              "contains": {
-                "const": "previous_series_ids"
-              }
-            },
-            {
-              "contains": {
-                "const": "frontier_ref"
-              }
-            },
-            {
-              "contains": {
-                "const": "issued_at"
-              }
-            }
-          ]
+          "description": "base64url signature over RFC 8785 JCS(record without auth_data.signature). The closed record shape fixes the authenticated projection."
         },
         "device_authorize_event_id": {
           "type": "string",
@@ -175,7 +124,7 @@
         },
         "device_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "PCR-local monotonic device generation at active-series selection; it is not and MUST NOT be derived from a DID versionId."
+          "description": "PCR-local monotonic device generation. This is not a DID versionId and MUST equal the accepted current_device_generation_ref at the referenced frontier."
         }
       },
       "additionalProperties": false

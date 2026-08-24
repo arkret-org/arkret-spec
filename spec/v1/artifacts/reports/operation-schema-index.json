@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-24.4",
+  "version": "2026-08-24.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-24T07:08:44+08:00",
+  "generated_at": "2026-08-24T12:09:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3134,13 +3134,11 @@
         "required": [
           "status",
           "accepted",
-          "delivery_state",
           "pending_delivery_count"
         ],
         "properties": [
           "status",
           "accepted",
-          "delivery_state",
           "pending_delivery_count",
           "ingress_receipts",
           "control_proposal_acks",
@@ -7229,7 +7227,6 @@
         "properties": [
           "status",
           "accepted",
-          "delivery_state",
           "pending_delivery_count",
           "ingress_receipts",
           "control_proposal_acks",
@@ -7253,13 +7250,11 @@
             "required": [
               "status",
               "accepted",
-              "delivery_state",
               "pending_delivery_count"
             ],
             "properties": [
               "status",
               "accepted",
-              "delivery_state",
               "pending_delivery_count",
               "ingress_receipts",
               "control_proposal_acks",
@@ -7384,14 +7379,10 @@
         "schema_kind": "object",
         "required": [
           "event_id",
-          "delivery_state",
-          "pending_delivery_count",
           "targets"
         ],
         "properties": [
           "event_id",
-          "delivery_state",
-          "pending_delivery_count",
           "targets"
         ],
         "closed": true
@@ -8423,8 +8414,6 @@
           "ttl_seconds",
           "refresh_lead_seconds",
           "issued_at",
-          "issued_at_bucket",
-          "bucket_seconds",
           "signature"
         ],
         "properties": [
@@ -8436,9 +8425,6 @@
           "ttl_seconds",
           "refresh_lead_seconds",
           "issued_at",
-          "issued_at_bucket",
-          "bucket_seconds",
-          "expires_at",
           "turn_required",
           "constraints",
           "next_retry_at",

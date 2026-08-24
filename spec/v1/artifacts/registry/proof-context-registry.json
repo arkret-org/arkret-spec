@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-24.1",
+  "version": "2026-08-24.3",
   "source_of_truth": true,
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
@@ -1515,8 +1515,7 @@
       "object_family": "recovery_policy",
       "primitive": "detached_signature",
       "binding_fields": [
-        "signed_fields",
-        "policy"
+        "policy_without_auth_data"
       ]
     },
     {
@@ -1524,8 +1523,7 @@
       "object_family": "recovery_receipt",
       "primitive": "detached_signature",
       "binding_fields": [
-        "signed_fields",
-        "receipt"
+        "receipt_without_auth_data"
       ]
     },
     {

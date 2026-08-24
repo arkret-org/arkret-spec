@@ -84,7 +84,7 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 
 **Realm alias canonical grammar**：realm alias 的 canonical 形态是 `<localpart>:<domain>`，与 [`identity/identity-handles.md` §3.1/§17](../identity/identity-handles.md) 定义的 handle canonical 形态**同语法**：
 
-- `<localpart>`：与 handle localpart 相同的 `arkret_human_identifier`，即 RFC 8265 `UsernameCaseMapped` enforcement 后的 Unicode canonical value；它不是 domain label，MUST NOT 使用 IDNA。长度 1..128 Unicode code points 且不超过 512 UTF-8 octets。
+- `<localpart>`：与 handle localpart 相同的 `arkret_human_identifier`，即 RFC 8265 `UsernameCaseMapped` enforcement 后的 Unicode canonical value；它不是 domain label，MUST NOT 使用 IDNA。prepared 长度为 1..128 Unicode code points。
 - `<domain>`：运营该 alias 的部署 / 组织（realm alias issuer）的权威域，至少两个 label；用户输入 MAY 是 U-label，canonical wire MUST 是按 [`conformance/encoding.md` §2.2.1](../conformance/encoding.md) 得到的小写 A-label。
 - canonical alias **不含** sigil。`#general:acme.example`、`general@acme.example`、裸 `general` 等形态 MUST NOT 作为 canonical alias 出现在 `web+arkret:` path 段、缓存键或 `resolve_*` 规范化结果中（带 sigil 形态仅可作为 §下文「输入路由」的解析输入）。
 
@@ -125,7 +125,7 @@ sigil 是展示与输入层 affordance，**不是 wire 的一部分**：strip �
 
 **混淆防护（normative）**：realm alias 的 canonical equality 是 prepared localpart + lowercase A-label domain 的精确相等。registrar MAY 按 handle §17 在同一 authority 的 **realm-alias namespace** 内建立 UTS #39 skeleton collision index并要求 `Highly Restrictive`；碰撞返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`。skeleton 不得进入 wire equality。handle 与 realm alias namespace 不相交，跨 namespace skeleton 相同不构成冲突，由 sigil 与类型上下文消歧。
 
-**Native personal Agent selector slug（normative）**：`@<controller-handle>/<agent_slug>` 的 `agent_slug` 复用 `arkret_human_identifier` preparation，长度 1..64 Unicode code points且不超过 256 UTF-8 octets；`/`、`@`、`:`、`#`、`?`、`\\`、空白与控制字符均禁止。`总结助手` 是合法 canonical slug。slug 只在 controller namespace 内唯一，是可变、可撤销、非授权的用户标签；若实现需要 URL path / machine-only ASCII token，必须定义独立字段，不能收窄 `agent_slug`。
+**Native personal Agent selector slug（normative）**：`@<controller-handle>/<agent_slug>` 的 `agent_slug` 复用 `arkret_human_identifier` preparation，prepared 长度为 1..64 Unicode code points；`/`、`@`、`:`、`#`、`?`、`\\`、空白与控制字符均禁止。`总结助手` 是合法 canonical slug。slug 只在 controller namespace 内唯一，是可变、可撤销、非授权的用户标签；若实现需要 URL path / machine-only ASCII token，必须定义独立字段，不能收窄 `agent_slug`。
 
 ## 4. Link 类型与授权 token
 

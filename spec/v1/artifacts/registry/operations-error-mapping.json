@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-21.2",
+  "version": "2026-08-24.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-21T23:50:00+08:00",
+  "generated_at": "2026-08-24T12:05:55+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -934,7 +934,7 @@
         "recovery_policy_version_not_monotonic",
         "recovery_proof_kind_unknown"
       ],
-      "description": "Publishing or rotating a recovery policy requires authenticated principal isolation, valid Event/lease and signed_fields/signature authority, a known proof-kind enum, and strictly monotonic version/supersedes linkage. frontier_unavailable is the retry-safe response while the submitted Event is valid but its covering control Seal/SealBasis has not materialized."
+      "description": "Publishing or rotating a recovery policy requires authenticated principal isolation, valid Event/lease and the closed policy signature transcript/authority, a known proof-kind enum, and strictly monotonic version/supersedes linkage. frontier_unavailable is the retry-safe response while the submitted Event is valid but its covering control Seal/SealBasis has not materialized."
     },
     {
       "operation_id": "ak.root.identity.recovery_policy.resource.get",

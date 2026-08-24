@@ -377,8 +377,7 @@
           "required": [
             "verification_method",
             "signature_algorithm",
-            "signature",
-            "signed_fields"
+            "signature"
           ],
           "properties": {
             "verification_method": {
@@ -390,18 +389,8 @@
             },
             "signature": {
               "type": "string",
-              "pattern": "^[A-Za-z0-9_-]+$"
-            },
-            "signed_fields": {
-              "type": "array",
-              "const": [
-                "step",
-                "output_ref",
-                "transaction_id",
-                "transaction_request_digest",
-                "prepared_plan_digest",
-                "attestation_digest"
-              ]
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "description": "base64url signature over RFC 8785 JCS of the fixed projection {step,output_ref,transaction_id,transaction_request_digest,prepared_plan_digest,attestation_digest}. artifact is authenticated transitively by attestation_digest and is not duplicated in the outer projection."
             }
           },
           "additionalProperties": false

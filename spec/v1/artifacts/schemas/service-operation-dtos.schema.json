@@ -2849,14 +2849,6 @@
         }
       ]
     },
-    "EventDeliveryState": {
-      "type": "string",
-      "enum": [
-        "complete",
-        "pending"
-      ],
-      "description": "Aggregate Realm fanout state. complete means no target remains pending; pending means at least one durable target is pending_route or pending_delivery."
-    },
     "EventDeliveryTargetState": {
       "type": "string",
       "enum": [
@@ -2906,24 +2898,14 @@
     },
     "EventDeliveryStatusOutcome": {
       "type": "object",
-      "description": "Complete frozen target set for one visible Event. Rows are sorted byte-wise by unique opaque target_id; pending_delivery_count exactly equals rows in pending_route or pending_delivery.",
+      "description": "Complete frozen target set for one visible Event. Rows are sorted byte-wise by unique opaque target_id. Consumers derive the pending count by counting pending_route and pending_delivery rows, and derive aggregate state as pending iff that count is non-zero.",
       "required": [
         "event_id",
-        "delivery_state",
-        "pending_delivery_count",
         "targets"
       ],
       "properties": {
         "event_id": {
           "$ref": "#/$defs/EventId"
-        },
-        "delivery_state": {
-          "$ref": "#/$defs/EventDeliveryState"
-        },
-        "pending_delivery_count": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 1000
         },
         "targets": {
           "type": "array",
@@ -2934,62 +2916,6 @@
           }
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "delivery_state": {
-                "const": "complete"
-              }
-            },
-            "required": [
-              "delivery_state"
-            ]
-          },
-          "then": {
-            "properties": {
-              "pending_delivery_count": {
-                "const": 0
-              },
-              "targets": {
-                "items": {
-                  "properties": {
-                    "status": {
-                      "enum": [
-                        "delivered",
-                        "cancelled_authority_lost"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "pending_delivery_count": {
-                "minimum": 1
-              },
-              "targets": {
-                "contains": {
-                  "properties": {
-                    "status": {
-                      "enum": [
-                        "pending_route",
-                        "pending_delivery"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "status"
-                  ]
-                },
-                "minContains": 1
-              }
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "EventsSubmitOutcome": {
@@ -2998,7 +2924,6 @@
       "required": [
         "status",
         "accepted",
-        "delivery_state",
         "pending_delivery_count"
       ],
       "properties": {
@@ -3017,10 +2942,6 @@
             "type": "string"
           },
           "description": "Event IDs that entered the accepted set for the first time. Idempotent re-submissions of identical bodies are sealed via duplicate[], not re-listed here."
-        },
-        "delivery_state": {
-          "$ref": "#/$defs/EventDeliveryState",
-          "description": "Current aggregate for fanout intents associated with accepted[] union duplicate[]. It never implies remote acceptance when status is accepted."
         },
         "pending_delivery_count": {
           "type": "integer",
@@ -3099,32 +3020,6 @@
         {
           "if": {
             "properties": {
-              "delivery_state": {
-                "const": "complete"
-              }
-            },
-            "required": [
-              "delivery_state"
-            ]
-          },
-          "then": {
-            "properties": {
-              "pending_delivery_count": {
-                "const": 0
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "pending_delivery_count": {
-                "minimum": 1
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
               "status": {
                 "const": "historical_only"
               }
@@ -3135,9 +3030,6 @@
           },
           "then": {
             "properties": {
-              "delivery_state": {
-                "const": "complete"
-              },
               "pending_delivery_count": {
                 "const": 0
               }
@@ -4929,7 +4821,6 @@
         "event_id",
         "kind",
         "realm_id",
-        "event_digest",
         "redaction_reason",
         "hidden_fields",
         "reducer_input"
@@ -4950,11 +4841,6 @@
         },
         "created_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "event_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-          "description": "Digest of the complete canonical Event Envelope bytes with proofs and unsigned removed. The caller cannot recompute it from this redacted view; it is a commitment used with inclusion / availability proofs."
         },
         "payload_digest": {
           "type": "string",
@@ -4982,7 +4868,7 @@
         },
         "inclusion_proof": {
           "type": "object",
-          "description": "Optional proof that the committed event_digest is included in an Event set / Seal / range-completeness root visible to the caller."
+          "description": "Optional proof that the suite-bearing digest decoded from event_id is included in an Event set / Seal / range-completeness root visible to the caller."
         },
         "reducer_input": {
           "const": false,

@@ -129,7 +129,6 @@
         "terminal_receipt_digest",
         "replacement_device_id",
         "device_authorization_event_id",
-        "device_authorization_event_digest",
         "result_model_generation_ref",
         "completed_at",
         "auth_data"
@@ -168,9 +167,6 @@
         "device_authorization_event_id": {
           "$ref": "#/$defs/event_id"
         },
-        "device_authorization_event_digest": {
-          "$ref": "#/$defs/digest"
-        },
         "result_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"
         },
@@ -182,8 +178,7 @@
           "required": [
             "verification_method",
             "signature_algorithm",
-            "signature",
-            "signed_fields"
+            "signature"
           ],
           "properties": {
             "verification_method": {
@@ -195,26 +190,8 @@
             },
             "signature": {
               "type": "string",
-              "pattern": "^[A-Za-z0-9_-]+$"
-            },
-            "signed_fields": {
-              "type": "array",
-              "const": [
-                "schema",
-                "transaction_id",
-                "transaction_request_digest",
-                "prepared_plan_digest",
-                "principal_id",
-                "coordinator_service_id",
-                "recovery_session_id",
-                "terminal_receipt_id",
-                "terminal_receipt_digest",
-                "replacement_device_id",
-                "device_authorization_event_id",
-                "device_authorization_event_digest",
-                "result_model_generation_ref",
-                "completed_at"
-              ]
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "description": "base64url signature over RFC 8785 JCS of the fixed projection {schema,transaction_id,transaction_request_digest,prepared_plan_digest,principal_id,coordinator_service_id,recovery_session_id,terminal_receipt_id,terminal_receipt_digest,replacement_device_id,device_authorization_event_id,result_model_generation_ref,completed_at}. The Event digest is decoded from the suite-bearing device_authorization_event_id."
             }
           },
           "additionalProperties": false

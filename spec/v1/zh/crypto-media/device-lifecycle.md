@@ -1279,19 +1279,6 @@ active group 必须走 current authorization 下的标准 KeyPackage/Add/Welcome
     "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak:device:01964137-0000-7000-8000-000000000000",
     "signature": "base64url...",
-    "signed_fields": [
-      "backup_id",
-      "actor_id",
-      "backup_kind",
-      "backup_version",
-      "series_id",
-      "series_seq",
-      "supersedes",
-      "encryption",
-      "domain_separation",
-      "contents",
-      "ciphertext_digest"
-    ],
     "signature_algorithm": "Ed25519"
   }
 }
@@ -1308,8 +1295,8 @@ active group 必须走 current authorization 下的标准 KeyPackage/Add/Welcome
 规则：
 
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
-- 任何 backup class 只要使用 `recovery_public_key`，就 MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}` 并由 `auth_data.signed_fields` 覆盖；`recipient_key_ref` 只能解析到该 accepted policy 的 `recovery_key_agreements[]`。`mls_history` / `secret_storage` 在读取/恢复时须按 accepted policy history、active-series 与轮换规则拒绝回滚。不一致 MUST `recovery_policy_mismatch`。只有 `secret_storage_key` 等非 recovery-public-key 方法携带的 `recovery_policy_ref` 才是可选 hint；任何 policy ref 都不得替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
-- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并携带当前 accepted `device_authorize_event_id`；`frontier_ref` 只允许 `device_generation_ref`。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_kind`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 PCR device authorization evidence。
+- 任何 backup class 只要使用 `recovery_public_key`，就 MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}`；该成员自动进入完整 envelope 签名转录。`recipient_key_ref` 只能解析到该 accepted policy 的 `recovery_key_agreements[]`。`mls_history` / `secret_storage` 在读取/恢复时须按 accepted policy history、active-series 与轮换规则拒绝回滚。不一致 MUST `recovery_policy_mismatch`。只有 `secret_storage_key` 等非 recovery-public-key 方法携带的 `recovery_policy_ref` 才是可选 hint；任何 policy ref 都不得替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
+- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并携带当前 accepted `device_authorize_event_id`；`frontier_ref` 只允许最小值为 1 的整数 `device_generation_ref`。签名输入固定为 `RFC8785_JCS(envelope 删除 auth_data.signature)`，所有实际存在的 required、optional 与 `x_*` 成员自动受认证，不携字段名清单。签名链必须链接到当前 PCR device authorization evidence。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
 - v1 没有 controller-owned managed Agent active-state backup 分支。`mls_history` 对所有 actor 都只承载 exporter history-secret ranges；它不携 Agent PCR binding、active MLS state、runtime key 或 pairing readiness。Fresh Agent endpoint 生成新 runtime key，并经标准 KeyPackage/Add/Welcome 重新加入唯一 group。
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
@@ -1400,7 +1387,7 @@ recovery policy 授权，并提交两条 Event：
    `prev_refs` 只指向 re-anchor Event。
 
 两条 Event 必须原子接受，receipt `scope.kind="device_reanchor_unit"`。该 scope 的封闭字段集恰为
-`{kind, principal_id, principal_server_id, realm_id, previous_device_generation, new_device_generation}`：它与 `ak.device.reanchor` payload 选择同一个本地 account authority pair，每个同名字段 MUST 与被覆盖 payload 逐字节相等，任一不等以 `device_reanchor_authority_mismatch` fail closed。两条 Event 的 suite-bearing digest 只从 `events[]` 中对应 kind 的唯一 typed `event_id` 派生并通过 resolved Event 重算，不在 scope 复制。scope MUST NOT 携带 `did_version_id`、
+`{kind, principal_id, principal_server_id, realm_id, previous_device_generation, new_device_generation}`：它与 `ak.device.reanchor` payload 选择同一个本地 account authority pair，每个同名字段 MUST 与被覆盖 payload 逐字节相等，任一不等以 `device_reanchor_authority_mismatch` fail closed。re-anchor 与 replacement-authorize digest 分别从 `events[]` 中唯一对应 kind 的 typed `event_id` 解码，scope 不重复携带。scope MUST NOT 携带 `did_version_id`、
 `registry_head` 或任何 DID publication 字段，接收方也 MUST NOT 由 generation ref 反向合成它们。接受后
 generation fence 使旧 generation 全部失效。`current_device_generation_ref` 是 PCR-local monotonic ref，
 MUST NOT 使用或等于 DID `versionId`；resolution cell 不随基础恢复推进。

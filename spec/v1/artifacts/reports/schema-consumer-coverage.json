@@ -47,7 +47,7 @@
       "event_kind": 4,
       "inbound": 47,
       "outbound": 50,
-      "prose": 110,
+      "prose": 111,
       "prose_only": 2,
       "schema_reference": 118,
       "startup_compile": 192,
@@ -2927,6 +2927,7 @@
       "schema_id": "ak.schema.recovery_completion_attestation.v1",
       "file": "schemas/recovery-authority.schema.json",
       "consumers": {
+        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact"
       },

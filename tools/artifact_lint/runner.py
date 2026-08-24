@@ -41,9 +41,11 @@ from .schemas import (
     check_circle_membership_enum_single_source,
     check_classification_context_paths,
     check_device_reanchor_payload_receipt_binding,
+    check_derived_signature_projection_closure,
     check_did_and_device_constraints,
     check_did_full_id_allowlist,
     check_event_reference_inventory,
+    check_event_id_digest_mirror_removals,
     check_event_schema_coverage,
     check_fsm_state_reachability,
     check_null_cell_subject_wire_form,
@@ -309,6 +311,7 @@ def main(argv: list[str] | None = None) -> int:
             ("vector_groups", lambda: check_vector_group_requirements(lint, known)),
             ("event_schema_coverage", lambda: check_event_schema_coverage(lint, known)),
             ("event_reference_inventory", lambda: check_event_reference_inventory(lint)),
+            ("event_id_digest_mirrors", lambda: check_event_id_digest_mirror_removals(lint)),
             ("wire_scope", lambda: check_wire_schema_no_bare_scope(lint)),
             (
                 "preimage_event_identity",
@@ -317,6 +320,10 @@ def main(argv: list[str] | None = None) -> int:
             ("fsm_reachability", lambda: check_fsm_state_reachability(lint)),
             ("read_scope", lambda: check_read_scope_schema_closure(lint)),
             ("signed_objects", lambda: check_signed_object_closure(lint)),
+            (
+                "derived_signature_projections",
+                lambda: check_derived_signature_projection_closure(lint),
+            ),
             ("reducer_payloads", lambda: check_reducer_payload_closure(lint)),
             (
                 "device_reanchor_binding",

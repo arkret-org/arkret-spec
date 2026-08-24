@@ -84,7 +84,7 @@ v1 的 machine-readable profile 与版本钉定见 [`string-profile-registry.jso
 
 | Profile | 适用字段 | preparation / 验证 | 比较与授权语义 |
 | --- | --- | --- | --- |
-| `arkret_human_identifier` | handle / realm alias localpart、native personal Agent selector `slug` | RFC 8265 `UsernameCaseMapped` enforcement（width mapping、Unicode lowercase、NFC）后排除 Arkret 结构分隔符；长度同时按 code point 与 UTF-8 octet 限制 | prepared code point sequence 精确相等；可建立唯一索引 |
+| `arkret_human_identifier` | handle / realm alias localpart、native personal Agent selector `slug` | RFC 8265 `UsernameCaseMapped` enforcement（width mapping、Unicode lowercase、NFC）后排除 Arkret 结构分隔符；长度按 prepared Unicode code point 限制 | prepared code point sequence 精确相等；可建立唯一索引 |
 | `arkret_single_line_display_text` | `title`、`display_name`、`label` | NFC；允许多语言、emoji、数学符号和混合脚本；拒绝 CR/LF、C0/C1、BOM、bidi embedding / override / isolate；不得仅为空白 | 永不用于主体相等、授权、ACL 或签名者判定 |
 | `arkret_short_text` | `summary`、短 `description` | NFC；允许 LF 换行；拒绝 CR、其它 C0/C1、BOM 与 bidi embedding / override；字段 schema 决定 code-point 上限 | 非权威全文 |
 | `arkret_content_text` | message / content / body | NFC；允许正常 bidi 与 emoji 序列；拒绝 BOM 与非文本控制字符；renderer 负责转义和方向隔离 | 内容；不参与 identifier 比较 |
