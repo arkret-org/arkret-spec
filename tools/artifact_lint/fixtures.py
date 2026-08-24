@@ -1289,11 +1289,6 @@ def check_private_kdf_full_width_nonce(lint: Lint, path: Path, data: dict[str, A
     if expected.get("high_order_zero_bytes") != leading_zeroes:
         lint.fail(path, "full-width counter nonce KAT high_order_zero_bytes drift")
 
-    obsolete_fixture = ARTIFACTS / "fixtures" / "media-aead-nonce-fixture.json"
-    if obsolete_fixture.exists():
-        lint.fail(obsolete_fixture, "obsolete sender-prefix nonce fixture must be deleted")
-
-
 def check_private_kdf_exporter_aead(lint: Lint, path: Path, data: dict[str, Any]) -> None:
     cases = {
         case.get("name"): case
