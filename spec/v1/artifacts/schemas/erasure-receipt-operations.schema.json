@@ -34,23 +34,30 @@
     },
     "erasure_receipt_package": {
       "type": "object",
-      "description": "Self-contained acceptance package. retained_stub is always present on this carrier even when receipt.retained_stub is omitted. If receipt.retained_stub is present, its canonical bytes MUST equal retained_stub. receipt_digest = H('ak.erasure-receipt.v1', receipt); retained_stub_digest MUST equal SHA-256(RFC8785_JCS(retained_stub)).",
+      "description": "Self-contained acceptance package. retained_stub is carried exactly once at package level and receipt.retained_stub MUST be absent. The receiver computes H('ak.erasure-receipt.v1', receipt) for addressing and acceptance; retained_stub_digest MUST equal SHA-256(RFC8785_JCS(retained_stub)).",
       "required": [
         "receipt",
-        "receipt_digest",
         "retained_stub"
       ],
       "properties": {
         "receipt": {
           "$ref": "./erasure-receipt.schema.json"
         },
-        "receipt_digest": {
-          "$ref": "#/$defs/digest"
-        },
         "retained_stub": {
           "$ref": "./erasure-verification-stub.schema.json"
         }
       },
+      "allOf": [
+        {
+          "properties": {
+            "receipt": {
+              "not": {
+                "required": ["retained_stub"]
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "erasure_receipt_submit_request_body": {

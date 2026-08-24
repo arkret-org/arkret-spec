@@ -38,16 +38,9 @@
     },
     "events": {
       "type": "array",
-      "description": "Canonical set projection of covered Events. A bare digest is the compact ordinary form; a typed item carries the Event ID, whose 33-octet token losslessly encodes the suite and full digest, plus kind. Items MUST be strictly increasing by the UTF-8 bytes of canonical_json(item); producers sort and deduplicate before signing, and receivers reject a non-canonical wire array before digest verification.",
+      "description": "Canonical set projection of covered Events. Every item carries the canonical Event ID, whose 33-octet token losslessly encodes the suite and full digest, plus the verified Event kind. Items MUST be strictly increasing by the UTF-8 bytes of canonical_json(item); producers sort and deduplicate before signing, and receivers reject a non-canonical wire array before digest verification.",
       "items": {
-        "oneOf": [
-          {
-            "$ref": "./event-envelope.schema.json#/$defs/digest"
-          },
-          {
-            "$ref": "#/$defs/event_receipt_item"
-          }
-        ]
+        "$ref": "#/$defs/event_receipt_item"
       },
       "minItems": 1,
       "uniqueItems": true

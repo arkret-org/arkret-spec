@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-24.3",
+  "version": "2026-08-24.4",
   "source_of_truth": true,
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
@@ -1308,7 +1308,7 @@
     },
     {
       "context": "ak.availability_receipt_proof.v1",
-      "object_family": "availability_receipt_content",
+      "object_family": "availability_receipt",
       "binding_fields": [
         "payload_digest",
         "realm_id",
@@ -1322,7 +1322,7 @@
         "created_at"
       ],
       "defined_in": "zh/authz/event-auth-state-resolution.md",
-      "schema_ref": "schemas/availability-receipt.schema.json#/$defs/availability_receipt_content"
+      "schema_ref": "schemas/availability-receipt.schema.json"
     }
   ],
   "domain_separations": [

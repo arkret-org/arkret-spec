@@ -134,18 +134,9 @@
     "witness_attestation": {
       "type": "object",
       "required": [
-        "kind",
         "witnesses"
       ],
       "properties": {
-        "kind": {
-          "type": "string",
-          "enum": [
-            "federation_witness_attested",
-            "single_source"
-          ],
-          "description": "Same semantics as ak.audit.ryw_receipt.witness_attestation: 'federation_witness_attested' requires witnesses[].length >= 2 with pairwise-distinct issuer/controlling_organization/verification_method, each listed by Realm policy in audit.range_completeness_witnesses[]. 'single_source' is the honest declaration for self-attested deployments. Mismatch between kind and witnesses[] cardinality / distinctness / policy listing MUST be rejected. Receivers SHOULD treat single_source attestations as advisory only and not as a sovereign-grade completeness proof."
-        },
         "witnesses": {
           "type": "array",
           "minItems": 1,
@@ -162,7 +153,7 @@
               },
               "verification_method": {
                 "$ref": "./common-ids.schema.json#/$defs/did_url",
-                "description": "DID URL of the key the witness used to sign. MUST be distinct from other witnesses' verification_method values for 'federation_witness_attested' to be valid."
+                "description": "DID URL of the key the witness used to sign. For a derived federation_witness_attested class, every verification_method MUST be pairwise distinct."
               },
               "controlling_organization": {
                 "$ref": "#/$defs/did_core_id"

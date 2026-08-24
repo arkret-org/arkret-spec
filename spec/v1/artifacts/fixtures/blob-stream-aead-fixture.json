@@ -6,7 +6,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.blob.stream_aead.v1"
   },
-  "notes": "Adversarial bound cases are declared-field-only: the runner MUST judge them from the envelope's declared segment_bytes / segment_count / size_bytes values before deriving keys or downloading any segment, and MUST NOT materialise multi-MiB plaintext or ciphertext to exercise them.",
+  "notes": "Adversarial bound cases are descriptor-only: the runner MUST derive the segment count from the envelope's segment_bytes and size_bytes before deriving keys or downloading any segment, and MUST NOT materialise multi-MiB plaintext or ciphertext to exercise them.",
   "covers_vectors": [
     "ak.vector.blob.stream_aead_roundtrip.v1",
     "ak.vector.blob.stream_aead_truncation_rejected.v1",
@@ -31,8 +31,8 @@
       "runner": "cotest::conformance::blob_stream_aead::run_stream_aead_truncation_rejected_vector",
       "assertions": [
         "dropping the final legal segment fails finish with segment_stream_truncated",
-        "declared segment_count must equal ceil(size_bytes / segment_bytes)",
-        "count mismatches are rejected before a stream can be completed"
+        "segment count is derived as max(1, ceil(size_bytes / segment_bytes))",
+        "a stream ending before the derived final segment is rejected"
       ]
     },
     {
@@ -65,7 +65,6 @@
           "case": "segment_count_over_limit",
           "declared": {
             "segment_bytes": 262144,
-            "segment_count": 1048577,
             "size_bytes": 274878169088
           },
           "expected": {
@@ -79,7 +78,6 @@
           "case": "segment_bytes_below_floor",
           "declared": {
             "segment_bytes": 1023,
-            "segment_count": 4,
             "size_bytes": 4092
           },
           "expected": {
@@ -93,7 +91,6 @@
           "case": "segment_bytes_above_ceiling",
           "declared": {
             "segment_bytes": 8388609,
-            "segment_count": 2,
             "size_bytes": 16777218
           },
           "expected": {
@@ -102,27 +99,12 @@
             "reason_code": "segment_bounds_invalid",
             "limit": "segment_bytes <= 8388608 (8 MiB)"
           }
-        },
-        {
-          "case": "segment_count_size_bytes_inconsistent",
-          "declared": {
-            "segment_bytes": 262144,
-            "segment_count": 4,
-            "size_bytes": 2621440
-          },
-          "expected": {
-            "decision": "reject",
-            "error_code": "schema_violation",
-            "reason_code": "segment_bounds_invalid",
-            "rule": "segment_count MUST equal ceil(size_bytes / segment_bytes); declared 4 but ceil(2621440 / 262144) = 10"
-          }
         }
       ],
       "assertions": [
-        "declared segment_count above 2^20 fails closed with segment_bounds_invalid before any key derivation or segment download",
+        "a count derived above 2^20 fails closed with segment_bounds_invalid before any key derivation or segment download",
         "declared segment_bytes below 1024 or above 8388608 fails blob.schema.json#/$defs/encrypted_attachment bounds and is rejected with segment_bounds_invalid",
-        "declared segment_count inconsistent with ceil(size_bytes / segment_bytes) fails closed with segment_bounds_invalid",
-        "receivers never preallocate buffers or download plans from unvalidated declared bounds; cases are judged on declared fields only, no multi-MiB payload is materialised"
+        "receivers never preallocate buffers or download plans before validating descriptor bounds and the derived count; no multi-MiB payload is materialised"
       ]
     }
   ]

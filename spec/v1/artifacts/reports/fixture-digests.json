@@ -58,7 +58,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json",
-      "sha256": "1dd52fafa966245b1ca3c58ffca9b3be4c6b08e40245cf94244349ec0259b2fb"
+      "sha256": "77dee4a062473241dc1a60c57ecc7127cbce31fb6c01036ea837e9dc828717b9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-notification-fixture.json",
@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "2123618ae08781a607d15e3a3a9d7a0afd421a8e976e810b8de4a833fc44374d"
+      "sha256": "98b4c621852ae2188cb641cbf04ed9f4aa129414f73b5543023639fcba521b38"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "6943cc0e6116e2f3cbf3cca1572e0ce83cdab4c29de9bbb7e605f49b62ede15a"
+      "sha256": "cb65e7357bf96fe0dce3b74117c7f430a8625f3bcedaed84b2bf58d33f090076"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -190,7 +190,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "ce53328da69b1e878a5dd1a4afffc8514e00a384fa4722af7e2ef9839af93c28"
+      "sha256": "b828bfc8a62c8b1d055dd1b90d3f2799ac4a20b69d3147c20ed7e5b8187f804b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
@@ -210,7 +210,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
-      "sha256": "54d7c1cc9c03907a2c9a384105fbada0832e2097c3c96175b1d6f92ba8edfbe6"
+      "sha256": "06806f6c37f10b25e9bfd621a28f6db3a22c6a15019b7346b66f34a0202642bd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",
@@ -238,7 +238,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/organization-registration-fixture.json",
-      "sha256": "82c2b49677182b5834c5416eb4d10ec2a4dea912f37979c1ea969f69c6104618"
+      "sha256": "669ced7bbaf4384fd739112aa2435c31542475ce5ea6b0322c72ffed1e8b6638"
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "bd111079bafcc31617079ec6035a30f0bbba38d478a3352f02026b2036aa6aa3"
+      "sha256": "0b4977f3a535be7f84e337c83ffa479ad21b422896afee60b35ee12355a21282"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -302,7 +302,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-policy-fixture.json",
-      "sha256": "238dd4149c51a86ed4e5223126763716b3a76fbd7d7d55f8cafea3d2d49367f4"
+      "sha256": "0bf00f2a2fd2c5241dbf0657042438e79785c074361cc31e120b5ea58dc7693c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
@@ -382,7 +382,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "741c08aa87aa9aa4ba939606229746d2a940ae5ade6be2ccdc5a4cc06aad89e8"
+      "sha256": "7ba127ccc88f1a950fdb4d7fa07bd62c570c6816bd035fc32dc129374d31fe8f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

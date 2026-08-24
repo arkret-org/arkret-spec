@@ -128,7 +128,7 @@
     },
     "event_set_commitment": {
       "type": "object",
-      "description": "Commitment to the *set of events* whose replay produces state_digest. merkle_event_set_v1 uses the same RFC 6962 domain-separated family as state_digest and Seal roots: leaf=H(0x00||leaf_data), node=H(0x01||left||right), odd tail promoted. Algorithm + root + covered_event_count name the canonical reduction of those events; covered_event_ids / actor_seq_ranges narrow which event ids and per-actor sequences are bound. Paired with state_digest (see state_digest description): both fields are independently required because state_digest binds reducer output and event_set_commitment binds reducer input.",
+      "description": "Commitment to the set of events whose replay produces state_digest. merkle_event_set_v1 uses the same RFC 6962 domain-separated family as state_digest and Seal roots: leaf=H(0x00||leaf_data), node=H(0x01||left||right), odd tail promoted. Algorithm + root + covered_event_count name the canonical reduction; actor_seq_ranges may further bind per-actor sequences. Boundary Event IDs are carried once by top-level frontier.event_ids.",
       "required": [
         "algorithm",
         "root",
@@ -149,14 +149,6 @@
         "covered_event_count": {
           "type": "integer",
           "minimum": 0
-        },
-        "covered_event_ids": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-          },
-          "description": "When present, MUST denote the same event id set as the top-level frontier.event_ids (set equality): both bind the same snapshot frontier. Consumers MUST reject the snapshot on any mismatch (cross-field consistency enforced by snapshot-schema.md section 5, not by JSON Schema). Members are boundary event ids, not Seal ids; the field is unrelated to the MLS security_frontier_digest."
         },
         "actor_seq_ranges": {
           "type": "array",
@@ -210,11 +202,6 @@
         "challenge_window_seconds": {
           "type": "integer",
           "minimum": 0
-        },
-        "witness_quorum": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "The witness threshold the issuer claims to have satisfied. It is a declared value, never the source of the threshold: verifiers MUST derive the real threshold from the accepted Realm auth/policy state resolved at created_at through authority_binding.auth_frontier / auth_state_digest, and MUST reject the snapshot when this declared value differs from that derived threshold or when the deduplicated valid witness count is below it."
         },
         "conflict_records_digest": {
           "type": "string",
@@ -270,17 +257,12 @@
       "type": "object",
       "description": "Evidence that created_by was authorized to seal this snapshot at created_at. Verifiers MUST reject the snapshot when this binding cannot be checked against Realm policy / witness quorum at or before created_at. authority_kind=witness_quorum additionally requires the typed witness_attestations list below; there is no untyped alternative carrier.",
       "required": [
-        "issuer",
         "authority_kind",
         "auth_state_digest",
         "auth_frontier",
         "checked_at"
       ],
       "properties": {
-        "issuer": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "MUST equal top-level created_by as the same stable did_core_id. The proof verification_method remains a full DID URL whose bare full_id is validated and projected to this value by the registered method adapter."
-        },
         "authority_kind": {
           "type": "string",
           "enum": [
@@ -314,7 +296,7 @@
           },
           "minItems": 1,
           "uniqueItems": true,
-          "description": "Typed witness quorum evidence. Rows MUST be sorted by witness_id in UTF-8 byte order and witness_id MUST be unique across rows (JSON Schema cannot express the sort; snapshot-schema.md section 5.1 makes both normative). Each witness signs the signature-free SnapshotWitnessAttestation projection first; the issuer then signs the manifest containing this final ordered list, so adding, dropping or reordering a row invalidates the manifest signature. Quorum admission uses only the accepted Realm auth/policy state resolved from auth_frontier / auth_state_digest at the manifest created_at: authorized witness set, per-witness key validity, revocation freshness and threshold all come from there, never from verification_hints.witness_quorum. There is no untyped equivalent quorum proof in v1."
+          "description": "Typed witness quorum evidence. Rows MUST be sorted by witness_id in UTF-8 byte order and witness_id MUST be unique across rows. Each witness signs the signature-free SnapshotWitnessAttestation projection first; the issuer then signs the manifest containing this final ordered list. Quorum admission uses only the accepted Realm auth/policy state resolved from auth_frontier / auth_state_digest at manifest created_at."
         }
       },
       "additionalProperties": false,
@@ -383,7 +365,6 @@
               "verification_profile",
               "inclusion_proof_url",
               "challenge_window_seconds",
-              "witness_quorum",
               "conflict_records_digest",
               "soft_failed_digest",
               "quarantined_digest"

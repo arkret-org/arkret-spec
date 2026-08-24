@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-23.1",
+  "version": "2026-08-24.1",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -180,8 +180,8 @@
       "rule": "artifacts is exactly [contract-registry descriptor, proof-context-registry descriptor, replay-schema-manifest descriptor]. The replay schema manifest starts from event-envelope.schema.json and event-payload.schema.json and lists every-and-only recursively reachable local JSON Schema $ref artifact in canonical artifact_id byte order; each artifact is fetched separately by descriptor digest, parsed under its registered type and never inlined in the snapshot manifest"
     },
     "availability_event_bytes_digest": {
-      "domain": "ak.availability-event-bytes-v1",
-      "formula": "<Realm-suite>:<digest of UTF8('ak.availability-event-bytes-v1') || 0x00 || JCS(complete accepted EventEnvelope with unsigned removed)>",
+      "domain": "ak.availability_event_bytes.v1",
+      "formula": "<Realm-suite>:<digest of UTF8('ak.availability_event_bytes.v1') || 0x00 || JCS(complete accepted EventEnvelope with unsigned removed)>",
       "preimage": "the complete accepted canonical EventEnvelope with only unsigned removed; event_id, actor_kind and every accepted producer/principal-server proof remain included",
       "rule": "the receiver also recomputes the ordinary event_digest/event_id from their separately registered preimage and verifies every included proof before accepting bytes_digest; bytes_digest is not an alias for event_id"
     },

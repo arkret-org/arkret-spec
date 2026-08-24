@@ -468,10 +468,7 @@
     "event_set_commitment": {
       "algorithm": "ordered_event_id_sha256_v1",
       "root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "covered_event_count": 1,
-      "covered_event_ids": [
-        "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
-      ]
+      "covered_event_count": 1
     },
     "expected": {
       "verify_signature": true,
@@ -1006,7 +1003,7 @@
       "witness_signs_before_the_issuer_seals_the_final_sorted_list",
       "issuer_signature_binds_the_final_witness_set",
       "quorum_admission_reads_only_accepted_realm_auth_policy_state",
-      "verification_hints_witness_quorum_is_a_declared_value_never_the_threshold_source",
+      "witness_quorum_threshold_exists_only_in_accepted_realm_policy_state",
       "one_witness_counts_once_regardless_of_how_many_keys_it_signs_with"
     ],
     "accepted_auth_state": {
@@ -1061,13 +1058,9 @@
         "root": "sha256:f4760c510ee72b1abe2e93a56a8ec46652ce9fdde2f67b0ff7f83e68e8b72f0e",
         "covered_event_count": 20
       },
-      "verification_hints": {
-        "witness_quorum": 2
-      },
       "created_by": "ak:did_core:webvh:z6mkfixture",
       "created_at": "2026-04-26T00:00:00.000Z",
       "authority_binding": {
-        "issuer": "ak:did_core:webvh:z6mkfixture",
         "authority_kind": "witness_quorum",
         "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_frontier": [
@@ -1154,7 +1147,6 @@
             }
           }
         ],
-        "declared_witness_quorum": 2,
         "expected": "snapshot_accepted"
       },
       {
@@ -1187,7 +1179,6 @@
             }
           }
         ],
-        "declared_witness_quorum": 2,
         "deduplicated_valid_witness_count": 1,
         "expected_error": "schema_violation",
         "note": "witness_id is not unique across rows, so the manifest fails the list rule before quorum counting; when one witness signs with two keys in one row set the deduplicated count is 1 and quorum fails as well"
@@ -1216,7 +1207,6 @@
             }
           }
         ],
-        "declared_witness_quorum": 2,
         "deduplicated_valid_witness_count": 1,
         "expected_error": "snapshot_authority_unverified"
       },
@@ -1244,7 +1234,6 @@
             }
           }
         ],
-        "declared_witness_quorum": 2,
         "deduplicated_valid_witness_count": 1,
         "expected_error": "snapshot_authority_unverified",
         "note": "witness C was revoked at 2026-04-25T00:00:00.000Z, strictly before snapshot_created_at"
@@ -1263,38 +1252,8 @@
             }
           }
         ],
-        "declared_witness_quorum": 2,
         "deduplicated_valid_witness_count": 1,
         "expected_error": "snapshot_authority_unverified"
-      },
-      {
-        "name": "declared_hint_below_policy_threshold_rejected",
-        "witness_attestations": [
-          {
-            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessa",
-            "proof": {
-              "kind": "detached_jws",
-              "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
-              "created_at": "2026-04-26T00:00:00.000Z",
-              "jws": "..."
-            }
-          },
-          {
-            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessb",
-            "proof": {
-              "kind": "detached_jws",
-              "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
-              "payload_digest": "sha256:3d4d0dbc6317fe753b4b072193e081053610fe3872e14a2392799b3f856c8c76",
-              "created_at": "2026-04-26T00:00:00.000Z",
-              "jws": "..."
-            }
-          }
-        ],
-        "declared_witness_quorum": 1,
-        "policy_witness_quorum_threshold": 2,
-        "expected_error": "snapshot_authority_unverified",
-        "note": "verification_hints.witness_quorum is a declared value cross-checked against the policy-derived threshold; it is never the threshold source"
       },
       {
         "name": "wrong_context_rejected",

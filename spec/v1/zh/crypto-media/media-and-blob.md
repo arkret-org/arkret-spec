@@ -135,7 +135,7 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
    - `nonce`；
    - `purpose = "blob-attachment"`、`aead_profile`；
    - `media_type`；
-   - `size_bytes`——在 `encrypted_attachment` descriptor 中它是**明文**字节数（与 §3.3.1 的 `segment_count == ceil(size_bytes / segment_bytes)` 同一个量），在 seal 之前即已确定，因此进入 AAD 不产生任何循环。它与 Blob metadata 顶层的 `size_bytes`（存储的密文字节数）是两个不同对象上的不同量，实现 MUST NOT 互相替代；descriptor 中 MUST NOT 再增加第二个明文尺寸字段；
+   - `size_bytes`——在 `encrypted_attachment` descriptor 中它是**明文**字节数（§3.3.1 的段数只从它与 `segment_bytes` 派生），在 seal 之前即已确定，因此进入 AAD 不产生任何循环。它与 Blob metadata 顶层的 `size_bytes`（存储的密文字节数）是两个不同对象上的不同量，实现 MUST NOT 互相替代；descriptor 中 MUST NOT 再增加第二个明文尺寸字段；
    - 任何 profile 声明的 content policy digest（该 digest 必须在加密前已确定）。
 
    分块形态的逐段 AAD 见 §3.3.3。**`ciphertext_digest` MUST NOT 进入 AAD**：它覆盖含 AEAD tag 的完整密文，进入生成同一 tag 的 AAD 会形成不可构造循环（encoding §10.2）。它是 post-encryption commitment，MUST 由引用该附件的已签名 Event / encrypted descriptor / upload receipt 覆盖；若某条 Blob 路径没有任何外层认证，MUST 补齐该认证，MUST NOT 把 digest 塞回 AEAD AAD。
@@ -173,9 +173,9 @@ E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`
 #### 3.3.1 Segment 切分
 
 - 明文按 `segment_bytes` 字节切成有序 segment 序列；除最后一段外每段长度 MUST 恰为 `segment_bytes`，最后一段长度 MUST 在 `1 .. segment_bytes` 区间（空明文按单个长度为 0 的末段处理，且该段仍携带末段 flag）。
-- `segment_bytes` MUST 在 envelope 中显式声明，单位为字节。v1 默认值为 `262144`（256 KiB）。取值范围与 `segment_count` 上限见 [`conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §6。
-- `segment_count` MUST 等于实际 segment 数，并满足 `segment_count == ceil(plaintext_size / segment_bytes)`（空明文时 `segment_count == 1`）。
-- segment_index 从 `0` 开始连续单调递增，无空洞；第 `segment_count - 1` 段是末段。
+- `segment_bytes` MUST 在 envelope 中显式声明，单位为字节。v1 默认值为 `262144`（256 KiB）。取值范围与派生段数上限见 [`conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §6。
+- verifier MUST 令 `N = max(1, ceil(size_bytes / segment_bytes))`。`N` 是本地派生值，envelope MUST NOT 携带 `segment_count` 镜像字段。
+- segment_index 从 `0` 开始连续单调递增，无空洞；第 `N - 1` 段是末段。
 
 #### 3.3.2 Segment nonce 构造与 §3.1 兼容关系（normative）
 
@@ -194,7 +194,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 - `nonce_prefix` MUST per-object 随机生成（至少 `N_AEAD - 5` 字节 CSPRNG 输出），并在 envelope 中以 base64url 编码携带（字段 `nonce_prefix`）。同一 content key 下不同 object MUST 使用不同 `nonce_prefix`。
 - 与 §3.1 整文件形态的兼容关系：§3.1 的 nonce 是整个 `AEAD.Nn` 字节宽度上的 `I2OSP(durable_sender_counter, AEAD.Nn)`，没有 sender prefix。本 scheme 使用 per-object 随机 `nonce_prefix` 加单调 segment 后缀；每个 transfer 又使用 fresh content key（content key MUST NOT 跨 transfer 复用，见 §3.3.4），因此 `(content key, nonce)` 对在全局唯一。两种 scheme 的 nonce 构造由 `scheme` 封闭分派，接收方不得把 stream prefix 规则套用到 whole-file nonce，也不得把 whole-file full-width counter 规则套用到 stream segment nonce。
-- 因 `segment_index` 为 `u32`，单 object 的 segment 数硬上界为 `2^32`；v1 实际 `segment_count` 上限远低于此（见 scalability-constraints §6），二者 MUST 同时满足。
+- 因 `segment_index` 为 `u32`，单 object 的 segment 数硬上界为 `2^32`；v1 实际派生段数上限远低于此（见 scalability-constraints §6），二者 MUST 同时满足。
 
 #### 3.3.3 AAD binding（normative）
 
@@ -205,7 +205,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 - `nonce_prefix`（本 object 的随机前缀）
 - `segment_index`
 - `last_segment_flag`
-- `segment_count`
+- `segment_count = N`（从已认证的 `size_bytes` 与 `segment_bytes` 重算，只存在于 AAD，不是 envelope 字段）
 - §3.1 第 2 条要求的 envelope 绑定项：`media_type`、`size_bytes` 与任何 profile 声明的 content policy digest
 
 `segment_index`、`last_segment_flag` 已进入 nonce，本节要求其同时进入 AAD，使重排、截断与末段伪造在 AEAD 层即被拒绝（tag 校验失败）。
@@ -222,7 +222,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 为保持与整文件形态一致的**单值整体完整性**语义：
 
 - `ciphertext_digest` = 对全部 segment 密文（每段含其各自 AEAD tag）按 segment_index 升序拼接后的完整字节流，用仓库既有 digest suite（见 [`../conformance/encoding.md` §3.2](../conformance/encoding.md)）求得，wire 形态为 `<algo>:<lowercase_hex>`，与 §3 / encoding.md §10 一致。
-- 拼接顺序 MUST 严格按 segment_index 升序，且覆盖恰好 `segment_count` 段、不含其它字节。
+- 拼接顺序 MUST 严格按 segment_index 升序，且覆盖恰好派生的 `N` 段、不含其它字节。
 - 语义分层：per-segment AEAD tag 提供**增量**校验（边下边验），顶层 `ciphertext_digest` 提供**整体**完整性（防止整体替换 / 段集合层面的攻击）。两者都 MUST 校验通过。
 - **认证归属（normative）**：`ciphertext_digest` 是 post-encryption commitment，MUST NOT 出现在任何 segment 的 AEAD AAD 中（encoding [§10.2](../conformance/encoding.md)）。它自身的真实性由引用该附件的已签名 Event / encrypted descriptor（例如 `ak.content.file` / `ak.content.long_text` 的 attachment、file-transfer record）或 upload receipt 承担；接收方 MUST 以外层已认证值为准，MUST NOT 采信仅由传输层提供的 digest。
 
@@ -232,10 +232,10 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 1. **按序处理**：MUST 按 segment_index 从 `0` 起严格升序处理 segment；segment_index 跳变、乱序、出现空洞 MUST 拒绝（`segment_sequence_invalid`），并丢弃已缓冲明文。
 2. **逐段 AEAD 校验**：每段 MUST 用 §3.3.2 的 nonce 与 §3.3.3 的 AAD 做 AEAD 解密；tag 校验失败 MUST 拒绝（`segment_aead_failed`）。在第 N 段 AEAD 校验通过前，MUST NOT 释放第 N 段明文。
-3. **末段判定**：MUST 仅在见到 `last_segment_flag = 0x01` 的合法末段（且其 `segment_index == segment_count - 1`）并通过 AEAD 校验后，才认为附件完整。在见到合法末段前，接收方 MUST NOT 把附件视为已完整接收。
-4. **缺末段拒绝**：流在未出现合法末段时即终止（连接中断、`segment_count` 段已耗尽但末段 flag 仍为 `0x00`，或声明 `segment_count` 与实际不符）MUST 拒绝（`segment_stream_truncated`），并丢弃已释放/缓冲明文，不得把已得明文当作完整文件。
+3. **末段判定**：MUST 仅在见到 `last_segment_flag = 0x01` 的合法末段（且其 `segment_index == N - 1`）并通过 AEAD 校验后，才认为附件完整。在见到合法末段前，接收方 MUST NOT 把附件视为已完整接收。
+4. **缺末段拒绝**：流在未出现合法末段时即终止（连接中断，或派生的 `N` 段已耗尽但末段 flag 仍为 `0x00`）MUST 拒绝（`segment_stream_truncated`），并丢弃已释放/缓冲明文，不得把已得明文当作完整文件。
 5. **重复拒绝**：同一 segment_index 出现多次 MUST 拒绝（`segment_replay`）。
-6. **越界拒绝**：`segment_index >= segment_count`、或非末段长度不等于 `segment_bytes`、或末段长度超出 `1 .. segment_bytes`（空明文 0 例外）MUST 拒绝（`segment_bounds_invalid`）。
+6. **越界拒绝**：`segment_index >= N`、或非末段长度不等于 `segment_bytes`、或末段长度超出 `1 .. segment_bytes`（空明文 0 例外）MUST 拒绝（`segment_bounds_invalid`）。
 7. **整体 digest 校验**：全部 segment 接收完毕后，MUST 按 §3.3.5 重算拼接密文的 `ciphertext_digest` 并与 envelope 声明值比对；不匹配 MUST 拒绝、丢弃全部明文、不得渲染或写入持久缓存（与 §5 digest mismatch 规则一致）。Range / 分段流式播放场景下允许在整体 digest 完成前消费已通过 per-segment 校验的明文段，但**最终持久化或标记完整**前 MUST 完成整体 digest 校验。
 
 任一上述校验失败 MUST fail closed，按 §5 规则丢弃已下载字节、不得渲染、不得写入持久缓存，并 SHOULD 记录安全审计事件。
@@ -254,7 +254,6 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
   "epoch": 42,
   "nonce_prefix": "base64url-N_AEAD-minus-5-bytes",
   "segment_bytes": 262144,
-  "segment_count": 13,
   "ciphertext_digest": "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
   "size_bytes": 3211264,
   "media_type": "video/mp4",

@@ -3860,33 +3860,12 @@
     "OrganizationRegistrationOutcome": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Result of every organization registration command and of the read surface. organization_id, registration_generation and version_id MUST exactly equal the corresponding fields inside registration_receipt. created is true exactly on a call that opened a new generation, so an idempotent replay is distinguishable from first establishment or replacement without comparing receipts; JSON Schema cannot express these cross-field invariants, so receivers and conformance runners MUST enforce them.",
+      "description": "Result of every organization registration command and of the read surface. Identity, full DID, generation and version are read from the signed registration_receipt. created is true exactly on a call that opened a new generation.",
       "required": [
-        "organization_id",
-        "full_id",
-        "registration_generation",
-        "version_id",
         "registration_receipt",
         "created"
       ],
       "properties": {
-        "organization_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id",
-          "description": "Published bare DID recorded by registration_receipt. MUST project to organization_id."
-        },
-        "registration_generation": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Monotonic generation of the binding for this organization_id, starting at 1. The organization did_core_id stays the stable key while full_id may refresh within that identity; terminal states are per generation. Revoke ends generation N, and a later ensure opens generation N+1 rather than reviving N or colliding with it. ensure that changes local_admin_subject or the scope set also opens a new generation."
-        },
-        "version_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1
-        },
         "registration_receipt": {
           "$ref": "#/$defs/OrganizationRegistrationReceipt"
         },
@@ -5137,27 +5116,13 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "service_id",
-        "full_id",
         "did_document",
-        "version_id",
         "registration_receipt",
         "created"
       ],
       "properties": {
-        "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
-        },
         "did_document": {
           "$ref": "#/$defs/ServiceDidDocument"
-        },
-        "version_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1
         },
         "registration_receipt": {
           "$ref": "#/$defs/ServiceRegistrationReceipt"

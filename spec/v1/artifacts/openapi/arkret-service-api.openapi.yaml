@@ -2959,14 +2959,13 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome
     SnapshotBootstrap:
       type: object
-      description: Optional ak.peer.events.read.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
+      description: Optional ak.peer.events.read.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, and created_at before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json). Snapshot authority issuer is projected from created_by.
       required:
       - snapshot_ref
       - state_digest
       - snapshot_frontier
       - created_by
       - created_at
-      - authority_binding
       - signature
       properties:
         snapshot_ref:
@@ -2984,10 +2983,6 @@ components:
         created_at:
           $ref: ../schemas/time.schema.json#/$defs/timestamp
           description: RFC 3339 UTC timestamp ending in 'Z' when the manifest was sealed; bound by the manifest signature transcript.
-        authority_binding:
-          type: object
-          additionalProperties: true
-          description: Snapshot issuer authority evidence bound by the manifest signature transcript; mirrors schemas/snapshot.schema.json#/properties/authority_binding.
         signature:
           type: object
         verification_hints:
@@ -4828,8 +4823,8 @@ paths:
       summary: Submit a signed hard-erasure receipt package.
       description: |
         Source-Service-ID must equal the receipt issuer. The receiver verifies
-        issuer authority, all receipt proofs, receipt_digest and exact retained
-        stub binding before deletion or acknowledgement. Idempotency-Key is
+        issuer authority, all receipt proofs, and exact retained stub binding
+        before deletion or acknowledgement. Idempotency-Key is
         covered by the HTTP Message Signature; an identical retry returns the
         original byte-identical signed acceptance and a different body is
         duplicate_conflict with zero writes.
@@ -6311,8 +6306,8 @@ paths:
             client can verify the detached signature, then fetch chunk bytes
             from the blob surface via chunks[].chunk_ref. Servers that cannot
             produce a fully signed manifest MUST NOT advertise this operation
-            and MUST respond not_implemented; fabricated signature or
-            authority_binding material MUST NOT be served.
+            and MUST respond not_implemented; fabricated signature material
+            MUST NOT be served.
           content:
             application/json:
               schema:

@@ -30,7 +30,7 @@ ZERO = b"\x00"
 TRAVERSAL_INTENT_DOMAIN = b"ak.history-governance-traversal-intent-v1"
 REGISTRY_SNAPSHOT_DOMAIN = b"ak.governance-registry-snapshot-v1"
 REGISTRY_ARTIFACT_DOMAIN = b"ak.governance-registry-artifact-v1"
-AVAILABILITY_BYTES_DOMAIN = b"ak.availability-event-bytes-v1"
+AVAILABILITY_BYTES_DOMAIN = b"ak.availability_event_bytes.v1"
 SOURCE_AGENT_OBSERVATION_DOMAIN = b"ak.history-source-agent-observation-v1"
 ARCHIVE_REPLICA_DOMAIN = b"ak.organization-recovery-archive-replica-v1"
 MAX_REQUEST_EPOCHS = 65_536
@@ -367,15 +367,15 @@ def build_dependency_kat(schemas: SchemaSet, registry: dict[str, Any], signer: d
         "holder_signer_evidence_digest": signer["evidence_digest"],
     }
     receipt = {**receipt_core, "signature": detached_proof(sha256(jcs(receipt_core)))}
-    availability = {"receipt": receipt, "receipt_digest": sha256(jcs(receipt))}
-    schemas.validator("availability-receipt.schema.json").validate(availability)
+    receipt_digest = sha256(jcs(receipt))
+    schemas.validator("availability-receipt.schema.json").validate(receipt)
 
     snapshot = registry["snapshot"]
     artifact = registry["sample_registry_artifact"]
     rows = [
         {
-            "selector": {"kind": "availability_receipt", "content_digest": availability["receipt_digest"]},
-            "availability_receipt": availability,
+            "selector": {"kind": "availability_receipt", "content_digest": receipt_digest},
+            "availability_receipt": receipt,
         },
         {
             "selector": {
@@ -399,7 +399,8 @@ def build_dependency_kat(schemas: SchemaSet, registry: dict[str, Any], signer: d
     return {
         "accepted_event_without_unsigned": accepted_event,
         "availability_event_bytes_digest": bytes_digest,
-        "availability_receipt": availability,
+        "availability_receipt": receipt,
+        "availability_receipt_digest": receipt_digest,
         "resolve_outcome": outcome,
         "negative_cases": [
             {

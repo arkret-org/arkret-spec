@@ -404,7 +404,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
   "scope": {
     "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw"
   },
-  "events": ["sha256:..."],
+  "events": [{"event_id": "ak:event:...", "kind": "ak.message.create"}],
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -472,10 +472,10 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 
 非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族 MUST 在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 登记唯一 context、binding fields、规范定义点与 schema；schema description 只可作镜像注解，不是常量真相源。MUST NOT 复用其它对象族（尤其 `ak.event_proof.v1`）的 context，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。用错误对象族 context 生成的签名即使密码学验签通过也 MUST 拒绝。
 
-AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability-event-bytes-v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / principal-server proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}`，令 `payload_digest=H(JCS(core))`；再签
+AvailabilityReceipt 使用两层无循环摘要。首先以 Realm digest suite 计算 `bytes_digest=H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`；该 preimage 保留 `event_id`、reducer 接受后冻结的 `actor_kind` 以及全部 accepted producer / principal-server proofs。它不是 `event_id` 的别名，验证方还必须按 Event 规则独立重算 `event_digest` / `event_id` 并验证全部 proofs。然后构造 signature-free `core={realm_id,event_id,bytes_digest,holder_id,retention_expires_at,holder_signer_evidence_ref,holder_signer_evidence_digest}`，令 `payload_digest=H(JCS(core))`；再签
 `JCS({context:"ak.availability_receipt_proof.v1",payload_digest,...core,verification_method,created_at})` 并得到完整
-`receipt={...core,signature}`；最后 `receipt_digest=H(JCS(receipt))`。Seal 只签入最后这个 full canonical digest。
-任何实现若把外层 `receipt_digest` 放回其自身 preimage、从 digest 中排除 signature，或省略 signer evidence 绑定都必须拒绝。
+`receipt={...core,signature}`；最后按需要计算 selector digest `H(JCS(receipt))`。Seal 只签入这个 full canonical digest，receipt wire 不回显它。
+任何实现若把 selector digest 写回 receipt preimage、从 digest 中排除 signature，或省略 signer evidence 绑定都必须拒绝。
 
 **Realm 与 scope 绑定（normative）**：`event_digest = canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)` 同时覆盖 `realm_id` 与 `scope_ref`；改写二者都会使 proof 失败。实现 MUST 在验证 proof 后确认 `scope_ref.realm_id == realm_id`、处理上下文 Realm 相等，并由 payload/accepted references 重算 scope；不得仅凭签名有效就跨 Realm/Circle 接受。
 

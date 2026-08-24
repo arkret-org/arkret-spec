@@ -8,7 +8,7 @@
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
     "digest_copy_or_commitment": 20,
-    "complete_event_id": 164,
+    "complete_event_id": 163,
     "external_event_namespace": 1
   },
   "fields": [
@@ -314,7 +314,7 @@
     },
     {
       "schema": "availability-receipt.schema.json",
-      "json_pointer": "/$defs/availability_receipt_content/properties/event_id",
+      "json_pointer": "/properties/event_id",
       "field": "event_id",
       "classification": "complete_event_id"
     },
@@ -1108,12 +1108,6 @@
       "schema": "service-operation-dtos.schema.json",
       "json_pointer": "/$defs/SessionGrantDeviceBinding/properties/authorization_event_id",
       "field": "authorization_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "snapshot.schema.json",
-      "json_pointer": "/properties/event_set_commitment/properties/covered_event_ids",
-      "field": "covered_event_ids",
       "classification": "complete_event_id"
     },
     {

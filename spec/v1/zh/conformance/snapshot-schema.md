@@ -38,10 +38,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
   "event_set_commitment": {
     "algorithm": "merkle_event_set_v1",
     "root": "sha256:...",
-    "covered_event_count": 42000,
-    "covered_event_ids": [
-      "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
-    ]
+    "covered_event_count": 42000
   },
   "state_digest": "sha256:...",
   "chunks": [
@@ -55,7 +52,6 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
     "verification_profile": "high_assurance",
     "inclusion_proof_url": "https://server.example/snapshots/0196419a-8000-7000-8000-000000000000/proofs",
     "challenge_window_seconds": 86400,
-    "witness_quorum": 2,
     "conflict_records_digest": "sha256:...",
     "soft_failed_digest": "sha256:...",
     "quarantined_digest": "sha256:..."
@@ -63,7 +59,6 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
   "created_by": "ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD",
   "created_at": "2026-04-26T00:00:00Z",
   "authority_binding": {
-    "issuer": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
     "authority_kind": "realm_policy_snapshot_issuer",
     "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "auth_frontier": [
@@ -154,7 +149,7 @@ Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST �
   projection 与 admission 规则见 §5.1）
 - policy-approved snapshot issuer
 
-Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`state_digest`、frontier、`event_set_commitment` 与每个 chunk 的 digest。其中 manifest 内部一致性 MUST 包含：当 `event_set_commitment.covered_event_ids` 存在时，consumer MUST 校验它与 `frontier.event_ids` 是**同一个 event id 集合**（集合相等；两个字段绑定的都是同一 snapshot frontier——`frontier` 声明 reducer state 的截止边界，`event_set_commitment` 承诺到达该同一边界的 event 集合，见 §2 示例与 §6），任何不一致 MUST 拒绝该 snapshot，不得以其中一侧为准继续 bootstrap。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 必须携带 `authority_binding`，其中 `issuer` 必须等于 `created_by`，`auth_frontier` / `auth_state_digest` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。`auth_state_digest` 是 issuer-local opaque commitment：verifier MUST 检查它与 `auth_frontier` 绑定一致，并 MUST 按自己可取得的 accepted auth state 回放或查询来判定签名者在 `created_at` 的授权与撤销新鲜度；除非部署 profile 另行声明可复算的 auth-state canonical encoding，verifier MUST NOT 只因无法逐字重算该 digest 就接受或拒绝。若签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `snapshot_issuer_revoked` 拒绝。
+Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`state_digest`、frontier、`event_set_commitment` 与每个 chunk 的 digest。`frontier.event_ids` 是 snapshot 边界，`event_set_commitment` 只承载该边界内完整 reducer-input Event 集合的 root 与 count；consumer MUST 从已验证 Event 集重算 commitment，不得接受额外的 Event id 镜像字段。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 的唯一 issuer 来源是 `created_by`，`auth_frontier` / `auth_state_digest` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。`auth_state_digest` 是 issuer-local opaque commitment：verifier MUST 检查它与 `auth_frontier` 绑定一致，并 MUST 按自己可取得的 accepted auth state 回放或查询来判定签名者在 `created_at` 的授权与撤销新鲜度；除非部署 profile 另行声明可复算的 auth-state canonical encoding，verifier MUST NOT 只因无法逐字重算该 digest 就接受或拒绝。若签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `snapshot_issuer_revoked` 拒绝。
 
 **最大接受窗口（normative）**：仅当采纳时同时满足以下**全部**条件，manifest 才可用于 snapshot bootstrap：
 
@@ -194,7 +189,7 @@ transcript、因而无签名循环的原因：
   "state_digest": <manifest.state_digest>,
   "frontier": <manifest.frontier>,
   "event_set_commitment": <manifest.event_set_commitment>,
-  "issuer": <manifest.authority_binding.issuer>,
+  "issuer": <manifest.created_by>,
   "authority_kind": <manifest.authority_binding.authority_kind>,
   "auth_state_digest": <manifest.authority_binding.auth_state_digest>,
   "auth_frontier": <manifest.authority_binding.auth_frontier>,
@@ -229,10 +224,9 @@ Realm auth/policy state：
   比较）；该 key 在 `manifest.created_at` MUST 处于有效且未撤销状态，判定规则与 §5 对 issuer 的
   撤销新鲜度规则相同。verifier 无法确认撤销新鲜度时 MUST 隔离或拒绝，MUST NOT 计入 quorum。
 - **去重**：quorum 计数以 `witness_id` 为单位。同一 witness 的多个 key 或多份签名只计一次。
-- **threshold**：threshold MUST 由上述 accepted auth/policy state 给出。`verification_hints.witness_quorum`
-  是 issuer 自报的**声明值**，不是 threshold 来源：它已落在顶层签名 transcript 内，verifier MUST 把它
-  与 policy 推导出的 threshold 比对，不相等 MUST 以 `snapshot_authority_unverified` 拒绝。去重后的有效
-  witness 数低于 policy threshold 时同样 MUST 以 `snapshot_authority_unverified` 拒绝。
+- **threshold**：threshold MUST 仅由上述 accepted auth/policy state 给出。manifest 不携带 threshold
+  镜像；去重后的有效 witness 数低于 policy threshold 时 MUST 以
+  `snapshot_authority_unverified` 拒绝。
 
 **v1 没有"等价 quorum proof"**。v1 只有 `witness_attestations[]` 这一个 typed carrier。任何未在本节
 定义的替代 quorum 证据 MUST NOT 被接受，实现 MUST NOT 用私有字段、`x_*` 扩展或带外材料补洞；

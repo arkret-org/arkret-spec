@@ -374,8 +374,8 @@ ak.vector.encoding.event_batch_receipt_digest.v1
     "actor_id": "ak:did_core:webvh:z6mkfixture"
   },
   "events": [
-    "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-    "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    {"event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-", "kind": "ak.message.create"},
+    {"event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY", "kind": "ak.realm.create"}
   ],
   "created_at": "2026-04-26T00:00:00.000Z"
 }
@@ -384,13 +384,13 @@ ak.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00.000Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111","sha256:2222222222222222222222222222222222222222222222222222222222222222"],"issuer":"ak:did_core:webvh:z6mkfixture","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ak.schema.event_batch_receipt.v1","scope":{"actor_id":"ak:did_core:webvh:z6mkfixture"}}
+{"created_at":"2026-04-26T00:00:00.000Z","events":[{"event_id":"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-","kind":"ak.message.create"},{"event_id":"ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY","kind":"ak.realm.create"}],"issuer":"ak:did_core:webvh:z6mkfixture","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ak.schema.event_batch_receipt.v1","scope":{"actor_id":"ak:did_core:webvh:z6mkfixture"}}
 ```
 
 期望 digest：
 
 ```text
-sha256:7af524696c2f216306f2faa52e98685cda91beb59230254add917d6652c35230
+sha256:c7442ec1ba99031a5fd28fe96124330e006ffdf2a75bac98f18f7be69f63af0f
 ```
 
 失败条件：
@@ -5427,14 +5427,14 @@ Expected：支持 `ak.reducer.core.v1` 时普通 Event 继续 admission；本地
 
 Steps：
 
-1. 取一份明文，长度使 `segment_count == ceil(plaintext_size / segment_bytes)` 且末段严格短于 `segment_bytes`（含短末段路径）；envelope 走 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 `ak.blob.stream_aead.v1` 分支，声明 `scheme`、`nonce_prefix`（per-object 随机，长度 `N_AEAD - 5`）、`segment_bytes`、`segment_count`、`ciphertext_digest`。
-2. 对每个 segment 用同一 content key、nonce = `nonce_prefix || u32_be(segment_index) || last_segment_flag` 加密，并把 `segment_index` / `last_segment_flag`（及 `media-and-blob.md` §3.3.3 要求字段）纳入 AAD；末段 `last_segment_flag = 0x01` 且 `segment_index == segment_count - 1`。
+1. 取一份明文，长度使派生段数 `N = max(1, ceil(plaintext_size / segment_bytes))` 且末段严格短于 `segment_bytes`（含短末段路径）；envelope 走 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 `ak.blob.stream_aead.v1` 分支，声明 `scheme`、`nonce_prefix`（per-object 随机，长度 `N_AEAD - 5`）、`segment_bytes`、`ciphertext_digest` 与 `size_bytes`，不声明段数。
+2. 对每个 segment 用同一 content key、nonce = `nonce_prefix || u32_be(segment_index) || last_segment_flag` 加密，并把 `segment_index` / `last_segment_flag`（及 `media-and-blob.md` §3.3.3 要求字段）纳入 AAD；末段 `last_segment_flag = 0x01` 且 `segment_index == N - 1`。
 3. 接收方按 `segment_index` 从 `0` 起严格升序分段下载（SHOULD 按 `segment_bytes` 整数倍偏移做 Range），逐段做 per-segment AEAD tag 校验并安全释放对应明文。
 4. 全部 segment 接收完毕后，按 `media-and-blob.md` §3.3.5 对全部 segment 密文（每段含其 AEAD tag）按 `segment_index` 升序拼接重算 `ciphertext_digest`，与 envelope 声明值比对。
 
 Expected：
 
-- 逐段 AEAD tag 校验全部通过，整体 `ciphertext_digest` 重算等于 envelope 声明值；接收方还原出 byte-for-byte 等于原明文的内容，并仅在见到合法末段（`last_segment_flag=0x01` 且 `segment_index==segment_count-1`）后才标记附件完整。
+- 逐段 AEAD tag 校验全部通过，整体 `ciphertext_digest` 重算等于 envelope 声明值；接收方还原出 byte-for-byte 等于原明文的内容，并仅在见到合法末段（`last_segment_flag=0x01` 且 `segment_index==N-1`）后才标记附件完整。
 - per-segment 增量校验提供边下边验，顶层 `ciphertext_digest` 提供整体完整性；二者都 MUST 校验通过才允许最终持久化 / 标记完整。
 - 反例（顺带覆盖）：将任一 segment 密文整体替换为另一份相同 segment_index 的合法密文，使 per-segment tag 仍可能通过但拼接后整体 digest 不符时，`media-and-blob.md` §3.3.6 步骤 7 MUST 以 `digest_mismatch`（与该文 §5 一致）拒绝、丢弃全部明文、不渲染不持久化。
 
@@ -5442,12 +5442,12 @@ Expected：
 
 `vector_id`: `ak.vector.blob.stream_aead_truncation_rejected.v1`
 
-本向量固化 `media-and-blob.md` §3.3.6 步骤 4「缺末段拒绝」MUST：流在未出现合法末段时即终止（连接中断、`segment_count` 段已耗尽但末段 flag 仍为 `0x00`，或声明 `segment_count` 与实际不符）MUST 拒绝（`segment_stream_truncated`），并丢弃已释放 / 缓冲明文，不得把已得明文当作完整文件。
+本向量固化 `media-and-blob.md` §3.3.6 步骤 4「缺末段拒绝」MUST：流在未出现合法末段时即终止（连接中断，或派生的 `N` 段已耗尽但末段 flag 仍为 `0x00`）MUST 拒绝（`segment_stream_truncated`），并丢弃已释放 / 缓冲明文，不得把已得明文当作完整文件。
 
 Steps：
 
-- **Case A — 丢弃末段 / 末段 flag 仍为 0x00**：发送 `segment_count - 1` 段后流终止，从未出现 `last_segment_flag = 0x01` 的合法末段（或最后到达段的 flag 仍为 `0x00`）。
-- **Case B — `segment_count` 段耗尽但无末段**：恰好接收声明 `segment_count` 段，但其中无任何段的 `last_segment_flag = 0x01`（声明数与实际末段缺失不符）。
+- **Case A — 丢弃末段 / 末段 flag 仍为 0x00**：发送 `N - 1` 段后流终止，从未出现 `last_segment_flag = 0x01` 的合法末段（或最后到达段的 flag 仍为 `0x00`）。
+- **Case B — `N` 段耗尽但无末段**：恰好接收从 descriptor 派生的 `N` 段，但其中无任何段的 `last_segment_flag = 0x01`。
 
 Expected：
 
@@ -5480,7 +5480,7 @@ Expected：
 Steps：
 
 - **Case A — 未知 scheme**：envelope 声明 `scheme` 为既非 `ak.blob.whole_file_aead.v1` 亦非 `ak.blob.stream_aead.v1` 的未知值（如 `example.invalid_blob_scheme`）。
-- **Case B — 形态字段混用**：单个 envelope 同时携带整文件形态字段 `nonce` 与分块形态字段 `nonce_prefix`（及 `segment_bytes` / `segment_count`），违反 `encrypted_attachment` 的 `oneOf`。
+- **Case B — 形态字段混用**：单个 envelope 同时携带整文件形态字段 `nonce` 与分块形态字段 `nonce_prefix` / `segment_bytes`，违反 `encrypted_attachment` 的 `oneOf`。
 
 Expected：
 
@@ -5492,14 +5492,13 @@ Expected：
 
 `vector_id`: `ak.vector.blob.stream_aead_bounds_rejected.v1`
 
-本向量固化 [scalability-constraints.md](./scalability-constraints.md) §6 的 segment 声明上限 MUST：`segment_bytes` ∈ [1 KiB（1,024）, 8 MiB（8,388,608）]、`segment_count` ≤ 2^20（1,048,576），且 `segment_count` MUST 等于 `ceil(size_bytes / segment_bytes)`；越界或不自洽的 envelope MUST 在密钥派生 / 任何 segment 下载开始之前 reject / fail closed。所有 case 均为**声明字段负例**：判定只依据 envelope 声明的 `segment_bytes` / `segment_count` / `size_bytes` 数值本身，runner MUST NOT 真实构造对应体量的明文或密文。
+本向量固化 [scalability-constraints.md](./scalability-constraints.md) §6 的 segment 上限 MUST：`segment_bytes` ∈ [1 KiB（1,024）, 8 MiB（8,388,608）]，且由 `size_bytes` 与 `segment_bytes` 派生的 `N` ≤ 2^20（1,048,576）；越界 descriptor MUST 在密钥派生 / 任何 segment 下载开始之前 reject / fail closed。runner 只依据 descriptor 数值判定，MUST NOT 真实构造对应体量的明文或密文。
 
 Steps：
 
-- **Case A — `segment_count` 超上限**：envelope 声明 `segment_count = 1048577`（2^20 + 1），`segment_bytes = 262144`，`size_bytes` 与二者自洽。
+- **Case A — 派生段数超上限**：envelope 声明 `segment_bytes = 262144`、`size_bytes = 274878169088`，由此派生 `N = 1048577`（2^20 + 1）。
 - **Case B1 — `segment_bytes` 低于下限**：envelope 声明 `segment_bytes = 1023`（< 1 KiB）。
 - **Case B2 — `segment_bytes` 高于上限**：envelope 声明 `segment_bytes = 8388609`（> 8 MiB）。
-- **Case C — `segment_count` 与 `size_bytes` 不自洽**：envelope 声明 `segment_bytes = 262144`、`segment_count = 4`，但 `size_bytes = 2621440`（需要 `ceil(2621440 / 262144) = 10` 段）。
 
 Expected：
 
@@ -6275,7 +6274,7 @@ Runner MUST 覆盖 empty、末尾有/无 LF、多行、CRLF、bare CR、BOM、TA
 
 `vector_id`: `ak.vector.content.long_text_e2ee.v1`
 
-Runner MUST 验证 `scheme=ak.blob.stream_aead.v1`、`alg` 为 `_stream` 算法、hash-addressed ciphertext Blob、`segment_count=ceil(size_bytes/segment_bytes)`、逐段 tag、顺序、末段与完整 ciphertext digest。whole-file AEAD、段数不一致、重排、截断或任一 digest 不符必须 fail closed；全部段验证前不得把正文标记为完整。
+Runner MUST 验证 `scheme=ak.blob.stream_aead.v1`、`alg` 为 `_stream` 算法、hash-addressed ciphertext Blob、从 `size_bytes/segment_bytes` 派生段数、逐段 tag、顺序、末段与完整 ciphertext digest。whole-file AEAD、重排、截断、派生边界越界或任一 digest 不符必须 fail closed；全部段验证前不得把正文标记为完整。
 
 ### 25.4 生命周期闭包
 

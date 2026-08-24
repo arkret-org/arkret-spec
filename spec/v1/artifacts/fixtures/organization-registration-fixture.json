@@ -478,10 +478,6 @@
         "submitted_request_digest": "sha256:5f17ec551cf7ea802fc7d698fb22837c9c2d9dfd40d61b9361a12d57daf3fe1b"
       },
       "instance": {
-        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
-        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
-        "registration_generation": 1,
-        "version_id": "3-zFixtureVersionThree",
         "registration_receipt": {
           "registration_receipt_id": "ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
           "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
@@ -517,10 +513,6 @@
       "semantic_outcome": "accept",
       "notes": "revoke ended generation 1; a later ensure opens generation 2 with created=true. Without the generation, 'revoked is terminal' and 'ensure is idempotent on organization_id' would contradict each other and an implementation would have to pick between returning the old terminal receipt, raising duplicate_conflict, and illegally reviving the terminal state.",
       "instance": {
-        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
-        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
-        "registration_generation": 2,
-        "version_id": "3-zFixtureVersionThree",
         "registration_receipt": {
           "registration_receipt_id": "ak:organization_registration_receipt:b92cf58c6758a128fd008a0fd1d3995e5d7f3f47e4b2bf06b5ec391bf6bbd09a",
           "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
@@ -556,10 +548,6 @@
       "semantic_outcome": "accept",
       "notes": "Changing local_admin_subject or the scope set also opens a new generation, because the delegation being granted is not the one the previous receipt attests. Returning created=false here would let a widened delegation hide behind an idempotent replay. Publishing generation 2, terminating generation 1 with organization_registration_superseded and advancing the current pointer are one atomic transition.",
       "instance": {
-        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
-        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
-        "registration_generation": 2,
-        "version_id": "3-zFixtureVersionThree",
         "registration_receipt": {
           "registration_receipt_id": "ak:organization_registration_receipt:e11a6b849bac3054a61a24386d1592f41dda278e53566ada445c710394a3af90",
           "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",

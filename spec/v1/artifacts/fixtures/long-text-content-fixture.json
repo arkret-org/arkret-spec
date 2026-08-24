@@ -163,11 +163,10 @@
           "kind": "long_text_e2ee_descriptor",
           "size_bytes": 700000,
           "segment_bytes": 262144,
-          "segment_count": 3,
+          "expected_derived_segment_count": 3,
           "mutations": [
             "whole_file_scheme",
             "non_stream_algorithm",
-            "segment_count_mismatch",
             "ciphertext_digest_mismatch",
             "stored_segment_reordered",
             "last_segment_truncated"

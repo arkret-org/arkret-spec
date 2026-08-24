@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10302,
+    "total_properties": 10287,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2835,
+      "optional": 2834,
       "optional_defaulted": 68,
-      "required": 7042,
+      "required": 7028,
       "required_nullable": 141,
       "tristate": 216
     },
@@ -3672,16 +3672,14 @@
         "ak.schema.availability_receipt.v1"
       ],
       "properties": {
-        "/$defs/availability_receipt_content/properties/bytes_digest": "required",
-        "/$defs/availability_receipt_content/properties/event_id": "required",
-        "/$defs/availability_receipt_content/properties/holder_id": "required",
-        "/$defs/availability_receipt_content/properties/holder_signer_evidence_digest": "required",
-        "/$defs/availability_receipt_content/properties/holder_signer_evidence_ref": "required",
-        "/$defs/availability_receipt_content/properties/realm_id": "required",
-        "/$defs/availability_receipt_content/properties/retention_expires_at": "required",
-        "/$defs/availability_receipt_content/properties/signature": "required",
-        "/properties/receipt": "required",
-        "/properties/receipt_digest": "required"
+        "/properties/bytes_digest": "required",
+        "/properties/event_id": "required",
+        "/properties/holder_id": "required",
+        "/properties/holder_signer_evidence_digest": "required",
+        "/properties/holder_signer_evidence_ref": "required",
+        "/properties/realm_id": "required",
+        "/properties/retention_expires_at": "required",
+        "/properties/signature": "required"
       }
     },
     "blob-operations.schema.json": {
@@ -3724,7 +3722,6 @@
         "/$defs/encrypted_attachment/oneOf/1/properties/nonce_prefix": "required",
         "/$defs/encrypted_attachment/oneOf/1/properties/scheme": "required",
         "/$defs/encrypted_attachment/oneOf/1/properties/segment_bytes": "required",
-        "/$defs/encrypted_attachment/oneOf/1/properties/segment_count": "required",
         "/$defs/encrypted_attachment/properties/blob_ref": "required",
         "/$defs/encrypted_attachment/properties/ciphertext_digest": "required",
         "/$defs/encrypted_attachment/properties/encrypted": "required",
@@ -5322,8 +5319,8 @@
         "/$defs/erasure_receipt_acceptance/properties/receipt_id": "required",
         "/$defs/erasure_receipt_acceptance/properties/receiver_service_id": "required",
         "/$defs/erasure_receipt_acceptance/properties/status": "required",
+        "/$defs/erasure_receipt_package/allOf/0/properties/receipt": "optional",
         "/$defs/erasure_receipt_package/properties/receipt": "required",
-        "/$defs/erasure_receipt_package/properties/receipt_digest": "required",
         "/$defs/erasure_receipt_package/properties/retained_stub": "required",
         "/$defs/erasure_receipt_resource/properties/package": "required",
         "/$defs/erasure_receipt_submit_outcome/oneOf/1/properties/reason_code": "required",
@@ -10845,7 +10842,6 @@
         "/properties/root": "required",
         "/properties/schema": "required",
         "/properties/witness_attestation": "required",
-        "/properties/witness_attestation/properties/kind": "required",
         "/properties/witness_attestation/properties/witnesses": "required",
         "/properties/witness_attestation/properties/witnesses/items/properties/attested_at": "optional",
         "/properties/witness_attestation/properties/witnesses/items/properties/controlling_organization": "required",
@@ -11480,7 +11476,6 @@
         "/properties/supersedes": "required_nullable",
         "/properties/threshold": "optional",
         "/properties/threshold/properties/k": "required",
-        "/properties/threshold/properties/n": "required",
         "/properties/threshold/properties/reshare_policy": "optional",
         "/properties/threshold/properties/reshare_policy/properties/max_share_age_seconds": "optional",
         "/properties/threshold/properties/reshare_policy/properties/scheme": "optional",
@@ -12793,11 +12788,7 @@
         "/$defs/OrganizationRegistrationEnsureRequestBody/properties/requested_scopes": "required",
         "/$defs/OrganizationRegistrationEnsureRequestBody/properties/version_id": "required",
         "/$defs/OrganizationRegistrationOutcome/properties/created": "required",
-        "/$defs/OrganizationRegistrationOutcome/properties/full_id": "required",
-        "/$defs/OrganizationRegistrationOutcome/properties/organization_id": "required",
-        "/$defs/OrganizationRegistrationOutcome/properties/registration_generation": "required",
         "/$defs/OrganizationRegistrationOutcome/properties/registration_receipt": "required",
-        "/$defs/OrganizationRegistrationOutcome/properties/version_id": "required",
         "/$defs/OrganizationRegistrationReceipt/properties/control_key_digest": "required",
         "/$defs/OrganizationRegistrationReceipt/properties/control_proof_kind": "required",
         "/$defs/OrganizationRegistrationReceipt/properties/delegated_scopes": "required",
@@ -13004,10 +12995,7 @@
         "/$defs/ServiceRegistrationKey/properties/service_kind": "required",
         "/$defs/ServiceRegistrationOutcome/properties/created": "required",
         "/$defs/ServiceRegistrationOutcome/properties/did_document": "required",
-        "/$defs/ServiceRegistrationOutcome/properties/full_id": "required",
         "/$defs/ServiceRegistrationOutcome/properties/registration_receipt": "required",
-        "/$defs/ServiceRegistrationOutcome/properties/service_id": "required",
-        "/$defs/ServiceRegistrationOutcome/properties/version_id": "required",
         "/$defs/ServiceRegistrationReceipt/properties/control_key_digest": "required",
         "/$defs/ServiceRegistrationReceipt/properties/full_id": "required",
         "/$defs/ServiceRegistrationReceipt/properties/issued_at": "required",
@@ -13326,7 +13314,6 @@
         "/properties/authority_binding/properties/auth_state_digest": "required",
         "/properties/authority_binding/properties/authority_kind": "required",
         "/properties/authority_binding/properties/checked_at": "required",
-        "/properties/authority_binding/properties/issuer": "required",
         "/properties/authority_binding/properties/witness_attestations": "optional",
         "/properties/chunks": "required",
         "/properties/chunks/items/properties/chunk_ref": "required",
@@ -13342,7 +13329,6 @@
         "/properties/event_set_commitment/properties/actor_seq_ranges/items/properties/to_seq": "required",
         "/properties/event_set_commitment/properties/algorithm": "required",
         "/properties/event_set_commitment/properties/covered_event_count": "required",
-        "/properties/event_set_commitment/properties/covered_event_ids": "optional",
         "/properties/event_set_commitment/properties/root": "required",
         "/properties/frontier": "required",
         "/properties/frontier/properties/event_ids": "required",
@@ -13360,8 +13346,7 @@
         "/properties/verification_hints/properties/inclusion_proof_url": "optional",
         "/properties/verification_hints/properties/quarantined_digest": "optional",
         "/properties/verification_hints/properties/soft_failed_digest": "optional",
-        "/properties/verification_hints/properties/verification_profile": "required",
-        "/properties/verification_hints/properties/witness_quorum": "optional"
+        "/properties/verification_hints/properties/verification_profile": "required"
       },
       "conditionally_required": [
         "/properties/authority_binding/properties/witness_attestations",

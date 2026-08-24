@@ -129,9 +129,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/history-key-canonical-binding-registry.json",
-      "version": "2026-08-23.1",
+      "version": "2026-08-24.1",
       "generated_at": null,
-      "content_digest": "sha256:b1c1f818097eb08db34b6b56228e2c15c434078b8eed9c1afcf1b31865f04c5d"
+      "content_digest": "sha256:cce998fb4310be49b88805bc211ce76c260f454709d76c4c69d92723f1b930a7"
     },
     {
       "path": "spec/v1/artifacts/registry/history-recovery-scalability-registry.json",
@@ -183,9 +183,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-08-24.4",
-      "generated_at": "2026-08-24T12:09:00+08:00",
-      "content_digest": "sha256:3a98e60cdd618cb56483c95725e83f8a8882fb33e23565c95c052b6c38194f4b"
+      "version": "2026-08-24.6",
+      "generated_at": "2026-08-24T14:11:08+08:00",
+      "content_digest": "sha256:ee2768309d9f10cce0b015211f7cfe55fbac786486aaa929c3eef007d233c357"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-08-24.3",
+      "version": "2026-08-24.4",
       "generated_at": null,
-      "content_digest": "sha256:d73470346ed83753e294a63a272e4196934be124d80ef96d36db57af8dd7df18"
+      "content_digest": "sha256:53f049686f1af6af76b64d3926164954fe05b1d88ca5003ab0798edf5be73541"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -321,9 +321,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-08-24.1",
-      "generated_at": "2026-08-24T12:09:00+08:00",
-      "content_digest": "sha256:6d768025efe67840fd6f3a371e07efd50f4372ac59472a8f4e2f80a9a557cec8"
+      "version": "2026-08-24.3",
+      "generated_at": "2026-08-24T13:48:00+08:00",
+      "content_digest": "sha256:2f856396d8ab6b4643b514adbb994b6ab72dd4146eb73642f2b85692e355754f"
     }
   ]
 }

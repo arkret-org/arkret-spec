@@ -119,11 +119,6 @@
                 "required": [
                   "segment_bytes"
                 ]
-              },
-              {
-                "required": [
-                  "segment_count"
-                ]
               }
             ]
           }
@@ -148,18 +143,12 @@
               "type": "integer",
               "minimum": 1024,
               "maximum": 8388608
-            },
-            "segment_count": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 1048576
             }
           },
           "required": [
             "scheme",
             "nonce_prefix",
-            "segment_bytes",
-            "segment_count"
+            "segment_bytes"
           ],
           "not": {
             "required": [

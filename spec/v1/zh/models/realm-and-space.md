@@ -404,7 +404,7 @@ Realm 有两个终态 event，语义不同：
 当部署对一个 Realm（或一个 principal）执行 hard erasure 时，**issuing** Principal Server MUST：
 
 - 发布一条 `ak.audit.erasure_receipt`（durable_event）；
-- 把 receipt、`receipt_digest` 与 exact retained stub 封装成 `erasure_receipt_package`，通过 `ak.peer.erasure_receipt.command.submit`（`POST /_arkret/peer/erasure-receipts`）投递给所有曾接收过该 scope 内容的 peer Principal Server；
+- 把 receipt 与 exact retained stub 封装成 `erasure_receipt_package`，通过 `ak.peer.erasure_receipt.command.submit`（`POST /_arkret/peer/erasure-receipts`）投递给所有曾接收过该 scope 内容的 peer Principal Server；package 的 receipt MUST 省略其可选 `retained_stub`，stub 只在 package 顶层出现一次，digest 由 receiver 对 receipt 重算；
 - 为每个 destination 写入有上限的 durable outbox，并只在收到 receiver 签名的 `accepted` 或 `duplicate` acknowledgement 后关闭；网络不明时使用相同 Idempotency-Key 与逐字节相同 body 重试；
 - 通过 `ak.peer.erasure_receipt.resource.get`（`GET /_arkret/peer/erasure-receipts/{receipt_id}`）向 issuer、receiver 或显式授权 auditor 返回 exact package；未知、隐藏与未授权统一 `not_found`，不得提供可枚举列表。
 

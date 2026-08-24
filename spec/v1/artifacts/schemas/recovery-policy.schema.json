@@ -170,7 +170,6 @@
       "description": "Threshold-recovery configuration. Required when allowed_proof_kinds contains 'threshold_recovery'.",
       "required": [
         "k",
-        "n",
         "shares"
       ],
       "properties": {
@@ -178,11 +177,6 @@
           "type": "integer",
           "minimum": 2,
           "description": "Minimum share count required to reconstruct the recovery secret. MUST be >= 2; threshold=1 is forbidden because it collapses to a single-holder bearer."
-        },
-        "n": {
-          "type": "integer",
-          "minimum": 2,
-          "description": "Total number of shares issued. MUST equal shares.length and MUST be >= k."
         },
         "shares": {
           "type": "array",

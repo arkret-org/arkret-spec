@@ -98,7 +98,7 @@
     "ak.vector.proof_context.transcript.organization_recovery_archive_replica_receipt.v1",
     "ak.vector.proof_context.transcript.organization_recovery_key_holder_acceptance.v1",
     "ak.vector.proof_context.transcript.peer_seal_frontier.v1",
-    "ak.vector.proof_context.transcript.availability_receipt_content.v1"
+    "ak.vector.proof_context.transcript.availability_receipt.v1"
   ],
   "test_key": {
     "kid": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
@@ -5227,11 +5227,11 @@
       "expected_result": "accept"
     },
     {
-      "vector_id": "ak.vector.proof_context.transcript.availability_receipt_content.v1",
+      "vector_id": "ak.vector.proof_context.transcript.availability_receipt.v1",
       "context": "ak.availability_receipt_proof.v1",
-      "object_family": "availability_receipt_content",
+      "object_family": "availability_receipt",
       "defined_in": "zh/authz/event-auth-state-resolution.md",
-      "schema_ref": "schemas/availability-receipt.schema.json#/$defs/availability_receipt_content",
+      "schema_ref": "schemas/availability-receipt.schema.json",
       "declared_binding_fields": [
         "payload_digest",
         "realm_id",
@@ -6289,7 +6289,7 @@
       "object_family": "peer_seal_frontier",
       "registered_context": "ak.peer_seal_frontier_proof.v1",
       "substituted_context": "ak.availability_receipt_proof.v1",
-      "substituted_object_family": "availability_receipt_content",
+      "substituted_object_family": "availability_receipt",
       "signed_binding_jcs": "{\"context\":\"ak.availability_receipt_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"frontier\":[\"ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY\"],\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
       "signature": "6II5bJ3HpN3Fv00YHO8rbsOnJy_l4pWWEFF7cUH1WJDWUX2Niy2bREl-NDHnL-pm_P8sUpx2RdczYs0IFFzpAQ",
       "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..6II5bJ3HpN3Fv00YHO8rbsOnJy_l4pWWEFF7cUH1WJDWUX2Niy2bREl-NDHnL-pm_P8sUpx2RdczYs0IFFzpAQ",
@@ -6297,9 +6297,9 @@
       "expected_reason": "signature_invalid"
     },
     {
-      "name": "reject_cross_family_context.availability_receipt_content",
-      "vector_id": "ak.vector.proof_context.transcript.availability_receipt_content.v1",
-      "object_family": "availability_receipt_content",
+      "name": "reject_cross_family_context.availability_receipt",
+      "vector_id": "ak.vector.proof_context.transcript.availability_receipt.v1",
+      "object_family": "availability_receipt",
       "registered_context": "ak.availability_receipt_proof.v1",
       "substituted_context": "ak.account_binding_receipt_proof.v1",
       "substituted_object_family": "account_binding_receipt",

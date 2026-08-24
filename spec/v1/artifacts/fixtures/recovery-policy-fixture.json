@@ -262,7 +262,6 @@
         ],
         "threshold": {
           "k": 2,
-          "n": 2,
           "shares": [
             {
               "share_id": "s1",

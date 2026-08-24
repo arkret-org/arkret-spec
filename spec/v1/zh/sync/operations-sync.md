@@ -254,7 +254,7 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 - `event_range.actor_seq_ranges[]`：每个 actor 的 `(from_seq_exclusive, to_seq_inclusive]` 区间；
 - `root`：对范围内全部 reducer-input Event 的 Merkle root；
 - `count`：参与 root 的 leaf 数；
-- `witness_attestation.kind` 与 `witness_attestation.witnesses[]`。
+- `witness_attestation.witnesses[]`；保证级别由 verifier 从有效 witness 集合与 Realm policy 唯一派生，不在 wire 上声明。
 
 `root` 的 leaf 集 MUST 恰好是 `realm_id` 下位于 `(from_frontier, to_frontier]` 且 actor seq 落入对应 `actor_seq_ranges[]` 的全部 reducer-input Event。每个 leaf 的 `leaf_data` 为下列 closed object 的 canonical JSON UTF-8 bytes：
 
@@ -273,9 +273,11 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 
 #### 6.4.2 Quorum 语义（normative）
 
-`witness_attestation.kind="single_source"` 表示 issuer 自报：verifier MAY 用它检测传输篡改和本地缺口，但 MUST NOT 把它当作 sovereign-grade completeness 证明。`single_source` payload 的 `witnesses[]` MUST 至少包含 issuer 自身或一个声明代表 issuer 的 witness entry；issuer、verification method 与 proof controller 不一致时 MUST `schema_violation`。
+verifier MUST 在完成每项签名、method controller 与 policy 授权校验后派生唯一保证级别：恰有一个有效 witness，且该行 `issuer` 等于 payload issuer、verification method controller 投影也等于该 issuer 时，派生为 `single_source`；有至少两个有效 witness 且满足下列全部独立性与授权条件时，派生为 `federation_witness_attested`；其它组合均为 invalid，MUST fail closed。wire 上不得出现 `kind` 或其它保证级别镜像字段。
 
-`witness_attestation.kind="federation_witness_attested"` 表示独立 witness quorum 已对同一 `(realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count)` 签署一致见证。verifier MUST 校验：
+`single_source` 是 issuer 自报：verifier MAY 用它检测传输篡改和本地缺口，但 MUST NOT 把它当作 sovereign-grade completeness 证明。
+
+`federation_witness_attested` 表示独立 witness quorum 已对同一 `(realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count)` 签署一致见证。verifier MUST 校验：
 
 1. `witnesses[].issuer`、`verification_method`、`controlling_organization` 在 quorum 内 pairwise distinct 到 policy 要求的最小独立性；
 2. 每个 witness 均在 Realm policy `audit.range_completeness_witnesses[]` 或等价 profile-declared witness 集合内；

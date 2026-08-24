@@ -3884,18 +3884,10 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
         "schema_kind": "object",
         "required": [
-          "organization_id",
-          "full_id",
-          "registration_generation",
-          "version_id",
           "registration_receipt",
           "created"
         ],
         "properties": [
-          "organization_id",
-          "full_id",
-          "registration_generation",
-          "version_id",
           "registration_receipt",
           "created"
         ],
@@ -3984,18 +3976,10 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
         "schema_kind": "object",
         "required": [
-          "organization_id",
-          "full_id",
-          "registration_generation",
-          "version_id",
           "registration_receipt",
           "created"
         ],
         "properties": [
-          "organization_id",
-          "full_id",
-          "registration_generation",
-          "version_id",
           "registration_receipt",
           "created"
         ],
@@ -4021,18 +4005,10 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
         "schema_kind": "object",
         "required": [
-          "organization_id",
-          "full_id",
-          "registration_generation",
-          "version_id",
           "registration_receipt",
           "created"
         ],
         "properties": [
-          "organization_id",
-          "full_id",
-          "registration_generation",
-          "version_id",
           "registration_receipt",
           "created"
         ],
@@ -4046,18 +4022,10 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
         "schema_kind": "object",
         "required": [
-          "organization_id",
-          "full_id",
-          "registration_generation",
-          "version_id",
           "registration_receipt",
           "created"
         ],
         "properties": [
-          "organization_id",
-          "full_id",
-          "registration_generation",
-          "version_id",
           "registration_receipt",
           "created"
         ],
@@ -4356,18 +4324,12 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome",
         "schema_kind": "object",
         "required": [
-          "service_id",
-          "full_id",
           "did_document",
-          "version_id",
           "registration_receipt",
           "created"
         ],
         "properties": [
-          "service_id",
-          "full_id",
           "did_document",
-          "version_id",
           "registration_receipt",
           "created"
         ],
@@ -4381,18 +4343,12 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome",
         "schema_kind": "object",
         "required": [
-          "service_id",
-          "full_id",
           "did_document",
-          "version_id",
           "registration_receipt",
           "created"
         ],
         "properties": [
-          "service_id",
-          "full_id",
           "did_document",
-          "version_id",
           "registration_receipt",
           "created"
         ],

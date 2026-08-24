@@ -151,10 +151,6 @@
       "category": "registration_or_binding"
     },
     {
-      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome/properties/full_id/$ref",
-      "category": "registration_or_binding"
-    },
-    {
       "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt/properties/full_id/$ref",
       "category": "registration_or_binding"
     },
@@ -172,10 +168,6 @@
     },
     {
       "pointer": "service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody/properties/full_id/$ref",
-      "category": "registration_or_binding"
-    },
-    {
-      "pointer": "service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome/properties/full_id/$ref",
       "category": "registration_or_binding"
     },
     {

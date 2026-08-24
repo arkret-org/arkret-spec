@@ -198,7 +198,7 @@ Grant 晚于 producer 最新 seal 签发时，producer MUST 等下一个控制�
 
 数据面传播使用 gossip、anti-entropy 或 RBSR 类集合调和。同步摘要可以作为 federation probe 的 data frontier。
 
-Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Receipt（receipt object，schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，schema id `ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）。单事件确认即 `events[]` 只含该 `event_digest` 的单元素 receipt：`scope` 携带 `realm_id`，`created_at` 为 issuer 看见该事件的时间。receipt 不携带 issuer frontier；需要前沿或范围证明时使用标准 frontier probe / range-completeness attestation。
+Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Receipt（receipt object，schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，schema id `ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）。单事件确认即 `events[]` 只含该 Event 的 `{event_id, kind}` typed item：`scope` 携带 `realm_id`，`created_at` 为 issuer 看见该事件的时间。receipt 不携带 issuer frontier；需要前沿或范围证明时使用标准 frontier probe / range-completeness attestation。
 
 单元素 receipt 与批量 receipt 使用同一语义：它是 best-effort、set-bound integrity hint，不带协议级过期或序列语义。issuer 侧漏发/扣发检测由 [`../sync/operations-sync.md` §6.4](../sync/operations-sync.md) range-completeness attestation 与 frontier probe 承担，equivocation 检测归 Seal 的 `notary_seq`（§7.1）；receipt 的本地保留期由部署 retention policy 决定。
 
@@ -722,11 +722,12 @@ Digest membership 不能证明 bytes 可获取。Arkret v1 独立建模 availabi
 
 ```text
 AvailabilityReceipt {
-  receipt: { realm_id, event_id, bytes_digest, holder_id, retention_expires_at,
-             holder_signer_evidence_ref, holder_signer_evidence_digest, signature }
-  receipt_digest // H(JCS(receipt))，覆盖完整签名内容
+  realm_id, event_id, bytes_digest, holder_id, retention_expires_at,
+  holder_signer_evidence_ref, holder_signer_evidence_digest, signature
 }
 ```
+
+需要内容寻址时，selector digest 由 `H(JCS(AvailabilityReceipt))` 计算并覆盖完整签名内容；receipt wire 本身不回显该 digest。
 
 其中 `bytes_digest = H(UTF8("ak.availability_event_bytes.v1") || 0x00 || JCS(complete accepted EventEnvelope with only unsigned removed))`，`H` 使用该 Realm 的 digest suite。`event_id`、`actor_kind` 与所有 accepted producer / principal-server proofs 都在 preimage 内；因此它覆盖实际保留的准入证明字节，但仍须与按普通 Event preimage 重算的 `event_digest` / `event_id` 及逐项 proof 验证交叉核对。
 

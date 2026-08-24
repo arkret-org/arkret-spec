@@ -811,7 +811,7 @@ Patch path 之间若同时写入父子路径、同一路径重复写入、或一
 
 Event Batch Receipt 是可选审计/同步加速对象，**不是 canonical history**，也**不是 reducer input**。缺少 receipt 不得导致格式、签名、授权和因果均有效的 Event 被拒绝，除非 deployment profile 额外要求 witness。
 
-单事件确认是 `events[]` 单元素的退化形态：relay / notary / witness 对某个数据面 Event 签发"已看见"回执时，签发的就是一个 `events = [<event_digest>]`、`scope.realm_id` 就位的 Event Batch Receipt。协议只定义这一种 set-bound receipt 结构；具体 operation / profile 必须显式登记承载字段后，才能把该 receipt 作为响应证据。
+单事件确认是 `events[]` 单元素的退化形态：relay / notary / witness 对某个数据面 Event 签发"已看见"回执时，签发的就是一个 `events = [{event_id, kind}]`、`scope.realm_id` 就位的 Event Batch Receipt。协议只定义这一种 set-bound receipt 结构；具体 operation / profile 必须显式登记承载字段后，才能把该 receipt 作为响应证据。
 
 Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 `scope` 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 由已注册的 active attestation event `ak.attestation.range_completeness`（payload schema `ak.schema.range_completeness_attestation.v1`）承担，其 `event_range` 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 seal 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §6.4 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
 
@@ -832,11 +832,11 @@ Schema id: `ak.schema.event_batch_receipt.v1`
 | `receipt_id` | yes | `id:receipt` |  | Receipt ID。 |
 | `issuer` | yes | `did` | 必须控制签名 key。 | 签发者，可以是 principal、Principal Server 或 witness。 |
 | `scope` | yes | `object` | MUST 至少包含 `actor_id`、`realm_id` 或查询范围 hash 之一；Realm-scoped receipt MUST 包含 `realm_id`。 | receipt 覆盖范围。 |
-| `events` | yes | `array<hash \| receipt-item>` | canonical set：每项以 `canonical_json(item)` 的 UTF-8 bytes 为排序键严格升序，禁止重复。普通 compact form 使用 bare digest；需要 kind 的 typed item 使用 `event_id + kind`。 | 被 receipt 覆盖的 Event identity；数组位置没有业务语义。 |
+| `events` | yes | `array<receipt-item>` | canonical set：每项以 `canonical_json(item)` 的 UTF-8 bytes 为排序键严格升序，禁止重复。每项固定使用 `event_id + kind`。 | 被 receipt 覆盖的 Event identity；数组位置没有业务语义。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `proofs` | yes | `array<Proof>` |  | Receipt proof。 |
 
-`receipt-item` 的 closed wire 形态为 `{event_id: id:event, kind: string}`。`event_id` 的 33-octet token 已无损编码 digest suite 与完整 32-byte canonical Event digest；consumer 需要 bare digest 时 MUST 从 ID 解码为规范 `<suite>:<lowercase-hex>`，不得接受第二份同源 digest。该 object 整体作为 `events[]` item 进入 canonical JSON、排序键与 `receipt_digest` 输入。`scope.kind="device_reanchor_unit"` 的 B 模型 Recovery Re-anchor Unit 与 `scope.kind="pcr_genesis_unit"` 的 PCR genesis unit 均 MUST 使用此形态；前者具体受理语义见 [`../identity/key-management.md`](../identity/key-management.md) §5.0.3。
+`receipt-item` 的唯一 closed wire 形态为 `{event_id: id:event, kind: string}`。`event_id` 的 33-octet token 已无损编码 digest suite 与完整 32-byte canonical Event digest；consumer 需要 bare digest 时 MUST 从 ID 解码为规范 `<suite>:<lowercase-hex>`，不得接受第二份同源 digest。该 object 整体作为 `events[]` item 进入 canonical JSON、排序键与 `receipt_digest` 输入。所有 scope 都使用此形态；`scope.kind="device_reanchor_unit"` 的 B 模型 Recovery Re-anchor Unit 与 `scope.kind="pcr_genesis_unit"` 的 PCR genesis unit 另有 kind 完整性约束，前者具体受理语义见 [`../identity/key-management.md`](../identity/key-management.md) §5.0.3。
 
 签发方 MUST 在计算 `receipt_digest` 前按上述排序键对 `events[]` 排序并去重，并把规范化后的数组作为实际 wire 值签发；接收方 MUST 在验签前确认相邻排序键严格递增。非升序或含重复项的 receipt MUST 以 `schema_violation` 拒绝，不得通过本地静默重排后接受。对于 `scope.kind="device_reanchor_unit"`，数组仍是 canonical set：实现按 item 的 `kind` 找到唯一 `ak.device.reanchor` 与唯一 `ak.device.authorize`；对于 `scope.kind="pcr_genesis_unit"`，实现同样找到唯一 `ak.realm.create` 与唯一 `ak.device.authorize`。consumer MUST 从每个 typed item 的 `event_id` 解出 suite-bearing digest，按该 ID resolve Event 并重算 canonical digest；缺项、重复 kind、错误 kind、ID 与 resolved Event 不一致均 fail closed。两种 unit 均不得复制同源 digest，也不得依赖 `[0]` / `[1]` 位置。
 
