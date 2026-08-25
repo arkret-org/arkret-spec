@@ -356,7 +356,7 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
   绑定，不构成普通再授权控制。
 - `authority_regrant_allowed=false`（普通 `authority_control` 内的字段缺省值）允许签发一个
   terminal child，但 child grant 必须在 wire 上显式携带普通 `authority_control` 且
-  `max_authority_depth=0`、`authority_regrant_allowed=false`。child 省略该 constraint、
+  `max_authority_depth=0`，其 `authority_regrant_allowed` 必须为 false（字段省略按 false 求值）。child 省略该 constraint、
   省略 `max_authority_depth`、声明 `max_authority_depth > 0` 或声明
   `authority_regrant_allowed=true`，reducer **MUST** 返回 `failed_precondition`
   （`reason="authority_regrant_denied"`）。reducer MUST NOT 只在内存中补造一个未被 Event proof
