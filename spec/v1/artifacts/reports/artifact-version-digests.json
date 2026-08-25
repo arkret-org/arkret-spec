@@ -207,9 +207,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-08-25.2",
-      "generated_at": "2026-08-25T08:10:00+08:00",
-      "content_digest": "sha256:404c69f1600240c13877fc50ad167808dfceba72f057186511218469d913eda5"
+      "version": "2026-08-25.3",
+      "generated_at": "2026-08-25T21:26:01+08:00",
+      "content_digest": "sha256:ae157e805ffe625d88b6dd44023eccac4650f4552677aa3efbc966e67e161fa2"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",

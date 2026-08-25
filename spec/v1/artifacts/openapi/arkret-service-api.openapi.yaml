@@ -7898,6 +7898,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MimiSubmitMessageOutcome'
+        '400':
+          description: >-
+            mimi_e2ee_boundary_unmarked — the E2EE MIMI plaintext projection
+            carries neither transcript_binding nor an explicit e2ee_downgrade
+            marker.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
       requestBody:
         required: true
         content:
