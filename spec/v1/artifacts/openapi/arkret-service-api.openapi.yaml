@@ -1433,8 +1433,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsActorCasConflictProblem
     EventsDependencyMissingProblem:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsDependencyMissingProblem
-    EventsFrontierAccountClientState:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierAccountClientState
     EventsFrontierFederationPeerState:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState
     EventsFrontierState:

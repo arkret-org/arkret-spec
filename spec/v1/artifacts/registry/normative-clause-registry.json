@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-25.3",
+  "version": "2026-08-25.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-25T09:45:00+08:00",
+  "generated_at": "2026-08-25T15:04:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -250,8 +250,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:e22b6869562cd414a59d2ecab7ab3dcf578aa7e131ecac0fcf652fc22b6303f3",
-      "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. The reducer derives issuer_principal_server_id from the accepted carrier Event, and a grant ref supplies issuer authority only when its complete subject authority pair equals the child issuer pair; cycles, inactive refs and same-DID cross-Principal-Server replay MUST fail closed rather than widen the effective permission set.",
+      "section_digest": "sha256:39e76ede0869c33ef85051123b8ada869534f4fbf0bf98407ede7c07564ddfa6",
+      "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. The reducer derives issuer_principal_server_id from the accepted carrier Event, and a grant ref supplies issuer authority only when its complete subject authority pair equals the child issuer pair; cycles, inactive refs and same-DID cross-Principal-Server replay MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.capability.authority_chain.v1",

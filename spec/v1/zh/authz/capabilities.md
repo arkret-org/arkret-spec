@@ -662,7 +662,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 
 `issuer_authority_refs[]` MUST 非空、canonical 去重，且 reducer MUST 拒绝不贡献任何覆盖的冗余 ref。所有 ref 的能力并集 MUST 覆盖 child 的全部 (action, resource)；标记 `root_control_only` 的 action 永远不能成为 child（见 §3.2）。
 
-若某条 ref 的 `authority_control` constraint 声明 `authority_regrant_allowed=false`，则以它为 ref 的 grant MUST 把 `max_authority_depth` 置 0，且 MUST NOT 再被任何 grant 引用为 ref；违反时 reducer MUST 以 `failed_precondition` reason=`authority_regrant_denied` 拒绝。
+没有普通 `authority_control` constraint 的 grant 不具备再授权能力，MUST NOT 被任何 child grant 引用为 ref。若某条 ref 的普通 `authority_control` constraint 声明 `authority_regrant_allowed=false`（字段缺省同样为 false），则以它为 ref 的 child grant MUST 在 wire 上显式携带普通 `authority_control`、`max_authority_depth=0` 与 `authority_regrant_allowed=false`，且该 terminal child MUST NOT 再被任何 grant 引用为 ref；省略 carrier、声明正深度或重新开启 regrant 时 reducer MUST 以 `failed_precondition` reason=`authority_regrant_denied` 拒绝。`constraint_subkind=applet_authority` 不构成普通再授权控制。
 
 **求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 必须保持 active，且其完整 subject authority pair 必须逐字等于 child 的完整 issuer authority pair；只有 DID 相等而 `subject_principal_server_id != issuer_principal_server_id` 时 MUST 视为未提供 issuer authority，并以 `failed_precondition`、reason=`grant_exceeds_issuer_authority` fail closed。该比较只读取已物化字段，不得按 DID 二次查询或把当前路由服务替换成签发时 selector；因此离线 replay、迁移和联邦重放不会把同一 DID 的另一 Principal Server 实例串成授权链。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 cell 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
 
@@ -684,7 +684,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 | --- | --- |
 | `effective_not_before` | MUST ≥ 覆盖该 action 的 refs 中最早的 `effective_not_before` |
 | `effective_expires_at` | MUST ≤ 覆盖该 action 的 refs 中最晚的 `effective_expires_at`；该 action 按 §8 分层必须有限期而所有覆盖它的 ref 都无 finite upper bound 时，见下方"固定 seal 防滚动续期" |
-| `max_authority_depth` | MUST ≤ `min(grant_refs.max_authority_depth) - 1`。未声明视为**无限**；`realm_root` ref 无 grant-local depth。若需要 Realm 级默认上限，MUST 先在 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 注册可选字段再引用，不得引用未注册的"root policy 上限"概念 |
+| `max_authority_depth` | 对已显式允许 regrant 的普通 `authority_control`，MUST ≤ `min(grant_refs.max_authority_depth) - 1`；该 constraint 内未声明 depth 视为**无限**。完全没有普通 `authority_control` 的 grant 不得作为 grant ref；`authority_regrant_allowed=false` 的 terminal-child 规则按 [`constraint-schema.md` §7.4](./constraint-schema.md) 优先。`realm_root` ref 无 grant-local depth。若需要 Realm 级默认上限，MUST 先在 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 注册可选字段再引用，不得引用未注册的"root policy 上限"概念 |
 | `actions[]` | MUST ⊆ union(refs 的 actions)（`realm_root` ref 贡献该 root 的 owner ceiling） |
 | `resources[]` | MUST 是 union(refs 的 resources) 的 selector-narrowing 子集（见 [`resource-selector-grammar.md`](./resource-selector-grammar.md)） |
 | `constraints[]` | MUST 至少包含覆盖该 action 的各 `grant` ref 的全部 deny / require / quarantine constraints 的并集（更严者胜）；MAY 增加更严格的 allow constraints。`realm_root` ref 没有 grant-local constraint，只提供同 generation 的 owner ceiling |

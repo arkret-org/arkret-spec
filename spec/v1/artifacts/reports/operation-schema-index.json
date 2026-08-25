@@ -7352,7 +7352,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierAccountClientState",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState",
         "schema_kind": "object",
         "required": [
           "frontier"

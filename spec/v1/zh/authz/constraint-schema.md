@@ -350,10 +350,17 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
 
 **`authority_regrant_allowed`**：
 
-- `authority_regrant_allowed=false`（默认）⇒ child grant 的 `max_authority_depth` **MUST = 0**。
-  reducer 在派生 child 时 MUST 强制把 child 的 `max_authority_depth` 视为 `0`；若 child grant 声明了
-  `max_authority_depth > 0`，reducer **MUST** 返回 `schema_violation`
-  （`reason="authority_regrant_denied"`）。该 child MUST NOT 再被任何下游 grant 的
+- grant 没有普通 `authority_control` constraint 时，不具备再授权能力，MUST NOT 被 child grant
+  的 `issuer_authority_refs[]` 引用；reducer MUST 返回 `failed_precondition`
+  （`reason="authority_regrant_denied"`）。`constraint_subkind=applet_authority` 只表达 Applet
+  绑定，不构成普通再授权控制。
+- `authority_regrant_allowed=false`（普通 `authority_control` 内的字段缺省值）允许签发一个
+  terminal child，但 child grant 必须在 wire 上显式携带普通 `authority_control` 且
+  `max_authority_depth=0`、`authority_regrant_allowed=false`。child 省略该 constraint、
+  省略 `max_authority_depth`、声明 `max_authority_depth > 0` 或声明
+  `authority_regrant_allowed=true`，reducer **MUST** 返回 `failed_precondition`
+  （`reason="authority_regrant_denied"`）。reducer MUST NOT 只在内存中补造一个未被 Event proof
+  覆盖、无法跨重放持久化的 effective depth。该 terminal child MUST NOT 再被任何下游 grant 的
   `issuer_authority_refs[]` 引用。
 - `authority_regrant_allowed=true` 时允许继续再授权，深度仍受 §10.1
   `max_authority_depth ≤ parent - 1` 与 §10.2 DFS 上限 4 治理。
