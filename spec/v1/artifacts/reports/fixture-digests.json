@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "c1a4275df5724d8a31f4d913be3676e68758d5035dfa2f318601ecd68a238aa7"
+      "sha256": "d88afc5e3a4c282425c03f7126933627e6007e276233e62c8201226794ef2121"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-pairwise-welcome-fixture.json",

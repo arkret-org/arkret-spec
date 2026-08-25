@@ -647,7 +647,7 @@
       "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "keypackage_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
       "mismatched_keypackage_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "capabilities_digest": "sha256:1dddd1c146153efd457143a70e15d7120851a13a38e0e5ba49ffcdf01eeee531",
+      "capabilities_digest": "sha256:5bc109a59cd6e594bbe6acf4d54bad93c45ba091d03d8c677b93e706c11313ff",
       "claim_id": "mls-keypackage-claim-normal-1",
       "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "requester_actor_id": "ak:did_core:webvh:z6mkfixture",
