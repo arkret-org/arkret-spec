@@ -7609,7 +7609,6 @@
             "remove",
             "psk",
             "reinit",
-            "external_init",
             "group_context_extensions",
             "app_custom"
           ]
@@ -7624,9 +7623,6 @@
         },
         "target_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "target_device_id": {
-          "$ref": "#/$defs/device_id"
         },
         "target_authorization_incarnation": {
           "$ref": "#/$defs/history_authorization_incarnation",

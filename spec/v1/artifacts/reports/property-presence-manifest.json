@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10207,
+    "total_properties": 10206,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2799,
+      "optional": 2798,
       "optional_defaulted": 68,
       "required": 6991,
       "required_nullable": 139,
@@ -6997,7 +6997,6 @@
         "/$defs/mls_proposal_payload/properties/proposal_digest": "required",
         "/$defs/mls_proposal_payload/properties/proposal_type": "required",
         "/$defs/mls_proposal_payload/properties/target_authorization_incarnation": "optional",
-        "/$defs/mls_proposal_payload/properties/target_device_id": "optional",
         "/$defs/mls_proposal_payload/properties/target_principal_id": "optional",
         "/$defs/mls_welcome_payload/properties/agent_key_authorize_event_id": "optional",
         "/$defs/mls_welcome_payload/properties/ciphertext": "optional",
