@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-25.2",
+  "version": "2026-08-25.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-25T08:13:00+08:00",
+  "generated_at": "2026-08-25T21:13:28+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1170,6 +1170,18 @@
         "capability-fixture.json"
       ],
       "description": "Grant-ref liveness follows upstream revocation without cascade writes; root refs survive controller transfer but fail after generation reset. Transfer authoring supplies only controller_id, reset supplies no patch, registered increment_members computes the respective successor counter from the CAS-frozen pre-state, and safe-integer overflow fails closed with zero write. Root-control terminal events reject ordinary grant-based authorization.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.capability.authority_regrant_terminal_child.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "A grant without ordinary authority_control, including one carrying only applet_authority, cannot authorize a child. A false or default-false parent can issue only a wire-explicit ordinary max_authority_depth=0 terminal child; missing carrier, positive depth, regrant reopening, terminal-child reuse, and non-narrowing true-parent depth fail closed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]

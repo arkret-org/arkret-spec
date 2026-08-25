@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.authz.capability.v1"
   },
   "profile": "ak.vector_group.capability.v1",
-  "version": "2026-08-13",
+  "version": "2026-08-25",
   "covers_vectors": [
     "ak.vector.realm.authority_root_bootstrap.v1"
   ],
@@ -568,6 +568,350 @@
               "critical": true
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "authority_regrant_terminal_child_carrier",
+      "vector_id": "ak.vector.capability.authority_regrant_terminal_child.v1",
+      "cases": [
+        {
+          "name": "ordinary_parent_without_authority_control_is_not_a_grant_ref",
+          "accepted_grants": [
+            {
+              "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
+              "constraints": []
+            }
+          ],
+          "candidate": {
+            "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
+              }
+            ],
+            "constraints": [
+              {
+                "constraint_kind": "authority_control",
+                "effect": "allow",
+                "max_authority_depth": 0
+              }
+            ]
+          },
+          "expected": {
+            "accepted": false,
+            "error_code": "failed_precondition",
+            "reason_code": "authority_regrant_denied"
+          }
+        },
+        {
+          "name": "applet_authority_only_parent_is_not_an_ordinary_grant_ref",
+          "accepted_grants": [
+            {
+              "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "constraint_subkind": "applet_authority",
+                  "effect": "allow",
+                  "evaluation_class": "grant_local",
+                  "applet_id": "ak:applet:01970000-0000-7000-8000-0000000000aa",
+                  "executed_by": "ak:did_core:webvh:z6mkfixturebridgeexample",
+                  "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              ]
+            }
+          ],
+          "candidate": {
+            "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
+              }
+            ],
+            "constraints": [
+              {
+                "constraint_kind": "authority_control",
+                "effect": "allow",
+                "max_authority_depth": 0
+              }
+            ]
+          },
+          "expected": {
+            "accepted": false,
+            "error_code": "failed_precondition",
+            "reason_code": "authority_regrant_denied"
+          }
+        },
+        {
+          "name": "false_parent_rejects_child_without_control_carrier",
+          "accepted_grants": [
+            {
+              "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "effect": "allow",
+                  "max_authority_depth": 2,
+                  "authority_regrant_allowed": false
+                }
+              ]
+            }
+          ],
+          "candidate": {
+            "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
+              }
+            ],
+            "constraints": []
+          },
+          "expected": {
+            "accepted": false,
+            "error_code": "failed_precondition",
+            "reason_code": "authority_regrant_denied"
+          }
+        },
+        {
+          "name": "false_parent_rejects_positive_child_depth",
+          "accepted_grants": [
+            {
+              "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "effect": "allow",
+                  "max_authority_depth": 2,
+                  "authority_regrant_allowed": false
+                }
+              ]
+            }
+          ],
+          "candidate": {
+            "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
+              }
+            ],
+            "constraints": [
+              {
+                "constraint_kind": "authority_control",
+                "effect": "allow",
+                "max_authority_depth": 1
+              }
+            ]
+          },
+          "expected": {
+            "accepted": false,
+            "error_code": "failed_precondition",
+            "reason_code": "authority_regrant_denied"
+          }
+        },
+        {
+          "name": "false_parent_rejects_child_that_reopens_regrant",
+          "accepted_grants": [
+            {
+              "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "effect": "allow",
+                  "max_authority_depth": 2,
+                  "authority_regrant_allowed": false
+                }
+              ]
+            }
+          ],
+          "candidate": {
+            "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
+              }
+            ],
+            "constraints": [
+              {
+                "constraint_kind": "authority_control",
+                "effect": "allow",
+                "max_authority_depth": 0,
+                "authority_regrant_allowed": true
+              }
+            ]
+          },
+          "expected": {
+            "accepted": false,
+            "error_code": "failed_precondition",
+            "reason_code": "authority_regrant_denied"
+          }
+        },
+        {
+          "name": "false_parent_accepts_wire_explicit_terminal_child",
+          "accepted_grants": [
+            {
+              "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "effect": "allow",
+                  "max_authority_depth": 2,
+                  "authority_regrant_allowed": false
+                }
+              ]
+            }
+          ],
+          "candidate": {
+            "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
+              }
+            ],
+            "constraints": [
+              {
+                "constraint_kind": "authority_control",
+                "effect": "allow",
+                "max_authority_depth": 0
+              }
+            ]
+          },
+          "expected": {
+            "accepted": true
+          }
+        },
+        {
+          "name": "terminal_child_cannot_be_referenced_by_a_grandchild",
+          "accepted_grants": [
+            {
+              "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "effect": "allow",
+                  "max_authority_depth": 2,
+                  "authority_regrant_allowed": false
+                }
+              ]
+            },
+            {
+              "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+              "issuer_authority_refs": [
+                {
+                  "kind": "grant",
+                  "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
+                }
+              ],
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "effect": "allow",
+                  "max_authority_depth": 0
+                }
+              ]
+            }
+          ],
+          "candidate": {
+            "grant_id": "ak:grant:AfRvTwL9UUVlA868BCCvPbdzYVW8u3JC2w3JgU_Fixho",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ"
+              }
+            ],
+            "constraints": [
+              {
+                "constraint_kind": "authority_control",
+                "effect": "allow",
+                "max_authority_depth": 0
+              }
+            ]
+          },
+          "expected": {
+            "accepted": false,
+            "error_code": "failed_precondition",
+            "reason_code": "authority_regrant_denied"
+          }
+        },
+        {
+          "name": "true_parent_accepts_depth_narrowing",
+          "accepted_grants": [
+            {
+              "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "effect": "allow",
+                  "max_authority_depth": 3,
+                  "authority_regrant_allowed": true
+                }
+              ]
+            }
+          ],
+          "candidate": {
+            "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
+              }
+            ],
+            "constraints": [
+              {
+                "constraint_kind": "authority_control",
+                "effect": "allow",
+                "max_authority_depth": 2,
+                "authority_regrant_allowed": true
+              }
+            ]
+          },
+          "expected": {
+            "accepted": true
+          }
+        },
+        {
+          "name": "true_parent_rejects_non_narrowed_depth",
+          "accepted_grants": [
+            {
+              "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "effect": "allow",
+                  "max_authority_depth": 3,
+                  "authority_regrant_allowed": true
+                }
+              ]
+            }
+          ],
+          "candidate": {
+            "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
+              }
+            ],
+            "constraints": [
+              {
+                "constraint_kind": "authority_control",
+                "effect": "allow",
+                "max_authority_depth": 3,
+                "authority_regrant_allowed": true
+              }
+            ]
+          },
+          "expected": {
+            "accepted": false,
+            "error_code": "failed_precondition",
+            "reason_code": "authority_depth_exceeded"
+          }
         }
       ]
     },
