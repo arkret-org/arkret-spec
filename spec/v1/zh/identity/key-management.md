@@ -87,6 +87,8 @@ Arkret v1 不定义独立的账户级设备签名层级。高权限 PCR 操作�
 
 用户只保管一个 recovery secret；它是派生源，不是可跨用途复用的一把 recovery private key。Arkret v1 从它派生三个相互隔离的角色：代际 DID update root、稳定 recovery-session proof key、稳定 backup HPKE key。客户端恢复 UI MAY 把 recovery secret 呈现为 24 词 BIP-39 助记词，但 MUST NOT 上传助记词、BIP-39 seed、PRK 或任何派生 private key；本地 MAY 仅保留不可逆指纹用于输入校验。
 
+24 词助记词与“至少 32-byte 均匀随机 secret”是两条互斥的**本地输入表示路径**，不是两种 wire recovery key。若产品把 raw secret 显示为 Crockford/Base32 等可抄录文本，其 codec MUST 无损往返全部 secret bits，KDF 输入 MUST 是解码后的原始 bytes，MUST NOT 是编码文本的 UTF-8 bytes。`ak.schema.key_backup.v1` 的 `recipient_method="passphrase_kdf"` 所用产品自选 backup passphrase 是另一类本地凭证；实现 MUST NOT 把它命名或解释为本节 identity recovery secret，也 MUST NOT 将其送入本节 identity recovery KDF。标准内容恢复凭证与 backup-HPKE 关系仍以 §7.5.2 为准。
+
 24 词路径 MUST 严格按 BIP-39 对 mnemonic 与 passphrase 做 NFKD/UTF-8 处理并得到 64-byte seed；未提供附加 passphrase 时 passphrase 是空字符串。非助记词路径 MUST 输入至少 32-byte 均匀随机 secret。所得原始 bytes 直接作为 `recovery_secret_bytes`，不得先转成 hex/Base64 文本。byte-exact KDF 为：
 
 ```text
