@@ -62,8 +62,21 @@
       "minLength": 1,
       "description": "Opaque content-addressed or service-scoped reference. Hash-shaped refs MUST use keypackage_digest for digest bytes."
     },
-    "string_list": {
-      "$ref": "./applet-package.schema.json#/$defs/non_empty_string_array"
+    "keypackage_capability_id": {
+      "type": "string",
+      "pattern": "^(?:ak|[a-z][a-z0-9-]{0,31})(?:\\.[a-z][a-z0-9_-]{0,63})+\\.v1$",
+      "maxLength": 128,
+      "description": "Open registered identifier from keypackage-capability-registry.json. Unknown well-formed values are preserved but treated as unsupported."
+    },
+    "keypackage_capability_list": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/keypackage_capability_id"
+      },
+      "minItems": 1,
+      "maxItems": 64,
+      "uniqueItems": true,
+      "description": "UTF-8 byte-lexicographically sorted unique KeyPackage capability identifiers. Semantic registry membership and ordering are enforced after structural schema validation."
     },
     "signature": {
       "type": "object",
@@ -132,14 +145,9 @@
       ],
       "properties": {
         "keypackage_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "type": "string",
+          "pattern": "^ak:mls:kp:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Arkret MLS-profile KeyPackage identity. This is the registered ak:mls:kp:<uuidv7> special form, not an opaque external identifier."
         },
         "keypackage_ref": {
           "$ref": "#/$defs/object_ref"
@@ -161,7 +169,7 @@
           "description": "Generated from active canonical_id rows in mls-ciphersuite-registry.json."
         },
         "capabilities": {
-          "$ref": "#/$defs/string_list"
+          "$ref": "#/$defs/keypackage_capability_list"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -298,7 +306,7 @@
           "$ref": "#/$defs/base64url"
         },
         "capabilities": {
-          "$ref": "#/$defs/string_list"
+          "$ref": "#/$defs/keypackage_capability_list"
         },
         "device_authorize_event_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -580,7 +588,7 @@
           ]
         },
         "required_capabilities": {
-          "$ref": "#/$defs/string_list"
+          "$ref": "#/$defs/keypackage_capability_list"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -794,7 +802,7 @@
           ]
         },
         "required_capabilities": {
-          "$ref": "#/$defs/string_list"
+          "$ref": "#/$defs/keypackage_capability_list"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"

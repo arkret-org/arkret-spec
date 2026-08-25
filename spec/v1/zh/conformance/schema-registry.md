@@ -63,7 +63,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 - **`codes`**:可作为**顶层 service error** 返回的码，携带 `http_status` 与 `scope`（`both` / `service_call` / `delivery` / `endpoint`）。
 - **`reason_codes`**:per-item / per-decision 的**子原因**（batch item 诊断、reducer reason、auth/policy decision reason），不携带 `http_status`，由 `applies_to` 声明适用上下文。
 
-一个 token 同时扮演两种角色时（既能作顶层服务错误返回、又能作某条目的子原因），**MUST 在两个数组中各登记一次（双注册）**，两处描述 SHOULD 一致并互相点明"dual-registered"。双注册是有意设计、不是漂移；新增码若兼具两种角色，MUST 保持两侧同步。算法-agility fail-closed 三兄弟 `unsupported_digest_algorithm` / `unsupported_signature_alg` / `unsupported_hpke_suite` 即按此模型对称双注册（`codes` 均 `http_status=422` / `scope=both`，且各自在 `reason_codes` 有对应 per-item 条目），确保 digest / signature / HPKE 三类未识别 suite 的处置在 registry 中口径一致。
+一个 token 同时扮演两种角色时（既能作顶层服务错误返回、又能作某条目的子原因），**MUST 在两个数组中各登记一次（双注册）**，两处描述 SHOULD 一致并互相点明"dual-registered"。双注册是有意设计、不是漂移；新增码若兼具两种角色，MUST 保持两侧同步。算法-agility fail-closed 四项 `unsupported_digest_algorithm` / `unsupported_signature_alg` / `unsupported_hpke_suite` / `unsupported_ciphersuite` 即按此模型对称双注册（`codes` 均 `http_status=422` / `scope=both`，且各自在 `reason_codes` 有对应 per-item 条目），确保 digest / signature / HPKE / MLS ciphersuite 四类未识别 selector 的处置在 registry 中口径一致。
 
 ### 1.2 `ak.*` 命名空间的机读登记边界（normative）
 

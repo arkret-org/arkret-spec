@@ -3,7 +3,7 @@ title: Service Surface And Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-08-25
 see_also:
   - service-http-binding.md
   - operations-sync.md
@@ -1036,7 +1036,7 @@ Arkret v1 固定：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_expires_at`；`decision` 只能是 `allow`、`soft_deny`、`hard_deny`、`quarantine` 或 `require_review`。
-- Service describe MUST 声明 `service_id: did_core_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 拒绝 service `did_core_id` / `full_id` projection、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
+- Service describe MUST 声明 `service_id: did_core_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version="1.0"`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 在使用任何其它 describe 字段前先比较 `protocol_version`；其形状合法但不等于 `"1.0"` 时 MUST 以 `unsupported_protocol_version` 将整个服务标记为不可用，MUST NOT 缓存其路由、对其做 capability 交集或发起业务请求。缺失或非字符串的 `protocol_version` 仍是 `schema_violation`。客户端还 MUST 拒绝 service `did_core_id` / `full_id` projection、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
 - Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `interop_surfaces` 六个 claim level 字段，schema 见 `ak.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 verification artifact、verifier 签名和 hash 后才把它作为生产 conformance 依据。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。

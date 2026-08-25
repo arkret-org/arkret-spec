@@ -28,7 +28,7 @@
   "type_derived_summary": {
     "registry_catalog_symbol": 19,
     "responsibility_did": 533,
-    "typed_object_id": 890
+    "typed_object_id": 892
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -569,14 +569,6 @@
       "occurrences": 1,
       "example_path": "event-envelope.schema.json#/properties/auth_context/properties/key_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
-      "name": "keypackage_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "external_system_identifier",
-      "occurrences": 2,
-      "example_path": "event-payload.schema.json#/$defs/mls_keypackage_payload/properties/keypackage_id",
-      "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
     },
     {
       "name": "location_id",

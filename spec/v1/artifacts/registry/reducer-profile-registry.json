@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-03.10",
-  "generated_at": "2026-08-03T12:40:00Z",
+  "version": "2026-08-25.1",
+  "generated_at": "2026-08-25T08:10:00+08:00",
   "source_of_truth": true,
   "description": "Canonical Realm reducer profiles. A Realm selects exactly one profile through its reducer-profile singleton control cell.",
   "registry_rules": [
@@ -8,8 +8,22 @@
     "A receiver selects the profile from the Event's authenticated CBA governance basis. Ordinary Events and federation service bindings do not declare a reducer profile.",
     "ak.realm.create supplies the genesis profile. ak.realm.upgrade is interpreted by the source profile and writes the target profile to the same singleton control cell.",
     "An upgrade is valid only when the source profile declares the target in upgrade_edges and the declared deterministic state transition succeeds.",
-    "Every active profile requires conformance vectors for admission, cell projection, lattice join, state root, security frontier, genesis, and upgrade behavior."
+    "The current v1 registry has no active upgrade edge. ak.realm.upgrade therefore fails with failed_precondition unless and until a successor profile and a source-to-target edge are published.",
+    "A successor profile MUST NOT be published before an inbound upgrade edge and the edge's complete positive and negative conformance-vector bindings are published in the same release.",
+    "Every active profile requires conformance vectors for admission, cell projection, lattice join, state root, security frontier, and genesis. Every published upgrade edge additionally requires the complete upgrade-behavior vector bindings defined by upgrade_release_gate."
   ],
+  "upgrade_release_gate": {
+    "genesis_profile": "ak.reducer.core.v1",
+    "current_v1_has_active_upgrade_edges": false,
+    "successor_profile_requires_inbound_edge": true,
+    "required_edge_vector_cases": [
+      "successful_transition",
+      "source_head_eq_precondition",
+      "unregistered_target",
+      "undeclared_edge",
+      "concurrent_upgrade_conflict"
+    ]
+  },
   "profiles": [
     {
       "profile_id": "ak.reducer.core.v1",

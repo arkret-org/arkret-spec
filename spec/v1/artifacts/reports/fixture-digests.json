@@ -206,15 +206,15 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "68e39367f5739b8d852a1470954f9933d5ab300e992034518aa5cd05679e06ba"
+      "sha256": "c1a4275df5724d8a31f4d913be3676e68758d5035dfa2f318601ecd68a238aa7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-pairwise-welcome-fixture.json",
-      "sha256": "32ad38bf512f9993a8f8d59eedbfa67aa77b05f000be61f0be037030cd74410b"
+      "sha256": "d517244a12beb3bd51906935484ac1a3c7d3a53937a2b2e129c0cbae47d4a561"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
-      "sha256": "3d98116b88b017300bcaa9cedac9631f9b5d22382f10daa41f70d6200b9d741c"
+      "sha256": "b8c4add4cd175c36bc6e57e911bac5353e6b5a3a8ee9bc7caa25ee78ea6c0252"
     },
     {
       "path": "spec/v1/artifacts/fixtures/long-text-content-fixture.json",

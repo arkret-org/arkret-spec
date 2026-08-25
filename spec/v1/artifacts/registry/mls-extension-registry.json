@@ -1,7 +1,7 @@
 {
-  "version": "2026-06-03",
+  "version": "2026-08-25",
   "source_of_truth": true,
-  "description": "Canonical registry of Arkret-defined MLS (RFC 9420) GroupContext extensions occupying the MLS private-use ExtensionType range 0xF000-0xFFFF. Maintained so SDKs and conformance tooling have a single machine-readable entry for each active Arkret MLS extension codepoint.",
+  "description": "Canonical registry of MLS (RFC 9420) extensions required by Arkret profiles, including the standard required_capabilities extension and Arkret private-use extensions. Maintained so SDKs and conformance tooling have a single machine-readable entry for every required codepoint and context.",
   "private_use_range": {
     "low": "0xF000",
     "high": "0xFFFF",
@@ -9,13 +9,63 @@
   },
   "extensions": [
     {
+      "name": "required_capabilities",
+      "codepoint": "0x0003",
+      "status": "active",
+      "profile_id": "ak.profile.mls_governance_binding.full.v1",
+      "messages": [
+        "GC"
+      ],
+      "carries": "RFC 9420 extension, proposal, and credential codepoints that every group member must support; Arkret lists 0xF1C0, 0xF1C1, and 0xF1C2",
+      "iana_codepoint": "0x0003",
+      "source_refs": [
+        "RFC 9420 §11.1",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
+    },
+    {
       "name": "mls_governance_binding",
       "codepoint": "0xF1C0",
       "status": "active",
       "profile_id": "ak.profile.mls_governance_binding.full.v1",
+      "messages": [
+        "GC"
+      ],
       "carries": "Arkret Realm/Circle governance binding inside the MLS GroupContext",
       "iana_codepoint": null,
       "source_refs": [
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
+    },
+    {
+      "name": "keypackage_capabilities",
+      "codepoint": "0xF1C1",
+      "status": "active",
+      "profile_id": "ak.profile.mls_governance_binding.full.v1",
+      "messages": [
+        "LN"
+      ],
+      "carries": "Canonical supported KeyPackage capability identifiers in the signed LeafNode",
+      "wire_encoding": "deterministic CBOR definite-length array of UTF-8 text strings, byte-lexicographically sorted and unique",
+      "iana_codepoint": null,
+      "source_refs": [
+        "spec/v1/artifacts/registry/keypackage-capability-registry.json",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
+    },
+    {
+      "name": "required_keypackage_capabilities",
+      "codepoint": "0xF1C2",
+      "status": "active",
+      "profile_id": "ak.profile.mls_governance_binding.full.v1",
+      "messages": [
+        "GC"
+      ],
+      "carries": "Canonical active KeyPackage capability identifiers required of every member and authorized for use in the current group epoch",
+      "wire_encoding": "deterministic CBOR definite-length array of UTF-8 text strings, byte-lexicographically sorted and unique",
+      "iana_codepoint": null,
+      "source_refs": [
+        "spec/v1/artifacts/registry/keypackage-capability-registry.json",
         "spec/v1/zh/crypto-media/encryption-and-audit.md"
       ]
     }

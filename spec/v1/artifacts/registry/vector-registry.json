@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-25.1",
+  "version": "2026-08-25.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-25T03:15:00+08:00",
+  "generated_at": "2026-08-25T08:13:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3732,6 +3732,19 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.keypackage.group_capability_floor.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
+      "description": "The signed LeafNode keypackage_capabilities list exactly matches the outer KeyPackage record; the required_keypackage_capabilities GroupContext extension is enforced on Add, Update, floor changes, Join and application-profile selection, while RFC 9420 required_capabilities requires every member to support the Arkret extension codepoints.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
     },
     {

@@ -1,5 +1,6 @@
 {
-  "version": "2026-08-25.1",
+  "version": "2026-08-25.4",
+  "generated_at": "2026-08-25T08:20:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1096,22 +1097,34 @@
       "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond or ak.self.contact.command.reject targets a contact request older than contact_request_pending_ttl. The request projection is expired and no terminal response may be authored from it."
     },
     {
+      "code": "unsupported_ciphersuite",
+      "http_status": 422,
+      "scope": "both",
+      "description": "An MLS ciphersuite selector is not an active row of artifacts/registry/mls-ciphersuite-registry.json (unknown, inactive, or reserved-but-not-activated) during KeyPackage claim or group negotiation. One of the four algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). Receivers MUST fail closed even if the underlying MLS library supports the suite. See zh/crypto-media/encryption-and-audit.md §2.6."
+    },
+    {
       "code": "unsupported_digest_algorithm",
       "http_status": 422,
       "scope": "both",
-      "description": "The digest suite prefix in a typed digest value (e.g. sha256:<hex>, cbor.sha256:<hex>) is not an active row of artifacts/registry/digest-suite-registry.json supported by the receiver (unknown id, unregistered tuple, or reserved suite) on a critical field. See zh/conformance/encoding.md §3.1-§3.2. Dual-registered (also a reason_code): all three algorithm-agility fail-closed errors (unsupported_digest_algorithm / unsupported_signature_alg / unsupported_hpke_suite) appear in both `codes` (top-level service error) and `reason_codes` (per-item sub-reason); see zh/conformance/schema-registry.md §1.1.1."
+      "description": "The digest suite prefix in a typed digest value (e.g. sha256:<hex>, cbor.sha256:<hex>) is not an active row of artifacts/registry/digest-suite-registry.json supported by the receiver (unknown id, unregistered tuple, or reserved suite) on a critical field. See zh/conformance/encoding.md §3.1-§3.2. Dual-registered (also a reason_code): all four algorithm-agility fail-closed errors (unsupported_digest_algorithm / unsupported_signature_alg / unsupported_hpke_suite / unsupported_ciphersuite) appear in both `codes` (top-level service error) and `reason_codes` (per-item sub-reason); see zh/conformance/schema-registry.md §1.1.1."
     },
     {
       "code": "unsupported_signature_alg",
       "http_status": 422,
       "scope": "both",
-      "description": "Proof / event signature `alg` is not in the conformance signature-algorithm allowlist (artifacts/registry/signature-alg-registry.json) on a critical field. One of the three algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). See zh/conformance/encoding.md §6.1."
+      "description": "Proof / event signature `alg` is not in the conformance signature-algorithm allowlist (artifacts/registry/signature-alg-registry.json) on a critical field. One of the four algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). See zh/conformance/encoding.md §6.1."
     },
     {
       "code": "unsupported_hpke_suite",
       "http_status": 422,
       "scope": "both",
-      "description": "HPKE suite id on an application-layer sealed surface is not an active row of artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). One of the three algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. See zh/identity/key-management.md §7.5.2."
+      "description": "HPKE suite id on an application-layer sealed surface is not an active row of artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). One of the four algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. See zh/identity/key-management.md §7.5.2."
+    },
+    {
+      "code": "unsupported_protocol_version",
+      "http_status": 422,
+      "scope": "both",
+      "description": "A syntactically well-formed protocol-family bootstrap discriminator is not supported by the receiver. For v1 ServiceDescribe and equivalent ping surfaces, a protocol_version string other than the canonical value 1.0 makes the complete service unusable before capability intersection or route caching. Missing or non-string values remain schema_violation. A binding that implements Arkret-Protocol-Version header or equivalent media-type negotiation returns this code for an unsupported requested version. Dual-registered as a top-level service code and a reason_code. See zh/overview/evolution-and-compatibility.md §1 and §4."
     },
     {
       "code": "genesis_seal_invalid",
@@ -5215,6 +5228,15 @@
       "description": "An encrypted-attachment envelope carries a `scheme` value the receiver does not recognise. Receivers MUST fail closed rather than guess a decryption form. See zh/crypto-media/media-and-blob.md §3.2/§3.3."
     },
     {
+      "code": "unsupported_ciphersuite",
+      "applies_to": [
+        "service_call",
+        "auth_decision",
+        "keypackage_lifecycle"
+      ],
+      "description": "An MLS ciphersuite selector is not an active row of artifacts/registry/mls-ciphersuite-registry.json (unknown, inactive, or reserved-but-not-activated) during KeyPackage claim or group negotiation. Receivers MUST fail closed even if the underlying MLS library supports the suite. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/crypto-media/encryption-and-audit.md §2.6."
+    },
+    {
       "code": "unsupported_digest_algorithm",
       "applies_to": [
         "schema_validation",
@@ -5252,6 +5274,14 @@
         "push_notify_outcome"
       ],
       "description": "Per-device rejection reason in ak.edge.push.command.notify: the device has not opted in to the requested notification profile (for example a visible notification sent to a device without visible_notification_opt_in). Terminal; the caller falls back to the blind_wakeup form and MUST NOT resend the same shape. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+    },
+    {
+      "code": "unsupported_protocol_version",
+      "applies_to": [
+        "feature_discovery",
+        "service_call"
+      ],
+      "description": "The peer's protocol-family bootstrap discriminator is well formed but unsupported. The consumer rejects the complete service before reading version-specific capability claims or caching its route. Missing or non-string values remain schema_violation. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/overview/evolution-and-compatibility.md §1 and §4."
     },
     {
       "code": "unsupported_signature_alg",
@@ -5442,6 +5472,5 @@
       "*_not_permitted": "use _denied",
       "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
     }
-  },
-  "generated_at": "2026-08-25T03:15:00+08:00"
+  }
 }

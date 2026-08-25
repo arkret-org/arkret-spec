@@ -1326,9 +1326,11 @@ components:
               - direct_conversation_unavailable
               - contact_request_not_pending
               - contact_request_expired
+              - unsupported_ciphersuite
               - unsupported_digest_algorithm
               - unsupported_signature_alg
               - unsupported_hpke_suite
+              - unsupported_protocol_version
               - genesis_seal_invalid
               - seal_incomplete
               - franking_proof_unavailable

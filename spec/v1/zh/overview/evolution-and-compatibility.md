@@ -27,7 +27,7 @@ Arkret/1 分别管理四个版本维度，任何实现不得用其中一个替�
 
 | 维度 | Wire 表达 | 作用 |
 | --- | --- | --- |
-| 协议族 | `protocol_version="1.0"` | 标识 Arkret/1 的身份、签名域、Event 因果模型与核心认证规则。 |
+| 协议族 | `protocol_version="1.0"` | 标识 Arkret/1 的身份、签名域、Event 因果模型与核心认证规则。接收方在使用 describe 中任何其它声明前 MUST 先执行精确版本比较；不等于 `"1.0"` 时将整个服务判定为不可用并产生 `unsupported_protocol_version`，不得继续能力交集、缓存路由或发起业务请求。 |
 | Wire schema | `schema_id`、带 `.vN` 的 event kind / operation schema | 定义单个 Event、DTO、证明或持久对象的 closed shape。 |
 | Realm reducer profile | Realm 的 `ak.component.realm.reducer_profile.v1` singleton control cell | 定义 Event admission、cell projection、lattice join、state root 与 security frontier 的共识语义。 |
 | Capability | `ServiceDescribe` 的 operation、feature、schema/profile 能力集合 | 决定可选功能是否可用。 |
@@ -51,6 +51,8 @@ ak:cell:ak.component.realm.reducer_profile.v1:null
 3. profile cell 使用 `cas_register`、`bottom=reject`、`plane=control`，并完全复用 CBA join、Bottom 与 conflict recovery。
 4. profile ID 的已发布语义不可原地修改；语义变化必须注册新的 ID 和从 source 到 target 的确定性 upgrade edge。
 5. upgrade Event 本身由 source profile 解释；治理 basis 已包含该 upgrade 的后继才由 target profile 解释。
+
+当前 v1 registry 没有 active upgrade edge，因此任何 `ak.realm.upgrade` 都按 §4 以 `failed_precondition` 拒绝；这是已裁决的 v1 边界，不是隐式成功或实现缺省。首个后继 reducer profile 只能在同一发布中同时登记 source→target edge，并满足 `reducer-profile-registry.json#upgrade_release_gate` 要求的成功 transition、source `head_eq` precondition、未注册 target、未声明 edge 与并发 upgrade 冲突五类向量后发布。
 
 普通 Event 不声明 reducer profile。DataEvent 从其 `seal_ref` 认证的 joined control state 读取 cell；Control Move 从 `seal_basis` 的 frozen predecessor `J(L)` 读取。实现不得从本地 latest state、软件默认值、接收顺序或调用方字段推断。
 
@@ -78,6 +80,8 @@ Reducer profile 只出现在以下 canonical 位置：
 
 Reducer upgrade target 的词法形状不合法时返回 `schema_violation`；target 未注册时返回 `unsupported_profile`；registry 中不存在 source→target edge 时返回 `failed_precondition`。
 
+`protocol_version` 是一个 bootstrap 判别字段，不是可选 capability。对携带该字段的 describe / ping 响应，接收方 MUST 在依赖 v1-specific schema 解释其它字段之前先取出它：缺失、非字符串或非 canonical 字面形式是 `schema_violation`；形状合法但与本地唯一支持值 `"1.0"` 不同是 `unsupported_protocol_version`。后一种结果是对端代际不受支持，不表示对端响应属于 v1 内的损坏对象。
+
 ## 5. Schema 与功能演进
 
 - closed schema 的新形状使用新的 schema ID、event kind 或 operation carrier；
@@ -88,6 +92,8 @@ Reducer upgrade target 的词法形状不合法时返回 `schema_violation`；ta
 - 文档、fixture、实现重构与无语义 registry 整理不改变联邦判定。
 
 任何进入签名语义的 canonical bytes 与已发布语义都不得原地重定义。每项影响 wire、状态、授权、安全、同步或互操作的变化必须进入对应 schema / registry，并有 conformance vector、fixture 或明确测试计划。
+
+pre-GA 的 current-v1 直接修订只持续到 `v1.0.0` promotion。promotion 后的冻结面、兼容新增、两阶段退役、最短观测窗口、历史解释保留、安全例外与 catalog diff 门禁，唯一规则见 [`release-readiness.md` §5.1.1](./release-readiness.md)。本文的 schema / capability / reducer 演进规则在 post-GA 不得被解释为删除或原地替换已发布 active 行的许可。
 
 ## 6. 传输与 `unsigned`
 
@@ -102,6 +108,7 @@ HTTP path 不承担协议版本语义；能力由 `GET /_arkret/describe` 和各
 | 协商面 | 载体 | 判定时机 | 未命中时的处置 | 规范位置 |
 | --- | --- | --- | --- | --- |
 | 传输代际 | WebSocket subprotocol `arkret.v1`；HTTP binding 不含 path 版本段，必要时用 `Arkret-Protocol-Version` 请求/响应 header 或 media-type 参数 | 连接建立 | 服务端未选择该 subprotocol 时客户端不建立该连接并回落 HTTP | [`../sync/websocket-binding.md`](../sync/websocket-binding.md)、[`../sync/api-conventions.md` §11](../sync/api-conventions.md) |
+| 协议族 | describe / ping 中的 `protocol_version` | bootstrap JSON 解析后、使用任何 v1-specific 声明前 | 不等于 `"1.0"` 时以 `unsupported_protocol_version` 将整个服务判定为不可用；不进入 capability 协商 | 本文 §1、§4，[`../sync/service-surface.md` §17](../sync/service-surface.md) |
 | 服务能力 | `*.describe` 的 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `interop_surfaces` | 首次接触与缓存失效 | 未声明即视为不支持，调用方不得据非标准 404 body 推断能力 | [`../sync/service-surface.md` §3.0](../sync/service-surface.md) |
 | describe 完整性 | 签名 `ServiceResolutionRecord` 的 `describe_digest` 反向绑定 | route 解析的二跳确认 | digest 不一致时不切换业务流量 | [`../sync/service-surface.md` §2.6](../sync/service-surface.md) |
 | 对象 shape | schema id 与带 `.vN` 的 event kind / operation carrier；schema 内闭集枚举按版本冻结 | schema validation | `schema_violation`，或算法 selector 对应的稳定 `unsupported_*` 码 | [`../conformance/schema-registry.md` §6、§6.1](../conformance/schema-registry.md) |
@@ -111,7 +118,7 @@ HTTP path 不承担协议版本语义；能力由 `GET /_arkret/describe` 和各
 | 算法 agility（四面） | signature / digest / HPKE / MLS ciphersuite 四个 registry 的 schema 内 selector | 验签、摘要、应用层封装、MLS 群组协商 | `unsupported_signature_alg` / `unsupported_digest_algorithm` / `unsupported_hpke_suite` / `unsupported_ciphersuite` | [`../conformance/encoding.md` §3.2、§6.1](../conformance/encoding.md)、[`../crypto-media/encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md)、[`../conformance/schema-registry.md` §6.1(b.1)](../conformance/schema-registry.md) |
 | 端到端对端能力 | KeyPackage `capabilities` 与 claim `required_capabilities`（`required_capabilities ⊆ capabilities`） | KeyPackage claim | `claim_failed` | [`../crypto-media/device-lifecycle.md` §9](../crypto-media/device-lifecycle.md)、[`../crypto-media/encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md) |
 
-前八行的对端都是**服务**，其声明面经签名 route record 与 describe digest 绑定；最后一行的对端是**设备端点**，它是 v1 唯一的客户端↔客户端能力协商载体。两类协商面不得互相替代：服务 describe 不表达群成员设备的能力，KeyPackage capability 也不表达服务 operation 可用性。
+表中 KeyPackage 行之前的对端都是**服务**，其声明面经签名 route record 与 describe digest 绑定；KeyPackage 行的对端是**设备端点**，它是 v1 唯一的客户端↔客户端能力协商载体。两类协商面不得互相替代：服务 describe 不表达群成员设备的能力，KeyPackage capability 也不表达服务 operation 可用性。
 
 ## 8. 密文可解性不变量
 

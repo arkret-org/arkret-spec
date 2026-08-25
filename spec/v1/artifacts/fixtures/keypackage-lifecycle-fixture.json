@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.mls_governance_binding.full.v1",
-  "version": "2026-08-16",
+  "version": "2026-08-25",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -16,7 +16,7 @@
         "pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "keypackages": [{
-          "keypackage_id": "pairwise-kp-1",
+          "keypackage_id": "ak:mls:kp:01964137-0000-7000-8000-000000000001",
           "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "keypackage": "AQID",
           "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
@@ -42,7 +42,7 @@
         "pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "keypackages": [{
-          "keypackage_id": "pairwise-kp-1",
+          "keypackage_id": "ak:mls:kp:01964137-0000-7000-8000-000000000001",
           "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "keypackage": "AQID",
           "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
@@ -65,7 +65,7 @@
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
-        "required_capabilities": ["mls"],
+        "required_capabilities": ["ak.content.v1"],
         "expires_at": "2026-07-31T00:05:00.000Z",
         "service_binding": {
           "source_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
@@ -94,7 +94,7 @@
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
-        "required_capabilities": ["mls"],
+        "required_capabilities": ["ak.content.v1"],
         "expires_at": "2026-07-31T00:05:00.000Z",
         "requester_authorization": {
           "kind": "device",
@@ -117,7 +117,7 @@
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
-        "required_capabilities": ["mls"],
+        "required_capabilities": ["ak.content.v1"],
         "expires_at": "2026-08-24T00:05:00.000Z",
         "target_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "service_binding": {
@@ -142,7 +142,7 @@
         "principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "keypackage": "AQID",
-        "capabilities": ["mls"],
+        "capabilities": ["ak.content.v1"],
         "expires_at": "2026-08-24T00:05:00.000Z"
       }
     },
@@ -157,7 +157,7 @@
         "principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "keypackage": "AQID",
-        "capabilities": ["mls"],
+        "capabilities": ["ak.content.v1"],
         "expires_at": "2026-08-24T00:05:00.000Z",
         "endpoint_signature": {"kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE", "sig": "AA"}
       }
@@ -211,6 +211,19 @@
         },
         "signature": {"kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE", "signature_algorithm": "Ed25519", "sig": "AA"}
       }
+    },
+    {
+      "name": "well_formed_unknown_keypackage_capability_is_structurally_preserved",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_capability_id",
+      "expect_valid": true,
+      "instance": "example.content.v1"
+    },
+    {
+      "name": "unowned_bare_keypackage_capability_is_rejected",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_capability_id",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not match",
+      "instance": "mls"
     }
   ],
   "covers_vectors": [
@@ -222,9 +235,111 @@
     "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
     "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
     "ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1",
-    "ak.vector.mls.welcome_keypackage_hash.v1"
+    "ak.vector.mls.welcome_keypackage_hash.v1",
+    "ak.vector.keypackage.group_capability_floor.v1"
   ],
   "cases": [
+    {
+      "name": "group_capability_floor",
+      "vector_id": "ak.vector.keypackage.group_capability_floor.v1",
+      "kind": "mls_leaf_and_group_context_capability_floor",
+      "registered_capabilities": [
+        "ak.content.v1",
+        "mimi.content.v1"
+      ],
+      "extension_types": {
+        "required_capabilities": "0x0003",
+        "keypackage_capabilities": "0xF1C1",
+        "required_keypackage_capabilities": "0xF1C2",
+        "mls_governance_binding": "0xF1C0"
+      },
+      "initial_group_floor": [
+        "ak.content.v1"
+      ],
+      "supporting_leaf": [
+        "ak.content.v1",
+        "mimi.content.v1"
+      ],
+      "extension_encoding_cases": [
+        {
+          "name": "canonical_single_capability",
+          "extension_data_hex": "816d616b2e636f6e74656e742e7631",
+          "expect_valid": true
+        },
+        {
+          "name": "out_of_order",
+          "extension_data_hex": "826f6d696d692e636f6e74656e742e76316d616b2e636f6e74656e742e7631",
+          "expect_valid": false
+        },
+        {
+          "name": "duplicate",
+          "extension_data_hex": "826d616b2e636f6e74656e742e76316d616b2e636f6e74656e742e7631",
+          "expect_valid": false
+        },
+        {
+          "name": "indefinite_length",
+          "extension_data_hex": "9f6d616b2e636f6e74656e742e7631ff",
+          "expect_valid": false
+        },
+        {
+          "name": "non_minimal_array_length",
+          "extension_data_hex": "98016d616b2e636f6e74656e742e7631",
+          "expect_valid": false
+        },
+        {
+          "name": "trailing_bytes",
+          "extension_data_hex": "816d616b2e636f6e74656e742e763100",
+          "expect_valid": false
+        }
+      ],
+      "negative_cases": [
+        {
+          "name": "add_leaf_missing_floor_value",
+          "leaf_capabilities": [
+            "mimi.content.v1"
+          ],
+          "expected": "commit_rejected"
+        },
+        {
+          "name": "outer_record_exceeds_signed_leaf",
+          "outer_capabilities": [
+            "ak.content.v1",
+            "mimi.content.v1"
+          ],
+          "leaf_capabilities": [
+            "ak.content.v1"
+          ],
+          "expected": "keypackage_rejected"
+        },
+        {
+          "name": "raise_floor_above_current_member_support",
+          "new_floor": [
+            "ak.content.v1",
+            "mimi.content.v1"
+          ],
+          "current_member_capabilities": [
+            "ak.content.v1"
+          ],
+          "expected": "group_context_extensions_proposal_rejected"
+        },
+        {
+          "name": "send_profile_not_in_floor",
+          "selected_capability": "mimi.content.v1",
+          "expected": "application_message_not_sent"
+        },
+        {
+          "name": "unknown_value_cannot_satisfy_claim_or_floor",
+          "capability": "example.content.v1",
+          "expected": "unsupported"
+        }
+      ],
+      "assertions": [
+        "the outer KeyPackage record capabilities exactly equal the signed LeafNode keypackage_capabilities extension",
+        "every Add and Update leaf supports every current required_keypackage_capabilities value",
+        "the RFC 9420 required_capabilities extension requires support for 0xF1C0, 0xF1C1 and 0xF1C2",
+        "a sender uses a content or policy profile only when its registered capability is in the current group floor"
+      ]
+    },
     {
       "name": "exhaustion_claim_limits",
       "vector_id": "ak.vector.keypackage.exhaustion_claim_limits.v1",
@@ -417,7 +532,7 @@
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
         "required_capabilities": [
-          "mls"
+          "ak.content.v1"
         ],
         "expires_at": "2026-07-31T00:05:00.000Z"
       },

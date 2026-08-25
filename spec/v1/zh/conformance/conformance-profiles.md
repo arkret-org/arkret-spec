@@ -1024,7 +1024,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-010"></a>10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
 | <a id="ak-sdk-011"></a>11 | 轻客户端 MUST NOT 用单 leaf 授权结论接受 DataEvent，MUST hold pending 或 fail closed | conformance-vectors §2.19 Case C | **V**（以 SDK API 输出为观测点） |
 | <a id="ak-sdk-012"></a>12 | late key recovery：`T0` 不可见 / key source unauthorized 时 MUST 拒绝解密（先验证后消费） | conformance-vectors late_key_recovery 向量族 | **V** |
-| <a id="ak-sdk-013"></a>13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed | 本文 §3、§20 | **V**（downgrade / unsupported feature tests） |
+| <a id="ak-sdk-013"></a>13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed | 本文 §3、§20 | **V**（`ak.vector.envelope.negative_admission.v1` / `event-envelope-negative-fixture.json` case `reject_unknown_critical_feature`） |
 | <a id="ak-sdk-014"></a>14 | 生产 profile MUST 拒绝测试 DID、测试 key id、测试 trust domain | conformance-vectors §1.14 | **V** |
 | <a id="ak-sdk-015"></a>15 | 裁剪构建若移除任一已声明 profile 的 MUST 能力，MUST 同时移除该 profile claim；构建产物的 capability inventory 与 claim 必须对账 | 本文 §2.1.2 | **U**（构建配置审计）；辅以 A（公开 API / capability inventory） |
 | <a id="ak-sdk-016"></a>16 | 开放注册集中的未知值 MUST 在反序列化时原样保留，不得因本地 registry 快照较旧而使整个对象解码失败 | schema-registry §6.1 | **V**（`ak.vector.encoding.open_registry_unknown_roundtrip.v1`）；辅以 A（非封闭 enum API 形状） |

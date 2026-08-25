@@ -1,0 +1,43 @@
+{
+  "version": "2026-08-25",
+  "source_of_truth": true,
+  "value_set_evolution": "open",
+  "description": "Canonical open registry for application content and policy capability identifiers advertised by Arkret MLS KeyPackages and selected as an MLS group capability floor.",
+  "registry_rules": {
+    "identifier_pattern": "^(?:ak|[a-z][a-z0-9-]{0,31})(?:\\.[a-z][a-z0-9_-]{0,63})+\\.v1$",
+    "wire_order": "UTF-8 byte-lexicographic ascending, unique",
+    "unknown_values": "preserve but treat as unsupported; an unknown value never satisfies claim admission, a group floor, or sender authorization",
+    "claim_rule": "required_capabilities MUST contain active registered values and be a subset of both the signed LeafNode keypackage_capabilities extension and the outer claim record capabilities",
+    "group_rule": "required_keypackage_capabilities GroupContext values MUST be active registered rows and every current or added LeafNode keypackage_capabilities value set MUST be a superset",
+    "sender_rule": "an application capability may be used in an MLS application message only when it is present in the current required_keypackage_capabilities GroupContext extension"
+  },
+  "capabilities": [
+    {
+      "id": "ak.content.v1",
+      "status": "active",
+      "namespace_owner": "arkret",
+      "kind": "content_profile",
+      "mandatory_for_arkret_group": true,
+      "description": "Arkret v1 Content Block and encrypted application-content semantics.",
+      "source_refs": [
+        "spec/v1/zh/models/content-types.md",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
+    },
+    {
+      "id": "mimi.content.v1",
+      "status": "active",
+      "namespace_owner": "ietf_mimi",
+      "kind": "content_profile",
+      "mandatory_for_arkret_group": false,
+      "description": "MIMI Content interoperability profile selected by an Arkret group that carries MIMI application content.",
+      "external_spec": {
+        "id": "draft-ietf-mimi-content",
+        "url": "https://datatracker.ietf.org/doc/draft-ietf-mimi-content/"
+      },
+      "source_refs": [
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
+    }
+  ]
+}

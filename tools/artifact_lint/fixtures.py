@@ -3021,6 +3021,33 @@ def check_reducer_profile_registry(lint: Lint) -> None:
         return
 
     profile_pattern = re.compile(r"^ak\.reducer(?:\.[a-z0-9][a-z0-9_.-]*)?\.v[0-9]+$")
+    release_gate = registry.get("upgrade_release_gate")
+    required_edge_vector_cases = {
+        "successful_transition",
+        "source_head_eq_precondition",
+        "unregistered_target",
+        "undeclared_edge",
+        "concurrent_upgrade_conflict",
+    }
+    if not isinstance(release_gate, dict):
+        lint.fail(registry_path, "upgrade_release_gate must be an object")
+        release_gate = {}
+    configured_cases = release_gate.get("required_edge_vector_cases")
+    if (
+        not isinstance(configured_cases, list)
+        or set(configured_cases) != required_edge_vector_cases
+        or len(configured_cases) != len(required_edge_vector_cases)
+    ):
+        lint.fail(
+            registry_path,
+            "upgrade_release_gate.required_edge_vector_cases must name the complete closed upgrade case set",
+        )
+    if release_gate.get("successor_profile_requires_inbound_edge") is not True:
+        lint.fail(
+            registry_path,
+            "upgrade_release_gate.successor_profile_requires_inbound_edge must be true",
+        )
+
     ids: set[str] = set()
     for index, row in enumerate(rows):
         if not isinstance(row, dict):
@@ -3043,10 +3070,24 @@ def check_reducer_profile_registry(lint: Lint) -> None:
         if not isinstance(edges, list):
             lint.fail(registry_path, f"{profile_id}.upgrade_edges must be an array")
 
+    genesis_profile = release_gate.get("genesis_profile")
+    if not isinstance(genesis_profile, str) or genesis_profile not in ids:
+        lint.fail(registry_path, "upgrade_release_gate.genesis_profile must identify a registered profile")
+
+    vector_registry_path = ARTIFACTS / "registry" / "vector-registry.json"
+    vector_registry = load_json(lint, vector_registry_path)
+    active_vector_ids = {
+        row.get("vector_id")
+        for row in (vector_registry.get("vectors", []) if isinstance(vector_registry, dict) else [])
+        if isinstance(row, dict) and row.get("status") == "active"
+    }
+    inbound_targets: set[str] = set()
+    edge_count = 0
     for row in rows:
         if not isinstance(row, dict):
             continue
         for edge_index, edge in enumerate(row.get("upgrade_edges", [])):
+            edge_count += 1
             if not isinstance(edge, dict):
                 lint.fail(registry_path, f"{row.get('profile_id')}.upgrade_edges[{edge_index}] must be an object")
                 continue
@@ -3054,8 +3095,40 @@ def check_reducer_profile_registry(lint: Lint) -> None:
             transition = edge.get("state_transition")
             if target not in ids:
                 lint.fail(registry_path, f"upgrade edge target is not registered: {target}")
+            else:
+                inbound_targets.add(target)
+            if target == row.get("profile_id"):
+                lint.fail(registry_path, f"{row.get('profile_id')} must not declare a self upgrade edge")
             if transition != "identity" and not isinstance(transition, dict):
                 lint.fail(registry_path, "upgrade edge state_transition must be identity or a deterministic transition object")
+            vector_bindings = edge.get("conformance_vectors")
+            if not isinstance(vector_bindings, dict) or set(vector_bindings) != required_edge_vector_cases:
+                lint.fail(
+                    registry_path,
+                    f"{row.get('profile_id')}.upgrade_edges[{edge_index}].conformance_vectors "
+                    "must bind every required upgrade case exactly once",
+                )
+                continue
+            for case_name, vector_id in vector_bindings.items():
+                if not isinstance(vector_id, str) or vector_id not in active_vector_ids:
+                    lint.fail(
+                        registry_path,
+                        f"upgrade vector binding {case_name} must reference an active vector: {vector_id}",
+                    )
+
+    declared_edge_state = release_gate.get("current_v1_has_active_upgrade_edges")
+    if not isinstance(declared_edge_state, bool) or declared_edge_state != (edge_count > 0):
+        lint.fail(
+            registry_path,
+            "upgrade_release_gate.current_v1_has_active_upgrade_edges must match the published edge set",
+        )
+    if release_gate.get("successor_profile_requires_inbound_edge") is True:
+        for profile_id in sorted(ids - {genesis_profile}):
+            if profile_id not in inbound_targets:
+                lint.fail(
+                    registry_path,
+                    f"successor reducer profile has no published inbound upgrade edge: {profile_id}",
+                )
 
     event_schema_path = ARTIFACTS / "schemas" / "event-envelope.schema.json"
     event_schema = load_json(lint, event_schema_path)

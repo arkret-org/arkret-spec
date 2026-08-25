@@ -3,7 +3,7 @@ title: 实现就绪与发布门槛
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-30
+updated: 2026-08-25
 ---
 
 ## 0. 规范语言
@@ -45,7 +45,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 > `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / hardening 三类 profile 汇总可声明（claimable）profile；`vector-group`（第 16 组）只用于组织测试向量，不是可声明 profile。`tools/artifact_lint/` 同时校验 registry graph 中所有 `ak.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
-执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或删除 registry 项，MUST 在同一变更中刷新本表。上表计数是当前 candidate v1 canonical tree 的受检快照；其权威性始终以 Canonical 文件与 `artifact_pipeline.py check` 输出为准。未发布阶段不维护历史迁移清单或兼容登记表。
+执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或删除 registry 项，MUST 在同一变更中刷新本表。上表计数是当前 candidate v1 canonical tree 的受检快照；其权威性始终以 Canonical 文件与 `artifact_pipeline.py check` 输出为准。未发布阶段不维护历史迁移清单或兼容登记表；这种直接更新 current-v1 canonical 面、不保留 alias / 双读 / deprecated 行的姿态只适用于 `v1.0.0` promotion 之前。promotion 原子提交完成后，所有后继变更 MUST 服从 §5.1.1，不能继续援引本段作为破坏已发布 wire contract 的许可。
 
 规范稳定不等于任一实现已经获得完全互操作认证。当前仓库的本地工具只提供 artifact / schema / registry / fixture digest 发布门禁；reference validator、reference reducer、reference authz evaluator 与 conformance runner 尚未作为完整认证工具链发布。实现若宣称通过某个 profile，仍必须通过对应 reference validator、reference reducer、reference authz evaluator 与 conformance runner；这些工具和测试结果属于实现认证门槛，而不是降低或替代本规范的 wire contract。
 
@@ -107,6 +107,19 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 - Circle stable gate MUST 闭合签名 Event `scope_ref`、对象 `effective_scope` projection、DataEvent / Seal output shape、Seal canonical bytes、`content_encryption_floor` 机器契约、`confidential_discussion_of` Relation 契约，以及 Circle scope conformance vector cluster；否则 release notes 必须明确 de-scope，且 MUST NOT 把这些项当作 v1.0 wire contract 宣布。
 - `/en/v1/...` 页面 MUST NOT 作为英文 normative 文本发布；权威 prose 仍是 `spec/v1/zh/`。除非未来另行接受新的语言政策提案，本规范不承诺提供完整英文版。
 - 站点生产依赖 MUST NOT 存在未处理的 high / moderate `npm audit` finding；如需例外，必须在 release-readiness report 中记录影响面与补偿措施。
+- promotion 提交 MUST 同时把 §5.1.1 的 post-GA 变更控制作为后继发布门禁启用；stable tag、stable public catalog snapshot 与签名 conformance claim 共同构成后继兼容性比较的不可变基线。
+
+### 5.1.1 stable promotion 后的变更控制
+
+`v1.0.0` promotion 的原子提交是 pre-GA 激进修订与 post-GA 兼容维护的唯一分界。该提交之后，以下规则适用于全部 v1 patch / minor 发布、catalog 刷新与 registry 变更：
+
+1. **冻结面。** 已发布 canonical schema 的 `$id` 与 bytes、Event kind / operation id / error token 的既有语义、reducer profile 的 admission / cell projection / lattice join / state root / security frontier 语义，以及已发布 vector id 的判定结果均 MUST 保持不可变。active registry id MUST NOT 被删除、改名、复用为另一语义或用 alias 隐式重定向。必须改变共识语义时，MUST 新增 reducer profile；首个及每个后继 profile 都必须满足 `reducer-profile-registry.json#upgrade_release_gate`，在同一发布中提供 source→target edge 与完整升级正负向量，不得原地改变 `ak.reducer.core.v1`。
+2. **兼容新增。** 新 id / schema / operation 只有在旧 receiver 对未协商值的既有 fail-closed 或开放集规则仍成立、旧 canonical bytes 与历史验签结果不变、producer 在使用前完成相应 schema / feature / profile 协商，并补齐 mixed-version 正负向量时，才 MAY 在 v1 线新增。任何改变既有对象 accepted/rejected 集、授权、可见性、排序、收敛或密码学认证输入的变更都不是“澄清”，MUST 走新 versioned id 或新 reducer profile。
+3. **退役状态先于退役行。** 当前 candidate registry 不引入 `deprecated` / `retired` 行。首次计划退役之前，accepted compatibility proposal MUST 在同一变更中先定义受影响 registry 的 closed status 词表、每个状态的 producer / receiver 行为、catalog diff lint 和 mixed-version vectors，并同步修订 [`schema-registry.md` §6.1(c)](../conformance/schema-registry.md) 的 pre-GA active-only 规则；在这些前置项落地前，active 行 MUST NOT 改为其它状态。不得先添加一条 `deprecated` 行再补消费者语义。
+4. **两阶段退役与最短观测窗口。** 合法退役必须按 `active → deprecated → retired` 两阶段推进。进入 `deprecated` 的 stable catalog 必须同时公布替代项或明确的功能移除理由、迁移与回滚说明、最后允许 producer 发送的条件和兼容向量；该 catalog 公开之时才开始观测窗口。`deprecated → retired` 之间 MUST 至少经过连续 180 天，且最后 90 天不得有未解决的 critical/high 兼容事故，并须有至少两个独立实现通过旧 producer / 新 receiver 与新 producer / 旧 receiver 的适用 mixed-version runner 证据。观测数据 MUST 聚合且隐私最小化，不得为了退役统计收集 Event payload、Realm 成员关系或可识别用户轨迹。
+5. **retired 不等于删除历史解释器。** `retired` 后 producer MUST NOT 新发或新选择该 id；receiver 仍 MUST 保留解析、验签、历史 replay / export 与审计所需的旧 row 和 schema bytes。已经进入任一 stable v1 catalog 的 durable Event kind、schema、reducer profile、算法 selector 与错误语义在 v1 stable 线内 MUST NOT 从 catalog 物理删除。服务 operation 若被 retired，也必须保留可判定的稳定错误或 capability-negotiation 结果，不得让旧客户端落入无法归因的 transport failure。
+6. **紧急安全例外。** 已公开利用且继续发送会造成高危损害时，安全公告 MAY 立即禁止 producer 使用，不必等待 180 天；但该例外 MUST 同时给出稳定 fail-closed 行为、受影响版本、替代路径与回滚条件，且 MUST NOT 删除历史解析 / 验签材料或重写既有 bytes。紧急禁发后的常规 `retired` 标记与 catalog 证据仍须补齐本节其余要求。
+7. **可审计发布。** 每个 post-GA 发布 MUST 保存前一 stable catalog 到新 catalog 的机器可读 diff，并把每项变化分类为 additive、deprecating、retiring 或 emergency-security；release gate MUST 拒绝未分类的删除、语义替换、冻结 bytes 漂移、未满窗口的 retirement，以及 reducer successor 缺 edge / vector 的发布。stable tag 绑定的旧 snapshot 永不重生成；修正只能产生新的 release 与新 snapshot。
 
 ### 5.2 `v1-interop-preview` 实现互操作预览
 

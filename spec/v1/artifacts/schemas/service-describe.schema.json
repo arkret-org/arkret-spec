@@ -69,7 +69,8 @@
     },
     "protocol_version": {
       "type": "string",
-      "const": "1.0"
+      "const": "1.0",
+      "description": "Arkret protocol-family bootstrap discriminator. A consumer first extracts this field before applying the version-specific ServiceDescribe schema: a well-formed value other than 1.0 yields unsupported_protocol_version, while missing or non-string values yield schema_violation. The const keeps an object admitted as ak.schema.service_describe.v1 closed to Arkret/1."
     },
     "supported_profiles": {
       "type": "array",

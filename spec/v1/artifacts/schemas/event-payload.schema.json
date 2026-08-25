@@ -7515,14 +7515,9 @@
       ],
       "properties": {
         "keypackage_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "type": "string",
+          "pattern": "^ak:mls:kp:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Arkret MLS-profile KeyPackage identity. This is the registered ak:mls:kp:<uuidv7> special form, not an opaque external identifier."
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"

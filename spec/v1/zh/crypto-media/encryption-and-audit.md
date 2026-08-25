@@ -360,14 +360,14 @@ published -> claimed -> consumed
 ```json
 {
   "kind": "ak.mls.keypackage",
-  "keypackage_id": "ak:mls:kp:01JS...",
+  "keypackage_id": "ak:mls:kp:01964137-0000-7000-8000-000000000001",
   "principal_id": "ak:did_core:key:z6MkPairwise...",
   "endpoint_verification_method": "did:key:z6MkPairwise...#z6MkPairwise...",
   "intended_realm_id": "ak:realm:...",
   "keypackage_ref": "sha256:...",
   "keypackage_digest": "sha256:canonical_keypackage_bytes",
   "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
-  "capabilities": ["mimi.content.v1", "ak.content.v1"],
+  "capabilities": ["ak.content.v1", "mimi.content.v1"],
   "state": "published",
   "created_at": "2026-04-30T00:00:00Z",
   "expires_at": "2026-05-07T00:00:00Z",
@@ -376,6 +376,15 @@ published -> claimed -> consumed
 ```
 
 **MLS ciphersuite registered set（normative）**：`cipher_suites[]` 与 server describe 暴露的 MLS ciphersuite 合法值的机器可读 source of truth 是 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json)（与 hash 的 digest-suite registry、签名的 signature-alg registry、非-MLS 应用层封装的 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 形成四大算法 agility 面的对称纪律）。v1 active 集合仅 `MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519`（default-MUST，RFC 9420 mandatory-to-implement suite）；软件友好的 RFC 9420 `0x0003` ChaCha20-Poly1305 suite 已作为 reserved row 占位，在 KAT、协商负例与新 contract release 完成前不得上 wire。KeyPackage claim / group 协商遇到未登记或 reserved suite MUST fail closed，即使底层 MLS 库支持。
+
+**KeyPackage capability 归属与群下界（normative）**：`capabilities[]` / `required_capabilities[]` 的机器可读 source of truth 是 [`keypackage-capability-registry.json`](../../artifacts/registry/keypackage-capability-registry.json)。该集合是开放注册集；接收方 MUST 保留形状合法但未登记的值以便转发与诊断，但 MUST 把它按 unsupported 处理。未登记、非 active 或非 v1 的值不得满足 claim、不得进入群下界，也不得授权发送方选择对应 content / policy profile。数组 MUST 按 UTF-8 bytes 升序且无重复；v1 active 行是 `ak.content.v1` 与 interop namespace 的 `mimi.content.v1`，其中每个 Arkret MLS group 的下界 MUST 至少包含 `ak.content.v1`。
+
+Arkret 不把应用层字符串误装进 RFC 9420 `required_capabilities` 的 codepoint 列表。应用能力使用 [`mls-extension-registry.json`](../../artifacts/registry/mls-extension-registry.json) 中两个 private-use 扩展：
+
+- `keypackage_capabilities` (`0xF1C1`, LeafNode) 在签名 LeafNode 内携带 endpoint 支持的完整能力列表。其 `extension_data` 是 definite-length deterministic CBOR text-string array，逐项为 registry id，按 UTF-8 bytes 升序且无重复；禁止 indefinite length、非最短长度编码、未知 CBOR 类型与 trailing bytes。upload / claim record 的外层 `capabilities[]` MUST 与该 signed LeafNode 列表逐项、逐序相等；不相等的 KeyPackage MUST 在发布或 Add 前拒绝，外层字段不得扩大或缩小 LeafNode 的声明。
+- `required_keypackage_capabilities` (`0xF1C2`, GroupContext) 用同一编码携带当前群能力下界。建群时 committer MUST 从 Realm 要求与实际选择的 content / policy profiles 确定 floor；不得把所有 endpoint 的能力并集或单个发送方偏好当作 floor。任何 Add / Update / external join 后的 LeafNode `0xF1C1` 列表 MUST 是 current floor 的超集。提高或替换 floor 只能经 RFC 9420 `GroupContextExtensions` proposal，且在 Commit 前验证所有新 epoch 成员仍满足；否则该 proposal / Commit MUST fail closed。Welcome 接收方 MUST 在安装 group state 前验证本地能力是 floor 的超集。
+
+GroupContext 同时 MUST 携带 RFC 9420 `required_capabilities` (`0x0003`)，其 `extension_types` 至少列出 `0xF1C0`、`0xF1C1`、`0xF1C2`，从 MLS 层阻止不理解这些扩展的 LeafNode 进入。`0xF1C2` 是 MLS 认证群状态；后续变更由携带 `GroupContextExtensions` proposal 的 Commit 进入 `confirmed_transcript_hash`，Welcome 的 signed GroupInfo 认证新成员看到的 current GroupContext。发送方 MUST 仅选择 current `0xF1C2` floor 已包含的 content / policy capability；“某个 LeafNode 自称支持”或 claim 时的一次性子集检查都不能替代群下界。
 
 Claim 请求 MUST 绑定：
 

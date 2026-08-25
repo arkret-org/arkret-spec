@@ -4335,6 +4335,32 @@ Expected:
 - Steps 1–4 MUST byte-identical 通过；同一 closed endpoint 产生的 command bytes 只由 nested durable receipt branch 决定。
 - Step 5 全部 MUST fail closed。entry signature 不替代 required batch signature，服务端不得尝试旧 transcript、已删除字段 alias 或本地 principal-type fallback。
 
+#### 11.2.8 Vector: KeyPackage group capability floor
+
+`vector_id`: `ak.vector.keypackage.group_capability_floor.v1`
+
+fixture：`spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json`
+
+Steps:
+
+1. 生成一个 signed LeafNode `keypackage_capabilities` (`0xF1C1`) 为
+   `ak.content.v1,mimi.content.v1` 的 KeyPackage；outer upload / claim record 使用同一 canonical list。建群时把
+   `required_keypackage_capabilities` (`0xF1C2`) 设为 `ak.content.v1`，并在 RFC 9420
+   `required_capabilities` (`0x0003`) 的 `extension_types` 中列出 `0xF1C0`、`0xF1C1`、`0xF1C2`。
+2. Add 上述 LeafNode，处理 Commit / Welcome，并从新 epoch GroupContext 读取 floor。
+3. 依次尝试：Add 一个缺 `ak.content.v1` 的 LeafNode；让 outer record 比 signed LeafNode 多一个能力；把 floor
+   提高到当前任一成员不支持的 `mimi.content.v1`；在 floor 不含 `mimi.content.v1` 时发送该 profile；用形状合法但
+   registry 未登记的 `example.content.v1` 满足 claim 或写入 floor。
+4. 用 canonical CBOR 的乱序、重复、indefinite-length、非最短长度与 trailing bytes 变体替换 `0xF1C1` /
+   `0xF1C2` extension data。
+
+Expected:
+
+- Steps 1–2 MUST 通过；current floor 是 MLS 认证的 GroupContext 状态，加入后的每个 LeafNode 都是其超集。
+- Step 3 全部 MUST 在产生可用的新 epoch 或 application message 前 fail closed。outer record 不是第二个能力真相源，
+  unknown 值只能保留为 unsupported。
+- Step 4 全部 MUST 以 extension decode / schema failure 拒绝，不得规范化后接受。
+
 ### 11.3 Vector: Agent Session Grant Replay Protection
 
 `vector_id`: `ak.vector.agent.session_grant.replay.v1`
