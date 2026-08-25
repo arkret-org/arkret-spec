@@ -88,9 +88,13 @@ Leaf BasicCredential identity、proof key、sender KDF/counter domain 和 reques
 逐字节相同。服务端 MUST NOT 将其聚合为真实 principal/device。该 profile 不承诺 Realm
 内 endpoint、request range 或 timing 不可关联。
 
-Pairwise identity 的生命周期是 Realm-global endpoint incarnation：任何 replacement 都同时终结该旧 actor 在 Realm
-及全部 Circle 中的 authorization，Circle-local actor rotation MUST 拒绝。每个 MLS group 随后独立执行 Remove/Add 收敛；
-Realm rejoin 或 replacement Add 不自动恢复任一 Circle 的旧 actor/leaf，仍需该 Circle 显式 reactivation 和 winning Add。
+Pairwise identity 的生命周期是 Realm-global endpoint incarnation。v1 不定义独立的 replacement operation、
+old-to-new actor mapping 或跨 group 原子事务：旧 actor 的 Realm membership 被 winning leave/remove 终结时，其在该
+Realm 及全部 Circle 中的 authorization 同时失效，Circle-local actor rotation MUST 拒绝。新 endpoint incarnation
+必须生成新的 pairwise actor，并按普通 Realm join 取得成员资格；各 MLS group 只使用现有 Remove/Add 独立收敛。
+Realm rejoin 或新 actor 的 Realm Add 不自动恢复任一 Circle 的旧 leaf，也不自动加入 Circle；仍需该 Circle 的显式
+reactivation 和 winning Add。实现不得因某个 group 尚未完成 Remove 而继续授权旧 actor，也不得把多个 group 的
+MLS transaction 包装成新的 Realm-level replacement transaction。
 
 ## 4. Current ratchet、join floor 与 T2
 

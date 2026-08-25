@@ -48,7 +48,7 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle(intent
 
 invite/locator 的权威首跳仍是必填 current `service_resolution`；它不得只携 future notice 或 mirror hint。schema MAY 允许一个可选、transport-only 的 `route_assistance`：其中 `handover_notice` 最多一份，必须是该 `recipient_service_id` 的完整 target-signed active `ServiceRouteHandoverNotice`；`mirror_hints[]` 最多四项，每项只含 mirror service `did_core_id` 及其独立 `service_resolution_carrier`，不得含 mirror 自签的 target URL。该对象不进入 `ak.invite.create` 的授权语义，不替代 `invite_delivery_target`，接收方 MAY 忽略。
 
-使用 `route_assistance` 时仍必须执行 [`service-surface.md` §2.6](./service-surface.md) 与 [`federation.md` §6.4](./federation.md)：notice 只能在 basis/time window 匹配时引导取得正式 successor；mirror hint 只有在 requester/target 的 Realm-scoped 授权独立成立时才能查询。invite/locator token 的到期时间不能延长 record、notice 或 mirror carrier 的有效期，notice 或 mirror 也不能延长 token；任一组成部分到期都按自己的边界 fail closed。为避免披露 Realm topology，producer 只能列出 signed invite 与 inviter 当前 member delivery binding 已向 invitee Principal Server 授权的有界路由提示，不得附完整成员列表。
+使用 `route_assistance` 时仍必须执行 [`service-surface.md` §2.6](./service-surface.md) 与 [`federation.md` §6.4](./federation.md)：notice 只能在 basis/time window 匹配时引导取得正式 successor；mirror hint 只有在 requester/target 的 Realm-scoped 授权独立成立时才能查询。该有界 hint 是 v1 唯一的 mirror bootstrap 来源；它不授予权限、不进入 owner handover 的必要通知集合，也不得被通用 resolver 持久化成部署级 mirror 列表。invite/locator token 的到期时间不能延长 record、notice 或 mirror carrier 的有效期，notice 或 mirror 也不能延长 token；任一组成部分到期都按自己的边界 fail closed。为避免披露 Realm topology，producer 只能列出 signed invite 与 inviter 当前 member delivery binding 已向 invitee Principal Server 授权的有界路由提示，不得附完整成员列表。
 
 ## 2. Introduction Evidence
 

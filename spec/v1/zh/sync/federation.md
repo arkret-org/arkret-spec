@@ -635,15 +635,20 @@ publish 必须分开维护两个 durable key：
 
 receiver 必须验证 target proof、core/kind、record 或 notice chain、时间窗、Realm 可见性和大小上限后，才可原子保存 artifact integrity row 与当前 transport outcome。receiver-signed ack 必须同时绑定 transport key 的 `source_service_id/realm_id/request_id`、完整 `artifact_key`、`artifact_digest`、receiver service id 与 accepted time，并使用独立 context `ak.service_resolution_publish_ack_proof.v1`；不能只绑定其中一层。ack 只证明 mirror 已 durable 保存 exact bytes，不证明 target route 有效，也不授予任何业务访问。
 
-notice 的 basis 必须在 notice request 到达前已经等于 receiver durable floor。若 receiver 落后，publisher 必须按 sequence 用多个独立 publish request 逐份发送缺失 record，并逐份取得 durable ack；最后才用另一个 request publish notice。notice request 不得夹带 record chain，receiver 也不得把“records + notice”当作同请求原子补链。迁移编排器只有在必要的 record acks、notice ack 与部署 policy 要求的 peer/mirror ack 集合全部取得后，才能声明 preannouncement complete；1:1 双方要同时关闭旧入口时必须先交叉完成 ack。
+notice 的 basis 必须在 notice request 到达前已经等于 receiver durable floor。若 receiver 落后，publisher 必须按 sequence 用多个独立 publish request 逐份发送缺失 record，并逐份取得 durable ack；最后才用另一个 request publish notice。notice request 不得夹带 record chain，receiver 也不得把“records + notice”当作同请求原子补链。迁移编排器只有在当前必要通知集合全部取得所需 record ack 与 notice ack 后，才能声明 preannouncement complete；1:1 双方要同时关闭旧入口时必须先交叉完成 ack。
 
-这里的必要通知集合不是“所有知道过该 service 的服务器”，也不是全网广播。对每个将被迁移 service 作为 effective member delivery target或显式 service delegation 的 accepted Realm，owner MUST 按 remote service `did_core_id` 去重，通知该 Realm 中当前有权向它投递或从它拉取材料的 remote services；另外通知部署 policy 明确列出的 route mirrors。已撤销/过期关系、仅存在于本地通讯录或 generic federation allowlist 的 peer、以及只因 DNS/DID namespace 可枚举而发现的节点 MUST 排除。非 Realm 的 invite/contact bootstrap 可以携带同一份 target-signed notice，但不得借此调用本 Realm-scoped publish operation。
+这里的必要通知集合不是“所有知道过该 service 的服务器”，也不是全网广播。对每个将被迁移 service 作为 effective member delivery target或显式 service delegation 的 accepted Realm，owner MUST 按 remote service `did_core_id` 去重，通知该 Realm 中当前有权向它投递或从它拉取材料的 remote services。v1 不定义部署级 route-mirror 列表，也不允许把 `route_assistance.mirror_hints`、generic federation allowlist 或本地通讯录升级为必要通知集合。已撤销/过期关系以及只因 DNS/DID namespace 可枚举而发现的节点 MUST 排除。非 Realm 的 invite/contact bootstrap 可以携带同一份 target-signed notice和有界 mirror hint，但不得借此调用本 Realm-scoped publish operation。
 
 每个目标的 durable ack 独立计算；某个目标未 ack 时，owner MUST 继续保留旧入口至该关系完成补发或被显式撤销，或者把该目标记录为 continuity gap 并阻止“安全关闭旧入口”的声明。一次 publish 的接收方不得替 owner 向其它 peer 转广播；mirror 只在另一方逐请求授权 resolve 时返回其已持有的 exact target-signed bytes。
 
 `ak.peer.service_resolution.read.resolve` 的 request 必须携带 `realm_id`、`target_service_id`、`target_service_kind`、`known_record_sequence`、`known_record_digest`，并 MAY 携 `known_notice_digest`、`max_records` 与 `max_response_bytes`。协议上限固定为每次最多 32 个 successor records、canonical response 最多 256 KiB；caller 提供的上限只能收紧。成功响应只可含从 known record 开始逐项连续的 target-signed `successor_records[]`、可选 active target-signed `handover_notice` 与 `has_more`；不得返回 mirror 自签 URL、成员列表、其它 service、缺口后的 record 或不连续摘要。若响应被上限截断，caller 只能用最后一份已验证 record 的 sequence/digest 继续查询；mirror 不得跳过中间链项。每份材料仍由 requester 独立验证，notice 只能引导读取 candidate 的正式 current record，最终 endpoint 仍必须通过 target-signed successor 与 describe reverse binding 才能用于业务。
 
 responder 只可镜像它经 accepted member binding、invite/contact bootstrap、合法 federation、target owner publish 或已授权 resolve 实际见过并验证的材料，并按 target core 有界保存 current/少量 successor、active notice 和 durable last-seen floor。它 MUST NOT 爬取 DID namespace、枚举任意 core、通过错误细节披露 Realm topology，或把 mirror 变成 principal→service binding 的真相源。对 source、Realm、target 和总请求量分别限速。多个 mirror 返回同 sequence 的不同 target-signed digest 时，requester MUST 进入 fork quarantine，停止使用该 target route，不得按多数票或最快响应选 winner。
+
+通用 route resolver 不得自行发现、枚举或配置 mirror。`route_assistance.mirror_hints` 是 v1 唯一的 mirror
+bootstrap 来源：它只允许接收方在携带该 hint 的 invite/contact 已建立相应 Realm-scoped requester/target
+授权后，把 hint 中独立可验证的 mirror service carrier 用作一次查询候选。hint 不授予 publish/resolve 权限，
+不进入 owner 的必要通知集合，也不得在不同 Realm 或 target 间复用；没有合格 hint 时 mirror source 必须 absent。
 
 resolve 的失败必须外部 blinded：未认证或未通过统一 peer/Realm authorization gate 的请求只能使用同一 `capability_denied` envelope/timing bucket；通过该 gate 后，unknown、target invisible、mirror not-held、successor gap、route fork、notice cancelled 或 notice expired 必须统一为同一 `not_found` envelope/timing bucket。实现 MAY 在私有审计中分别记录这些内部 reason，但不得把它们暴露为 wire reason、status、header、body shape 或可测 timing。除上述两个 blinded family 外，只允许使用跨 surface 通用的 `rate_limited` 与 request/response size-limit 错误；caller 不能从错误判断 target、notice、fork 或 mirror holdings 是否存在。
 
