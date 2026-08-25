@@ -8261,8 +8261,7 @@
         "properties": [
           "accepted",
           "rejected",
-          "keypackage_refs",
-          "available_count"
+          "keypackage_refs"
         ],
         "closed": true
       }

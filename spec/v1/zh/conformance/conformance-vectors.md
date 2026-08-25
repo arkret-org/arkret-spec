@@ -3590,7 +3590,7 @@ Steps：
 
 Expected：
 
-- Server SHOULD 在可见响应中返回 `available_count`，client MUST 在下一次 maintenance / sync 补充上传。
+- Client MUST 从 endpoint-scoped 本地 inventory ledger 计算缺口，并在一次 single-flight maintenance cycle 中只发送一个不超过启动时 deficit 的批次；健康 inventory 重载零上传，server response 不返回库存数量。
 - 超限 claim 对外仍保持反枚举失败，不泄露目标是否存在；内部审计 reason 为 `keypackage_claim_rate_limited`。
 - 过期 claimed package MUST 转为 revoked / unusable，不得回到 `published`，迟到 consume MUST 被拒绝。
 
@@ -4306,8 +4306,8 @@ Steps:
 
 1. Runtime 用 K1 作为 MLS LeafNode signature key 生成 KeyPackage，并用 K1 签署发布 transcript；服务端从当前 accepted Agent key projection 写入 `agent_key_authorize_event_id=E1`。
 2. Requester claim 该 KeyPackage，并把返回的 `agent_key_authorize_event_id=E1` 原样写入 Welcome `claim_ref`。
-3. Receiver 在解密 Welcome 前 resolve E1，校验 E1 仍是 A 的 active accepted authorization，`verification_method=K1`，并校验发布 `endpoint_signature.kid` 与 MLS LeafNode signature key 都绑定 K1。
-4. 负向变体依次为：额外携带普通设备的 `device_authorize_event_id`；把 E1 填入该字段；Event ref 属于另一 Agent；`endpoint_signature.kid` 或 MLS LeafNode signature key 为 K2；E1 被 revoke、被 replacement `supersedes[]` 替换或可选 `expires_at` 已到期；只有 service-local Agent row 而无 accepted E1。
+3. Receiver 在解密 Welcome 前 resolve E1，校验 E1 仍是 A 的 active accepted authorization，`verification_method=K1`，并校验 MLS LeafNode signature key 绑定 K1。
+4. 负向变体依次为：额外携带普通设备的 `device_authorize_event_id`；把 E1 填入该字段；Event ref 属于另一 Agent；MLS LeafNode signature key 为 K2；E1 被 revoke、被 replacement `supersedes[]` 替换或可选 `expires_at` 已到期；只有 service-local Agent row 而无 accepted E1。
 5. E1 被 E2 replacement 后，以 K2 发布新 KeyPackage并重新 claim，得到新 `claim_id` 与 `agent_key_authorize_event_id=E2`。
 
 Expected:
@@ -4324,16 +4324,16 @@ fixture：`spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json`
 
 Steps:
 
-1. 用 fixture 的 typed upload request删除顶层与 entry signatures，通过 SDK `keypackages_upload_signing_input`生成 bytes；另对单 entry调用 `keypackage_upload_entry_signing_input`。
+1. 用 fixture 的 typed upload request只删除顶层 batch signature，通过 SDK `keypackages_upload_signing_input`生成 bytes；完整 selector、entry数组、顺序、数量和metadata都保留在 transcript。
 2. 用最小 typed consume command `{claim_id,recipient_durable_receipt}` 与 typed revoke request 通过 SDK helper 生成 bytes；consume 的 owner、KeyPackage、Welcome 与 signer branch 只存在于 nested durable receipt。
 3. 从 signed `keypackage_consume_receipt` 删除 service `signature`，验证 receipt transcript 仍完整覆盖 `request_digest + claim_id + recipient_durable_receipt + consumed_at`，且 wrapper 不携任何 nested 坐标或 service-id 镜像。
 4. 对每条 bytes 比较 fixture `canonical_jcs`、`signing_input_base64url`，并以 fixture Ed25519 test key 验证 `signature`。
-5. 负向依次替换为旧 `ak.keypackage-upload-v1` domain、从 upload 移除 `principal_id`、向 consume command/receipt/outcome 插入已删除的镜像或 selector、把缺省 optional 字段写成 `null`、仅保留合法 entry signature 但破坏 batch signature。
+5. 负向依次替换为旧 `ak.keypackage-upload-v1` domain、从 upload 移除 `principal_id`、篡改 selector/entry bytes/metadata/数量/顺序、向 consume command/receipt/outcome 插入已删除的镜像或 selector，以及把缺省 optional字段写成 `null`。
 
 Expected:
 
 - Steps 1–4 MUST byte-identical 通过；同一 closed endpoint 产生的 command bytes 只由 nested durable receipt branch 决定。
-- Step 5 全部 MUST fail closed。entry signature 不替代 required batch signature，服务端不得尝试旧 transcript、已删除字段 alias 或本地 principal-type fallback。
+- Step 5 全部 MUST fail closed。服务端不得接受 per-entry signature、旧 transcript、已删除字段 alias 或本地 principal-type fallback。
 
 #### 11.2.8 Vector: KeyPackage group capability floor
 

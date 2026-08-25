@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 24,
+  "version": 25,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -698,6 +698,18 @@
       "notes": "MemberIdentity display_profile reuses the canonical avatar_blob_ref name for Blob references."
     },
     {
+      "id": "available_count",
+      "context": "keypackages_upload_outcome",
+      "since_revision": "2026-08-26",
+      "rejection_level": "hard_reject",
+      "replacement": "accepted/rejected settlement for the submitted batch only",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "v1 exposes no remote KeyPackage inventory count or maintenance query; clients maintain an endpoint-scoped local ledger."
+    },
+    {
       "id": "backup_class",
       "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
       "since_revision": "2026-07-26",
@@ -1176,6 +1188,30 @@
         "negative_test"
       ],
       "notes": "Removed from current v1 by the PCR genesis clean cut."
+    },
+    {
+      "id": "endpoint_signature",
+      "context": "keypackage_upload_entry",
+      "since_revision": "2026-08-26",
+      "rejection_level": "hard_reject",
+      "replacement": "request-level endpoint_signature",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The required signature over the complete upload request is the sole upload authorization transcript; entries carry no signature."
+    },
+    {
+      "id": "endpoint_signature",
+      "context": "mls_keypackage_payload",
+      "since_revision": "2026-08-26",
+      "rejection_level": "hard_reject",
+      "replacement": "KeyPackage self-signature plus accepted endpoint authority binding",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "A durable KeyPackage Event cannot reconstruct the complete upload-batch transcript and therefore carries no copied signature."
     },
     {
       "id": "events",

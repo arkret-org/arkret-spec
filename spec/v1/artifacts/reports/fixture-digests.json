@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "d88afc5e3a4c282425c03f7126933627e6007e276233e62c8201226794ef2121"
+      "sha256": "1e19f508332f35be7d5acce60a5e9befc10f5110321496d6804367d7a5126ef8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-pairwise-welcome-fixture.json",
@@ -214,7 +214,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
-      "sha256": "b8c4add4cd175c36bc6e57e911bac5353e6b5a3a8ee9bc7caa25ee78ea6c0252"
+      "sha256": "7fb9ece5c4f66b230cf1a621fab10e8f0a787728cea3af218310c060762bae5c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
@@ -235,6 +235,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
       "sha256": "073280ff0468b86b04750fd5147322dfb7d689335018e8b2553c549b6396c0d8"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
+      "sha256": "1cc838c53d6177a6d2045148adde7308fce0163796af8615c68723f565ef421f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",

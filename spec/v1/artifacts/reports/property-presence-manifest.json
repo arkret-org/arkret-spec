@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10210,
+    "total_properties": 10207,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2801,
+      "optional": 2799,
       "optional_defaulted": 68,
-      "required": 6992,
+      "required": 6991,
       "required_nullable": 139,
       "tristate": 210
     },
@@ -6981,7 +6981,6 @@
         "/$defs/mls_keypackage_payload/properties/created_at": "required",
         "/$defs/mls_keypackage_payload/properties/device_authorize_event_id": "optional",
         "/$defs/mls_keypackage_payload/properties/device_id": "optional",
-        "/$defs/mls_keypackage_payload/properties/endpoint_signature": "required",
         "/$defs/mls_keypackage_payload/properties/endpoint_verification_method": "optional",
         "/$defs/mls_keypackage_payload/properties/expires_at": "required",
         "/$defs/mls_keypackage_payload/properties/intended_realm_id": "optional",
@@ -9368,7 +9367,6 @@
         "/$defs/keypackage_upload_entry/properties/capabilities": "required",
         "/$defs/keypackage_upload_entry/properties/cipher_suites": "required",
         "/$defs/keypackage_upload_entry/properties/created_at": "required",
-        "/$defs/keypackage_upload_entry/properties/endpoint_signature": "optional",
         "/$defs/keypackage_upload_entry/properties/expires_at": "required",
         "/$defs/keypackage_upload_entry/properties/keypackage": "required",
         "/$defs/keypackage_upload_entry/properties/keypackage_id": "required",
@@ -9415,7 +9413,6 @@
         "/$defs/keypackages_revoke_request_body/properties/reason": "optional",
         "/$defs/keypackages_revoke_request_body/properties/signature": "required",
         "/$defs/keypackages_upload_outcome/properties/accepted": "required",
-        "/$defs/keypackages_upload_outcome/properties/available_count": "optional",
         "/$defs/keypackages_upload_outcome/properties/keypackage_refs": "optional",
         "/$defs/keypackages_upload_outcome/properties/rejected": "optional",
         "/$defs/keypackages_upload_request_body/properties/agent_key_authorize_event_id": "optional",

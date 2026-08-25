@@ -1768,7 +1768,6 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
     }
     expected_operations = {
         "upload_batch_required_fields": "ak.self.keys.keypackages.upload.create",
-        "upload_entry_signature": "ak.self.keys.keypackages.upload.create",
         "consume_single_claim": "ak.self.keys.keypackages.command.consume",
         "consume_receipt_single_source_coordinates": None,
         "revoke_with_reason": "ak.self.keys.keypackages.command.revoke",
@@ -1864,22 +1863,13 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
             "signature_algorithm": "Ed25519",
             "sig": case.get("signature"),
         }
-        if name == "upload_entry_signature":
-            entry = unsigned.get("keypackage")
-            if not isinstance(entry, dict):
-                lint.fail(fixture_path, f"{name}.unsigned_request.keypackage must be an object")
-                continue
-            instance = copy.deepcopy(entry)
-            instance["endpoint_signature"] = signature_object
-            schema_ref = "schemas/keypackage-operations.schema.json#/$defs/keypackage_upload_entry"
-        else:
-            schema_ref = operation_schema_refs.get(operation_id)
-            if not isinstance(schema_ref, str):
-                lint.fail(fixture_path, f"{name} operation has no request_schema_ref: {operation_id}")
-                continue
-            instance = copy.deepcopy(unsigned)
-            signature_field = "endpoint_signature" if name == "upload_batch_required_fields" else "signature"
-            instance[signature_field] = signature_object
+        schema_ref = operation_schema_refs.get(operation_id)
+        if not isinstance(schema_ref, str):
+            lint.fail(fixture_path, f"{name} operation has no request_schema_ref: {operation_id}")
+            continue
+        instance = copy.deepcopy(unsigned)
+        signature_field = "endpoint_signature" if name == "upload_batch_required_fields" else "signature"
+        instance[signature_field] = signature_object
         check_json_instance_against_schema(lint, fixture_path, name, schema_ref, instance)
 
 

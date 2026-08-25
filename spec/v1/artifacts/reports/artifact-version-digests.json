@@ -123,9 +123,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 24,
+      "version": 25,
       "generated_at": null,
-      "content_digest": "sha256:3c29e6c56df34a2c67dbcd5254872cb5d380ef3d526e8007ee551f9a794b3606"
+      "content_digest": "sha256:882e999a3ef47096564b5e3bce2a3b118874cfd8cff8d3a0be9c34d01e2e439e"
     },
     {
       "path": "spec/v1/artifacts/registry/history-key-canonical-binding-registry.json",
@@ -189,9 +189,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-08-25.5",
-      "generated_at": "2026-08-25T15:05:00+08:00",
-      "content_digest": "sha256:d9e3bc3e0dbb833ed6f150d98a40b4cdf5fa1b2b97a68ca818e03e548da0b393"
+      "version": "2026-08-26.2",
+      "generated_at": "2026-08-26T02:30:00+08:00",
+      "content_digest": "sha256:66543718532bac5535a32671b06b226850db42675fb59b74f7fa72d45fd5aa46"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",

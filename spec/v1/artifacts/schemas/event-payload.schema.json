@@ -7484,8 +7484,7 @@
         "cipher_suites",
         "state",
         "expires_at",
-        "created_at",
-        "endpoint_signature"
+        "created_at"
       ],
       "oneOf": [
         {
@@ -7574,9 +7573,6 @@
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
-        },
-        "endpoint_signature": {
-          "$ref": "#/$defs/signature_material"
         }
       },
       "additionalProperties": false

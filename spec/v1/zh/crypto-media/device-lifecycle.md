@@ -768,7 +768,7 @@ POST /_arkret/peer/keys/keypackages/claims/query
 
 ```text
 UTF8("ak.self.keys.keypackages.upload.create\n")
-+ JCS(upload request 删除顶层 endpoint_signature，并删除每个 keypackages[] entry 的 endpoint_signature)
++ JCS(upload request 只删除顶层 endpoint_signature)
 
 UTF8("ak.self.keys.keypackages.command.consume\n")
 + JCS(consume request 删除 signature)
@@ -779,20 +779,12 @@ UTF8("ak.self.keys.keypackages.command.revoke\n")
 
 JCS 对象保留 typed request 中所有 required 字段，并只保留 wire body **实际存在**的 optional 字段。缺省字段必须省略；producer 不得把缺省改写成 JSON `null`。SDK DTO 以 `skip_serializing_if` 省略的空 optional collection 同样不进入 transcript。domain separator 后直接拼接 JCS bytes，不插入空格、额外换行、BOM 或 NUL terminator。
 
-upload 顶层 `endpoint_signature` 始终 required，是整个 request 的 authoritative batch authorization。每个 `keypackage_upload_entry.endpoint_signature` 是 optional defense-in-depth signature；其 signing input 为：
+upload 顶层 `endpoint_signature` 始终 required，且是 request 唯一的 authoritative batch authorization。
+`keypackage_upload_entry` 不含签名字段；完整 typed request中的 selector、所有 entry bytes/metadata、entry数量与顺序、
+`last_resort` 及 request optional fields 都由 batch签名覆盖。batch签名无效时整个 request MUST 在任何 KeyPackage状态写入前拒绝。
+接收方不得尝试 per-entry signature、`ak.keypackage-upload-v1`、只覆盖 `{device_id,keypackages}` 的旧 transcript或任何实现私有 fallback。
 
-```text
-UTF8("ak.self.keys.keypackages.upload.create\n")
-+ JCS({
-     "principal_id": <request principal_id>,
-     "device_id": <request device_id>,
-     "keypackage": <该 entry 删除 endpoint_signature>
-   })
-```
-
-entry signature 不覆盖、替代或降级 batch signature。batch signature 无效时整个 request MUST 在任何 KeyPackage 状态写入前拒绝。batch 有效但 present entry signature 无效时，只能拒绝对应 entry；entry signature 缺省时，已验证的 batch authorization覆盖该 entry。接收方不得尝试 `ak.keypackage-upload-v1`、只覆盖 `{device_id,keypackages}` 的旧 transcript或任何实现私有 fallback。
-
-签名算法 v1 为 Ed25519；`signature.signature_algorithm` MUST 是登记的 `Ed25519`，`signature.kid` MUST 指向同一 accepted signing key。普通 device 从 current accepted PCR device authorization projection 解析该 key；Native Agent 从 current accepted `ak.agent.key.authorize.verification_method` 解析该 key，并且该 key MUST 同时等于 MLS LeafNode signature key。三条 batch 签名与 present entry 签名都必须在解析或改变 KeyPackage 状态前验证。
+签名算法 v1 为 Ed25519；`signature.signature_algorithm` MUST 是登记的 `Ed25519`，`signature.kid` MUST 指向同一 accepted signing key。普通 device 从 current accepted PCR device authorization projection 解析该 key；Native Agent 从 current accepted `ak.agent.key.authorize.verification_method` 解析该 key；minimal-metadata 从 exact `did:key` 解析。该 key 在三分支都 MUST 同时等于 MLS LeafNode signature key。batch签名必须在解析或改变 KeyPackage状态前验证；随后逐 entry执行 RFC 9420 self-signature、credential、Leaf key、metadata/capabilities/lifetime校验。
 
 upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.crypto.keypackage_write_transcripts.v1` 固化。SDK helper输出与该 fixture不一致时实现 MUST fail closed；不得以当前 server或client实现为兼容依据。
 
@@ -854,7 +846,7 @@ lookup 前拒绝。不确定结果必须使用原 `claim_request_id + request_di
 - `payload.claim_envelope` 是 requester 对本次 Welcome 的独立签名 transcript，签名身份绑定 requester 而不是被 claim 的 endpoint。普通 principal requester MUST 携带 `requester_device_id` 与 `device_authorize_event_id`，并用该设备当前 accepted `ak.device.authorize.payload.device_public_key` 签名；Native Agent requester MUST 携带 `requester_agent_id + requester_agent_verification_method + requester_agent_key_authorize_event_id`，并用所声明的 active Agent key 签名，禁止携带或借用 `requester_device_id`；minimal-metadata requester 仅用通用 `requester_actor_id + requester_pairwise_verification_method`，method 必须是该 actor 的 exact `did:key`。三者 MUST 精确 XOR。服务端和接收端 MUST 校验 envelope 的 requester identity、closed endpoint、authority binding、signature `kid` 与当前投影/Realm affinity 一致；不得把 recipient KeyPackage 的 authority 当作 requester 签名身份使用。
 - 每个成功 Welcome 必须携带唯一的 `claim_receipt`，其类型固定为 destination-signed `peer_keypackage_claim_receipt`；same-service claim 也使用同一类型，且 `source_service_id=destination_service_id=current authority`。`claim_request_id`、`request_digest`、`claims_digest`、exact unsigned request 与 source/destination service 均进入签名 transcript。Native Agent `current_observation` 必须从 receipt 唯一派生并逐字相等：`request_digest=receipt.request_digest`、`verifier_id=destination_service_id`、`audience=source_service_id`、`challenge=claim_request_id`。接收端不得用 evidence 内自报 observation 替代 receipt 导出的 expected context。
 - `claim` 失败响应 MUST 对不存在、不可见、无可用设备、policy denied、subset-rule 违反（§上条 `keypackage_capability_overreach`）、过期、`revocation_pending` 与已撤销状态做反枚举处理。所有 deployment profile 的对外错误码 MUST 合并为单一不透明 `claim_failed`；HTTP status、body shape/size class、target-sensitive headers 与量化后的 delay distribution 也必须按 `ak.outward_disclosure.target_private_claim.v1` 同形。不得返回逐 target `failures[]`、`available_count` 或可区分 error message。精确 reason 只进入受限 audit，普通日志与 metrics label 只记录 outward bucket。
-- 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。只有已认证 owner 的 upload 或 maintenance query 响应可按 `ak.outward_disclosure.owner_diagnostic.v1` 返回 `available_count`；self/peer claim 与 peer outcome-query 都不得返回该字段。客户端发现自有可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
+- 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。v1 不存在 owner inventory 或 maintenance query，upload、self/peer claim 与 peer outcome-query 均不得返回 `available_count`。客户端维护 endpoint-scoped 本地 inventory ledger，只在本地 usable 数量低于 8 时于一个 single-flight maintenance cycle 上传一个至多包含 `8 - local_usable_count` 个 fresh 包的 deficit batch；健康 inventory 重载必须零上传。并发 runtime MAY 短暂 overfill，但每个 cycle 不得超过其启动时 deficit。
 - claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转为 revoked / unusable 状态；服务不得把它自动放回 `published`，也不得接受迟到的 consume。设备需要重新发布新的 KeyPackage。
 - Device / Key Server MUST 维护过期扫描或等价触发：KeyPackage `expires_at`、claim `expires_at`、device revoke、principal control state 失效、capability revoke 或 Realm policy 变更任一发生时，后续 `query` / `claim` MUST NOT 返回该 KeyPackage；后台清理不得是唯一防线。扫描周期 SHOULD ≤ 60s，且每次 `claim` 路径必须先做同步 freshness 判定。
 - KeyPackage claim MUST 对 `(requester_service_id, target_principal_id)` 做限速，默认窗口为 60s 内最多 5 次 claim 尝试。超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope，不泄露目标存在性）；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。

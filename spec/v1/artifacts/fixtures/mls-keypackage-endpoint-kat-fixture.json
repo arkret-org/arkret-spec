@@ -1,0 +1,74 @@
+{
+  "cases": [
+    {
+      "batch_signature_public_key": "0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc",
+      "endpoint": {
+        "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+        "kind": "human_device",
+        "principal_id": "ak:did_core:webvh:z6mkkatordinary"
+      },
+      "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSDQSrIydCu0qzoTaL1GFeTm0CJKtxoBa6-FIKMyyXeHNwABLmFrOmRldmljZTowMTkwNDEwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMGFhMTECAAEIAAEAAgADAE0G8cDxwfHCAAIAAQEAAAAAao3DvgAAAABq_I_OIvHBH4JtYWsuY29udGVudC52MW9taW1pLmNvbnRlbnQudjFAQJEFvkH_7b-XJlY50Uh4DLDKwblZqtN1vPcI1sjxMuk9UeJx-CkjdmcnBO9KncnhNf9qvOWT-jKc4pQFCeF3dQMAQECHBVxaM6VEXr9Zo04M2ZYxbZp2Ns-jEAgUFbRjaO5RvE0UgBNWYPefmZJm5SgFHMXAtlVKj2Lb_Jw60cnYsGIC",
+      "keypackage_ref": "sha256:6a6d8349925397eeb087236df9053233777ec2b07ae14c0c7fbb9cae2d7e9372",
+      "keypackage_sha256": "sha256:6a6d8349925397eeb087236df9053233777ec2b07ae14c0c7fbb9cae2d7e9372",
+      "leaf_credential": "YWs6ZGV2aWNlOjAxOTA0MTAwLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwYWExMQ",
+      "leaf_node_sha256": "sha256:0a549223f29d816c3fd5f21022730463b9efe7a56e872cee07f3d5bf19712446",
+      "leaf_signature_key": "0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc",
+      "name": "ordinary_human_device",
+      "upload_entry_jcs": "{\"capabilities\":[\"ak.content.v1\",\"mimi.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-08-25T17:33:02.920Z\",\"expires_at\":\"2026-09-01T17:33:02.920Z\",\"keypackage\":\"AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSDQSrIydCu0qzoTaL1GFeTm0CJKtxoBa6-FIKMyyXeHNwABLmFrOmRldmljZTowMTkwNDEwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMGFhMTECAAEIAAEAAgADAE0G8cDxwfHCAAIAAQEAAAAAao3DvgAAAABq_I_OIvHBH4JtYWsuY29udGVudC52MW9taW1pLmNvbnRlbnQudjFAQJEFvkH_7b-XJlY50Uh4DLDKwblZqtN1vPcI1sjxMuk9UeJx-CkjdmcnBO9KncnhNf9qvOWT-jKc4pQFCeF3dQMAQECHBVxaM6VEXr9Zo04M2ZYxbZp2Ns-jEAgUFbRjaO5RvE0UgBNWYPefmZJm5SgFHMXAtlVKj2Lb_Jw60cnYsGIC\",\"keypackage_id\":\"ak:mls:kp:01a039fb-9048-74f3-822e-98ca3a6be75a\",\"keypackage_ref\":\"sha256:6a6d8349925397eeb087236df9053233777ec2b07ae14c0c7fbb9cae2d7e9372\"}",
+      "upload_entry_sha256": "sha256:3e7796c8eafdb39c5af33ff497ee794807cdd4c5df00ebadcac10caddd4186fc"
+    },
+    {
+      "batch_signature_public_key": "oJql9HpnWYAv-VX43C0qFKXJnSO-l_hkEn_5ODRVpPA",
+      "endpoint": {
+        "agent_id": "ak:did_core:web:kat-agent.example",
+        "agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
+        "kind": "native_agent_runtime",
+        "verification_method": "did:web:kat-agent.example#runtime-1"
+      },
+      "keypackage": "AAEAASC_cJLU8bB42TnDS3OvcD5_avIlPjn5ZSOGcUH7ngw0USAtvqjzA0W0h55Ey_eOufxqhjqbr5HTKDuMpjPWQyCacyCgmqX0emdZgC_5VfjcLSoUpcmdI76X-GQSf_k4NFWk8AABIWFrOmRpZF9jb3JlOndlYjprYXQtYWdlbnQuZXhhbXBsZQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAgCIdC-8S_k-89rHvu0IzI0ZpvMFtaLEgYzXFtre62k0hnYf9OaGTfx6yYrskXlpMmBrwoEL5VzxMyrTD4d8zAgBAQNq7YpYlvI91SqhQUrQUitx4TnlTSXH1k-sO25gNQ_48R_XHIuM0-KnRQN08QSi01xYs9ybF3cN6e0EnpZ_cFwE",
+      "keypackage_ref": "sha256:f89b5281f6cd6ff94d3b0e3a7cfa250d3436c4e69ac59b615f5ede87c93ee1b6",
+      "keypackage_sha256": "sha256:f89b5281f6cd6ff94d3b0e3a7cfa250d3436c4e69ac59b615f5ede87c93ee1b6",
+      "leaf_credential": "YWs6ZGlkX2NvcmU6d2ViOmthdC1hZ2VudC5leGFtcGxl",
+      "leaf_node_sha256": "sha256:a4b03e0214c473b8ca421768b93735deafcab5a58621f822bf1925845c0d6bc8",
+      "leaf_signature_key": "oJql9HpnWYAv-VX43C0qFKXJnSO-l_hkEn_5ODRVpPA",
+      "name": "native_agent_runtime",
+      "upload_entry_jcs": "{\"capabilities\":[\"ak.content.v1\",\"mimi.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-08-25T17:33:02.937Z\",\"expires_at\":\"2026-09-01T17:33:02.937Z\",\"keypackage\":\"AAEAASC_cJLU8bB42TnDS3OvcD5_avIlPjn5ZSOGcUH7ngw0USAtvqjzA0W0h55Ey_eOufxqhjqbr5HTKDuMpjPWQyCacyCgmqX0emdZgC_5VfjcLSoUpcmdI76X-GQSf_k4NFWk8AABIWFrOmRpZF9jb3JlOndlYjprYXQtYWdlbnQuZXhhbXBsZQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAgCIdC-8S_k-89rHvu0IzI0ZpvMFtaLEgYzXFtre62k0hnYf9OaGTfx6yYrskXlpMmBrwoEL5VzxMyrTD4d8zAgBAQNq7YpYlvI91SqhQUrQUitx4TnlTSXH1k-sO25gNQ_48R_XHIuM0-KnRQN08QSi01xYs9ybF3cN6e0EnpZ_cFwE\",\"keypackage_id\":\"ak:mls:kp:01a039fb-9059-7971-a7f1-6c1776f4ebf4\",\"keypackage_ref\":\"sha256:f89b5281f6cd6ff94d3b0e3a7cfa250d3436c4e69ac59b615f5ede87c93ee1b6\"}",
+      "upload_entry_sha256": "sha256:ff4b4b9adc40e6862008d30507e86b26c619784aa6f7b28bd9e74e60da280aa9"
+    },
+    {
+      "batch_signature_public_key": "F8t5-ytBIPKx7GXkGY1uCLKOgT_rAeSkAIObheGAgM4",
+      "endpoint": {
+        "kind": "minimal_metadata_pairwise",
+        "pairwise_actor_id": "ak:did_core:key:z6Mkg49NtQR2LyYRDCQFK4w1VVHqhypZSSRo7HsyuN7SV7v5",
+        "verification_method": "did:key:z6Mkg49NtQR2LyYRDCQFK4w1VVHqhypZSSRo7HsyuN7SV7v5#z6Mkg49NtQR2LyYRDCQFK4w1VVHqhypZSSRo7HsyuN7SV7v5"
+      },
+      "keypackage": "AAEAASDPfQa8LblxlCHkXCUnKCBwrigSWesBPDZ4ZzIUri02MSCybkVc7HAWomfLn8VUkQXp2945PAc7YoBQGyYhazNCeyAXy3n7K0Eg8rHsZeQZjW4Iso6BP-sB5KQAg5uF4YCAzgABQEBhazpkaWRfY29yZTprZXk6ejZNa2c0OU50UVIyTHlZUkRDUUZLNHcxVlZIcWh5cFpTU1JvN0hzeXVON1NWN3Y1AgABCAABAAIAAwBNBvHA8cHxwgACAAEBAAAAAGqNw74AAAAAavyPziLxwR-CbWFrLmNvbnRlbnQudjFvbWltaS5jb250ZW50LnYxQEB-prwxPTGXQWtTLAIT3mV1upxP-KQbS73g0hXfSqPQfUMwTBvVi6iS1DUqXGDYLFF03DsBc4SUWiDyN4fFo80KAEBAsrq3bloFJJhbkRgU2et5fqXPR0gRXUh86_OyXnib1BDqmySPsopiiKWL47Aoz-bRXVOpOpFKTbneXitR1SYvDA",
+      "keypackage_ref": "sha256:9325a529310e78178c7c84447de85cc098df3859d52bec491d989c92d9aed375",
+      "keypackage_sha256": "sha256:9325a529310e78178c7c84447de85cc098df3859d52bec491d989c92d9aed375",
+      "leaf_credential": "YWs6ZGlkX2NvcmU6a2V5Ono2TWtnNDlOdFFSMkx5WVJEQ1FGSzR3MVZWSHFoeXBaU1NSbzdIc3l1TjdTVjd2NQ",
+      "leaf_node_sha256": "sha256:f31cbe8178667bc3e7e7b1a1dcafbc0600a2b651fd8456dd025ff64d19408e68",
+      "leaf_signature_key": "F8t5-ytBIPKx7GXkGY1uCLKOgT_rAeSkAIObheGAgM4",
+      "name": "minimal_metadata_pairwise",
+      "upload_entry_jcs": "{\"capabilities\":[\"ak.content.v1\",\"mimi.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-08-25T17:33:02.954Z\",\"expires_at\":\"2026-09-01T17:33:02.954Z\",\"keypackage\":\"AAEAASDPfQa8LblxlCHkXCUnKCBwrigSWesBPDZ4ZzIUri02MSCybkVc7HAWomfLn8VUkQXp2945PAc7YoBQGyYhazNCeyAXy3n7K0Eg8rHsZeQZjW4Iso6BP-sB5KQAg5uF4YCAzgABQEBhazpkaWRfY29yZTprZXk6ejZNa2c0OU50UVIyTHlZUkRDUUZLNHcxVlZIcWh5cFpTU1JvN0hzeXVON1NWN3Y1AgABCAABAAIAAwBNBvHA8cHxwgACAAEBAAAAAGqNw74AAAAAavyPziLxwR-CbWFrLmNvbnRlbnQudjFvbWltaS5jb250ZW50LnYxQEB-prwxPTGXQWtTLAIT3mV1upxP-KQbS73g0hXfSqPQfUMwTBvVi6iS1DUqXGDYLFF03DsBc4SUWiDyN4fFo80KAEBAsrq3bloFJJhbkRgU2et5fqXPR0gRXUh86_OyXnib1BDqmySPsopiiKWL47Aoz-bRXVOpOpFKTbneXitR1SYvDA\",\"keypackage_id\":\"ak:mls:kp:01a039fb-906a-7701-a29d-062b05fd1cc0\",\"keypackage_ref\":\"sha256:9325a529310e78178c7c84447de85cc098df3859d52bec491d989c92d9aed375\"}",
+      "upload_entry_sha256": "sha256:d75ff32c125a546de7abb56f7c62a4a4678afc5c8c814b740c6c65a6ee330870"
+    }
+  ],
+  "description": "Frozen real RFC 9420 KeyPackages for every Arkret endpoint branch. Each vector pins the BasicCredential, LeafNode signature key, complete KeyPackage bytes, and their SHA-256 digests.",
+  "negative_contract": {
+    "actor_credential": "must equal the selected Native Agent or pairwise ActorId",
+    "actor_leaf_and_batch_key": "must both equal the selected accepted endpoint key",
+    "deprecated_fields": [
+      "keypackages[].endpoint_signature",
+      "mls_keypackage_payload.endpoint_signature",
+      "available_count"
+    ],
+    "ordinary_credential": "must equal the selected canonical DeviceId",
+    "ordinary_leaf_and_batch_key": "must both equal the current accepted device identity key"
+  },
+  "profile": "ak.profile.e2ee_client.v1",
+  "runner": {
+    "kind": "known_answer_tests"
+  },
+  "suite": "mls_keypackage_endpoint_known_answers",
+  "version": "2026-08-26"
+}

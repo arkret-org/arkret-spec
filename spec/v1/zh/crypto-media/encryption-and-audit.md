@@ -345,6 +345,24 @@ Native Agent 的 claimed-endpoint trust binding 由 conformance vector `ak.vecto
 
 KeyPackage 不应被建模为可无限次公开拉取的静态材料。E2EE 实现 MUST 将 MLS KeyPackage 作为可声明、可领取、可消费、可撤销的单次使用材料。
 
+KeyPackage upload 与所有 accepted MLS transition 使用同一个 closed endpoint identity 合同：
+
+| endpoint 分支 | `BasicCredential.identity` | LeafNode / upload batch key | principal/member 归属 |
+| --- | --- | --- | --- |
+| ordinary human | canonical `DeviceId` 的 UTF-8 bytes | 当前 accepted `ak.device.authorize.payload.device_public_key` | accepted Genesis 或 Add/Commit/Welcome transition binding |
+| Native Agent | canonical Agent ActorId 的 UTF-8 bytes | exact current `ak.agent.key.authorize` method key | Agent transition/authorization binding |
+| minimal-metadata pairwise | canonical Realm-local pairwise ActorId 的 UTF-8 bytes | exact `did:key` raw key | Realm-local actor，不得聚合回 account/device |
+
+credential 标识 leaf endpoint，Leaf key证明该 endpoint，accepted transition证明 membership。ordinary human 不得把
+principal 编入 credential，不接受 `principal_id + "#" + device_id` 或双格式 fallback；v1 也不存在独立 ordinary MLS
+leaf signer。每个 accepted transition MUST 物化并持久保存 group-local
+`leaf_index -> {principal_id, endpoint identity, authorization incarnation, leaf_signature_key}` binding。Genesis 从 accepted
+creator Event 的 `actor_id`、唯一 producer proof 与 signer leaf 建立；Add/Welcome 从 exact member Event、
+`MlsJoinAdmissionReceipt`、claim record 与 winning Commit 建立；Update 继承同一 binding，授权 incarnation 变化必须走
+replacement/remove+add；Remove 与历史 checkpoint保留 transition 当时的 binding。current admission 只接受 current authority，
+历史 replay 使用对应 epoch 已钉住的 historical binding。裸 RFC 9420 public tree 只能给出 endpoint leaves；没有 accepted
+transition provenance 时不得把它解释为 principal roster，也不得查询 current directory补全。
+
 > **Arkret 扩展说明**：RFC 9420 Section 10.1 将 KeyPackage 定义为全局单次使用材料（一个 KeyPackage 对应一次 Welcome）。Arkret 的 claim 模型在此基础上增加了 `intended_realm_id` 绑定和 Realm-scoped claim，要求 MLS Delivery Service 跟踪 Realm affinity。这是 Arkret 的有意扩展，理由是：(a) 去中心化环境中没有中心化 Delivery Service 来全局追踪 KeyPackage 消费状态；(b) Realm-scoped claim 使客户端可以控制自己被邀请进入哪些 Realm，而非被动接受任何 Welcome；(c) claim 绑定使审计链可追溯某个 KeyPackage 被哪个 Realm 消费。实现若使用标准 MLS 库（不支持 Realm-scoped claim），MUST 至少在 Arkret 协议层维护 claim 映射表，并在 Welcome 发送/接收时执行 claim 验证。
 
 KeyPackage lifecycle：
@@ -370,8 +388,7 @@ published -> claimed -> consumed
   "capabilities": ["ak.content.v1", "mimi.content.v1"],
   "state": "published",
   "created_at": "2026-04-30T00:00:00Z",
-  "expires_at": "2026-05-07T00:00:00Z",
-  "endpoint_signature": {"kid":"did:key:z6MkPairwise...#z6MkPairwise...","signature_algorithm":"Ed25519","sig":"base64url..."}
+  "expires_at": "2026-05-07T00:00:00Z"
 }
 ```
 
@@ -382,7 +399,7 @@ published -> claimed -> consumed
 Arkret 不把应用层字符串误装进 RFC 9420 `required_capabilities` 的 codepoint 列表。应用能力使用 [`mls-extension-registry.json`](../../artifacts/registry/mls-extension-registry.json) 中两个 private-use 扩展：
 
 - `keypackage_capabilities` (`0xF1C1`, LeafNode) 在签名 LeafNode 内携带 endpoint 支持的完整能力列表。其 `extension_data` 是 definite-length deterministic CBOR text-string array，逐项为 registry id，按 UTF-8 bytes 升序且无重复；禁止 indefinite length、非最短长度编码、未知 CBOR 类型与 trailing bytes。upload / claim record 的外层 `capabilities[]` MUST 与该 signed LeafNode 列表逐项、逐序相等；不相等的 KeyPackage MUST 在发布或 Add 前拒绝，外层字段不得扩大或缩小 LeafNode 的声明。
-- `required_keypackage_capabilities` (`0xF1C2`, GroupContext) 用同一编码携带当前群能力下界。建群时 committer MUST 从 Realm 要求与实际选择的 content / policy profiles 确定 floor；不得把所有 endpoint 的能力并集或单个发送方偏好当作 floor。任何 Add / Update / external join 后的 LeafNode `0xF1C1` 列表 MUST 是 current floor 的超集。提高或替换 floor 只能经 RFC 9420 `GroupContextExtensions` proposal，且在 Commit 前验证所有新 epoch 成员仍满足；否则该 proposal / Commit MUST fail closed。Welcome 接收方 MUST 在安装 group state 前验证本地能力是 floor 的超集。
+- `required_keypackage_capabilities` (`0xF1C2`, GroupContext) 用同一编码携带当前群能力下界。建群时 committer MUST 从 Realm 要求与实际选择的 content / policy profiles 确定 floor；不得把所有 endpoint 的能力并集或单个发送方偏好当作 floor。任何 Add / Update 后的 LeafNode `0xF1C1` 列表 MUST 是 current floor 的超集。提高或替换 floor 只能经 RFC 9420 `GroupContextExtensions` proposal，且在 Commit 前验证所有新 epoch 成员仍满足；否则该 proposal / Commit MUST fail closed。Welcome 接收方 MUST 在安装 group state 前验证本地能力是 floor 的超集。v1 不允许 external join 或由 external Commit 添加成员。
 
 GroupContext 同时 MUST 携带 RFC 9420 `required_capabilities` (`0x0003`)，其 `extension_types` 至少列出 `0xF1C0`、`0xF1C1`、`0xF1C2`，从 MLS 层阻止不理解这些扩展的 LeafNode 进入。`0xF1C2` 是 MLS 认证群状态；后续变更由携带 `GroupContextExtensions` proposal 的 Commit 进入 `confirmed_transcript_hash`，Welcome 的 signed GroupInfo 认证新成员看到的 current GroupContext。发送方 MUST 仅选择 current `0xF1C2` floor 已包含的 content / policy capability；“某个 LeafNode 自称支持”或 claim 时的一次性子集检查都不能替代群下界。
 
@@ -419,7 +436,7 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 **状态与多次使用（normative）**：
 
 - last-resort KeyPackage 在发布时 MUST 标记 `last_resort=true`，并 MUST NOT 进入单次 `claimed` / `consumed` 状态。每次领取由独立 `keypackage_claim_record` 表达，KeyPackage 本身保持 `published`，直到轮换、过期或显式吊销时转入 `revoked`；account deactivation 可按 [`device-lifecycle.md` §9.1](./device-lifecycle.md) 转入 `retired`。
-- `last_resort` 是 Arkret 应用层标记，MUST 包含在 KeyPackage 发布条目的 `endpoint_signature` 签名输入中；接收方 MUST 验证该签名，不得从未签名元数据推断或改写此标记。v1 不为尚未进入 IANA MLS 注册表的应用组件分配私有 wire codepoint。
+- `last_resort` 是 Arkret 应用层标记，MUST 包含在完整 KeyPackage upload request 的 required batch `endpoint_signature` 签名输入中；接收方 MUST 验证该签名，不得从未签名元数据推断或改写此标记。v1 不为尚未进入 IANA MLS 注册表的应用组件分配私有 wire codepoint。
 - 池中存在普通（单次）KeyPackage 时，claim 响应 MUST 优先返回普通包；仅当普通包池为空时，claim 响应 MAY 返回 last-resort 包。
 - claim 响应返回 last-resort 包时 MUST 在对应 `keypackage_claim_record` 中置 `last_resort=true`，使 requester 与 holder 都能识别本次 join 走的是 last-resort 路径。
 - last-resort 包**不走** §2.6 的单次 `consume` 路径：服务端 MUST NOT 因一次 Welcome 消费而把它转入 `consumed` 或从池中移除。`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` 的调用 MUST 被服务端识别为幂等（返回成功但不改变 `published` 状态），不得返回 `keypackage_already_consumed`。
@@ -468,7 +485,7 @@ pairwise endpoint 发布 KeyPackage 时只携 `principal_id`（即上述 Realm-l
 `pairwise_verification_method` 与 `intended_realm_id`，不得携 account/device/Agent carrier。upload、durable
 `ak.mls.keypackage`、claim record、Welcome recipient/claim envelope、durable receipt 与 consume 必须保持同一 closed
 第三分支。接受端必须解析 KeyPackage LeafNode，要求 BasicCredential identity 等于 `principal_id` UTF-8、LeafNode
-signature key 等于 `did:key` raw key，并用同一 key 验证 batch 与每条 entry 的 `endpoint_signature`；只验证外层签名而
+signature key 等于 `did:key` raw key，并用同一 key 验证唯一 required batch `endpoint_signature`；只验证外层签名而
 不验证 KeyPackage 内部 leaf 是不合规的。Welcome 的 durable private index 以
 `(recipient_pairwise_actor_id, recipient_pairwise_verification_method, intended_realm_id)` 路由；它不得制造
 `recipient_device_id` sentinel，也不得向 ordinary to-device queue 投影。重启 hydration 必须从现存 durable 行恢复该

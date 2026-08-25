@@ -177,13 +177,9 @@
         "created_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "endpoint_signature": {
-          "$ref": "#/$defs/signature",
-          "description": "Optional defense-in-depth endpoint signature over the upload entry transcript. It is produced by the selected human device, Native Agent runtime, or minimal-metadata pairwise did:key endpoint and never replaces the required request-level batch signature."
-        },
         "last_resort": {
           "type": "boolean",
-          "description": "When true, this entry is a reusable last-resort KeyPackage (RFC 9420 Section 10). It remains published across claims and never enters the single-use claimed or consumed states; rotation, expiry, or explicit revocation transitions it to revoked with a registered revocation_reason. This application-layer flag is covered by the upload entry's endpoint_signature. Optional capability gated by ak.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
+          "description": "When true, this entry is a reusable last-resort KeyPackage (RFC 9420 Section 10). It remains published across claims and never enters the single-use claimed or consumed states; rotation, expiry, or explicit revocation transitions it to revoked with a registered revocation_reason. This application-layer flag is covered by the required upload batch endpoint_signature. Optional capability gated by ak.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
         }
       },
       "additionalProperties": false
@@ -402,7 +398,7 @@
         },
         "endpoint_signature": {
           "$ref": "#/$defs/signature",
-          "description": "Required authoritative batch signature over the typed upload request with the top-level signature and all entry signatures omitted, using the ak.self.keys.keypackages.upload.create domain. The selected human device, Native Agent runtime, or minimal-metadata pairwise did:key endpoint signs the same transcript."
+        "description": "Required authoritative batch signature over the complete typed upload request with only this top-level signature omitted, using the ak.self.keys.keypackages.upload.create domain. The selected human device, Native Agent runtime, or minimal-metadata pairwise did:key endpoint signs the same transcript."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -442,10 +438,6 @@
         "keypackage_refs": {
           "$ref": "#/$defs/keypackage_ref_array",
           "description": "Accepted KeyPackage refs in request order; batch upload may accept more than one entry."
-        },
-        "available_count": {
-          "type": "integer",
-          "minimum": 0
         }
       },
       "additionalProperties": false

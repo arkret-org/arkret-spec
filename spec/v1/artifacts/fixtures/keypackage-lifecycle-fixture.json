@@ -163,6 +163,24 @@
       }
     },
     {
+      "name": "durable_keypackage_payload_rejects_upload_signature_copy",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_keypackage_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "instance": {
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+        "device_authorize_event_id": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+        "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "keypackage_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
+        "state": "published",
+        "expires_at": "2026-08-24T01:00:00.000Z",
+        "created_at": "2026-08-24T00:00:00.000Z",
+        "endpoint_signature": {"kid": "did:webvh:z6mkfixture#device-1", "sig": "AA"}
+      }
+    },
+    {
       "name": "minimal_metadata_pairwise_consume_single_claim_valid",
       "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
       "expect_valid": true,
@@ -349,7 +367,7 @@
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "keypackage_min_available": 2,
-      "available_count": 1,
+      "local_usable_count": 1,
       "claim_rate_limit": {
         "window_seconds": 60,
         "max_claims": 5,
@@ -362,7 +380,7 @@
         "consume_at": "2026-06-19T00:01:00.000Z"
       },
       "expected": {
-        "available_count_visible": true,
+        "bounded_refill_count": 1,
         "client_action": "maintenance_upload",
         "rate_limit_external_failure": "anti_enumeration",
         "rate_limit_audit_reason": "keypackage_claim_rate_limited",
@@ -371,7 +389,7 @@
         "expired_external_reason": "keypackage_unknown"
       },
       "assertions": [
-        "visible responses expose available_count when the pool is below keypackage_min_available",
+        "the local inventory ledger emits one bounded deficit batch without a remote inventory probe",
         "claim attempts above 5 per requester/target tuple in 60 seconds fail without target enumeration",
         "the audit reason for rate limiting is keypackage_claim_rate_limited",
         "expired claimed KeyPackages become revoked or unusable and late consume is rejected",
