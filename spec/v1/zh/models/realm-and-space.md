@@ -75,7 +75,7 @@ Schema id: `ak.schema.realm.v1`
 | `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`。 | 安全等级标签。 |
 | `trust_domain` | yes | `id:trust_domain` | create-locked；必须匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context。 | 跨 deployment replay boundary。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal；仅是 create/update 中的声明或投影，已验证归属必须有 active `ak.realm.organization`。 | 官方或治理组织。 |
-| `schema_refs` | yes | `array<string>` | MUST 包含 `ak.schema.realm.v1`。 | 启用 schema / profile。 |
+| `schema_refs` | yes | `array<string>` | MUST 包含 `ak.schema.realm.v1`；除 genesis 封闭 allowlist 内的结构角色 profile 外，只允许 `ak.schema.*.vN`。 | 启用 schema，并在 genesis 中承载封闭的结构角色判别式；不是通用 conformance / policy profile 激活面。 |
 | `relation_profiles` | no | `array<RelationProfile>` | 同一 `(relation_kind, from_kind, to_kind, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
 | `policy_id` | no | `id:policy` | reducer 派生。 | 当前 Realm access policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | reducer 派生。 | 默认可发现性。 |
