@@ -46,7 +46,6 @@ from .core import (
     _supply_schema_files,
     all_json_files,
     canonical_json,
-    check_event_ref_invariants_in_value,
     json,
     load_json,
     load_yaml,
@@ -343,21 +342,6 @@ def ensure_cross_file_pointer(
 
 
 
-def json_string_tokens(data: Any, regex: re.Pattern[str]) -> set[str]:
-    tokens: set[str] = set()
-    if isinstance(data, str):
-        tokens.update(regex.findall(data))
-    elif isinstance(data, list):
-        for item in data:
-            tokens.update(json_string_tokens(item, regex))
-    elif isinstance(data, dict):
-        for key, value in data.items():
-            tokens.update(regex.findall(key))
-            tokens.update(json_string_tokens(value, regex))
-    return tokens
-
-
-
 def check_event_reference_inventory(lint: Lint) -> None:
     path = ARTIFACTS / "reports" / "event-reference-field-inventory.json"
     data = load_json(lint, path)
@@ -392,22 +376,49 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
         data = load_json(lint, path)
         if data is None:
             continue
-        if path.name != "event-envelope-negative-fixture.json":
-            check_event_ref_invariants_in_value(lint, path, "$", data)
-        for json_path, value, key in walk_json(data):
-            if key == "$ref" and isinstance(value, str):
-                ensure_relative_file(lint, path, path.parent, value, f"{json_path} $ref")
-            if key in {"$comment", "description"} and isinstance(value, str):
-                ensure_schema_annotation_pointers(lint, path, value, json_path)
+        schema_ids: set[str] = set()
+        profile_ids: set[str] = set()
+
+        def visit(value: Any, json_path: str) -> None:
+            if isinstance(value, dict):
+                if path.name != "event-envelope-negative-fixture.json":
+                    event_id = value.get("event_id")
+                    if isinstance(event_id, str):
+                        for ref_key in ("prev_refs", "auth_refs"):
+                            refs = value.get(ref_key)
+                            if isinstance(refs, list) and event_id in refs:
+                                lint.fail(
+                                    path,
+                                    f"{json_path}.{ref_key} contains its own event_id {event_id}",
+                                )
+                for key, child in value.items():
+                    child_path = f"{json_path}.{key}"
+                    schema_ids.update(SCHEMA_ID_TOKEN_RE.findall(key))
+                    profile_ids.update(PROFILE_ID_TOKEN_RE.findall(key))
+                    if key == "$ref" and isinstance(child, str):
+                        ensure_relative_file(
+                            lint, path, path.parent, child, f"{child_path} $ref"
+                        )
+                    if key in {"$comment", "description"} and isinstance(child, str):
+                        ensure_schema_annotation_pointers(lint, path, child, child_path)
+                    visit(child, child_path)
+            elif isinstance(value, list):
+                for index, child in enumerate(value):
+                    visit(child, f"{json_path}[{index}]")
+            elif isinstance(value, str):
+                schema_ids.update(SCHEMA_ID_TOKEN_RE.findall(value))
+                profile_ids.update(PROFILE_ID_TOKEN_RE.findall(value))
+
+        visit(data, "$")
         if path.name in drift_tracking_files:
             continue
         # This KAT carries the input to ak.schema.define, so its schema ids are
         # definitions under test rather than references to the current registry.
         if path.name != "schema-definition-validator-kat.json":
-            for schema_id in json_string_tokens(data, SCHEMA_ID_TOKEN_RE):
+            for schema_id in schema_ids:
                 if schema_id not in known["schema_ids"]:
                     lint.fail(path, f"unknown schema id reference: {schema_id}")
-        for profile_id in json_string_tokens(data, PROFILE_ID_TOKEN_RE):
+        for profile_id in profile_ids:
             if profile_id not in known["profiles"]:
                 lint.fail(path, f"unknown profile reference: {profile_id}")
 
@@ -3331,7 +3342,7 @@ def _fsm_field_states(
     resolved = _supply_resolve_ref(schema_files, "", payload_schema_ref)
     if resolved is None:
         return list(states)
-    file, _def_name, node = resolved
+    file, _def_name, _identity, node = resolved
 
     def deref(current_file: str, current: Any) -> tuple[str, Any]:
         for _ in range(6):
@@ -3339,7 +3350,7 @@ def _fsm_field_states(
                 r = _supply_resolve_ref(schema_files, current_file, current["$ref"])
                 if r is None:
                     return current_file, None
-                current_file, _d, current = r
+                current_file, _d, _identity, current = r
             else:
                 break
         return current_file, current

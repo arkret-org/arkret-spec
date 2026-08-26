@@ -35,6 +35,7 @@ import re
 import subprocess
 import sys
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -84,6 +85,7 @@ def dump_json(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
 
 
+@lru_cache(maxsize=1)
 def load_contract_registry() -> dict[str, Any]:
     data = load_json(CONTRACT_REGISTRY_PATH)
     if not isinstance(data, dict):
@@ -585,7 +587,7 @@ def closed_schema_values(
         seen = seen or set()
         if key in seen or not target_path.exists():
             return None
-        seen.add(key)
+        next_seen = seen | {key}
         target_document = load_json(target_path)
         try:
             target_schema = resolve_schema_pointer(
@@ -593,13 +595,15 @@ def closed_schema_values(
             )
         except KeyError:
             return None
-        return closed_schema_values(target_path, target_document, target_schema, seen)
+        return closed_schema_values(target_path, target_document, target_schema, next_seen)
     for combinator in ("oneOf", "anyOf"):
         branches = schema.get(combinator)
         if isinstance(branches, list) and branches:
             values: set[Any] = set()
             for branch in branches:
-                branch_values = closed_schema_values(schema_path, document, branch, seen)
+                branch_values = closed_schema_values(
+                    schema_path, document, branch, set(seen or ())
+                )
                 if branch_values is None:
                     return None
                 values.update(branch_values)
@@ -1220,36 +1224,24 @@ def cmd_check(_: argparse.Namespace) -> int:
         print(f"registry diff: {len(errors)} pre-lint pipeline error(s)")
         return 1
     print_contract_status()
-    completeness_status = run_operation_completeness_report("check")
-    event_reference_status = run_event_reference_inventory("check")
-    payload_validator_status = run_payload_validator_profile_check()
-    vector_gap_status = run_event_kind_vector_gap_check()
-    presence_status = run_property_presence_manifest("check")
-    coverage_status = run_schema_consumer_coverage("check")
-    string_classification_status = run_operation_string_classification("check")
-    string_classification_test_status = run_operation_string_classification_test()
-    fixture_status = run_fixture_digest_check()
-    session_grant_kat_status = run_session_grant_kat_check()
-    contact_round_kat_status = run_contact_round_kat_check()
-    artifact_version_status = run_artifact_version_check()
-    lint_status = run_lint()
-    prose_lint_status = run_prose_lint()
-    return (
-        completeness_status
-        or event_reference_status
-        or payload_validator_status
-        or vector_gap_status
-        or presence_status
-        or coverage_status
-        or string_classification_status
-        or string_classification_test_status
-        or fixture_status
-        or session_grant_kat_status
-        or contact_round_kat_status
-        or artifact_version_status
-        or lint_status
-        or prose_lint_status
+    checks = (
+        lambda: run_operation_completeness_report("check"),
+        lambda: run_event_reference_inventory("check"),
+        run_payload_validator_profile_check,
+        run_event_kind_vector_gap_check,
+        lambda: run_property_presence_manifest("check"),
+        lambda: run_schema_consumer_coverage("check"),
+        lambda: run_operation_string_classification("check"),
+        run_operation_string_classification_test,
+        run_fixture_digest_check,
+        run_session_grant_kat_check,
+        run_contact_round_kat_check,
+        run_artifact_version_check,
+        run_lint,
+        run_prose_lint,
     )
+    statuses = tuple(check() for check in checks)
+    return int(any(statuses))
 
 
 def cmd_snapshot(_: argparse.Namespace) -> int:

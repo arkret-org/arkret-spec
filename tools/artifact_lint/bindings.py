@@ -1663,8 +1663,8 @@ def _supply_collect_supply(
         resolved = _supply_resolve_ref(schema_files, file, node["$ref"])
         if resolved is None:
             return
-        rfile, rdef, rnode = resolved
-        key = (rfile, rdef)
+        rfile, rdef, ridentity, rnode = resolved
+        key = (rfile, ridentity)
         if key in visiting:
             return
         defs_out.add(key)
@@ -1718,8 +1718,8 @@ def _supply_walk_demand(
         resolved = _supply_resolve_ref(schema_files, file, node["$ref"])
         if resolved is None:
             return
-        rfile, rdef, rnode = resolved
-        key = (rfile, rdef)
+        rfile, rdef, ridentity, rnode = resolved
+        key = (rfile, ridentity)
         if key in visiting:
             return
         _supply_walk_demand(
@@ -1790,9 +1790,9 @@ def _supply_walk_demand(
             if resolved is not None:
                 ref_def = resolved[1]
                 ref_file = resolved[0]
-                ref_supplied = (resolved[0], resolved[1]) in supplied_defs
+                ref_supplied = (resolved[0], resolved[2]) in supplied_defs
                 resolved_file = resolved[0]
-                resolved_sub = resolved[2]
+                resolved_sub = resolved[3]
         elif isinstance(sub, dict) and isinstance(sub.get("items"), dict):
             item_schema = sub["items"]
             if "$ref" in item_schema:
@@ -1802,7 +1802,7 @@ def _supply_walk_demand(
                 if resolved_item is not None:
                     ref_def = resolved_item[1]
                     ref_file = resolved_item[0]
-                    ref_supplied = (resolved_item[0], resolved_item[1]) in supplied_defs
+                    ref_supplied = (resolved_item[0], resolved_item[2]) in supplied_defs
         field_caller_signed = (
             caller_signed
             or ref_def in _SUPPLY_CALLER_SIGNED_SCHEMAS
@@ -1821,8 +1821,8 @@ def _supply_walk_demand(
                     if resolved_branch is None:
                         resolved_union_branches = []
                         break
-                    branch_file, branch_def, branch_node = resolved_branch
-                    branch_key = (branch_file, branch_def)
+                    branch_file, branch_def, branch_identity, branch_node = resolved_branch
+                    branch_key = (branch_file, branch_identity)
                     if branch_key in branch_visiting:
                         resolved_union_branches = []
                         break
@@ -1934,13 +1934,13 @@ def check_request_material_supply_closure(lint: Lint) -> None:
                 f"{op.get('operation_id')}: response_schema_ref does not resolve",
             )
             continue
-        rfile, rdef, rnode = resolved
-        supplied_defs.add((rfile, rdef))
+        rfile, _rdef, ridentity, rnode = resolved
+        supplied_defs.add((rfile, ridentity))
         _supply_collect_supply(
             schema_files,
             rfile,
             rnode,
-            frozenset({(rfile, rdef)}),
+            frozenset({(rfile, ridentity)}),
             supplied_defs,
             supplied_names,
         )
@@ -1950,7 +1950,7 @@ def check_request_material_supply_closure(lint: Lint) -> None:
             continue
         _supply_collect_supply(schema_files, file, node, frozenset(), supplied_defs, supplied_names)
         for def_name, def_node in (node.get("$defs") or {}).items():
-            key = (file, def_name)
+            key = (file, f"#/$defs/{def_name}")
             supplied_defs.add(key)
             _supply_collect_supply(
                 schema_files,
@@ -1992,20 +1992,22 @@ def check_request_material_supply_closure(lint: Lint) -> None:
                 f"{operation_id}: request_schema_ref does not resolve",
             )
             continue
-        qfile, qdef, qnode = resolved
+        qfile, _qdef, qidentity, qnode = resolved
         demands: list[dict[str, Any]] = []
         _supply_walk_demand(
             schema_files,
             qfile,
             qnode,
             "",
-            frozenset({(qfile, qdef)}),
+            frozenset({(qfile, qidentity)}),
             demands,
             True,
             supplied_defs,
-            (qfile, qdef) in supplied_defs,
+            (qfile, qidentity) in supplied_defs,
         )
-        supplied_def_names = {def_name for (_file, def_name) in supplied_defs}
+        supplied_def_names = {
+            identity.rsplit("/", 1)[-1] for (_file, identity) in supplied_defs
+        }
 
         def leaf_fails(demand: dict[str, Any]) -> bool:
             name = demand["name"]

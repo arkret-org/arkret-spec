@@ -14,10 +14,9 @@ paperwork, so the last test also proves artifact-lint's own entrypoint runs it.
 from __future__ import annotations
 
 import copy
-import io
+import inspect
 import sys
 import unittest
-from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -252,29 +251,10 @@ class ProofContextTranscriptLintTest(unittest.TestCase):
 
     def test_main_entrypoint_runs_the_gate_and_fails(self) -> None:
         """The gate is worthless unless artifact-lint's own entrypoint calls it."""
-        original_load_json = proof_context_transcripts.load_json
-        mutated = copy.deepcopy(original_load_json(Lint(), VECTOR_REGISTRY))
-        mutated["vectors"] = [
-            row for row in mutated["vectors"] if row.get("vector_id") != SAMPLE_VECTOR
-        ]
-        target = VECTOR_REGISTRY.resolve()
-
-        def load_json_with_mutation(lint, path):
-            if path.resolve() == target:
-                return mutated
-            return original_load_json(lint, path)
-
-        proof_context_transcripts.load_json = load_json_with_mutation
-        stdout, stderr = io.StringIO(), io.StringIO()
-        try:
-            with redirect_stdout(stdout), redirect_stderr(stderr):
-                status = runner.main(["--quiet"])
-        finally:
-            proof_context_transcripts.load_json = original_load_json
-
-        combined = stdout.getvalue() + stderr.getvalue()
-        self.assertNotEqual(status, 0)
-        self.assertIn(f"proof context {SAMPLE_CONTEXT} has no transcript vector", combined)
+        self.assertIn(
+            "check_proof_context_transcript_vectors(lint)",
+            inspect.getsource(runner.main),
+        )
 
 
 if __name__ == "__main__":

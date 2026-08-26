@@ -209,11 +209,17 @@ def build_registry_kat(schemas: SchemaSet) -> dict[str, Any]:
     contract = json.loads((REGISTRY_DIR / "contract-registry.json").read_text(encoding="utf-8"))
     proof_context = json.loads((REGISTRY_DIR / "proof-context-registry.json").read_text(encoding="utf-8"))
     closure = replay_schema_closure()
+    schema_values = {
+        path: json.loads(path.read_text(encoding="utf-8")) for path in closure
+    }
+    schema_canonical_sizes = {
+        path: len(jcs(value)) for path, value in schema_values.items()
+    }
     schema_descriptors = [
         registry_artifact_descriptor(
             "replay_json_schema",
             f"schemas/{path.name}",
-            json.loads(path.read_text(encoding="utf-8")),
+            schema_values[path],
         )
         for path in closure
     ]
@@ -249,8 +255,8 @@ def build_registry_kat(schemas: SchemaSet) -> dict[str, Any]:
         "governance-registry-snapshot.schema.json", "governance_replay_schema_manifest"
     ).validate(schema_manifest)
 
-    sample_path = min(closure, key=lambda path: len(jcs(json.loads(path.read_text(encoding="utf-8")))))
-    sample_value = json.loads(sample_path.read_text(encoding="utf-8"))
+    sample_path = min(closure, key=schema_canonical_sizes.__getitem__)
+    sample_value = schema_values[sample_path]
     sample_descriptor = next(
         descriptor for descriptor in schema_descriptors if descriptor["artifact_id"] == f"schemas/{sample_path.name}"
     )
@@ -267,9 +273,7 @@ def build_registry_kat(schemas: SchemaSet) -> dict[str, Any]:
             "root_schema_artifact_ids": schema_manifest["root_schema_artifact_ids"],
             "artifact_count": len(schema_descriptors),
             "artifact_descriptor_aggregate_digest": sha256(jcs(schema_descriptors)),
-            "largest_artifact_canonical_bytes": max(
-                len(jcs(json.loads(path.read_text(encoding="utf-8")))) for path in closure
-            ),
+            "largest_artifact_canonical_bytes": max(schema_canonical_sizes.values()),
         },
         "sample_registry_artifact": sample_artifact,
     }

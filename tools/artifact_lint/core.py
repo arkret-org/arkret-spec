@@ -1119,6 +1119,9 @@ def reject_duplicate_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 
 
+LONE_SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
+
+
 def parse_json_text(text: str) -> Any:
     data = json.loads(
         text,
@@ -1132,7 +1135,7 @@ def parse_json_text(text: str) -> Any:
 
 def reject_lone_surrogates(value: Any, json_path: str = "$") -> None:
     if isinstance(value, str):
-        if any(0xD800 <= ord(char) <= 0xDFFF for char in value):
+        if LONE_SURROGATE_RE.search(value) is not None:
             raise ValueError(f"lone surrogate in string at {json_path}")
     elif isinstance(value, list):
         for index, child in enumerate(value):
@@ -1510,7 +1513,14 @@ def schema_validator(schema_path: Path, fragment: str) -> Any:
 
 
 
-def jsonschema_errors(lint: Lint, owner: Path, schema_ref: str, instance: Any) -> list[str]:
+def jsonschema_errors(
+    lint: Lint,
+    owner: Path,
+    schema_ref: str,
+    instance: Any,
+    *,
+    first_only: bool = False,
+) -> list[str]:
     if Draft202012Validator is None or RefResolver is None:
         lint.fail(owner, "jsonschema is required for declared schema validation; install jsonschema")
         return []
@@ -1526,10 +1536,12 @@ def jsonschema_errors(lint: Lint, owner: Path, schema_ref: str, instance: Any) -
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
         try:
-            errors = sorted(
-                validator.iter_errors(instance),
-                key=lambda error: list(error.path),
-            )
+            error_iter = validator.iter_errors(instance)
+            if first_only:
+                first = next(error_iter, None)
+                errors = [] if first is None else [first]
+            else:
+                errors = sorted(error_iter, key=lambda error: list(error.path))
         except Exception as exc:
             lint.fail(owner, f"schema validation could not resolve {schema_ref}: {exc}")
             return []
@@ -1555,7 +1567,13 @@ def check_json_instance_against_schema(
     expect_valid: bool = True,
     first_expected_error: str | None = None,
 ) -> None:
-    errors = jsonschema_errors(lint, owner, schema_ref, instance)
+    errors = jsonschema_errors(
+        lint,
+        owner,
+        schema_ref,
+        instance,
+        first_only=not expect_valid and first_expected_error is None,
+    )
     if expect_valid and errors:
         lint.fail(owner, f"{label} fails {schema_ref}: " + "; ".join(errors[:3]))
     if not expect_valid and not errors:
@@ -1587,7 +1605,7 @@ def _supply_schema_files(lint: Lint) -> dict[str, Any]:
 
 def _supply_resolve_ref(
     schema_files: dict[str, Any], cur_file: str, ref: str
-) -> tuple[str, str, Any] | None:
+) -> tuple[str, str, str, Any] | None:
     if ref.startswith("#"):
         file = cur_file
         frag = ref[1:]
@@ -1611,7 +1629,8 @@ def _supply_resolve_ref(
             if node is None:
                 return None
             defname = part
-    return (file, defname, node)
+    identity = f"#/{frag}" if frag else f"<root:{file}>"
+    return (file, defname, identity, node)
 
 
 
