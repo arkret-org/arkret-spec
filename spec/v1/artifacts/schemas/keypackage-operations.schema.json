@@ -809,20 +809,24 @@
         },
         "target_keypackage_ref": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Exact ordinary KeyPackage selector for a normal same-group Add/Welcome after accepted member rejoin. The destination KeyPackage authority MUST reject last-resort, stale, consumed, revoked, wrong-principal, wrong-device and non-matching refs through the same opaque claim_failed surface."
+          "description": "Optional exact ordinary KeyPackage selector for a normal same-group Direct Conversation Add/Welcome after accepted member rejoin. When present, the owner authority atomically claims exactly this current, unconsumed package or returns the same opaque claim_failed result as every other target-side failure; it is never a best-effort hint."
         },
         "target_agent_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "#/$defs/did_core_id",
+          "description": "Native-Agent exact-target branch only. MUST equal target_principal_id and the Agent identity in the returned claim record and current AgentSignerEvidence."
         },
         "target_agent_verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "Native-Agent exact-target branch current runtime verification method."
         },
         "target_agent_key_authorize_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Native-Agent exact-target branch current accepted ak.agent.key.authorize Event."
         },
         "target_pairwise_verification_method": {
           "type": "string",
-          "pattern": "^did:key:([^#]+)#\\1$"
+          "pattern": "^did:key:([^#]+)#\\1$",
+          "description": "Minimal-metadata exact-target branch. target_principal_id MUST be the Realm-local ak:did_core:key actor projected from this method."
         },
         "timeout_ms": {
           "type": "integer",
@@ -1436,7 +1440,8 @@
           "minimum": 0
         },
         "welcome_ref": {
-          "$ref": "#/$defs/object_ref"
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Exact accepted ak.mls.welcome Event referenced by this durable receipt; this is not a Welcome byte carrier."
         },
         "welcome_digest": {
           "$ref": "#/$defs/digest"

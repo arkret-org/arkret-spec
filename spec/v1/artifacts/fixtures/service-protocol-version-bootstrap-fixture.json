@@ -1,0 +1,98 @@
+{
+  "profile": "ak.vector_group.protocol_edge_cases.v1",
+  "version": "2026-08-26",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.service.protocol_version_bootstrap.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.service.protocol_version_bootstrap.v1"
+  ],
+  "cases": [
+    {
+      "name": "describe_supported",
+      "carrier": "service_describe",
+      "protocol_version": "1.0",
+      "expected": {
+        "outcome": "continue_typed_validation",
+        "route_cache_writes": 1,
+        "business_requests": 0
+      }
+    },
+    {
+      "name": "applet_ping_supported",
+      "carrier": "applet_ping",
+      "protocol_version": "1.0",
+      "expected": {
+        "outcome": "continue_typed_validation",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
+    },
+    {
+      "name": "describe_unsupported",
+      "carrier": "service_describe",
+      "protocol_version": "2.0",
+      "poison_fields": {
+        "supported_operations": [
+          "ak.self.events.command.submit"
+        ],
+        "http_json_base_url": "https://must-not-cache.invalid"
+      },
+      "expected": {
+        "outcome": "unsupported_protocol_version",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
+    },
+    {
+      "name": "applet_ping_unsupported",
+      "carrier": "applet_ping",
+      "protocol_version": "2.0",
+      "expected": {
+        "outcome": "unsupported_protocol_version",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
+    },
+    {
+      "name": "describe_missing",
+      "carrier": "service_describe",
+      "expected": {
+        "outcome": "schema_violation",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
+    },
+    {
+      "name": "applet_ping_non_string",
+      "carrier": "applet_ping",
+      "protocol_version": 1,
+      "expected": {
+        "outcome": "schema_violation",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
+    },
+    {
+      "name": "describe_non_canonical",
+      "carrier": "service_describe",
+      "protocol_version": "1.0.0",
+      "expected": {
+        "outcome": "schema_violation",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
+    },
+    {
+      "name": "applet_ping_non_canonical",
+      "carrier": "applet_ping",
+      "protocol_version": "1.0.0",
+      "expected": {
+        "outcome": "schema_violation",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
+    }
+  ]
+}

@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 262,
+  "audited_occurrence_count": 264,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -147,7 +147,7 @@
     {
       "file": "applet-install-authoring.schema.json",
       "key": "registration_epoch_evidence",
-      "occurrences": 2,
+      "occurrences": 3,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -206,6 +206,17 @@
         "attestation"
       ],
       "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
+    },
+    {
+      "file": "moderation-evidence.schema.json",
+      "key": "service_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Returns the historical registered service signer evidence needed to verify the receiving-service franking signature at received_at."
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",

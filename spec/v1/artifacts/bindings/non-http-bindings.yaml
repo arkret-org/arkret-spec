@@ -74,7 +74,7 @@ grpc:
       ParticipationSet: ak.self.agent.participation.resource.replace
       ParticipationGet: ak.self.agent.participation.resource.get
     EdgeApplet:
-      AuthorInstall: ak.edge.applet.install.command.author
+      ManagedActorAuthor: ak.edge.applet.managed_actor.command.author
       Describe: ak.edge.applet.read.describe
       Ping: ak.edge.applet.read.ping
       ProtocolMetadata: ak.edge.applet.read.protocol_metadata
@@ -88,6 +88,7 @@ grpc:
       Install: ak.self.applet.command.install
       RevokePreview: ak.self.applet.revoke.command.preview
       Revoke: ak.self.applet.command.revoke
+      GhostPreview: ak.self.applet.ghost.command.preview
       GhostProvision: ak.self.applet.ghost.command.provision
     SelfAuthz:
       Check: ak.self.authz.read.check
@@ -336,6 +337,7 @@ grpc:
       Rotate: ak.self.invite_locator.command.rotate
       Revoke: ak.self.invite_locator.command.revoke
     SelfModeration:
+      FrankingSealObservation: ak.self.moderation.read.franking_seal_observation
       Report: ak.self.moderation.command.report
     SelfPolicy:
       Check: ak.self.policy.read.check
@@ -528,6 +530,7 @@ mq:
     self.keys.backups.command.issue_delete_challenge: ak.self.keys.backups.command.issue_delete_challenge
     self.keys.backups.resource.delete: ak.self.keys.backups.resource.delete
     self.moderation.command.report: ak.self.moderation.command.report
+    self.moderation.read.franking_seal_observation: ak.self.moderation.read.franking_seal_observation
     self.space.query.list: ak.self.space.read.list
     self.strand.query.list: ak.self.strand.read.list
     self.morph.query.list: ak.self.morph.read.list

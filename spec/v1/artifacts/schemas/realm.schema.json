@@ -77,9 +77,27 @@
     "schema_refs": {
       "type": "array",
       "items": {
-        "type": "string"
+        "oneOf": [
+          {
+            "type": "string",
+            "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+          },
+          {
+            "type": "string",
+            "pattern": "^(?!ak\\.)[a-z][a-z0-9_-]*(?:\\.[a-z][a-z0-9_-]*){2,}\\.v[0-9]+$"
+          },
+          {
+            "enum": [
+              "ak.profile.principal_control_realm.v1",
+              "ak.profile.direct_conversation_realm.v1",
+              "ak.profile.mls.minimal_metadata_realm.v1"
+            ]
+          }
+        ]
       },
-      "minItems": 1
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Create-locked union of registered schema ids and the closed Realm structural-role profile allowlist. Policy, deployment conformance and operation-local profiles are forbidden here."
     },
     "fields": {
       "type": "object",

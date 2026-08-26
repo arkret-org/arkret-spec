@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-25.4",
-  "generated_at": "2026-08-25T08:20:00+08:00",
+  "version": "2026-08-26.1",
+  "generated_at": "2026-08-26T12:30:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1372,6 +1372,12 @@
       "description": "A first Applet managed-actor authoring or install commit attempt arrived after the Principal Server-signed authoring request expiry. Exact durable replay of an already successful request remains available; the caller must otherwise obtain a fresh preview."
     },
     {
+      "code": "applet_registration_epoch_evidence_deactivated",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The exact DID method version pinned by the Applet registration epoch evidence resolves successfully but is deactivated. Preview and authoring fail closed without unversioned refetch or service-local key fallback."
+    },
+    {
       "code": "applet_registration_epoch_evidence_mismatch",
       "http_status": 400,
       "scope": "endpoint",
@@ -1905,6 +1911,14 @@
       "description": "Agent session issuance rejected because the referenced ak.agent.key.authorize declared an expires_at that has elapsed. Distinct from proof_invalid (malformed / unverifiable proof): the runtime should prompt the controller to re-authorize the same key (same-key re-authorization, zh/identity/key-management.md §3.6) rather than rebuild the proof. Never returned for non-expiring (absent expires_at) authorizations."
     },
     {
+      "code": "agent_key_scope_reauthorization_required",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "The immutable provision ceiling contains every operation required by the selected runtime capability, but the accepted Agent key authorization omits one or more of them. The operation fails with failed_precondition; the controller may re-authorize or rotate the key only within the immutable provision ceiling. See zh/identity/key-management.md §3.6.1 and agent-runtime-scope-registry.json."
+    },
+    {
       "code": "agent_participation_ceiling_unresolved",
       "applies_to": [
         "event_envelope",
@@ -1968,6 +1982,14 @@
       "description": "The persisted agent-provisioning abandonment challenge expired before first successful consumption. The service MUST reject before releasing any claim, and the controller must obtain a fresh challenge for the same provisioning. Distinct from prior consumption, which is a different terminal state. See zh/identity/key-management.md §3.6.3."
     },
     {
+      "code": "agent_provision_scope_migration_required",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "The Agent's immutable provision requested_scope omits an operation mandatory for the selected runtime capability. The operation fails with failed_precondition and recovery requires provisioning a new Agent principal; key re-pairing, Realm grants and session issuance MUST NOT widen this ceiling. See zh/identity/key-management.md §3.6.1 and agent-runtime-scope-registry.json."
+    },
+    {
       "code": "agent_reply_not_permitted",
       "applies_to": [
         "state_resolution"
@@ -1989,6 +2011,14 @@
         "service_call"
       ],
       "description": "A different stable runtime key binding was submitted while the same open pairing_request_id already has a pending runtime request. The service MUST return HTTP 409 and MUST NOT replace the current pending request, approval_request_id, or notification id. A retry with the same ak.agent.runtime_key_binding.v1 digest is idempotent and does not use this error. See zh/identity/key-management.md §3.6.2."
+    },
+    {
+      "code": "agent_session_scope_refresh_required",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "The immutable provision ceiling and accepted Agent key authorization both contain every operation required by the selected runtime capability, but the requested or current session scope omits one or more. The operation fails with failed_precondition and recovery is a new session constrained by both upper ceilings. See zh/identity/key-management.md §3.6.1 and agent-runtime-scope-registry.json."
     },
     {
       "code": "appeal_modify_missing_lift",
@@ -2510,12 +2540,12 @@
       "description": "Per-(requester, target, intended_realm_id) KeyPackage / one-time-key claim rate limit hit; caller MUST back off before retrying. Distinct from the global `rate_limited` HTTP code because the limit is keyed on the (target, intended use) tuple, not the caller alone."
     },
     {
-      "code": "conflicting_e2ee_profiles",
+      "code": "e2ee_relaxed_audit_binding_conflict",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Realm declares both ak.profile.e2ee_relaxed.v1 and ak.profile.mls_governance_binding.full.v1; these are mutually exclusive (encryption-and-audit.md §2.4.2)."
+      "description": "The effective Realm policy sets mls_send_pause=advisory while an Audit Applet Binding is active. The policy write or binding activation MUST fail closed; no generic Realm profile list participates. See encryption-and-audit.md §2.4.2."
     },
     {
       "code": "consent_revoked",
@@ -3488,14 +3518,6 @@
       "description": "A reusable last-resort KeyPackage was revoked because its expires_at deadline elapsed. It MUST NOT be returned by a later claim. This is a revocation reason, not a KeyPackage lifecycle state. See zh/crypto-media/encryption-and-audit.md §2.6.2."
     },
     {
-      "code": "keypackage_refresh_required",
-      "applies_to": [
-        "crypto",
-        "service_call"
-      ],
-      "description": "Available one-time KeyPackage count is below the Realm or service low-watermark after claim attempts. Senders MAY delay Welcome generation and the target device SHOULD publish fresh KeyPackages. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
       "code": "keypackage_rotated",
       "applies_to": [
         "keypackage_lifecycle"
@@ -3777,14 +3799,6 @@
         "auth_decision"
       ],
       "description": "Current MLS epoch's security_frontier_digest does not cover key-access policy components the client wants to act on (for example media_service_decrypts and plaintext_visible_services for a decrypting media service). Receivers MUST refuse to act until a fresh Commit covers the rederived frontier. See zh/crypto-media/media-service-binding.md §8.2 and zh/crypto-media/encryption-and-audit.md §2.5."
-    },
-    {
-      "code": "mls_send_pause_advisory_requires_e2ee_relaxed_profile",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Realm attempts to set mls_send_pause='advisory' without declaring ak.profile.e2ee_relaxed.v1; default profile MUST treat mls_send_pause as a MUST gate."
     },
     {
       "code": "moderation_control_lifted",

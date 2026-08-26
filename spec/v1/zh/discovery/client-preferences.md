@@ -79,6 +79,10 @@ account data 默认是 holder-private 加密数据，Principal Server sync surfa
 
 **Key:** `ak.push_rules` 和 `ak.dnd_schedule`
 
+`ak.dnd_schedule` 解密后的 plaintext 使用闭合 schema `ak.schema.dnd_schedule.v1`；时间段边界、
+canonical IANA timezone、固定 tzdb 及异常值恢复规则见
+[`push-notifications.md` §7](./push-notifications.md#7-静默时段-do-not-disturb)。
+
 Notification projection 的 `dismissed` / `archived` 跨设备状态使用
 `ak.notifications.inbox.<notification_id>`。加密 value MUST 绑定同一 `notification_id`、
 `state ∈ {dismissed, archived}`、HLC 与 device tie-break 材料，并按 account-data CAS

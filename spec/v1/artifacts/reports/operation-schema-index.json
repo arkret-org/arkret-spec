@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-25.2",
+  "version": "2026-08-26.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-25T03:20:00+08:00",
+  "generated_at": "2026-08-26T15:06:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5294,18 +5294,50 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
           "applet_package",
-          "authoring_request",
-          "managed_actor_bundle"
+          "authoring_request"
         ],
         "properties": [
           "applet_package",
           "authoring_request",
-          "managed_actor_bundle"
+          "managed_actor_bundle",
+          "reuse_existing_managed_actor"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_first_request_body",
+            "schema_kind": "object",
+            "required": [
+              "applet_package",
+              "authoring_request",
+              "managed_actor_bundle"
+            ],
+            "properties": [
+              "applet_package",
+              "authoring_request",
+              "managed_actor_bundle"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_reuse_request_body",
+            "schema_kind": "object",
+            "required": [
+              "applet_package",
+              "authoring_request",
+              "reuse_existing_managed_actor"
+            ],
+            "properties": [
+              "applet_package",
+              "authoring_request",
+              "reuse_existing_managed_actor"
+            ],
+            "closed": true
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome",
@@ -5391,37 +5423,47 @@
       }
     },
     {
+      "operation_id": "ak.self.applet.ghost.command.preview",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_request_body",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "external_ref"
+        ],
+        "properties": [
+          "realm_id",
+          "external_ref",
+          "display_name"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_outcome",
+        "schema_kind": "object",
+        "required": [
+          "authoring_request"
+        ],
+        "properties": [
+          "authoring_request"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.applet.ghost.command.provision",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
         "schema_kind": "object",
         "required": [
-          "schema",
-          "applet_id",
-          "service_id",
-          "ghost_actor_id",
-          "actor_principal_server_id",
-          "realm_id",
-          "external_ref",
-          "managed_actor_provision_event",
-          "pcr_genesis_event",
-          "accountability_grant_event",
-          "profile_event"
+          "authoring_request",
+          "managed_actor_bundle"
         ],
         "properties": [
-          "schema",
-          "applet_id",
-          "service_id",
-          "ghost_actor_id",
-          "actor_principal_server_id",
-          "display_name",
-          "realm_id",
-          "external_ref",
-          "managed_actor_provision_event",
-          "pcr_genesis_event",
-          "accountability_grant_event",
-          "profile_event"
+          "authoring_request",
+          "managed_actor_bundle"
         ],
         "closed": true
       },
@@ -5467,7 +5509,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/preview_outcome",
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/install_preview_outcome",
         "schema_kind": "object",
         "required": [
           "plan",
@@ -5481,7 +5523,7 @@
       }
     },
     {
-      "operation_id": "ak.edge.applet.install.command.author",
+      "operation_id": "ak.edge.applet.managed_actor.command.author",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_request_body",
@@ -8404,6 +8446,44 @@
           "report_id",
           "status",
           "routed_to"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.moderation.read.franking_seal_observation",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "proof_event_id",
+          "target_event_id"
+        ],
+        "properties": [
+          "realm_id",
+          "proof_event_id",
+          "target_event_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_outcome",
+        "schema_kind": "object",
+        "required": [
+          "proof_event",
+          "target_event",
+          "covering_seal",
+          "data_event_inclusion_proof",
+          "service_signer_evidence"
+        ],
+        "properties": [
+          "proof_event",
+          "target_event",
+          "covering_seal",
+          "data_event_inclusion_proof",
+          "service_signer_evidence"
         ],
         "closed": true
       }

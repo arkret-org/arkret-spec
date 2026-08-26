@@ -47,12 +47,7 @@
       "$ref": "./realm.schema.json#/$defs/trust_domain"
     },
     "schema_refs": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "minItems": 1,
-      "uniqueItems": true
+      "$ref": "./realm.schema.json#/properties/schema_refs"
     },
     "reducer_profile": {
       "$ref": "./realm.schema.json#/properties/reducer_profile"

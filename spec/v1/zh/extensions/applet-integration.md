@@ -244,7 +244,7 @@ registration/grant，任一失败整个单元不可见。membership、E2EE 与 w
 | operation_id | HTTP | 语义 |
 | --- | --- | --- |
 | `ak.self.applet.install.command.preview` | `POST /_arkret/self/applets/install/preview` | 校验唯一内嵌的管理员 formal Events，返回 canonical `InstallPlan` 与目标 Principal Server 签名的短期 authoring request。 |
-| `ak.edge.applet.install.command.author` | `POST /_arkret/edge/applet/install/author` | Applet service 校验 Principal Server authoring request，按既有 service-authored / service-executed creation admission 签四个 managed-actor Events 并返回 exact bundle；独立 Bot key 在 PCR accepted 后才用于 Bot 自签/rotation。 |
+| `ak.edge.applet.managed_actor.command.author` | `POST /_arkret/edge/applet/managed-actors/author` | Applet service 消费 `install_bot|provision_ghost` 的统一 signed request，签 role-neutral 四 Event bundle，并按 branch subject + full request digest durable exact replay；不 mint request ID。 |
 | `ak.self.applet.command.install` | `POST /_arkret/self/applets/install` | 提交安装，必须带 `Idempotency-Key`、exact signed authoring request 与 exact Applet bundle。 |
 | `ak.self.applet.revoke.command.preview` | `POST /_arkret/self/applets/{applet_id}/revoke/preview` | 只读重算 active install，返回 canonical `AppletRevokePlan` 与 `revoke_plan_digest`。 |
 | `ak.self.applet.command.revoke` | `POST /_arkret/self/applets/{applet_id}/revoke` | 提交 caller-signed revoke saga，必须带 `Idempotency-Key` 与 preview digest。 |
@@ -283,6 +283,7 @@ Commit MUST 执行：
 - 重新计算 plan；不得盲信客户端传回的 `InstallPlan`。
 - 从 `authoring_request.basis.capability_grant_events[]` 提取 actions/resources，与 package requested scopes、当前 Realm/Circle policy 取交集后重建 Approved Capability Set；不得接受未请求 action、scope widening、重复 action，或缺少 `authority_control.applet_authority` 精确绑定的 grant。commit 不镜像这些 Events。
 - `authoring_request.basis.registration_event.payload` MUST 与 package 派生 registration payload canonical bytes 完全相同；每条 grant 的完整 subject authority pair MUST 等于 `(package.service_id, authoring_request.basis.target_principal_server_id)`，resource MUST 等于 basis 中唯一 `effective_scope`，constraint MUST 绑定相同 `applet_id + service_id + registration_epoch`。任一不匹配 MUST 在提交首条 Event 前 fail closed。
+- preview 对 registration epoch evidence 解析出的 exact DID method version MUST 要求状态为 current/active；可解析但已 deactivated 的 service DID 必须以 `applet_registration_epoch_evidence_deactivated` 独立 fail closed，不得误报 document-unresolvable，也不得回退到未版本化 current DID、package sibling 或 service-local key。
 - 当 recomputed plan canonical `plan_digest` 与 signed `authoring_request.plan_digest` 不一致时 MUST fail closed，返回 `applet_install_plan_mismatch`，并要求管理员重新 preview/approve；commit 不携第二个 plan digest。
 
 正式安装的 registration、grant、Bot provision、PCR genesis、accountability 与 Profile 是本地单事务 fixed set；preview-time 或 reduce-time 任一步失败都 MUST 零 Event、零 projection、零 Applet record、零幂等结果。旧的逐 Event fan-out、partial accepted/rejected refs 与 orphan registration 模型删除，不提供兼容。该 fixed set MUST NOT 写 federation outbox；远端不能用 `ak.peer.events.command.submit` 单独重放其中的 `applet_managed_control` genesis。
@@ -411,7 +412,7 @@ Base URL 来自 registration 的 `base_url`。
 **`ak.applet.*` 标识符的两类用途（normative 区分）**：`ak.applet.*` 前缀的标识符根据上下文分属两个互不混淆的命名空间，实现不得把二者当作同一对象：
 
 - **Event kind（进 Realm history）**：`ak.applet.registration` 与 `ak.applet.bridge_error`。这些是 durable Arkret Event，进入 Realm history，由 reducer 按 schema 校验；`ak.applet.bridge_error` payload 以 `artifacts/schemas/event-payload.schema.json` 与 `applet-schema.md` §7 为权威。Applet runtime 的调用进度、私有 session id、opaque params/detail 与实现状态只属于 operation response/stream 或部署本地状态，MUST NOT 写入共享 Realm history；跨实现有意义的业务结果必须落为既有 Event、Strand、Message、Morph、Relation 或封闭的 result artifact。
-- **operation_id（HTTP，不进 history）**：本节表中的 `ak.edge.applet.read.ping`、`ak.edge.applet.read.describe`、`ak.edge.applet.command.transaction`、`ak.edge.applet.actor.read.resolve`、`ak.edge.applet.realm.read.resolve`、`ak.edge.applet.read.protocol_metadata`、`ak.edge.applet.third_party_users.read.list`、`ak.edge.applet.third_party_locations.read.list`、§4b 的 `ak.self.applet.install.command.preview` / `ak.self.applet.command.install` / `ak.self.applet.revoke.command.preview` / `ak.self.applet.command.revoke` 以及 §9.1 的 `ak.self.applet.ghost.command.provision` 是 HTTP API operation 标识符，只描述 Arkret 节点 ↔ Applet 或 self/admin aggregate operation 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
+- **operation_id（HTTP，不进 history）**：本节表中的 edge operations、§4b 的 install/revoke operations，以及 §9.1 的 `ak.self.applet.ghost.command.preview` / `ak.self.applet.ghost.command.provision` 是 HTTP API operation 标识符，只描述 Arkret 节点 ↔ Applet 或 self/admin aggregate operation 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
 
 `ak.edge.applet.command.transaction` 在 v1 artifacts 中只作为 operation_id 存在，指 §7.3 的 transaction push HTTP 调用；它 MUST NOT 作为 durable Event kind 或 transaction-origin Event 写入 Realm history。transaction push 的幂等记录属于 Applet service / transport audit log；Applet 写入 Arkret 的事实由具体 Event Envelope 的 signed `applet_id`、`external_ref`、`authorization_ref`、event signature 与 capability grant 表达。
 
@@ -430,11 +431,12 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.edge.applet.third_party_users.read.list` | edge（节点→Applet） | `query.protocol: string`; `query.instance_id: string`; `query.external_id: string` | 无 | `actor_id: did_core_id?`; `exists: boolean`; `external_ref: object?` | 查询必须逐字匹配 Ghost immutable external tuple。 |
 | `ak.edge.applet.third_party_locations.read.list` | edge（节点→Applet） | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
 | `ak.self.applet.install.command.preview` | self（管理员→Principal Server） | `applet_package`; `authoring_request_basis`（唯一内嵌 caller-signed registration/grant Events） | 无 | `{plan, authoring_request}`（契约 `applet-install-authoring.schema.json`） | Principal Server 重算 plan、限制短期 expiry 并签名；registration epoch evidence 只在 registration Event manifest，不属于 package digest / proof。 |
-| `ak.edge.applet.install.command.author` | edge（客户端→Applet service） | `authoring_request` | 无 | `managed_actor_bundle` | Applet 验证 current Principal Server 信任与 exact bindings；四个 Applet/Bot Event 仅在 bundle 出现一次。 |
-| `ak.self.applet.command.install` | self（管理员→Principal Server） | `Idempotency-Key`; `applet_package`; `authoring_request`; `managed_actor_bundle` | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源 | 首次提交要求 authoring request 未过期；成功 exact replay 在过期后仍返回原 outcome；同 key 异 body 冲突。 |
+| `ak.edge.applet.managed_actor.command.author` | edge（客户端→Applet service） | `authoring_request` | 无 | `managed_actor_bundle` | 统一消费 `purpose=install_bot|provision_ghost`；四个 role-neutral Event 仅在 bundle 出现一次。 |
+| `ak.self.applet.command.install` | self（管理员→Principal Server） | `Idempotency-Key`; `applet_package`; `authoring_request`; 首次分支 `managed_actor_bundle` 或后续分支 `reuse_existing_managed_actor` | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源 | 两分支 closed XOR；同一 applet/target PS 后续 scope install 必须复用首次 anchors。 |
 | `ak.self.applet.revoke.command.preview` | self（管理员→Principal Server） | `path.applet_id`; `effective_scope`; `reason_code`; `revoke_mode` | 无 | `revoke_plan_digest`; `revoke_plan` | 只读枚举 exact revoke intents；见 §4b。 |
 | `ak.self.applet.command.revoke` | self（管理员→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `revoke_plan_digest`; `effective_scope`; `reason_code`; `revoke_mode`; `capability_revoke_events[]`; `membership_state_events[]` | `proof?: AccountLifecycleProof` | `ok`; `operation_id`; `revoke_plan_digest`; `status`; `steps[]`; `revoked_refs[]?`; `rejected[]?` | caller-signed event-log saga；见 §4b。 |
-| `ak.self.applet.ghost.command.provision` | self（已安装 Applet service→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `schema`; `applet_id`; `service_id`; `ghost_actor_id`; `actor_principal_server_id`; `realm_id`; `external_ref: {protocol,instance_id,external_id}`; `managed_actor_provision_event: Event`; `pcr_genesis_event: Event`; `accountability_grant_event: Event`; `profile_event: Event` | `display_name` | `ghost_actor_id: did_core_id`; `actor_principal_server_id: did_core_id`; `managed_actor_provision_ref: event_id`; `principal_control_realm_id: realm_id`; `profile_event_ref: event_id`; `accountability_grant_ref: event_id`; `authorization_ref: grant_id`; `display_name: string?` | active Applet registration service 以 RFC 9421 `service_signature` 提交闭合的 caller-signed 四 Event authority 单元并原子 provision Ghost Actor；`external_ref` 是 immutable tuple 唯一 carrier，字段、proof 与幂等规则见 §9.1。 |
+| `ak.self.applet.ghost.command.preview` | self（已安装 Applet service→Principal Server） | `path.applet_id`; `realm_id`; `external_ref` | `display_name` | `authoring_request` | PS 从 active install 派生全部 current 坐标并签发唯一 current generation；preview 有 durable winner/supersede ledger。 |
+| `ak.self.applet.ghost.command.provision` | self（已安装 Applet service→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `authoring_request`; `managed_actor_bundle` | 无 | Ghost provision outcome | commit 重验 PS proof、Applet bundle proof、hosting notary、external tuple 与 active install；不接受裸四 Event body。 |
 
 ### 7.1 Ping
 
@@ -786,14 +788,20 @@ Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式
 
 ### 9.1 Ghost Actor Provisioning（`ak.self.applet.ghost.command.provision`，normative）
 
-bridge Applet 第一次遇到某个外部用户（典型触发：该用户在外部网络发出第一条需要桥接的消息）时，通过
+bridge Applet 第一次遇到某个外部用户时，先以 active Applet service signature 调用
+
+`POST /_arkret/self/applets/{applet_id}/ghosts/provision/preview`，body 只携
+`{realm_id,external_ref,display_name?}`。Principal Server 从本地 active install 派生 registration/grant、
+epoch evidence、package digest、service、target PS 与 hosting notary，返回 exact signed
+`purpose=provision_ghost` authoring request。Applet 再把它提交到统一
+`POST /_arkret/edge/applet/managed-actors/author` 取得 role-neutral bundle，最后通过
 
 ```text
 POST /_arkret/self/applets/{applet_id}/ghosts/provision
 Idempotency-Key: <opaque-string>
 ```
 
-请求 Principal Server 为该外部用户接受一个闭合的 Ghost Actor provisioning 单元。请求/响应契约以 [`applet-ghost-operations.schema.json`](../../artifacts/schemas/applet-ghost-operations.schema.json) 为权威（封闭 schema）；请求 `schema` 固定为 `ak.applet.ghost_actor.provision_request.v1`，必填 `actor_principal_server_id`，并携完整 caller-signed `managed_actor_provision_event`、`pcr_genesis_event`、`accountability_grant_event` 与 `profile_event`。
+请求 Principal Server 原子接受 exact `{authoring_request,managed_actor_bundle}`。请求/响应契约以 [`applet-ghost-operations.schema.json`](../../artifacts/schemas/applet-ghost-operations.schema.json) 为权威；旧裸四 Event 顶层 body 非法。
 
 规则：
 

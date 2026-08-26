@@ -10371,12 +10371,12 @@
           "enum": [
             "advisory"
           ],
-          "description": "Declaring advisory downgrades the MLS send pause from MUST to SHOULD and is only accepted when the Realm declares ak.profile.e2ee_relaxed.v1 (crypto-media/encryption-and-audit.md section 2.4.1); omitting the field in a later revision reverts to the strict default."
+          "description": "Declaring advisory downgrades the MLS send pause from MUST to SHOULD and is the sole Realm policy carrier of effective_e2ee_relaxed; omitting the field in a later revision reverts to the strict full-binding default."
         },
         "relaxed_window_max_ms": {
           "type": "integer",
           "minimum": 1,
-          "description": "Declared ak.profile.e2ee_relaxed.v1 removed-member decryption window. Omitting it means the 30000 ms default. The 300000 ms absolute ceiling is enforced by the reducer and independently by every receiver with reason_code relaxed_window_exceeds_ceiling, NOT by this schema: a wire value above the ceiling MUST surface as that reason code rather than schema_violation, and receivers MUST NOT silently clamp it. See crypto-media/encryption-and-audit.md section 2.4.1.",
+          "description": "Policy-derived relaxed-mode removed-member decryption window. It is meaningful only when mls_send_pause=advisory. Omitting it means the 30000 ms default. The 300000 ms absolute ceiling is enforced by the reducer and independently by every receiver with reason_code relaxed_window_exceeds_ceiling, NOT by this schema.",
           "$comment": "Deliberately unbounded above; ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1 requires 300001 to reach the reducer."
         },
         "media_service_decrypts": {
@@ -11846,7 +11846,7 @@
     },
     "realm_schema_payload": {
       "type": "object",
-      "description": "Closed whole-value payload for ak.realm.schema.",
+      "description": "Closed whole-value payload for ak.realm.schema. schema_refs contains schema ids only; Realm structural-role profiles are create-locked in genesis and policy/deployment profiles have their own carriers.",
       "required": [
         "value"
       ],

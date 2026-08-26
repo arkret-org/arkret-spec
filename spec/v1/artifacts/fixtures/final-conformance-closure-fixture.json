@@ -361,19 +361,20 @@
     {
       "vector_id": "ak.vector.moderation.franking_roundtrip.v1",
       "assertions": [
-        "roundtrip_digest_chain_verifies",
+        "target_event_content_commitment_and_signature_verify",
+        "durable_proof_event_and_covering_seal_verify",
         "evidence_package_does_not_release_governance_or_mls_secrets",
-        "ciphertext_digest_mismatch_downgrades_proof",
-        "raw_group_or_plaintext_fields_rejected"
+        "target_event_tamper_downgrades_proof",
+        "retired_mirror_or_plaintext_fields_rejected"
       ],
       "cases": [
         {
           "name": "roundtrip_valid",
-          "ciphertext_digest_matches": true,
-          "aad_digest_matches": true,
-          "sender_claim_fields": [
-            "mls_group_id_digest"
-          ],
+          "target_event_content_commitment_matches": true,
+          "franking_signature_matches": true,
+          "durable_proof_event_matches": true,
+          "covering_seal_observation_valid": true,
+          "retired_proof_fields": [],
           "proof_contains_plaintext_body": false,
           "evidence_forbidden_secret_fields": [],
           "expected": {
@@ -382,12 +383,12 @@
           }
         },
         {
-          "name": "ciphertext_digest_mismatch",
-          "ciphertext_digest_matches": false,
-          "aad_digest_matches": true,
-          "sender_claim_fields": [
-            "mls_group_id_digest"
-          ],
+          "name": "target_event_commitment_mismatch",
+          "target_event_content_commitment_matches": false,
+          "franking_signature_matches": true,
+          "durable_proof_event_matches": true,
+          "covering_seal_observation_valid": true,
+          "retired_proof_fields": [],
           "proof_contains_plaintext_body": false,
           "expected": {
             "decision": "manual_clue_only",
@@ -395,13 +396,16 @@
           }
         },
         {
-          "name": "minimal_disclosure_violation",
-          "ciphertext_digest_matches": true,
-          "aad_digest_matches": true,
-          "sender_claim_fields": [
-            "mls_group_id_digest",
-            "raw_mls_group_id",
-            "epoch"
+          "name": "retired_mirror_violation",
+          "target_event_content_commitment_matches": true,
+          "franking_signature_matches": true,
+          "durable_proof_event_matches": true,
+          "covering_seal_observation_valid": true,
+          "retired_proof_fields": [
+            "retired_digest_mirror",
+            "retired_sender_mirror",
+            "retired_random_identity",
+            "retired_payload_discriminator"
           ],
           "proof_contains_plaintext_body": true,
           "expected": {

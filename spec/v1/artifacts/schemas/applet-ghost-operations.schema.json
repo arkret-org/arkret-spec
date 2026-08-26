@@ -2,8 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-ghost-operations.schema.json",
   "title": "Arkret Applet Ghost Actor Operation DTOs",
-  "description": "Closed request/response DTOs for ak.self.applet.ghost.command.provision. An installed Applet service submits the fixed caller-signed managed-actor provision, Applet-managed PCR genesis, accountability grant, and Ghost profile Event unit for one external identity tuple. The Principal Server MUST re-check every applet / service / authority-pair / realm / namespace / capability binding and commit all four Events plus the durable Ghost record atomically; it MUST NOT mint or reconstruct any caller proof.",
+  "description": "Closed preview, commit, and outcome DTOs for receiver-side Applet-managed Ghost provisioning. The commit carrier is exactly the signed authoring request plus its role-neutral managed-actor bundle.",
   "oneOf": [
+    {
+      "$ref": "#/$defs/ghost_preview_request_body"
+    },
+    {
+      "$ref": "#/$defs/ghost_preview_outcome"
+    },
     {
       "$ref": "#/$defs/ghost_actor_provision_request_body"
     },
@@ -15,12 +21,8 @@
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "applet_id": {
-      "$ref": "./common-ids.schema.json#/$defs/applet_id"
-    },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ak:realm:[A-Za-z0-9_-]{44}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "event_ref": {
       "$ref": "./account-operations.schema.json#/$defs/event_id"
@@ -28,161 +30,30 @@
     "grant_ref": {
       "$ref": "./agent-operations.schema.json#/$defs/grant_id"
     },
-    "non_empty_string": {
-      "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
+    "ghost_preview_request_body": {
+      "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_request_body"
     },
-    "ghost_external_tuple": {
-      "type": "object",
-      "required": ["protocol", "instance_id", "external_id"],
-      "properties": {
-        "protocol": {
-          "$ref": "./applet-edge-operations.schema.json#/$defs/protocol"
-        },
-        "instance_id": {
-          "allOf": [
-            { "$ref": "#/$defs/non_empty_string" },
-            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
-          ]
-        },
-        "external_id": {
-          "allOf": [
-            { "$ref": "#/$defs/non_empty_string" },
-            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
-          ]
-        }
-      },
-      "additionalProperties": false
+    "ghost_preview_outcome": {
+      "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_outcome"
     },
     "ghost_actor_provision_request_body": {
       "type": "object",
-      "description": "Request body for ak.self.applet.ghost.command.provision. ghost_actor_id MUST fall inside the actor namespace declared by the applet_id registration; external_ref.protocol / instance_id / external_id are the sole immutable tuple identifying the external principal being mirrored.",
       "required": [
-        "schema",
-        "applet_id",
-        "service_id",
-        "ghost_actor_id",
-        "actor_principal_server_id",
-        "realm_id",
-        "external_ref",
-        "managed_actor_provision_event",
-        "pcr_genesis_event",
-        "accountability_grant_event",
-        "profile_event"
+        "authoring_request",
+        "managed_actor_bundle"
       ],
       "properties": {
-        "schema": {
-          "const": "ak.applet.ghost_actor.provision_request.v1"
+        "authoring_request": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
         },
-        "applet_id": {
-          "$ref": "#/$defs/applet_id"
-        },
-        "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "ghost_actor_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "actor_principal_server_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "display_name": {
-          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
-        },
-        "realm_id": {
-          "$ref": "#/$defs/realm_id"
-        },
-        "external_ref": {
-          "$ref": "#/$defs/ghost_external_tuple",
-          "description": "Sole immutable external tuple carrier: protocol, instance_id, and external_id are all required. No mirrored top-level tuple fields exist."
-        },
-        "managed_actor_provision_event": {
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "properties": {
-                "kind": {
-                  "const": "ak.applet.managed_actor.provision"
-                }
-              },
-              "required": [
-                "kind"
-              ]
-            }
-          ]
-        },
-        "pcr_genesis_event": {
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "properties": {
-                "kind": {
-                  "const": "ak.realm.create"
-                },
-                "payload": {
-                  "properties": {
-                    "object": {
-                      "properties": {
-                        "purpose": {
-                          "const": "applet_managed_control"
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              "required": [
-                "kind",
-                "payload"
-              ]
-            }
-          ]
-        },
-        "accountability_grant_event": {
-          "description": "Complete ak.identity.accountability_grant Event signed by the installed Applet service DID. Its nested accountability proof MUST be signed by the same service identity.",
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "properties": {
-                "kind": {
-                  "const": "ak.identity.accountability_grant"
-                }
-              },
-              "required": [
-                "kind"
-              ]
-            }
-          ]
-        },
-        "profile_event": {
-          "description": "Complete ak.profile.create Event for ghost_actor_id, delegated and signed by service_id. authorization_ref MUST identify the active ak.applet.ghost.provision capability grant and refs MUST bind the accountability Event.",
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "properties": {
-                "kind": {
-                  "const": "ak.profile.create"
-                }
-              },
-              "required": [
-                "kind"
-              ]
-            }
-          ]
+        "managed_actor_bundle": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
         }
       },
       "additionalProperties": false
     },
     "ghost_actor_provision_outcome": {
       "type": "object",
-      "description": "Response for ak.self.applet.ghost.command.provision. Carries the durable event refs the Principal Server atomically accepted (or re-confirmed on an identical idempotent replay). authorization_ref is the active Applet provisioning capability grant used by the submitted pair; the accountability grant is not an authorization grant for later Ghost actions.",
       "required": [
         "ghost_actor_id",
         "actor_principal_server_id",

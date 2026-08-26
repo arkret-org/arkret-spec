@@ -664,7 +664,7 @@ MUST 支持:
 - key proof 绑定 `challenge`(也充当 per-request nonce,服务端 MUST 在 replay window 内拒绝同值) / `audience` / `request_canonical_digest` / agent principal(由 `principal_id` + `proof.verification_method` 一致性 enforced) / `expires_at`。Wire 不引入独立的 `nonce` 字段；agent proof schema 仅有 `challenge`,它就是 nonce 概念的承载者
 - Replay table 覆盖 proof `expires_at` 后的 grace window
 - Session TTL 默认 ≤ 15 分钟,profile 可声明更长但 ≤ 60 分钟
-- 声明可交互 Realm / Direct Conversation chat runtime 时，provision/key/session 三层服务面 scope 必须覆盖 `ak.self.events.stream.subscribe`、`ak.self.events.read.scan`、`ak.self.events.read.frontier`、`ak.self.events.command.submit`；只有声明延迟/离线发布能力时才额外要求 `ak.self.authorization_leases.command.issue`。声明在线 presence 时还必须覆盖 `ak.self.signal.command.send`。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。缺失 immutable provision action 必须报告 migration required 并 provision 新 Agent principal，不得由 re-pairing 静默扩大
+- 声明可交互 Realm / Direct Conversation chat runtime 时，provision/key/session 三层服务面 scope 必须覆盖 `../../artifacts/registry/agent-runtime-scope-registry.json` 的 `interactive_chat.mandatory_operations`，包括互不替代的 Event frontier 与 Seal frontier；Direct Conversation/E2EE 分支还必须覆盖 `e2ee.mandatory_operations` 的 KeyPackage upload。延迟/离线发布和在线 presence 分别叠加 registry 中对应 feature operation。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。三层缺项依次使用 `agent_provision_scope_migration_required`、`agent_key_scope_reauthorization_required`、`agent_session_scope_refresh_required`，不得由 re-pairing 或 session issuance 静默扩大上层 ceiling。
 - 在线 Agent presence 必须遵守 [`profiles-presence.md` §3.3](../discovery/profiles-presence.md) 的短 TTL 刷新合同：30 秒 session ceiling 下 SHOULD 每 20–25 秒发送新的加密 `ak.presence`，持久化递增 sequence 与 MLS nonce，无法在 expiry 前安全提交时自然降级为 offline；进程 / stream keepalive 不构成 presence
 - Structured human approval request 返回统一错误信封：`error.code=claim_required`，`error.details={reason_code: human_approval_required, approval_request_id}`；details 必须通过 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`，且不得向 agent runtime 展示 CAPTCHA / OTP。实现必须通过 `ak.vector.agent_auth.human_approval_required.v1`
 
@@ -821,10 +821,10 @@ Applet bridge SHOULD 支持：
 
 MUST 支持：
 
-- 在接收 E2EE Event Envelope 时签发 `ak.moderation.franking_proof` 事件，绑定 `event_id`、`ciphertext_digest`、`aad_digest`、`sender_claim`（**仅 `mls_group_id_digest`**：携带 raw `mls_group_id` 或明文 `epoch` MUST 被拒，见 [`conformance-vectors.md` §7.4](./conformance-vectors.md)）、`received_by` (service DID)、`received_at`、`replay_nonce`。
-- franking proof `signature` 由 service DID 当前有效 verification method 签发，覆盖 franking proof canonical bytes。
-- 每条 franking proof 必须可被独立 verify：使用 proof 接受时点固定的 service key binding 校验 verification method 有效期与 Realm service binding，并重算 payload hash。仅在本地尚无该 issuer / key binding、binding invalidation 或显式 historical freshness 要求命中时解析相应 DID Document；重放同一 accepted binding 的 proof 不得逐条在线解析。
-- 接收 reporter 提交的 `ak.self.moderation.command.report` 时，把 franking proof ID 与 report ID 绑定为审计链一部分；不得仅信 reporter 单方声称。
+- 在接收 E2EE Event Envelope 时签发七字段 `ak.moderation.franking_proof` 事件，绑定 `realm_id`、目标 `event_id`、`received_by`、`verification_method`、`received_at`、`replay_nonce` 与 `signature`；不得携带派生 digest、sender claim、proof id 或 payload `kind`。
+- franking proof `signature` 由 service DID 在 `received_at` 有效的 verification method 签发，覆盖 `ak.franking_proof.signature.v1` 唯一 canonical transcript。
+- 每条 franking proof 必须可被独立 verify：重算目标 Event 内容承诺、验证历史 service/Realm binding，并取得 byte-identical durable proof Event 的首次 covering data-plane Seal observation。仅本地命中不能替代该证据。
+- 接收 reporter 提交的 `ak.self.moderation.command.report` 时，把 exact durable franking proof Event 与 report Event 绑定为审计链一部分；不得仅信 reporter 单方声称。
 - franking proof cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 franking proof 仍可历史验证（用历史 key state），但不签发新 franking proof。
 
 MUST NOT：
@@ -1031,10 +1031,11 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-017"></a>17 | schema 明示的 `x_*` 与 `critical_extensions[].parameters` 未识别内容 MUST 在 decode/encode、存储、联邦转发与 backfill 后逐字节保留，且继续进入 canonical bytes | 本文 §20；schema-registry §6 | **V**（`ak.vector.encoding.extension_slot_roundtrip.v1`）；内部存储/转发路径为 U |
 | <a id="ak-sdk-018"></a>18 | `ack_token` MUST 作为不透明字符串原样回传，SDK MUST NOT 解析其内部结构 | client-sync §10.1 | **A**（不暴露结构化解码 API） |
 | <a id="ak-sdk-019"></a>19 | `retry_safe=false` 的 operation MUST NOT 自动全量重试；请求内容改变时 MUST 换 request key | api-conventions §6.2 | **A/U**（重试 API 与配置审计） |
-| <a id="ak-sdk-020"></a>20 | 客户端 MUST 优先遵循 `Retry-After`，不得按本地上限截断后提前重试 | api-conventions §9 | **V/U**（注入时钟与出向请求观测） |
+| <a id="ak-sdk-020"></a>20 | 客户端 MUST 以 `max(server_hint_delay, jitter(local_backoff_delay))` 组合 `Retry-After` 与本地退避；0/已过期提示不得加速本地梯子，长提示不得按本地上限截断，且不存在忽略服务端提示的配置开关 | api-conventions §9 | **V/U**（注入时钟、配置审计与出向请求观测） |
 | <a id="ak-sdk-021"></a>21 | 客户端 MUST 仅按 `has_more` 决定是否继续分页 | api-conventions §7.1 | **V/A**（分页响应向量与 paginator API） |
 | <a id="ak-sdk-022"></a>22 | SDK MUST 暴露 canonical confusable check 为可调用 utility | encoding §2.1 | **V/A**（confusable test set 与 public API inventory） |
 | <a id="ak-sdk-023"></a>23 | SDK MUST 以正交 closed types 区分 `DataEvent` / `ControlMove` / `AnchorUnit` 与 `PlainPayload<T>` / `MlsEncryptedPayload<T>` / 具体 MLS 协议 payload；非法组合必须在网络前 compile-fail/type-error，verified submission 不得再原地修改 | event-and-patch §2.2.1 | **V/A**（`ak.vector.sdk.event_type_axes.v1`、compile-fail suite 与 public API inventory） |
+| <a id="ak-sdk-024"></a>24 | SDK MUST 在构造 typed describe/ping、写入路由缓存、执行 capability 交集或发起业务请求前消费 bootstrap `protocol_version`；形状合法但不等于 `"1.0"` 时 MUST 返回 `unsupported_protocol_version`，缺失、非字符串或非 canonical 字面时 MUST 返回 `schema_violation` | evolution-and-compatibility §4；service-surface §17 | **V/A**（`ak.vector.service.protocol_version_bootstrap.v1` 与 public API inventory；不得暴露跳过 bootstrap 判别直接构造已验证 service 的入口） |
 
 ### 23.3 "仅 API 形状可保证"类的 SDK 实现指引
 
@@ -1048,6 +1049,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 - SHOULD 将 cursor 与 `ack_token` 都建模为 opaque newtype，并让 paginator 只消费 `has_more`；自动重试器必须显式消费 operation 的 `retry_safe` 与服务端 `Retry-After`（对应条款 18–21）。
 - SHOULD 提供不依赖 UI 的 confusable-check public utility，并以 canonical test set 固定输出（对应条款 22）。
 - MUST 让 outer shape 与 payload shape 的非法组合无法通过公开构造器产生；raw wire Event 只能进入解析/草稿态，必须显式转换成 immutable verified submission 后才可交给 publication evidence 或 submit API（对应条款 23）。
+- SHOULD 让 describe/ping 的公开消费 API 从 raw JSON bootstrap 判别开始，并只在版本精确匹配后产出 typed service 值；不得提供跳过该判别而直接写入已验证路由缓存的公开入口（对应条款 24）。
 
 声明遵循本节的 SDK MUST 发布符合 [`sdk-conformance-claim.schema.json`](../../artifacts/schemas/sdk-conformance-claim.schema.json)（`ak.schema.sdk_conformance_claim.v1`）的 machine-readable claim；`ak.vector.sdk_conformance.claim_validation.v1` 与 `sdk-conformance-claim-fixture.json` 是其可执行证据。SDK 为每个适用 `AK-SDK-NNN` clause 提供一个 `clause_claims[]` 条目，至少给出 `result` 与不可变 `evidence[]` 引用；每条 evidence 都 MUST 携带非零 content digest。V 级证据引用向量结果，A级引用 public API inventory，U 级引用代码 / 配置 / 数据流审计；`not_applicable` 必须携带机器可读理由。SDK release 必须以 `sdk_artifact.uri + sdk_artifact.digest` 绑定确切发布物，同时钉定非零 `spec_revision` 与 `sdk_conformance_contract` 的 canonical digest，防止用新条款解释旧证据或把一份结果移植到另一产物。claim 必须声明 `issued_at`、issuer DID 与 verification method；`proof.signature` 覆盖 UTF-8 `"arkret-sdk-conformance-claim-v1\n"` 加移除顶层 `proof` 后对象的 RFC 8785 JCS bytes，`proof.kid` 必须等于 `issuer.verification_method`。验证器除执行 JSON Schema 外，MUST 验证发布物、证据与 contract digest，解析 spec revision，验证 issuer 当前授权及签名，并执行 clause ID 唯一性与已知 clause 集合检查；任一步失败都不得接受 conformance 声明，重复 clause MUST `duplicate_clause_claim`。验证器还 MUST 按 `sdk_conformance_contract.evidence_coverage_semantics`（`acceptable_set`）强制证据类型覆盖：对每个 `result=pass` / `result=fail` 的 clause claim，MUST 存在至少一条 evidence，且每条 `evidence[].kind` MUST 属于该 clause 在 contract 中登记的 `required_evidence` 集合；仅由该集合外类型佐证的 pass / fail clause MUST 被拒绝。该检查独立于且叠加于上面的 digest / 签名检查，`required_evidence` 采用可接受集合语义（列出可接受的证据类型，而非要求全部类型齐备）。
 

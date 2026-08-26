@@ -416,20 +416,20 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
     AppletActorView:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view
-    AppletInstallAuthorOutcome:
-      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/author_outcome
-    AppletInstallAuthorRequestBody:
-      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/author_request_body
     AppletInstallOutcome:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome
     AppletInstallPlan:
       $ref: ../schemas/applet-install-plan.schema.json
     AppletInstallPreviewOutcome:
-      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/preview_outcome
+      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/install_preview_outcome
     AppletInstallPreviewRequestBody:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body
     AppletInstallRequestBody:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body
+    AppletManagedActorAuthorOutcome:
+      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/author_outcome
+    AppletManagedActorAuthorRequestBody:
+      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/author_request_body
     AppletPingOutcome:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome
     AppletProtocolMetadata:
@@ -1357,6 +1357,7 @@ components:
               - applet_namespace_conflict
               - applet_package_expired
               - authoring_request_expired
+              - applet_registration_epoch_evidence_deactivated
               - applet_registration_epoch_evidence_mismatch
               - applet_registration_epoch_evidence_missing
               - applet_registration_epoch_signing_key_mismatch
@@ -1550,6 +1551,10 @@ components:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome
     GhostActorProvisionRequestBody:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body
+    GhostPreviewOutcome:
+      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_outcome
+    GhostPreviewRequestBody:
+      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_request_body
     GovernanceDependencyResolveOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome
     GrantId:
@@ -7451,6 +7456,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KeysBackupsList'
+  /_arkret/self/moderation/franking/seal-observation:
+    post:
+      operationId: ak.self.moderation.read.franking_seal_observation
+      description: >-
+        Returns the exact durable franking-proof Event, its target Event, the first
+        signed Seal covering the proof Event, an RFC 6962 inclusion path against
+        data_event_set_root, and historical receiving-service signer evidence.
+        Authorization and all absent, invisible, Realm-mismatched, or binding-mismatched
+        selectors fail through the same not_found anti-oracle result. This data-plane
+        observation never substitutes a control-plane delta proof.
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request
+      responses:
+        '200':
+          description: Independently verifiable franking proof and data-plane Seal observation
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_outcome
+        '404':
+          $ref: '#/components/responses/NotFound'
   /_arkret/self/moderation/report:
     post:
       operationId: ak.self.moderation.command.report
@@ -8578,9 +8611,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletThirdPartyLocationList'
-  /_arkret/edge/applet/install/author:
+  /_arkret/edge/applet/managed-actors/author:
     post:
-      operationId: ak.edge.applet.install.command.author
+      operationId: ak.edge.applet.managed_actor.command.author
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -8593,13 +8626,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletInstallAuthorOutcome'
+                $ref: '#/components/schemas/AppletManagedActorAuthorOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AppletInstallAuthorRequestBody'
+              $ref: '#/components/schemas/AppletManagedActorAuthorRequestBody'
   /_arkret/self/applets/install/preview:
     post:
       operationId: ak.self.applet.install.command.preview
@@ -8646,6 +8679,39 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AppletInstallRequestBody'
+  /_arkret/self/applets/{applet_id}/ghosts/provision/preview:
+    post:
+      operationId: ak.self.applet.ghost.command.preview
+      summary: Issue the current signed Ghost managed-actor authoring request.
+      description: >-
+        The active Applet service supplies only the Realm, exact external tuple,
+        and optional display name. The Principal Server derives all current
+        installation and hosting coordinates and durably supersedes any prior
+        uncommitted generation for the same subject before returning exact bytes.
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      parameters:
+      - in: path
+        name: applet_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Exact persisted Principal Server-signed authoring request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GhostPreviewOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GhostPreviewRequestBody'
   /_arkret/self/applets/{applet_id}/ghosts/provision:
     post:
       operationId: ak.self.applet.ghost.command.provision
@@ -8654,8 +8720,8 @@ paths:
         Called by an installed bridge Applet (authenticating as its service DID)
         to provision, or idempotently re-validate, an Applet-managed Ghost Actor
         for one immutable `external_ref.{protocol,instance_id,external_id}` tuple.
-        The caller supplies the complete signed managed-actor provision, PCR
-        genesis, accountability grant, and profile Event unit. The server MUST
+        The caller supplies the exact Principal Server-signed authoring request
+        and role-neutral Applet-authored managed-actor bundle. The server MUST
         validate their exact active registration, authority pair, grant, actor
         namespace and initial-resolution bindings, then commit all four Events
         and the durable record atomically; it MUST NOT mint or reconstruct caller

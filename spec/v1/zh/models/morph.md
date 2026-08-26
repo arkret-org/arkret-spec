@@ -33,7 +33,7 @@ Schema id: `ak.schema.morph.v1`
 | `id` | yes | `id:morph` | 以 `ak:morph:` 开头。 | Morph ID。 |
 | `schema` | yes | `ak.schema.morph.v1` | const。 | 容器 self-schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
-| `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 与 transition validation 的权威 schema 集合；`morph_kind` / `facets` 不能替代。 |
+| `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 结构验证的权威 schema 集合；`morph_kind` / `facets` 不能替代。 |
 | `morph_kind` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `ak.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
 | `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Realm schema / Morph profile 声明。`facets` map 的总 canonical size **计入** Morph 对象的 256 KiB 上限（与 `fields` 同一 budget，见 [`../conformance/scalability-constraints.md` §2](../conformance/scalability-constraints.md)）；不另设独立 facet 条数上限，超出对象总上限 MUST reject（`payload_too_large` / `schema_violation`）。 | Morph 暴露哪些已声明能力 hint。 |
 | `metadata` | no | `object` | MAY 携带 `title` / `summary` 及 profile 定义的展示 metadata。与 `encrypted_metadata` 至多一个且不得并存（mutually exclusive, optional）。effective `metadata_encryption_floor` 要求加密对应 metadata 时 MUST 省略（改用 `encrypted_metadata`）。 | 用户可读 Morph metadata；Morph 业务字段仍在顶层 `fields`。MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
@@ -96,7 +96,7 @@ Schema id: `ak.schema.morph.v1`
 }
 ```
 
-> **示例规则**：顶层 `schema` 必须是容器 self-schema `ak.schema.morph.v1`，它仅定义 Morph 容器形态；`schema_refs[]` 是 §4 顺序 1 的"结构 / 验证真源"，必须列出**业务字段** schema id——上例使用配套的参考业务 schema [`ak.schema.morph.customer_risk.v1`](../../artifacts/schemas/morph-customer-risk.schema.json)，它声明 `fields.status` / `fields.severity` 两个业务字段的允许取值集合（structural validation 部分）。本参考 schema 不附带 transition 规则；真实部署若需要 transition validation，SHOULD 在 Realm schema 的 `morph_kind_profiles[<morph_kind>].transition_rules` 中声明（顺序 2 收紧来源），或注册一个独立 `ak.profile.morph.<kind>.v1` profile 承载 state-machine 表，并由 reducer 按 §4.0 第 5 行"状态机 transition 合法性"读取。同名容器 schema `ak.schema.morph.v1` MUST NOT 被列入 `schema_refs[]` 当作业务 schema：容器 schema 不验证 `fields.*` 业务字段，二者职责不可混用。
+> **示例规则**：顶层 `schema` 必须是容器 self-schema `ak.schema.morph.v1`，它仅定义 Morph 容器形态；`schema_refs[]` 是 §4 顺序 1 的结构验证真源，必须列出**业务字段** schema id——上例使用配套的参考业务 schema [`ak.schema.morph.customer_risk.v1`](../../artifacts/schemas/morph-customer-risk.schema.json)，它声明 `fields.status` / `fields.severity` 的允许取值集合。JSON Schema 与 Realm `morph_kind_profiles` 都不定义通用 before→after 状态机；确需状态机时必须由具名具体 reducer 冻结。同名容器 schema `ak.schema.morph.v1` MUST NOT 被列入 `schema_refs[]` 当作业务 schema。
 
 Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Strand track projection 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象的主语义必须保留在对应标准类型上。
 
@@ -114,7 +114,6 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 | capability `allowed_morph_kinds` / resource selector 匹配 | §4 顺序 3 (`morph_kind` 字符串) | schema_refs, facets |
 | 默认 renderer / `query.item_facets` / `graph.node_facets` 过滤 / UI 降级 hint | §4 顺序 4 (`facets`) | schema_refs, morph_kind |
 | 是否可调用某 capability action | capability grant + Realm policy（reducer-input event 自身的 capability 校验） | morph_kind, facets, schema_refs |
-| 状态机 transition 合法性 | §4 顺序 1 + 顺序 2 声明的 transition rules | morph_kind, facets |
 | `schema_refs[]` | `ak.morph.create` 写入的固定集合 | 任何 update、facet / morph_kind 推断 |
 
 任何实现违反本表（典型错误：UI 按 `facets.assignable` 显示 assign 按钮**且**绕过 capability 检查，或 reducer 按 `morph_kind` 决定字段验证集合）即为实现 bug，conformance 套件 MUST 覆盖反例。
@@ -123,7 +122,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 | 顺序 | 来源 | 作用 | 谁可写 |
 | --- | --- | --- | --- |
-| 1 | Morph object 的 `schema_refs[]` | **结构 / 验证真源**：决定 `fields` 的 schema、必填性、类型与 transition 规则。 | Morph create（**create-locked**） |
+| 1 | Morph object 的 `schema_refs[]` | **结构 / 验证真源**：决定 `fields` 的 schema、必填性与类型。 | Morph create（**create-locked**） |
 | 2 | Realm schema `morph_kind_profiles[<morph_kind>]` | **Realm-scoped 收紧**：声明该 `morph_kind` 在本 Realm 中可暴露的 facets、可写字段子集、必需 schema_refs、必需 capability action。本层 **只能收紧** §1 声明的范围，不得放宽。 | `ak.realm.schema` state event（写入 `ak.component.realm.schema.v1` cell，与 `schema_refs` 同载；声明形态见 [governance-objects.md §2.3](./governance-objects.md)） |
 | 3 | Morph object 的 `morph_kind` (string) | **业务标签 / discoverability key**：用于 query / view / capability `allowed_morph_kinds` 匹配；不引入 reducer 行为。 | Morph create（**create-locked**，禁止后续修改） |
 | 4 | Morph object 的 `facets` (map) | **UI / projection hint**：选择默认 renderer、查询过滤、降级展示；MUST NOT 影响授权、状态机、reducer、wire 互操作。 | Morph create / `ak.morph.update` |
@@ -143,7 +142,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 ### 4.1 Schema Refs 固定规则（Normative）
 
-`morph_kind` 与 `schema_refs[]` 均在 `ak.morph.create` 时确定并 create-locked。它们共同决定字段验证、transition 与 capability selector 的稳定含义。`ak.morph.update` 的 patch 出现 `morph_kind` 或 `schema_refs` 时 MUST 以 `schema_violation` 拒绝；Realm `morph_kind_profiles` 只能收紧已声明 schema 的字段集合，不能替换或扩张它。
+`morph_kind` 与 `schema_refs[]` 均在 `ak.morph.create` 时确定并 create-locked。它们共同决定字段验证与 capability selector 的稳定含义。`ak.morph.update` 的 patch 出现 `morph_kind` 或 `schema_refs` 时 MUST 以 `schema_violation` 拒绝；Realm `morph_kind_profiles` 只能收紧已声明 schema 的字段集合，不能替换或扩张它。
 
 ## 5. 标准 Facets
 

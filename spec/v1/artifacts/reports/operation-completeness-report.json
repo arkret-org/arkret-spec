@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-25.2",
+  "version": "2026-08-26.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-25T03:20:00+08:00",
+  "generated_at": "2026-08-26T15:06:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,12 +18,12 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 258,
+    "total_operations": 260,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 248
+      "typed_schema": 250
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -38,11 +38,11 @@
         "binary_or_redirect": 2,
         "service_describe": 1,
         "streaming_frame_schema": 1,
-        "typed_schema": 170
+        "typed_schema": 171
       },
       "interop_bridge": {
         "service_describe": 1,
-        "typed_schema": 20
+        "typed_schema": 21
       }
     }
   },
@@ -75,15 +75,15 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.edge.applet.install.command.author",
+      "operation_id": "ak.edge.applet.managed_actor.command.author",
       "surface_class": "interop_bridge",
-      "http": "POST /_arkret/edge/applet/install/author",
+      "http": "POST /_arkret/edge/applet/managed-actors/author",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_request_body",
       "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/AppletInstallAuthorRequestBody",
-        "response": "#/components/schemas/AppletInstallAuthorOutcome"
+        "request": "#/components/schemas/AppletManagedActorAuthorRequestBody",
+        "response": "#/components/schemas/AppletManagedActorAuthorOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1952,6 +1952,20 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
+      "operation_id": "ak.self.applet.ghost.command.preview",
+      "surface_class": "interop_bridge",
+      "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision/preview",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_request_body",
+      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/GhostPreviewRequestBody",
+        "response": "#/components/schemas/GhostPreviewOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.self.applet.ghost.command.provision",
       "surface_class": "interop_bridge",
       "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
@@ -1971,7 +1985,7 @@
       "http": "POST /_arkret/self/applets/install/preview",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
-      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/preview_outcome",
+      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/install_preview_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/AppletInstallPreviewRequestBody",
         "response": "#/components/schemas/AppletInstallPreviewOutcome"
@@ -2961,6 +2975,20 @@
       "openapi_component_refs": {
         "request": "../schemas/moderation-report.schema.json#/$defs/moderation_report_request_body",
         "response": "#/components/schemas/ModerationReportOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.moderation.read.franking_seal_observation",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/moderation/franking/seal-observation",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request",
+      "response_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request",
+        "response": "../schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -131,18 +131,14 @@
     },
     "ingress_receipt": {
       "type": "object",
-      "description": "Closed multi-proof evidence that a policy-qualified ingress received one exact Event under one exact AuthorizationLease basis and causal frontier before expiry. It proves timely ingress only, never reducer acceptance or finality.",
+      "description": "Closed six-field multi-proof evidence that a policy-qualified ingress received one exact Event under the exact companion AuthorizationLease before expiry. Lease identity, basis, full DID and authority-set policy are verified from that companion object rather than copied into this receipt. It proves timely ingress only, never reducer acceptance or finality.",
       "x-arkret-proof-context": "ak.ingress_receipt_proof.v1",
       "required": [
         "receipt_id",
         "event_digest",
-        "authorization_lease_id",
         "qualified_ingress_id",
         "received_at",
-        "ingress_basis",
         "ingress_frontier",
-        "service_id",
-        "authority_set_ref",
         "proofs"
       ],
       "properties": {
@@ -153,20 +149,12 @@
         "event_digest": {
           "$ref": "#/$defs/digest"
         },
-        "authorization_lease_id": {
-          "type": "string",
-          "pattern": "^ak:authorization_lease:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
         "qualified_ingress_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_full_id",
-          "description": "Version-qualified full DID of the ingress service at receipt issuance; it projects exactly to service_id."
+          "description": "Version-qualified full DID of the ingress service at receipt issuance; its stable service id is projected when the receipt is verified with the exact companion lease."
         },
         "received_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "ingress_basis": {
-          "$ref": "#/$defs/lease_basis_ref",
-          "description": "Exact byte-equivalent copy of the companion AuthorizationLease.basis_ref."
         },
         "ingress_frontier": {
           "type": "array",
@@ -177,12 +165,6 @@
           "maxItems": 500,
           "uniqueItems": true,
           "description": "Non-empty strictly lexicographically ordered causal frontier used for the four-way offline-ingress decision."
-        },
-        "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "authority_set_ref": {
-          "$ref": "#/$defs/authority_set_ref"
         },
         "proofs": {
           "type": "array",

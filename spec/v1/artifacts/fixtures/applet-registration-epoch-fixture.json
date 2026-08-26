@@ -128,6 +128,11 @@
       "name": "security_field_change_rotates_epoch",
       "mutation": "set derived_registration.base_url to https://other.example/cx",
       "expected": "digest_mismatch"
+    },
+    {
+      "name": "resolved_service_did_is_deactivated",
+      "mutation": "resolve the exact service_did_document method version with method status deactivated",
+      "expected": "applet_registration_epoch_evidence_deactivated"
     }
   ]
 }

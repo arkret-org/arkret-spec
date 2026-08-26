@@ -236,22 +236,12 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
 
 该最小披露闭包由 `ak.vector.moderation.evidence_package_minimal_disclosure.v1` 固化；实现 MUST 把 evidence package 的目标、加密 audience、reporter signature evidence 与禁止披露的 MLS epoch/history secrets 一并纳入校验。
 
-Canonical franking proof 结构（示例中的 digest / signature 字节以 `...` 省略）：
+Canonical franking proof 结构（示例中的 signature 字节以 `...` 省略）：
 
 ```json
 {
-  "kind": "ak.moderation.franking_proof",
-  "franking_proof_id": "ak:franking_proof:0196425b-0000-7000-8000-000000000000",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-  "routing_metadata_digest": "sha256:...",
-  "ciphertext_digest": "sha256:...",
-  "aad_digest": "sha256:...",
-  "sender_claim": {
-    "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-    "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-    "mls_group_id_digest": "sha256:..."
-  },
   "received_by": "ak:did_core:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ",
   "verification_method": "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example#franking-key-1",
   "received_at": "2026-04-30T00:00:00Z",
@@ -262,17 +252,16 @@ Canonical franking proof 结构（示例中的 digest / signature 字节以 `...
 
 **Durable Event 与 report 内嵌对象的单一合同（normative）**：[`moderation-evidence.schema.json#/$defs/franking_proof`](../../artifacts/schemas/moderation-evidence.schema.json) 同时是 `ak.moderation.franking_proof` durable Event 的完整 payload 合同，以及 report payload 内嵌 `franking_proof` 的合同；两处不得维护不同字段集。`payload.event_id` 是**被证明已接收的 encrypted Event ID**，也是 `ak.component.moderation.franking_proof.v1` ordered-log cell 的 subject；它不是承载该 proof 的外层 Event 自身 `event_id`。Proof 在接收密文时由 receiving service 生成，先于且独立于任何后续 report，因此 payload MUST NOT 携带 `report_id` 或 `target_ref`，report 与 proof 的关联由 report 内嵌该完整 proof 对象建立。
 
-当 receiving service 把 proof 发布为 `ak.moderation.franking_proof` Event 时，reducer MUST 在写 cell 前验证：envelope `realm_id == payload.realm_id`、envelope `actor_id == payload.received_by`、`payload.event_id` 指向同 Realm 内已接受的 encrypted Event、三类 digest 与该目标 Event 一致、`replay_nonce` 未在有效去重窗口内使用，且 payload `signature` 可由 `verification_method` 在 `received_at` 验证；该 method 的 controller 投影 MUST 等于 `received_by` 并在该 Realm 获授权。任一绑定不成立 MUST 按 `crypto_verifiable` admission fail closed；不得仅因 JSON Schema 通过就 append。
+当 receiving service 把 proof 发布为 `ak.moderation.franking_proof` Event 时，reducer MUST 在写 cell 前验证：envelope `realm_id == payload.realm_id`、envelope `actor_id == payload.received_by`、`payload.event_id` 指向同 Realm 内已接受且内容承诺可重算的 encrypted Event、`replay_nonce` 未在有效去重窗口内使用，且 payload `signature` 可由 `verification_method` 在 `received_at` 验证；该 method 的 controller 投影 MUST 等于 `received_by` 并在该 Realm 获授权。任一绑定不成立 MUST 按 `crypto_verifiable` admission fail closed；不得仅因 JSON Schema 通过就 append。
 
 规则：
 
-- `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、verification method、接收时间与 `replay_nonce` 之上生成。其中 canonical event routing metadata 的覆盖在 wire 上由必填字段 `routing_metadata_digest` 承载（见 [`moderation-evidence.schema.json`](../../artifacts/schemas/moderation-evidence.schema.json) `franking_proof.required`），验证方 MUST 据此核验该覆盖。
-- 对 `encrypted-envelope.schema.json` 承载的 v1 消息，`franking_proof.ciphertext_digest` 的取值 MUST 等于被举报 `encrypted_content.payload_digest`：即 `sha256(canonical_json(payload_metadata) || base64url_decode(ciphertext))`（见 [`encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md)）。实现 MUST NOT 接受或生成旧式嵌套 `digests.ciphertext` / `ciphertext_digest` envelope 字段。
+- 唯一签名字节是 `RFC8785_JCS({domain:"ak.franking_proof.signature.v1",realm_id,event_id,received_by,verification_method,received_at,replay_nonce})`。该 locally anchored detached signature domain 登记在 `proof-context-registry.json#domain_separations`；不得添加另一个 digest、proof id、kind 或 sender claim 镜像。
+- `event_id` 是目标 Event producer-signed canonical content projection 的唯一承诺。Verifier 必须取得目标 accepted Event、按该 Realm 的 digest suite 重算 Event ID 并逐字比较，同时走普通 Event admission 路径验证 envelope proof、actor、Realm 与 routing binding。Franking proof 不复制任何可从目标 Event 投影出的 digest 或 sender 元数据，也不因自身存在而获得 MLS secret 或 AEAD 验证权限。
 - `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash。
-- **群拓扑 / 时序元数据最小披露（normative）**：`sender_claim` MUST NOT 携带 raw `mls_group_id` 或明文 `epoch`。前者是群组身份、后者是 epoch 进度，均为元数据侧信道，向可能非该 E2EE 群成员的 moderator 披露会泄露群存在性与活跃 epoch 进度。需要把 sender claim 绑定到具体群上下文时，`mls_group_id` MUST 以不可逆 digest 形式（`mls_group_id_digest`，与 `routing_metadata_digest` 一致的 keyed/salted 或 plain digest 约定）出现；`epoch` MUST NOT 以明文整数出现于 `franking_proof`。
 - **`received_by` / `received_at` 向非群成员 moderator 最小化（normative）**：Canonical `franking_proof` 必须保留被签名的 receiving service DID 与精确接收时间，分别按 schema 的 DID / timestamp 形态承载，否则无法执行 service-key authority 与签名时点校验；实现 MUST NOT 把 DID digest 填入 canonical `received_by`，也 MUST NOT 把 bucket 值冒充 canonical `received_at`。由于这两项会暴露 Principal Server 拓扑与秒级活动 timing，完整 proof payload 只允许在持有对应治理 capability 的验证路径内解密/读取。普通 reporter 或不具该能力的非群 moderator只能取得**非 proof 的最小化投影**：`received_by` MAY 投影为 service DID digest 或“某授权投递服务”布尔证明，`received_at` SHOULD bucket 化；该投影 MUST 标记为不可直接验签，MUST NOT 重新提交为 `ModerationReport.franking_proof` 或 `ak.moderation.franking_proof` payload。Raw Event API、backfill 与 federation 对无权 caller / peer MUST 隐去完整 payload，只可返回 payload digest / redacted stub。§3.4.1 的精确校验只发生在授权验证路径内。
 - `franking_proof` 只证明服务接收过对应密文事件；它不证明 reporter 提交的明文与密文一致，也不证明 sender 在群外不可抵赖地 authored 该明文。
-- Moderator 验证时 MUST 检查 reporter 可见性、目标消息 accepted state、encrypted envelope digest、franking service signature、AAD / ciphertext digest 和 evidence package 签名。
+- Moderator 验证时 MUST 检查 reporter 可见性、目标消息 accepted state 与内容承诺、franking service signature、durable proof Event/Seal observation 和 evidence package 签名。具备独立 MLS/治理密钥权限时 MAY 在另一证据路径验证 AEAD/AAD；该结果不写回 franking proof。
 - 若任一环节缺失，moderator MAY 把材料作为人工线索，但 MUST NOT 将 `franking_proof` 视为可验证投递证明。
 
 #### 3.4.1 不存在治理密钥释放
@@ -287,8 +276,8 @@ Franking 信任链：
 2. 解析该 DID Document，要求 signed `verification_method` 的 controller 投影等于 `received_by`，并验证该 method 在 `received_at` 时有效且未撤销。
 3. 验证该 service DID 在目标 Realm 的 policy / service binding 中被授权为 Sync、Federation、MIMI facade 或 moderation ingestion 服务。
 4. 验证 DID service endpoint、HTTP Message Signature / federation binding 与实际接收服务一致，防止把其他服务签名重放到本 Realm。
-5. 验证 `franking_proof` payload hash 覆盖 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、received time 和 replay nonce。
-6. **`received_at` 时序新鲜度（normative）**：本步使用的是验证路径内的**精确** `received_at`（即持有治理 capability 的释放/验证路径所见的精确值，见 §3.4 末段），**不是**向非群 moderator 展示的 bucket 化值；§3.4 的 bucket 化只面向展示层最小化，不削弱此处的时序校验精度。`received_at` 由 receiving service 自填，本身无外部时间锚；被攻陷服务可回填一个 key 仍有效的 `received_at`，让已撤销 key 的旧签名"看似有效"。因此验证方 MUST 执行下列其一：(a) 用一个可独立校验的时间锚（如 seal frontier / HLC，或绑定该 proof 的外部时间见证）约束 `received_at`；或 (b) 若 `received_at` 早于第 2 步 verification method 最近一次 rotation / 撤销且无独立时间见证，MUST 把该 franking proof 视为**不可验证投递证明**（与 §3.1.1 去重窗口外 nonce 复用按"不可验证"降级一致），不得仅凭 `received_at` 落在 key 有效期内即采信。
+5. 按上述唯一 JCS transcript 验证签名，并对 `replay_nonce` 执行有界跨举报去重。
+6. 取得 byte-identical payload 的 accepted `ak.moderation.franking_proof` durable Event，以及首次覆盖该 proof Event digest 的可验证 Seal observation；必须满足 `proof.received_at <= proof_event.created_at <= covering_seal.sealed_at`。该 observation 通过 franking profile 的权限受控 data-plane Seal observation surface 返回完整 Seal、`data_event_set_root` inclusion proof 及验证历史 service rotation/revocation 所需的 predecessor evidence；本地数据库命中或自报布尔值不构成证明。缺任一材料时 proof 只能降级为不可验证投递证明。
 
 ## 4. 用户屏蔽 (Ignore/Block)
 

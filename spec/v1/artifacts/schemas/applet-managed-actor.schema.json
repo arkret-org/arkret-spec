@@ -4,6 +4,26 @@
   "title": "Arkret Applet-managed Actor Provision",
   "$ref": "#/$defs/applet_managed_actor_provision_payload",
   "$defs": {
+    "ghost_external_tuple": {
+      "type": "object",
+      "required": ["protocol", "instance_id", "external_id"],
+      "properties": {
+        "protocol": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$" },
+        "instance_id": {
+          "allOf": [
+            { "$ref": "./account-operations.schema.json#/$defs/non_empty_string" },
+            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+          ]
+        },
+        "external_id": {
+          "allOf": [
+            { "$ref": "./account-operations.schema.json#/$defs/non_empty_string" },
+            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "applet_managed_actor_provision_payload": {
       "type": "object",
       "description": "Immutable service-authored authority for one Applet-managed Bot or Ghost principal. It precedes and is cross-bound to the principal's applet_managed_control PCR genesis; it is not the actor's mutable resolution head.",
@@ -57,7 +77,7 @@
           "$ref": "./agent-operations.schema.json#/$defs/grant_id"
         },
         "external_ref": {
-          "$ref": "./applet-ghost-operations.schema.json#/$defs/ghost_external_tuple"
+          "$ref": "#/$defs/ghost_external_tuple"
         }
       },
       "allOf": [

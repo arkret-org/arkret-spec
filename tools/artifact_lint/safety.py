@@ -997,7 +997,8 @@ def check_applet_install_epoch_evidence_carrier(lint: Lint) -> None:
 
     for definition_name in (
         "applet_install_preview_request_body",
-        "applet_install_request_body",
+        "applet_install_first_request_body",
+        "applet_install_reuse_request_body",
     ):
         request = definitions.get(definition_name)
         properties = request.get("properties") if isinstance(request, dict) else None
@@ -1014,6 +1015,13 @@ def check_applet_install_epoch_evidence_carrier(lint: Lint) -> None:
             "bot_pcr_genesis_event",
             "bot_accountability_grant_event",
             "bot_profile_event",
+            "ghost_actor_provision_event",
+            "ghost_pcr_genesis_event",
+            "ghost_accountability_grant_event",
+            "ghost_profile_event",
+            "authoring_request_id",
+            "requested_at",
+            "requested_expires_at",
         }
         mirrored = sorted(forbidden.intersection(properties))
         if mirrored:
@@ -1022,15 +1030,34 @@ def check_applet_install_epoch_evidence_carrier(lint: Lint) -> None:
                 f"{definition_name} must not mirror authoring carriers: {mirrored}",
             )
 
-    basis_properties = json_pointer_get(authoring, "/$defs/authoring_request_basis/properties")
+    basis_properties = json_pointer_get(authoring, "/$defs/install_authoring_request_basis/properties")
     if not isinstance(basis_properties, dict):
-        lint.fail(authoring_path, "authoring_request_basis properties must be an object")
+        lint.fail(authoring_path, "install_authoring_request_basis properties must be an object")
     else:
         if "registration_epoch_evidence" in basis_properties:
-            lint.fail(authoring_path, "authoring_request_basis must not mirror registration evidence")
+            lint.fail(authoring_path, "install_authoring_request_basis must not mirror registration evidence")
+        for forbidden_time in ("requested_at", "requested_expires_at"):
+            if forbidden_time in basis_properties:
+                lint.fail(authoring_path, f"install_authoring_request_basis retains {forbidden_time}")
         for event_field in ("registration_event", "capability_grant_events"):
             if event_field not in basis_properties:
-                lint.fail(authoring_path, f"authoring_request_basis must uniquely carry {event_field}")
+                lint.fail(authoring_path, f"install_authoring_request_basis must uniquely carry {event_field}")
+
+    if "authoring_request_id" in json.dumps(authoring, sort_keys=True):
+        lint.fail(authoring_path, "derived authoring_request_id must not exist")
+
+    bundle_required = json_pointer_get(authoring, "/$defs/managed_actor_bundle/required")
+    expected_bundle_required = [
+        "schema",
+        "authoring_request_digest",
+        "managed_actor_provision_event",
+        "pcr_genesis_event",
+        "accountability_grant_event",
+        "profile_event",
+        "proof",
+    ]
+    if bundle_required != expected_bundle_required:
+        lint.fail(authoring_path, "managed_actor_bundle must use the exact role-neutral field set")
 
 
 

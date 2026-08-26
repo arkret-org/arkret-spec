@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-18",
+  "version": "2026-08-26",
   "source_of_truth": true,
   "applies_to": "ak:morph:",
   "describes": "Canonical merge precedence for the four declaration sources that can contribute to 'what a Morph is and what it allows'. Mirrors morph.md §4. Reducers, capability checks, query/projection paths, and conformance tests MUST follow this table.",
@@ -9,14 +9,13 @@
       "source": "morph.schema_refs[]",
       "role": "structural_truth",
       "writable_by": [
-        "ak.morph.create",
-        "ak.morph.update"
+        "ak.morph.create"
       ],
       "consumed_by": [
         "reducer.field_validation",
         "schema.lint"
       ],
-      "notes": "Declares the field set, types, requiredness, transition rules. Always read for field validation."
+      "notes": "Declares the field set, types and requiredness. It is create-locked. Generic transition rules are not inferred from JSON Schema."
     },
     {
       "order": 2,

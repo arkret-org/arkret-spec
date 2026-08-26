@@ -1068,6 +1068,15 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
             if not isinstance(row.get("plaintext_schema"), str) or not row["plaintext_schema"]:
                 lint.fail(path, f"{label} principal_server_cas requires plaintext_schema")
 
+        encrypted_value_schema = row.get("encrypted_value_schema")
+        if encrypted_value_schema is not None:
+            if row.get("storage") not in {"encrypted_account_data", "encrypted_account_data_or_local"}:
+                lint.fail(path, f"{label}.encrypted_value_schema requires encrypted storage")
+            if not isinstance(encrypted_value_schema, str) or not encrypted_value_schema.startswith("schemas/"):
+                lint.fail(path, f"{label}.encrypted_value_schema must name an artifacts schemas/ file")
+            elif not (ARTIFACTS / encrypted_value_schema).is_file():
+                lint.fail(path, f"{label}.encrypted_value_schema does not exist: {encrypted_value_schema}")
+
         source_refs = row.get("source_refs")
         if not isinstance(source_refs, list) or not source_refs:
             lint.fail(path, f"{label}.source_refs must be a non-empty array")

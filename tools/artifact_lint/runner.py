@@ -36,6 +36,7 @@ from .foundation import (
 )
 
 from .schemas import (
+    check_agent_runtime_scope_registry,
     check_canonical_wire_source_closure,
     check_circle_lifecycle_basis_vector,
     check_circle_membership_enum_single_source,
@@ -48,6 +49,7 @@ from .schemas import (
     check_event_id_digest_mirror_removals,
     check_event_schema_coverage,
     check_fsm_state_reachability,
+    check_keypackage_claim_unsigned_projection,
     check_null_cell_subject_wire_form,
     check_operation_clause_registry,
     check_preimage_event_identity_commitments,
@@ -307,11 +309,16 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_canonical_wire_source_closure(lint),
             ),
             ("profile_requirements", lambda: check_profile_requirements(lint, known)),
+            ("agent_runtime_scope_registry", lambda: check_agent_runtime_scope_registry(lint, known)),
             ("sdk_conformance", lambda: check_sdk_conformance_contract(lint)),
             ("operation_clauses", lambda: check_operation_clause_registry(lint)),
             ("vector_groups", lambda: check_vector_group_requirements(lint, known)),
             ("event_schema_coverage", lambda: check_event_schema_coverage(lint, known)),
             ("event_reference_inventory", lambda: check_event_reference_inventory(lint)),
+            (
+                "keypackage_claim_unsigned_projection",
+                lambda: check_keypackage_claim_unsigned_projection(lint),
+            ),
             ("event_id_digest_mirrors", lambda: check_event_id_digest_mirror_removals(lint)),
             ("wire_scope", lambda: check_wire_schema_no_bare_scope(lint)),
             (

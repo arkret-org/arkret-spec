@@ -104,6 +104,7 @@ RFC 8785 JCS(
 - Event 被包含在 batch / operation body 中时，同时受单 Event 1 MiB 与外层 body 8 MiB 约束。
 - 服务端附加的 `unsigned` 另受单对象 16 KiB canonical JSON 上限，并计入 response body 8 MiB，但 **不** 反向改变已接受 Event 的 1 MiB 身份。16 KiB 足以承载 age、redaction reason 与有限 transport hints；更大的诊断、receipt 集合或扩展材料 MUST 使用 read model 的独立分页 / 引用字段，MUST NOT 塞进一个未签名、开放解释的旁路对象。该值是 response amplification 安全边界。
 - 1 MiB + 1 MUST 返回 `payload_too_large`，MUST NOT 因为 JSON schema 恰好也失败而返回 `schema_violation`。
+- 含 Add 的 MLS Commit producer MUST 在提交 Commit 前对同一 generation 的每个 inline `ak.mls.welcome` 候选执行本节的完整 accepted-envelope 测量；任一 Welcome 候选超限时必须先终止该 generation，不能先接受 Commit 再发现新成员无法取得可接受的 Welcome。生成式边界向量必须分别构造恰好 1 MiB 与 1 MiB + 1 的 Welcome Event，并观测超限分支未发出 Commit。
 
 **为什么 Event 仍是 1 MiB**：Event 是签名、fanout、持久化与 reducer 的原子安全边界。提高到 8/16 MiB 会同时放大验签前内存、federation fanout、DAG/backfill、reducer 单项延迟与数据库 row/transaction 突发。长正文已有 `ak.content.long_text`，大二进制已走 Blob，结构化大对象已有各自 256 KiB / Blob 边界。operation body 可以容纳多个小 Event，故 8 MiB 与单 Event 1 MiB 并不矛盾。
 

@@ -115,13 +115,9 @@ PCR-policy device recovery 不需要另一个账号服务签 replacement authori
 IngressReceipt {
   receipt_id,
   event_digest,
-  authorization_lease_id,
   qualified_ingress_id,
   received_at,
-  ingress_basis,
   ingress_frontier,
-  service_id,
-  authority_set_ref,
   proofs
 }
 ```
@@ -129,8 +125,10 @@ IngressReceipt {
 `receipt_digest = sha256(canonical_json(receipt_without_proofs))`。每个 ingress proof 必须签
 `canonical_json({context:"ak.ingress_receipt_proof.v1", payload_digest:receipt_digest,
 authority_set_ref, verification_method, created_at, domain?, audience?})`；proof `created_at` 必须逐字
-等于 `received_at`。`qualified_ingress_id` 是签收时 ingress service 的 version-qualified full DID，必须
-投影为 `service_id`，且每个 proof 的 verification method 必须由该 full DID 控制。`proofs[]` 必须按
+等于 `received_at`。`authority_set_ref` 不在 receipt body；它必须逐字取自同一 submission 携带的 exact companion
+`AuthorizationLease.authority_set_ref`，并由 proof-context transcript 作为 body 外 binding source 固定。
+`qualified_ingress_id` 是签收时 ingress service 的 version-qualified full DID；每个 proof 的 verification method
+必须由该 full DID 控制，stable service id 在验证时由它投影，不再作为 receipt 镜像字段。`proofs[]` 必须按
 verification method 严格排序、不得重复，并满足 companion lease 所绑定 authority-set policy 中选定规则的
 issuer 集合与 threshold；单 proof 只在 threshold 为 1 时成立。
 
@@ -143,15 +141,15 @@ receipt 证明“该 digest 在期限内到达一个被 policy 接受的 ingress
 reducer、已进入数据 projection、已被 peer 看见或已获 Seal finality。
 
 `received_at`只用于签收审计与lease deadline，不决定撤销因果。首次offline ingress必须携完整causal
-ingress basis：lease basis、exact Event digest、qualified ingress ID与ingress frontier。receiver按已验证的
+证据：exact companion lease、Event digest 与 ingress frontier。receiver按已验证的 lease `basis_ref` 与
 causal order执行四分判定：
 
-`ingress_basis` 必须与 companion lease 的 `basis_ref` 逐字相等；`ingress_frontier` 必须是非空、严格
+`ingress_frontier` 必须是非空、严格
 排序且无重复的 EventId 集合，并包含本 receipt 所签 Event 的 exact EventId。任何缺失、乱序、重复或
 与 Event/lease 不一致的 carrier 都在验签及 causal 判定前拒绝。
 
-1. 已知 revoke/ban frontier `≤ ingress_basis`：拒绝authoring；
-2. `ingress_basis < revoke/ban frontier`：接受历史authoring，后继Control仍按正常Lattice/Seal投影并支配
+1. 已知 revoke/ban frontier `≤ lease.basis_ref`：拒绝authoring；
+2. `lease.basis_ref < revoke/ban frontier`：接受历史authoring，后继Control仍按正常Lattice/Seal投影并支配
    current delivery/display/effect；不得追溯把已接受Event的author改成未授权；
 3. 依赖未知或frontier closure不完整：返回`dependency_pending`并backfill，不得把缺证据当终局；
 4. 依赖补齐后可证明Event与revoke/ban并发：拒绝。
@@ -184,7 +182,11 @@ EventInitialSubmission {
 
 ingress 直接验证 Event proof、scope 与当前 CBA basis；携带 lease 时还必须验证 lease。若签发 receipt，则必须把它持久化并通过
 `EventsSubmitOutcome.ingress_receipts[]` 返回。相同 Event canonical bytes 的幂等重试必须返回
-原 receipt，不得用新的 `received_at` 重签，从而延长已经固定的撤销窗口。
+原 receipt 与首次签发时的 exact companion lease，不得用新的 `received_at` 重签，从而延长已经固定的撤销窗口。
+receipt/lease 的机械配对条件恰为：同一 submission 只有这一份 companion lease、receipt `event_digest` 等于该
+submission Event canonical content digest、`project(receipt.qualified_ingress_id)` 成功且 proof method 由该 full DID
+控制，并且 receipt proof binding 的 body 外 `authority_set_ref` 等于 lease 同名字段。相同 Event bytes 若改携另一份 lease，MUST
+`duplicate_conflict`，不得返回旧 receipt、静默重新配对或重签。
 
 peer federation 使用：
 
@@ -202,6 +204,8 @@ EventFederationSubmission {
 的 issuer/threshold/transparency policy 判断离线证据是否充分。request 级 `cba_proof_bundles[]`
 只负责补齐 basis closure。任何服务都不得把这些
 传输证据复制进 Event，或因本地较晚首次见到而改写 `received_at`。
+transparency 存档、离线转发与 durable idempotency ledger 必须把 receipt 与其首次签发时的 exact companion lease
+作为一个不可拆配对保存；只保存 receipt JSON 不构成可复验的 publication evidence。
 
 `control_proposal_ack` 只允许 Control Move，且必须是
 [`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md) 的 canonical

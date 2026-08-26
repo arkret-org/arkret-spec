@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-25.2",
+  "version": "2026-08-26.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-25T03:20:00+08:00",
+  "generated_at": "2026-08-26T15:06:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -221,6 +221,17 @@
         "kind": "account_data_plaintext",
         "selector": "ak.profile.draft_sync.v1",
         "normative_ref": "zh/models/personal-productivity.md#7"
+      }
+    },
+    {
+      "schema_id": "ak.schema.dnd_schedule.v1",
+      "file": "schemas/dnd-schedule.schema.json",
+      "status": "active",
+      "description": "Closed decrypted plaintext shape and canonical recurring-time semantics for ak.dnd_schedule.",
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "ak.dnd_schedule",
+        "normative_ref": "zh/discovery/push-notifications.md#7"
       }
     },
     {
@@ -954,9 +965,21 @@
       "description": "Closed Principal Server preview, Applet authoring request, and managed-actor creation bundle DTOs for the durable co-sign handshake."
     },
     {
+      "schema_id": "ak.schema.applet_ghost_authoring_request_basis.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "fragment": "#/$defs/ghost_authoring_request_basis",
+      "status": "active",
+      "description": "Principal Server-derived Ghost basis binding the exact target server, active installation coordinates, Realm and external tuple.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Ghost preview authoring_request.basis",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
       "schema_id": "ak.schema.applet_install_authoring_request_basis.v1",
       "file": "schemas/applet-install-authoring.schema.json",
-      "fragment": "#/$defs/authoring_request_basis",
+      "fragment": "#/$defs/install_authoring_request_basis",
       "status": "active",
       "description": "Canonical unsigned basis frozen by the Principal Server preview and covered by the install authoring request signature.",
       "consumer_binding": {
@@ -966,14 +989,14 @@
       }
     },
     {
-      "schema_id": "ak.schema.applet_install_authoring_request.v1",
+      "schema_id": "ak.schema.applet_managed_actor_authoring_request.v1",
       "file": "schemas/applet-install-authoring.schema.json",
       "fragment": "#/$defs/authoring_request",
       "status": "active",
-      "description": "Principal Server-signed, expiry-bounded Applet install authoring request used by the durable co-sign handshake.",
+      "description": "Principal Server-signed, expiry-bounded install_bot or provision_ghost managed-actor authoring request.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
-        "selector": "Applet install preview and author request authoring_request",
+        "selector": "Applet install or Ghost preview and unified managed-actor author request",
         "normative_ref": "zh/extensions/applet-integration.md"
       }
     },

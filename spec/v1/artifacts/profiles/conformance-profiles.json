@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-24.1",
-  "generated_at": "2026-08-24T12:09:00+08:00",
+  "version": "2026-08-26.2",
+  "generated_at": "2026-08-26T15:03:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -290,7 +290,7 @@
           "U"
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-020",
-        "summary": "Honor Retry-After without clamping it into an earlier retry",
+        "summary": "Combine Retry-After and jittered local backoff with max; never accelerate for zero or short hints and never clamp a long hint",
         "required_evidence": [
           "vector_result",
           "config_audit"
@@ -330,6 +330,19 @@
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-023",
         "summary": "Expose orthogonal closed Event outer-shape and payload-protection types and reject invalid combinations before network submission",
+        "required_evidence": [
+          "vector_result",
+          "public_api_inventory"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-024",
+        "grades": [
+          "V",
+          "A"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-024",
+        "summary": "Consume the protocol_version bootstrap discriminator before typed service claims, route caching, capability intersection, or business traffic",
         "required_evidence": [
           "vector_result",
           "public_api_inventory"
@@ -1569,7 +1582,8 @@
         "ak.self.events.resource.get",
         "ak.self.events.read.resolve",
         "ak.self.events.read.scan",
-        "ak.self.events.read.frontier"
+        "ak.self.events.read.frontier",
+        "ak.self.seals.read.frontier"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1966,7 +1980,7 @@
         "ak.profile.mls_governance_binding.full.v1"
       ],
       "spec_ref": "spec/v1/zh/crypto-media/encryption-and-audit.md#242-cxprofilee2ee_relaxedv1降级-profile",
-      "description": "Degraded E2EE profile. Allows `mls_send_pause=\"advisory\"` (cf. §2.4.1) so that low-latency interactive scenarios (real-time AV, collaborative editing, in-game chat) do not block message send on MLS commit completion. Cost: removed members can continue decrypting a small window of subsequent messages. NOT for general chat / collaboration / compliance use. MUTUALLY EXCLUSIVE with ak.profile.mls_governance_binding.full.v1.",
+      "description": "Operation-local MLS binding interpreter for policy-derived relaxed E2EE. effective mls_send_pause=advisory selects this binding_profile; strict policy selects mls_governance_binding.full. This is not a Realm schema_refs or active-profile carrier.",
       "applies_to_roles": [
         "e2ee_space"
       ],
@@ -1988,17 +2002,16 @@
         "required": [
           "e2ee_relaxed"
         ],
-        "unsupported_optional": "Servers that do not advertise ak.feature.e2ee_relaxed.v1 MUST reject Realm create / ak.realm.policy_bundle writes that set mls_send_pause=\"advisory\" (reason: unsupported_profile / mls_send_pause_advisory_requires_e2ee_relaxed_profile). They MUST NOT silently accept the advisory string without honoring the relaxed semantics."
+        "unsupported_optional": "Servers that do not advertise ak.feature.e2ee_relaxed.v1 MUST reject ak.realm.policy_bundle writes that set mls_send_pause=\"advisory\" with unsupported_profile. They MUST NOT silently accept advisory semantics."
       },
       "downgrade_declaration_obligation": {
-        "policy_declaration_required": "Realm create or ak.realm.policy_bundle MUST explicitly declare ak.profile.e2ee_relaxed.v1 before mls_send_pause=\"advisory\" is accepted. Out-of-band deployment config, UI-only labels, or a missing governance_binding GroupContext extension MUST NOT be treated as a valid downgrade declaration.",
+        "policy_declaration_required": "The effective ak.realm.policy_bundle field mls_send_pause=\"advisory\" is the sole Realm declaration. Realm genesis/schema refs and out-of-band deployment config MUST NOT activate relaxed mode.",
         "service_describe_required": "The serving implementation MUST advertise ak.feature.e2ee_relaxed.v1 and the claimed profile in ServiceDescribe before accepting advisory writes or projecting the Realm as relaxed to a peer/facade.",
         "binding_profile_required": "Every MLS governance_binding emitted for a relaxed Realm MUST carry binding_profile=\"ak.profile.e2ee_relaxed.v1\" and the negotiated reducer_profile. Missing binding_profile, binding_profile=\"ak.profile.mls_governance_binding.full.v1\", or an unsupported profile id is a fail-closed mismatch.",
         "export_marker_required": "Sync metadata, snapshots, backups, exports, and interop mapping receipts that summarize the Realm MUST preserve e2ee_relaxed=true and relaxed_window_max_ms. Consumers that observe advisory semantics without this marker MUST assume the downgrade is undeclared and reject new old-epoch decrypt admission."
       },
       "reducer_reject_reasons": [
-        "mls_send_pause_advisory_requires_e2ee_relaxed_profile",
-        "conflicting_e2ee_profiles"
+        "e2ee_relaxed_audit_binding_conflict"
       ],
       "client_ui_requirements": {
         "banner_warning": "Realms declaring this profile MUST display a banner-level warning indicating that kick / ban is not cryptographically immediate; the warning MAY be temporarily collapsed but MUST NOT be permanently dismissable.",
@@ -2135,14 +2148,7 @@
       "inherits": [
         "ak.profile.core_event_store.v1"
       ],
-      "required_endpoints": [
-        "ak.self.events.read.describe",
-        "ak.self.events.command.submit",
-        "ak.self.events.resource.get",
-        "ak.self.events.read.resolve",
-        "ak.self.events.read.scan",
-        "ak.self.events.read.frontier"
-      ],
+      "required_endpoints": [],
       "required_event_kinds": [
         "ak.realm.create",
         "ak.member.state"
@@ -3095,8 +3101,11 @@
     "ak.profile.agent_runtime.v1": {
       "required_endpoints": [
         "ak.server.read.describe",
+        "ak.self.events.stream.subscribe",
         "ak.self.events.command.submit",
         "ak.self.events.read.scan",
+        "ak.self.events.read.frontier",
+        "ak.self.seals.read.frontier",
         "ak.self.authz.read.check",
         "ak.self.keys.keypackages.upload.create",
         "ak.self.keys.keypackages.command.consume",
@@ -3590,7 +3599,8 @@
     "ak.profile.franking.v1": {
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.account.stream.subscribe"
+        "ak.self.account.stream.subscribe",
+        "ak.self.moderation.read.franking_seal_observation"
       ],
       "required_event_kinds": [
         "ak.moderation.franking_proof",
@@ -3599,13 +3609,13 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.event.v1",
-        "ak.schema.event_payload.v1"
+        "ak.schema.event_payload.v1",
+        "ak.schema.moderation_evidence.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "frank_inclusion_proof",
         "frank_batch_endpoint"
       ],
       "feature_discovery": {

@@ -10,7 +10,8 @@
       "description": "Complete Arkret Event cryptographic identity. The suffix is the canonical unpadded Base64URL encoding of exactly 33 octets: one registered active digest-suite wire_code followed by all 32 octets of the Event digest. Regex validation is only lexical; receivers MUST decode, require 33 octets, canonical re-encode, and verify the suite code and full digest before use."
     },
     "realm_id": {
-      "$ref": "./applet-ghost-operations.schema.json#/$defs/realm_id"
+      "type": "string",
+      "pattern": "^ak:realm:[A-Za-z0-9_-]{44}$"
     },
     "circle_id": {
       "type": "string",

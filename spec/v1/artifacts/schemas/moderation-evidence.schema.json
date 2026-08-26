@@ -56,16 +56,10 @@
     },
     "franking_proof": {
       "type": "object",
-      "description": "Canonical franking proof used both inside a moderation report and as the complete payload of an ak.moderation.franking_proof durable Event. event_id names the encrypted Event whose receipt is proven; the enclosing proof Event has its own distinct Event.event_id.",
+      "description": "Canonical receiving-service receipt used both inside a moderation report and as the complete payload of an ak.moderation.franking_proof durable Event. The local signature uses domain ak.franking_proof.signature.v1 and covers every member except signature. event_id names the encrypted Event whose receipt is proven; the enclosing proof Event has its own distinct Event.event_id.",
       "required": [
-        "kind",
-        "franking_proof_id",
         "realm_id",
         "event_id",
-        "routing_metadata_digest",
-        "ciphertext_digest",
-        "aad_digest",
-        "sender_claim",
         "received_by",
         "verification_method",
         "received_at",
@@ -73,50 +67,12 @@
         "signature"
       ],
       "properties": {
-        "kind": {
-          "const": "ak.moderation.franking_proof"
-        },
-        "franking_proof_id": {
-          "type": "string",
-          "pattern": "^ak:franking_proof:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
           "description": "Event ID of the encrypted Event whose receipt is proven; not the enclosing franking-proof Event ID."
-        },
-        "routing_metadata_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Digest of canonical Event routing metadata covered by the receiving service."
-        },
-        "ciphertext_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "aad_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "sender_claim": {
-          "type": "object",
-          "required": [
-            "actor_id",
-            "device_id",
-            "mls_group_id_digest"
-          ],
-          "properties": {
-            "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            "device_id": {
-              "$ref": "./common-ids.schema.json#/$defs/device_id"
-            },
-            "mls_group_id_digest": {
-              "$ref": "#/$defs/digest",
-              "description": "Digest of the MLS group id; raw group ids and plaintext epoch values are forbidden."
-            }
-          },
-          "additionalProperties": false
         },
         "received_by": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -140,6 +96,86 @@
         }
       },
       "additionalProperties": false
+    },
+    "franking_seal_observation_request": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "proof_event_id",
+        "target_event_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "proof_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "target_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "franking_data_event_inclusion_proof": {
+      "type": "object",
+      "required": [
+        "leaf_digest",
+        "leaf_index",
+        "leaf_count",
+        "audit_path"
+      ],
+      "properties": {
+        "leaf_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "leaf_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "audit_path": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/digest"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "RFC 6962 audit path proving the proof Event digest is included in covering_seal.data_event_set_root."
+    },
+    "franking_seal_observation_outcome": {
+      "type": "object",
+      "required": [
+        "proof_event",
+        "target_event",
+        "covering_seal",
+        "data_event_inclusion_proof",
+        "service_signer_evidence"
+      ],
+      "properties": {
+        "proof_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "target_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "covering_seal": {
+          "$ref": "./seal.schema.json"
+        },
+        "data_event_inclusion_proof": {
+          "$ref": "#/$defs/franking_data_event_inclusion_proof"
+        },
+        "service_signer_evidence": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Authorization-gated, independently verifiable observation for one durable franking proof Event. The proof Event payload must equal the requested franking proof bytes and target_event must equal its payload.event_id."
     },
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"

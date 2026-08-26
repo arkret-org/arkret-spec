@@ -346,6 +346,21 @@ def _check_case_binding(
     if binding.get("context") != context:
         lint.fail(FIXTURE_PATH, f"cases[{index}].binding_object.context must be {context}")
         return None
+    external_sources = case.get("external_binding_sources")
+    if context == "ak.ingress_receipt_proof.v1":
+        expected_source = {
+            "authority_set_ref": {
+                "source": "companion_authorization_lease.authority_set_ref",
+                "value": binding.get("authority_set_ref"),
+            }
+        }
+        if external_sources != expected_source:
+            lint.fail(
+                FIXTURE_PATH,
+                f"cases[{index}] must pin authority_set_ref to the exact companion AuthorizationLease outside the receipt body",
+            )
+    elif external_sources is not None:
+        lint.fail(FIXTURE_PATH, f"cases[{index}] declares an unregistered external binding source")
     null_members = sorted(name for name, value in binding.items() if value is None)
     if null_members:
         lint.fail(

@@ -19,6 +19,7 @@
     "ak.vector.scalability.protocol_window_limits.v1",
     "ak.vector.api.request_idempotency.v1",
     "ak.vector.sdk.retry_after.v1",
+    "ak.vector.dnd.schedule_boundary_validation.v1",
     "ak.vector.sdk.pagination_has_more.v1",
     "ak.vector.encoding.confusable_check.v1",
     "ak.vector.account_data.contact_petname_binding.v1",
@@ -330,13 +331,48 @@
       "name": "retry_after",
       "vector_id": "ak.vector.sdk.retry_after.v1",
       "variants": [
+        "retry_hint_absent",
+        "retry_after_zero",
         "retry_after_shorter_than_local_backoff",
         "retry_after_longer_than_local_cap",
-        "retry_after_date"
+        "retry_after_date",
+        "retry_after_past_date"
       ],
       "expected": {
-        "earliest_retry": "not_before_server_retry_after",
-        "long_value_clamped": false
+        "formula": "max(server_hint_delay,jitter(local_backoff_delay))",
+        "zero_or_past_hint_accelerates_local_backoff": false,
+        "long_value_clamped": false,
+        "server_hint_jittered": false,
+        "local_ladder_advances_when_hint_present": true
+      }
+    },
+    {
+      "name": "dnd_schedule_boundary_validation",
+      "vector_id": "ak.vector.dnd.schedule_boundary_validation.v1",
+      "value_schema_id": "ak.schema.dnd_schedule.v1",
+      "variants": [
+        "ordinary_half_open_start_inclusive_end_exclusive",
+        "cross_midnight",
+        "explicit_all_day",
+        "dst_gap_absent_minute",
+        "dst_fold_repeated_minute",
+        "equal_endpoints_rejected",
+        "overlap_rejected",
+        "adjacency_rejected",
+        "unsorted_rejected",
+        "noncanonical_hhmm_rejected",
+        "invalid_or_alias_timezone_rejected",
+        "tzdb_mismatch_rejected",
+        "malformed_update_retains_last_valid",
+        "first_malformed_value_means_unconfigured"
+      ],
+      "expected": {
+        "interval": "[start,end)",
+        "all_day_encoding": "all_day=true,periods=[]",
+        "tzdb_version": "2025b",
+        "periods_sorted_non_overlapping_non_adjacent": true,
+        "malformed_update_replaces_last_valid": false,
+        "first_malformed_suppresses_notifications": false
       }
     },
     {

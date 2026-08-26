@@ -1,6 +1,7 @@
 {
-  "version": "2026-08-25.1",
+  "version": "2026-08-26.2",
   "source_of_truth": true,
+  "generated_at": "2026-08-26T14:10:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -170,6 +171,32 @@
       ],
       "defined_in": "zh/identity/key-management.md",
       "schema_ref": "schemas/agent-selector-claim.schema.json"
+    },
+    {
+      "context": "ak.applet_managed_actor_authoring_request_proof.v1",
+      "object_family": "applet_managed_actor_authoring_request",
+      "binding_fields": [
+        "context",
+        "payload_digest",
+        "verification_method",
+        "created_at",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/applet-schema.md",
+      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/authoring_request"
+    },
+    {
+      "context": "ak.applet_managed_actor_bundle_proof.v1",
+      "object_family": "applet_managed_actor_bundle",
+      "binding_fields": [
+        "context",
+        "payload_digest",
+        "verification_method",
+        "created_at",
+        "audience"
+      ],
+      "defined_in": "zh/extensions/applet-schema.md",
+      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
     },
     {
       "context": "ak.applet_package_proof.v1",
@@ -1582,6 +1609,22 @@
         "recipient_durable_receipt",
         "consumed_at"
       ]
+    },
+    {
+      "domain": "ak.franking_proof.signature.v1",
+      "object_family": "moderation_franking_proof",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "domain",
+        "realm_id",
+        "event_id",
+        "received_by",
+        "verification_method",
+        "received_at",
+        "replay_nonce"
+      ],
+      "defined_in": "zh/governance/content-moderation.md",
+      "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof"
     },
     {
       "domain": "ak.membership_compensation.single_use_cas.v1",

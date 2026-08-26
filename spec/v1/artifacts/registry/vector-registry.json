@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-25.4",
+  "version": "2026-08-26.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-25T21:13:28+08:00",
+  "generated_at": "2026-08-26T15:03:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3747,6 +3747,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.keypackage.exhaustion_claim_limits.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.keypackage.group_capability_floor.v1",
       "status": "active",
       "domain": "keypackage",
@@ -3754,18 +3766,6 @@
         "keypackage-lifecycle-fixture.json"
       ],
       "description": "The signed LeafNode keypackage_capabilities list exactly matches the outer KeyPackage record; the required_keypackage_capabilities GroupContext extension is enforced on Add, Update, floor changes, Join and application-profile selection, while RFC 9420 required_capabilities requires every member to support the Arkret extension codepoints.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.keypackage.exhaustion_claim_limits.v1",
-      "status": "active",
-      "domain": "keypackage",
-      "applies_to_fixtures": [
-        "keypackage-lifecycle-fixture.json"
-      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
@@ -4820,6 +4820,36 @@
       "description": "Transcript KAT for ak.agent_session_refresh_proof.v1: the Agent runtime key signs the closed refresh request digest, audience, validity window and verification method, and context substitution is rejected.",
       "covers_proof_contexts": [
         "ak.agent_session_refresh_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.applet_managed_actor_authoring_request.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.applet_managed_actor_authoring_request_proof.v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.applet_managed_actor_authoring_request_proof.v1"
+      ],
+      "applies_to_fixtures": [
+        "proof-context-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.proof_context.transcript.applet_managed_actor_bundle.v1",
+      "status": "active",
+      "domain": "proof_context",
+      "description": "Transcript KAT for ak.applet_managed_actor_bundle_proof.v1: the registered unsigned projection, canonical binding bytes, detached JWS, and cross-family context replay rejection are pinned byte-for-byte.",
+      "covers_proof_contexts": [
+        "ak.applet_managed_actor_bundle_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"
@@ -6409,6 +6439,20 @@
       ]
     },
     {
+      "vector_id": "ak.vector.dnd.schedule_boundary_validation.v1",
+      "status": "active",
+      "domain": "dnd",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "DND uses closed canonical account data, half-open recurring wall-clock periods, explicit all-day state, fixed tzdb, deterministic DST conversion, and last-valid recovery for malformed updates.",
+      "source_refs": [
+        "spec/v1/zh/discovery/push-notifications.md",
+        "spec/v1/artifacts/schemas/dnd-schedule.schema.json",
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.sdk.pagination_has_more.v1",
       "status": "active",
       "domain": "sdk",
@@ -6428,7 +6472,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "SDK honors Retry-After and never clamps a long server delay into an earlier retry.",
+      "description": "SDK computes max(server_hint_delay, jitter(local_backoff_delay)); zero, short or elapsed hints never accelerate the local ladder, and long hints are never clamped into an earlier retry.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
@@ -6523,6 +6567,19 @@
         "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json"
       ],
       "description": "Recovery A/B and SecurityRotation crash, response-loss, restart, exact/conflicting replay, staged-secret loss, terminal replay and multi-backup-kind erase ordering."
+    },
+    {
+      "vector_id": "ak.vector.service.protocol_version_bootstrap.v1",
+      "status": "active",
+      "domain": "service",
+      "applies_to_fixtures": [
+        "service-protocol-version-bootstrap-fixture.json"
+      ],
+      "description": "Describe and Applet ping consumers inspect the protocol-family bootstrap discriminator before typed v1 claims, route caching, capability intersection, or business traffic; unsupported canonical strings and malformed discriminators remain distinct failures.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json"
+      ]
     },
     {
       "vector_id": "ak.vector.service_resolution.handover_mirror.v1",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-25.1",
+  "version": "2026-08-26.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-25T03:15:00+08:00",
+  "generated_at": "2026-08-26T14:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -332,7 +332,8 @@
     {
       "surface": "moderation_reports",
       "operations": [
-        "ak.self.moderation.command.report"
+        "ak.self.moderation.command.report",
+        "ak.self.moderation.read.franking_seal_observation"
       ],
       "surface_class": "extension"
     },
@@ -394,7 +395,7 @@
         "ak.edge.applet.actor.read.resolve",
         "ak.edge.applet.realm.read.resolve",
         "ak.edge.applet.read.protocol_metadata",
-        "ak.edge.applet.install.command.author",
+        "ak.edge.applet.managed_actor.command.author",
         "ak.edge.applet.third_party_users.read.list",
         "ak.edge.applet.third_party_locations.read.list"
       ],
@@ -413,6 +414,7 @@
     {
       "surface": "applet_ghost",
       "operations": [
+        "ak.self.applet.ghost.command.preview",
         "ak.self.applet.ghost.command.provision"
       ],
       "surface_class": "interop_bridge"
@@ -2730,6 +2732,24 @@
       }
     },
     {
+      "operation_id": "ak.self.applet.ghost.command.preview",
+      "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision/preview",
+      "grpc": "SelfApplet/GhostPreview",
+      "mq": "self.applet.ghost.command.preview",
+      "notes": "The active Applet service submits only Realm, exact external tuple, and optional display input. The Principal Server derives every current registration, grant, registration-epoch, package, hosting, and time coordinate, atomically supersedes any prior uncommitted generation for the same branch subject, and returns the exact persisted signed authoring request.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_request_body",
+      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "No Event is admitted, but the Principal Server durably records the current subject generation and exact signed request before returning"
+      }
+    },
+    {
       "operation_id": "ak.self.applet.ghost.command.provision",
       "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
       "grpc": "SelfApplet/GhostProvision",
@@ -2760,18 +2780,18 @@
       "idempotency_mechanism": "none",
       "retry_safe": true,
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
-      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/preview_outcome",
+      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/install_preview_outcome",
       "durable_effect": {
         "kind": "none",
-        "rationale": "read_only_preview_despite_post_binding"
+        "rationale": "No Event is admitted, but the Principal Server atomically persists the branch-subject winner, exact unsigned payload, exact signed request, and superseded generations before returning"
       }
     },
     {
-      "operation_id": "ak.edge.applet.install.command.author",
-      "http": "POST /_arkret/edge/applet/install/author",
-      "grpc": "EdgeApplet/InstallAuthor",
-      "mq": "edge.applet.install.command.author",
-      "notes": "Applet service verifies the current target Principal Server proof and the package-bound admin Event set, then returns the exact service-authored/service-executed four-Event creation bundle. The independently held Bot key is used only after its PCR is accepted. Exact request bytes are idempotent; a reused derived authoring_request_id with changed bytes is a conflict. This operation does not admit Events to Principal Server history.",
+      "operation_id": "ak.edge.applet.managed_actor.command.author",
+      "http": "POST /_arkret/edge/applet/managed-actors/author",
+      "grpc": "EdgeApplet/ManagedActorAuthor",
+      "mq": "edge.applet.managed_actor.command.author",
+      "notes": "The Applet service consumes the one signed install_bot or provision_ghost authoring request and returns the exact role-neutral four-Event bundle. Its durable ledger is keyed by branch subject plus full signed-request digest and preserves exact request/bundle bytes, actor key handle, method history, and provision state. No derived request ID or branch-specific Event aliases exist.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "canonical_hash",
@@ -2781,7 +2801,7 @@
       "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
       "durable_effect": {
         "kind": "none",
-        "rationale": "The operation admits no Arkret Event and therefore has no registry-classified durable effect; independently, the Applet service MUST atomically persist request id/digest, exact bundle, and Bot key custody before returning, while Principal Server Event admission occurs only at install commit"
+        "rationale": "The operation admits no Arkret Event; independently, the Applet service atomically persists the subject/request-digest ledger, exact request and bundle, actor key custody, method history, and provision state before returning"
       }
     },
     {
@@ -3933,6 +3953,21 @@
         "event_kinds": [
           "ak.self.moderation.report"
         ]
+      }
+    },
+    {
+      "operation_id": "ak.self.moderation.read.franking_seal_observation",
+      "http": "POST /_arkret/self/moderation/franking/seal-observation",
+      "grpc": "SelfModeration/FrankingSealObservation",
+      "mq": "self.moderation.read.franking_seal_observation",
+      "notes": "Authorization-gated data-plane observation returning the exact durable franking proof Event, its target Event, the first covering signed Seal, an RFC 6962 inclusion path against data_event_set_root, and historical service signer evidence. It never substitutes a control-plane delta proof.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request",
+      "response_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "authorized_read_only_observation"
       }
     },
     {

@@ -627,6 +627,16 @@ cursor base64url 解码后对应 canonical JSON：
 - 客户端在 cursor 解码失败时拒绝整个协议，而不是按 opaque token 处理。
 - 服务端接受缺少 `h` 的 cursor body。
 
+### 1.11.1 Vector: Service Protocol Version Bootstrap（normative）
+
+`ak.vector.service.protocol_version_bootstrap.v1` 由
+[`service-protocol-version-bootstrap-fixture.json`](../../artifacts/fixtures/service-protocol-version-bootstrap-fixture.json)
+冻结 describe 与 Applet ping 的两段式消费顺序。Runner MUST 先从 raw JSON 读取 `protocol_version`，不得先构造
+v1 typed response 或读取任何 capability/routing 字段。精确值 `"1.0"` 才允许继续 schema 校验与 capability 交集；
+形状合法的其它字符串返回 `unsupported_protocol_version`，且观测到的路由缓存写入与后续业务请求必须均为零；
+缺失、非字符串或非 canonical `"1.0.0"` 返回 `schema_violation`。两个 carrier 必须执行同一分类，不得让 Applet
+ping 退化为普通字符串健康检查。
+
 ### 1.12 Vector: Reconstructed Encrypted Envelope AAD
 
 向量名称：
@@ -791,7 +801,7 @@ Expected：`expected_multibase` / `expected_principal_id_key` MUST byte-for-byte
 
 `ak.vector.scalability.circle_count_limit.v1` MUST 同时覆盖：（a）已有 1,000 个 active Circle 的 Realm 再提交 `ak.circle.create`；（b）已有 256 个 active MLS-backed Circle membership 的 actor 再加入一个 MLS-backed Circle。两者均 MUST 以 `failed_precondition`、`reason_code=circle_count_exceeded` 拒绝且不得改变状态。体量状态由 runner 按 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的 generator 描述构造，不要求 fixture 字面展开全部对象。
 
-`ak.vector.scalability.envelope_size_limit.v1` 只测完整 canonical accepted Event Envelope；v1 不定义 “Event/Operation envelope” 混合对象。Runner MUST 生成精确 1,048,576 bytes 的候选 accepted Event（包含全部 proof 与 reducer-stamped 字段、不含 read-view `unsigned`）作为接受边界，并生成 1,048,577 bytes 的超限输入；还必须覆盖 producer envelope 在 stamping 前未超限、加入 `effective_scope` / `actor_kind` 后变为 1,048,577 bytes 的用例。两个超限输入都 MUST 在 commit 前以 `payload_too_large` 拒绝；self/peer submit 携带 `unsigned` 必须在 reducer 前 `schema_violation`。
+`ak.vector.scalability.envelope_size_limit.v1` 只测完整 canonical accepted Event Envelope；v1 不定义 “Event/Operation envelope” 混合对象。Runner MUST 生成精确 1,048,576 bytes 的候选 accepted Event（包含全部 proof 与 reducer-stamped 字段、不含 read-view `unsigned`）作为接受边界，并生成 1,048,577 bytes 的超限输入；还必须覆盖 producer envelope 在 stamping 前未超限、加入 `effective_scope` / `actor_kind` 后变为 1,048,577 bytes 的用例。两个超限输入都 MUST 在 commit 前以 `payload_too_large` 拒绝；self/peer submit 携带 `unsigned` 必须在 reducer 前 `schema_violation`。同一 vector 还必须生成含 Add 的 Commit 所对应的 inline `ak.mls.welcome` 完整候选：恰好 1,048,576 bytes 可继续发送 Commit，1,048,577 bytes 必须在任何 Commit 网络写入和 post-Commit state 安装前终止该 generation。
 
 `ak.vector.scalability.http_header_limits.v1` MUST 至少覆盖：128-char `Idempotency-Key` 接受、129-char 拒绝；非 ASCII / 非 canonical alphabet 拒绝；HTTP header aggregate 32 KiB 接受、32 KiB + 1 byte 拒绝；超限输入不得建立 replay-cache entry、不得构造无界签名 transcript。
 
@@ -5246,21 +5256,21 @@ Expected:
 
 `vector_id`: `ak.vector.moderation.franking_roundtrip.v1`
 
-本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §3.4 的 franking 构造与验证 MUST：franking proof “MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce` 之上生成”；moderator 验证时 “MUST 检查 reporter 可见性、目标消息 accepted state、encrypted envelope digest、franking service signature、AAD / ciphertext digest 和 evidence package 签名”。
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §3.4 的七字段 franking receipt、目标 Event 内容承诺、唯一 detached-signature transcript 与 durable proof Event/Seal 时间锚。
 
 Steps：
 
 - **Case A — roundtrip 正路径**：
-  1. E2EE Realm 中 sender 发送密文消息；receiving service 按 §3.4 生成 `ak.moderation.franking_proof`（含 `routing_metadata_digest`、`ciphertext_digest`、`aad_digest`、`sender_claim`（仅 `mls_group_id_digest`，无 raw `mls_group_id` / 明文 `epoch`）、`received_by`、`verification_method`、`received_at`、`replay_nonce`、`signature`，并通过 [`moderation-evidence.schema.json`](../../artifacts/schemas/moderation-evidence.schema.json) `franking_proof` 分支）。
+  1. E2EE Realm 中 sender 发送密文消息；receiving service 按 §3.4 生成只含 `realm_id`、目标 `event_id`、`received_by`、`verification_method`、`received_at`、`replay_nonce`、`signature` 的 `ak.moderation.franking_proof` payload，并先发布为 durable proof Event。
   2. reporter 提交 `ak.self.moderation.command.report`，附加密 evidence package（加密给 `effective_scope` 对应 moderator audience）与该 `franking_proof`。
-  3. moderator 按 §3.4.1 “Franking 信任链” 步骤 1–6 验证（receiving service DID 解析、verification method 在 `received_at` 有效且未撤销、service 在目标 Realm 被授权、payload hash 覆盖完整、`received_at` 时序新鲜度）。
-- **Case B — 篡改 / 最小披露违反**：(a) `franking_proof.ciphertext_digest` 与目标 encrypted envelope digest 不一致；(b) `sender_claim` 携带 raw `mls_group_id` 或明文整数 `epoch`，或 proof 包含 plaintext body。
+  3. moderator 按 §3.4.1 “Franking 信任链”步骤 1–6 验证目标 Event ID、历史 service key/binding、唯一 JCS 签名、byte-identical durable proof Event 与首次 covering Seal 的 inclusion/time anchor。
+- **Case B — 篡改 / 旧字段违反**：(a) target Event bytes 或 `event_id`、Realm、service、received time/replay nonce 任一被篡改；(b) proof 携带已删除的 digest、sender claim、proof id、payload kind 或 plaintext body。
 
 Expected：
 
 - **Case A**：全部校验通过后，moderator MAY 把 `franking_proof` 视为可验证投递证明；evidence package MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料；举报 MUST NOT 触发任何治理密钥释放（§3.4.1：MUST NOT 把 `ak.self.moderation.command.report` 自动升级为 `ak.audit.session.request`）。
-- **Case B(a)**：任一 digest 环节不符时，moderator MAY 把材料作为人工线索，但 MUST NOT 将该 `franking_proof` 视为可验证投递证明。
-- **Case B(b)**：schema / receiver MUST 拒绝携带 raw `mls_group_id`、明文 `epoch` 或 plaintext body 的 `franking_proof`（§3.4 最小披露 MUST NOT 条款）。
+- **Case B(a)**：任一 Event commitment、签名、historical binding、nonce 或 Seal observation 环节不符时，moderator MAY 把材料作为人工线索，但 MUST NOT 将该 `franking_proof` 视为可验证投递证明。
+- **Case B(b)**：closed schema / receiver MUST 拒绝全部已删除字段与 plaintext body。
 
 ### 15.1.1 Vector: Moderation Evidence Package Minimal Disclosure
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 25,
+  "version": 26,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -271,18 +271,6 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ak:device_message:",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
-    },
-    {
-      "id": "ak:frank:",
-      "context": "typed_id_prefix",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "ak:franking_proof:",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -1440,18 +1428,6 @@
         "negative_test"
       ],
       "notes": "Moderation report proof object uses franking_proof."
-    },
-    {
-      "id": "frank_id",
-      "context": "moderation_franking_proof_payload",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "franking_proof_id",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Moderation franking proof id uses the full noun."
     },
     {
       "id": "frank_only",

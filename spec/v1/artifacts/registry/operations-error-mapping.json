@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-25.3",
+  "version": "2026-08-26.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-25T21:26:01+08:00",
+  "generated_at": "2026-08-26T14:10:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection.",
@@ -20,9 +20,10 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.edge.applet.install.command.author",
-      "http_alias": "POST /_arkret/edge/applet/install/author",
+      "operation_id": "ak.edge.applet.managed_actor.command.author",
+      "http_alias": "POST /_arkret/edge/applet/managed-actors/author",
       "operation_specific": [
+        "applet_registration_epoch_evidence_deactivated",
         "duplicate_conflict",
         "authoring_request_expired",
         "applet_registration_unauthorized"
@@ -326,6 +327,9 @@
         "agent_paused",
         "agent_deactivated",
         "agent_key_authorization_expired",
+        "agent_provision_scope_migration_required",
+        "agent_key_scope_reauthorization_required",
+        "agent_session_scope_refresh_required",
         "accountability_grant_missing",
         "agent_requested_scope_commitment_invalid",
         "device_unauthorized",
@@ -355,7 +359,9 @@
         "pairing_request_expired",
         "proof_invalid",
         "agent_deactivated",
-        "agent_requested_scope_commitment_invalid"
+        "agent_requested_scope_commitment_invalid",
+        "agent_provision_scope_migration_required",
+        "agent_key_scope_reauthorization_required"
       ],
       "description": "Native personal agent runtime key pairing. Admission verifies current controller/Agent authority, the pairing handle, requested-scope disclosure, proof-of-possession and accepted control frontier; backup availability is neither an input nor a gate. Pairing into an already-deactivated agent principal is terminal. Runtime replacement uses one controller-signed ak.agent.key.authorize with an exact supersedes[] set to atomically replace every prior active authorization dot and record reason=superseded_by_repairing; the service does not synthesize ak.agent.key.revoke Events."
     },
@@ -1130,7 +1136,8 @@
       "operation_specific": [
         "failed_precondition",
         "accountability_grant_missing",
-        "agent_requested_scope_commitment_invalid"
+        "agent_requested_scope_commitment_invalid",
+        "agent_provision_scope_migration_required"
       ],
       "description": "Provision a native personal Agent principal. The controller first publishes a PCR-independent managed Agent DID inception. prepare verifies its caller-supplied full_id and returns the exact accepted initial_resolution plus an allocation without generating a DID/private key or choosing a PCR id. commit accepts exactly one controller-signed ak.agent.provision Event that forward-declares the realm id derived from the locally frozen genesis create, atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance advances to awaiting_did_binding; only the controller-signed continuous DID entry 1 with the exact create-locked binding advances to complete and exposes pairing/list/get. requested_scope is a ceiling, not a grant; the service never generates Agent DID/PCR/MLS private state."
     },
@@ -1245,6 +1252,7 @@
       "operation_id": "ak.self.applet.command.install",
       "http_alias": "POST /_arkret/self/applets/install",
       "operation_specific": [
+        "applet_registration_epoch_evidence_deactivated",
         "duplicate_conflict",
         "applet_install_plan_mismatch",
         "applet_registration_unauthorized"
@@ -1263,6 +1271,15 @@
       "description": "Applet revoke validates caller-signed revoke/member submissions against a fresh plan, then resumes a durable event/external/local saga; the first accepted revoke fences future writes."
     },
     {
+      "operation_id": "ak.self.applet.ghost.command.preview",
+      "http_alias": "POST /_arkret/self/applets/{applet_id}/ghosts/provision/preview",
+      "operation_specific": [
+        "applet_registration_epoch_evidence_deactivated",
+        "applet_registration_unauthorized"
+      ],
+      "description": "The active Applet service supplies only the requested Realm, exact external tuple and optional display name. The Principal Server derives all current installation coordinates and fails closed if the pinned registration epoch is deactivated or the Realm is outside current authorization."
+    },
+    {
       "operation_id": "ak.self.applet.ghost.command.provision",
       "http_alias": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
       "operation_specific": [
@@ -1275,6 +1292,7 @@
       "operation_id": "ak.self.applet.install.command.preview",
       "http_alias": "POST /_arkret/self/applets/install/preview",
       "operation_specific": [
+        "applet_registration_epoch_evidence_deactivated",
         "applet_registration_unauthorized"
       ],
       "description": "Applet install preview validates controller proof, package schema, DID/key binding, namespace conflicts, requested capability actions, and Realm/Circle policy before returning an InstallPlan."
@@ -1901,6 +1919,14 @@
         "duplicate_conflict"
       ],
       "description": "not_found is the single anti-oracle result for an absent target, a target not visible to the reporter, or any declared Realm/effective-scope mismatch. evidence_recipient_mismatch rejects a canonical evidence package whose recipient_public_key_ref and encrypted_to differ or whose key is not authorized for the exact target scope. Exact replay of one accepted report Event returns the stored submitted outcome; reuse of the same Event identity with different canonical bytes returns duplicate_conflict and appends neither a report log entry nor a queue item."
+    },
+    {
+      "operation_id": "ak.self.moderation.read.franking_seal_observation",
+      "http_alias": "POST /_arkret/self/moderation/franking/seal-observation",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "not_found is the single anti-oracle result when either Event is absent, not visible to the caller, not in the requested Realm, or when the proof Event does not bind the requested target Event."
     },
     {
       "operation_id": "ak.self.morph.read.list",

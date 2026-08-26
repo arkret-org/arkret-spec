@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10200,
-    "total_schema_documents": 167,
+    "total_properties": 10221,
+    "total_schema_documents": 168,
     "by_presence_class": {
-      "optional": 2795,
+      "optional": 2798,
       "optional_defaulted": 68,
-      "required": 6988,
-      "required_nullable": 139,
+      "required": 7007,
+      "required_nullable": 138,
       "tristate": 210
     },
     "tristate_occurrences": 210,
@@ -53,7 +53,6 @@
     "agent-signer-evidence.schema.json/$defs/agent_lifecycle_witness/allOf/1/if/properties/provenance",
     "agent-signer-evidence.schema.json/$defs/agent_lifecycle_witness/allOf/2/if/properties/provenance",
     "agent-signer-evidence.schema.json/$defs/agent_lifecycle_witness/allOf/3/if/properties/provenance",
-    "applet-ghost-operations.schema.json/$defs/ghost_actor_provision_request_body/properties/pcr_genesis_event/allOf/1/properties/payload/properties/object",
     "applet-install-plan.schema.json/$defs/widget_effect/properties/policy_event_ref",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/0/properties/method_version_evidence",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/1/properties/method_version_evidence",
@@ -79,6 +78,7 @@
     "device-message.schema.json/allOf/7/then/properties/content",
     "device-message.schema.json/allOf/8/then/properties/content",
     "device-message.schema.json/allOf/9/then/properties/content",
+    "dnd-schedule.schema.json/$defs/schedule/allOf/0/then/properties/periods",
     "erasure-receipt.schema.json/properties/legal_hold_ref",
     "erasure-verification-stub.schema.json/properties/legal_hold_ref",
     "event-envelope.schema.json/$defs/predicate/properties/value",
@@ -329,16 +329,6 @@
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
-      "schema_file": "applet-ghost-operations.schema.json",
-      "shape": "/$defs/ghost_actor_provision_request_body",
-      "instance_path": "/pcr_genesis_event/payload/object",
-      "occurrences": [
-        "/$defs/ghost_actor_provision_request_body/properties/pcr_genesis_event/allOf/1/properties/payload/properties/object"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
       "schema_file": "applet-install-plan.schema.json",
       "shape": "/$defs/widget_effect",
       "instance_path": "/policy_event_ref",
@@ -467,6 +457,16 @@
         "/allOf/7/then/properties/content",
         "/allOf/8/then/properties/content",
         "/allOf/9/then/properties/content"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "dnd-schedule.schema.json",
+      "shape": "/$defs/schedule",
+      "instance_path": "/periods",
+      "occurrences": [
+        "/$defs/schedule/allOf/0/then/properties/periods"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -3244,35 +3244,16 @@
         "/$defs/ghost_actor_provision_outcome/properties/managed_actor_provision_ref": "required",
         "/$defs/ghost_actor_provision_outcome/properties/principal_control_realm_id": "required",
         "/$defs/ghost_actor_provision_outcome/properties/profile_event_ref": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/accountability_grant_event": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/accountability_grant_event/allOf/1/properties/kind": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/actor_principal_server_id": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/applet_id": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/display_name": "optional",
-        "/$defs/ghost_actor_provision_request_body/properties/external_ref": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/ghost_actor_id": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/managed_actor_provision_event": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/managed_actor_provision_event/allOf/1/properties/kind": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/pcr_genesis_event": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/pcr_genesis_event/allOf/1/properties/kind": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/pcr_genesis_event/allOf/1/properties/payload": "required_nullable",
-        "/$defs/ghost_actor_provision_request_body/properties/pcr_genesis_event/allOf/1/properties/payload/properties/object": "tristate",
-        "/$defs/ghost_actor_provision_request_body/properties/pcr_genesis_event/allOf/1/properties/payload/properties/object/properties/purpose": "optional",
-        "/$defs/ghost_actor_provision_request_body/properties/profile_event": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/profile_event/allOf/1/properties/kind": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/realm_id": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/schema": "required",
-        "/$defs/ghost_actor_provision_request_body/properties/service_id": "required",
-        "/$defs/ghost_external_tuple/properties/external_id": "required",
-        "/$defs/ghost_external_tuple/properties/instance_id": "required",
-        "/$defs/ghost_external_tuple/properties/protocol": "required"
+        "/$defs/ghost_actor_provision_request_body/properties/authoring_request": "required",
+        "/$defs/ghost_actor_provision_request_body/properties/managed_actor_bundle": "required"
       }
     },
     "applet-install-authoring.schema.json": {
       "schema_ids": [
         "ak.schema.applet_install_authoring.v1",
-        "ak.schema.applet_install_authoring_request.v1 -> #/$defs/authoring_request",
-        "ak.schema.applet_install_authoring_request_basis.v1 -> #/$defs/authoring_request_basis",
+        "ak.schema.applet_managed_actor_authoring_request.v1 -> #/$defs/authoring_request",
+        "ak.schema.applet_ghost_authoring_request_basis.v1 -> #/$defs/ghost_authoring_request_basis",
+        "ak.schema.applet_install_authoring_request_basis.v1 -> #/$defs/install_authoring_request_basis",
         "ak.schema.applet_managed_actor_authoring_bundle.v1 -> #/$defs/managed_actor_bundle"
       ],
       "properties": {
@@ -3284,55 +3265,75 @@
         "/$defs/approval_request/properties/widget_allowed": "required",
         "/$defs/author_outcome/properties/managed_actor_bundle": "required",
         "/$defs/author_request_body/properties/authoring_request": "required",
-        "/$defs/authoring_proof/properties/audience": "required",
-        "/$defs/authoring_proof/properties/created_at": "required",
-        "/$defs/authoring_proof/properties/domain": "required",
-        "/$defs/authoring_proof/properties/jws": "required",
-        "/$defs/authoring_proof/properties/kind": "required",
-        "/$defs/authoring_proof/properties/payload_digest": "required",
-        "/$defs/authoring_proof/properties/verification_method": "required",
-        "/$defs/authoring_request/properties/authoring_request_id": "required",
+        "/$defs/authoring_request/allOf/0/if/properties/purpose": "required",
+        "/$defs/authoring_request/allOf/0/then/properties/basis": "optional",
+        "/$defs/authoring_request/allOf/1/if/properties/purpose": "required",
+        "/$defs/authoring_request/allOf/1/then/properties/basis": "optional",
         "/$defs/authoring_request/properties/basis": "required",
         "/$defs/authoring_request/properties/expires_at": "required",
-        "/$defs/authoring_request/properties/plan_digest": "required",
+        "/$defs/authoring_request/properties/hosting_notary": "required",
+        "/$defs/authoring_request/properties/issued_at": "required",
+        "/$defs/authoring_request/properties/plan_digest": "optional",
         "/$defs/authoring_request/properties/proof": "required",
+        "/$defs/authoring_request/properties/purpose": "required",
         "/$defs/authoring_request/properties/schema": "required",
-        "/$defs/authoring_request_basis/properties/actor_policy": "optional",
-        "/$defs/authoring_request_basis/properties/applet_id": "required",
-        "/$defs/authoring_request_basis/properties/approval_request": "required",
-        "/$defs/authoring_request_basis/properties/capability_grant_events": "required",
-        "/$defs/authoring_request_basis/properties/e2ee_policy": "optional",
-        "/$defs/authoring_request_basis/properties/effective_scope": "required",
-        "/$defs/authoring_request_basis/properties/install_actor_id": "required",
-        "/$defs/authoring_request_basis/properties/package_digest": "required",
-        "/$defs/authoring_request_basis/properties/registration_event": "required",
-        "/$defs/authoring_request_basis/properties/requested_at": "required",
-        "/$defs/authoring_request_basis/properties/requested_expires_at": "required",
-        "/$defs/authoring_request_basis/properties/schema": "required",
-        "/$defs/authoring_request_basis/properties/service_id": "required",
-        "/$defs/authoring_request_basis/properties/target_principal_server_id": "required",
-        "/$defs/authoring_request_basis/properties/widget_policy": "optional",
         "/$defs/capability_grant_event/allOf/1/properties/kind": "required",
         "/$defs/e2ee_policy/properties/mls_join_allowed": "optional",
+        "/$defs/ghost_authoring_request_basis/properties/applet_id": "required",
+        "/$defs/ghost_authoring_request_basis/properties/authorization_ref": "required",
+        "/$defs/ghost_authoring_request_basis/properties/display_name": "optional",
+        "/$defs/ghost_authoring_request_basis/properties/external_ref": "required",
+        "/$defs/ghost_authoring_request_basis/properties/package_digest": "required",
+        "/$defs/ghost_authoring_request_basis/properties/purpose": "required",
+        "/$defs/ghost_authoring_request_basis/properties/realm_id": "required",
+        "/$defs/ghost_authoring_request_basis/properties/registration_epoch_evidence": "required",
+        "/$defs/ghost_authoring_request_basis/properties/registration_event_ref": "required",
+        "/$defs/ghost_authoring_request_basis/properties/schema": "required",
+        "/$defs/ghost_authoring_request_basis/properties/service_id": "required",
+        "/$defs/ghost_authoring_request_basis/properties/target_principal_server_id": "required",
+        "/$defs/ghost_external_tuple/properties/external_id": "required",
+        "/$defs/ghost_external_tuple/properties/instance_id": "required",
+        "/$defs/ghost_external_tuple/properties/protocol": "required",
+        "/$defs/ghost_preview_outcome/properties/authoring_request": "required",
+        "/$defs/ghost_preview_request_body/properties/display_name": "optional",
+        "/$defs/ghost_preview_request_body/properties/external_ref": "required",
+        "/$defs/ghost_preview_request_body/properties/realm_id": "required",
+        "/$defs/install_authoring_request_basis/properties/actor_policy": "optional",
+        "/$defs/install_authoring_request_basis/properties/applet_id": "required",
+        "/$defs/install_authoring_request_basis/properties/approval_request": "required",
+        "/$defs/install_authoring_request_basis/properties/capability_grant_events": "required",
+        "/$defs/install_authoring_request_basis/properties/e2ee_policy": "optional",
+        "/$defs/install_authoring_request_basis/properties/effective_scope": "required",
+        "/$defs/install_authoring_request_basis/properties/install_actor_id": "required",
+        "/$defs/install_authoring_request_basis/properties/package_digest": "required",
+        "/$defs/install_authoring_request_basis/properties/purpose": "required",
+        "/$defs/install_authoring_request_basis/properties/registration_event": "required",
+        "/$defs/install_authoring_request_basis/properties/schema": "required",
+        "/$defs/install_authoring_request_basis/properties/service_id": "required",
+        "/$defs/install_authoring_request_basis/properties/target_principal_server_id": "required",
+        "/$defs/install_authoring_request_basis/properties/widget_policy": "optional",
+        "/$defs/install_preview_outcome/properties/authoring_request": "required",
+        "/$defs/install_preview_outcome/properties/plan": "required",
+        "/$defs/managed_actor_bundle/properties/accountability_grant_event": "required",
+        "/$defs/managed_actor_bundle/properties/accountability_grant_event/allOf/1/properties/kind": "required",
         "/$defs/managed_actor_bundle/properties/authoring_request_digest": "required",
-        "/$defs/managed_actor_bundle/properties/bot_accountability_grant_event": "required",
-        "/$defs/managed_actor_bundle/properties/bot_accountability_grant_event/allOf/1/properties/kind": "required",
-        "/$defs/managed_actor_bundle/properties/bot_actor_provision_event": "required",
-        "/$defs/managed_actor_bundle/properties/bot_actor_provision_event/allOf/1/properties/kind": "required",
-        "/$defs/managed_actor_bundle/properties/bot_pcr_genesis_event": "required",
-        "/$defs/managed_actor_bundle/properties/bot_pcr_genesis_event/allOf/1/properties/kind": "required",
-        "/$defs/managed_actor_bundle/properties/bot_profile_event": "required",
-        "/$defs/managed_actor_bundle/properties/bot_profile_event/allOf/1/properties/kind": "required",
+        "/$defs/managed_actor_bundle/properties/managed_actor_provision_event": "required",
+        "/$defs/managed_actor_bundle/properties/managed_actor_provision_event/allOf/1/properties/kind": "required",
+        "/$defs/managed_actor_bundle/properties/pcr_genesis_event": "required",
+        "/$defs/managed_actor_bundle/properties/pcr_genesis_event/allOf/1/properties/kind": "required",
+        "/$defs/managed_actor_bundle/properties/profile_event": "required",
+        "/$defs/managed_actor_bundle/properties/profile_event/allOf/1/properties/kind": "required",
         "/$defs/managed_actor_bundle/properties/proof": "required",
         "/$defs/managed_actor_bundle/properties/schema": "required",
-        "/$defs/preview_outcome/properties/authoring_request": "required",
-        "/$defs/preview_outcome/properties/plan": "required",
         "/$defs/registration_event/allOf/1/properties/kind": "required",
         "/$defs/registration_event/allOf/1/properties/payload": "required",
         "/$defs/registration_event/allOf/1/properties/payload/properties/manifest": "required",
         "/$defs/registration_event/allOf/1/properties/payload/properties/manifest/properties/registration_epoch_evidence": "required",
         "/$defs/widget_policy/properties/widget_allowed": "optional"
-      }
+      },
+      "conditionally_required": [
+        "/$defs/authoring_request/properties/plan_digest"
+      ]
     },
     "applet-install-operations.schema.json": {
       "schema_ids": [
@@ -3343,6 +3344,9 @@
         "/$defs/applet_capability_revoke_intent/properties/grant_id": "required",
         "/$defs/applet_capability_revoke_intent/properties/reason_code": "required",
         "/$defs/applet_capability_revoke_intent/properties/registration_epoch": "required",
+        "/$defs/applet_install_first_request_body/properties/applet_package": "required",
+        "/$defs/applet_install_first_request_body/properties/authoring_request": "required",
+        "/$defs/applet_install_first_request_body/properties/managed_actor_bundle": "required",
         "/$defs/applet_install_outcome/properties/applet_id": "required",
         "/$defs/applet_install_outcome/properties/bot_actor_id": "required",
         "/$defs/applet_install_outcome/properties/bot_actor_principal_server_id": "required",
@@ -3358,9 +3362,9 @@
         "/$defs/applet_install_outcome/properties/widget_policy_ref": "required_nullable",
         "/$defs/applet_install_preview_request_body/properties/applet_package": "required",
         "/$defs/applet_install_preview_request_body/properties/authoring_request_basis": "required",
-        "/$defs/applet_install_request_body/properties/applet_package": "required",
-        "/$defs/applet_install_request_body/properties/authoring_request": "required",
-        "/$defs/applet_install_request_body/properties/managed_actor_bundle": "required",
+        "/$defs/applet_install_reuse_request_body/properties/applet_package": "required",
+        "/$defs/applet_install_reuse_request_body/properties/authoring_request": "required",
+        "/$defs/applet_install_reuse_request_body/properties/reuse_existing_managed_actor": "required",
         "/$defs/applet_membership_remove_intent/properties/event_kind": "required",
         "/$defs/applet_membership_remove_intent/properties/member_id": "required",
         "/$defs/applet_membership_remove_intent/properties/membership": "required",
@@ -3402,7 +3406,14 @@
         "/$defs/applet_revoke_step/properties/reason_code": "optional",
         "/$defs/applet_revoke_step/properties/status": "required",
         "/$defs/rejected_item/properties/reason_code": "required",
-        "/$defs/rejected_item/properties/requested_scope": "optional"
+        "/$defs/rejected_item/properties/requested_scope": "optional",
+        "/$defs/reuse_existing_managed_actor/properties/accountability_grant_ref": "required",
+        "/$defs/reuse_existing_managed_actor/properties/actor_id": "required",
+        "/$defs/reuse_existing_managed_actor/properties/actor_principal_server_id": "required",
+        "/$defs/reuse_existing_managed_actor/properties/initial_package_bot_actor_id": "required",
+        "/$defs/reuse_existing_managed_actor/properties/managed_actor_provision_ref": "required",
+        "/$defs/reuse_existing_managed_actor/properties/pcr_genesis_ref": "required",
+        "/$defs/reuse_existing_managed_actor/properties/profile_event_ref": "required"
       }
     },
     "applet-install-plan.schema.json": {
@@ -3469,7 +3480,10 @@
         "/$defs/applet_managed_actor_provision_payload/properties/method_history_evidence": "required",
         "/$defs/applet_managed_actor_provision_payload/properties/registration_ref": "required",
         "/$defs/applet_managed_actor_provision_payload/properties/schema": "required",
-        "/$defs/applet_managed_actor_provision_payload/properties/service_id": "required"
+        "/$defs/applet_managed_actor_provision_payload/properties/service_id": "required",
+        "/$defs/ghost_external_tuple/properties/external_id": "required",
+        "/$defs/ghost_external_tuple/properties/instance_id": "required",
+        "/$defs/ghost_external_tuple/properties/protocol": "required"
       },
       "conditionally_required": [
         "/$defs/applet_managed_actor_provision_payload/properties/external_ref"
@@ -5348,6 +5362,25 @@
         "/$defs/directory_resolve_realm_request_body/properties/realm_id",
         "/$defs/directory_resolve_realm_request_body/properties/signed_link"
       ]
+    },
+    "dnd-schedule.schema.json": {
+      "schema_ids": [
+        "ak.schema.dnd_schedule.v1"
+      ],
+      "properties": {
+        "/$defs/dnd_settings/properties/enabled": "required",
+        "/$defs/dnd_settings/properties/exceptions": "required",
+        "/$defs/dnd_settings/properties/schedule": "required",
+        "/$defs/period/properties/end": "required",
+        "/$defs/period/properties/start": "required",
+        "/$defs/schedule/allOf/0/if/properties/all_day": "required",
+        "/$defs/schedule/allOf/0/then/properties/periods": "tristate",
+        "/$defs/schedule/properties/all_day": "required",
+        "/$defs/schedule/properties/periods": "required",
+        "/$defs/schedule/properties/timezone": "required",
+        "/$defs/schedule/properties/tzdb_version": "required",
+        "/properties/dnd": "required"
+      }
     },
     "draft-sync.schema.json": {
       "schema_ids": [
@@ -10151,22 +10184,25 @@
         "/$defs/evidence_package/properties/recipient_public_key_ref": "required",
         "/$defs/evidence_package/properties/reporter_signature": "required",
         "/$defs/evidence_package/properties/target_refs": "required",
-        "/$defs/franking_proof/properties/aad_digest": "required",
-        "/$defs/franking_proof/properties/ciphertext_digest": "required",
+        "/$defs/franking_data_event_inclusion_proof/properties/audit_path": "required",
+        "/$defs/franking_data_event_inclusion_proof/properties/leaf_count": "required",
+        "/$defs/franking_data_event_inclusion_proof/properties/leaf_digest": "required",
+        "/$defs/franking_data_event_inclusion_proof/properties/leaf_index": "required",
         "/$defs/franking_proof/properties/event_id": "required",
-        "/$defs/franking_proof/properties/franking_proof_id": "required",
-        "/$defs/franking_proof/properties/kind": "required",
         "/$defs/franking_proof/properties/realm_id": "required",
         "/$defs/franking_proof/properties/received_at": "required",
         "/$defs/franking_proof/properties/received_by": "required",
         "/$defs/franking_proof/properties/replay_nonce": "required",
-        "/$defs/franking_proof/properties/routing_metadata_digest": "required",
-        "/$defs/franking_proof/properties/sender_claim": "required",
-        "/$defs/franking_proof/properties/sender_claim/properties/actor_id": "required",
-        "/$defs/franking_proof/properties/sender_claim/properties/device_id": "required",
-        "/$defs/franking_proof/properties/sender_claim/properties/mls_group_id_digest": "required",
         "/$defs/franking_proof/properties/signature": "required",
-        "/$defs/franking_proof/properties/verification_method": "required"
+        "/$defs/franking_proof/properties/verification_method": "required",
+        "/$defs/franking_seal_observation_outcome/properties/covering_seal": "required",
+        "/$defs/franking_seal_observation_outcome/properties/data_event_inclusion_proof": "required",
+        "/$defs/franking_seal_observation_outcome/properties/proof_event": "required",
+        "/$defs/franking_seal_observation_outcome/properties/service_signer_evidence": "required",
+        "/$defs/franking_seal_observation_outcome/properties/target_event": "required",
+        "/$defs/franking_seal_observation_request/properties/proof_event_id": "required",
+        "/$defs/franking_seal_observation_request/properties/realm_id": "required",
+        "/$defs/franking_seal_observation_request/properties/target_event_id": "required"
       }
     },
     "moderation-queue-item.schema.json": {
@@ -10352,16 +10388,12 @@
         "/$defs/authorization_lease/properties/proofs": "required",
         "/$defs/authorization_lease/properties/risk_tier": "required",
         "/$defs/authorization_lease/properties/scope_ref": "required",
-        "/$defs/ingress_receipt/properties/authority_set_ref": "required",
-        "/$defs/ingress_receipt/properties/authorization_lease_id": "required",
         "/$defs/ingress_receipt/properties/event_digest": "required",
-        "/$defs/ingress_receipt/properties/ingress_basis": "required",
         "/$defs/ingress_receipt/properties/ingress_frontier": "required",
         "/$defs/ingress_receipt/properties/proofs": "required",
         "/$defs/ingress_receipt/properties/qualified_ingress_id": "required",
         "/$defs/ingress_receipt/properties/receipt_id": "required",
-        "/$defs/ingress_receipt/properties/received_at": "required",
-        "/$defs/ingress_receipt/properties/service_id": "required"
+        "/$defs/ingress_receipt/properties/received_at": "required"
       }
     },
     "patch.schema.json": {

@@ -531,6 +531,8 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
     "enabled": true,
     "schedule": {
       "timezone": "Asia/Shanghai",
+      "tzdb_version": "2025b",
+      "all_day": false,
       "periods": [
         { "start": "22:00", "end": "08:00" }
       ]
@@ -541,6 +543,28 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 ```
 
 在静默时段内，只有 `exceptions` 列表中的规则可以触发推送。
+
+`ak.dnd_schedule` 解密后的 plaintext MUST 通过
+`dnd-schedule.schema.json`（schema id `ak.schema.dnd_schedule.v1`）及下列语义校验：
+
+- 根对象必须且只能含 `dnd`；`enabled`、`schedule`、`exceptions` 与 schedule 的四个字段均为必填，
+  consumer 不得接受省略字段、未知字段或直接把内层 `dnd` 当根对象的旧写法。
+- `timezone` MUST 是大小写精确的 canonical IANA zone name；`local`、缩写和 alias 均非法。v1 的
+  `tzdb_version` 固定为 `2025b`，producer 与 consumer 必须使用相同版本；版本不匹配按整个值非法处理，
+  不得用系统时区数据库猜测。
+- period 时间只能是零填充 `HH:MM`，表示该 timezone 下的 recurring wall-clock minute。每段采用半开
+  `[start,end)`；`start > end` 表示跨午夜，`start == end` 非法。全天静默只能写
+  `all_day=true, periods=[]`；`all_day=true` 与非空 periods 不得并存。
+- `periods` MUST 按 `start` 的分钟值严格升序，任意两段不得相交、重复或相邻；producer MUST 先合并
+  相邻/相交段后再写入。consumer 必须拒绝非 canonical 列表，不得按输入顺序覆盖或静默归一化。
+- 求值先把当前 instant 按声明的 timezone/tzdb 转为本地 wall-clock minute，再测试半开区间。DST gap
+  中不存在的分钟不触发；fold 中重复出现的分钟在两次出现时都按同一 period 结果求值。
+- 收到无法解密、schema 非法、tzdb 不匹配或语义非法的新值时，客户端 MUST 保留最近一次已经验证的值，
+  并向用户暴露可修复错误；首次读取即非法且没有历史有效值时，按“未配置 DND”求值。DND 是可用性偏好而非
+  授权边界，v1 不允许损坏数据造成无限期全局静默。
+
+`exceptions` MUST 按 code-point 升序排列且不得重复；仅与最终命中的 `rule_id` 精确相等时例外生效。
+上述正例、边界、DST 与异常恢复由 `ak.vector.dnd.schedule_boundary_validation.v1` 覆盖。
 
 ## 8. v1 互操作要求
 

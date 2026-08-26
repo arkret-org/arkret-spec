@@ -577,7 +577,13 @@ X-Arkret-Wait-For: <cursor>
 
 HTTP response MUST 同时设置 `Retry-After` header。`Retry-After` 的值按 HTTP 标准使用秒数或 HTTP date；若同时存在 `Retry-After` 与 `retry_after_ms`，客户端 MUST 优先使用 `Retry-After`。
 
-**超长 `Retry-After` 与客户端重试预算（normative）**：当 `Retry-After` 指示的等待时长超出客户端自身的重试预算 / 退避上限时，客户端 MAY 放弃该请求并向上层报告失败；但只要选择继续重试，就 MUST NOT 早于 `Retry-After` 指示的时刻重试同一请求——不得把超长 `Retry-After` 按本地退避上限截断（clamp）后提前重试。
+**服务端提示与本地退避的唯一组合（normative）**：服务端提示和客户端本地指数退避都是“不得早于”的独立
+下界。客户端选择继续重试时 MUST 使用
+`effective_delay = max(server_hint_delay, jitter(local_backoff_delay))`。0 秒提示或已经过去的 HTTP date 按
+`server_hint_delay=0` 处理，不能把本地首次至少 1,000 ms 或已经增长的退避梯子缩短为立即重试。0–20% jitter
+只施加于本地退避，先于 `max`；不得向服务端提示增加随机量。服务端提示超出本地重试预算 / 退避上限时，
+客户端 MAY 放弃并向上层报告失败；但只要继续，就不得按本地上限截短后提前重试。收到提示仍 MUST 推进本地
+退避 attempt，单个长提示不得永久抬高后续梯子的基数。
 
 规则：
 
@@ -586,7 +592,10 @@ HTTP response MUST 同时设置 `Retry-After` header。`Retry-After` 的值按 H
 - body 中的 `retry_after_ms` 用于非 HTTP binding 和精细诊断；其值 SHOULD 与 header 表达的时间一致。
 - 客户端和对端服务 MUST 对同一 actor / service DID / endpoint 组合执行指数退避，避免重试放大。
 
-缺少 `Retry-After` / `retry_after_ms` 或其它 operation-specific 恢复提示的可恢复错误，统一使用以下默认退避：首次等待至少 1,000 ms，factor=2，单次上限至少 60,000 ms，应用 0–20% jitter，且同一组合在连续 5 分钟内最多自动重试 5 次。声明 `traffic_metadata_hardened` profile 时，实际发送时刻还 MUST 受该 profile 的 `retry_cadence_padding` 约束。
+本地退避无论服务端提示是否存在都按以下默认梯子推进：首次等待至少 1,000 ms，factor=2，单次上限至少
+60,000 ms，应用 0–20% jitter，且同一组合在连续 5 分钟内最多自动重试 5 次；提示缺失时它就是唯一时间
+下界，提示存在时按上式取最大值。声明 `traffic_metadata_hardened` profile 时，实际发送时刻还 MUST 受该
+profile 的 `retry_cadence_padding` 约束。
 
 ## 10. CORS 与浏览器客户端
 

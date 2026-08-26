@@ -420,7 +420,7 @@
       "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
     "realm_id": {
-      "$ref": "./applet-ghost-operations.schema.json#/$defs/realm_id"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"

@@ -3820,25 +3820,18 @@
       }
     },
     {
-      "name": "ingress_receipt_ten_field_multi_proof_valid",
+      "name": "ingress_receipt_six_field_multi_proof_valid",
       "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt",
       "expect_valid": true,
       "instance": {
         "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
         "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
-        "authorization_lease_id": "ak:authorization_lease:019c0000-0000-7000-8000-000000000014",
         "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
         "received_at": "2026-08-24T08:14:00.000Z",
-        "ingress_basis": "ak:seal:sha256:1515151515151515151515151515151515151515151515151515151515151515",
         "ingress_frontier": [
           "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "ak:event:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
         ],
-        "service_id": "ak:did_core:webvh:z6mkfixture:ingress.example",
-        "authority_set_ref": {
-          "authority_set_id": "ak.authority_set.realm_admission.v1",
-          "authority_set_digest": "sha256:1616161616161616161616161616161616161616161616161616161616161616"
-        },
         "proofs": [
           {
             "kind": "detached_jws",
@@ -3865,16 +3858,9 @@
       "instance": {
         "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
         "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
-        "authorization_lease_id": "ak:authorization_lease:019c0000-0000-7000-8000-000000000014",
         "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
         "received_at": "2026-08-24T08:14:00.000Z",
-        "ingress_basis": "ak:seal:sha256:1515151515151515151515151515151515151515151515151515151515151515",
         "ingress_frontier": [],
-        "service_id": "ak:did_core:webvh:z6mkfixture:ingress.example",
-        "authority_set_ref": {
-          "authority_set_id": "ak.authority_set.realm_admission.v1",
-          "authority_set_digest": "sha256:1616161616161616161616161616161616161616161616161616161616161616"
-        },
         "proofs": [{"kind":"detached_jws","verification_method":"did:webvh:z6mkfixture:ingress.example#key-1","payload_digest":"sha256:1717171717171717171717171717171717171717171717171717171717171717","created_at":"2026-08-24T08:14:00.000Z","jws":"a..b"}]
       }
     },
@@ -3886,13 +3872,9 @@
       "instance": {
         "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
         "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
-        "authorization_lease_id": "ak:authorization_lease:019c0000-0000-7000-8000-000000000014",
         "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
         "received_at": "2026-08-24T08:14:00.000Z",
-        "ingress_basis": "ak:seal:sha256:1515151515151515151515151515151515151515151515151515151515151515",
         "ingress_frontier": ["ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"],
-        "service_id": "ak:did_core:webvh:z6mkfixture:ingress.example",
-        "authority_set_ref": {"authority_set_id":"ak.authority_set.realm_admission.v1","authority_set_digest":"sha256:1616161616161616161616161616161616161616161616161616161616161616"},
         "proofs": [{"kind":"detached_jws","verification_method":"did:webvh:z6mkfixture:ingress.example#key-1","payload_digest":"sha256:1717171717171717171717171717171717171717171717171717171717171717","created_at":"2026-08-24T08:14:00.000Z","jws":"a..b"}],
         "issuer": "ak:did_core:webvh:z6mkfixture:ingress.example",
         "signature": "legacy-single-signature"

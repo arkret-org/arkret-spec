@@ -69,7 +69,7 @@
         "type": "string",
         "pattern": "^(ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*[A-Za-z0-9_.:-]*)$"
       },
-      "description": "Authoritative schema set for Morph fields and transition validation. Reducers MUST validate fields against exactly these refs; morph_kind and facets are not a replacement for schema_refs."
+      "description": "Authoritative structural schema set for Morph fields. Reducers MUST validate fields against exactly these refs; morph_kind and facets are not a replacement for schema_refs. Generic before-to-after transition validation is not provided by JSON Schema."
     },
     "morph_kind": {
       "type": "string",

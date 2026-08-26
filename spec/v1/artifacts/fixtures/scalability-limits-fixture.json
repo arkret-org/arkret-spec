@@ -239,6 +239,40 @@
       }
     },
     {
+      "name": "accept_inline_mls_welcome_before_commit_at_one_mib",
+      "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
+      "input": {
+        "generator": {
+          "kind": "mls_add_welcome_event_preflight",
+          "accepted_welcome_event_bytes": 1048576,
+          "carrier": "canonical_unpadded_base64url_inline",
+          "commit_network_write_started": false
+        }
+      },
+      "expected": {
+        "decision": "continue_commit_generation",
+        "commit_network_write_allowed": true
+      }
+    },
+    {
+      "name": "reject_inline_mls_welcome_before_commit_over_one_mib",
+      "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
+      "input": {
+        "generator": {
+          "kind": "mls_add_welcome_event_preflight",
+          "accepted_welcome_event_bytes": 1048577,
+          "carrier": "canonical_unpadded_base64url_inline",
+          "commit_network_write_started": false
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "commit_network_write_started": false,
+        "post_commit_state_installed": false
+      }
+    },
+    {
       "name": "reject_event_that_crosses_limit_after_reducer_stamping",
       "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
       "input": {

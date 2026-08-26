@@ -171,29 +171,40 @@ anchor；current resolution ref 不属于这些对象。
 [`applet-install-operations.schema.json`](../../artifacts/schemas/applet-install-operations.schema.json) 与
 [`applet-install-authoring.schema.json`](../../artifacts/schemas/applet-install-authoring.schema.json)。
 
-Preview request 只含 `applet_package` 与 closed `authoring_request_basis`。basis 必须精确绑定目标 Principal
-Server、安装管理员、typed `applet_id`、Applet `service_id`、`package_digest`、effective scope、审批/策略、
-不超过五分钟的 `requested_expires_at`，并且唯一内嵌管理员签名的 `registration_event` 与
-`capability_grant_events`。registration epoch evidence 只在
+Install preview request 只含 `applet_package` 与 closed `authoring_request_basis`。install basis 固定
+`purpose=install_bot`，精确绑定目标 Principal Server、安装管理员、typed `applet_id`、Applet
+`service_id`、`package_digest`、effective scope、审批/策略，并且唯一内嵌管理员签名的
+`registration_event` 与 `capability_grant_events`。basis 不携请求时间。registration epoch evidence 只在
 `registration_event.payload.manifest.registration_epoch_evidence` 出现；preview 顶层、basis sibling、package
 及 commit 均不得镜像。
 
 Principal Server 重新验证 package、Event/evidence、当前策略和 namespace，生成 canonical `InstallPlan`，再返回
-`{plan, authoring_request}`。closed `authoring_request` 的 detached proof 覆盖 exact basis、`plan_digest`、
-目标 Applet service audience 与强制短窗 `expires_at`。`authoring_request_id` 从无 proof 的规范字节确定；
-verifier 必须重算，因此同 id 不同 bytes 是冲突，同 bytes 重试幂等。
+`{plan, authoring_request}`。Principal Server 自行取得 `issued_at`，要求
+`0 < expires_at-issued_at <= 5 minutes` 且 `proof.created_at == issued_at`。closed request 固定
+`purpose=install_bot`，携 exact basis、`plan_digest`、current `hosting_notary`、时间窗与 proof。
+`request_payload_digest` 是不含 proof 的 closed request 的 RFC 8785 SHA-256，逐字等于
+`proof.payload_digest`；`authoring_request_digest` 是完整 signed request 的 RFC 8785 SHA-256。协议不
+mint request ID。相同 subject/payload 的 preview 返回 ledger 中已保存的 exact signed bytes；异 payload 的
+新 generation 在同一事务中永久 supersede 旧未提交 generation。
 
 客户端把 exact signed request relay 到标准
-`POST /_arkret/edge/applet/install/author`（`ak.edge.applet.install.command.author`）。Applet service 必须用
+`POST /_arkret/edge/applet/managed-actors/author`
+（`ak.edge.applet.managed_actor.command.author`）。该 operation 以
+`purpose=install_bot|provision_ghost` 的 closed union 同时服务 Bot 与 Ghost；Applet service 必须用
 current trusted Principal Server service identity/key 验证 proof，并逐字校验 package/service/admin
 Event/evidence/actor/plan/expiry 绑定；不得只接受自洽历史 key。Applet service 按既有 creation admission 签
 `ak.applet.managed_actor.provision`、Bot PCR `ak.realm.create`、
 `ak.identity.accountability_grant`、`ak.profile.create` 四个 formal Events：provision/accountability 使用 service actor，
 PCR genesis/Profile 使用 service `executed_by`，不得新增预生效 Bot 直签特例。四个 Event 对象只在 closed
-`managed_actor_bundle` 出现一次；bundle 另由 Applet service 对 exact authoring request digest 与完整 Event
-集合签 aggregate proof。Applet service 必须在响应前把 request id/digest、exact bundle 与 Bot key
-custody/provision state 原子写入 durable authoring ledger；Bot 独立 key 只在 PCR accepted 后用于自签/rotation；restart 后 exact replay 返回原 bundle，同 id 异 digest
-冲突。不得从 request 确定性派生 Bot 私钥或依赖易失内存 cache。
+`managed_actor_bundle` 的 role-neutral 字段
+`managed_actor_provision_event/pcr_genesis_event/accountability_grant_event/profile_event` 出现一次；禁止
+`bot_*`、`ghost_*` alias。bundle proof 绑定完整 signed-request digest 与不含 proof 的 closed bundle。
+request/bundle proof 分别使用
+`ak.applet_managed_actor_authoring_request_proof.v1` 与
+`ak.applet_managed_actor_bundle_proof.v1`；context 是 canonical binding object 常量，不是 wire 字段。
+Applet service 必须在响应前按 branch subject 与 request digest 原子保存 exact request/bundle、actor key
+handle、method history 与 provision state。restart 后 exact replay 返回原 bytes；不得从 request 确定性派生
+私钥或依赖易失内存 cache。
 
 Commit request 只有：
 
@@ -209,6 +220,12 @@ Principal Server 从 authoring request 唯一提取管理员 Events/evidence/sco
 Applet/Bot Events，重新计算所有 digest、Event refs、plan 与权限，并在一个 durable transaction 内原子提交完整
 formal Event 集合、Applet record、namespace/managed-authority claims 与 idempotency outcome。任何失败必须零
 Event 可见；Principal Server 不得代签、重建或逐条 fan-out。
+
+同一 `(applet_id,target_principal_server_id)` 的后续 Realm/Circle install 走 closed
+`reuse_existing_managed_actor` 分支，只重验首次 accepted provision/PCR/accountability/profile anchors 并提交
+本次 registration/grant；不得再携新 bundle 或创建第二 Bot。Ghost subject 是
+`(provision_ghost,applet_id,target_principal_server_id,external_ref)`，Realm 与 package digest 均不是 identity
+维度，因此同 external tuple 跨 Realm 复用、跨 target Principal Server 独立。
 
 首次 commit 必须在 `authoring_request.expires_at` 前到达。对于已经成功的相同
 `Idempotency-Key` + exact canonical body，durable replay lookup 必须先于 expiry 检查并返回原 outcome，即使

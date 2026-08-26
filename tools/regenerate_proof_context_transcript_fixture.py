@@ -477,7 +477,12 @@ def build_case(
                 body[name] = body_value(name, properties.get(name), index, schema_file)
         if inject_binding_fields:
             for name in required_binding + present_optional:
-                if name in PROOF_SIDE_FIELDS or name in SELF_DIGEST_FIELDS or name in body:
+                if (
+                    name in PROOF_SIDE_FIELDS
+                    or name in SELF_DIGEST_FIELDS
+                    or name in body
+                    or (family == "ingress_receipt" and name == "authority_set_ref")
+                ):
                     continue
                 body[name] = body_value(name, properties.get(name), index, schema_file)
 
@@ -486,20 +491,11 @@ def build_case(
             {
                 "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
                 "event_digest": "sha256:" + "14" * 32,
-                "authorization_lease_id": (
-                    "ak:authorization_lease:019c0000-0000-7000-8000-000000000014"
-                ),
                 "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
                 "received_at": "2026-05-02T00:00:00.000Z",
-                "ingress_basis": "ak:seal:sha256:" + "15" * 32,
                 "ingress_frontier": [
                     "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 ],
-                "service_id": "ak:did_core:webvh:z6mkfixture:ingress.example",
-                "authority_set_ref": {
-                    "authority_set_id": "ak.authority_set.realm_admission.v1",
-                    "authority_set_digest": "sha256:" + "16" * 32,
-                },
             }
         )
 
@@ -514,6 +510,19 @@ def build_case(
             name for name in optional_binding if name not in present_optional
         ],
     }
+    external_binding_values: dict[str, Any] = {}
+    if family == "ingress_receipt":
+        authority_set_ref = {
+            "authority_set_id": "ak.authority_set.realm_admission.v1",
+            "authority_set_digest": "sha256:" + "16" * 32,
+        }
+        external_binding_values["authority_set_ref"] = authority_set_ref
+        case["external_binding_sources"] = {
+            "authority_set_ref": {
+                "source": "companion_authorization_lease.authority_set_ref",
+                "value": authority_set_ref,
+            }
+        }
 
     if digest_field is None:
         case["unsigned_projection"] = None
@@ -568,6 +577,8 @@ def build_case(
 
     binding: dict[str, Any] = {"context": context}
     for name in required_binding + present_optional:
+        if name == "context":
+            continue
         if name == digest_field:
             binding[name] = case["unsigned_digest"]
         elif name == "audience":
@@ -576,6 +587,8 @@ def build_case(
             binding[name] = typed_digest(f"ak.fixture.proof_context_transcript.{family}.{name}")
         elif isinstance(case.get("unsigned_object"), dict) and name in case["unsigned_object"]:
             binding[name] = case["unsigned_object"][name]
+        elif name in external_binding_values:
+            binding[name] = external_binding_values[name]
         else:
             binding[name] = body_value(name, properties.get(name), index, schema_file)
 

@@ -1984,7 +1984,7 @@
           "input": {
             "publication_branch": "receipted_fanout",
             "receipt_kind": "generic_ingress_receipt",
-            "authorization_lease_id_present": true
+            "companion_authorization_lease_present": true
           },
           "expected": {
             "outcome": "rejected",
@@ -2008,7 +2008,7 @@
               "canonicalization": "fixture_json_v1",
               "input": {
                 "receipt_kind": "generic_ingress_receipt",
-                "authorization_lease_id_present": true
+                "companion_authorization_lease_present": true
               }
             },
             "expected_state_transition": {

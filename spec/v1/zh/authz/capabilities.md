@@ -540,7 +540,7 @@ effective_expires_at = min(temporal.expires_at[]?)
 
 `discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `allowed_object_kinds=["strand"]` 和 `allowed_tracks=["discussion"]`；MUST NOT 引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Strand track 的语义/profile hint，MUST NOT 单独授予读取、发送或成员权限。
 
-Facet 只在 grant 显式包含 `allowed_facets` / `denied_facets` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍 MUST 命中 `ak.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`allowed_morph_kinds`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `ak.morph.update` 且没有字段/类型/策略拒绝，缺少 `allowed_facets=["stateful"]` 本身 MUST NOT 成为拒绝理由；若 grant 显式声明 `allowed_facets` 且目标 facets 不匹配，则 constraint 不满足。
+Facet 只在 grant 显式包含 `allowed_facets` / `denied_facets` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍 MUST 命中 `ak.morph.update` 或具体 reducer 注册的更具体 action、目标 resource selector、`allowed_morph_kinds`、字段写约束和其他有效 constraints。JSON Schema 不承载通用 before→after transition policy。若 grant 允许 `ak.morph.update` 且没有字段/类型/策略拒绝，缺少 `allowed_facets=["stateful"]` 本身 MUST NOT 成为拒绝理由；若 grant 显式声明 `allowed_facets` 且目标 facets 不匹配，则 constraint 不满足。
 
 `required_claims[]` 中每个 claim 条目 MUST 明确绑定 `issuer` 或 `trusted_issuers[]`；`subject_matches_actor` 未出现时按 `true` 求值。实现 MUST NOT 接受只有 `claim_kind` 而无发行者边界的 claim grant。
 

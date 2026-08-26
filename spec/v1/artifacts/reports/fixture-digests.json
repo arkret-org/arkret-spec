@@ -34,7 +34,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
-      "sha256": "8c0ce08811279bd4f29c06460bc7449db2176d9f09a9c9b0f61a05e01ef66fbc"
+      "sha256": "685739d603e694726a5a7ba755c467685a462220b0b5c86e3aa30751da6dd509"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json",
@@ -154,7 +154,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "5d93eba4d6f1dab529e1163ae5ecbb3fe05c09c07666af1ecc7bfd7ed4c1224b"
+      "sha256": "e1c808df869b967aeae68d75cd6c9c25b1ba12d07eae61fe1690c14d0921264c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
@@ -170,7 +170,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "aed7e0a294df001adf8dd86910daeffab34ed5a701af73468a003707b9796b60"
+      "sha256": "9b759d91f93e3fee5cc8d8eb4d6b93dad3d405bfea275a38757408c3a156ad1a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "adf5380a39475e77c3761f961ebe77f53dc9b484fdf18a5da2acb99ee5074649"
+      "sha256": "ac1fbc34be0652300283ba70e87566799d5189b88be3c192b26e9665a8a5306c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-pairwise-welcome-fixture.json",
@@ -214,7 +214,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
-      "sha256": "7fb9ece5c4f66b230cf1a621fab10e8f0a787728cea3af218310c060762bae5c"
+      "sha256": "1c2f4f0da07db76d973ebaea2df4f31faebc361bb9d87ab9764237e385024f28"
     },
     {
       "path": "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
@@ -290,11 +290,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "7cfb61d8fdbfce7a42f7a19b90a81650b924366d410f7db5a3197e11362af668"
+      "sha256": "d31719fdf0a8aa37a0297c65238568e1ba53f78e28c4a97cc90450071b8b57ee"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "7578bc75174b4b79196e379e7d40ae635bafed08e05768169c8ef4060f23f8ea"
+      "sha256": "1a68a9df423d8c9096c01890fe7343970ee329e8dadc9c11fe5d26d26d3be394"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
@@ -334,7 +334,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "f093ef67c64e7d17b02e1e20b10282c1505ef6662926e3106bf91823818e0d87"
+      "sha256": "8ede3d23c96c827412fd70a5c18a49b7eacfc39bb52949e03bfbd462cf0710c3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-definition-validator-kat.json",
@@ -342,7 +342,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "ed27ffce4ab696be9883dd939dd25afd0d8bcd0d3c39361b5d714efec3addd75"
+      "sha256": "fc3b51884fe187e9fc76c44086bb50676ccaad295202ab13afef34c4e88ddab4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -358,7 +358,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-      "sha256": "f0615b1d2733f91c9960e39bf9e8159a5618f97f2d9df6ff50e2f74755304665"
+      "sha256": "16a08d3b05556d6d15d9718ab4cbf082e154a3b80a7c608aca4214608d78bbe7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
@@ -367,6 +367,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
       "sha256": "c0b44b757c6cabc54e3429e4078e5e36b701102a71101e55287fbf3bc87a1e0d"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
+      "sha256": "eab747f2602b9a76f2fa591d39c13a60f32be227b049a19b3b1c278aad2b39c5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",

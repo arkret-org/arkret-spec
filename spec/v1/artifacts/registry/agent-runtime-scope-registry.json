@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "2026-08-26.1",
+  "kind": "agent_runtime_scope_registry",
+  "source_role": "canonical",
+  "source_of_truth": true,
+  "generated_at": "2026-08-26T12:00:00+08:00",
+  "description": "Canonical closed Personal Agent runtime operation sets shared by immutable provision scope, accepted key authorization and requested session scope.",
+  "layers": [
+    {
+      "layer": "provision",
+      "missing_reason": "agent_provision_scope_migration_required",
+      "recovery": "provision_new_agent"
+    },
+    {
+      "layer": "key_authorization",
+      "missing_reason": "agent_key_scope_reauthorization_required",
+      "recovery": "reauthorize_key_within_provision_ceiling"
+    },
+    {
+      "layer": "session",
+      "missing_reason": "agent_session_scope_refresh_required",
+      "recovery": "issue_session_within_provision_and_key_ceilings"
+    }
+  ],
+  "capability_sets": {
+    "interactive_chat": {
+      "mandatory_operations": [
+        "ak.self.events.stream.subscribe",
+        "ak.self.events.read.scan",
+        "ak.self.events.read.frontier",
+        "ak.self.seals.read.frontier",
+        "ak.self.events.command.submit"
+      ]
+    },
+    "e2ee": {
+      "mandatory_operations": [
+        "ak.self.keys.keypackages.upload.create"
+      ]
+    }
+  },
+  "feature_additions": {
+    "online_presence": [
+      "ak.self.signal.command.send"
+    ],
+    "delayed_or_offline_publish": [
+      "ak.self.authorization_leases.command.issue"
+    ]
+  },
+  "invariants": [
+    "Every selected mandatory operation MUST be present independently at all three layers.",
+    "ak.self.events.read.frontier and ak.self.seals.read.frontier are distinct and MUST NOT substitute for one another.",
+    "Recovery MUST NOT widen an upper-layer ceiling."
+  ]
+}

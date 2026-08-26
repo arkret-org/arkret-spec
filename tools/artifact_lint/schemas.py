@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+
 from .core import (
     ARTIFACTS,
     Any,
@@ -719,6 +721,60 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
             lint.fail(agent_path, f"device pair commit must retain required {retained}")
 
 
+def check_agent_runtime_scope_registry(lint: Lint, known: dict[str, set[str]]) -> None:
+    path = ARTIFACTS / "registry" / "agent-runtime-scope-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    expected_layers = {
+        "provision": "agent_provision_scope_migration_required",
+        "key_authorization": "agent_key_scope_reauthorization_required",
+        "session": "agent_session_scope_refresh_required",
+    }
+    layers = data.get("layers")
+    observed_layers = {
+        row.get("layer"): row.get("missing_reason")
+        for row in layers or []
+        if isinstance(row, dict)
+    }
+    if observed_layers != expected_layers:
+        lint.fail(path, f"layers must equal the closed three-layer migration map: {expected_layers}")
+
+    capability_sets = data.get("capability_sets") or {}
+    interactive = set((capability_sets.get("interactive_chat") or {}).get("mandatory_operations") or [])
+    e2ee = set((capability_sets.get("e2ee") or {}).get("mandatory_operations") or [])
+    expected_interactive = {
+        "ak.self.events.stream.subscribe",
+        "ak.self.events.read.scan",
+        "ak.self.events.read.frontier",
+        "ak.self.seals.read.frontier",
+        "ak.self.events.command.submit",
+    }
+    expected_e2ee = {"ak.self.keys.keypackages.upload.create"}
+    if interactive != expected_interactive:
+        lint.fail(path, f"interactive_chat mandatory operations drift: {sorted(interactive)}")
+    if e2ee != expected_e2ee:
+        lint.fail(path, f"e2ee mandatory operations drift: {sorted(e2ee)}")
+    for operation_id in sorted(interactive | e2ee):
+        if operation_id not in known["operation_ids"]:
+            lint.fail(path, f"unknown mandatory operation: {operation_id}")
+
+    profiles_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    profiles = load_json(lint, profiles_path) or {}
+    requirements = profiles.get("profile_requirements") or {}
+    core_endpoints = set((requirements.get("ak.profile.core_event_store.v1") or {}).get("required_endpoints") or [])
+    if "ak.self.seals.read.frontier" not in core_endpoints:
+        lint.fail(profiles_path, "core_event_store must require the Seal frontier operation")
+    child_endpoints = (requirements.get("ak.profile.principal_server_events_api.v1") or {}).get("required_endpoints")
+    if child_endpoints != []:
+        lint.fail(profiles_path, "principal_server_events_api must inherit the parent endpoint set without duplicating it")
+    runtime_endpoints = set((requirements.get("ak.profile.agent_runtime.v1") or {}).get("required_endpoints") or [])
+    required_runtime = interactive | expected_e2ee
+    if not required_runtime <= runtime_endpoints:
+        lint.fail(profiles_path, f"agent_runtime missing mandatory operations: {sorted(required_runtime - runtime_endpoints)}")
+
+
 def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
     path = ARTIFACTS / "profiles" / "conformance-profiles.json"
     data = load_json(lint, path)
@@ -920,6 +976,85 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
 
 
 
+def check_keypackage_claim_unsigned_projection(lint: Lint) -> None:
+    schema_path = ARTIFACTS / "schemas" / "keypackage-operations.schema.json"
+    data = load_json(lint, schema_path)
+    defs = data.get("$defs", {}) if isinstance(data, dict) else {}
+    signed = defs.get("keypackages_claim_request_body", {}) if isinstance(defs, dict) else {}
+    unsigned = defs.get("peer_keypackages_claim_unsigned_request", {}) if isinstance(defs, dict) else {}
+    if not isinstance(signed, dict) or not isinstance(unsigned, dict):
+        lint.fail(schema_path, "KeyPackage claim signed and unsigned request definitions must exist")
+        return
+
+    transport_members = {"service_binding", "requester_authorization"}
+    signed_properties = signed.get("properties", {})
+    unsigned_properties = unsigned.get("properties", {})
+    if not isinstance(signed_properties, dict) or not isinstance(unsigned_properties, dict):
+        lint.fail(schema_path, "KeyPackage claim request properties must be objects")
+        return
+    projected_properties = {
+        key: value for key, value in signed_properties.items() if key not in transport_members
+    }
+    if projected_properties != unsigned_properties:
+        lint.fail(
+            schema_path,
+            "peer_keypackages_claim_unsigned_request properties must equal the signed claim request projection with only service_binding and requester_authorization removed",
+        )
+    signed_required = [
+        key for key in signed.get("required", []) if key not in transport_members
+    ]
+    if signed_required != unsigned.get("required"):
+        lint.fail(
+            schema_path,
+            "peer_keypackages_claim_unsigned_request required[] must preserve the signed request business-member order",
+        )
+    if signed.get("allOf") != unsigned.get("allOf"):
+        lint.fail(schema_path, "KeyPackage claim signed and unsigned selector branches must be identical")
+
+    fixture_path = ARTIFACTS / "fixtures" / "keypackage-lifecycle-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    rows = fixture.get("unsigned_selector_transcripts", []) if isinstance(fixture, dict) else []
+    expected_branches = {"device", "native_agent", "minimal_metadata_pairwise"}
+    seen_branches: set[str] = set()
+    selector_fields = {
+        "target_device_ids",
+        "target_agent_id",
+        "target_agent_verification_method",
+        "target_agent_key_authorize_event_id",
+        "target_pairwise_verification_method",
+    }
+    for index, row in enumerate(rows if isinstance(rows, list) else []):
+        if not isinstance(row, dict):
+            lint.fail(fixture_path, f"unsigned_selector_transcripts[{index}] must be an object")
+            continue
+        branch = row.get("branch")
+        unsigned_request = row.get("unsigned_request")
+        if branch not in expected_branches or not isinstance(unsigned_request, dict):
+            lint.fail(fixture_path, f"unsigned_selector_transcripts[{index}] has an invalid branch or request")
+            continue
+        seen_branches.add(branch)
+        present = set(unsigned_request) & selector_fields
+        required_by_branch = {
+            "device": {"target_device_ids"},
+            "native_agent": {
+                "target_agent_id",
+                "target_agent_verification_method",
+                "target_agent_key_authorize_event_id",
+            },
+            "minimal_metadata_pairwise": {"target_pairwise_verification_method"},
+        }[branch]
+        if present != required_by_branch:
+            lint.fail(fixture_path, f"unsigned_selector_transcripts[{index}] does not preserve its exact selector branch")
+        canonical = canonical_json(unsigned_request)
+        if row.get("canonical_jcs") != canonical:
+            lint.fail(fixture_path, f"unsigned_selector_transcripts[{index}].canonical_jcs drifted")
+        digest = "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        if row.get("request_digest") != digest:
+            lint.fail(fixture_path, f"unsigned_selector_transcripts[{index}].request_digest drifted")
+    if seen_branches != expected_branches:
+        lint.fail(fixture_path, "unsigned selector transcripts must cover device, native_agent, and minimal_metadata_pairwise exactly")
+
+
 def check_sdk_conformance_contract(lint: Lint) -> None:
     path = ARTIFACTS / "profiles" / "conformance-profiles.json"
     data = load_json(lint, path)
@@ -964,9 +1099,9 @@ def check_sdk_conformance_contract(lint: Lint) -> None:
         source_anchor = clause.get("source_anchor")
         if not isinstance(source_anchor, str) or not source_anchor.startswith("spec/v1/zh/") or "#" not in source_anchor:
             lint.fail(path, f"{label}.source_anchor must reference a stable zh/ heading")
-    expected_ids = {f"AK-SDK-{index:03d}" for index in range(1, 24)}
+    expected_ids = {f"AK-SDK-{index:03d}" for index in range(1, 25)}
     if seen != expected_ids:
-        lint.fail(path, "sdk_conformance_contract must define exactly AK-SDK-001 through AK-SDK-023")
+        lint.fail(path, "sdk_conformance_contract must define exactly AK-SDK-001 through AK-SDK-024")
 
     schema_path = ARTIFACTS / "schemas" / "sdk-conformance-claim.schema.json"
     fixture_path = ARTIFACTS / "fixtures" / "sdk-conformance-claim-fixture.json"

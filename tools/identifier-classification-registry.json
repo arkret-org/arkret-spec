@@ -411,7 +411,7 @@
       "name": "external_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 3,
+      "occurrences": 4,
       "example_path": "applet-edge-operations.schema.json#/$defs/external_ref/properties/external_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
@@ -542,7 +542,7 @@
       "name": "instance_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 4,
+      "occurrences": 5,
       "example_path": "applet-edge-operations.schema.json#/$defs/external_ref/properties/instance_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
