@@ -71,7 +71,7 @@ Reducer profile 只出现在以下 canonical 位置：
 
 节点只根据明确能力集合决定可用功能：
 
-- `supported_operations[]`：可调用 operation；
+- `operation_bindings[]`：可调用 operation 的精确 carrier/request/response/error schema 组合；
 - `supported_reducer_profiles[]`：可执行 Realm reducer；
 - `supported_profiles[]`：实现、部署或产品 conformance profile；
 - `supported_features[]`：可选功能。
@@ -109,7 +109,7 @@ HTTP path 不承担协议版本语义；能力由 `GET /_arkret/describe` 和各
 | --- | --- | --- | --- | --- |
 | 传输代际 | WebSocket subprotocol `arkret.v1`；HTTP binding 不含 path 版本段，必要时用 `Arkret-Protocol-Version` 请求/响应 header 或 media-type 参数 | 连接建立 | 服务端未选择该 subprotocol 时客户端不建立该连接并回落 HTTP | [`../sync/websocket-binding.md`](../sync/websocket-binding.md)、[`../sync/api-conventions.md` §11](../sync/api-conventions.md) |
 | 协议族 | describe / ping 中的 `protocol_version` | bootstrap JSON 解析后、使用任何 v1-specific 声明前 | 不等于 `"1.0"` 时以 `unsupported_protocol_version` 将整个服务判定为不可用；不进入 capability 协商 | 本文 §1、§4，[`../sync/service-surface.md` §17](../sync/service-surface.md) |
-| 服务能力 | `*.describe` 的 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `interop_surfaces` | 首次接触与缓存失效 | 未声明即视为不支持，调用方不得据非标准 404 body 推断能力 | [`../sync/service-surface.md` §3.0](../sync/service-surface.md) |
+| 服务能力 | `*.describe` 的 `operation_bindings` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `interop_surfaces` | 首次接触与缓存失效 | 没有 exact operation carrier/schema 交集时只禁用该 operation，调用方不得据非标准 404 body 推断能力 | [`../sync/service-surface.md` §3.0](../sync/service-surface.md) |
 | describe 完整性 | 签名 `ServiceResolutionRecord` 的 `describe_digest` 反向绑定 | route 解析的二跳确认 | digest 不一致时不切换业务流量 | [`../sync/service-surface.md` §2.6](../sync/service-surface.md) |
 | 对象 shape | schema id 与带 `.vN` 的 event kind / operation carrier；schema 内闭集枚举按版本冻结 | schema validation | `schema_violation`，或算法 selector 对应的稳定 `unsupported_*` 码 | [`../conformance/schema-registry.md` §6、§6.1](../conformance/schema-registry.md) |
 | 开放注册集取值 | event kind、error code、relation kind、typed id kind、feature id 等 registry 字符串集合 | 反序列化与语义处置两段分离 | 未知值原样保留、不使整体解码失败；语义处置仍按各消费面 fail-closed 规则 | [`../conformance/schema-registry.md` §6.1(a)](../conformance/schema-registry.md) |

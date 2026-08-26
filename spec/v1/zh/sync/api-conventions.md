@@ -409,7 +409,7 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 - 未声明或未实现的路径 MUST 返回 HTTP `404` 与错误码 `unrecognized_endpoint`。
 - 已知路径但 HTTP method 不受支持时 MUST 返回 HTTP `405` 与错误码 `method_not_allowed`，并 SHOULD 设置 `Allow` header。
 - 这两类请求 MUST 在路由层终止，不得进入业务逻辑、写入队列、触发昂贵解析或产生可观察副作用。
-- 客户端和联邦对端 MUST 使用 `describe.supported_operations`、OpenAPI 文档和 feature discovery 判断 endpoint 是否可用，不得根据非标准 404 body 做能力推断。
+- 客户端和联邦对端 MUST 使用 `describe.operation_bindings` 的精确 carrier/schema 交集、OpenAPI 文档和 feature discovery 判断 endpoint 是否可用，不得根据非标准 404 body 做能力推断。
 
 ## 6. 幂等
 
@@ -625,7 +625,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 **path 不含版本段。** 所有 HTTP path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/arkret/v1`）。契约版本的唯一真相源是 `contract-registry.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ak.schema.*.v1`）和 event kind 版本后缀承载。
 
-版本与能力发现走 **`*.describe` 协商**：调用方 MUST 先精确比较 `describe.protocol_version`；与本地支持的 `"1.0"` 不等时 MUST 以 `unsupported_protocol_version` fail closed，不得解释或缓存其它声明。版本匹配后，调用方再用 `describe.supported_operations` / `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。当前尚未发布，破坏性修订直接更新 current-v1 canonical event kind、schema、profile、fixture 与 `forbidden-wire-fields`，不保留 rename alias、迁移表或双读路径。如确需在传输层标注协议版本，用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。选择支持该请求 header 或等价 media-type 参数的 binding，对不支持的形状合法版本 MUST 返回 `unsupported_protocol_version`，不得猜测或回退。
+版本与能力发现走 **`*.describe` 协商**：调用方 MUST 先精确比较 `describe.protocol_version`；与本地支持的 `"1.0"` 不等时 MUST 以 `unsupported_protocol_version` fail closed，不得解释或缓存其它声明。版本匹配后，调用方再用 `describe.operation_bindings` 的精确 carrier/schema 交集与 `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。当前尚未发布，破坏性修订直接更新 current-v1 canonical event kind、schema、profile、fixture 与 `forbidden-wire-fields`，不保留 rename alias、迁移表或双读路径。如确需在传输层标注协议版本，用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。选择支持该请求 header 或等价 media-type 参数的 binding，对不支持的形状合法版本 MUST 返回 `unsupported_protocol_version`，不得猜测或回退。
 
 每个服务 SHOULD 暴露 describe endpoint，返回：
 

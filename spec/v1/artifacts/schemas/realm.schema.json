@@ -14,7 +14,6 @@
     "reducer_profile",
     "encryption_profile",
     "notary",
-    "capability_action_registry_digest",
     "created_by",
     "created_at"
   ],
@@ -387,11 +386,6 @@
     "notary": {
       "$ref": "#/$defs/notary_configuration",
       "description": "Closed notary configuration. Every signer slot freezes actor, DID URL and exact public key. Successor changes are authorized by predecessor-state frozen descriptors before replacement is installed; current DID resolution is never substituted."
-    },
-    "capability_action_registry_digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "Create-locked genesis capability-action registry basis for this Realm: the JCS SHA-256 digest of the current embedded capability-action-registry.json. The ak.realm.create reducer verifies equality and copies this signed value into the ak.component.realm.authority_root.v1 cell."
     },
     "revocation_freshness_window_ms": {
       "type": "integer",

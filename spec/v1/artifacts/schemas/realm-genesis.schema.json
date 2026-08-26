@@ -13,8 +13,7 @@
     "digest_algorithm",
     "security_class",
     "encryption_profile",
-    "notary",
-    "capability_action_registry_digest"
+    "notary"
   ],
   "properties": {
     "schema": {
@@ -63,9 +62,6 @@
     },
     "notary": {
       "$ref": "./realm.schema.json#/properties/notary"
-    },
-    "capability_action_registry_digest": {
-      "$ref": "./realm.schema.json#/properties/capability_action_registry_digest"
     }
   },
   "allOf": [

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-18.1",
+  "version": "2026-08-27.1",
   "source_of_truth": true,
   "description": "Canonical service_kind vocabulary. A service_kind names one deployed wire role. This registry is the single source of valid values and per-context eligibility for Service Describe, Realm join candidates, ServiceRegistrationKey, and the MIMI provider directory. Consumers MUST derive their closed value space from active rows whose valid_in includes the applicable context.",
   "registry_rules": [
@@ -8,7 +8,7 @@
     "Schema enum values for every service_kind selector field MUST be generated from active rows filtered by valid_in; tools/artifact_lint check_service_kind_registry asserts each declared JSON pointer.",
     "service_registration_key is the most restrictive context: it admits only service types that are a standalone deployment owning a service DID under a canonical public base. Adding a row to this context means that service type can hold a service identity and appear in ak.root.identity.service_registration.* operations.",
     "The registry is additive. New service types enter as new rows with their own valid_in set; existing wire values never change meaning. Widening an existing row's valid_in is a registry release, not an implementation decision.",
-    "service_kind is a role name, not a product name. Deployment or implementation identifiers (for example a binary called soland or starid) MUST NOT be registered. A single physical deployment MAY fill more than one role, but each ServiceDescribe document describes exactly one role. Co-located roles sharing a public binding are selected with GET /_arkret/describe?service_kind=<registered-id>; each response advertises only that role's exact supported_operations, profiles, authentication metadata, limits and plaintext visibility. Compound service_kind values are forbidden.",
+    "service_kind is a role name, not a product name. Deployment or implementation identifiers (for example a binary called soland or starid) MUST NOT be registered. A single physical deployment MAY fill more than one role, but each ServiceDescribe document describes exactly one role. Co-located roles sharing a public binding are selected with GET /_arkret/describe?service_kind=<registered-id>; each response advertises only that role's exact operation_bindings, profiles, authentication metadata, limits and plaintext visibility. Compound service_kind values are forbidden.",
     "This registry governs service_kind selector fields, including the policy source_service_kind attribution field."
   ],
   "contexts": [

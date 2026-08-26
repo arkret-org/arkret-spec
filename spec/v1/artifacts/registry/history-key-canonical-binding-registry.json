@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-25.1",
+  "version": "2026-08-27.2",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -160,19 +160,6 @@
       "preimage": "the complete closed AcceptedAuthorityViewVector",
       "rule": "object property names are fixed by schema; absent optional profile slots are absent rather than null"
     },
-    "governance_registry_artifact_digest": {
-      "domain": "ak.governance-registry-artifact-v1",
-      "decoded_artifact_schema_ref": "schemas/governance-registry-snapshot.schema.json#/$defs/governance_replay_schema_manifest",
-      "formula": "sha256:<lowercase hex SHA-256(UTF8('ak.governance-registry-artifact-v1') || 0x00 || decoded canonical_bytes_b64u)>",
-      "preimage": "the exact decoded RFC 8785 JCS bytes of the underlying registry artifact named by GovernanceRegistryArtifact.descriptor; the GovernanceRegistryArtifact wrapper is not hashed",
-      "rule": "decoded bytes must themselves be canonical JSON, at most 1 MiB, and match the closed descriptor artifact_kind/artifact_id; hashing the wrapper or descriptor would create a different and invalid digest"
-    },
-    "governance_registry_snapshot_digest": {
-      "domain": "ak.governance-registry-snapshot-v1",
-      "formula": "sha256:<lowercase hex SHA-256(UTF8('ak.governance-registry-snapshot-v1') || 0x00 || JCS({kind,artifacts}))>",
-      "preimage": "the complete closed GovernanceRegistrySnapshot with snapshot_digest removed",
-      "rule": "artifacts is exactly [contract-registry descriptor, proof-context-registry descriptor, replay-schema-manifest descriptor]. The replay schema manifest starts from event-envelope.schema.json and event-payload.schema.json and lists every-and-only recursively reachable local JSON Schema $ref artifact in canonical artifact_id byte order; each artifact is fetched separately by descriptor digest, parsed under its registered type and never inlined in the snapshot manifest"
-    },
     "availability_event_bytes_digest": {
       "domain": "ak.availability_event_bytes.v1",
       "formula": "<Realm-suite>:<digest of UTF8('ak.availability_event_bytes.v1') || 0x00 || JCS(complete accepted EventEnvelope with unsigned removed)>",
@@ -197,14 +184,6 @@
       "formula": "SHA-256(UTF8('ak.mls-governance-proof-page-v1') || 0x00 || UTF8(query_digest) || 0x00 || JCS(page_body))",
       "preimage": "query_digest is the registered domain-separated digest of the caller-retained complete closed read_request; page_body is the complete matching read_outcome with query_digest and page_digest removed",
       "rule": "The response completely covers the exact near-current frontier selector or is rejected with mls_governance_proof_bounds_exceeded. Deterministic regeneration for identical retained closure and query produces the same page_digest."
-    },
-    "release_predicate_registry_digest": {
-      "formula": "SHA-256(JCS(history-release-attestation-registry.json with the single top-level wire_registry_binding member removed))",
-      "preimage": "all remaining top-level members and their complete descendants, including predicate_registry_digest_rule",
-      "excluded": [
-        "wire_registry_binding only"
-      ],
-      "rule": "No domain framing is added for this artifact digest. Removing or excluding any other member is forbidden, so the registry never embeds its own digest and has no self-cycle."
     },
     "mls_genesis_transition_digest": {
       "domain": "ak.mls-genesis-transition-v1",

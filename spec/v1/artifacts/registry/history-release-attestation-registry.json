@@ -1,16 +1,16 @@
 {
-  "version": "2026-08-21.2",
+  "version": "2026-08-27.2",
   "source_of_truth": true,
   "schema_ref": "schemas/history-key.schema.json#/$defs/history_release_attestation",
-  "wire_registry_binding": "HistoryReleaseAttestation.verifier_profile_id is ak.history_release_predicates.v1 and predicate_registry_digest MUST equal sha256:<lowercase hex> computed by predicate_registry_digest_rule. The enclosing HistoryKeyResponseRecord.service_proof covers the complete attestation. Any other suite, omitted member or digest mismatch fails closed.",
+  "wire_registry_binding": "HistoryReleaseAttestation.verifier_profile_id is ak.history_release_predicates.v1. The enclosing HistoryKeyResponseRecord.service_proof covers the complete attestation. An unsupported verifier profile is rejected only for the affected object and is never translated to an authorization failure.",
   "trust_model": "The first durable enqueue is linearized by an honest release service. Its service proof authenticates a closed T1 decision receipt and exact locator/digest vector; the vector is not a portable multi-authority proof. A malicious or stale release service is outside v1's cryptographic guarantee. A future adversarial-service profile requires a separately registered notary/quorum design.",
   "manifest_t0_registry": {
     "profile_id": "ak.history_manifest_t0_predicates.v1",
     "all_or_nothing": true,
     "required_inputs": [
       "byte-identical signed manifest and request/receipt ledgers",
-      "receipt-bound HistoryGovernanceTraversalIntent with exact bootstrap base/current/target SealBasis antichains and registry digests",
-      "the complete retained target-to-base accepted Seal cut, base Seal bodies, delta Control Moves, AvailabilityReceipts, signer-resolution evidence, semantic dependencies and registry snapshot",
+      "receipt-bound HistoryGovernanceTraversalIntent with exact bootstrap base/current/target SealBasis antichains",
+      "the complete retained target-to-base accepted Seal cut, base Seal bodies, delta Control Moves, AvailabilityReceipts, signer-resolution evidence and semantic dependencies",
       "requester current authorization incarnation and replay-derived winning join/reactivation transition",
       "the scope's current monotone history_access value at target",
       "manifest descriptor exact continuous ranges and their canonical union"
@@ -18,7 +18,7 @@
     "closed_predicates": [
       "require traversal intent trusted_history_base_basis equal the request-signed predecessor-free bootstrap basis and target_basis dominate trusted_current_basis",
       "reverse-walk every target predecessor until exact base leaves, include each interval predecessor or exact base leaf, consume every base leaf, include base Seal bodies and deltas but stop before base predecessors",
-      "topologically verify every Seal against predecessor-state frozen notary descriptors, every AvailabilityReceipt and signer/semantic dependency, then apply every delta Control Move with the accepted reducer/contract/lattice registry snapshot",
+      "topologically verify every Seal against predecessor-state frozen notary descriptors, every AvailabilityReceipt and signer/semantic dependency, then apply every delta Control Move with the Realm's frozen compiled profile",
       "derive the current requester membership incarnation, winning join/reactivation transition, every winning MLS epoch transition, ciphersuite and content_scheme exclusively from replayed state",
       "require every descriptor range be a subset of canonical request ranges",
       "read the current monotone history_access cell only: since_join requires every epoch >= the replay-derived current incarnation join_epoch; all_history_for_current_members ignores that floor but still requires the current incarnation",
@@ -26,13 +26,6 @@
       "require exporter content_scheme in the winning value; standard MLS is ineligible for history delivery"
     ],
     "failure_rule": "Any missing, extra, stale, Bottom, mismatched, unauthorized or unavailable input rejects the whole manifest before sequence allocation, response record, admission row or attestation write. Partial range admission is forbidden."
-  },
-  "traversal_admission_registry_digest_rule": {
-    "hash": "sha256",
-    "canonicalization": "RFC8785_JCS",
-    "domain": "ak.history-manifest-t0-registry-v1",
-    "formula": "sha256:<lowercase hex SHA-256(UTF8(domain) || 0x00 || JCS(manifest_t0_registry))>",
-    "rule": "HistoryGovernanceTraversalIntent.traversal_admission_registry_digest binds this exact digest; no caller-supplied boolean or service-local policy may replace it."
   },
   "scope_branches": {
     "realm": {
@@ -197,15 +190,5 @@
   "release_service_binding_rule": "The request receipt's frozen release_service_id is the only release authority for that request. Before first enqueue it must verify that the requester delivery binding still names this same service DID. A ServiceResolution successor for the same service DID is permitted and becomes the current route; rebinding to another service DID rejects first enqueue and requires a new request. v1 does not migrate a mailbox or idempotency ledger. Already accepted records remain byte-identically retryable from the old ledger until expiry.",
   "audit_record": "The immutable service-signed ReleaseAttestation created in the first durable chunk-enqueue transaction is the sole history-release audit record. v1 has no history_release_audit policy facet, pre-release audit token, audit evidence carrier or audit authority slot. Compliance projections index attestations; separate approval workflows are orthogonal capabilities.",
   "predicate_failure": "Any required locator, authority response, subject, incarnation, tuple, digest or exact binding that is missing, Bottom, stale, mismatched or unavailable rejects the chunk before enqueue. No caller-supplied boolean can replace a predicate.",
-  "unknown_input_behavior": "fail_closed",
-  "predicate_registry_digest_rule": {
-    "hash": "sha256",
-    "canonicalization": "RFC8785_JCS",
-    "formula": "sha256:<lowercase hex SHA-256(JCS(this registry object after removing only the top-level wire_registry_binding member))>",
-    "excluded_top_level_members": [
-      "wire_registry_binding"
-    ],
-    "domain_framing": null,
-    "rule": "All other members, including this predicate_registry_digest_rule, are included. The registry contains no current digest member and therefore has no self-reference cycle."
-  }
+  "unknown_input_behavior": "fail_closed"
 }

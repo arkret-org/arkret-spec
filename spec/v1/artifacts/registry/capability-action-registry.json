@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.3",
+  "version": "2026-08-27.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-08-27T00:42:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1214,19 +1214,6 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.realm.authority.basis_update",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm.authority.basis_update"
-      ],
-      "profile": null,
-      "root_control_only": true,
-      "notes": "Re-anchors the authority-root capability-action registry digest to a retrievable, recomputable, active snapshot. Changes neither controller nor generation and never retroactively widens an existing grant.",
-      "event_mapping_kind": "same_name"
-    },
-    {
       "action": "ak.realm.authority.reset",
       "category": "management",
       "risk_tier": "high",
@@ -1542,6 +1529,7 @@
         "ak.relation.create",
         "ak.relation.tombstone",
         "ak.relation.update",
+        "ak.rsvp.set",
         "ak.schema.define",
         "ak.space.archive",
         "ak.space.create",
@@ -1591,6 +1579,9 @@
       },
       "grant_authority_rule": {
         "require_profile_null": true,
+        "include_actions": [
+          "ak.rsvp.set"
+        ],
         "exclude_flags": [
           "root_control_only",
           "subject_only",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.3",
+  "version": "2026-08-27.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-08-27T05:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -21,28 +21,21 @@
     "total_operations": 260,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "service_describe": 5,
-      "streaming_frame_schema": 3,
-      "typed_schema": 250
+      "typed_schema": 258
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "service_describe": 3,
-        "streaming_frame_schema": 2,
-        "typed_schema": 41
+        "typed_schema": 46
       },
       "deployment_local": {
         "typed_schema": 17
       },
       "extension": {
         "binary_or_redirect": 2,
-        "service_describe": 1,
-        "streaming_frame_schema": 1,
-        "typed_schema": 171
+        "typed_schema": 173
       },
       "interop_bridge": {
-        "service_describe": 1,
-        "typed_schema": 21
+        "typed_schema": 22
       }
     }
   },
@@ -94,12 +87,12 @@
       "http": "GET /_arkret/edge/applet/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-describe.schema.json",
       "openapi_component_refs": {
         "response": "#/components/schemas/ServiceDescribe"
       },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.edge.applet.read.ping",
@@ -270,12 +263,12 @@
       "http": "GET /_arkret/find/directory/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-describe.schema.json",
       "openapi_component_refs": {
         "response": "#/components/schemas/ServiceDescribe"
       },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.find.directory.read.list_handles_for_subject",
@@ -1061,10 +1054,10 @@
       "http": "QUERY /_arkret/peer/events/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody",
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-describe.schema.json",
       "openapi_component_refs": {},
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request."
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.peer.events.read.frontier",
@@ -1523,12 +1516,12 @@
       "http": "GET /_arkret/root/identity/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-describe.schema.json",
       "openapi_component_refs": {
         "response": "#/components/schemas/ServiceDescribe"
       },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.root.identity.service_registration.command.ensure",
@@ -1591,12 +1584,12 @@
       "http": "GET /_arkret/self/account/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-describe.schema.json",
       "openapi_component_refs": {
         "response": "#/components/schemas/ServiceDescribe"
       },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.account.read.viewer",
@@ -1617,10 +1610,10 @@
       "http": "GET /_arkret/self/account/subscribe",
       "success_shape_kind": "event_stream",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/account-subscribe-frame.schema.json",
       "openapi_component_refs": {},
-      "completeness_class": "streaming_frame_schema",
-      "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.account_data.read.list",
@@ -2541,10 +2534,10 @@
       "http": "QUERY /_arkret/self/events/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody",
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-describe.schema.json",
       "openapi_component_refs": {},
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request."
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.events.read.frontier",
@@ -2598,10 +2591,10 @@
       "http": "GET /_arkret/self/events/subscribe",
       "success_shape_kind": "event_stream",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/events-subscribe-frame.schema.json",
       "openapi_component_refs": {},
-      "completeness_class": "streaming_frame_schema",
-      "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.history_key_requests.command.create",
@@ -3496,10 +3489,10 @@
       "http": "GET /_arkret/self/signal/subscribe",
       "success_shape_kind": "event_stream",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/signal-stream-frame.schema.json",
       "openapi_component_refs": {},
-      "completeness_class": "streaming_frame_schema",
-      "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.snapshot.read.manifest_head",
@@ -3560,12 +3553,12 @@
       "http": "GET /_arkret/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-describe.schema.json",
       "openapi_component_refs": {
         "response": "#/components/schemas/ServiceDescribe"
       },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     }
   ]
 }

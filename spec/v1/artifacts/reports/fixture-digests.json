@@ -66,7 +66,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-notification-fixture.json",
-      "sha256": "009f02f20e57b104a0c69c4d4a3efc364af437342e1bffe891e89c4de01d21b2"
+      "sha256": "ccbf04bbf84c46f534b317d1e98038773eef8488740df9342af3b11b5b48b3ab"
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
@@ -82,7 +82,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "506135ae70199d12e5c984009d5b490e04679351be720edc2d61154e9eb5dd4c"
+      "sha256": "c108920e5eadb2a3e0f213fa8fb2f7eb8771606b0d378e0add32ce27d563a30f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
@@ -98,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "7c5eaab8ff71b80c6318d04388b06db936ecfaae07b098519c4aa9feb92558f6"
+      "sha256": "a725defe6f4d77f34ea249ad2a4509061db2b0ecfc911ce1145ad1486e0d6f16"
     },
     {
       "path": "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json",
@@ -178,11 +178,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
-      "sha256": "24c417bd8b4e50483c6095ef69b2d9ca566987214e66fb5b4d2f495f565b3ba0"
+      "sha256": "a80fd82410ed580ca3356afbfde473d958787411ff014c5735a4cfd2c9d95f54"
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "46ebf7a4f4d9d7a85df0e5411811a1253254c71c40079b1e5aa13b3f93267f73"
+      "sha256": "fbd3fd46e87896012c3ed4f3e46305f13e8dc040c657025f4b9b37f111ad3a2f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "fc3b51884fe187e9fc76c44086bb50676ccaad295202ab13afef34c4e88ddab4"
+      "sha256": "9709efbf11a9c6f6c6bd329660645731976a4e2c8a33bde6f31deca8ece4a9c2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -374,7 +374,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
-      "sha256": "fa1a8a4626d31532f16167593afc4873432132d8e1c850ccd0a5bd250db179d9"
+      "sha256": "0a03c4ad9d53c17e2e4c0c35015eacc40a8e9b22ef73aa3b171c974de25810c8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",

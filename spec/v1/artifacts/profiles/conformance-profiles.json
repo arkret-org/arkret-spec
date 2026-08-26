@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-26.3",
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "version": "2026-08-27.2",
+  "generated_at": "2026-08-27T05:12:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -864,7 +864,7 @@
       "feature_discovery": {
         "required": [
           "supported_profiles",
-          "supported_operations",
+          "operation_bindings",
           "surface_tier_rules"
         ],
         "unsupported_optional": "not applicable"
@@ -1381,7 +1381,6 @@
         },
         "stable_phase": {
           "allowed_root_control_actions": [
-            "ak.realm.authority.basis_update",
             "ak.realm.authority.reset",
             "ak.realm.owner.transfer"
           ],
@@ -1625,7 +1624,7 @@
       "feature_discovery": {
         "required": [
           "supported_profiles",
-          "supported_operations",
+          "operation_bindings",
           "supported_event_schemas",
           "limits"
         ],
@@ -2246,7 +2245,7 @@
       ],
       "feature_discovery": {
         "required": [
-          "supported_operations",
+          "operation_bindings",
           "supported_profiles",
           "plaintext_visibility_classes",
           "invite_claim_reducer_state_machine"
@@ -2344,7 +2343,7 @@
         "required": [
           "service_id",
           "supported_bindings",
-          "supported_operations",
+          "operation_bindings",
           "supported_profiles"
         ],
         "unsupported_optional": "reject unsupported profile before accepting events"
@@ -2483,7 +2482,7 @@
         "required": [
           "service_id",
           "supported_bindings",
-          "supported_operations",
+          "operation_bindings",
           "supported_profiles"
         ],
         "unsupported_optional": "omit ak.profile.signal_peer_relay.v1 and ak.peer.signal.command.relay; local Signal and durable federation remain independently usable"

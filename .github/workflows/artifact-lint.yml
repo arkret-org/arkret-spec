@@ -41,6 +41,9 @@ jobs:
       - name: Run unified artifact pipeline
         run: python tools/artifact_pipeline.py check
 
+      - name: Verify artifact generation is byte-deterministic
+        run: python tools/check_artifact_determinism.py
+
   crossref:
     runs-on: ubuntu-latest
     steps:

@@ -136,7 +136,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 - MUST 原样转发 producer envelope，不重签、不改写、不解密重加密，不从 destination 再转发第三 peer；
 - request-level 成功只返回 `{"accepted":true}`，不得暴露 recipient/binding/capability/count/per-item outcome；
 - operation MUST 是 `idempotency_mechanism=none`、`retry_safe=false`、`uncertain_outcome.strategy=drop_unconfirmed`，不得携带 `Idempotency-Key`；
-- Describe 只用 `supported_profiles` + `supported_operations` 广告；精确 payload kind/target 位于 ciphertext，MUST NOT 添加 `supported_kinds`。
+- Describe 只用 `supported_profiles` + `operation_bindings` 广告；精确 payload kind/target 位于 ciphertext，MUST NOT 添加 `supported_kinds`。
 
 不声明该 profile 的实现仍可独立支持本地 Signal 或 durable federation；它必须省略 peer relay operation 广告，而不是把远端成员能力逐人暴露。
 

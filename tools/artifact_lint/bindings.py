@@ -1108,6 +1108,9 @@ def openapi_artifact_schema_ref(schema: Any, components: dict[str, Any]) -> str 
         component_name = ref.rsplit("/", 1)[-1]
         component_schema = components.get(component_name)
         if isinstance(component_schema, dict):
+            declared_ref = component_schema.get("x-arkret-schema-ref")
+            if isinstance(declared_ref, str):
+                return normalize_artifact_schema_ref(declared_ref)
             component_ref = component_schema.get("$ref")
             if isinstance(component_ref, str):
                 return normalize_artifact_schema_ref(component_ref)
@@ -1188,12 +1191,17 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
                 .get("200", {})
                 .get("content", {})
             )
-            response_schema = (
-                response_content.get("application/json", {}).get("schema")
-                if isinstance(response_content, dict)
-                and isinstance(response_content.get("application/json"), dict)
-                else None
-            )
+            response_schema = None
+            if isinstance(response_content, dict):
+                for media_type in (
+                    "application/json",
+                    "application/x-ndjson",
+                    "application/octet-stream",
+                ):
+                    media = response_content.get(media_type)
+                    if isinstance(media, dict) and isinstance(media.get("schema"), dict):
+                        response_schema = media["schema"]
+                        break
             facts[operation_id] = {
                 "generic_request": isinstance(request_schema, dict)
                 and request_schema.get("$ref") == GENERIC_OPERATION_REQUEST_REF,
@@ -1218,6 +1226,61 @@ def check_operation_binding_metadata(lint: Lint) -> None:
     allowed_success_shapes = set((operation_registry.get("success_shape_kind_definitions") or {}).keys())
     if not allowed_success_shapes:
         lint.fail(operation_path, "operation registry missing success_shape_kind_definitions")
+
+    service_describe_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
+    service_describe = load_json(lint, service_describe_path)
+    if isinstance(service_describe, dict):
+        operation_binding = (service_describe.get("$defs") or {}).get("operation_binding")
+        if not isinstance(operation_binding, dict):
+            lint.fail(service_describe_path, "$defs.operation_binding missing")
+        else:
+            expected_required = {
+                "operation_id",
+                "binding_kind",
+                "preference",
+                "success_shape_kind",
+            }
+            if set(operation_binding.get("required") or []) != expected_required:
+                lint.fail(
+                    service_describe_path,
+                    "$defs.operation_binding required fields must be the exact current-v1 identity/preference set",
+                )
+            if operation_binding.get("additionalProperties") is not False:
+                lint.fail(service_describe_path, "$defs.operation_binding must be closed")
+            binding_properties = operation_binding.get("properties") or {}
+            used_success_shapes = {
+                row.get("success_shape_kind")
+                for row in operation_registry.get("operations", [])
+                if isinstance(row, dict) and isinstance(row.get("success_shape_kind"), str)
+            }
+            schema_success_shapes = set(
+                ((binding_properties.get("success_shape_kind") or {}).get("enum") or [])
+            )
+            if schema_success_shapes != used_success_shapes:
+                lint.fail(
+                    service_describe_path,
+                    "operation_binding.success_shape_kind must exactly cover operation-registry values: "
+                    f"schema-only={sorted(schema_success_shapes - used_success_shapes)}, "
+                    f"registry-only={sorted(used_success_shapes - schema_success_shapes)}",
+                )
+            binding_registry = load_json(
+                lint, ARTIFACTS / "registry" / "binding-kind-registry.json"
+            )
+            advertised_binding_kinds = {
+                row.get("kind")
+                for row in (binding_registry or {}).get("entries", [])
+                if isinstance(row, dict) and row.get("status") in {"active", "candidate"}
+            }
+            schema_binding_kinds = set(
+                ((binding_properties.get("binding_kind") or {}).get("enum") or [])
+            )
+            if schema_binding_kinds != advertised_binding_kinds:
+                lint.fail(
+                    service_describe_path,
+                    "operation_binding.binding_kind must exactly cover advertised binding kinds: "
+                    f"schema-only={sorted(schema_binding_kinds - advertised_binding_kinds)}, "
+                    f"registry-only={sorted(advertised_binding_kinds - schema_binding_kinds)}",
+                )
 
     surface_class_by_operation: dict[str, str] = {}
     for group in operation_registry.get("surface_groups", []) if isinstance(operation_registry.get("surface_groups"), list) else []:

@@ -1216,8 +1216,7 @@
         "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
         "controller_id": "did:web:alice.example",
         "controller_epoch": 0,
-        "authority_generation": 4,
-        "capability_action_registry_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        "authority_generation": 4
       },
       "grants": [
         {
@@ -1353,32 +1352,6 @@
           "destructive_confirmation_present": true,
           "expected": {
             "accepted": true
-          }
-        },
-        {
-          "name": "basis_update_changes_only_registry_digest",
-          "next_root": {
-            "controller_id": "did:web:alice.example",
-            "controller_epoch": 0,
-            "authority_generation": 4,
-            "capability_action_registry_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-          },
-          "snapshot_available": true,
-          "snapshot_compatible": true,
-          "expected": {
-            "accepted": true,
-            "controller_unchanged": true,
-            "generation_unchanged": true,
-            "old_grant_basis_unchanged": true
-          }
-        },
-        {
-          "name": "unknown_basis_update_rejected",
-          "snapshot_available": false,
-          "snapshot_compatible": false,
-          "expected": {
-            "accepted": false,
-            "reason_code": "capability_registry_basis_unavailable"
           }
         },
         {

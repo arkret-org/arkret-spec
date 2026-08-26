@@ -4139,25 +4139,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.realm.authority.basis_update"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_authority_basis_update_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.capability.relinquish"
           }
         },
@@ -4447,7 +4428,7 @@
     "realm_authority_root_ref": {
       "type": "string",
       "const": "ak:cell:ak.component.realm.authority_root.v1:null",
-      "description": "Designates the registered authority-root cell of the envelope's own realm_id. This is a closed constant, not a general cell_ref: only the singleton ak.component.realm.authority_root.v1 cell carries Realm owner authority, and widening it to an arbitrary cell_ref would let any projected cell be presented as an authorization source. Reducer MUST resolve it against that cell in the Event's authorization basis and verify controller_id == the authorizing principal, plus the cell's capability_action_registry_digest and authority_generation. Inside the ak.realm.create genesis batch the staged root value is used and the Event MUST descend from the same batch's create Event through prev_refs; outside that batch an accepted-Seal inclusion proof is required and a staged proof MUST be rejected. See zh/models/realm-and-space.md section 2.5 and zh/authz/capabilities.md section 3.2."
+      "description": "Designates the registered authority-root cell of the envelope's own realm_id. This is a closed constant, not a general cell_ref: only the singleton ak.component.realm.authority_root.v1 cell carries Realm owner authority, and widening it to an arbitrary cell_ref would let any projected cell be presented as an authorization source. Reducer MUST resolve it against that cell in the Event's authorization basis and verify controller_id == the authorizing principal plus the cell's authority_generation. Inside the ak.realm.create genesis batch the staged root value is used and the Event MUST descend from the same batch's create Event through prev_refs; outside that batch an accepted-Seal inclusion proof is required and a staged proof MUST be rejected. See zh/models/realm-and-space.md section 2.5 and zh/authz/capabilities.md section 3.2."
     },
     "direct_conversation_participant_authority_ref": {
       "type": "string",

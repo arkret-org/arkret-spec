@@ -12,7 +12,7 @@ import json
 import sqlite3
 import tempfile
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from jsonschema import Draft202012Validator, RefResolver
 from cryptography.hazmat.primitives import serialization
@@ -24,12 +24,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "spec/v1/artifacts/schemas"
 REGISTRY_DIR = ROOT / "spec/v1/artifacts/registry"
 OUTPUT = ROOT / "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
-HISTORY_RELEASE_REGISTRY = REGISTRY_DIR / "history-release-attestation-registry.json"
 
 ZERO = b"\x00"
 TRAVERSAL_INTENT_DOMAIN = b"ak.history-governance-traversal-intent-v1"
-REGISTRY_SNAPSHOT_DOMAIN = b"ak.governance-registry-snapshot-v1"
-REGISTRY_ARTIFACT_DOMAIN = b"ak.governance-registry-artifact-v1"
 AVAILABILITY_BYTES_DOMAIN = b"ak.availability_event_bytes.v1"
 SOURCE_AGENT_OBSERVATION_DOMAIN = b"ak.history-source-agent-observation-v1"
 ARCHIVE_REPLICA_DOMAIN = b"ak.organization-recovery-archive-replica-v1"
@@ -163,122 +160,6 @@ class SchemaSet:
         return Draft202012Validator(target, resolver=resolver)
 
 
-def walk_refs(value: Any) -> Iterable[str]:
-    if isinstance(value, dict):
-        for key, child in value.items():
-            if key == "$ref" and isinstance(child, str):
-                yield child
-            else:
-                yield from walk_refs(child)
-    elif isinstance(value, list):
-        for child in value:
-            yield from walk_refs(child)
-
-
-def replay_schema_closure() -> list[Path]:
-    pending = [SCHEMA_DIR / "event-envelope.schema.json", SCHEMA_DIR / "event-payload.schema.json"]
-    seen: set[Path] = set()
-    while pending:
-        path = pending.pop().resolve()
-        if path in seen:
-            continue
-        if path.parent != SCHEMA_DIR.resolve() or not path.is_file():
-            raise ValueError(f"schema closure escaped or is missing: {path}")
-        seen.add(path)
-        value = json.loads(path.read_text(encoding="utf-8"))
-        for ref in walk_refs(value):
-            locator = ref.split("#", 1)[0]
-            if not locator or "://" in locator:
-                continue
-            target = (path.parent / locator).resolve()
-            if target.parent != SCHEMA_DIR.resolve() or not target.name.endswith(".schema.json"):
-                raise ValueError(f"non-schema local ref in replay closure: {path.name} -> {ref}")
-            pending.append(target)
-    return sorted(seen, key=lambda path: path.name.encode("utf-8"))
-
-
-def registry_artifact_descriptor(kind: str, artifact_id: str, canonical_value: Any) -> dict[str, Any]:
-    return {
-        "artifact_kind": kind,
-        "artifact_id": artifact_id,
-        "content_digest": sha256(REGISTRY_ARTIFACT_DOMAIN + ZERO + jcs(canonical_value)),
-    }
-
-
-def build_registry_kat(schemas: SchemaSet) -> dict[str, Any]:
-    contract = json.loads((REGISTRY_DIR / "contract-registry.json").read_text(encoding="utf-8"))
-    proof_context = json.loads((REGISTRY_DIR / "proof-context-registry.json").read_text(encoding="utf-8"))
-    closure = replay_schema_closure()
-    schema_values = {
-        path: json.loads(path.read_text(encoding="utf-8")) for path in closure
-    }
-    schema_canonical_sizes = {
-        path: len(jcs(value)) for path, value in schema_values.items()
-    }
-    schema_descriptors = [
-        registry_artifact_descriptor(
-            "replay_json_schema",
-            f"schemas/{path.name}",
-            schema_values[path],
-        )
-        for path in closure
-    ]
-    schema_manifest = {
-        "kind": "ak.governance.replay_schema_manifest",
-        "root_schema_artifact_ids": [
-            "schemas/event-envelope.schema.json",
-            "schemas/event-payload.schema.json",
-        ],
-        "artifacts": schema_descriptors,
-    }
-    manifest_descriptor = registry_artifact_descriptor(
-        "replay_schema_manifest",
-        "governance-replay-schema-manifest",
-        schema_manifest,
-    )
-    snapshot_core = {
-        "kind": "ak.governance.registry_snapshot",
-        "artifacts": [
-            registry_artifact_descriptor("contract_registry", "registry/contract-registry.json", contract),
-            registry_artifact_descriptor(
-                "proof_context_registry", "registry/proof-context-registry.json", proof_context
-            ),
-            manifest_descriptor,
-        ],
-    }
-    snapshot = {
-        **snapshot_core,
-        "snapshot_digest": sha256(REGISTRY_SNAPSHOT_DOMAIN + ZERO + jcs(snapshot_core)),
-    }
-    schemas.validator("governance-registry-snapshot.schema.json").validate(snapshot)
-    schemas.validator(
-        "governance-registry-snapshot.schema.json", "governance_replay_schema_manifest"
-    ).validate(schema_manifest)
-
-    sample_path = min(closure, key=schema_canonical_sizes.__getitem__)
-    sample_value = schema_values[sample_path]
-    sample_descriptor = next(
-        descriptor for descriptor in schema_descriptors if descriptor["artifact_id"] == f"schemas/{sample_path.name}"
-    )
-    sample_artifact = {
-        "descriptor": sample_descriptor,
-        "canonical_bytes_b64u": b64u(jcs(sample_value)),
-    }
-    schemas.validator(
-        "governance-registry-snapshot.schema.json", "governance_registry_artifact"
-    ).validate(sample_artifact)
-    return {
-        "snapshot": snapshot,
-        "schema_manifest_summary": {
-            "root_schema_artifact_ids": schema_manifest["root_schema_artifact_ids"],
-            "artifact_count": len(schema_descriptors),
-            "artifact_descriptor_aggregate_digest": sha256(jcs(schema_descriptors)),
-            "largest_artifact_canonical_bytes": max(schema_canonical_sizes.values()),
-        },
-        "sample_registry_artifact": sample_artifact,
-    }
-
-
 def build_signer_evidence(schemas: SchemaSet) -> dict[str, Any]:
     history_head = "did-key-head-fixture"
     version_id = "did-key-v1"
@@ -354,7 +235,7 @@ def detached_proof(payload_digest: str) -> dict[str, Any]:
     }
 
 
-def build_dependency_kat(schemas: SchemaSet, registry: dict[str, Any], signer: dict[str, Any]) -> dict[str, Any]:
+def build_dependency_kat(schemas: SchemaSet, signer: dict[str, Any]) -> dict[str, Any]:
     accepted_event = {
         "event_id": event_id("availability-event"),
         "actor_kind": "principal",
@@ -374,8 +255,6 @@ def build_dependency_kat(schemas: SchemaSet, registry: dict[str, Any], signer: d
     receipt_digest = sha256(jcs(receipt))
     schemas.validator("availability-receipt.schema.json").validate(receipt)
 
-    snapshot = registry["snapshot"]
-    artifact = registry["sample_registry_artifact"]
     rows = [
         {
             "selector": {"kind": "availability_receipt", "content_digest": receipt_digest},
@@ -387,14 +266,6 @@ def build_dependency_kat(schemas: SchemaSet, registry: dict[str, Any], signer: d
                 "content_digest": signer["evidence_digest"],
             },
             "authenticated_signer_resolution_evidence": signer["evidence"],
-        },
-        {
-            "selector": {"kind": "governance_registry_snapshot", "content_digest": snapshot["snapshot_digest"]},
-            "governance_registry_snapshot": snapshot,
-        },
-        {
-            "selector": {"kind": "governance_registry_artifact", "descriptor": artifact["descriptor"]},
-            "governance_registry_artifact": artifact,
         },
     ]
     rows.sort(key=lambda row: (row["selector"]["kind"].encode("utf-8"), jcs(row["selector"])))
@@ -411,11 +282,6 @@ def build_dependency_kat(schemas: SchemaSet, registry: dict[str, Any], signer: d
                 "name": "selector_branch_mismatch",
                 "mutation": "pair an authenticated_signer_resolution_evidence selector with availability_receipt",
                 "expected": "schema_violation",
-            },
-            {
-                "name": "registry_artifact_digest_mismatch",
-                "mutation": "change decoded canonical artifact bytes without changing descriptor.content_digest",
-                "expected": "dependency_missing",
             },
             {
                 "name": "signer_evidence_digest_mismatch",
@@ -622,7 +488,7 @@ def ratchet_outcome(current: str | None, proposed: str) -> str:
     return "failed_precondition"
 
 
-def build_traversal_kat(schemas: SchemaSet, registry: dict[str, Any]) -> dict[str, Any]:
+def build_traversal_kat(schemas: SchemaSet) -> dict[str, Any]:
     case = traversal_case()
     if traversal_errors(case):
         raise AssertionError(f"positive traversal case failed: {traversal_errors(case)}")
@@ -640,8 +506,6 @@ def build_traversal_kat(schemas: SchemaSet, registry: dict[str, Any]) -> dict[st
             "kind": "realm",
             "realm_membership_incarnation_ref": event_id("member-incarnation"),
         },
-        "registry_snapshot_digest": registry["snapshot"]["snapshot_digest"],
-        "traversal_admission_registry_digest": digest_marker(0x62),
         "retention": {"kind": "request_expiring", "expires_at": EXPIRES},
     }
     retention = {
@@ -670,8 +534,6 @@ def build_traversal_kat(schemas: SchemaSet, registry: dict[str, Any]) -> dict[st
             "holder_trusted_basis": case["trusted_history_base_basis"],
         },
         "container_event_ref": event_id("archive-container"),
-        "registry_snapshot_digest": registry["snapshot"]["snapshot_digest"],
-        "traversal_admission_registry_digest": digest_marker(0x62),
         "retention": {"kind": "archive_lifetime"},
     }
     schemas.validator("history-key.schema.json", "history_governance_traversal_intent").validate(rrk_intent)
@@ -1224,7 +1086,7 @@ def build_rrk_registration_rotation_kat(
     }
 
 
-def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]) -> dict[str, Any]:
+def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
     source_core = "ak:did_core:web:rrk-source.example"
     source_method = "did:web:rrk-source.example#ed25519-1"
     holder_core = "ak:did_core:web:rrk-holder.example"
@@ -1407,8 +1269,6 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]
         "requested_ranges": [{"from_epoch": epoch, "to_epoch": epoch}],
         "archive_authorization_tuple": archive_tuple,
         "container_event_ref": container_event_ref,
-        "registry_snapshot_digest": registry["snapshot"]["snapshot_digest"],
-        "traversal_admission_registry_digest": digest_marker(0x73),
         "retention": {"kind": "archive_lifetime"},
     }
     traversal_retention = {
@@ -1677,11 +1537,10 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet, registry: dict[str, Any]
 
 def build_sections() -> dict[str, Any]:
     schemas = SchemaSet()
-    registry = build_registry_kat(schemas)
     signer = build_signer_evidence(schemas)
-    dependency = build_dependency_kat(schemas, registry, signer)
-    traversal = build_traversal_kat(schemas, registry)
-    durability = build_rrk_durable_before_gc_kat(schemas, registry)
+    dependency = build_dependency_kat(schemas, signer)
+    traversal = build_traversal_kat(schemas)
+    durability = build_rrk_durable_before_gc_kat(schemas)
     scale = [build_scale_recipe(26_298), build_scale_recipe(65_536)]
     probe = {"journal_rows": 0, "resolved_objects": 0, "outbox_writes": 0}
     reason = None
@@ -1694,7 +1553,6 @@ def build_sections() -> dict[str, Any]:
     return {
         "direct_traversal_kat": traversal,
         "direct_traversal_replay_kat": build_traversal_replay_kat(),
-        "governance_registry_artifact_kat": registry,
         "authenticated_signer_resolution_evidence_kat": signer,
         "governance_dependency_resolve_kat": dependency,
         "history_source_agent_observation_digest_kat": build_source_agent_observation_digest_kat(schemas),
@@ -1713,8 +1571,6 @@ def build_sections() -> dict[str, Any]:
         "direct_traversal_scale_generator_contract": {
             "generator": "tools/generate_history_scale_fixture.py",
             "traversal_intent_digest": "SHA256(UTF8('ak.history-governance-traversal-intent-v1')||0x00||JCS(intent))",
-            "registry_snapshot_digest": "SHA256(UTF8('ak.governance-registry-snapshot-v1')||0x00||JCS({kind,artifacts}))",
-            "registry_artifact_digest": "SHA256(UTF8('ak.governance-registry-artifact-v1')||0x00||decoded canonical bytes)",
             "streaming_storage": "temporary SQLite work queue plus visited set; one canonical descriptor is live at a time",
             "fixture_storage": "small replayable open-set cut, dependency objects and aggregate scale summaries only",
             "proof_transport": "none; standard Event, Seal and governance-dependency resolve carry retained objects",
@@ -1788,14 +1644,6 @@ def render() -> str:
                 ],
                 "reject_if": ["application epoch precedes winning Add/Welcome", "first admitted transition is not the winning Add/Welcome", "Commit epoch is not previous_epoch + 1"],
             }
-    predicate_kat = fixture.get("predicate_registry_digest_kat")
-    if not isinstance(predicate_kat, dict):
-        raise ValueError("history fixture omits predicate_registry_digest_kat")
-    predicate_registry = json.loads(HISTORY_RELEASE_REGISTRY.read_text(encoding="utf-8"))
-    if not isinstance(predicate_registry, dict):
-        raise ValueError("history release predicate registry must be an object")
-    predicate_registry.pop("wire_registry_binding", None)
-    predicate_kat["expected_digest"] = sha256(jcs(predicate_registry))
     if "ak.vector.history_key.frontier_traversal_split.v1" not in fixture.get("covers_vectors", []):
         raise ValueError("history fixture does not register the direct-traversal split vector")
     fixture.pop("mailbox_cases", None)

@@ -2352,15 +2352,14 @@ ak.vector.capability.membership_is_not_baseline.v1
 ak.vector.realm.authority_root_bootstrap.v1
 ```
 
-本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条无条件 registered cell write，其中 authority-root 写入是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = envelope.actor_id, controller_epoch = 0, authority_generation = 0, capability_action_registry_digest = payload.object.capability_action_registry_digest}`；另有五条 registered condition row：`initial_resolution`、`managed_agent_control` 的 Agent status，以及由 `payload.object.purpose` 互斥选择的 `direct_conversation|principal_control|managed_agent_control` history-access `null→since_join` 初始化。每个命中的条件写入都必须包含。
+本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条无条件 registered cell write，其中 authority-root 写入是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = envelope.actor_id, controller_epoch = 0, authority_generation = 0}`；另有五条 registered condition row：`initial_resolution`、`managed_agent_control` 的 Agent status，以及由 `payload.object.purpose` 互斥选择的 `direct_conversation|principal_control|managed_agent_control` history-access `null→since_join` 初始化。每个命中的条件写入都必须包含。
 
 正例：五条无条件 registered write 与条件命中的已登记 write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。
 
 负例（每条各自 MUST fail closed，不得留下 Realm / membership 半成品）：
 
 - 缺 authority-root cell → `realm_authority_root_missing`；
-- author 自行提供 `controller_id` / 非零 `controller_epoch` / 非零 `authority_generation` / 与签名 payload 不一致的 registry digest / 四字段之外的额外成员 → `realm_authority_root_conflict`；
-- `capability_action_registry_digest` 与当前内嵌 registry 的 JCS 重算值不一致 → `capability_registry_basis_unavailable`；
+- author 自行提供 `controller_id` / 非零 `controller_epoch` / 非零 `authority_generation` / 三字段之外的额外成员 → `realm_authority_root_conflict`；
 - 夹带旧四项 / 五项 / 三项 founding-grant shape 的 self grant MUST NOT 被识别为 authority root，仍按 §3.2 普通 issuer 上界判定为 `grant_exceeds_issuer_authority`；
 - staged root proof 在 genesis batch 之外重放，或在 batch 内改用 accepted-Seal inclusion proof（此时尚无 accepted Seal）→ `realm_authority_controller_mismatch`。
 
@@ -6693,8 +6692,8 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
 1. JCS 只使用 closed ASCII string/non-negative integer subset，object key 按 code point 排序且无空白；所有 domain tag 与 `0x00` separator
    取 fixture 的 machine constants。
 2. 小型 KAT 必须构造 schema-valid `HistoryGovernanceTraversalIntent/Retention`、完整 open-set base/current/target `SealBasis`、
-   `GovernanceRegistrySnapshot`、递归 replay-schema manifest、逐 artifact descriptor、`AuthenticatedSignerResolutionEvidence`、
-   `AvailabilityReceipt` 与四分支 `GovernanceDependencyResolveOutcome`，并重算各自 canonical digest。
+   `AuthenticatedSignerResolutionEvidence`、`MinimalMetadataMlsLeafSignerEvidence`、`AvailabilityReceipt` 与三分支
+   `GovernanceDependencyResolveOutcome`，并重算各自 canonical digest；replay 解释器只按 Realm profile id 选择。
 3. Direct traversal runner 使用 disk-backed work queue 从每个 target leaf 沿 signed `predecessor_refs` 反向遍历到 exact base cut；每个区间
    predecessor 必须在 cut 内或恰为 base leaf，每个 base leaf 必须被消费，target 必须支配独立 current anti-rollback basis。随后按拓扑运行标准
    `apply_seal`，按 digest 解析每个 `Seal.delta` Control Move、AvailabilityReceipt、signer-resolution evidence、registry snapshot/artifact 与其它

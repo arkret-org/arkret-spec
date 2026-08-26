@@ -179,7 +179,6 @@
             "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
           }
         },
-        "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
         "founding_device_descriptor": {
           "descriptor_version": 1,
           "device_id": "ak:device:019a0000-0000-7000-8000-000000000002",
@@ -307,8 +306,15 @@
         "supported_profiles": [
           "ak.profile.principal_server.v1"
         ],
-        "supported_operations": [
-          "ak.server.read.describe"
+        "operation_bindings": [
+          {
+            "operation_id": "ak.server.read.describe",
+            "binding_kind": "http_json",
+            "preference": 100,
+            "response_schema_ref": "schemas/service-describe.schema.json",
+            "error_schema_ref": "schemas/http-error-envelope.schema.json",
+            "success_shape_kind": "service_describe"
+          }
         ],
         "supported_bindings": [
           {
@@ -370,9 +376,24 @@
         "supported_profiles": [
           "ak.profile.directory_service.v1"
         ],
-        "supported_operations": [
-          "ak.find.directory.read.describe",
-          "ak.find.directory.read.private_contact_discovery"
+        "operation_bindings": [
+          {
+            "operation_id": "ak.find.directory.read.describe",
+            "binding_kind": "http_json",
+            "preference": 100,
+            "response_schema_ref": "schemas/service-describe.schema.json",
+            "error_schema_ref": "schemas/http-error-envelope.schema.json",
+            "success_shape_kind": "service_describe"
+          },
+          {
+            "operation_id": "ak.find.directory.read.private_contact_discovery",
+            "binding_kind": "http_json",
+            "preference": 100,
+            "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
+            "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome",
+            "error_schema_ref": "schemas/http-error-envelope.schema.json",
+            "success_shape_kind": "typed_response"
+          }
         ],
         "supported_bindings": [
           {
@@ -475,8 +496,15 @@
         "service_kind": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [],
-        "supported_operations": [
-          "ak.server.read.describe"
+        "operation_bindings": [
+          {
+            "operation_id": "ak.server.read.describe",
+            "binding_kind": "http_json",
+            "preference": 100,
+            "response_schema_ref": "schemas/service-describe.schema.json",
+            "error_schema_ref": "schemas/http-error-envelope.schema.json",
+            "success_shape_kind": "service_describe"
+          }
         ],
         "supported_bindings": [
           {
@@ -535,8 +563,15 @@
         "service_kind": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [],
-        "supported_operations": [
-          "ak.server.read.describe"
+        "operation_bindings": [
+          {
+            "operation_id": "ak.server.read.describe",
+            "binding_kind": "http_json",
+            "preference": 100,
+            "response_schema_ref": "schemas/service-describe.schema.json",
+            "error_schema_ref": "schemas/http-error-envelope.schema.json",
+            "success_shape_kind": "service_describe"
+          }
         ],
         "supported_bindings": [
           {
@@ -611,7 +646,6 @@
             "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
           }
         },
-        "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
         "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
@@ -646,7 +680,6 @@
             "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
           }
         },
-        "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
         "fields": {
           "purpose": "principal_control"
         },
@@ -685,7 +718,6 @@
             "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
           }
         },
-        "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
         "fields": {
           "purpose": "principal_control"
         },
@@ -769,7 +801,6 @@
             "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
           }
         },
-        "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
         "created_at": "2026-04-26T00:00:00.000Z",
         "alias": "general:acme.example"
       }
@@ -806,7 +837,6 @@
             "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
           }
         },
-        "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
         "fields": {
           "purpose": "managed_agent_control"
         },
@@ -1093,8 +1123,7 @@
                 "ak.mls.v1"
               ],
               "founding_authorize_payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc"
-            },
-            "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
+            }
           }
         },
         "proofs": [
@@ -1158,8 +1187,7 @@
                 "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
               }
-            },
-            "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
+            }
           }
         },
         "proofs": [
@@ -1242,8 +1270,7 @@
                 "ak.mls.v1"
               ],
               "founding_authorize_payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc"
-            },
-            "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
+            }
           }
         },
         "proofs": [
@@ -1305,8 +1332,7 @@
                 "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
               }
-            },
-            "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
+            }
           }
         },
         "proofs": [

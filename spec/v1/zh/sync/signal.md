@@ -279,7 +279,7 @@ wire profile。
 能力发现只使用：
 
 - `supported_profiles` 包含 `ak.profile.signal_peer_relay.v1`；
-- `supported_operations` 包含 `ak.peer.signal.command.relay`；
+- `operation_bindings` 包含 `ak.peer.signal.command.relay` 的精确 carrier/schema 行；
 - operation registry 的固定 count/body/retry contract。
 
 不得广告 `supported_signal_kinds` 或 per-member relay support；精确 payload kind 位于 ciphertext。

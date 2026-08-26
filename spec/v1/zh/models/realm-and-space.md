@@ -91,7 +91,6 @@ Schema id: `ak.schema.realm.v1`
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md)）。 |
 | `notary` | yes | closed union | Genesis notary control cell 初值；`kind=single_signer|threshold|open_set|mixed` 是唯一 profile discriminator。每个 slot 是冻结的 signer descriptor（actor did_core_id、DID URL、exact key bytes/digest、JOSE alg）；不存在并行 `notary_profile` 字段。 | 当前与历史 Seal 签发规则。 |
-| `capability_action_registry_digest` | yes | `string` | create-locked。`sha256:<64 hex>`，MUST 等于 receiver 当前内嵌 `capability-action-registry.json` 的 JCS 重算值；reducer 原样复制进 authority-root cell（§2.5 步骤 6）。 | Realm authority root 的 capability registry basis。 |
 | `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,applies_to:["seal_include"],minimum_retention_ms:86400000}`。eligible holders 只从 predecessor accepted joined membership 的 routable `delivery_binding.recipient_service_id` 去重派生。 | bytes availability receipt 门槛。 |
 | `audit_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省时不得采信 range-completeness / transparency witness attestation。 | completeness / transparency witness policy。 |
 | `revocation_freshness_window_ms` | no | `integer` | 默认 24h；用于 DataEvent `seal_ref` 和 Control Move `seal_basis` 的历史 basis 宽限判定，精确表示旧 basis Seal 与后继撤销 Seal 的 notary-committed Seal distance 上限，不随 Event 签发、首次投递、接收或回放时间老化。高风险写入的 effective 值固定为 0。 | CBA 撤销 Seal-distance grace 上限。 |
@@ -111,7 +110,7 @@ Schema id: `ak.schema.realm.v1`
 
 | 字段组 | 唯一 canonical carrier |
 | --- | --- |
-| `trust_domain`、`schema_refs`、初始 `reducer_profile`、`digest_algorithm`、`security_class`、`encryption_profile`、`notary`、`capability_action_registry_digest` | `ak.realm.create` 的 closed `ak.schema.realm_genesis.v1` object；仅这些 identity/security roots 进入 Realm ID preimage。 |
+| `trust_domain`、`schema_refs`、初始 `reducer_profile`、`digest_algorithm`、`security_class`、`encryption_profile`、`notary` | `ak.realm.create` 的 closed `ak.schema.realm_genesis.v1` object；仅这些 identity/security roots 进入 Realm ID preimage。 |
 | `title`、`summary`、`avatar_blob_ref` | `ak.realm.profile` → `ak.component.realm.profile.v1`。 |
 | `default_discoverability` | `ak.realm.discovery`。 |
 | `default_join_rule` | `ak.realm.join_rule`。 |
@@ -190,7 +189,6 @@ threshold 或 custody topology。每个 exporter Realm/Circle 独立 opt in，Ci
       "frozen_public_key_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
     }
   },
-  "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
   "created_by": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
   "created_at": "2026-04-26T00:00:00.000Z"
 }
@@ -212,7 +210,7 @@ receiver 派生：realm_id = retype(event_id, "realm")
 
 违反 MUST `schema_violation`，`reason_code=realm_id_not_event_derived`。
 
-每一个 Realm——Collaboration、Direct Conversation、human PCR 与 managed Agent PCR——的 closed genesis object MUST 使用 `schema="ak.schema.realm_genesis.v1"`，并携带：`purpose`、`genesis_salt`、`trust_domain`、`schema_refs`、`reducer_profile`、`digest_algorithm`、`security_class`、`encryption_profile`、`notary`、`capability_action_registry_digest`。其中：
+每一个 Realm——Collaboration、Direct Conversation、human PCR 与 managed Agent PCR——的 closed genesis object MUST 使用 `schema="ak.schema.realm_genesis.v1"`，并携带：`purpose`、`genesis_salt`、`trust_domain`、`schema_refs`、`reducer_profile`、`digest_algorithm`、`security_class`、`encryption_profile`、`notary`。其中：
 
 ```text
 genesis_salt = base64url_no_pad(CSPRNG(32 octets))
@@ -302,12 +300,11 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
    {
      "controller_id": "<envelope.actor_id>",
      "controller_epoch": 0,
-     "authority_generation": 0,
-     "capability_action_registry_digest": "<payload.object.capability_action_registry_digest>"
+     "authority_generation": 0
    }
    ```
 
-   `(realm_id, cell_ref)` 是该 Realm **终身稳定的 authority root identity**；`controller_id` 只是当前控制者，`controller_epoch` 只随 root controller 轮换递增，`authority_generation` 只随整代授权重置递增。`capability_action_registry_digest` MUST 由创建者写入并签进 `ak.realm.create` payload，且 MUST 等于 receiver 当前内嵌 `capability-action-registry.json` 的 RFC 8785 JCS 重算值；不一致时整个 bootstrap unit MUST 原子拒绝（`failed_precondition`，`reason="capability_registry_basis_unavailable"`）。author 不得自行提供 `controller_id` / `controller_epoch` / `authority_generation`，也不得携带该四字段之外的成员；出现额外 author-supplied 字段时 MUST 原子拒绝（`failed_precondition`，`reason="realm_authority_root_conflict"`）。
+   `(realm_id, cell_ref)` 是该 Realm **终身稳定的 authority root identity**；`controller_id` 只是当前控制者，`controller_epoch` 只随 root controller 轮换递增，`authority_generation` 只随整代授权重置递增。owner/admin coverage 由 Realm 的冻结 `reducer_profile` 解释器决定，不进入该 cell。author 不得自行提供 `controller_id` / `controller_epoch` / `authority_generation`，也不得携带该三字段之外的成员；出现额外 author-supplied 字段时 MUST 原子拒绝（`failed_precondition`，`reason="realm_authority_root_conflict"`）。
 
 6. **条件写入 `ak.component.identity.resolution.v1` singleton**：仅当 `payload.object.initial_resolution` 存在时，投影其完整已登记 resolution commitment。
 7. **条件写入 `ak.component.agent.status.v1` cell**：仅当 `payload.object.purpose == "managed_agent_control"` 时，把 `envelope.actor_id` 对应 Agent 从 `uninitialized` 推进到 `active`。
@@ -317,12 +314,13 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 
 以上五条无条件写入加五条条件 row 构成 create 的完整 projection；第 8 至 10 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 一起进入 genesis Seal/state commitment。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
 
-**root authority 的语义边界（normative）**：authority-root cell 的 current controller 在给定 Seal basis 下凭该 cell 的 inclusion proof 获得 effective `ak.realm.owner` 与封闭的 root-control authority。它是显式、sealed、registry-basis-bound 的协议状态，**不是** `realm_state.owner`、membership 或 `created_by` 身份旁路：
+**root authority 的语义边界（normative）**：authority-root cell 的 current controller 在给定 Seal basis 下凭该 cell 的 inclusion proof 获得 effective `ak.realm.owner` 与封闭的 root-control authority。它是显式、sealed、profile-bound 的协议状态，**不是** `realm_state.owner`、membership 或 `created_by` 身份旁路：
 
-- 授权判定 MUST 使用该 cell 在同一 Seal basis 下的 registered inclusion proof，并逐项校验 registry digest、`controller_id`、`controller_epoch` 与 `authority_generation`。任何以 `created_by`、membership 或 projection mirror 回退的实现都重新引入了隐式提权洞。
+- 授权判定 MUST 使用该 cell 在同一 Seal basis 下的 registered inclusion proof，并逐项校验 `controller_id`、`controller_epoch` 与 `authority_generation`，再由该 Realm 的 reducer profile compiled rules 判定 owner coverage。任何以 `created_by`、membership、projection mirror 或运行时 registry digest 回退的实现都重新引入了隐式提权洞。
 - 服务实现若维护 `realm_state.owner` 一类投影镜像，它只能是该 cell 的可丢弃 projection mirror，MUST NOT 参与授权判定。
 - 该 authority 的 resource 固定为本 Realm 的 `realm_wide`，MUST NOT 为其它 Realm 提供普通 issuer upper bound；跨 Realm 派生只能走已注册的 `ak.capability.derived` 规则（[`realm-links.md` §6](./realm-links.md)）。
 - 普通 `ak.realm.owner` grant 只表示**可撤销的 co-owner**：持有人具有 owner 的 operational / grant authority，但不控制 authority-root cell，因而不能 author root-control Event。`ak.realm.owner` 逐字存在于 owner 的 `grant_authority_actions`，所以 root controller 与 co-owner **都可以**把 `ak.realm.owner` 继续授予他人——这是期望行为，不是漏洞；它不改变"root-control 平面唯一且不可经普通 grant 获得"。
+- current-v1 没有 authority-policy override / role-assignment singleton。owner/admin 的可配置差异由显式 capability grant、revoke、constraint 与既有 policy control cells 表达；未知 cell、部署配置、`ServiceDescribe` 或 UI role 不得进入 owner 判定。`ak.realm.owner.target_event_kinds` 与 `grant_authority_actions` 只来自 reducer profile compiled bundle，并保持 direct-author 与 grant-issuer 两个集合分离。
 
 **genesis batch 内的 staged root proof（normative）**：同一 ordered submit batch 中位于 create 之后的 Event MAY 使用 staged authority-root proof，其绑定的 create Event MUST 是同批 slot 0，且 `controller_id` MUST 等于 signed envelope `actor_id`。该 proof 只在此原子 unit 内有效；batch 外一律要求 accepted Seal 下的 root-cell inclusion proof。
 

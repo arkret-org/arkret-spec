@@ -3467,75 +3467,6 @@ def check_history_scale_fixture(lint: Lint) -> None:
         }:
             lint.fail(path, "RRK CAS concurrency cases are incomplete")
 
-    predicate_kat = data.get("predicate_registry_digest_kat")
-    if not isinstance(predicate_kat, dict):
-        lint.fail(
-            path,
-            "history recovery fixture must carry predicate_registry_digest_kat",
-        )
-    else:
-        registry_name = predicate_kat.get("registry")
-        if registry_name != "history-release-attestation-registry.json":
-            lint.fail(path, "history predicate KAT references the wrong registry")
-        registry_path = (
-            ARTIFACTS / "registry" / "history-release-attestation-registry.json"
-        )
-        predicate_registry = load_json(lint, registry_path)
-        if isinstance(predicate_registry, dict):
-            digest_input = copy.deepcopy(predicate_registry)
-            digest_input.pop("wire_registry_binding", None)
-            actual_digest = "sha256:" + hashlib.sha256(
-                canonical_json(digest_input).encode("utf-8")
-            ).hexdigest()
-            if predicate_kat.get("expected_digest") != actual_digest:
-                lint.fail(
-                    path,
-                    "history predicate registry digest KAT drifted from the complete registry",
-                )
-            if (
-                predicate_kat.get("hash") != "sha256"
-                or predicate_kat.get("canonicalization") != "RFC8785_JCS"
-                or predicate_kat.get("excluded_top_level_members")
-                != ["wire_registry_binding"]
-                or predicate_kat.get("domain_framing") is not None
-            ):
-                lint.fail(path, "history predicate registry digest rule drifted")
-            required_mutations = {
-                "include_wire_registry_binding",
-                "exclude_any_additional_member",
-                "add_domain_separator",
-                "use_non_sha256_wire_suite",
-            }
-            negative_mutations = predicate_kat.get("negative_mutations")
-            if (
-                not isinstance(negative_mutations, list)
-                or set(negative_mutations) != required_mutations
-            ):
-                lint.fail(path, "history predicate registry mutation matrix drifted")
-            included_digest = "sha256:" + hashlib.sha256(
-                canonical_json(predicate_registry).encode("utf-8")
-            ).hexdigest()
-            domain_digest = "sha256:" + hashlib.sha256(
-                b"ak.history-release-predicate-registry-v1\x00"
-                + canonical_json(digest_input).encode("utf-8")
-            ).hexdigest()
-            if included_digest == actual_digest or domain_digest == actual_digest:
-                lint.fail(
-                    path,
-                    "history predicate digest ignores its exclusion or no-domain rule",
-                )
-            for member in digest_input:
-                omitted = copy.deepcopy(digest_input)
-                omitted.pop(member)
-                omitted_digest = "sha256:" + hashlib.sha256(
-                    canonical_json(omitted).encode("utf-8")
-                ).hexdigest()
-                if omitted_digest == actual_digest:
-                    lint.fail(
-                        path,
-                        f"history predicate digest ignores covered member {member}",
-                    )
-
     rrk = data.get("organization_recovery_archive_durable_before_gc_kat")
     rrk_vector_id = (
         "ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1"
@@ -3901,17 +3832,12 @@ def check_history_scale_fixture(lint: Lint) -> None:
         if replay_kat.get("wire_reason_code") is not None or replay_kat.get("data_events_in_delta") is not False:
             lint.fail(path, "replay KAT must not invent a wire reason code or place DataEvents in Seal.delta")
 
-    registry_kat = data.get("governance_registry_artifact_kat")
-    if not isinstance(registry_kat, dict):
-        lint.fail(path, "history fixture must carry the registry snapshot/artifact KAT")
-    elif registry_kat.get("schema_manifest_summary", {}).get("artifact_count", 0) < 2:
-        lint.fail(path, "registry replay schema closure is incomplete")
     signer_kat = data.get("authenticated_signer_resolution_evidence_kat")
     if not isinstance(signer_kat, dict) or signer_kat.get("evidence", {}).get("kind") != "service":
         lint.fail(path, "history fixture must carry service signer-resolution evidence")
     dependency_kat = data.get("governance_dependency_resolve_kat")
-    if not isinstance(dependency_kat, dict) or len(dependency_kat.get("resolve_outcome", {}).get("items", [])) != 4:
-        lint.fail(path, "history fixture must exercise all four governance dependency branches")
+    if not isinstance(dependency_kat, dict) or len(dependency_kat.get("resolve_outcome", {}).get("items", [])) != 2:
+        lint.fail(path, "history fixture must exercise both governance evidence branches")
     source_agent_kat = data.get("history_source_agent_observation_digest_kat")
     if not isinstance(source_agent_kat, dict):
         lint.fail(path, "history fixture must carry the source Agent observation digest KAT")

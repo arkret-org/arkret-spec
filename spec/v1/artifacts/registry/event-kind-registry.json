@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.3",
+  "version": "2026-08-27.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-08-27T00:18:49+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -415,10 +415,6 @@
               {
                 "name": "authority_generation",
                 "literal": 0
-              },
-              {
-                "name": "capability_action_registry_digest",
-                "field": "payload.object.capability_action_registry_digest"
               }
             ]
           },
@@ -7164,37 +7160,6 @@
             "increment_members": [
               "authority_generation"
             ],
-            "expected_prestate": {
-              "field": "payload.expected_state_digest"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "security_barrier"
-    },
-    {
-      "event_kind": "ak.realm.authority.basis_update",
-      "category": "realm",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Realm authority-root capability registry basis update",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_authority_basis_update_payload",
-      "id_source": "not_an_object_id",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.realm.authority_root.v1",
-          "cell_subject": null,
-          "lattice": "cas_register",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "apply_patch",
-            "patch": {
-              "field": "payload.patch"
-            },
             "expected_prestate": {
               "field": "payload.expected_state_digest"
             }

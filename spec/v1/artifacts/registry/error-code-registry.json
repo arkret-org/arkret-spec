@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-26.1",
-  "generated_at": "2026-08-26T12:30:00+08:00",
+  "version": "2026-08-27.2",
+  "generated_at": "2026-08-27T05:12:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -921,6 +921,12 @@
       "http_status": 501,
       "scope": "both",
       "description": "A required protocol feature is not supported."
+    },
+    {
+      "code": "unsupported_operation_binding",
+      "http_status": 422,
+      "scope": "endpoint",
+      "description": "The caller and role-scoped ServiceDescribe have no exact operation carrier/schema intersection. This disables only the selected operation and MUST NOT be translated to an authorization, account, Realm, or service-wide failure. Dual-registered as a top-level service code and a reason_code (see reason_codes[])."
     },
     {
       "code": "unsupported_event_kind",
@@ -2382,14 +2388,6 @@
         "event_envelope"
       ],
       "description": "A `ak.call.summary` event was rejected because its `final_state` is not a terminal call state, the referenced `call_id` has no terminal `ak.call.state` head, or a divergent summary already exists for the call (the summary cell is write-once). Reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md §7."
-    },
-    {
-      "code": "capability_registry_basis_unavailable",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "An aggregate capability grant pins a capability-action registry digest that does not match the current embedded registry's JCS digest. Receiver MUST fail closed."
     },
     {
       "code": "cardinality_violation",
@@ -4320,7 +4318,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "An Event presented ak:cell:ak.component.realm.authority_root.v1:null as its authorization_ref but the cell's current controller_id is not the authorizing principal, or the epoch / authority_generation / registry digest bound at issuance no longer matches the cell in that basis. Includes replaying a staged genesis-batch root proof outside its atomic bootstrap unit. See zh/authz/capabilities.md section 3.2."
+      "description": "An Event presented ak:cell:ak.component.realm.authority_root.v1:null as its authorization_ref but the cell's current controller_id is not the authorizing principal, or the epoch / authority_generation bound at issuance no longer matches the cell in that basis. Includes replaying a staged genesis-batch root proof outside its atomic bootstrap unit. See zh/authz/capabilities.md section 3.2."
     },
     {
       "code": "realm_authority_root_conflict",
@@ -4328,7 +4326,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "The authority-root cell value was author-supplied or otherwise diverges from the registered value_projection: controller_id not equal to the create envelope actor_id, a non-zero controller_epoch or authority_generation at genesis, a capability_action_registry_digest differing from the signed create payload, or members beyond the closed four-field shape. Reducer MUST reject the whole unit. See zh/models/realm-and-space.md section 2.5."
+      "description": "The authority-root cell value was author-supplied or otherwise diverges from the registered value_projection: controller_id not equal to the create envelope actor_id, a non-zero controller_epoch or authority_generation at genesis, or members beyond the closed three-field shape. Reducer MUST reject the whole unit. See zh/models/realm-and-space.md section 2.5."
     },
     {
       "code": "realm_authority_root_missing",
@@ -5273,6 +5271,14 @@
         "feature_discovery"
       ],
       "description": "Implementation does not advertise the feature requested; caller SHOULD downgrade or pick another peer."
+    },
+    {
+      "code": "unsupported_operation_binding",
+      "applies_to": [
+        "feature_discovery",
+        "service_call"
+      ],
+      "description": "No exact operation/carrier/schema row is shared by the caller and the role-scoped ServiceDescribe. The failure is operation-local and is never an authorization or Realm-state decision. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "unsupported_hpke_suite",

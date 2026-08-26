@@ -10,14 +10,6 @@
       "owner": "history_replay",
       "implementation_path": "../arkret-rust-sdk/crates/models-collaboration/src/history_key.rs",
       "implementation_symbol": "HistorySourceAgentObservationInput"
-    },
-    {
-      "kind": "decoded_artifact",
-      "schema_ref": "schemas/governance-registry-snapshot.schema.json#/$defs/governance_replay_schema_manifest",
-      "registry_path": "registry/history-key-canonical-binding-registry.json#/digests/governance_registry_artifact_digest/decoded_artifact_schema_ref",
-      "owner": "governance_replay",
-      "implementation_path": "../arkret-rust-sdk/crates/models-collaboration/src/governance_dependencies.rs",
-      "implementation_symbol": "GovernanceReplaySchemaManifest"
     }
   ],
   "compatibility_review": {

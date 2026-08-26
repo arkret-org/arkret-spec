@@ -111,7 +111,7 @@ info:
 
     Versioning is NOT expressed in the path. The protocol version is negotiated via
 
-    `*.describe` / `supported_operations` (and optionally a `Arkret-Protocol-Version`
+    `*.describe` / exact `operation_bindings` (and optionally a `Arkret-Protocol-Version`
 
     request/response header); schema ids carry their own `.v1` suffix. The
 
@@ -327,6 +327,7 @@ components:
     AccountStatusResolveRequestBody:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_status_resolve_request_body
     AccountSubscribeFrame:
+      x-arkret-schema-ref: ../schemas/account-subscribe-frame.schema.json
       $ref: ../schemas/account-subscribe-frame.schema.json
     AccountUpdateProfileOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_outcome
@@ -1299,6 +1300,7 @@ components:
               - unsupported_did_method
               - unsupported_media_policy
               - unsupported_feature
+              - unsupported_operation_binding
               - unsupported_event_kind
               - not_implemented
               - projection_incomplete
@@ -1451,6 +1453,7 @@ components:
     EventsSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome
     EventsSubscribeFrame:
+      x-arkret-schema-ref: ../schemas/events-subscribe-frame.schema.json
       $ref: ../schemas/events-subscribe-frame.schema.json
     EventStateView:
       type: object
@@ -2417,6 +2420,7 @@ components:
     SelfInviteDispatchRequestBody:
       $ref: ../schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body
     ServiceDescribe:
+      x-arkret-schema-ref: ../schemas/service-describe.schema.json
       type: object
       description: |
         Service capability descriptor returned by `ak.server.read.describe` and the
@@ -2431,7 +2435,7 @@ components:
       - service_resolution
       - trust_domain
       - supported_profiles
-      - supported_operations
+      - operation_bindings
       - supported_bindings
       - supported_features
       - auth_metadata
@@ -2503,10 +2507,10 @@ components:
             properties:
               carrier:
                 type: string
-        supported_operations:
+        operation_bindings:
           type: array
           items:
-            type: string
+            $ref: ../schemas/service-describe.schema.json#/$defs/operation_binding
         supported_bindings:
           type: array
           description: |

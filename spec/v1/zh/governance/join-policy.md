@@ -371,7 +371,7 @@ stage 1 是公开 Control Move，stage 2 是 profile-private receipt，二者不
 这组 operation 只在部署的 `ak.server.read.describe` 与 `ak.self.account.read.describe` 同时声明：
 
 - `supported_profiles` 含 `ak.profile.candidate.join_policy.v1`；
-- `supported_operations` 含上表全部 operation；
+- `operation_bindings` 含上表全部 operation 的精确 carrier/schema 行；
 - feature set 含 `candidate_join_policy_reviewer` 与 `candidate_member_application_intake`；
 - `profile_bindings["ak.profile.candidate.join_policy.v1"].carrier` 恰为 `"profile_private_http_receipt_v1"`。
 

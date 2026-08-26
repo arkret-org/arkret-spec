@@ -34,8 +34,13 @@
       "carrier": "service_describe",
       "protocol_version": "2.0",
       "poison_fields": {
-        "supported_operations": [
-          "ak.self.events.command.submit"
+        "operation_bindings": [
+          {
+            "operation_id": "ak.self.events.command.submit",
+            "binding_kind": "http_json",
+            "preference": 100,
+            "success_shape_kind": "typed_response"
+          }
         ],
         "http_json_base_url": "https://must-not-cache.invalid"
       },

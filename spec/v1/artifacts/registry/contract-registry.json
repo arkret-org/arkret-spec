@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.3",
+  "version": "2026-08-27.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-08-27T05:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -3869,28 +3869,6 @@
         ],
         "concurrency_class": "security_barrier"
       },
-      "ak.realm.authority.basis_update": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.realm.authority_root.v1",
-            "cell_subject": null,
-            "lattice": "cas_register",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "apply_patch",
-              "patch": {
-                "field": "payload.patch"
-              },
-              "expected_prestate": {
-                "field": "payload.expected_state_digest"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "security_barrier"
-      },
       "ak.realm.authority.reset": {
         "plane": "control",
         "sealed": true,
@@ -4119,10 +4097,6 @@
                 {
                   "name": "authority_generation",
                   "literal": 0
-                },
-                {
-                  "name": "capability_action_registry_digest",
-                  "field": "payload.object.capability_action_registry_digest"
                 }
               ]
             },
@@ -7871,17 +7845,6 @@
         "id_source": "not_an_object_id"
       },
       {
-        "event_kind": "ak.realm.authority.basis_update",
-        "category": "realm",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Realm authority-root capability registry basis update",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_authority_basis_update_payload",
-        "id_source": "not_an_object_id"
-      },
-      {
         "event_kind": "ak.capability.relinquish",
         "category": "authz",
         "status": "active",
@@ -9309,12 +9272,6 @@
         "description": "Content-addressed historical signer-resolution evidence pinned for Event, Principal Server and AvailabilityReceipt signature verification."
       },
       {
-        "schema_id": "ak.schema.governance_registry_snapshot.v1",
-        "file": "schemas/governance-registry-snapshot.schema.json",
-        "status": "active",
-        "description": "Small content-addressed governance registry manifest plus a deterministic transitive event-envelope/event-payload local-schema manifest; each named artifact is fetched separately for historical apply_seal replay."
-      },
-      {
         "schema_id": "ak.schema.patch.v1",
         "file": "schemas/patch.schema.json",
         "description": "Registered schema for the canonical Arkret field-patch wire format."
@@ -10109,7 +10066,7 @@
         "schema_id": "ak.schema.service_describe.v1",
         "file": "schemas/service-describe.schema.json",
         "status": "active",
-        "description": "Canonical ServiceDescribe response for ak.server.read.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / interop_surfaces) and the registered directory_service overlay fields used by ak.find.directory.read.describe. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+        "description": "Canonical ServiceDescribe response for ak.server.read.describe and per-surface describe operations: base service metadata plus exact operation_bindings and claim-level partitions (implemented_features / claimed_profiles / verified_profiles / experimental_features / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
       },
       {
         "schema_id": "ak.schema.transport_binding.v1",
@@ -10372,8 +10329,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-26.2",
-    "generated_at": "2026-08-26T15:06:00+08:00"
+    "version": "2026-08-27.2",
+    "generated_at": "2026-08-27T05:30:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -11358,7 +11315,7 @@
     "registry_rules": [
       "New operation_id values MUST be added here before any OpenAPI, HTTP binding table, SDK generator, or alternative transport binding references them.",
       "Generated views MAY change shape, grouping, or field order, but MUST NOT introduce, rename, or remove operation_id values that are absent from this catalog.",
-      "Supporting Arkret core does not imply support for every registered operation. Implementations MUST advertise supported_operations and supported_profiles explicitly.",
+      "Supporting Arkret core does not imply support for every registered operation. Implementations MUST advertise exact operation_bindings and supported_profiles explicitly.",
       "Each surface_groups entry carries a tier (see surface_classes); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
       "surface_classes defines the closed tier vocabulary and surface_groups is the sole canonical operation grouping view; generators MUST NOT emit a third top-level surfaces collection.",
       "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint.",
@@ -11963,7 +11920,8 @@
         "grpc": "EdgeApplet/Describe",
         "mq": "edge.applet.query.describe",
         "body_class": "non_streaming_json",
-        "success_shape_kind": "service_describe"
+        "success_shape_kind": "service_describe",
+        "response_schema_ref": "schemas/service-describe.schema.json"
       },
       {
         "operation_id": "ak.edge.applet.read.ping",
@@ -12163,7 +12121,8 @@
         "grpc": "FindDirectory/Describe",
         "mq": "find.directory.query.describe",
         "body_class": "non_streaming_json",
-        "success_shape_kind": "service_describe"
+        "success_shape_kind": "service_describe",
+        "response_schema_ref": "schemas/service-describe.schema.json"
       },
       {
         "operation_id": "ak.find.directory.read.list_handles_for_subject",
@@ -13087,7 +13046,8 @@
         "notes": "Federation peer Events surface describe. This endpoint describes the server-to-server peer event bindings; it is not a client self/events binding.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "service_describe",
-        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody"
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody",
+        "response_schema_ref": "schemas/service-describe.schema.json"
       },
       {
         "operation_id": "ak.peer.events.read.frontier",
@@ -13558,7 +13518,8 @@
         "grpc": "RootIdentity/DescribeRegistry",
         "mq": "root.identity.registry.query.describe",
         "body_class": "non_streaming_json",
-        "success_shape_kind": "service_describe"
+        "success_shape_kind": "service_describe",
+        "response_schema_ref": "schemas/service-describe.schema.json"
       },
       {
         "operation_id": "ak.root.identity.service_registration.command.ensure",
@@ -13635,7 +13596,8 @@
         "grpc": "SelfAccount/Describe",
         "mq": "self.account.query.describe",
         "body_class": "non_streaming_json",
-        "success_shape_kind": "service_describe"
+        "success_shape_kind": "service_describe",
+        "response_schema_ref": "schemas/service-describe.schema.json"
       },
       {
         "operation_id": "ak.self.account.read.viewer",
@@ -13654,7 +13616,8 @@
         "mq": "self.account.stream.subscribe",
         "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, unread / notification counts). Signal envelopes use the Signal Extension live rail and are not account aggregate state. Connection is long-lived; server pushes NDJSON frames as new data becomes available.",
         "body_class": "streaming_ndjson",
-        "success_shape_kind": "event_stream"
+        "success_shape_kind": "event_stream",
+        "response_schema_ref": "schemas/account-subscribe-frame.schema.json"
       },
       {
         "operation_id": "ak.self.account_data.read.list",
@@ -14126,7 +14089,7 @@
         "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
         "durable_effect": {
           "kind": "none",
-        "rationale": "The operation admits no Arkret Event; independently, the Applet service atomically persists the subject/request-digest ledger, exact request and bundle, actor key custody, method history, and provision state before returning"
+          "rationale": "The operation admits no Arkret Event; independently, the Applet service atomically persists the subject/request-digest ledger, exact request and bundle, actor key custody, method history, and provision state before returning"
         }
       },
       {
@@ -14804,7 +14767,8 @@
         "mq": "self.events.read.describe",
         "body_class": "non_streaming_json",
         "success_shape_kind": "service_describe",
-        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody"
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody",
+        "response_schema_ref": "schemas/service-describe.schema.json"
       },
       {
         "operation_id": "ak.self.events.read.delivery_status",
@@ -14867,7 +14831,7 @@
         "http": "POST /_arkret/self/seals/governance-dependencies",
         "grpc": "SelfSeals/GovernanceDependencies",
         "mq": "self.seals.read.governance_dependencies",
-        "notes": "Resolve a caller-split batch of exactly four content-addressed dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, GovernanceRegistrySnapshot manifest, and GovernanceRegistryArtifact bytes. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB.",
+        "notes": "Resolve a caller-split batch of exactly three content-addressed evidence kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, and MinimalMetadataMlsLeafSignerEvidence. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
@@ -14912,7 +14876,8 @@
         "mq": "self.events.stream.subscribe",
         "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After.",
         "body_class": "streaming_ndjson",
-        "success_shape_kind": "event_stream"
+        "success_shape_kind": "event_stream",
+        "response_schema_ref": "schemas/events-subscribe-frame.schema.json"
       },
       {
         "operation_id": "ak.self.identity.read.resolution_audit",
@@ -15320,7 +15285,7 @@
         "http": "POST /_arkret/self/policy/check",
         "grpc": "SelfPolicy/Check",
         "mq": "self.policy.query.check",
-        "notes": "Canonical HTTP binding is POST /_arkret/self/policy/check. Paths carry no version segment; protocol version is negotiated via *.describe / supported_operations (see sync/api-conventions.md).",
+        "notes": "Canonical HTTP binding is POST /_arkret/self/policy/check. Paths carry no version segment; protocol version and exact carrier support are discovered via *.describe / operation_bindings (see sync/api-conventions.md).",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
@@ -15766,7 +15731,8 @@
         "mq": "self.signal.stream.subscribe",
         "notes": "Authenticated encrypted-only Signal Extension receive rail. Frames carry SignalEnvelope objects or bounded transport control frames; exact signal type and product target remain inside ciphertext. No catch-up or durable delivery guarantee.",
         "body_class": "streaming_ndjson",
-        "success_shape_kind": "event_stream"
+        "success_shape_kind": "event_stream",
+        "response_schema_ref": "schemas/signal-stream-frame.schema.json"
       },
       {
         "operation_id": "ak.self.snapshot.read.manifest_head",
@@ -15965,7 +15931,7 @@
         "http": "POST /_arkret/peer/seals/governance-dependencies",
         "grpc": "PeerSeals/GovernanceDependencies",
         "mq": "peer.seals.read.governance_dependencies",
-        "notes": "Authenticated S2S exact resolve of exactly four content-addressed dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, GovernanceRegistrySnapshot manifest, and GovernanceRegistryArtifact bytes. Omitted history_traversal_access uses ordinary Realm/federation visibility; the optional pending_archive_replica branch is the sole retained-cut exception. Member request replicas never authorize traversal. Unknown, unauthorized, outside-cut and missing selectors are same-shape; complete bounds failure returns no partial items or cursor.",
+        "notes": "Authenticated S2S exact resolve of exactly three content-addressed evidence kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, and MinimalMetadataMlsLeafSignerEvidence. Omitted history_traversal_access uses ordinary Realm/federation visibility; the optional pending_archive_replica branch is the sole retained-cut exception. Member request replicas never authorize traversal. Unknown, unauthorized, outside-cut and missing selectors are same-shape; complete bounds failure returns no partial items or cursor.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
@@ -16001,7 +15967,8 @@
         "grpc": "Server/Describe",
         "mq": "server.query.describe",
         "body_class": "non_streaming_json",
-        "success_shape_kind": "service_describe"
+        "success_shape_kind": "service_describe",
+        "response_schema_ref": "schemas/service-describe.schema.json"
       }
     ],
     "success_shape_kind_definitions": {
@@ -16015,8 +15982,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-26.1",
-    "generated_at": "2026-08-26T14:10:00+08:00"
+    "version": "2026-08-27.2",
+    "generated_at": "2026-08-27T05:30:00+08:00"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -17229,19 +17196,6 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ak.realm.authority.basis_update",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.realm.authority.basis_update"
-        ],
-        "profile": null,
-        "root_control_only": true,
-        "notes": "Re-anchors the authority-root capability-action registry digest to a retrievable, recomputable, active snapshot. Changes neither controller nor generation and never retroactively widens an existing grant.",
-        "event_mapping_kind": "same_name"
-      },
-      {
         "action": "ak.realm.authority.reset",
         "category": "management",
         "risk_tier": "high",
@@ -17557,6 +17511,7 @@
           "ak.relation.create",
           "ak.relation.tombstone",
           "ak.relation.update",
+          "ak.rsvp.set",
           "ak.schema.define",
           "ak.space.archive",
           "ak.space.create",
@@ -17606,6 +17561,9 @@
         },
         "grant_authority_rule": {
           "require_profile_null": true,
+          "include_actions": [
+            "ak.rsvp.set"
+          ],
           "exclude_flags": [
             "root_control_only",
             "subject_only",

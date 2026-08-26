@@ -85,6 +85,36 @@ def dump_json(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
 
 
+def preserve_artifact_metadata_when_semantics_match(
+    path: Path, payload: dict[str, Any]
+) -> dict[str, Any]:
+    """Keep artifact-local release metadata stable across unrelated source changes."""
+    if not path.exists():
+        return payload
+    existing = load_json(path)
+    if not isinstance(existing, dict):
+        return payload
+    semantic_keys = {"version", "generated_at"}
+    existing_semantics = {
+        key: value for key, value in existing.items() if key not in semantic_keys
+    }
+    payload_semantics = {
+        key: value for key, value in payload.items() if key not in semantic_keys
+    }
+    if existing_semantics != payload_semantics:
+        return payload
+    version = existing.get("version")
+    generated_at = existing.get("generated_at")
+    if not isinstance(version, (str, int)) or isinstance(version, bool):
+        return payload
+    if not isinstance(generated_at, str) or not generated_at:
+        return payload
+    stable = copy.deepcopy(payload)
+    stable["version"] = version
+    stable["generated_at"] = generated_at
+    return stable
+
+
 @lru_cache(maxsize=1)
 def load_contract_registry() -> dict[str, Any]:
     data = load_json(CONTRACT_REGISTRY_PATH)
@@ -143,6 +173,7 @@ CAPABILITY_ACTION_DERIVATION_FLAGS = ("root_control_only", "subject_only", "redu
 CAPABILITY_ACTION_RULE_KEYS = {
     "exclude_self",
     "require_profile_null",
+    "include_actions",
     "exclude_event_mapping_kinds",
     "exclude_flags",
     "exclude_categories",
@@ -197,6 +228,7 @@ def capability_action_rule_selection(
         if not isinstance(value, bool):
             raise SystemExit(f"{rule_ref}.{key} must be a boolean")
     exclude_mapping_kinds = set(rule_string_list(rule, "exclude_event_mapping_kinds", rule_ref))
+    include_actions = set(rule_string_list(rule, "include_actions", rule_ref))
     exclude_flags = rule_string_list(rule, "exclude_flags", rule_ref)
     unknown_flags = sorted(set(exclude_flags) - set(CAPABILITY_ACTION_DERIVATION_FLAGS))
     if unknown_flags:
@@ -205,6 +237,9 @@ def capability_action_rule_selection(
     exclude_prefixes = tuple(rule_string_list(rule, "exclude_action_prefixes", rule_ref))
     exclude_actions = set(rule_string_list(rule, "exclude_actions", rule_ref))
     known_actions = {row.get("action") for row in rows}
+    unknown_includes = sorted(action for action in include_actions if action not in known_actions)
+    if unknown_includes:
+        raise SystemExit(f"{rule_ref}.include_actions names unregistered action(s) {unknown_includes}")
     unknown_actions = sorted(action for action in exclude_actions if action not in known_actions)
     if unknown_actions:
         raise SystemExit(f"{rule_ref}.exclude_actions names unregistered action(s) {unknown_actions}")
@@ -218,7 +253,7 @@ def capability_action_rule_selection(
             continue
         if action in exclude_actions:
             continue
-        if require_profile_null and row.get("profile") is not None:
+        if require_profile_null and row.get("profile") is not None and action not in include_actions:
             continue
         if row.get("event_mapping_kind") in exclude_mapping_kinds:
             continue
@@ -434,7 +469,8 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
                 if not isinstance(kind, str) or not isinstance(template, str):
                     raise SystemExit(f"cannot generate wire_form for id row {id_row!r}")
                 id_row["wire_form"] = template.replace("<kind>", kind)
-        payloads[ARTIFACTS / file_ref] = {
+        path = ARTIFACTS / file_ref
+        payload = {
             "version": version,
             "source_of_truth": False,
             "generated_at": generated_at,
@@ -442,6 +478,7 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
             "generated_by": "tools/artifact_pipeline.py",
             **section_payload,
         }
+        payloads[path] = preserve_artifact_metadata_when_semantics_match(path, payload)
     return payloads
 
 

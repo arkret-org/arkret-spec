@@ -362,38 +362,6 @@
       },
       "additionalProperties": false
     },
-    "GovernanceRegistrySnapshotSelector": {
-      "type": "object",
-      "required": [
-        "kind",
-        "content_digest"
-      ],
-      "properties": {
-        "kind": {
-          "const": "governance_registry_snapshot"
-        },
-        "content_digest": {
-          "$ref": "./governance-registry-snapshot.schema.json#/$defs/sha256_digest"
-        }
-      },
-      "additionalProperties": false
-    },
-    "GovernanceRegistryArtifactSelector": {
-      "type": "object",
-      "required": [
-        "kind",
-        "descriptor"
-      ],
-      "properties": {
-        "kind": {
-          "const": "governance_registry_artifact"
-        },
-        "descriptor": {
-          "$ref": "./governance-registry-snapshot.schema.json#/$defs/registry_artifact_descriptor"
-        }
-      },
-      "additionalProperties": false
-    },
     "GovernanceDependencySelector": {
       "oneOf": [
         {
@@ -404,12 +372,6 @@
         },
         {
           "$ref": "#/$defs/MinimalMetadataMlsLeafSignerEvidenceSelector"
-        },
-        {
-          "$ref": "#/$defs/GovernanceRegistrySnapshotSelector"
-        },
-        {
-          "$ref": "#/$defs/GovernanceRegistryArtifactSelector"
         }
       ]
     },
@@ -526,38 +488,6 @@
             }
           },
           "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "selector",
-            "governance_registry_snapshot"
-          ],
-          "properties": {
-            "selector": {
-              "$ref": "#/$defs/GovernanceRegistrySnapshotSelector"
-            },
-            "governance_registry_snapshot": {
-              "$ref": "./governance-registry-snapshot.schema.json"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "selector",
-            "governance_registry_artifact"
-          ],
-          "properties": {
-            "selector": {
-              "$ref": "#/$defs/GovernanceRegistryArtifactSelector"
-            },
-            "governance_registry_artifact": {
-              "$ref": "./governance-registry-snapshot.schema.json#/$defs/governance_registry_artifact"
-            }
-          },
-          "additionalProperties": false
         }
       ]
     },
@@ -585,7 +515,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object; governance_registry_snapshot computes SHA-256(UTF8('ak.governance_registry_snapshot.v1') || 0x00 || JCS({kind,artifacts})) and therefore excludes snapshot_digest; governance_registry_artifact decodes canonical_bytes_b64u, requires canonical JSON, computes SHA-256(UTF8('ak.governance_registry_artifact.v1') || 0x00 || decoded canonical bytes), and compares selector.descriptor.content_digest. The first four compare selector.content_digest. Each signer-evidence or registry-artifact object is at most 1 MiB; the small snapshot manifest has no separate 1 MiB promise. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
+      "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object. Each evidence object is at most 1 MiB. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
     },
     "AccountCursorRevokeOutcome": {
       "type": "object",

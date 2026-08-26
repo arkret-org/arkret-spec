@@ -84,7 +84,7 @@ DID Document SHOULD 只负责：
 
 ### 2.5 实际服务器与服务面组合
 
-实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但每个 `ServiceDescribe` MUST 只描述一个逻辑角色，并明确该角色的 `service_kind`、`supported_operations`、认证方式、限制、plaintext visibility 和 profile；不得把多角色聚合成一个 compound `service_kind`，也不得把其它角色的 operation 或明文边界混入当前响应。多个角色共享同一 public binding 时，部署 MUST 为每个角色支持 `GET /_arkret/describe?service_kind=<registered-id>` 的 role-scoped 响应；查询值、响应 `service_kind` 和该角色的 DID/service binding 必须一致。查询省略规则和错误语义见 [`service-http-binding.md` §2.3](./service-http-binding.md)。
+实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但每个 `ServiceDescribe` MUST 只描述一个逻辑角色，并明确该角色的 `service_kind`、`operation_bindings`、认证方式、限制、plaintext visibility 和 profile；不得把多角色聚合成一个 compound `service_kind`，也不得把其它角色的 operation 或明文边界混入当前响应。多个角色共享同一 public binding 时，部署 MUST 为每个角色支持 `GET /_arkret/describe?service_kind=<registered-id>` 的 role-scoped 响应；查询值、响应 `service_kind` 和该角色的 DID/service binding 必须一致。查询省略规则和错误语义见 [`service-http-binding.md` §2.3](./service-http-binding.md)。
 
 协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。登录与账号准入另有一个客户端可见的 **Account Authority** 角色：客户端从 Principal Server 的 `/_arkret/describe` 发现它，之后所有客户端可见的 `/_arkret/gate/account/*` 请求都只发往该 Account Authority。部署内部 S2S 子操作只可由 Account Authority 按对应 operation 契约调用，不能由客户端派生。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Blob、Identity Resolution 等能力表达。
 
@@ -210,24 +210,30 @@ GET /_arkret/describe
   "supported_profiles": [
     "ak.profile.principal_server.v1"
   ],
-  "supported_operations": [
-    "ak.server.read.describe",
-    "ak.open.service.read.resolution",
-    "ak.self.events.command.submit",
-    "ak.self.events.read.scan",
-    "ak.peer.events.command.submit",
-    "ak.peer.events.read.scan",
-    "ak.peer.events.read.resolve",
-    "ak.peer.events.read.frontier",
-    "ak.peer.invites.command.submit",
-    "ak.peer.snapshot.read.manifest_head",
-    "ak.self.invite_locator.command.issue",
-    "ak.self.invite_locator.command.rotate",
-    "ak.self.invite_locator.command.revoke",
-    "ak.open.invite_locator.read.resolve",
-    "ak.self.account.read.viewer",
-    "ak.self.account.command.update_profile",
-    "ak.self.account.stream.subscribe"
+  "operation_bindings": [
+    {
+      "operation_id": "ak.server.read.describe",
+      "binding_kind": "http_json",
+      "preference": 100,
+      "response_schema_ref": "schemas/service-describe.schema.json",
+      "error_schema_ref": "schemas/http-error-envelope.schema.json",
+      "success_shape_kind": "service_describe"
+    },
+    {
+      "operation_id": "ak.self.account.stream.subscribe",
+      "binding_kind": "websocket",
+      "preference": 10,
+      "request_schema_ref": "schemas/websocket-frame.schema.json#/$defs/open_account",
+      "response_schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "error_schema_ref": "schemas/websocket-frame.schema.json#/$defs/error",
+      "success_shape_kind": "event_stream"
+    },
+    {
+      "operation_id": "ak.self.blob.upload.create",
+      "binding_kind": "tus",
+      "preference": 10,
+      "success_shape_kind": "metadata_headers"
+    }
   ],
   "supported_bindings": [
     {
@@ -391,15 +397,16 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 ### 3.0 Describe response claim levels
 
 `server/describe`（以及结构等价的 `identity/describe` / `events/describe` / `sync/describe` /
-`directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version`、`supported_profiles`、`supported_operations`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
+`directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version`、`supported_profiles`、`operation_bindings`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)（`ak.schema.service_describe.v1`）：
 
 `service_id` MUST 是该逻辑角色的 `did_core_id`，`service_resolution` MUST 投影当前 `full_id` 与 method history position。这个投影只用于将已选定 endpoint 与首跳 `ServiceResolutionRecord` 交叉确认，不能让 describe 变成 resolver，也不能单独创建 service 授权。
 
 当 `service_kind=directory_service` 时，`ak.find.directory.read.describe` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-akfinddirectoryreaddescribe-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_kinds[]`、`discovery_profiles[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。
 
-- `supported_operations: operation_id[]` — 该 endpoint 可被实际调用的 operation_id。仅表示 wire 可达，
-  不构成 profile claim。元素 SHOULD 命中 `operation-registry.json` 注册项。
+- `operation_bindings: OperationBinding[]` — 当前 role endpoint 可实际调用的完整精确载体集合。每行 MUST 命中
+  `operation-registry.json` 的 operation、request/response schema 与 success shape；`binding_kind` MUST 命中同一响应
+  `supported_bindings` 中覆盖该 operation 的 transport。该集合只表示 wire 可达，不构成 profile claim。
 - `trust_domain: ak:trust_domain:<scope>` — 部署级 replay boundary。客户端 / 接收方 MUST 要求它与 Realm create-locked trust domain、federation header 和本地 receive context 一致；不一致时不得接受 replay-sensitive proof。
 - `implemented_features: feature_id[]` — 服务有实现代码、但 **不一定** 通过 conformance verification 的 feature。
   构建 conformance matrix 的工具 MUST 把它视为严格弱于 `claimed_profiles`。
@@ -436,6 +443,24 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 verification artifact，校验 `artifact_digest`、`verifier_service_id`、`signature`、时间戳和可选 `expires_at`。
 
 `plaintext_visibility.data_classes` 是机器可判定的明文类别白名单。`event_kinds`、`payload_paths`、`blob_purposes` 和 `projection_outputs` 只是进一步缩小或解释范围，不能替代 `data_classes`；`notes` 只供人读。Realm policy 的 `plaintext_visible_services[].data_classes` MUST 是目标 `ServiceDescribe.plaintext_visibility.data_classes` 的子集，且 `visibility` 不得高于 `max_visibility`。若 describe 缺失 `data_classes` 或只给出自由文本 `purposes`，客户端 / reducer MUST 把它视为不能接收私有明文。
+
+#### 3.0.1 OperationBinding 精确求交
+
+`OperationBinding` 的身份是
+`(operation_id, binding_kind, request_schema_ref?, response_schema_ref?, error_schema_ref?, success_shape_kind)`；
+`preference` 不进入身份。缺少 schema ref 表示该方向没有 Arkret JSON schema（例如 empty response、binary stream 或
+TUS 原生 carrier），不得解释为“任意 schema”。同一响应不得出现身份重复行，且每个广告的 operation 至少有一行。
+
+客户端只在本地实现集合与服务端行的上述身份逐字段相等时认为存在交集；不得从 profile、SDK/产品版本、
+`supported_bindings`、404 body 或字段缺省猜测替代 carrier。多个交集候选按服务端 `preference` 从小到大选择；相同
+preference 时按身份字段组成的 canonical JSON 字节序升序选择。给定相同的本地集合和 describe 字节，所有实现 MUST
+得到同一结果。
+
+没有交集只禁用该 operation，并报告 `unsupported_operation_binding`；不得转译为权限错误、Bottom state，亦不得使
+整个服务、账户或 Realm 失效。未知 operation/schema/binding kind、registry 不闭合或重复身份属于当前 describe 的
+`schema_violation`。`supported_bindings` 仅声明 transport endpoint 与 transport 参数；它必须覆盖
+`operation_bindings`，但不能替代逐 operation 的 schema/carrier 声明。current-v1 不接受旧的扁平 operation 字段，
+也不提供 alias、双读或 fallback。
 
 ### 3.1 Identity Resolution Surface
 
@@ -1036,7 +1061,7 @@ Arkret v1 固定：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_expires_at`；`decision` 只能是 `allow`、`soft_deny`、`hard_deny`、`quarantine` 或 `require_review`。
-- Service describe MUST 声明 `service_id: did_core_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version="1.0"`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 在使用任何其它 describe 字段前先比较 `protocol_version`；其形状合法但不等于 `"1.0"` 时 MUST 以 `unsupported_protocol_version` 将整个服务标记为不可用，MUST NOT 缓存其路由、对其做 capability 交集或发起业务请求。缺失或非字符串的 `protocol_version` 仍是 `schema_violation`。客户端还 MUST 拒绝 service `did_core_id` / `full_id` projection、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
-- Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `interop_surfaces` 六个 claim level 字段，schema 见 `ak.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 verification artifact、verifier 签名和 hash 后才把它作为生产 conformance 依据。
+- Service describe MUST 声明 `service_id: did_core_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version="1.0"`、`supported_profiles`、`operation_bindings`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 在使用任何其它 describe 字段前先比较 `protocol_version`；其形状合法但不等于 `"1.0"` 时 MUST 以 `unsupported_protocol_version` 将整个服务标记为不可用，MUST NOT 缓存其路由、对其做 capability 交集或发起业务请求。缺失或非字符串的 `protocol_version` 仍是 `schema_violation`。客户端还 MUST 拒绝 service `did_core_id` / `full_id` projection、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
+- Service describe 响应 MUST 同时给出逐 operation 的 `operation_bindings`，并按 §3.0 区分 `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `interop_surfaces` 五个 claim level 字段，schema 见 `ak.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 verification artifact、verifier 签名和 hash 后才把它作为生产 conformance 依据。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。

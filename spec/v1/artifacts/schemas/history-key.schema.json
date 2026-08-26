@@ -939,8 +939,7 @@
           "required": [
             "kind", "profile", "effective_scope", "mls_group_id",
             "trusted_history_base_basis", "trusted_current_basis", "target_basis",
-            "request_digest", "requested_ranges", "authorization_incarnation",
-            "registry_snapshot_digest", "traversal_admission_registry_digest", "retention"
+            "request_digest", "requested_ranges", "authorization_incarnation", "retention"
           ],
           "properties": {
             "kind": {"const": "ak.history_governance.traversal_intent"},
@@ -956,11 +955,6 @@
               "items": {"$ref": "#/$defs/epoch_range"}
             },
             "authorization_incarnation": {"$ref": "#/$defs/authorization_incarnation"},
-            "registry_snapshot_digest": {
-              "$ref": "./governance-registry-snapshot.schema.json#/$defs/sha256_digest",
-              "description": "Content digest of the exact closed governance registry snapshot used for replay, including its transitive event-envelope/event-payload local-schema manifest."
-            },
-            "traversal_admission_registry_digest": {"$ref": "#/$defs/digest"},
             "retention": {
               "type": "object",
               "required": ["kind", "expires_at"],
@@ -978,8 +972,7 @@
           "required": [
             "kind", "profile", "effective_scope", "mls_group_id",
             "trusted_history_base_basis", "trusted_current_basis", "target_basis",
-            "requested_ranges", "archive_authorization_tuple", "container_event_ref",
-            "registry_snapshot_digest", "traversal_admission_registry_digest", "retention"
+            "requested_ranges", "archive_authorization_tuple", "container_event_ref", "retention"
           ],
           "properties": {
             "kind": {"const": "ak.history_governance.traversal_intent"},
@@ -995,11 +988,6 @@
             },
             "archive_authorization_tuple": {"$ref": "#/$defs/archive_authorization_tuple"},
             "container_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-            "registry_snapshot_digest": {
-              "$ref": "./governance-registry-snapshot.schema.json#/$defs/sha256_digest",
-              "description": "Content digest of the exact closed governance registry snapshot used for replay, including its transitive event-envelope/event-payload local-schema manifest."
-            },
-            "traversal_admission_registry_digest": {"$ref": "#/$defs/digest"},
             "retention": {
               "type": "object",
               "required": ["kind"],
@@ -1793,7 +1781,6 @@
       "type": "object",
       "required": [
         "kind",
-        "predicate_registry_digest",
         "source_record_digest",
         "response_id",
         "request_digest",
@@ -1817,10 +1804,6 @@
       "properties": {
         "kind": {
           "const": "ak.history_key.release_attestation"
-        },
-        "predicate_registry_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Must use the sha256 wire suite and equal sha256:<lowercase hex SHA-256(JCS(history-release-attestation-registry.json after removing only its top-level wire_registry_binding member))>. No domain framing or other exclusion is allowed. The registry contains no embedded current digest, so the computation has no self-cycle. It is authenticated by the enclosing response-record service proof."
         },
         "source_record_digest": {
           "$ref": "#/$defs/digest"
@@ -1892,7 +1875,7 @@
         },
         "verifier_profile_id": {
           "const": "ak.history_release_predicates.v1",
-          "description": "Closed verifier profile whose registry digest is predicate_registry_digest."
+          "description": "Frozen verifier profile implemented locally and selected by this id."
         }
       },
       "allOf": [

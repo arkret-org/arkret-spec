@@ -200,8 +200,7 @@ evidence 同样按其 content-addressed acceptance pin 解析，不得由 curren
 fork-resolution/recovery 归一。没有 acceptance-time bytes/output pin 的新 verifier 把该覆盖区间视为不可验证；它不能用任一当前可取得的 variant
 重建旧 `state_root`。内存只需当前对象与有界队列 buffer；visited/work state 可 durable 恢复。
 
-Replay intent 绑定一个小型 `GovernanceRegistrySnapshot` manifest digest。manifest 的 descriptor 集合固定为
-`registry/contract-registry.json`、`registry/proof-context-registry.json` 与一个 replay-schema manifest descriptor：前者是 reducer profile、lattice/FSM、active Event-kind contract 与 dependency extractor 的现有机器真相源，第二项冻结 detached proof transcript；schema manifest 从 `event-envelope.schema.json` 与 `event-payload.schema.json` 两个根开始，按每个本地 `$ref` 递归求出 every-and-only transitive schema closure，并按 artifact id 字节序列出 descriptor。外层 manifest 与 schema manifest 都不内联 artifact bytes；每个 artifact 按 descriptor digest 经同一 governance-dependency surface 分批取得，单 artifact canonical bytes 不超过 1 MiB，完整一次响应不超过 8 MiB。缺少、重复、多余、乱序、越界 `$ref`、不可解析 schema 或 artifact digest 不符均 fail closed。
+Replay 解释器只由 Realm 冻结的 profile id 选择；profile 的规范语义与 conformance vectors 随实现发布，不作为可寻址运行时工件进入 replay 输入。验签、Event identity 与转发均以收到并持久化的 canonical raw bytes 为准，typed view 只用于已知字段的语义解释，不得通过重序列化改变对象身份。实现不支持该 profile 时只对目标 Realm 返回 `unsupported_profile`，不得降级为权限错误或扩大到连接、账户和其他 Realm。
 
 winning MLS transition、requester join/incarnation 和 scope 当前单向收紧的 history access 均由这次 replay 派生；同一 Move 被多个并发 Seal 覆盖不产生可选的
 singular activation Seal。普通 Message/reaction 等 DataEvent 只携既有 accepted `seal_ref` authorization view，不携 `seal_basis`、不进入 Seal.delta、不推进 epoch。

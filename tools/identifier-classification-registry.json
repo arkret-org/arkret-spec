@@ -26,9 +26,9 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "registry_catalog_symbol": 19,
+    "registry_catalog_symbol": 22,
     "responsibility_did": 533,
-    "typed_object_id": 894
+    "typed_object_id": 893
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -139,38 +139,6 @@
       "occurrences": 5,
       "example_path": "account-subscribe-frame.schema.json#/$defs/agent_runtime_approval_notification_data/properties/approval_request_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
-    },
-    {
-      "name": "artifact_id",
-      "terminal_signature": "[[\"const\", \"governance-replay-schema-manifest\"]]",
-      "category": "registry_catalog_symbol",
-      "occurrences": 1,
-      "example_path": "governance-registry-snapshot.schema.json#/$defs/replay_schema_manifest_descriptor/properties/artifact_id",
-      "reason": "Names an exact registered governance replay artifact in the content-addressed registry snapshot closure."
-    },
-    {
-      "name": "artifact_id",
-      "terminal_signature": "[[\"const\", \"registry/contract-registry.json\"]]",
-      "category": "registry_catalog_symbol",
-      "occurrences": 1,
-      "example_path": "governance-registry-snapshot.schema.json#/$defs/contract_registry_descriptor/properties/artifact_id",
-      "reason": "Names an exact registered governance replay artifact in the content-addressed registry snapshot closure."
-    },
-    {
-      "name": "artifact_id",
-      "terminal_signature": "[[\"const\", \"registry/proof-context-registry.json\"]]",
-      "category": "registry_catalog_symbol",
-      "occurrences": 1,
-      "example_path": "governance-registry-snapshot.schema.json#/$defs/proof_context_registry_descriptor/properties/artifact_id",
-      "reason": "Names an exact registered governance replay artifact in the content-addressed registry snapshot closure."
-    },
-    {
-      "name": "artifact_id",
-      "terminal_signature": "[[\"pattern\", \"^schemas/[a-z0-9][a-z0-9-]*\\\\.schema\\\\.json$\"]]",
-      "category": "registry_catalog_symbol",
-      "occurrences": 1,
-      "example_path": "governance-registry-snapshot.schema.json#/$defs/replay_schema_artifact_descriptor/properties/artifact_id",
-      "reason": "Names an exact registered governance replay artifact in the content-addressed registry snapshot closure."
     },
     {
       "name": "authorization_rule_id",
@@ -861,14 +829,6 @@
       "occurrences": 1,
       "example_path": "direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt/properties/authorization_core/oneOf/0/properties/root_contact_round_id",
       "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
-    },
-    {
-      "name": "root_schema_artifact_ids",
-      "terminal_signature": "[[\"pattern\", \"^schemas/[a-z0-9][a-z0-9-]*\\\\.schema\\\\.json$\"]]",
-      "category": "registry_catalog_symbol",
-      "occurrences": 1,
-      "example_path": "governance-registry-snapshot.schema.json#/$defs/governance_replay_schema_manifest/properties/root_schema_artifact_ids",
-      "reason": "Names an exact registered governance replay artifact in the content-addressed registry snapshot closure."
     },
     {
       "name": "rule_id",

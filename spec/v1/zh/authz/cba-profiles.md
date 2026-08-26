@@ -88,8 +88,8 @@ submitted、pending、receipt、transparency entry、availability receipt、snap
 3. founding notary（`ak.component.notary.v1`）；
 4. reducer profile（`ak.component.realm.reducer_profile.v1`）；
 5. founding authority root cell（`ak.component.realm.authority_root.v1`），其
-   `controller_id` / `controller_epoch` / `authority_generation` / `capability_action_registry_digest`
-   分别由 create envelope 的 `actor_id` 与 create payload 确定性派生。
+   `controller_id` / `controller_epoch` / `authority_generation`
+   由 create envelope 的 `actor_id` 与冻结 profile 规则确定性派生。
 
 普通 Collaboration 的 policy bundle、join rule、history access、discovery、alias/plaintext/delivery 与 creator membership 是同一 bootstrap registry 中按序签名的显式 facet。`direct_conversation`、`principal_control`、`managed_agent_control` 不携该普通 history facet；create reducer 分别按 `payload.object.purpose` 命中的注册条件原子写入 `ak.component.realm.history_access.v1: null -> since_join`。另有 `initial_resolution` 与 managed-Agent status 条件写。缺槽、错序、漏写或条件路径不闭合时整个 unit MUST 原子拒绝。
 

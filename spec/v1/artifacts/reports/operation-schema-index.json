@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.3",
+  "version": "2026-08-27.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-08-27T05:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -55,6 +55,77 @@
           "ok",
           "rejected",
           "retry_after_ms"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.edge.applet.read.describe",
+      "success_shape_kind": "service_describe",
+      "response": {
+        "schema_ref": "schemas/service-describe.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "properties": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "supported_reducer_profiles",
+          "profile_bindings",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "calendar_tzdb_versions",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "privacy_derivation",
+          "receive_policy_constraints",
+          "rate_limit_policy_id",
+          "rate_limit_policy",
+          "egress_network_policy",
+          "resource_kinds",
+          "discovery_profiles",
+          "private_contact_discovery",
+          "restricted_query_proof",
+          "ingest_modes",
+          "accept_policy_kind",
+          "accept_policy_ref",
+          "default_ttl_seconds",
+          "max_ttl_seconds",
+          "revalidation_grace_seconds",
+          "accepted_resource_kinds",
+          "accepted_did_methods",
+          "takedown_contact",
+          "rate_limits",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
         ],
         "closed": true
       }
@@ -395,6 +466,77 @@
         "properties": [
           "subscription_id",
           "effective_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.find.directory.read.describe",
+      "success_shape_kind": "service_describe",
+      "response": {
+        "schema_ref": "schemas/service-describe.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "properties": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "supported_reducer_profiles",
+          "profile_bindings",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "calendar_tzdb_versions",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "privacy_derivation",
+          "receive_policy_constraints",
+          "rate_limit_policy_id",
+          "rate_limit_policy",
+          "egress_network_policy",
+          "resource_kinds",
+          "discovery_profiles",
+          "private_contact_discovery",
+          "restricted_query_proof",
+          "ingest_modes",
+          "accept_policy_kind",
+          "accept_policy_ref",
+          "default_ttl_seconds",
+          "max_ttl_seconds",
+          "revalidation_grace_seconds",
+          "accepted_resource_kinds",
+          "accepted_did_methods",
+          "takedown_contact",
+          "rate_limits",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
         ],
         "closed": true
       }
@@ -3163,6 +3305,73 @@
           "realm_id"
         ],
         "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-describe.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "properties": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "supported_reducer_profiles",
+          "profile_bindings",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "calendar_tzdb_versions",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "privacy_derivation",
+          "receive_policy_constraints",
+          "rate_limit_policy_id",
+          "rate_limit_policy",
+          "egress_network_policy",
+          "resource_kinds",
+          "discovery_profiles",
+          "private_contact_discovery",
+          "restricted_query_proof",
+          "ingest_modes",
+          "accept_policy_kind",
+          "accept_policy_ref",
+          "default_ttl_seconds",
+          "max_ttl_seconds",
+          "revalidation_grace_seconds",
+          "accepted_resource_kinds",
+          "accepted_did_methods",
+          "takedown_contact",
+          "rate_limits",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "closed": true
       }
     },
     {
@@ -4294,6 +4503,77 @@
       }
     },
     {
+      "operation_id": "ak.root.identity.registry.read.describe",
+      "success_shape_kind": "service_describe",
+      "response": {
+        "schema_ref": "schemas/service-describe.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "properties": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "supported_reducer_profiles",
+          "profile_bindings",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "calendar_tzdb_versions",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "privacy_derivation",
+          "receive_policy_constraints",
+          "rate_limit_policy_id",
+          "rate_limit_policy",
+          "egress_network_policy",
+          "resource_kinds",
+          "discovery_profiles",
+          "private_contact_discovery",
+          "restricted_query_proof",
+          "ingest_modes",
+          "accept_policy_kind",
+          "accept_policy_ref",
+          "default_ttl_seconds",
+          "max_ttl_seconds",
+          "revalidation_grace_seconds",
+          "accepted_resource_kinds",
+          "accepted_did_methods",
+          "takedown_contact",
+          "rate_limits",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.root.identity.service_registration.command.ensure",
       "success_shape_kind": "typed_response",
       "request": {
@@ -4408,6 +4688,77 @@
       }
     },
     {
+      "operation_id": "ak.self.account.read.describe",
+      "success_shape_kind": "service_describe",
+      "response": {
+        "schema_ref": "schemas/service-describe.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "properties": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "supported_reducer_profiles",
+          "profile_bindings",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "calendar_tzdb_versions",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "privacy_derivation",
+          "receive_policy_constraints",
+          "rate_limit_policy_id",
+          "rate_limit_policy",
+          "egress_network_policy",
+          "resource_kinds",
+          "discovery_profiles",
+          "private_contact_discovery",
+          "restricted_query_proof",
+          "ingest_modes",
+          "accept_policy_kind",
+          "accept_policy_ref",
+          "default_ttl_seconds",
+          "max_ttl_seconds",
+          "revalidation_grace_seconds",
+          "accepted_resource_kinds",
+          "accepted_did_methods",
+          "takedown_contact",
+          "rate_limits",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.account.read.viewer",
       "success_shape_kind": "typed_response",
       "response": {
@@ -4429,6 +4780,104 @@
           "is_server_admin"
         ],
         "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.account.stream.subscribe",
+      "success_shape_kind": "event_stream",
+      "response": {
+        "schema_ref": "schemas/account-subscribe-frame.schema.json",
+        "schema_kind": "oneOf",
+        "required": [
+          "kind"
+        ],
+        "properties": [
+          "kind"
+        ],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/account-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind",
+              "cursor"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/account-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind",
+              "cursor"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/account-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind",
+              "cursor"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/account-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind",
+              "cursor"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/account-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/account-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/account-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          }
+        ]
       }
     },
     {
@@ -7348,6 +7797,73 @@
           "realm_id"
         ],
         "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-describe.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "properties": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "supported_reducer_profiles",
+          "profile_bindings",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "calendar_tzdb_versions",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "privacy_derivation",
+          "receive_policy_constraints",
+          "rate_limit_policy_id",
+          "rate_limit_policy",
+          "egress_network_policy",
+          "resource_kinds",
+          "discovery_profiles",
+          "private_contact_discovery",
+          "restricted_query_proof",
+          "ingest_modes",
+          "accept_policy_kind",
+          "accept_policy_ref",
+          "default_ttl_seconds",
+          "max_ttl_seconds",
+          "revalidation_grace_seconds",
+          "accepted_resource_kinds",
+          "accepted_did_methods",
+          "takedown_contact",
+          "rate_limits",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "closed": true
       }
     },
     {
@@ -7600,6 +8116,111 @@
           "receipts"
         ],
         "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.events.stream.subscribe",
+      "success_shape_kind": "event_stream",
+      "response": {
+        "schema_ref": "schemas/events-subscribe-frame.schema.json",
+        "schema_kind": "oneOf",
+        "required": [
+          "kind"
+        ],
+        "properties": [
+          "kind",
+          "payload"
+        ],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind",
+              "realm_id",
+              "cursor",
+              "payload"
+            ],
+            "properties": [
+              "kind",
+              "payload"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind",
+              "realm_id",
+              "payload"
+            ],
+            "properties": [
+              "kind",
+              "payload"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind",
+              "cursor"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind",
+              "realm_id",
+              "cursor"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": false
+          }
+        ]
       }
     },
     {
@@ -9494,6 +10115,75 @@
       }
     },
     {
+      "operation_id": "ak.self.signal.stream.subscribe",
+      "success_shape_kind": "event_stream",
+      "response": {
+        "schema_ref": "schemas/signal-stream-frame.schema.json",
+        "schema_kind": "oneOf",
+        "required": [
+          "kind"
+        ],
+        "properties": [
+          "kind",
+          "envelope",
+          "reconnect_after_ms",
+          "reason"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/signal-stream-frame.schema.json#/$defs/signal",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "envelope"
+            ],
+            "properties": [
+              "kind",
+              "envelope"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/signal-stream-frame.schema.json#/$defs/heartbeat",
+            "schema_kind": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": [
+              "kind"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/signal-stream-frame.schema.json#/$defs/drain",
+            "schema_kind": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": [
+              "kind",
+              "reconnect_after_ms",
+              "reason"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/signal-stream-frame.schema.json#/$defs/unauthorized",
+            "schema_kind": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": [
+              "kind",
+              "reason"
+            ],
+            "closed": true
+          }
+        ]
+      }
+    },
+    {
       "operation_id": "ak.self.snapshot.read.manifest_head",
       "success_shape_kind": "schema_resource",
       "response": {
@@ -10007,6 +10697,77 @@
           "archive_sequence",
           "accepted_at",
           "service_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.server.read.describe",
+      "success_shape_kind": "service_describe",
+      "response": {
+        "schema_ref": "schemas/service-describe.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
+        ],
+        "properties": [
+          "service_id",
+          "service_resolution",
+          "trust_domain",
+          "service_kind",
+          "protocol_version",
+          "supported_profiles",
+          "supported_reducer_profiles",
+          "profile_bindings",
+          "operation_bindings",
+          "supported_bindings",
+          "supported_features",
+          "calendar_tzdb_versions",
+          "auth_metadata",
+          "limits",
+          "plaintext_visibility",
+          "privacy_derivation",
+          "receive_policy_constraints",
+          "rate_limit_policy_id",
+          "rate_limit_policy",
+          "egress_network_policy",
+          "resource_kinds",
+          "discovery_profiles",
+          "private_contact_discovery",
+          "restricted_query_proof",
+          "ingest_modes",
+          "accept_policy_kind",
+          "accept_policy_ref",
+          "default_ttl_seconds",
+          "max_ttl_seconds",
+          "revalidation_grace_seconds",
+          "accepted_resource_kinds",
+          "accepted_did_methods",
+          "takedown_contact",
+          "rate_limits",
+          "implemented_features",
+          "claimed_profiles",
+          "verified_profiles",
+          "experimental_features",
+          "interop_surfaces",
+          "development_mode"
         ],
         "closed": true
       }

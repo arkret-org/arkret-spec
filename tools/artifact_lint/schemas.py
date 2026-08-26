@@ -900,7 +900,8 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
             lint.fail(
                 path,
                 f"{profile_id}: owner_grant_authority_actions is retired; a profile action "
-                "is owner-grantable exactly when the Realm declares the profile "
+                "is owner-grantable only when the reducer profile's compiled "
+                "ak.realm.owner grant_authority_rule includes that exact action "
                 "(capabilities.md section 3.2)",
             )
 

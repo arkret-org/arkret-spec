@@ -362,7 +362,7 @@ notify 分支的 holder-private 投递承载是 account-data 私有 cell，key �
 
 ## 8. Describe Capabilities
 
-支持 invite addressing 的 Principal Server SHOULD 在 `ServiceDescribe.supported_operations` 中声明：
+支持 invite addressing 的 Principal Server SHOULD 在 `ServiceDescribe.operation_bindings` 中声明对应 operation 的精确 carrier/schema 行：
 
 - `ak.self.invite_locator.command.issue`
 - `ak.self.invite_locator.command.rotate`

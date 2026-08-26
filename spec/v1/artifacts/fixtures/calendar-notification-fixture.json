@@ -49,9 +49,24 @@
         "supported_profiles": [
           "ak.profile.calendar_notification_dispatch.v1"
         ],
-        "supported_operations": [
-          "ak.server.read.describe",
-          "ak.self.events.read.scan"
+        "operation_bindings": [
+          {
+            "operation_id": "ak.server.read.describe",
+            "binding_kind": "http_json",
+            "preference": 100,
+            "response_schema_ref": "schemas/service-describe.schema.json",
+            "error_schema_ref": "schemas/http-error-envelope.schema.json",
+            "success_shape_kind": "service_describe"
+          },
+          {
+            "operation_id": "ak.self.events.read.scan",
+            "binding_kind": "http_json",
+            "preference": 100,
+            "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
+            "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
+            "error_schema_ref": "schemas/http-error-envelope.schema.json",
+            "success_shape_kind": "typed_response"
+          }
         ],
         "supported_bindings": [
           {

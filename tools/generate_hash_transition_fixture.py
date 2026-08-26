@@ -126,11 +126,11 @@ def main() -> None:
         "cell": "ak:cell:ak.component.realm.digest_suite.v1:null",
         "state": {"value": "blake3"},
     })
-    genesis_control_root = "blake3:9f249f9bcaf14dbab0c188039cd7c47565f58e7292880e8c35e705f4ebec2ccb"
+    genesis_control_root = "blake3:b402d504948a11af09134808f88ca8dfb633b3b55a2ff92ea92d1bfaa823b2c7"
     genesis_completeness_preimage = completeness_leaf_preimage([(
         create["actor_id"], create["actor_seq"], create_digest,
     )])
-    genesis_completeness_root = "blake3:f1e720e67ed1f266c821e5d88a4674b973b19a7ca161fb4f80a2080b53fb4e91"
+    genesis_completeness_root = "blake3:0df8511771da45ee1ee62b05f3030fcebcbc6dcfdf8b6a15fd3ddf1766ac0fe3"
     genesis_state_root = "blake3:bbcf9676f0894e3da0ac2b34357c7a10b52aa5135f3a8dcd60d4c98164b855e9"
     genesis_body = {
         "realm_id": create_realm_id,
@@ -145,7 +145,7 @@ def main() -> None:
         "hlc": "0198943a5000-0000-aabbccdd",
     }
     genesis_body_bytes = jcs(genesis_body)
-    genesis_seal_digest = "blake3:d969555b23fcbcdc84e219a40884e359cf03c0a90853119d562e29637bd2caef"
+    genesis_seal_digest = "blake3:85a81174a72bd131f6c4a6a794674d55b00446d794e78bd389861406534e3140"
 
     realm_id = source["cases"][1]["derived_realm_id"]
     base_seal_id = "ak:seal:sha256:" + "3" * 64
@@ -198,7 +198,7 @@ def main() -> None:
     next_root = "blake3:bbcf9676f0894e3da0ac2b34357c7a10b52aa5135f3a8dcd60d4c98164b855e9"
     covered = sorted([transition_digest, source["cases"][1]["event_digest"]])
     transition_control_leaf_preimages = [control_leaf_preimage(digest) for digest in covered]
-    control_root = "blake3:c3922b13322b6359b85e3aa6de93924bb11fdca715e93d5fd624fa2a80cea79e"
+    control_root = "blake3:d761aece4ba3cca48b8cbe3b8e2f5a364d9513c93f864c29a7ed280b476d1f5b"
     transition_completeness_preimage = completeness_leaf_preimage([
         (
             base_event["actor_id"],
@@ -207,7 +207,7 @@ def main() -> None:
         ),
         (transition["actor_id"], transition["actor_seq"], transition_digest),
     ])
-    completeness_root = "blake3:cbf30e1e0b07b86ba376a22cbf7d5033f6a4b582c39d356c2778d21fc92c3213"
+    completeness_root = "blake3:21d80961a72242360b1701cc46cf793c95c1c08aebedbf6b222c9a03f60e88a1"
     transition_body = {
         "realm_id": realm_id,
         "predecessor_refs": [base_seal_id],
@@ -224,7 +224,7 @@ def main() -> None:
         "hlc": "019899606c00-0000-aabbccdd",
     }
     transition_body_bytes = jcs(transition_body)
-    transition_seal_digest = "blake3:be463041e2fde20070676d953baba80b69bbaca7513f665edac2395e446913db"
+    transition_seal_digest = "blake3:3a50d61f7b635cdbbe924ac6e6e48179d7f71990c53b35fa192d43abc55325de"
     successor = {
         "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 2,
@@ -238,7 +238,7 @@ def main() -> None:
         "seal_basis": {"leaves": ["ak:seal:" + transition_seal_digest]},
     }
     successor_bytes = jcs(successor)
-    successor_digest = "blake3:04fa710e89b46ba233d78f152f6316fc7f328edd38e52822cdc3435186a26415"
+    successor_digest = "blake3:ed5144c880babaf845b1852e12b43c55ec831e244742f6642d79e5c8afee1b55"
 
     fixture = {
         "profile": "ak.profile.hash_transition.v1",

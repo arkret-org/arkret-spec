@@ -804,6 +804,10 @@ epoch evidence、package digest、service、target PS 与 hosting notary，返�
 `purpose=provision_ghost` authoring request。Applet 再把它提交到统一
 `POST /_arkret/edge/applet/managed-actors/author` 取得 role-neutral bundle，最后通过
 
+preview 的 service/app binding MUST 取自签名覆盖的 `Source-Service-ID`、路径
+`{applet_id}` 与本地 active exact install；验证器 MUST NOT 要求该 preview body 携带尚未由
+Principal Server 签发的 `authoring_request` 或其中的 `basis.service_id` / `basis.applet_id`。
+
 ```text
 POST /_arkret/self/applets/{applet_id}/ghosts/provision
 Idempotency-Key: <opaque-string>

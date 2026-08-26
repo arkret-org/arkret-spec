@@ -754,11 +754,6 @@ UNPAIRED_STATED_PREIMAGE_KEYS: dict[str, str] = {
     "successor_event_digest_preimage_canonical_bytes_utf8": (
         "hash-transition successor Event uses the successor suite and is checked by the Rust KAT"
     ),
-    "canonical_bytes_b64u": (
-        "GovernanceRegistryArtifact bytes are paired with descriptor.content_digest in a "
-        "nested object and are recomputed by the history scale generator's domain-separated "
-        "artifact KAT"
-    ),
     "canonical_preimage": (
         "symbolic candidate label ('A', 'B') in the Seal tie-break vector, not bytes"
     ),

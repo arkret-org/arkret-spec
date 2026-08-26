@@ -29,6 +29,13 @@ def canonical_json(value: Any) -> bytes:
     ).encode("utf-8")
 
 
+def semantic_content_digest(data: dict[str, Any]) -> str:
+    content = {
+        key: value for key, value in data.items() if key not in {"version", "generated_at"}
+    }
+    return "sha256:" + hashlib.sha256(canonical_json(content)).hexdigest()
+
+
 def artifact_rows() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     paths = [
@@ -52,13 +59,12 @@ def artifact_rows() -> list[dict[str, Any]]:
                 raise ValueError(f"{path}: generated_at must be RFC3339") from exc
             if parsed.date().isoformat() != version:
                 raise ValueError(f"{path}: generated_at date must match date version")
-        content = {key: value for key, value in data.items() if key not in {"version", "generated_at"}}
         rows.append(
             {
                 "path": path.relative_to(ROOT).as_posix(),
                 "version": version,
                 "generated_at": generated_at,
-                "content_digest": "sha256:" + hashlib.sha256(canonical_json(content)).hexdigest(),
+                "content_digest": semantic_content_digest(data),
             }
         )
     return rows
@@ -98,6 +104,25 @@ def load_reference() -> dict[str, Any] | None:
     return data
 
 
+def transition_errors(old: dict[str, Any], new: dict[str, Any]) -> list[str]:
+    path = new["path"]
+    content_changed = old.get("content_digest") != new.get("content_digest")
+    version_changed = old.get("version") != new.get("version")
+    generated_at_changed = old.get("generated_at") != new.get("generated_at")
+    errors: list[str] = []
+    if not content_changed:
+        if version_changed:
+            errors.append(f"{path}: version changed without semantic content change")
+        if generated_at_changed:
+            errors.append(f"{path}: generated_at changed without semantic content change")
+        return errors
+    if not version_advanced(old.get("version"), new["version"]):
+        errors.append(f"{path}: content changed without version advance")
+    if not generated_at_advanced(old.get("generated_at"), new.get("generated_at")):
+        errors.append(f"{path}: content changed without generated_at advance")
+    return errors
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -125,12 +150,9 @@ def main(argv: list[str] | None = None) -> int:
             errors: list[str] = []
             for row in rows:
                 old = old_by_path.get(row["path"])
-                if not old or old.get("content_digest") == row["content_digest"]:
+                if not old:
                     continue
-                if not version_advanced(old.get("version"), row["version"]):
-                    errors.append(f"{row['path']}: content changed without version advance")
-                if not generated_at_advanced(old.get("generated_at"), row.get("generated_at")):
-                    errors.append(f"{row['path']}: content changed without generated_at advance")
+                errors.extend(transition_errors(old, row))
             if errors:
                 for error in errors:
                     print(error, file=sys.stderr)

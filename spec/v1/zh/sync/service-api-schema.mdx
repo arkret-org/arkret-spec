@@ -45,7 +45,7 @@ HTTP/JSON 是参考绑定；同一操作应能无语义损失映射到其它 tra
   - `service_kind`
   - `protocol_version`
   - `supported_profiles`
-  - `supported_operations`
+  - `operation_bindings`
   - `supported_bindings`
   - `supported_features`
   - `auth_metadata`
@@ -427,8 +427,8 @@ paths:
 - 任何节点都应能发布一份可下载的 OpenAPI 文档（建议路径 `/.well-known/arkret/openapi.yaml`），并在 service DID metadata 中声明版本和 hash。
 - 实现必须保持 `operation_id` 在演进中稳定；若请求字段名变更，必须通过 profile、schema 版本或 feature discovery 明确协商。
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
-- 实现不得因为支持 core Event / Account aggregate 就默认声称支持目录、MIMI、账户登录、管理员或 E2EE key-management surface；这些能力必须通过 `supported_operations`、`supported_profiles` 或两者同时显式声明。
-- 所有 path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，不含版本段；`servers` 只声明 `https://{host}`。生成 OpenAPI 时无需 path-level `servers` 覆盖，协议版本通过 `*.describe` / `supported_operations` 协商（可选 `Arkret-Protocol-Version` header），不放进 path。
+- 实现不得因为支持 core Event / Account aggregate 就默认声称支持目录、MIMI、账户登录、管理员或 E2EE key-management surface；这些能力必须通过当前角色 `ServiceDescribe.operation_bindings` 中的精确 carrier row、`supported_profiles` 或两者同时显式声明。
+- 所有 path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，不含版本段；`servers` 只声明 `https://{host}`。生成 OpenAPI 时无需 path-level `servers` 覆盖，协议版本通过 `*.describe` 的精确 `operation_bindings` 交集（可选 `Arkret-Protocol-Version` header）判定，不放进 path。
 - `GET /_arkret/self/account/subscribe`（`ak.self.account.stream.subscribe`）是客户端账号视角聚合同步入口（跨 Realm delta + to_device + account_data + device_lists + unread / notification counts），HTTP binding 使用 NDJSON frame stream；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入 account aggregate。`QUERY /_arkret/self/events`（`ak.self.events.read.scan`，可双向、分页，默认 limit 100）是按 selector 的事件读取/历史回补；`GET /_arkret/self/events/subscribe`（`ak.self.events.stream.subscribe`，可携 bounded catch-up replay）是按 selector 的事件流订阅。`ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 是对称但不等价的订阅（account-aggregate vs per-Realm event log）；三类操作的 selector、auth、frame schema 与 freshness 行为不同，不得互相替代，也不得新增未声明的 canonical account / events endpoint。
 - 生成的 OpenAPI 引用统一 error envelope，覆盖 `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 rate_limited` 与 `503 temporarily_unavailable` 的标准响应。
 - OpenAPI security scheme 不定义 query string token 认证；受保护 endpoint 使用 header / signature / mTLS / signed proof body 等认证方式。

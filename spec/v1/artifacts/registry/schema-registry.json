@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.2",
+  "version": "2026-08-27.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T15:06:00+08:00",
+  "generated_at": "2026-08-27T05:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -393,12 +393,6 @@
       "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
       "status": "active",
       "description": "Content-addressed historical signer-resolution evidence pinned for Event, Principal Server and AvailabilityReceipt signature verification."
-    },
-    {
-      "schema_id": "ak.schema.governance_registry_snapshot.v1",
-      "file": "schemas/governance-registry-snapshot.schema.json",
-      "status": "active",
-      "description": "Small content-addressed governance registry manifest plus a deterministic transitive event-envelope/event-payload local-schema manifest; each named artifact is fetched separately for historical apply_seal replay."
     },
     {
       "schema_id": "ak.schema.patch.v1",
@@ -1195,7 +1189,7 @@
       "schema_id": "ak.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
-      "description": "Canonical ServiceDescribe response for ak.server.read.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / interop_surfaces) and the registered directory_service overlay fields used by ak.find.directory.read.describe. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+      "description": "Canonical ServiceDescribe response for ak.server.read.describe and per-surface describe operations: base service metadata plus exact operation_bindings and claim-level partitions (implemented_features / claimed_profiles / verified_profiles / experimental_features / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
     },
     {
       "schema_id": "ak.schema.transport_binding.v1",

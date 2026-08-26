@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.1",
+  "version": "2026-08-27.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T14:10:00+08:00",
+  "generated_at": "2026-08-27T05:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -33,7 +33,7 @@
   "registry_rules": [
     "New operation_id values MUST be added here before any OpenAPI, HTTP binding table, SDK generator, or alternative transport binding references them.",
     "Generated views MAY change shape, grouping, or field order, but MUST NOT introduce, rename, or remove operation_id values that are absent from this catalog.",
-    "Supporting Arkret core does not imply support for every registered operation. Implementations MUST advertise supported_operations and supported_profiles explicitly.",
+    "Supporting Arkret core does not imply support for every registered operation. Implementations MUST advertise exact operation_bindings and supported_profiles explicitly.",
     "Each surface_groups entry carries a tier (see surface_classes); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
     "surface_classes defines the closed tier vocabulary and surface_groups is the sole canonical operation grouping view; generators MUST NOT emit a third top-level surfaces collection.",
     "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint.",
@@ -638,7 +638,8 @@
       "grpc": "EdgeApplet/Describe",
       "mq": "edge.applet.query.describe",
       "body_class": "non_streaming_json",
-      "success_shape_kind": "service_describe"
+      "success_shape_kind": "service_describe",
+      "response_schema_ref": "schemas/service-describe.schema.json"
     },
     {
       "operation_id": "ak.edge.applet.read.ping",
@@ -838,7 +839,8 @@
       "grpc": "FindDirectory/Describe",
       "mq": "find.directory.query.describe",
       "body_class": "non_streaming_json",
-      "success_shape_kind": "service_describe"
+      "success_shape_kind": "service_describe",
+      "response_schema_ref": "schemas/service-describe.schema.json"
     },
     {
       "operation_id": "ak.find.directory.read.list_handles_for_subject",
@@ -1762,7 +1764,8 @@
       "notes": "Federation peer Events surface describe. This endpoint describes the server-to-server peer event bindings; it is not a client self/events binding.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "service_describe",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody"
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody",
+      "response_schema_ref": "schemas/service-describe.schema.json"
     },
     {
       "operation_id": "ak.peer.events.read.frontier",
@@ -2233,7 +2236,8 @@
       "grpc": "RootIdentity/DescribeRegistry",
       "mq": "root.identity.registry.query.describe",
       "body_class": "non_streaming_json",
-      "success_shape_kind": "service_describe"
+      "success_shape_kind": "service_describe",
+      "response_schema_ref": "schemas/service-describe.schema.json"
     },
     {
       "operation_id": "ak.root.identity.service_registration.command.ensure",
@@ -2310,7 +2314,8 @@
       "grpc": "SelfAccount/Describe",
       "mq": "self.account.query.describe",
       "body_class": "non_streaming_json",
-      "success_shape_kind": "service_describe"
+      "success_shape_kind": "service_describe",
+      "response_schema_ref": "schemas/service-describe.schema.json"
     },
     {
       "operation_id": "ak.self.account.read.viewer",
@@ -2329,7 +2334,8 @@
       "mq": "self.account.stream.subscribe",
       "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, unread / notification counts). Signal envelopes use the Signal Extension live rail and are not account aggregate state. Connection is long-lived; server pushes NDJSON frames as new data becomes available.",
       "body_class": "streaming_ndjson",
-      "success_shape_kind": "event_stream"
+      "success_shape_kind": "event_stream",
+      "response_schema_ref": "schemas/account-subscribe-frame.schema.json"
     },
     {
       "operation_id": "ak.self.account_data.read.list",
@@ -3479,7 +3485,8 @@
       "mq": "self.events.read.describe",
       "body_class": "non_streaming_json",
       "success_shape_kind": "service_describe",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody"
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody",
+      "response_schema_ref": "schemas/service-describe.schema.json"
     },
     {
       "operation_id": "ak.self.events.read.delivery_status",
@@ -3542,7 +3549,7 @@
       "http": "POST /_arkret/self/seals/governance-dependencies",
       "grpc": "SelfSeals/GovernanceDependencies",
       "mq": "self.seals.read.governance_dependencies",
-      "notes": "Resolve a caller-split batch of exactly four content-addressed dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, GovernanceRegistrySnapshot manifest, and GovernanceRegistryArtifact bytes. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB.",
+      "notes": "Resolve a caller-split batch of exactly three content-addressed evidence kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, and MinimalMetadataMlsLeafSignerEvidence. Optional self history_traversal_access is the sole retained-cut visibility exception. The operation is cursor-free and returns no partial result when the complete same-shape outcome exceeds byte_limit or 8 MiB.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 8388608,
       "success_shape_kind": "typed_response",
@@ -3587,7 +3594,8 @@
       "mq": "self.events.stream.subscribe",
       "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After.",
       "body_class": "streaming_ndjson",
-      "success_shape_kind": "event_stream"
+      "success_shape_kind": "event_stream",
+      "response_schema_ref": "schemas/events-subscribe-frame.schema.json"
     },
     {
       "operation_id": "ak.self.identity.read.resolution_audit",
@@ -3995,7 +4003,7 @@
       "http": "POST /_arkret/self/policy/check",
       "grpc": "SelfPolicy/Check",
       "mq": "self.policy.query.check",
-      "notes": "Canonical HTTP binding is POST /_arkret/self/policy/check. Paths carry no version segment; protocol version is negotiated via *.describe / supported_operations (see sync/api-conventions.md).",
+      "notes": "Canonical HTTP binding is POST /_arkret/self/policy/check. Paths carry no version segment; protocol version and exact carrier support are discovered via *.describe / operation_bindings (see sync/api-conventions.md).",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
@@ -4441,7 +4449,8 @@
       "mq": "self.signal.stream.subscribe",
       "notes": "Authenticated encrypted-only Signal Extension receive rail. Frames carry SignalEnvelope objects or bounded transport control frames; exact signal type and product target remain inside ciphertext. No catch-up or durable delivery guarantee.",
       "body_class": "streaming_ndjson",
-      "success_shape_kind": "event_stream"
+      "success_shape_kind": "event_stream",
+      "response_schema_ref": "schemas/signal-stream-frame.schema.json"
     },
     {
       "operation_id": "ak.self.snapshot.read.manifest_head",
@@ -4640,7 +4649,7 @@
       "http": "POST /_arkret/peer/seals/governance-dependencies",
       "grpc": "PeerSeals/GovernanceDependencies",
       "mq": "peer.seals.read.governance_dependencies",
-      "notes": "Authenticated S2S exact resolve of exactly four content-addressed dependency kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, GovernanceRegistrySnapshot manifest, and GovernanceRegistryArtifact bytes. Omitted history_traversal_access uses ordinary Realm/federation visibility; the optional pending_archive_replica branch is the sole retained-cut exception. Member request replicas never authorize traversal. Unknown, unauthorized, outside-cut and missing selectors are same-shape; complete bounds failure returns no partial items or cursor.",
+      "notes": "Authenticated S2S exact resolve of exactly three content-addressed evidence kinds: AvailabilityReceipt, AuthenticatedSignerResolutionEvidence, and MinimalMetadataMlsLeafSignerEvidence. Omitted history_traversal_access uses ordinary Realm/federation visibility; the optional pending_archive_replica branch is the sole retained-cut exception. Member request replicas never authorize traversal. Unknown, unauthorized, outside-cut and missing selectors are same-shape; complete bounds failure returns no partial items or cursor.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 8388608,
       "success_shape_kind": "typed_response",
@@ -4676,7 +4685,8 @@
       "grpc": "Server/Describe",
       "mq": "server.query.describe",
       "body_class": "non_streaming_json",
-      "success_shape_kind": "service_describe"
+      "success_shape_kind": "service_describe",
+      "response_schema_ref": "schemas/service-describe.schema.json"
     }
   ],
   "success_shape_kind_definitions": {
