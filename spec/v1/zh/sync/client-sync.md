@@ -198,10 +198,10 @@ Account subscribe `delta` frame 包含以下 stream：
 
 ### 3.1 Account notification delta（normative）
 
-顶层 `notifications` 的 wire 形态固定为 `{items: NotificationDelta[]}`，不再复用 `{events: EventEnvelope[]}`。`NotificationDelta` 是闭合对象 `{id, notification_kind, action, data?}`：`id` 为 `ak:notification:*`，`notification_kind="agent"`，`action` 只能为 `upsert | remove`。当前 v1 数据分支只登记 `data.kind="agent_runtime_approval"`：
+顶层 `notifications` 的 wire 形态固定为 `{items: NotificationDelta[]}`，不再复用 `{events: EventEnvelope[]}`。`NotificationDelta` 是闭合对象 `{id, action, data?}`：`id` 为 `ak:notification:*`，`action` 只能为 `upsert | remove`。该容器在 v1 专用于 Agent runtime approval，不携带没有分支选择作用的 notification/data kind 镜像：
 
 - `upsert` 的 `data` MUST 含 `approval_request_id`、`agent_id`、`requested_at`、`expires_at`，并且不得含 pairing code、runtime public key、PoP、attestation、display name 或 slug。客户端必须在显示和审批前通过认证的 `ak.self.agent.resource.get` 读取当前完整投影。
-- `remove` 的 `data` MAY 省略；若存在，必须是闭合 `{kind="agent_runtime_approval", reason}`，其中 `reason` 只能为 `approved | expired | renewed | deactivated | superseded`。
+- `remove` 的 `data` MAY 省略；若存在，必须是闭合 `{reason}`，其中 `reason` 只能为 `approved | expired | renewed | deactivated | superseded`。
 - 客户端 projector MUST 按 `upsert=按同 id 插入或完整替换`、`remove=删除` 应用 delta；把所有 action 都当 insert 的实现不得声明支持该 notification delta。
 - `upsert` 后，客户端 MUST 重读 Agent，要求当前 `approval_request_id` 相同、`key_state.pairing_request_id` / `pairing_mode` / `pairing_expires_at` 共同表明 pairing 仍 open 且未过期，并要求通用 `agent.readiness.blockers` 含 `pairing_open`；`pairing_mode=bootstrap` 时还必须含 `runtime_key_missing`，`replacement` 时必须存在 active authorization 且显示 runtime key replacement 警告。通用 view/key_state 不含 `runtime_state`；该字段只在 runtime pairing poll 响应出现。lifecycle 意图与 open handle 不互锁，pause / resume 不被 replacement 阻塞。服务端在 handle consumed 或过期后 MUST 原子清除上述 open-handle 投影（以及 `pairing_code`）并重算 readiness。审批前 MUST 再次读取或依赖服务端 current-request CAS。匹配 `remove` 必须关闭 prompt并清除本地缓存。Local dismiss 只影响当前设备 UI，不写 durable dismissed state。
 

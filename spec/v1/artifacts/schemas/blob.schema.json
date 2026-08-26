@@ -41,7 +41,7 @@
           ]
         },
         "key_ref": {
-          "$comment": "MUST stay identical to encrypted-envelope.schema.json#/properties/key_ref and encryption-and-audit.md §2.3.1. Closed MLS group-binding object; not an opaque string.",
+          "$comment": "Closed MLS group-binding object owned by this encrypted_attachment definition; not an opaque string.",
           "type": "object",
           "required": [
             "algorithm",

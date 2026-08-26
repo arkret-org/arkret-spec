@@ -7671,6 +7671,7 @@
         "claim_ref",
         "claim_envelope",
         "claim_receipt",
+        "ciphertext",
         "commit_ref",
         "governance_binding",
         "expires_at"
@@ -7772,23 +7773,6 @@
               }
             ]
           }
-        }
-      ],
-      "anyOf": [
-        {
-          "required": [
-            "welcome_ref"
-          ]
-        },
-        {
-          "required": [
-            "encrypted_welcome_ref"
-          ]
-        },
-        {
-          "required": [
-            "ciphertext"
-          ]
         }
       ],
       "properties": {
@@ -7970,7 +7954,6 @@
             "intended_realm_id",
             "claim_id",
             "requester_actor_id",
-            "nonce",
             "welcome_digest",
             "created_at",
             "signature"
@@ -8108,12 +8091,16 @@
             "requester_pairwise_verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
             },
-            "nonce": {
-              "$ref": "#/$defs/non_empty_string",
-              "description": "Exact claim_request_id of the durable KeyPackage claim. This field keeps the generic claim-envelope transcript name nonce but is not a second random value."
-            },
             "welcome_digest": {
-              "$ref": "#/$defs/digest"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/digest"
+                },
+                {
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                }
+              ],
+              "description": "Exactly sha256:<lowercase-hex SHA-256 of the raw RFC 9420 Welcome bytes obtained by strictly decoding top-level ciphertext as canonical unpadded base64url>."
             },
             "created_at": {
               "$ref": "#/$defs/timestamp"
@@ -8148,14 +8135,16 @@
           "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt",
           "description": "Destination-signed receipt used for both same-service and remote claims. The receiving destination Principal Server validates it against its durable claim ledger before accepting the Welcome."
         },
-        "welcome_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "encrypted_welcome_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
         "ciphertext": {
-          "$ref": "#/$defs/non_empty_string"
+          "allOf": [
+            {
+              "$ref": "#/$defs/base64url"
+            },
+            {
+              "pattern": "^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?$"
+            }
+          ],
+          "description": "Canonical unpadded base64url encoding of the complete RFC 9420 Welcome message. Receivers MUST decode successfully, reject padding and non-canonical encodings, and require re-encoding the decoded bytes to be byte-identical to this field."
         },
         "commit_ref": {
           "$ref": "#/$defs/event_ref"

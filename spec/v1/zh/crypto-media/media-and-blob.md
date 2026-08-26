@@ -104,7 +104,11 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ## 3. Encrypted Attachment
 
-加密附件的 `key_ref` MUST 使用与 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md) 相同的对象形态：`{algorithm, group_state_ref}`（MLS 场景）或 `{algorithm, key_id}`（其他 profile）。MLS 附件 epoch 不在 wire 上重复声明；其唯一派生式为 `attachment_epoch = resolve_exact_winning_group_state(key_ref.group_state_ref).epoch`。Event ref 必须解析到 accepted genesis 或 winning commit，proof hash 必须解析到等价的 exact winning group state；无法解析、非 winning state、hash/ref 歧义或缺少该 state 时 MUST 在密钥派生和解密前 fail closed。
+加密附件的 `key_ref` MUST 是 closed MLS group-binding 对象 `{algorithm:"MLS",group_state_ref}`；current v1
+不存在 `{algorithm,key_id}` 或其他 profile 分支。MLS 附件 epoch 不在 wire 上重复声明；其唯一派生式为
+`attachment_epoch = resolve_exact_winning_group_state(key_ref.group_state_ref).epoch`。Event ref 必须解析到
+accepted genesis 或 winning commit，proof hash 必须解析到等价的 exact winning group state；无法解析、非
+winning state、hash/ref 歧义或缺少该 state 时 MUST 在密钥派生和解密前 fail closed。
 
 ```json
 {

@@ -108,8 +108,7 @@
       "type": "object",
       "required": [
         "id",
-        "action",
-        "notification_kind"
+        "action"
       ],
       "properties": {
         "id": {
@@ -132,10 +131,6 @@
               "$ref": "#/$defs/agent_runtime_approval_notification_removal_data"
             }
           ]
-        },
-        "notification_kind": {
-          "const": "agent",
-          "description": "Closed notification type. Agent runtime approvals reuse the registered notification type `agent`."
         }
       },
       "allOf": [
@@ -186,16 +181,12 @@
     "agent_runtime_approval_notification_data": {
       "type": "object",
       "required": [
-        "kind",
         "approval_request_id",
         "agent_id",
         "requested_at",
         "expires_at"
       ],
       "properties": {
-        "kind": {
-          "const": "agent_runtime_approval"
-        },
         "approval_request_id": {
           "type": "string",
           "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,128}$"
@@ -215,13 +206,9 @@
     "agent_runtime_approval_notification_removal_data": {
       "type": "object",
       "required": [
-        "kind",
         "reason"
       ],
       "properties": {
-        "kind": {
-          "const": "agent_runtime_approval"
-        },
         "reason": {
           "type": "string",
           "enum": [

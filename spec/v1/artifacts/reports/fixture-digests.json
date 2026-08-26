@@ -206,11 +206,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "1e19f508332f35be7d5acce60a5e9befc10f5110321496d6804367d7a5126ef8"
+      "sha256": "adf5380a39475e77c3761f961ebe77f53dc9b484fdf18a5da2acb99ee5074649"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-pairwise-welcome-fixture.json",
-      "sha256": "d517244a12beb3bd51906935484ac1a3c7d3a53937a2b2e129c0cbae47d4a561"
+      "sha256": "f9147b9b3adfe3ea5a9adf18d94dee65fef8e93a5c26e8224f237876962834ea"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -342,7 +342,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "6676fef6a762564ebb25218de5643888e97c6d31d0ec7f0d0190e975177fd9e4"
+      "sha256": "ed27ffce4ab696be9883dd939dd25afd0d8bcd0d3c39361b5d714efec3addd75"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

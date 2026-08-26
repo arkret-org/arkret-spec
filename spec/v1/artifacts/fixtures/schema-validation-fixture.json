@@ -1601,6 +1601,64 @@
       }
     },
     {
+      "name": "account_notification_upsert_without_redundant_discriminators_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": true,
+      "instance": {
+        "id": "ak:notification:01964137-0000-7000-8000-000000000001",
+        "action": "upsert",
+        "data": {
+          "approval_request_id": "agent_runtime_approval:01964137-0000-7000-8000-000000000001",
+          "agent_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "requested_at": "2026-07-13T10:00:00.000Z",
+          "expires_at": "2026-07-13T10:15:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "account_notification_remove_without_redundant_discriminators_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": true,
+      "instance": {
+        "id": "ak:notification:01964137-0000-7000-8000-000000000001",
+        "action": "remove",
+        "data": {
+          "reason": "approved"
+        }
+      }
+    },
+    {
+      "name": "account_notification_rejects_retired_notification_kind",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "instance": {
+        "id": "ak:notification:01964137-0000-7000-8000-000000000001",
+        "action": "upsert",
+        "notification_kind": "agent",
+        "data": {
+          "approval_request_id": "agent_runtime_approval:01964137-0000-7000-8000-000000000001",
+          "agent_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "requested_at": "2026-07-13T10:00:00.000Z",
+          "expires_at": "2026-07-13T10:15:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "account_notification_rejects_retired_data_kind",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/notification_delta",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "id": "ak:notification:01964137-0000-7000-8000-000000000001",
+        "action": "remove",
+        "data": {
+          "kind": "agent_runtime_approval",
+          "reason": "approved"
+        }
+      }
+    },
+    {
       "name": "account_subscribe_dropped_reconnect_after_valid",
       "schema_ref": "schemas/account-subscribe-frame.schema.json",
       "expect_valid": true,

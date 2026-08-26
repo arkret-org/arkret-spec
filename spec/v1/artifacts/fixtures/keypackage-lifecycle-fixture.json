@@ -522,7 +522,7 @@
       },
       "assertions": [
         "claim ledger uniqueness is scoped by source_service_id and claim_request_id",
-        "claim_envelope.nonce is byte-identical to claim_request_id and no second claim random value exists",
+        "claim_envelope signing input binds claim_receipt.claim_request_id as claim_request_id without duplicating it in the envelope wire",
         "claim CAS, target portable evidence and the serialized success outcome commit at one linearization boundary",
         "an uncertain caller queries the original request instead of issuing a fresh claim",
         "same request id with another canonical digest cannot mutate KeyPackage state",
@@ -674,7 +674,7 @@
       "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
       "model_generation_ref": 1,
       "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
-      "welcome_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "welcome_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
       "expected": {
         "reject_before_decrypt": true,
         "reason": "keypackage_welcome_envelope_mismatch",

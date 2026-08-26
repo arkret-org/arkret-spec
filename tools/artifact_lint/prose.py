@@ -2094,21 +2094,40 @@ def check_account_notification_prose_schema_alignment(lint: Lint) -> None:
     notification_delta = schema.get("$defs", {}).get("notification_delta", {})
     required = notification_delta.get("required", [])
     properties = notification_delta.get("properties", {})
-    canonical_field = "notification_kind"
-    if canonical_field not in required or canonical_field not in properties:
+    if not {"id", "action"}.issubset(required):
+        lint.fail(schema_path, "notification_delta must require id and action")
+    retired_fields = {"notification_kind", "type"}
+    if retired_fields.intersection(required) or retired_fields.intersection(properties):
         lint.fail(
             schema_path,
-            "notification_delta must require the canonical notification_kind field",
+            "notification_delta must not retain a redundant notification discriminator",
         )
-    canonical_shape = "{id, notification_kind, action, data?}"
-    canonical_literal = '`notification_kind="agent"`'
-    if canonical_shape not in prose or canonical_literal not in prose:
+    for definition_name in (
+        "agent_runtime_approval_notification_data",
+        "agent_runtime_approval_notification_removal_data",
+    ):
+        definition = schema.get("$defs", {}).get(definition_name, {})
+        if "kind" in definition.get("required", []) or "kind" in definition.get(
+            "properties", {}
+        ):
+            lint.fail(
+                schema_path,
+                f"{definition_name} must not retain a redundant kind discriminator",
+            )
+    canonical_shape = "{id, action, data?}"
+    if canonical_shape not in prose:
         lint.fail(
             prose_path,
-            "account notification normative prose must match notification_delta.notification_kind",
+            "account notification normative prose must match the discriminator-free notification_delta",
         )
-    if "{id, type, action, data?}" in prose or '`type="agent"`' in prose:
+    if (
+        "{id, notification_kind, action, data?}" in prose
+        or '`notification_kind="agent"`' in prose
+        or '`data.kind="agent_runtime_approval"`' in prose
+        or "{id, type, action, data?}" in prose
+        or '`type="agent"`' in prose
+    ):
         lint.fail(
             prose_path,
-            "legacy NotificationDelta.type is forbidden; use notification_kind",
+            "NotificationDelta discriminators are forbidden on the single-family v1 wire shape",
         )

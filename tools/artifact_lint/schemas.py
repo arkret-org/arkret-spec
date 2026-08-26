@@ -139,6 +139,33 @@ def ensure_relative_file(lint: Lint, owner: Path, base: Path, ref: str, label: s
     return target
 
 
+SCHEMA_ANNOTATION_POINTER_RE = re.compile(
+    r"(?P<ref>(?:(?:\.\.?/)|(?:[A-Za-z0-9_.-]+/))*"
+    r"[A-Za-z0-9_.-]+\.schema\.json#/"
+    r"[A-Za-z0-9_$~%./-]*[A-Za-z0-9_$~%/-])"
+)
+
+
+def ensure_schema_annotation_pointers(
+    lint: Lint, owner: Path, annotation: str, label: str
+) -> None:
+    """Resolve machine-recognizable schema pointers in comments and descriptions."""
+    for match in SCHEMA_ANNOTATION_POINTER_RE.finditer(annotation):
+        ref = match.group("ref")
+        try:
+            owner.relative_to(ARTIFACTS)
+        except ValueError:
+            base = owner.parent
+        else:
+            if ref.startswith("schemas/"):
+                base = ARTIFACTS
+            elif "/" not in ref.split("#", 1)[0]:
+                base = ARTIFACTS / "schemas"
+            else:
+                base = owner.parent
+        ensure_relative_file(lint, owner, base, ref, f"{label} schema pointer")
+
+
 _STABLE_CORE_ID_FIELDS = {
     "principal_id",
     "actor_id",
@@ -370,6 +397,8 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
         for json_path, value, key in walk_json(data):
             if key == "$ref" and isinstance(value, str):
                 ensure_relative_file(lint, path, path.parent, value, f"{json_path} $ref")
+            if key in {"$comment", "description"} and isinstance(value, str):
+                ensure_schema_annotation_pointers(lint, path, value, json_path)
         if path.name in drift_tracking_files:
             continue
         # This KAT carries the input to ak.schema.define, so its schema ids are

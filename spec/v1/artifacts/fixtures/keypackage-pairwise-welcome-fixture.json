@@ -36,8 +36,7 @@
           "claim_id": "pairwise-claim-1",
           "requester_actor_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
           "requester_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
-          "nonce": "AAAAAAAAAAAAAAAAAAAAAg",
-          "welcome_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "welcome_digest": "sha256:6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
           "created_at": "2026-08-24T00:01:00.000Z",
           "signature": {
             "kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
@@ -90,6 +89,76 @@
         },
         "expires_at": "2026-08-24T00:05:00.000Z"
       }
+    },
+    {
+      "name": "minimal_metadata_pairwise_welcome_rejects_retired_claim_envelope_nonce",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_welcome_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:nonce",
+      "instance_from": "minimal_metadata_pairwise_welcome_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/claim_envelope/nonce",
+          "value": "AAAAAAAAAAAAAAAAAAAAAg"
+        }
+      ]
+    },
+    {
+      "name": "minimal_metadata_pairwise_welcome_rejects_welcome_ref",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_welcome_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:welcome_ref",
+      "instance_from": "minimal_metadata_pairwise_welcome_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/welcome_ref",
+          "value": "ak:blob:sha256:8888888888888888888888888888888888888888888888888888888888888888"
+        }
+      ]
+    },
+    {
+      "name": "minimal_metadata_pairwise_welcome_rejects_encrypted_welcome_ref",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_welcome_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:encrypted_welcome_ref",
+      "instance_from": "minimal_metadata_pairwise_welcome_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/encrypted_welcome_ref",
+          "value": "ak:blob:sha256:8888888888888888888888888888888888888888888888888888888888888888"
+        }
+      ]
+    },
+    {
+      "name": "minimal_metadata_pairwise_welcome_rejects_noncanonical_base64url",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_welcome_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not match",
+      "instance_from": "minimal_metadata_pairwise_welcome_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/ciphertext",
+          "value": "AB"
+        }
+      ]
+    },
+    {
+      "name": "minimal_metadata_pairwise_welcome_rejects_padded_base64url",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_welcome_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not match",
+      "instance_from": "minimal_metadata_pairwise_welcome_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/ciphertext",
+          "value": "AA=="
+        }
+      ]
     },
     {
       "name": "minimal_metadata_pairwise_welcome_rejects_device_mixture",
