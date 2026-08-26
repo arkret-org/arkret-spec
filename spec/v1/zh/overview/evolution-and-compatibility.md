@@ -3,7 +3,7 @@ title: 协议演进
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-25
+updated: 2026-08-26
 see_also:
   - ../authz/event-auth-state-resolution.md
   - ../conformance/conformance-profiles.md
@@ -23,7 +23,7 @@ sidebar:
 
 ## 1. 四个版本维度
 
-Arkret/1 分别管理四个版本维度，任何实现不得用其中一个替代另一个：
+Arkret/1 分别管理四个版本维度，任何实现不得用其中一个替代另一个（本模型的设计动机与混合版本网络的运转方式见 §9，informative）：
 
 | 维度 | Wire 表达 | 作用 |
 | --- | --- | --- |
@@ -133,3 +133,40 @@ HTTP path 不承担协议版本语义；能力由 `GET /_arkret/describe` 和各
 由 (1)(2) 得同一段密文对任意合规接收方只有一个原像重建路径；由 (3)(4)(5) 得算法演进不会让旧接收方对同一字节产生第二种解释。因此在同一协议代际内，接收方“解不开”只可能来自缺少 key material（[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) 的 `decryption_pending`）或授权不足，不可能来自版本歧义。
 
 密文层之外的向前兼容是另一条独立路径：解密成功后遇到未知 Content Block `kind` 时按 [`../models/content-types.md` §7.2](../models/content-types.md) 以已认证的 `body` 降级展示，MUST NOT 丢弃该消息。该路径不依赖密钥层协商，也不得被用来解释密钥层的 fail-closed 义务。
+
+## 9. 设计原理与混合版本互通（informative）
+
+本节是解说性文字，不新增任何规范义务；术语与规则以 §1–§8 及各被引用文件为准。它回答三个问题：为什么 Arkret 不用单一版本号协商，fail-closed 交集为什么是默认姿态，以及新旧实现混跑的网络在典型场景下如何实际运转。
+
+### 9.1 为什么不是单一版本号
+
+集中式服务可以让所有客户端跟随服务端一起升级，所以"一个版本号 + 服务端灰度"就够了。去中心化网络没有这个前提：没有任何一方能强制他人升级，网络的常态是不同年代的客户端、服务端与联邦对端长期共存。这时单一版本号会制造两难——要么把任何功能差异都变成"版本不同、拒绝通讯"（网络按最慢实现分裂），要么让版本号退化成没有判定力的装饰。
+
+Arkret 的取舍是：`protocol_version` 只保留**代际判定**这一件事（签名域、Event 因果模型与核心认证规则的整体身份，见 §1、§4），几乎永不改变；其余全部差异按关注点拆到 §7 列出的相互正交的协商面上，各自独立演进、独立失败。一个功能、一个算法、一种共识语义的可用性各有自己的判定载体与稳定错误码，任何一面不匹配都只使**那一面**不可用，不传染到整个连接。
+
+HTTP path 不承载版本（§6）出于同一逻辑的传输面推论：URL 里的 `/v2/` 是未认证的、一次性对整个 API 面分叉的粗粒度开关，还会诱导实现长期维护双栈路由。Arkret 的能力声明经签名 `ServiceResolutionRecord` 与 `describe_digest` 绑定（§7 第四行），是可验证、逐能力的，而 path 版本两者都做不到。
+
+### 9.2 fail-closed 交集为什么是默认
+
+互通性 = 双方声明能力的交集，未声明即不可用（[`../conformance/conformance-profiles.md` §1](../conformance/conformance-profiles.md)）。选择这个默认，是因为在开放联邦里"宽容接受不认识的东西"的每一种形态都对应一类真实故障：静默忽略未知语义会让不同实现对同一 Event 序列收敛出不同状态（共识分裂）；按猜测降级会成为降级攻击的入口；"尽力执行"会让声明面与实际行为脱钩，把 fail-closed 协商变成 fail-open。交集原则把最坏结果钉在"该功能对这对端不可用"，而不是"状态分叉"或"安全边界被静默放宽"。
+
+它的代价——新功能在对端升级前不可用——由两层解码纪律缓解（[`../conformance/schema-registry.md` §6.1](../conformance/schema-registry.md)）：**反序列化层**对开放注册集的未知值原样保留，旧实现不会因为网络上出现新 event kind 就整体解码失败、掉出网络；**语义层**对未声明支持的能力照常拒绝或隔离。也就是说，旧节点"看得见、存得住、转发得了"新数据，只是不假装执行它。未知值保留 ≠ 语义接受，这条边界是整个演进模型的支点。
+
+### 9.3 为什么共识语义单独走 reducer profile
+
+describe 协商是**成对**的：A 与 B 各自声明，交集只约束这一对连接。但 Realm 的共识语义（Event admission、cell projection、lattice join、state root、security frontier）必须对**所有成员、所有时间点**的验证者给出同一答案，否则同一 Realm 会在不同实现上分叉。所以它不走 describe，而是写进 Realm 自身的 governance 状态（reducer-profile singleton cell，§2），每条 Event 从**它自己的** CBA basis 读取该 cell——任何时候重放历史，每条 Event 都由它当时生效的语义解释，与验证者本地软件的新旧无关。升级共识语义因此不是"发布新软件"，而是 Realm 内一次可审计的显式治理动作（`ak.realm.upgrade`），带 `head_eq` 前置条件、由 source profile 解释、经 registry 声明的 upgrade edge 门禁（`reducer-profile-registry.json#upgrade_release_gate`）。
+
+### 9.4 典型混合版本场景
+
+以下场景全部由既有规则推出，作为阅读校验：
+
+1. **旧客户端 × 新服务端**：新服务端多声明的 operation / feature 对旧客户端不可见也无影响；旧客户端只调用自己认识且对端声明的面。反向（新客户端 × 旧服务端）由交集原则对称处理——新客户端在 describe 缺少声明时不发送新面的请求。
+2. **新 event kind 到达旧节点**：反序列化保留（§6.1(a)）；若旧节点是该 Realm accepted history 的责任方则按 [`../conformance/conformance-profiles.md` §2.1](../conformance/conformance-profiles.md) 拒绝或隔离，若只是只读投影方则保留 raw event 并标记 projection incomplete。发送方本应先确认对端声明（交集原则），所以该场景出现即说明发送方违规或声明面漂移。
+3. **新算法上线**：registry 先登记 reserved 行（不可上 wire）→ KAT / 协商负例 / activation requirements 就绪 → 新 schema 版本携带扩展后的 selector 闭集发布 → producer 仅对已声明新 schema 版本与相应 profile 的对端使用新算法。旧接收方拒绝新 selector 是**合规的协商结果**，不是缺陷（§6.1(b.1)）。已发布的历史字节永不按新算法重验（§8）。
+4. **新共识语义**：按 §9.3 走新 reducer profile 与显式 Realm upgrade；不支持 target profile 的成员对该 Realm 后继 Event 得到 `unsupported_profile`，其它 Realm 不受影响。当前 v1 没有 active upgrade edge（§2），首个后继 profile 的发布门禁已在 registry 中钉定。
+5. **E2EE 群里的新内容能力**：能力下界是 MLS 认证的 GroupContext 状态（`required_keypackage_capabilities`，[`../crypto-media/encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md)）；不满足下界的设备进不了群，发送方只能使用下界内的能力，提高下界必须经 GroupContextExtensions proposal 并在 Commit 前验证全体成员。因此"群里有人解不出新格式"被结构性排除在合法状态之外；密文本身的无歧义性由 §8 保证。
+6. **GA 之后退役旧能力**：pre-GA 的直接修订姿态止于 `v1.0.0` promotion；此后 active 行只能按 [`release-readiness.md` §5.1.1](./release-readiness.md) 的两阶段退役（`active → deprecated → retired`、最短观测窗口、混合版本互通证据）推进，`retired` 也不删除历史解释所需的 row 与 schema bytes。
+
+### 9.5 模型概括
+
+Arkret 的兼容性模型是"**一个几乎不变的代际判别值 + 多个正交的、fail-closed 的协商面 + 永不重写的历史字节**"。新旧实现互通不靠猜测对方版本，靠的是每个差异维度都有自己的声明载体、判定时机与稳定失败语义；密文不因版本差异不可解，靠的是解密所需的全部输入都被签名引用钉死、不给任何一方留下第二种解释路径。
