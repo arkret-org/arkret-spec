@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10221,
+    "total_properties": 10219,
     "total_schema_documents": 168,
     "by_presence_class": {
-      "optional": 2798,
+      "optional": 2797,
       "optional_defaulted": 68,
-      "required": 7007,
+      "required": 7006,
       "required_nullable": 138,
       "tristate": 210
     },
@@ -10973,8 +10973,6 @@
         "/allOf/4/if/properties/purpose": "required",
         "/allOf/4/then/properties/initial_resolution": "tristate",
         "/allOf/4/then/properties/initial_resolution/properties/full_id": "optional",
-        "/allOf/5/if/properties/purpose": "required",
-        "/allOf/5/then/properties/schema_refs": "optional",
         "/properties/capability_action_registry_digest": "required",
         "/properties/digest_algorithm": "required",
         "/properties/encryption_profile": "required",

@@ -631,11 +631,11 @@ cursor base64url 解码后对应 canonical JSON：
 
 `ak.vector.service.protocol_version_bootstrap.v1` 由
 [`service-protocol-version-bootstrap-fixture.json`](../../artifacts/fixtures/service-protocol-version-bootstrap-fixture.json)
-冻结 describe 与 Applet ping 的两段式消费顺序。Runner MUST 先从 raw JSON 读取 `protocol_version`，不得先构造
+冻结 ServiceDescribe、Applet ping 与 IdentityDescription 的两段式消费顺序。Runner MUST 先从 raw JSON 读取 `protocol_version`，不得先构造
 v1 typed response 或读取任何 capability/routing 字段。精确值 `"1.0"` 才允许继续 schema 校验与 capability 交集；
 形状合法的其它字符串返回 `unsupported_protocol_version`，且观测到的路由缓存写入与后续业务请求必须均为零；
-缺失、非字符串或非 canonical `"1.0.0"` 返回 `schema_violation`。两个 carrier 必须执行同一分类，不得让 Applet
-ping 退化为普通字符串健康检查。
+缺失、非字符串或非 canonical `"1.0.0"` 返回 `schema_violation`。三个 carrier 必须执行同一分类，不得让 Applet
+ping 或 identity describe 退化为普通字符串健康检查。
 
 ### 1.12 Vector: Reconstructed Encrypted Envelope AAD
 
@@ -5264,15 +5264,21 @@ Steps：
   1. E2EE Realm 中 sender 发送密文消息；receiving service 按 §3.4 生成只含 `realm_id`、目标 `event_id`、`received_by`、`verification_method`、`received_at`、`replay_nonce`、`signature` 的 `ak.moderation.franking_proof` payload，并先发布为 durable proof Event。
   2. reporter 提交 `ak.self.moderation.command.report`，附加密 evidence package（加密给 `effective_scope` 对应 moderator audience）与该 `franking_proof`。
   3. moderator 按 §3.4.1 “Franking 信任链”步骤 1–6 验证目标 Event ID、历史 service key/binding、唯一 JCS 签名、byte-identical durable proof Event 与首次 covering Seal 的 inclusion/time anchor。
-- **Case B — 篡改 / 旧字段违反**：(a) target Event bytes 或 `event_id`、Realm、service、received time/replay nonce 任一被篡改；(b) proof 携带已删除的 digest、sender claim、proof id、payload kind 或 plaintext body。
+- **Case B — 篡改 / 闭合字段违反**：(a) target Event bytes 或 `event_id`、Realm、service、received time/replay nonce 任一被篡改；(b) proof 携带 schema 外的 digest、sender claim、proof id、payload kind 或 plaintext body。
 
 Expected：
 
 - **Case A**：全部校验通过后，moderator MAY 把 `franking_proof` 视为可验证投递证明；evidence package MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料；举报 MUST NOT 触发任何治理密钥释放（§3.4.1：MUST NOT 把 `ak.self.moderation.command.report` 自动升级为 `ak.audit.session.request`）。
 - **Case B(a)**：任一 Event commitment、签名、historical binding、nonce 或 Seal observation 环节不符时，moderator MAY 把材料作为人工线索，但 MUST NOT 将该 `franking_proof` 视为可验证投递证明。
-- **Case B(b)**：closed schema / receiver MUST 拒绝全部已删除字段与 plaintext body。
+- **Case B(b)**：closed schema / receiver MUST 拒绝全部 schema 外字段与 plaintext body。
 
-### 15.1.1 Vector: Moderation Evidence Package Minimal Disclosure
+### 15.1.1 Vector: Franking Proof Signature Transcript
+
+`vector_id`: `ak.vector.moderation.franking_proof_transcript.v1`
+
+Runner MUST 加载 [`franking-proof-transcript-fixture.json`](../../artifacts/fixtures/franking-proof-transcript-fixture.json)，删除 payload 中唯一的 `signature` 成员，加入固定 `domain="ak.franking_proof.signature.v1"`，并对七字段对象执行 RFC 8785 JCS 后直接验证 Ed25519 签名。正例必须逐字匹配 fixture 的 `transcript_jcs`、digest 与签名；对 `domain`、`realm_id`、目标 `event_id`、`received_by`、`verification_method`、`received_at`、`replay_nonce` 任一字段的单独修改都 MUST 因签名无效而拒绝。Runner MUST NOT 把该 domain 当作 shared detached-JWS proof context，也不得把 `signature` 放回 transcript。
+
+### 15.1.2 Vector: Moderation Evidence Package Minimal Disclosure
 
 `vector_id`: `ak.vector.moderation.evidence_package_minimal_disclosure.v1`
 

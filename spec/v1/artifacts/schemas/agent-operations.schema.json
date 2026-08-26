@@ -94,14 +94,13 @@
       "$ref": "./common-ids.schema.json#/$defs/did_full_id"
     },
     "blob_ref": {
-      "type": "string",
-      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "$ref": "./common-ids.schema.json#/$defs/blob_ref"
     },
     "did_url": {
       "$ref": "./account-operations.schema.json#/$defs/did_url"
     },
     "device_id": {
-      "$ref": "./account-operations.schema.json#/$defs/device_id"
+      "$ref": "./common-ids.schema.json#/$defs/device_id"
     },
     "backup_id": {
       "type": "string",
@@ -115,8 +114,7 @@
       "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
     "grant_id": {
-      "type": "string",
-      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
+      "$ref": "./common-ids.schema.json#/$defs/grant_id"
     },
     "strand_id": {
       "type": "string",

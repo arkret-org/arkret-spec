@@ -414,6 +414,10 @@ Pruning 前置条件：
 
 服务端 MAY 对机器人高速创建 track、Message、Reaction、read cursor 或 notification projection 的行为实施 quota 和限流。超过上限时应使用 `rate_limited`、`quota_exceeded`、`payload_too_large`、`dependency_missing` 或 `temporarily_unavailable`，也可将可疑输入 `quarantine`；不得在 reducer 内无界展开或把被裁剪历史当作 accepted absent fact。
 
+### 7.1 内建 cell plane 的 v1 限制
+
+v1 不提供 per-Realm 的内建看板 data-plane 选项。`ak.component.space.parent.v1` 与 `ak.component.strand.position.v1` 已分别随 `ak.space.parent`、`ak.strand.move`、`ak.strand.reorder` 冻结为 `control` / `sealed=true`；实现必须按静态 event-kind registry 路由。Realm `policy_bundle.cell_lattices` 只允许登记 Realm-specific extension family，不能用它把上述或其它内建 family 改成 `mv_register`、per-object sequencer 或不同 plane。需要不同并发语义的部署只能登记新的 extension family；不得在 v1 内用未登记字段、私有 override 或双路解析改变既有 Event kind。
+
 ## 8. 错误语义
 
 超过规模上限时：

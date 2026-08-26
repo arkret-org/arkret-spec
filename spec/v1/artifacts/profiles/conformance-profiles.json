@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-26.2",
-  "generated_at": "2026-08-26T15:03:00+08:00",
+  "version": "2026-08-26.3",
+  "generated_at": "2026-08-26T20:20:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4237,7 +4237,7 @@
     },
     "ak.profile.traffic_metadata_hardened.v1": {
       "role": "admin",
-      "description": "Deployment hardening profile for high-privacy traffic metadata. When declared for a Realm, deployment, or service route, federation fanout timing, batch size, Welcome size, push wakeups, and retry cadence MUST be padded or randomized enough to satisfy the declared observable bounds.",
+      "description": "Service/deployment hardening profile for high-privacy traffic metadata. A declaring service exposes support through ServiceDescribe.claimed_profiles and applies the profile to deployment-configured routes; federation fanout timing, batch size, Welcome size, push wakeups, and retry cadence MUST satisfy the declared observable bounds. Arkret v1 defines no Realm activation carrier for this profile.",
       "required_endpoints": [
         "ak.self.events.command.submit",
         "ak.self.events.stream.subscribe",

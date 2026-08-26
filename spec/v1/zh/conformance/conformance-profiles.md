@@ -414,7 +414,7 @@ SHOULD 支持：
 
 ### 11.1 Traffic Metadata Hardening
 
-`ak.profile.traffic_metadata_hardened.v1` 是部署 / Realm 级 hardening profile，用于把 federation fanout 时间、batch 大小、Welcome / GroupInfo 大小、push wakeup 和 retry cadence 的侧信道缓解变成可声明、可测试的 MUST 集合。声明该 profile 的服务或 Realm MUST 在 `ServiceDescribe.claimed_profiles` / Realm policy profile 集合中暴露其参数，并按 `artifacts/profiles/conformance-profiles.json#profile_requirements` 执行。
+`ak.profile.traffic_metadata_hardened.v1` 是 service/deployment 级 hardening profile，用于把 federation fanout 时间、batch 大小、Welcome / GroupInfo 大小、push wakeup 和 retry cadence 的侧信道缓解变成可声明、可测试的 MUST 集合。声明该 profile 的服务 MUST 在 `ServiceDescribe.claimed_profiles` 中暴露支持面，并对部署配置选中的适用 route 按 `artifacts/profiles/conformance-profiles.json#profile_requirements` 执行。v1 不定义 Realm 级 activation carrier；Realm `schema_refs`、policy bundle 与私有 active-profile 集合均不得声明本 profile。
 
 MUST 支持：
 

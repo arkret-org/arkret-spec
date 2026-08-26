@@ -2585,7 +2585,7 @@
                   "$ref": "#/$defs/non_empty_string"
                 },
                 "retention_policy_id": {
-                  "$ref": "#/$defs/object_ref"
+                  "$ref": "./realm.schema.json#/properties/retention_policy_id"
                 },
                 "retention": {
                   "$ref": "#/$defs/call_recording_retention"
@@ -2682,7 +2682,7 @@
                   "$ref": "#/$defs/non_empty_string"
                 },
                 "retention_policy_id": {
-                  "$ref": "#/$defs/object_ref"
+                  "$ref": "./realm.schema.json#/properties/retention_policy_id"
                 },
                 "retention": {
                   "$ref": "#/$defs/call_recording_retention"
@@ -4011,7 +4011,7 @@
     },
     "cross_object_redaction_target_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
       "description": "Cross-object ak.redaction object target. Identical to object_ref except that ak:message: is removed from the typed-object alternation: Message is the only object with a registered object-scoped redact kind, so a Message MUST enter state=redacted through ak.message.redact and MUST NOT be the target of a cross-object ak.redaction (models/common-fields.md 5.2)."
     },
     "device_authorize_payload": {
@@ -7331,7 +7331,7 @@
         "binding_profile": {
           "type": "string",
           "pattern": "^ak\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$",
-          "description": "Explicit profile that defines how this governance binding is interpreted. Full E2EE uses ak.profile.mls_governance_binding.full.v1; the only v1 downgrade profile is ak.profile.e2ee_relaxed.v1. Receivers MUST fail closed when this field is missing, unsupported, inconsistent with the Realm profile declaration, or used to imply a downgrade without the matching policy/profile declaration."
+          "description": "Explicit operation-local profile that defines how this governance binding is interpreted. Full E2EE uses ak.profile.mls_governance_binding.full.v1; the only v1 downgrade profile is ak.profile.e2ee_relaxed.v1. Receivers MUST fail closed when this field is missing, unsupported, inconsistent with the effective Realm policy derived from mls_send_pause, or unsupported by ServiceDescribe. It is not a Realm active-profile declaration."
         },
         "reducer_profile": {
           "type": "string",
@@ -8616,7 +8616,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "or_set_dot": {
       "type": "string",
@@ -9909,7 +9909,7 @@
           "type": "string"
         },
         "retention_policy_id": {
-          "$ref": "#/$defs/object_ref"
+          "$ref": "./realm.schema.json#/properties/retention_policy_id"
         },
         "verification_stub_required": {
           "type": "boolean",

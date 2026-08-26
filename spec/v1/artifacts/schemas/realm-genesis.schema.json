@@ -194,34 +194,6 @@
         }
       },
       "description": "Applet-managed PCR genesis commits exactly the initial resolution already frozen by its accepted provision Event."
-    },
-    {
-      "if": {
-        "properties": {
-          "purpose": {
-            "enum": [
-              "principal_control",
-              "managed_agent_control",
-              "applet_managed_control"
-            ]
-          }
-        },
-        "required": [
-          "purpose"
-        ]
-      },
-      "then": {
-        "properties": {
-          "schema_refs": {
-            "not": {
-              "contains": {
-                "const": "ak.profile.ephemeral_pairwise_principal.v1"
-              }
-            }
-          }
-        }
-      },
-      "description": "Ephemeral pairwise did:key actors are MLS LeafNode-bound Realm-local authors and never create a PCR."
     }
   ],
   "additionalProperties": false,

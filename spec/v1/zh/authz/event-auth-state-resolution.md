@@ -30,7 +30,7 @@ Arkret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）
 | Control Move | 只写 control plane cell 的 reducer-input Event。它携带 `seal_basis`，由 Seal 裁决。 |
 | Seal | 控制面 Seal。它用 `predecessor_refs[] + delta[]` 定义递归控制面覆盖集、承诺治理 `state_root`，并可附带数据面观测承诺。 |
 | Cell | 可被 Lattice 合并的最小状态单元，标识为 `ak:cell:<component>:<subject>` 或等价 canonical tuple。 |
-| Plane | Realm schema 对 cell family 的安全分级：`data` 或 `control`。plane 是安全边界，cell 是冲突域。 |
+| Plane | cell family 的安全分级：`data` 或 `control`。内建 family 由 event-kind registry 静态冻结；Realm schema 只能为 Realm-specific extension family 登记该值。plane 是安全边界，cell 是冲突域。 |
 | Lattice | Realm schema 为每个 cell family 选择的封闭核心代数类型。`join()` 返回值或 bottom (`⊥`)。 |
 | Bottom (`⊥`) | 某个 control cell 或 opt-in control object 在当前 seal view 下无有效单值或存在非法状态。数据面默认不产生协议级 `⊥`；普通冲突暴露为多 head。 |
 | seal_ref | DataEvent 声明的授权基准：一个已接受控制面 Seal id。 |
@@ -42,11 +42,11 @@ Arkret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）
 
 ## 3. Plane 判定
 
-Realm schema 中每个 cell family MUST 声明 `plane`：
+每个 cell family MUST 声明 `plane`。v1 内建 family 的声明在 `event-kind-registry.json` 中静态冻结；`ak.realm.policy_bundle.cell_lattices` 只允许为 Realm-specific extension family 登记 plane/lattice/bottom，MUST NOT shadow、覆盖或重新解释任何已登记内建 family。下列三类是协议撰写与 family 注册时的选择规则，不是 per-Realm 运行时选项：
 
 - **强制 control**：authorization root、policy、membership、capability、notary、lifecycle、MLS epoch / key schedule / governance binding，以及现有规范中禁止作为 `mv_register` 授权根的 cell family。
 - **默认 data**：消息、内容、reaction、普通 metadata、计数、协作文本、草稿和其它未声明为 control 的业务 cell。
-- **opt-in control**：任意 data cell family MAY 声明 `sealed=true` 升入控制面，用于合规审计、强一致单值、法务保留或高风险 workflow。
+- **opt-in control**：新增 data-like cell family 在登记时 MAY 声明 `sealed=true` 升入控制面，用于合规审计、强一致单值、法务保留或高风险 workflow；登记后该选择在 v1 内不可按 Realm 改写。
 
 一个 Event MUST NOT 跨 plane 写入。若一个业务动作同时需要改治理状态和内容状态，producer MUST 拆成两个 Event：先提交控制面 Move，经 Seal 接受后，再用新的 `seal_ref` 产生 DataEvent。
 
@@ -847,7 +847,7 @@ Realm genesis 另有一次非 transition 的固定桥接：`ak.realm.create` Eve
 
 ### 9.4 非治理强一致对象
 
-看板位置、强单值状态机或其它非治理强一致对象三选一：
+看板位置、强单值状态机或其它非治理强一致对象在规范撰写与 family 注册时三选一；一旦进入 v1 registry，该选择即被冻结，不是 Realm policy 或 `cell_lattices` 的动态开关：
 
 1. **默认 `mv_register` + user-pick**：并发结果暴露多 heads，任何有写权限者可再签一个 DataEvent 收敛。
 2. **`sealed=true` 升控制面**：继承 Seal finality、`⊥` 和 recovery。

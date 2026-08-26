@@ -93,6 +93,45 @@
         "route_cache_writes": 0,
         "business_requests": 0
       }
+    },
+    {
+      "name": "identity_describe_supported",
+      "carrier": "identity_describe",
+      "protocol_version": "1.0",
+      "expected": {
+        "outcome": "continue_typed_validation",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
+    },
+    {
+      "name": "identity_describe_unsupported",
+      "carrier": "identity_describe",
+      "protocol_version": "2.0",
+      "expected": {
+        "outcome": "unsupported_protocol_version",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
+    },
+    {
+      "name": "identity_describe_missing",
+      "carrier": "identity_describe",
+      "expected": {
+        "outcome": "schema_violation",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
+    },
+    {
+      "name": "identity_describe_non_canonical",
+      "carrier": "identity_describe",
+      "protocol_version": "1.0.0",
+      "expected": {
+        "outcome": "schema_violation",
+        "route_cache_writes": 0,
+        "business_requests": 0
+      }
     }
   ]
 }

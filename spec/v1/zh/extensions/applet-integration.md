@@ -254,6 +254,10 @@ registration/grant，任一失败整个单元不可见。membership、E2EE 与 w
 - `kind="realm"` MUST 只包含 `kind` 与 `realm_id`，并约束为 Realm-wide grant。
 - `kind="circle"` MUST 同时包含 `kind`、`realm_id` 与 `circle_id`，并约束为该 Circle grant；不得由 Circle install 推导 Realm-wide grant。
 - 单次 install operation 只处理一个 `effective_scope`。多 Realm、多 Circle 批量安装和跨 sovereign server 的 install 事务聚合不是 v1 目标。
+- durable effective install 的唯一键是 `(applet_id,effective_scope)`。同一键不得同时存在两个 active install；
+  同一 `applet_id` 的不同 scope install 必须复用首次 accepted managed-Bot anchors，但各自保存 registration、grant、
+  install outcome、幂等与 revoke saga 状态。实现不得以单独 `applet_id` 作为安装唯一键，也不得把首个 scope 的
+  registration/grant 镜像成后续 scope 的 authority。
 - install preview/commit MUST 由目标 Realm 的 controlling Principal Server 或 Realm policy 明确授权的 authz service 承载；Bot authority 固定集合跨 portal lineage 与新建 PCR，只允许 `actor_principal_server_id` 指定的同一 Principal Server 在本地 closed aggregate 中接受，既不把 install operation 变成跨 server 分布式事务，也不得把固定集合拆成逐 Event peer federation。安装后的普通 Collaboration Realm Event 才按各自 federation 规则传播。
 - install commit 的授权门是机读 `ak.realm.admin` capability(§4)：commit 提交的 admin actor MUST 持有覆盖目标 Realm 的 active `ak.realm.admin` grant(或 Realm policy 授权的等价 authz service)；fixed set 中的 `ak.applet.registration` 是该 capability action 的目标 event kind。reduce-time 缺少该授权时 MUST fail closed,reason=`applet_registration_unauthorized`，且整个本地事务零写。
 - `authoring_request.basis.registration_event` 与同一 basis 中每条 `capability_grant_events[]` MUST 是该 admin caller
@@ -288,7 +292,9 @@ Commit MUST 执行：
 
 正式安装的 registration、grant、Bot provision、PCR genesis、accountability 与 Profile 是本地单事务 fixed set；preview-time 或 reduce-time 任一步失败都 MUST 零 Event、零 projection、零 Applet record、零幂等结果。旧的逐 Event fan-out、partial accepted/rejected refs 与 orphan registration 模型删除，不提供兼容。该 fixed set MUST NOT 写 federation outbox；远端不能用 `ak.peer.events.command.submit` 单独重放其中的 `applet_managed_control` genesis。
 
-Revoke 使用 caller-signed event-log saga。preview MUST 从 current effective install 精确枚举每个 active
+Revoke 使用 caller-signed event-log saga。请求中的 `effective_scope` 与 path `applet_id` 共同选择唯一 current
+effective install；该操作只撤销这个 exact install，不得隐式撤销同一 Applet 在其它 scope 的 active install。
+preview MUST 从该 current effective install 精确枚举每个 active
 grant、applet-managed bot/ghost membership、widget scoped token 与 delegated session，返回 canonical
 `AppletRevokePlan` 及 `revoke_plan_digest=sha256(canonical_json(plan))`。plan 中每个 grant 对应一条
 `ak.capability.revoke` intent；每个需要离开/移除的 managed member 对应一条 `ak.member.state` intent。
@@ -313,8 +319,10 @@ accepted/duplicate、widget token 已作废、delegated-session 子操作完成�
 `status=complete, ok=true`。部分成功返回 `in_progress|partially_completed` 与精确 steps/rejected refs；已
 accepted Event 不回滚、不重签，只继续缺失步骤。
 
-从第一条相关 `ak.capability.revoke` 或 `ak.member.state` 被 accepted 起，未来 Applet writes MUST 立即
-fail closed，reason=`applet_revoked` 或更细 reason，不能等待 saga 全部完成。涉及 delegated session
+从第一条相关 `ak.capability.revoke` 或 `ak.member.state` 被 accepted 起，目标 `effective_scope` 内未来 Applet
+writes MUST 立即 fail closed，reason=`applet_revoked` 或更细 reason，不能等待 saga 全部完成；其它 scope 只有在
+其自身 effective install 仍 active 时才继续授权。最后一个 active effective install 被 fence 后，Applet service、
+Bot 与全部 Ghost 才形成全局 `applet_revoked` fence。涉及 delegated session
 revoke 时，请求还 MUST 携 `proof: AccountLifecycleProof`；Principal Server MUST 用 active install 重建
 `ak.gate.account.command.revoke_session` applet selector（`applet_id`、`effective_scope`、
 `registration_epoch`、`service_id`、`capability_grant_refs`）并转发给 Account Authority。
@@ -815,7 +823,7 @@ Idempotency-Key: <opaque-string>
 - **hosting / federation（normative）**：四条创建事实只由 `actor_principal_server_id` 指定的接收 Principal Server 保存并重放，不生成 peer Event fan-out。`ak.peer.events.command.submit` 即使 transport/proof 合法也不是 `AppletFormal` admission，单独或普通 Realm bootstrap batch 提交该 PCR genesis MUST 以 `applet_managed_pcr_genesis_requires_closed_aggregate` 拒绝。Ghost 后续写入 Collaboration Realm 的普通 Event 才按该 Realm 的 federation 规则传播。
 - 成功时服务端返回调用方所提交的 Ghost Actor `ak.profile.create` 与 `ak.identity.accountability_grant` durable refs；响应 `authorization_ref` 回显上述 provisioning capability grant，不得回显 accountability ref 冒充授权。
 - 后续 rotation 使用普通 `ak.identity.resolution.update`，其唯一 predecessor/CAS 输入是 envelope `resolution_projection` 的 `head_eq`；payload 不镜像 previous ref。Package/Ghost record anchors 不随 rotation 改写，current 只从 `(actor_id, actor_principal_server_id)` 的 PCR cell 解析。
-- 对任意 ingress（包括 actor 自签的普通 Event），receiver 一旦由 managed provision/PCR 识别该 authority pair，写入 admission MUST 与 active exact Applet registration、install grant 与 revoke fence 做 AND。Ghost 严格跟随所属 Applet lifecycle，v1 不定义第二套 per-Ghost revoke 状态或操作；Applet revoke 后 Bot 与全部 Ghost 立即拒绝新写，历史读取与 identity-resolution audit 仍可用。
+- 对任意 ingress（包括 actor 自签的普通 Event），receiver 一旦由 managed provision/PCR 识别该 authority pair，写入 admission MUST 与该 Event `scope_ref` 对应的 active exact Applet registration、install grant 与 revoke fence 做 AND。Ghost 严格跟随创建它的 exact effective install lifecycle，v1 不定义第二套 per-Ghost revoke 状态或操作；撤销一个 install 后只拒绝该 scope 的新写，最后一个 active effective install 被 fence 后 Bot 与全部 Ghost 才全局拒绝新写。历史读取与 identity-resolution audit 始终可用。
 - **幂等（normative）**：同一 `(applet_id, external_ref.protocol, external_ref.instance_id, external_ref.external_id)` 与同一 `Idempotency-Key` 的 exact replay（包含四条 Event 的 canonical bytes）MUST 返回既有 refs，不得重复提交。`external_ref`是唯一tuple carrier，请求不再镜像`protocol/tenant/external_user_id`。相同 tuple 或 key 携带不同 Event bytes / event ids MUST `duplicate_conflict`；`Idempotency-Key` 的保存必须与原子提交同事务。语义与 §7.3 相同。
 - provision 不隐含任何 Realm membership 或 MLS 入组：ghost 加入 portal Realm 走常规 membership 流程，加入 E2EE group 还需 §12 的独立 E2EE 加入授权。
 

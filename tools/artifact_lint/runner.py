@@ -49,6 +49,7 @@ from .schemas import (
     check_event_id_digest_mirror_removals,
     check_event_schema_coverage,
     check_fsm_state_reachability,
+    check_foundational_schema_dependency_direction,
     check_keypackage_claim_unsigned_projection,
     check_null_cell_subject_wire_form,
     check_operation_clause_registry,
@@ -182,6 +183,8 @@ from .proof_context_transcripts import (
     check_proof_context_transcript_vectors,
 )
 
+from .franking_transcript import check_franking_proof_transcript
+
 from .recovery_transcripts import (
     check_recovery_transcript_closure,
     check_registered_context_schema_duplicates,
@@ -295,6 +298,10 @@ def main(argv: list[str] | None = None) -> int:
         "Schema、profile 与授权闭包",
         [
             ("schema_refs", lambda: check_schema_refs(lint, known)),
+            (
+                "foundational_schema_dependencies",
+                lambda: check_foundational_schema_dependency_direction(lint),
+            ),
             ("schema_root_reachability", lambda: check_schema_root_reachability(lint)),
             (
                 "registered_context_schema_duplicates",
@@ -408,6 +415,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "proof_context_transcripts",
                 lambda: check_proof_context_transcript_vectors(lint),
+            ),
+            (
+                "franking_proof_transcript",
+                lambda: check_franking_proof_transcript(lint),
             ),
             (
                 "recovery_transcripts",

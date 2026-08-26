@@ -203,7 +203,7 @@
             "default",
             "traffic_metadata_hardened"
           ],
-          "description": "Closed timing/profile hint from a Principal Server sync surface. traffic_metadata_hardened means the source Realm or route declares ak.profile.traffic_metadata_hardened.v1 and the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
+          "description": "Closed timing/profile hint from a Principal Server sync surface. traffic_metadata_hardened means the source service declares support in ServiceDescribe and its deployment applies ak.profile.traffic_metadata_hardened.v1 to this route; the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. This is not Realm profile activation. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
         },
         "push_hint": {
           "type": "string",
@@ -310,7 +310,7 @@
             "default",
             "traffic_metadata_hardened"
           ],
-          "description": "Closed timing/profile hint from a Principal Server sync surface. traffic_metadata_hardened means the source Realm or route declares ak.profile.traffic_metadata_hardened.v1 and the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
+          "description": "Closed timing/profile hint from a Principal Server sync surface. traffic_metadata_hardened means the source service declares support in ServiceDescribe and its deployment applies ak.profile.traffic_metadata_hardened.v1 to this route; the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. This is not Realm profile activation. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
         },
         "push_hint": {
           "type": "string",

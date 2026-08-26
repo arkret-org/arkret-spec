@@ -56,6 +56,7 @@
     },
     "franking_proof": {
       "type": "object",
+      "x-arkret-signature-domain": "ak.franking_proof.signature.v1",
       "description": "Canonical receiving-service receipt used both inside a moderation report and as the complete payload of an ak.moderation.franking_proof durable Event. The local signature uses domain ak.franking_proof.signature.v1 and covers every member except signature. event_id names the encrypted Event whose receipt is proven; the enclosing proof Event has its own distinct Event.event_id.",
       "required": [
         "realm_id",

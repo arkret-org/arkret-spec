@@ -125,6 +125,8 @@ Schema id: `ak.schema.realm.v1`
 | lifecycle、其它已有专用 facet | 对应 registered event/cell。 |
 | `id`、`created_by`、`created_at`、`updated_by`、`updated_at` 与其它 query-only 字段 | 分别由 Realm identity、signed envelope 与 reducer history 派生，不由 producer 在 Realm object 中重复写入。 |
 
+Realm 结构角色 profile 只允许出现在 `ak.realm.create.payload.object.schema_refs` 的封闭三项 allowlist 中，并随 genesis create-lock。后续 `ak.realm.schema.payload.value.schema_refs` 只接受 `ak.schema.*.vN`；它不能新增、删除或替换结构角色 profile。两条写入路径的接受面有意不对称，receiver MUST NOT 用 profile 字符串的通用匹配、默认补齐或私有 active-profile 集合抹平该边界。
+
 v1 不定义 monolithic `ak.realm.update` 或 `ak.component.realm.metadata.v1`。实现 MUST 拒绝这些形态，
 不得建立双写/双读路径，也不得把完整 Realm create object 缓存为第二真相源。
 
@@ -593,7 +595,7 @@ bottom  := reject
 value   := id:space | null
 ```
 
-**Plane 裁决（normative，CBA）**：与 §3.6 `ak.component.strand.position.v1` 同型，`ak.space.parent` 的默认裁决是 **`plane := control`（`sealed=true`，升控制面）**——这保留下表 `cas_register` / `bottom=reject` / `head_eq` CAS basis 的全部语义不变。因此 `ak.space.parent` 是 **Control Move**（携带 `seal_basis`，**不**携带 `seal_ref`，由 Seal 裁决），而非 data-plane DataEvent：按 [`event-and-patch.md` §2.2](./event-and-patch.md) DataEvent MUST NOT 携带 preconditions，且 [`event-auth-state-resolution.md` §9.1](../authz/event-auth-state-resolution.md) 中 `cas_register` 在 data plane 默认不可用、`bottom=reject` 是控制面 / sealed 语义，带 `head_eq` CAS + `bottom=reject` 的 `ak.space.parent` 结构上只能是 Control Move。Realm schema MAY 按 §9.4 三选一改声明为 data-plane `mv_register`（并发 reparent 暴露多 heads、任意写权限者一笔收敛、无协议 `⊥`）或 per-object sequencer；改声明后 `head_eq` 退化为诊断字段。`event-kind-registry.json` 中 `ak.space.parent` 行的 plane/sealed 语义以本节为准。
+**Plane 裁决（normative，CBA）**：与 §3.6 `ak.component.strand.position.v1` 同型，v1 已把 `ak.space.parent` 冻结为 **`plane := control`（`sealed=true`）**。这保留下表 `cas_register` / `bottom=reject` / `head_eq` CAS basis 的全部语义不变。因此 `ak.space.parent` 是 **Control Move**（携带 `seal_basis`，**不**携带 `seal_ref`，由 Seal 裁决），而非 data-plane DataEvent：按 [`event-and-patch.md` §2.2](./event-and-patch.md) DataEvent MUST NOT 携带 preconditions，且 [`event-auth-state-resolution.md` §9.1](../authz/event-auth-state-resolution.md) 中 `cas_register` 在 data plane 默认不可用、`bottom=reject` 是控制面 / sealed 语义，带 `head_eq` CAS + `bottom=reject` 的 `ak.space.parent` 结构上只能是 Control Move。`event-kind-registry.json` 的静态 `plane` / `sealed` 是内建 family 的机读权威值；Realm `cell_lattices` 只登记 Realm-specific extension family，MUST NOT 覆盖该内建声明。
 
 规则：
 
@@ -617,7 +619,7 @@ plane       := control（默认 sealed=true）
 value shape := { "list_space_id": id:space, "rank": string } | null
 ```
 
-**Plane 裁决（normative，CBA）**：`ak.component.strand.position.v1` 是非治理强一致对象，按 [`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md) 三选一。**默认裁决是选项 2（`sealed=true` 升控制面）**——这保留上表 cas_register / bottom=reject / `expected_position` CAS basis 的全部既有语义不变，`ak.strand.move` / `ak.strand.reorder` 因此是 Control Move（携带 `seal_basis`，由 Seal 裁决）。Realm schema MAY 改声明为选项 1（data plane `mv_register` + user-pick：并发拖动暴露多 heads，任何有写权限者一笔写收敛、无协议 `⊥`）或选项 3（per-object sequencer）；改声明后 `expected_position` 退化为诊断字段。看板拖动延迟敏感、且 Realm 接受多值短暂并存的部署 SHOULD 评估选项 1。
+**Plane 裁决（normative，CBA）**：`ak.component.strand.position.v1` 是非治理强一致对象；v1 在 [`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md) 的撰写期三选一中已经选择选项 2，并冻结为 `sealed=true` 控制面。这保留上表 cas_register / bottom=reject / `expected_position` CAS basis 的全部既有语义不变，`ak.strand.move` / `ak.strand.reorder` 因此始终是 Control Move（携带 `seal_basis`，由 Seal 裁决）。Realm `cell_lattices` 只登记 Realm-specific extension family，MUST NOT 把该内建 family 改为 data-plane `mv_register` 或 per-object sequencer。v1 不提供 per-Realm 的看板 data-plane 模式。
 
 `ak.strand.move` payload 是 closed object（未知字段 MUST `schema_violation`）：
 

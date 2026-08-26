@@ -3994,6 +3994,7 @@ def check_text_files_utf8_no_nul(lint: Lint) -> None:
 SHARED_PROOF_LEAF = ("event-envelope.schema.json", "/$defs/proof")
 PROOF_CONTEXT_ANNOTATION = "x-arkret-proof-context"
 PROOF_CONTEXT_SET_ANNOTATION = "x-arkret-proof-contexts"
+SIGNATURE_DOMAIN_ANNOTATION = "x-arkret-signature-domain"
 SECURITY_DOMAIN_LABEL_PATTERN = r"ak\.[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*\.v1"
 LEGACY_PROOF_CONTEXT_PATTERN = r"ak\.[a-z0-9-]+-proof-v1"
 REPLAY_CACHE_NAMESPACE_PRIMITIVE = "replay_cache_namespace"
@@ -4439,6 +4440,22 @@ def check_proof_context_registry(lint: Lint) -> None:
             )
         if not isinstance(fields, list) or not fields or not all(isinstance(item, str) and item for item in fields):
             lint.fail(path, f"domain_separations[{index}].binding_fields must be a non-empty string array")
+        schema_ref = row.get("schema_ref")
+        if schema_ref is not None:
+            if primitive != "detached_signature" or not isinstance(schema_ref, str):
+                lint.fail(
+                    path,
+                    f"domain_separations[{index}].schema_ref is only valid for a detached-signature schema anchor",
+                )
+            else:
+                file_name, fragment, node = _resolve_proof_schema_ref(documents, schema_ref)
+                if not isinstance(node, dict):
+                    lint.fail(path, f"domain_separations[{index}].schema_ref does not resolve: {schema_ref}")
+                elif node.get(SIGNATURE_DOMAIN_ANNOTATION) != domain:
+                    lint.fail(
+                        ARTIFACTS / "schemas" / file_name,
+                        f"{fragment or '/'} must declare {SIGNATURE_DOMAIN_ANNOTATION}={domain!r}",
+                    )
         if primitive != REPLAY_CACHE_NAMESPACE_PRIMITIVE:
             continue
         defined_in = row.get("defined_in")

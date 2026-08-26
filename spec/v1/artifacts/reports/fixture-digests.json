@@ -173,6 +173,10 @@
       "sha256": "9b759d91f93e3fee5cc8d8eb4d6b93dad3d405bfea275a38757408c3a156ad1a"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
+      "sha256": "5eda3d26e42456d1ef9c428a2ae561a25906c55f0dd4048b55d2d1bc46f78f24"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
       "sha256": "24c417bd8b4e50483c6095ef69b2d9ca566987214e66fb5b4d2f495f565b3ba0"
     },
@@ -286,7 +290,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json",
-      "sha256": "fc20f1d3db5f1d312d499eff548f2f94edd8208ddb0bbf512251b9928cb48db6"
+      "sha256": "51ec106b7fb579ed9bafd51887ac25839300cd7c1d62100f6195a6c73dd1123a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
@@ -370,7 +374,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
-      "sha256": "eab747f2602b9a76f2fa591d39c13a60f32be227b049a19b3b1c278aad2b39c5"
+      "sha256": "fa1a8a4626d31532f16167593afc4873432132d8e1c850ccd0a5bd250db179d9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",

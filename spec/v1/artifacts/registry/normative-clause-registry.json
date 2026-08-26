@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.4",
+  "version": "2026-08-26.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-26T14:10:00+08:00",
+  "generated_at": "2026-08-26T20:20:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -279,7 +279,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:74703527d708ea4dbf1c284d3aceb65e3e583192fccb893ce3ba260700593059",
+      "section_digest": "sha256:e737c54e7a7edcf3aa84c19f55798d3ff552bd7dbb824c4e7e889965d6ef9545",
       "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
       "testability_grade": "vector",
       "evidence_refs": [

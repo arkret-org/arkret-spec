@@ -70,7 +70,6 @@ def check_trust_domain_constraints(lint: Lint) -> None:
         data = load_json(lint, path)
         if isinstance(data, dict):
             schema_docs[path.name] = data
-
     def resolve_terminal(owner_name: str, node: Any) -> Any:
         seen: set[tuple[str, str]] = set()
         while isinstance(node, dict) and isinstance(node.get("$ref"), str):
@@ -114,6 +113,33 @@ def check_trust_domain_constraints(lint: Lint) -> None:
                         f"{json_path}.{field} must resolve to "
                         "common-ids.schema.json#/$defs/trust_domain; bare scope aliases are forbidden",
                     )
+
+
+def check_foundational_schema_dependency_direction(lint: Lint) -> None:
+    """Keep foundational lexical schemas below operation DTO schemas."""
+    path = ARTIFACTS / "schemas" / "common-ids.schema.json"
+    document = load_json(lint, path)
+    if not isinstance(document, dict):
+        return
+
+    def visit(node: Any, pointer: str) -> None:
+        if isinstance(node, dict):
+            ref = node.get("$ref")
+            if isinstance(ref, str):
+                target = ref.partition("#")[0].removeprefix("./")
+                if target.endswith("-operations.schema.json"):
+                    lint.fail(
+                        path,
+                        f"{pointer or '/'} points upward to operation schema {target}; "
+                        "canonical lexical terminals belong in common-ids.schema.json",
+                    )
+            for key, child in node.items():
+                visit(child, f"{pointer}/{key}")
+        elif isinstance(node, list):
+            for index, child in enumerate(node):
+                visit(child, f"{pointer}/{index}")
+
+    visit(document, "")
 
 
 
@@ -3297,22 +3323,24 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     )
     if not actor_profile_ids:
         lint.fail(profiles_path, "at least one profile must declare allowed_actor_methods")
-    for actor_profile_id in actor_profile_ids:
-        actor_profile_forbidden = any(
-            isinstance(branch, dict)
-            and branch.get("then", {})
+    realm_profile_allowlist = {
+        value
+        for branch in (
+            schema_docs.get("realm.schema.json", {})
             .get("properties", {})
             .get("schema_refs", {})
-            .get("not", {})
-            .get("contains", {})
-            .get("const")
-            == actor_profile_id
-            for branch in realm_genesis_doc.get("allOf", [])
-        ) if isinstance(realm_genesis_doc, dict) else False
-        if not actor_profile_forbidden:
+            .get("items", {})
+            .get("oneOf", [])
+        )
+        if isinstance(branch, dict)
+        for value in branch.get("enum", [])
+        if isinstance(value, str)
+    }
+    for actor_profile_id in actor_profile_ids:
+        if actor_profile_id in realm_profile_allowlist:
             lint.fail(
                 realm_genesis_path,
-                f"identity-control genesis must explicitly forbid actor-method profile {actor_profile_id} in schema_refs",
+                f"actor-method profile {actor_profile_id} must not enter the closed Realm structural-profile allowlist",
             )
     for profile_id, profile in profiles.items():
         if not isinstance(profile, dict):

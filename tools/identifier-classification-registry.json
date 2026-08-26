@@ -28,7 +28,7 @@
   "type_derived_summary": {
     "registry_catalog_symbol": 19,
     "responsibility_did": 533,
-    "typed_object_id": 891
+    "typed_object_id": 894
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -844,14 +844,6 @@
       "example_path": "directory-operations.schema.json#/$defs/directory_push_register_request_body/properties/resource_filter/properties/resource_ids",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
-    },
-    {
-      "name": "retention_policy_id",
-      "terminal_signature": "[[\"pattern\", \"^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\\\s]+|(sha256|blake3):[0-9a-f]{64})$\"]]",
-      "category": "typed_object_id",
-      "occurrences": 3,
-      "example_path": "event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/result/properties/retention_policy_id",
-      "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
     },
     {
       "name": "revokes_statement_id",

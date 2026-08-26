@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.1",
+  "version": "2026-08-26.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T14:10:00+08:00",
+  "generated_at": "2026-08-26T20:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -579,15 +579,6 @@
       "status": "active",
       "wire_form": "ak:frame:<uuidv7>",
       "description": "Non-HTTP stream frame ID",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "franking_proof",
-      "category": "moderation",
-      "status": "active",
-      "wire_form": "ak:franking_proof:<uuidv7>",
-      "description": "Message franking proof ID",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

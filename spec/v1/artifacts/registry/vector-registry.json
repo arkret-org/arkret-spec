@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.3",
+  "version": "2026-08-26.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-26T15:03:00+08:00",
+  "generated_at": "2026-08-26T20:50:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4484,6 +4484,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.moderation.franking_proof_transcript.v1",
+      "status": "active",
+      "domain": "moderation",
+      "applies_to_fixtures": [
+        "franking-proof-transcript-fixture.json"
+      ],
+      "description": "Byte-exact Ed25519 KAT for the seven-field ak.franking_proof.signature.v1 transcript. The fixture removes only payload.signature, prepends the registered domain field, and rejects mutation of every bound member.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.moderation.review_resolution_fold.v1",
       "status": "active",
       "domain": "moderation",
@@ -5372,7 +5385,7 @@
       "vector_id": "ak.vector.proof_context.transcript.ingress_receipt.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.ingress_receipt_proof.v1: digest input deletes `signature`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.join_application_cancel_receipt_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.ingress_receipt_proof.v1: the six-field receipt digest projection deletes `proofs`, authority_set_ref is supplied only by the exact companion AuthorizationLease outside the receipt body, canonical binding bytes and detached JWS are frozen, and replay under ak.join_application_cancel_receipt_proof.v1 is rejected.",
       "covers_proof_contexts": [
         "ak.ingress_receipt_proof.v1"
       ],
@@ -6575,7 +6588,7 @@
       "applies_to_fixtures": [
         "service-protocol-version-bootstrap-fixture.json"
       ],
-      "description": "Describe and Applet ping consumers inspect the protocol-family bootstrap discriminator before typed v1 claims, route caching, capability intersection, or business traffic; unsupported canonical strings and malformed discriminators remain distinct failures.",
+      "description": "ServiceDescribe, Applet ping and IdentityDescription consumers inspect the protocol-family bootstrap discriminator before typed v1 claims, route caching, capability intersection, or business traffic; unsupported canonical strings and malformed discriminators remain distinct failures.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json"
