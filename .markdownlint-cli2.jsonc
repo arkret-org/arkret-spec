@@ -1,7 +1,6 @@
 {
   "globs": [
     "README.md",
-    "CHANGELOG.md",
     "spec/v1/**/*.md"
   ],
   "ignores": [

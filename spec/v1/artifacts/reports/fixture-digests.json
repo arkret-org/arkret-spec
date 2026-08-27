@@ -178,7 +178,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
-      "sha256": "a80fd82410ed580ca3356afbfde473d958787411ff014c5735a4cfd2c9d95f54"
+      "sha256": "483185ce8a3fc67dc8c0fcff261d436a90783756fb557e7c2ec63cbdeeb06104"
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",

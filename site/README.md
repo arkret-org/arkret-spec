@@ -49,11 +49,11 @@ Astro Starlight 站点，把 `spec/v1/` 渲染成可浏览的协议规范网站�
 
 ```
 cd site
-npm install
-npm run dev          # http://localhost:4321
-npm run build        # 静态产物 -> site/dist
-npm run check        # astro + ts type check
-npm run crossref     # 校验 spec/ 中所有 <EventKind/> <ErrorCode/> 等 prop 命中 registry
+pnpm install
+pnpm run dev          # http://localhost:4321
+pnpm run build        # 静态产物 -> site/dist
+pnpm run check        # astro + ts type check
+pnpm run crossref     # 校验 spec/ 中所有 <EventKind/> <ErrorCode/> 等 prop 命中 registry
 ```
 
 ## 关键文件
@@ -65,11 +65,13 @@ site/
 │   ├── remark-mermaid.mjs
 │   └── remark-rel-md-links.mjs
 ├── scripts/
-│   └── crossref-check.mjs           # 预构建校验
+│   ├── crossref-check.mjs           # 预构建校验
+│   └── gen-public-catalog.mjs       # prebuild/predev 生成对外发布的 registry 快照
 ├── src/
 │   ├── content.config.ts            # docsLoader 指向 ../spec/
 │   ├── lib/
 │   │   ├── artifacts.ts             # 全局构件加载器（typed）
+│   │   ├── site-meta.ts             # release tag / 仓库 URL 等站点元数据适配
 │   │   └── schema/
 │   │       ├── types.ts             # JSON Schema 子集
 │   │       ├── deref.ts             # $ref / JSON pointer 解析
@@ -77,9 +79,14 @@ site/
 │   ├── components/                  # MDX / catalog 组件
 │   ├── pages/
 │   │   ├── index.astro
+│   │   ├── 404.astro
+│   │   ├── ecosystem.astro
 │   │   ├── openapi.astro            # Scalar
+│   │   ├── artifacts/               # 构建期暴露的构件 JSON 路由
 │   │   └── catalog/                 # 5 个动态路由集
-│   └── styles/spec.css
+│   └── styles/
+│       ├── spec.css
+│       └── marketing.css            # 首页 / ecosystem 等营销页样式
 └── tsconfig.json
 ```
 

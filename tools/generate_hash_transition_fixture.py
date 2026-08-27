@@ -241,6 +241,7 @@ def main() -> None:
     successor_digest = "blake3:ed5144c880babaf845b1852e12b43c55ec831e244742f6642d79e5c8afee1b55"
 
     fixture = {
+        "generated_by": "tools/generate_hash_transition_fixture.py",
         "profile": "ak.profile.hash_transition.v1",
         "version": "2026-08-24",
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.encoding.hash_transition.v1"},
