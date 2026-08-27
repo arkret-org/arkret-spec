@@ -11357,7 +11357,11 @@ paths:
         to-device drop, and push registration removal. Does not emit
         ak.device.revoke, does not erase durable device authorization (re-login
         restores the device), and does not create an AccountStatusRecord. Distinct
-        from revoke_session (targeted session-grant revoke).
+        from revoke_session (targeted session-grant revoke). A not_found
+        introspection result is an idempotent retry state only after the
+        Auth-side auth-sessions/logout sub-operation confirms completion; an
+        audience_mismatch remains an authentication failure and MUST NOT be
+        treated as already logged out.
       responses:
         '200':
           description: Account Authority hard logout completed.
