@@ -55,7 +55,7 @@
             "binding_kind": "http_json",
             "preference": 100,
             "response_schema_ref": "schemas/service-describe.schema.json",
-            "error_schema_ref": "schemas/http-error-envelope.schema.json",
+            "error_schema_ref": "schemas/http-problem-details.schema.json",
             "success_shape_kind": "service_describe"
           },
           {
@@ -64,7 +64,7 @@
             "preference": 100,
             "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
             "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-            "error_schema_ref": "schemas/http-error-envelope.schema.json",
+            "error_schema_ref": "schemas/http-problem-details.schema.json",
             "success_shape_kind": "typed_response"
           }
         ],

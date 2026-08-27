@@ -299,14 +299,14 @@ Idempotency-Key: <opaque-string>
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `ok` | `boolean` | required | transaction 是否被处理。 |
+| `status` | `enum(accepted,partial,rejected)` | required | 所有项接受、部分接受或全部拒绝。 |
 | `rejected` | `object[]` | optional | 被拒绝事件摘要。 |
 | `retry_after_ms` | `int` | optional | 建议重试延迟。 |
 
 响应示例：
 
 ```json
-{ "ok": true }
+{ "status": "accepted" }
 ```
 
 ## 4. Query Actor

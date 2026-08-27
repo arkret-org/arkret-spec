@@ -570,7 +570,7 @@
         "code": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,127}$",
-          "description": "Must resolve to a registered code in error-code-registry.json codes[]. This closed transport error body is not the HTTP ErrorEnvelope."
+          "description": "Must resolve to a registered code in error-code-registry.json codes[]. This closed transport error body is not the HTTP RFC 9457 Problem Details."
         },
         "message": {
           "type": "string",

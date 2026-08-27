@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 26,
+  "version": 27,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -3218,6 +3218,18 @@
         "negative_test"
       ],
       "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
+    },
+    {
+      "id": "ok",
+      "context": "http_response_body",
+      "since_revision": "2026-08-27",
+      "rejection_level": "hard_reject",
+      "replacement": "operation-specific outcome fields or an empty 204 response",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Arkret v1 HTTP success bodies use operation-specific semantics; HTTP failures use RFC 9457 Problem Details. A generic ok discriminator is forbidden in either response shape."
     }
   ]
 }

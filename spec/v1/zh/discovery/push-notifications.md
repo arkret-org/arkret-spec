@@ -90,7 +90,6 @@ Push registration 的作用域是接收该请求的 Principal Server sync surfac
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `ok` | boolean | required | 注册是否被接受 |
 | `push_target_id` | `PushTargetId` | required | 服务端按 §2.2 派生的完整 32-octet HMAC-SHA256 typed pairwise pseudonym；见下方 normative 约束 |
 | `registration_id` | id | optional | 服务端分配的注册 ID |
 | `expires_at` | datetime | optional | 本 Sync / Principal Service 上该 push registration 记录的服务端有效期；不表示 APNs / FCM / WebPush provider token 自身过期时间 |
@@ -113,11 +112,7 @@ POST /_arkret/edge/push/unregister-device
 | `push_key` | string | optional | 指定要注销的 push token |
 | `app_id` | string | optional | 指定应用包名 / Bundle ID |
 
-响应字段：
-
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `ok` | boolean | required | 注销是否完成；不存在的注册 MAY 幂等返回成功 |
+成功响应固定为 HTTP 204 且没有 entity body；注册不存在也必须按同一幂等成功处理。不得返回 JSON 占位对象。
 
 ## 4. 推送规则引擎
 

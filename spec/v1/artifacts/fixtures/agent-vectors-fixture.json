@@ -319,7 +319,6 @@
       "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome",
       "expect_valid": true,
       "instance": {
-        "ok": true,
         "lifecycle": "active",
         "runtime_state": "pending_runtime_key",
         "readiness": {
@@ -786,14 +785,12 @@
         "requested_scope_requires_controller_approval": true
       },
       "expected_error": {
-        "ok": false,
-        "error": {
-          "code": "claim_required",
-          "details": {
-            "reason_code": "human_approval_required",
-            "approval_request_id": "approval-opaque-01"
-          }
-        }
+        "type": "https://arkret.org/problems/claim_required",
+        "title": "Claim required",
+        "status": 403,
+        "detail": "controller approval required",
+        "reason_code": "human_approval_required",
+        "approval_request_id": "approval-opaque-01"
       },
       "forbidden_runtime_challenges": [
         "captcha",
@@ -802,7 +799,7 @@
         "password_prompt"
       ],
       "assertions": [
-        "error details validate against agent_human_approval_error_details",
+        "RFC 9457 extension members validate against agent_human_approval_error_details",
         "approval_request_id is opaque and is the only runtime-visible correlation handle",
         "controller approval completes out of band",
         "agent retry references accepted approval evidence",

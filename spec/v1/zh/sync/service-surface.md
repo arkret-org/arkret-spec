@@ -216,7 +216,7 @@ GET /_arkret/describe
       "binding_kind": "http_json",
       "preference": 100,
       "response_schema_ref": "schemas/service-describe.schema.json",
-      "error_schema_ref": "schemas/http-error-envelope.schema.json",
+      "error_schema_ref": "schemas/http-problem-details.schema.json",
       "success_shape_kind": "service_describe"
     },
     {

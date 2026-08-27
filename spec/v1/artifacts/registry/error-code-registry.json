@@ -1,156 +1,206 @@
 {
-  "version": "2026-08-27.2",
-  "generated_at": "2026-08-27T05:12:00+08:00",
+  "version": "2026-08-27.3",
+  "generated_at": "2026-08-27T09:00:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
       "http_status": 400,
       "scope": "both",
-      "description": "JSON body cannot be parsed."
+      "description": "JSON body cannot be parsed.",
+      "type_uri": "https://arkret.org/problems/json_invalid",
+      "title": "Json invalid"
     },
     {
       "code": "query_invalid",
       "http_status": 400,
       "scope": "both",
-      "description": "Query parameters cannot be parsed or violate endpoint rules."
+      "description": "Query parameters cannot be parsed or violate endpoint rules.",
+      "type_uri": "https://arkret.org/problems/query_invalid",
+      "title": "Query invalid"
     },
     {
       "code": "schema_violation",
       "http_status": 422,
       "scope": "both",
-      "description": "Parsed input does not satisfy the declared schema contract."
+      "description": "Parsed input does not satisfy the declared schema contract.",
+      "type_uri": "https://arkret.org/problems/schema_violation",
+      "title": "Schema violation"
     },
     {
       "code": "historical_did_evidence_invalid",
       "http_status": 422,
       "scope": "both",
-      "description": "Registration-time or Event accepted-at DID evidence cannot be replayed at its frozen historical boundary. Current DID state MUST NOT be substituted."
+      "description": "Registration-time or Event accepted-at DID evidence cannot be replayed at its frozen historical boundary. Current DID state MUST NOT be substituted.",
+      "type_uri": "https://arkret.org/problems/historical_did_evidence_invalid",
+      "title": "Historical did evidence invalid"
     },
     {
       "code": "current_did_authority_unavailable",
       "http_status": 503,
       "scope": "both",
-      "description": "A call site explicitly registered as current-DID-dependent cannot obtain fresh current authority. Unrelated human PCR operations remain available."
+      "description": "A call site explicitly registered as current-DID-dependent cannot obtain fresh current authority. Unrelated human PCR operations remain available.",
+      "type_uri": "https://arkret.org/problems/current_did_authority_unavailable",
+      "title": "Current did authority unavailable"
     },
     {
       "code": "pcr_authority_stale",
       "http_status": 409,
       "scope": "both",
-      "description": "The accepted PCR authority frontier, device generation, recovery-policy version or account-local-lineage binding is stale. DID freshness cannot repair this failure."
+      "description": "The accepted PCR authority frontier, device generation, recovery-policy version or account-local-lineage binding is stale. DID freshness cannot repair this failure.",
+      "type_uri": "https://arkret.org/problems/pcr_authority_stale",
+      "title": "Pcr authority stale"
     },
     {
       "code": "did_method_successor_invalid",
       "http_status": 409,
       "scope": "both",
-      "description": "The proposed current resolution is not a valid method-native same-core successor. A valid PCR author proof alone cannot advance it."
+      "description": "The proposed current resolution is not a valid method-native same-core successor. A valid PCR author proof alone cannot advance it.",
+      "type_uri": "https://arkret.org/problems/did_method_successor_invalid",
+      "title": "Did method successor invalid"
     },
     {
       "code": "agent_signer_evidence_missing",
       "http_status": 404,
       "scope": "both",
-      "description": "Portable Native Agent signer evidence is unavailable for the authorized shared context. For callers without that context this response is indistinguishable from an unknown Agent or method. Consumers remain Unresolved and MUST NOT fall back to device directory or an ordinary-Realm MLS leaf."
+      "description": "Portable Native Agent signer evidence is unavailable for the authorized shared context. For callers without that context this response is indistinguishable from an unknown Agent or method. Consumers remain Unresolved and MUST NOT fall back to device directory or an ordinary-Realm MLS leaf.",
+      "type_uri": "https://arkret.org/problems/agent_signer_evidence_missing",
+      "title": "Agent signer evidence missing"
     },
     {
       "code": "agent_signer_evidence_stale",
       "http_status": 409,
       "scope": "both",
-      "description": "Agent signer evidence exists but its source freshness observation or state frontier is too old for the target Event admission. Consumers remain Unresolved/Stale and retry without promoting the Event to Verified."
+      "description": "Agent signer evidence exists but its source freshness observation or state frontier is too old for the target Event admission. Consumers remain Unresolved/Stale and retry without promoting the Event to Verified.",
+      "type_uri": "https://arkret.org/problems/agent_signer_evidence_stale",
+      "title": "Agent signer evidence stale"
     },
     {
       "code": "agent_authorization_inactive",
       "http_status": 422,
       "scope": "both",
-      "description": "The target Event accepted-at lies outside the Agent key authorization validity interval because the authorization is revoked, superseded, or expired."
+      "description": "The target Event accepted-at lies outside the Agent key authorization validity interval because the authorization is revoked, superseded, or expired.",
+      "type_uri": "https://arkret.org/problems/agent_authorization_inactive",
+      "title": "Agent authorization inactive"
     },
     {
       "code": "agent_authorization_conflicted",
       "http_status": 409,
       "scope": "both",
-      "description": "The accepted Agent key component contains conflicting active authorization state at the target frontier. The Event and signer evidence MUST be quarantined."
+      "description": "The accepted Agent key component contains conflicting active authorization state at the target frontier. The Event and signer evidence MUST be quarantined.",
+      "type_uri": "https://arkret.org/problems/agent_authorization_conflicted",
+      "title": "Agent authorization conflicted"
     },
     {
       "code": "agent_signing_key_mismatch",
       "http_status": 422,
       "scope": "both",
-      "description": "The Agent proof method, disclosed raw key, public-key digest, signing-binding digest, authorization Event, or controller proof do not form one exact binding."
+      "description": "The Agent proof method, disclosed raw key, public-key digest, signing-binding digest, authorization Event, or controller proof do not form one exact binding.",
+      "type_uri": "https://arkret.org/problems/agent_signing_key_mismatch",
+      "title": "Agent signing key mismatch"
     },
     {
       "code": "agent_mls_leaf_binding_mismatch",
       "http_status": 422,
       "scope": "both",
-      "description": "An ordinary encrypted Agent Event does not have exactly one historical active BasicCredential leaf whose identity, signature key, and admission authorization lineage match its Agent signer evidence."
+      "description": "An ordinary encrypted Agent Event does not have exactly one historical active BasicCredential leaf whose identity, signature key, and admission authorization lineage match its Agent signer evidence.",
+      "type_uri": "https://arkret.org/problems/agent_mls_leaf_binding_mismatch",
+      "title": "Agent mls leaf binding mismatch"
     },
     {
       "code": "duplicate_clause_claim",
       "http_status": 422,
       "scope": "both",
-      "description": "An SDK conformance claim repeats the same stable clause_id; each applicable clause must appear exactly once."
+      "description": "An SDK conformance claim repeats the same stable clause_id; each applicable clause must appear exactly once.",
+      "type_uri": "https://arkret.org/problems/duplicate_clause_claim",
+      "title": "Duplicate clause claim"
     },
     {
       "code": "key_transparency_proof_missing",
       "http_status": 422,
       "scope": "both",
-      "description": "A profile requiring log-backed key transparency omitted its inclusion proof, consistency proof, log head, or required witness evidence."
+      "description": "A profile requiring log-backed key transparency omitted its inclusion proof, consistency proof, log head, or required witness evidence.",
+      "type_uri": "https://arkret.org/problems/key_transparency_proof_missing",
+      "title": "Key transparency proof missing"
     },
     {
       "code": "param_missing",
       "http_status": 400,
       "scope": "both",
-      "description": "A required parameter is missing."
+      "description": "A required parameter is missing.",
+      "type_uri": "https://arkret.org/problems/param_missing",
+      "title": "Param missing"
     },
     {
       "code": "param_invalid",
       "http_status": 400,
       "scope": "both",
-      "description": "A parameter value is syntactically or semantically invalid."
+      "description": "A parameter value is syntactically or semantically invalid.",
+      "type_uri": "https://arkret.org/problems/param_invalid",
+      "title": "Param invalid"
     },
     {
       "code": "controller_signed_event_required",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "A managed-Agent operation that must preserve controller authorship omitted the required controller-signed durable Event proof. The service MUST NOT synthesize, service-sign, or directly project the missing controller fact. The controller must author and submit the exact closed Event required by the operation. See zh/identity/key-management.md §3.6.1 Lifecycle."
+      "description": "A managed-Agent operation that must preserve controller authorship omitted the required controller-signed durable Event proof. The service MUST NOT synthesize, service-sign, or directly project the missing controller fact. The controller must author and submit the exact closed Event required by the operation. See zh/identity/key-management.md §3.6.1 Lifecycle.",
+      "type_uri": "https://arkret.org/problems/controller_signed_event_required",
+      "title": "Controller signed event required"
     },
     {
       "code": "response_invalid",
       "http_status": 400,
       "scope": "service_call",
-      "description": "A downstream service response was syntactically valid transport data but did not satisfy the expected protocol contract, including directory/projection/service-call schema mismatch or missing required pagination/error fields."
+      "description": "A downstream service response was syntactically valid transport data but did not satisfy the expected protocol contract, including directory/projection/service-call schema mismatch or missing required pagination/error fields.",
+      "type_uri": "https://arkret.org/problems/response_invalid",
+      "title": "Response invalid"
     },
     {
       "code": "unauthenticated",
       "http_status": 401,
       "scope": "both",
-      "description": "Authentication material is missing or invalid."
+      "description": "Authentication material is missing or invalid.",
+      "type_uri": "https://arkret.org/problems/unauthenticated",
+      "title": "Unauthenticated"
     },
     {
       "code": "auth_expired",
       "http_status": 401,
       "scope": "both",
-      "description": "Session, token, or grant has expired."
+      "description": "Session, token, or grant has expired.",
+      "type_uri": "https://arkret.org/problems/auth_expired",
+      "title": "Auth expired"
     },
     {
       "code": "grant_already_consumed",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Session-grant rotation targeted a grant that was already single-use consumed (rotated). Treated as a credential-compromise signal; the rotation chain SHOULD be terminated. See account-lifecycle §4.1."
+      "description": "Session-grant rotation targeted a grant that was already single-use consumed (rotated). Treated as a credential-compromise signal; the rotation chain SHOULD be terminated. See account-lifecycle §4.1.",
+      "type_uri": "https://arkret.org/problems/grant_already_consumed",
+      "title": "Grant already consumed"
     },
     {
       "code": "session_logged_out",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Session-grant rotation refused because the underlying Auth Server browser session has been logged out (finished). The rotation chain cannot be resumed; full re-authentication is required. See account-lifecycle §4.1."
+      "description": "Session-grant rotation refused because the underlying Auth Server browser session has been logged out (finished). The rotation chain cannot be resumed; full re-authentication is required. See account-lifecycle §4.1.",
+      "type_uri": "https://arkret.org/problems/session_logged_out",
+      "title": "Session logged out"
     },
     {
       "code": "audience_mismatch",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Session-grant rotation requested an audience different from the grant's bound audience. Audience MUST NOT change across rotation."
+      "description": "Session-grant rotation requested an audience different from the grant's bound audience. Audience MUST NOT change across rotation.",
+      "type_uri": "https://arkret.org/problems/audience_mismatch",
+      "title": "Audience mismatch"
     },
     {
       "code": "soft_logged_out",
       "http_status": 401,
       "scope": "both",
-      "description": "Session was soft-logged-out and must be refreshed."
+      "description": "Session was soft-logged-out and must be refreshed.",
+      "type_uri": "https://arkret.org/problems/soft_logged_out",
+      "title": "Soft logged out"
     },
     {
       "code": "account_locked",
@@ -160,13 +210,17 @@
         "session_issuance_or_refresh": 403
       },
       "scope": "both",
-      "description": "The principal account is locked. Existing session grants are invalidated and protected requests MUST fail closed; new session issuance MAY surface the same code with a 403 policy-denial status."
+      "description": "The principal account is locked. Existing session grants are invalidated and protected requests MUST fail closed; new session issuance MAY surface the same code with a 403 policy-denial status.",
+      "type_uri": "https://arkret.org/problems/account_locked",
+      "title": "Account locked"
     },
     {
       "code": "account_suspended",
       "http_status": 403,
       "scope": "both",
-      "description": "The principal account is suspended. Existing sessions may observe account state where permitted, but new session issuance and writes MUST fail closed with this code."
+      "description": "The principal account is suspended. Existing sessions may observe account state where permitted, but new session issuance and writes MUST fail closed with this code.",
+      "type_uri": "https://arkret.org/problems/account_suspended",
+      "title": "Account suspended"
     },
     {
       "code": "account_deactivated",
@@ -176,31 +230,41 @@
         "session_issuance_or_refresh": 403
       },
       "scope": "both",
-      "description": "The principal account is deactivated. Existing session grants are invalidated and protected requests MUST fail closed; new session issuance MAY surface the same code with a 403 policy-denial status."
+      "description": "The principal account is deactivated. Existing session grants are invalidated and protected requests MUST fail closed; new session issuance MAY surface the same code with a 403 policy-denial status.",
+      "type_uri": "https://arkret.org/problems/account_deactivated",
+      "title": "Account deactivated"
     },
     {
       "code": "account_erased",
       "http_status": 401,
       "scope": "both",
-      "description": "The principal account is in terminal erasure_pending state. Existing session grants are invalidated and protected requests MUST fail closed with this code instead of a generic unauthenticated response."
+      "description": "The principal account is in terminal erasure_pending state. Existing session grants are invalidated and protected requests MUST fail closed with this code instead of a generic unauthenticated response.",
+      "type_uri": "https://arkret.org/problems/account_erased",
+      "title": "Account erased"
     },
     {
       "code": "reauthentication_required",
       "http_status": 401,
       "scope": "endpoint",
-      "description": "A high-risk self-service action (for example ak.gate.account.command.request_erasure) requires fresh high-risk action authentication — recent login, WebAuthn, recovery key or a deployment equivalent — and the presented session does not satisfy the deployment policy. The caller MUST re-authenticate and retry with new request material; the strength of the required proof is deployment governance. See zh/identity/account-lifecycle.md section 8.1 and section 10."
+      "description": "A high-risk self-service action (for example ak.gate.account.command.request_erasure) requires fresh high-risk action authentication — recent login, WebAuthn, recovery key or a deployment equivalent — and the presented session does not satisfy the deployment policy. The caller MUST re-authenticate and retry with new request material; the strength of the required proof is deployment governance. See zh/identity/account-lifecycle.md section 8.1 and section 10.",
+      "type_uri": "https://arkret.org/problems/reauthentication_required",
+      "title": "Reauthentication required"
     },
     {
       "code": "did_proof_required",
       "http_status": 401,
       "scope": "both",
-      "description": "An explicitly selected DID-root authentication factor or sensitive account-control transition requires its operation-specific fresh DID proof. Soft logout does not use this code as a refresh challenge: it requires full reauthentication to a fresh AccountHandoff or an explicit account-control action."
+      "description": "An explicitly selected DID-root authentication factor or sensitive account-control transition requires its operation-specific fresh DID proof. Soft logout does not use this code as a refresh challenge: it requires full reauthentication to a fresh AccountHandoff or an explicit account-control action.",
+      "type_uri": "https://arkret.org/problems/did_proof_required",
+      "title": "Did proof required"
     },
     {
       "code": "signature_invalid",
       "http_status": 401,
       "scope": "both",
-      "description": "A required signature or proof does not verify."
+      "description": "A required signature or proof does not verify.",
+      "type_uri": "https://arkret.org/problems/signature_invalid",
+      "title": "Signature invalid"
     },
     {
       "code": "http_signature_required",
@@ -210,7 +274,9 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A service-to-service request that MUST carry a per-delivery RFC 9421 HTTP Message Signature presented only Authorization: Bearer with no Signature. Applies to Applet transaction push in both directions (node->Applet and app/bridge->arkret edge inbound). See zh/extensions/applet-integration.md §7.3.1."
+      "description": "A service-to-service request that MUST carry a per-delivery RFC 9421 HTTP Message Signature presented only Authorization: Bearer with no Signature. Applies to Applet transaction push in both directions (node->Applet and app/bridge->arkret edge inbound). See zh/extensions/applet-integration.md §7.3.1.",
+      "type_uri": "https://arkret.org/problems/http_signature_required",
+      "title": "Http signature required"
     },
     {
       "code": "http_signature_invalid",
@@ -220,7 +286,9 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification; the Content-Digest header profile, exact-content digest, or canonical-JSON wire check failed; or source_service_id disagreed with the Source-Service-ID header / signature transcript. See zh/extensions/applet-integration.md §7.3.1."
+      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification; the Content-Digest header profile, exact-content digest, or canonical-JSON wire check failed; or source_service_id disagreed with the Source-Service-ID header / signature transcript. See zh/extensions/applet-integration.md §7.3.1.",
+      "type_uri": "https://arkret.org/problems/http_signature_invalid",
+      "title": "Http signature invalid"
     },
     {
       "code": "signature_window_invalid",
@@ -230,955 +298,1273 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A per-delivery HTTP Message Signature created/expires parameters fell outside the protocol freshness window (expires-created over 300s, created skew over +/-30s, or expires already past), including byte-identical replays after the bounded replay cache evicted the entry. Window judged per zh/sync/federation.md §3.2. See zh/extensions/applet-integration.md §7.3.1."
+      "description": "A per-delivery HTTP Message Signature created/expires parameters fell outside the protocol freshness window (expires-created over 300s, created skew over +/-30s, or expires already past), including byte-identical replays after the bounded replay cache evicted the entry. Window judged per zh/sync/federation.md §3.2. See zh/extensions/applet-integration.md §7.3.1.",
+      "type_uri": "https://arkret.org/problems/signature_window_invalid",
+      "title": "Signature window invalid"
     },
     {
       "code": "directory_unauthorized",
       "http_status": 403,
       "scope": "service_call",
-      "description": "Directory ingest rejected an announce or withdraw because the signed resource payload does not authorize this Directory service DID."
+      "description": "Directory ingest rejected an announce or withdraw because the signed resource payload does not authorize this Directory service DID.",
+      "type_uri": "https://arkret.org/problems/directory_unauthorized",
+      "title": "Directory unauthorized"
     },
     {
       "code": "accept_policy_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "Directory ingest rejected the resource because it is outside the directory's advertised accept policy."
+      "description": "Directory ingest rejected the resource because it is outside the directory's advertised accept policy.",
+      "type_uri": "https://arkret.org/problems/accept_policy_denied",
+      "title": "Accept policy denied"
     },
     {
       "code": "directory_governance_proof_signature_invalid",
       "http_status": 400,
       "scope": "service_call",
-      "description": "Directory ingest rejected a resource governance proof because its detached signature is invalid or cannot be canonicalized."
+      "description": "Directory ingest rejected a resource governance proof because its detached signature is invalid or cannot be canonicalized.",
+      "type_uri": "https://arkret.org/problems/directory_governance_proof_signature_invalid",
+      "title": "Directory governance proof signature invalid"
     },
     {
       "code": "signature_stale",
       "http_status": 400,
       "scope": "service_call",
-      "description": "Directory ingest rejected a signed payload because its as_of timestamp is outside the configured freshness window."
+      "description": "Directory ingest rejected a signed payload because its as_of timestamp is outside the configured freshness window.",
+      "type_uri": "https://arkret.org/problems/signature_stale",
+      "title": "Signature stale"
     },
     {
       "code": "source_refs_unverifiable",
       "http_status": 400,
       "scope": "service_call",
-      "description": "Directory ingest or cross-service projection could not verify declared source_refs against the authoritative principal server, resource source, or signed projection frontier."
+      "description": "Directory ingest or cross-service projection could not verify declared source_refs against the authoritative principal server, resource source, or signed projection frontier.",
+      "type_uri": "https://arkret.org/problems/source_refs_unverifiable",
+      "title": "Source refs unverifiable"
     },
     {
       "code": "governance_key_invalid",
       "http_status": 400,
       "scope": "service_call",
-      "description": "Directory ingest rejected a governance proof because the signing key is not valid for the resource DID document's current epoch."
+      "description": "Directory ingest rejected a governance proof because the signing key is not valid for the resource DID document's current epoch.",
+      "type_uri": "https://arkret.org/problems/governance_key_invalid",
+      "title": "Governance key invalid"
     },
     {
       "code": "ttl_out_of_range",
       "http_status": 400,
       "scope": "service_call",
-      "description": "A service-call TTL is outside the operation's allowed range, including directory ttl_seconds outside [1, max_ttl_seconds] or ephemeral ttl_ms beyond the advertised kind-specific limit."
+      "description": "A service-call TTL is outside the operation's allowed range, including directory ttl_seconds outside [1, max_ttl_seconds] or ephemeral ttl_ms beyond the advertised kind-specific limit.",
+      "type_uri": "https://arkret.org/problems/ttl_out_of_range",
+      "title": "Ttl out of range"
     },
     {
       "code": "takedown_in_force",
       "http_status": 409,
       "scope": "service_call",
-      "description": "Directory ingest rejected an announce because an active withdrawal or operator takedown blocks acceptance of the resource."
+      "description": "Directory ingest rejected an announce because an active withdrawal or operator takedown blocks acceptance of the resource.",
+      "type_uri": "https://arkret.org/problems/takedown_in_force",
+      "title": "Takedown in force"
     },
     {
       "code": "policy_revision_rollback",
       "http_status": 409,
       "scope": "service_call",
-      "description": "Directory ingest rejected an announce because policy_revision or as_of is older than the indexed entry."
+      "description": "Directory ingest rejected an announce because policy_revision or as_of is older than the indexed entry.",
+      "type_uri": "https://arkret.org/problems/policy_revision_rollback",
+      "title": "Policy revision rollback"
     },
     {
       "code": "capability_denied",
       "http_status": 403,
       "scope": "both",
-      "description": "Capability, policy, or visibility rules deny the request."
+      "description": "Capability, policy, or visibility rules deny the request.",
+      "type_uri": "https://arkret.org/problems/capability_denied",
+      "title": "Capability denied"
     },
     {
       "code": "realm_frozen",
       "http_status": 403,
       "scope": "both",
-      "description": "The target Realm is reversibly frozen or archived and the attempted write is outside the closed exemption set in zh/models/realm-and-space.md §2.6.0. Terminal tombstone/destroy states use realm_terminal_state."
+      "description": "The target Realm is reversibly frozen or archived and the attempted write is outside the closed exemption set in zh/models/realm-and-space.md §2.6.0. Terminal tombstone/destroy states use realm_terminal_state.",
+      "type_uri": "https://arkret.org/problems/realm_frozen",
+      "title": "Realm frozen"
     },
     {
       "code": "claim_required",
       "http_status": 403,
       "scope": "both",
-      "description": "A required claim, attestation, or presentation is missing."
+      "description": "A required claim, attestation, or presentation is missing.",
+      "type_uri": "https://arkret.org/problems/claim_required",
+      "title": "Claim required"
     },
     {
       "code": "policy_violation",
       "http_status": 403,
       "scope": "both",
-      "description": "A realm-level policy refuses the requested write or fanout (read-receipts §2.5: ak.receipt.read drops when disclosure='disabled'; retry_after_ms is null because retry will not change the outcome)."
+      "description": "A realm-level policy refuses the requested write or fanout (read-receipts §2.5: ak.receipt.read drops when disclosure='disabled'; retry_after_ms is null because retry will not change the outcome).",
+      "type_uri": "https://arkret.org/problems/policy_violation",
+      "title": "Policy violation"
     },
     {
       "code": "policy_denied",
       "http_status": 403,
       "scope": "both",
-      "description": "A Realm, organization, account, holder-disclosure, agent, or deployment policy explicitly denied the requested operation after syntactic validation and authentication succeeded. Use a narrower code when a more specific registry entry applies."
+      "description": "A Realm, organization, account, holder-disclosure, agent, or deployment policy explicitly denied the requested operation after syntactic validation and authentication succeeded. Use a narrower code when a more specific registry entry applies.",
+      "type_uri": "https://arkret.org/problems/policy_denied",
+      "title": "Policy denied"
     },
     {
       "code": "verifier_unauthorized",
       "http_status": 403,
       "scope": "service_call",
-      "description": "A presentation verifier could not prove authority to represent its claimed organization or relying party."
+      "description": "A presentation verifier could not prove authority to represent its claimed organization or relying party.",
+      "type_uri": "https://arkret.org/problems/verifier_unauthorized",
+      "title": "Verifier unauthorized"
     },
     {
       "code": "consent_required",
       "http_status": 403,
       "scope": "service_call",
-      "description": "The holder requires explicit user consent before disclosing the requested presentation."
+      "description": "The holder requires explicit user consent before disclosing the requested presentation.",
+      "type_uri": "https://arkret.org/problems/consent_required",
+      "title": "Consent required"
     },
     {
       "code": "unsupported_proof_profile",
       "http_status": 422,
       "scope": "service_call",
-      "description": "Wallet and verifier have no mutually supported proof profile for the requested presentation."
+      "description": "Wallet and verifier have no mutually supported proof profile for the requested presentation.",
+      "type_uri": "https://arkret.org/problems/unsupported_proof_profile",
+      "title": "Unsupported proof profile"
     },
     {
       "code": "transport_privacy_required",
       "http_status": 403,
       "scope": "service_call",
-      "description": "Effective holder policy requires a privacy-preserving transport mode that is unavailable for this presentation exchange."
+      "description": "Effective holder policy requires a privacy-preserving transport mode that is unavailable for this presentation exchange.",
+      "type_uri": "https://arkret.org/problems/transport_privacy_required",
+      "title": "Transport privacy required"
     },
     {
       "code": "credential_not_found",
       "http_status": 404,
       "scope": "service_call",
-      "description": "The holder has no credential matching the authorized presentation request."
+      "description": "The holder has no credential matching the authorized presentation request.",
+      "type_uri": "https://arkret.org/problems/credential_not_found",
+      "title": "Credential not found"
     },
     {
       "code": "credential_expired",
       "http_status": 410,
       "scope": "service_call",
-      "description": "A credential matching the presentation request exists but is expired."
+      "description": "A credential matching the presentation request exists but is expired.",
+      "type_uri": "https://arkret.org/problems/credential_expired",
+      "title": "Credential expired"
     },
     {
       "code": "status_unavailable",
       "http_status": 503,
       "scope": "service_call",
-      "description": "Required credential revocation or status material is temporarily unavailable."
+      "description": "Required credential revocation or status material is temporarily unavailable.",
+      "type_uri": "https://arkret.org/problems/status_unavailable",
+      "title": "Status unavailable"
     },
     {
       "code": "overbroad_request",
       "http_status": 422,
       "scope": "service_call",
-      "description": "A presentation request asks for unrelated handles, credential identifiers, or global identifiers beyond its declared purpose."
+      "description": "A presentation request asks for unrelated handles, credential identifiers, or global identifiers beyond its declared purpose.",
+      "type_uri": "https://arkret.org/problems/overbroad_request",
+      "title": "Overbroad request"
     },
     {
       "code": "read_receipt_compliance_floor_violated",
       "http_status": 422,
       "scope": "both",
-      "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' → child 'optional' or 'disabled') without the parent explicitly setting child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md §2.5."
+      "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' → child 'optional' or 'disabled') without the parent explicitly setting child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md §2.5.",
+      "type_uri": "https://arkret.org/problems/read_receipt_compliance_floor_violated",
+      "title": "Read receipt compliance floor violated"
     },
     {
       "code": "signal_class_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "ak.self.signal.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that signal kind."
+      "description": "ak.self.signal.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that signal kind.",
+      "type_uri": "https://arkret.org/problems/signal_class_denied",
+      "title": "Signal class denied"
     },
     {
       "code": "signal_ttl_out_of_range",
       "http_status": 400,
       "scope": "service_call",
-      "description": "ak.self.signal.command.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range."
+      "description": "ak.self.signal.command.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range.",
+      "type_uri": "https://arkret.org/problems/signal_ttl_out_of_range",
+      "title": "Signal ttl out of range"
     },
     {
       "code": "signal_rail_unavailable",
       "http_status": 503,
       "scope": "service_call",
-      "description": "ak.self.signal.command.send could not enqueue or fan out the transient signal because the signal channel is temporarily unavailable; durable Event history is not affected."
+      "description": "ak.self.signal.command.send could not enqueue or fan out the transient signal because the signal channel is temporarily unavailable; durable Event history is not affected.",
+      "type_uri": "https://arkret.org/problems/signal_rail_unavailable",
+      "title": "Signal rail unavailable"
     },
     {
       "code": "not_found",
       "http_status": 404,
       "scope": "both",
-      "description": "The target does not exist or is not visible to the requester."
+      "description": "The target does not exist or is not visible to the requester.",
+      "type_uri": "https://arkret.org/problems/not_found",
+      "title": "Not found"
     },
     {
       "code": "unrecognized_endpoint",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The path is inside the protocol namespace but not implemented by the service."
+      "description": "The path is inside the protocol namespace but not implemented by the service.",
+      "type_uri": "https://arkret.org/problems/unrecognized_endpoint",
+      "title": "Unrecognized endpoint"
     },
     {
       "code": "method_not_allowed",
       "http_status": 405,
       "scope": "endpoint",
-      "description": "The path exists but the HTTP method is not supported."
+      "description": "The path exists but the HTTP method is not supported.",
+      "type_uri": "https://arkret.org/problems/method_not_allowed",
+      "title": "Method not allowed"
     },
     {
       "code": "conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "A generic state conflict occurred."
+      "description": "A generic state conflict occurred.",
+      "type_uri": "https://arkret.org/problems/conflict",
+      "title": "Conflict"
     },
     {
       "code": "cas_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "An optimistic concurrency precondition failed. For ordinary Event actor-chain authoring, this code is returned only after duplicate-id checks and only when the accepted (realm_id, actor_id) sequence has strictly advanced beyond the submitted signed Event. Authenticated visible callers receive closed details {accepted:false,current_frontier:RealmActorFrontierView}; only that explicit result permits semantic re-author with a new event_id."
+      "description": "An optimistic concurrency precondition failed. For ordinary Event actor-chain authoring, this code is returned only after duplicate-id checks and only when the accepted (realm_id, actor_id) sequence has strictly advanced beyond the submitted signed Event. Authenticated visible callers receive closed details {accepted:false,current_frontier:RealmActorFrontierView}; only that explicit result permits semantic re-author with a new event_id.",
+      "type_uri": "https://arkret.org/problems/cas_conflict",
+      "title": "Cas conflict"
     },
     {
       "code": "causal_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "Causal dependencies, prev_refs, refs[role=authorized_by], or actor-chain constraints are violated."
+      "description": "Causal dependencies, prev_refs, refs[role=authorized_by], or actor-chain constraints are violated.",
+      "type_uri": "https://arkret.org/problems/causal_conflict",
+      "title": "Causal conflict"
     },
     {
       "code": "dependency_missing",
       "http_status": 409,
       "scope": "both",
-      "description": "One or more exact Event, Seal, predecessor, proof, or other signed dependencies are absent. The response MUST identify the bounded missing set in the operation's closed details/item shape. This is recoverable only through bounded canonical backfill/resolve followed by a new evaluation; it is not authorization denial or service unavailability. Dual-registered with the per-item/federation-transaction reason code."
+      "description": "One or more exact Event, Seal, predecessor, proof, or other signed dependencies are absent. The response MUST identify the bounded missing set in the operation's closed details/item shape. This is recoverable only through bounded canonical backfill/resolve followed by a new evaluation; it is not authorization denial or service unavailability. Dual-registered with the per-item/federation-transaction reason code.",
+      "type_uri": "https://arkret.org/problems/dependency_missing",
+      "title": "Dependency missing"
     },
     {
       "code": "discussion_track_disabled",
       "http_status": 409,
       "scope": "both",
-      "description": "The target Strand discussion track is disabled."
+      "description": "The target Strand discussion track is disabled.",
+      "type_uri": "https://arkret.org/problems/discussion_track_disabled",
+      "title": "Discussion track disabled"
     },
     {
       "code": "track_disabled",
       "http_status": 409,
       "scope": "both",
-      "description": "The target Strand track has enabled=false and does not accept new writes (synthesis edits or track-scoped patches). Generic freeze code for any track; discussion_track_disabled is the discussion-track-specific specialization for ak.message.* writes. See zh/models/strand-and-message.md §4.1 / §4.7."
+      "description": "The target Strand track has enabled=false and does not accept new writes (synthesis edits or track-scoped patches). Generic freeze code for any track; discussion_track_disabled is the discussion-track-specific specialization for ak.message.* writes. See zh/models/strand-and-message.md §4.1 / §4.7.",
+      "type_uri": "https://arkret.org/problems/track_disabled",
+      "title": "Track disabled"
     },
     {
       "code": "selector_too_complex",
       "http_status": 422,
       "scope": "both",
-      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, required_claims item count, constraint nesting). Dual-registered as a service code and a reason_code (see reason_codes[]) so it can be emitted as a top-level error and audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors. See zh/authz/resource-selector-grammar.md §5."
+      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, required_claims item count, constraint nesting). Dual-registered as a service code and a reason_code (see reason_codes[]) so it can be emitted as a top-level error and audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors. See zh/authz/resource-selector-grammar.md §5.",
+      "type_uri": "https://arkret.org/problems/selector_too_complex",
+      "title": "Selector too complex"
     },
     {
       "code": "device_generation_fenced",
       "http_status": 409,
       "scope": "both",
-      "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted. Dual-registered as a service code and a reason_code (see reason_codes[]). See zh/identity/key-management.md and zh/authz/event-auth-state-resolution.md §4.3."
+      "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted. Dual-registered as a service code and a reason_code (see reason_codes[]). See zh/identity/key-management.md and zh/authz/event-auth-state-resolution.md §4.3.",
+      "type_uri": "https://arkret.org/problems/device_generation_fenced",
+      "title": "Device generation fenced"
     },
     {
       "code": "recovery_policy_mismatch",
       "http_status": 409,
       "scope": "both",
-      "description": "A recovery session or proof does not satisfy the principal's declared recovery policy. Dual-registered as a service code and a reason_code (see reason_codes[]). See zh/identity/key-management.md §9.5."
+      "description": "A recovery session or proof does not satisfy the principal's declared recovery policy. Dual-registered as a service code and a reason_code (see reason_codes[]). See zh/identity/key-management.md §9.5.",
+      "type_uri": "https://arkret.org/problems/recovery_policy_mismatch",
+      "title": "Recovery policy mismatch"
     },
     {
       "code": "device_reanchor_authority_mismatch",
       "http_status": 409,
       "scope": "both",
-      "description": "A device re-anchor receipt scope, recovery session or transaction snapshot selects an account-local lineage or device generation that does not exactly match the covered ak.device.reanchor payload."
+      "description": "A device re-anchor receipt scope, recovery session or transaction snapshot selects an account-local lineage or device generation that does not exactly match the covered ak.device.reanchor payload.",
+      "type_uri": "https://arkret.org/problems/device_reanchor_authority_mismatch",
+      "title": "Device reanchor authority mismatch"
     },
     {
       "code": "device_reanchor_entry_not_head",
       "http_status": 409,
       "scope": "both",
-      "description": "A device re-anchor completion references a DID key-log entry that is not the current head. Dual-registered as a service code and a reason_code (see reason_codes[])."
+      "description": "A device re-anchor completion references a DID key-log entry that is not the current head. Dual-registered as a service code and a reason_code (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/device_reanchor_entry_not_head",
+      "title": "Device reanchor entry not head"
     },
     {
       "code": "device_reanchor_frontier_mismatch",
       "http_status": 409,
       "scope": "both",
-      "description": "A device re-anchor completion carries a frontier that does not match the recomputed device frontier. Dual-registered as a service code and a reason_code (see reason_codes[])."
+      "description": "A device re-anchor completion carries a frontier that does not match the recomputed device frontier. Dual-registered as a service code and a reason_code (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/device_reanchor_frontier_mismatch",
+      "title": "Device reanchor frontier mismatch"
     },
     {
       "code": "device_reanchor_authorize_mismatch",
       "http_status": 409,
       "scope": "both",
-      "description": "A device re-anchor completion authorization does not match the expected re-anchor authorization. Dual-registered as a service code and a reason_code (see reason_codes[])."
+      "description": "A device re-anchor completion authorization does not match the expected re-anchor authorization. Dual-registered as a service code and a reason_code (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/device_reanchor_authorize_mismatch",
+      "title": "Device reanchor authorize mismatch"
     },
     {
       "code": "device_reanchor_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "Concurrent device re-anchor completions conflict on the same principal generation state."
+      "description": "Concurrent device re-anchor completions conflict on the same principal generation state.",
+      "type_uri": "https://arkret.org/problems/device_reanchor_conflict",
+      "title": "Device reanchor conflict"
     },
     {
       "code": "epoch_mismatch",
       "http_status": 409,
       "scope": "both",
-      "description": "The referenced encryption epoch is stale or unavailable."
+      "description": "The referenced encryption epoch is stale or unavailable.",
+      "type_uri": "https://arkret.org/problems/epoch_mismatch",
+      "title": "Epoch mismatch"
     },
     {
       "code": "duplicate_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "The same idempotency key or stable identifier was reused with different canonical content."
+      "description": "The same idempotency key or stable identifier was reused with different canonical content.",
+      "type_uri": "https://arkret.org/problems/duplicate_conflict",
+      "title": "Duplicate conflict"
     },
     {
       "code": "session_grant_replay_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "A durable exact-replay lookup found the original SessionGrant issuance outcome, but its immutable expires_at is past. The response details MUST include grant_id and state=expired. The issuer MUST NOT return the expired credential as success or issue a replacement under the same request identity; the client must perform full authentication with a new one-shot proof and request identity."
+      "description": "A durable exact-replay lookup found the original SessionGrant issuance outcome, but its immutable expires_at is past. The response details MUST include grant_id and state=expired. The issuer MUST NOT return the expired credential as success or issue a replacement under the same request identity; the client must perform full authentication with a new one-shot proof and request identity.",
+      "type_uri": "https://arkret.org/problems/session_grant_replay_expired",
+      "title": "Session grant replay expired"
     },
     {
       "code": "session_grant_replay_terminal",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "A durable exact-replay lookup found the original SessionGrant issuance outcome in revoked or superseded state. The response details MUST include grant_id and the exact terminal state. The issuer MUST NOT return the credential as success or issue a replacement under the same request identity; the client must perform full authentication with a new one-shot proof and request identity."
+      "description": "A durable exact-replay lookup found the original SessionGrant issuance outcome in revoked or superseded state. The response details MUST include grant_id and the exact terminal state. The issuer MUST NOT return the credential as success or issue a replacement under the same request identity; the client must perform full authentication with a new one-shot proof and request identity.",
+      "type_uri": "https://arkret.org/problems/session_grant_replay_terminal",
+      "title": "Session grant replay terminal"
     },
     {
       "code": "session_grant_replay_indeterminate",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The stable SessionGrant request identity is older than the issuer's durable replay-record retention window, so the issuer cannot prove whether the one-shot request previously committed. It MUST fail closed and MUST NOT treat the request as first issuance; the client must obtain a new one-shot proof and request identity."
+      "description": "The stable SessionGrant request identity is older than the issuer's durable replay-record retention window, so the issuer cannot prove whether the one-shot request previously committed. It MUST fail closed and MUST NOT treat the request as first issuance; the client must obtain a new one-shot proof and request identity.",
+      "type_uri": "https://arkret.org/problems/session_grant_replay_indeterminate",
+      "title": "Session grant replay indeterminate"
     },
     {
       "code": "rank_exhausted",
       "http_status": 409,
       "scope": "both",
-      "description": "No valid fractional rank exists between the requested bounds; a rebalance or different position is required."
+      "description": "No valid fractional rank exists between the requested bounds; a rebalance or different position is required.",
+      "type_uri": "https://arkret.org/problems/rank_exhausted",
+      "title": "Rank exhausted"
     },
     {
       "code": "hlc_logical_overflow",
       "http_status": 503,
       "scope": "both",
-      "description": "The producer cannot allocate a fresh HLC logical counter in the current millisecond without violating monotonicity."
+      "description": "The producer cannot allocate a fresh HLC logical counter in the current millisecond without violating monotonicity.",
+      "type_uri": "https://arkret.org/problems/hlc_logical_overflow",
+      "title": "Hlc logical overflow"
     },
     {
       "code": "payload_too_large",
       "http_status": 413,
       "scope": "both",
-      "description": "The request or blob exceeds declared size limits."
+      "description": "The request or blob exceeds declared size limits.",
+      "type_uri": "https://arkret.org/problems/payload_too_large",
+      "title": "Payload too large"
     },
     {
       "code": "digest_mismatch",
       "http_status": 422,
       "scope": "both",
-      "description": "A declared digest does not match the transferred content."
+      "description": "A declared digest does not match the transferred content.",
+      "type_uri": "https://arkret.org/problems/digest_mismatch",
+      "title": "Digest mismatch"
     },
     {
       "code": "aad_digest_mismatch",
       "http_status": 422,
       "scope": "both",
-      "description": "Encrypted envelope AAD digest does not match the canonical normalized AAD."
+      "description": "Encrypted envelope AAD digest does not match the canonical normalized AAD.",
+      "type_uri": "https://arkret.org/problems/aad_digest_mismatch",
+      "title": "Aad digest mismatch"
     },
     {
       "code": "payload_digest_mismatch",
       "http_status": 422,
       "scope": "both",
-      "description": "Encrypted payload digest does not match the declared encrypted envelope content."
+      "description": "Encrypted payload digest does not match the declared encrypted envelope content.",
+      "type_uri": "https://arkret.org/problems/payload_digest_mismatch",
+      "title": "Payload digest mismatch"
     },
     {
       "code": "key_unavailable",
       "http_status": 409,
       "scope": "both",
-      "description": "Required encrypted content key, MLS epoch, or authorized key share is not currently available."
+      "description": "Required encrypted content key, MLS epoch, or authorized key share is not currently available.",
+      "type_uri": "https://arkret.org/problems/key_unavailable",
+      "title": "Key unavailable"
     },
     {
       "code": "state_mismatch",
       "http_status": 409,
       "scope": "both",
-      "description": "Encrypted content or MLS epoch is bound to an application state root that cannot be verified against accepted state."
+      "description": "Encrypted content or MLS epoch is bound to an application state root that cannot be verified against accepted state.",
+      "type_uri": "https://arkret.org/problems/state_mismatch",
+      "title": "State mismatch"
     },
     {
       "code": "seal_signer_unauthorized",
       "http_status": 403,
       "scope": "both",
-      "description": "The submitted Seal signature does not satisfy the predecessor governance state's ak.component.notary.v1 membership and threshold rules. Visibility or ownership of the signing device is never sufficient."
+      "description": "The submitted Seal signature does not satisfy the predecessor governance state's ak.component.notary.v1 membership and threshold rules. Visibility or ownership of the signing device is never sufficient.",
+      "type_uri": "https://arkret.org/problems/seal_signer_unauthorized",
+      "title": "Seal signer unauthorized"
     },
     {
       "code": "seal_deferred_future_skew",
       "http_status": 425,
       "scope": "both",
-      "description": "The Seal is cryptographically eligible but sealed_at is temporarily beyond verifier wall time plus hard_future_skew_ms. This is non-terminal: retain and retry after the clock advances; do not reject descendants solely for this condition."
+      "description": "The Seal is cryptographically eligible but sealed_at is temporarily beyond verifier wall time plus hard_future_skew_ms. This is non-terminal: retain and retry after the clock advances; do not reject descendants solely for this condition.",
+      "type_uri": "https://arkret.org/problems/seal_deferred_future_skew",
+      "title": "Seal deferred future skew"
     },
     {
       "code": "audit_receipt_invalidated",
       "http_status": 409,
       "scope": "both",
-      "description": "An auditable E2EE decrypt receipt was invalidated by backfill, witness, or state verification."
+      "description": "An auditable E2EE decrypt receipt was invalidated by backfill, witness, or state verification.",
+      "type_uri": "https://arkret.org/problems/audit_receipt_invalidated",
+      "title": "Audit receipt invalidated"
     },
     {
       "code": "did_unknown",
       "http_status": 422,
       "scope": "both",
-      "description": "A DID cannot be resolved or validated under the active resolver policy."
+      "description": "A DID cannot be resolved or validated under the active resolver policy.",
+      "type_uri": "https://arkret.org/problems/did_unknown",
+      "title": "Did unknown"
     },
     {
       "code": "quota_exceeded",
       "http_status": 403,
       "scope": "both",
-      "description": "Storage, bandwidth, or compute quota was exceeded."
+      "description": "Storage, bandwidth, or compute quota was exceeded.",
+      "type_uri": "https://arkret.org/problems/quota_exceeded",
+      "title": "Quota exceeded"
     },
     {
       "code": "limit_exceeded",
       "http_status": 413,
       "scope": "both",
-      "description": "A semantic protocol limit was exceeded even though the request body itself may be well-formed, such as a bounded recurrence expansion that cannot be returned within the v1 maximum result count."
+      "description": "A semantic protocol limit was exceeded even though the request body itself may be well-formed, such as a bounded recurrence expansion that cannot be returned within the v1 maximum result count.",
+      "type_uri": "https://arkret.org/problems/limit_exceeded",
+      "title": "Limit exceeded"
     },
     {
       "code": "rate_limited",
       "http_status": 429,
       "scope": "both",
-      "description": "The caller exceeded the current rate limit policy. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
+      "description": "The caller exceeded the current rate limit policy. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/rate_limited",
+      "title": "Rate limited"
     },
     {
       "code": "psi_batch_unavailable",
       "http_status": 410,
       "scope": "both",
-      "description": "The private-contact-discovery batch is unavailable for match or replay because it is unknown, belongs to another authenticated device credential, or exceeded batch_completion_ttl_seconds (after which its pinned VOPRF epoch may be released). These causes intentionally share one response. A conforming provider MUST retain the pinned epoch for the full completion TTL. Returned as a padded PSI Class B ErrorEnvelope; callers must start a new blind batch, subject to the existing PSI quota. See zh/discovery/discovery-directory.md §6.4."
+      "description": "The private-contact-discovery batch is unavailable for match or replay because it is unknown, belongs to another authenticated device credential, or exceeded batch_completion_ttl_seconds (after which its pinned VOPRF epoch may be released). These causes intentionally share one response. A conforming provider MUST retain the pinned epoch for the full completion TTL. Returned as a padded PSI Class B RFC 9457 Problem Details; callers must start a new blind batch, subject to the existing PSI quota. See zh/discovery/discovery-directory.md §6.4.",
+      "type_uri": "https://arkret.org/problems/psi_batch_unavailable",
+      "title": "Psi batch unavailable"
     },
     {
       "code": "psi_quota_exhausted",
       "http_status": 429,
       "scope": "both",
-      "description": "The authenticated device exhausted `max_psi_queries_per_window` for private contact discovery in the current quota window. Returned only at first blind admission, before any target is evaluated; admitted match and exact retries MUST NOT be quota-denied. The response is a PSI Class B ErrorEnvelope with required top-level ASCII-SP padding, exact phase Content-Length bucket, no Content-Encoding/content coding, and the advertised anti-enumeration delay distribution. It MUST carry a decimal-seconds `Retry-After` rounded up to a 300s multiple (minimum 300). Distinct from generic `rate_limited` and from 403 `quota_exceeded`. See zh/discovery/discovery-directory.md §6.3/§6.4."
+      "description": "The authenticated device exhausted `max_psi_queries_per_window` for private contact discovery in the current quota window. Returned only at first blind admission, before any target is evaluated; admitted match and exact retries MUST NOT be quota-denied. The response is a PSI Class B RFC 9457 Problem Details with required top-level ASCII-SP padding, exact phase Content-Length bucket, no Content-Encoding/content coding, and the advertised anti-enumeration delay distribution. It MUST carry a decimal-seconds `Retry-After` rounded up to a 300s multiple (minimum 300). Distinct from generic `rate_limited` and from 403 `quota_exceeded`. See zh/discovery/discovery-directory.md §6.3/§6.4.",
+      "type_uri": "https://arkret.org/problems/psi_quota_exhausted",
+      "title": "Psi quota exhausted"
     },
     {
       "code": "timeout",
       "http_status": 504,
       "scope": "both",
-      "description": "A wait-for, long-poll, or upstream dependency timed out."
+      "description": "A wait-for, long-poll, or upstream dependency timed out.",
+      "type_uri": "https://arkret.org/problems/timeout",
+      "title": "Timeout"
     },
     {
       "code": "frontier_stale",
       "http_status": 409,
       "scope": "both",
-      "description": "The service frontier is behind the causal frontier required by the request."
+      "description": "The service frontier is behind the causal frontier required by the request.",
+      "type_uri": "https://arkret.org/problems/frontier_stale",
+      "title": "Frontier stale"
     },
     {
       "code": "peer_stale",
       "http_status": 409,
       "scope": "service_call",
-      "description": "A federation high-assurance peer has missed proactive frontier probes or produced invalid/divergent frontier evidence and is quarantined for the affected Realm until fork resolution succeeds. See zh/sync/federation.md §4.5.3."
+      "description": "A federation high-assurance peer has missed proactive frontier probes or produced invalid/divergent frontier evidence and is quarantined for the affected Realm until fork resolution succeeds. See zh/sync/federation.md §4.5.3.",
+      "type_uri": "https://arkret.org/problems/peer_stale",
+      "title": "Peer stale"
     },
     {
       "code": "authorized_grant_revoked",
       "http_status": 409,
       "scope": "both",
-      "description": "A pending write, cache entry, snapshot claim, or downstream grant depends on a grant that has been revoked, superseded, expired, or revoked through an ancestor grant. The dependent action MUST fail closed or be quarantined until re-authorized."
+      "description": "A pending write, cache entry, snapshot claim, or downstream grant depends on a grant that has been revoked, superseded, expired, or revoked through an ancestor grant. The dependent action MUST fail closed or be quarantined until re-authorized.",
+      "type_uri": "https://arkret.org/problems/authorized_grant_revoked",
+      "title": "Authorized grant revoked"
     },
     {
       "code": "device_recovery_generation_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Device recovery proof or authorization references a device generation that does not equal the principal's current accepted device generation."
+      "description": "Device recovery proof or authorization references a device generation that does not equal the principal's current accepted device generation.",
+      "type_uri": "https://arkret.org/problems/device_recovery_generation_mismatch",
+      "title": "Device recovery generation mismatch"
     },
     {
       "code": "cursor_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "The opaque cursor (ak:cursor:...) has a valid shape but its `x` expiry is in the past. Client MUST request a fresh cursor (initial /account/subscribe, /snapshot/head, or new write barrier)."
+      "description": "The opaque cursor (ak:cursor:...) has a valid shape but its `x` expiry is in the past. Client MUST request a fresh cursor (initial /account/subscribe, /snapshot/head, or new write barrier).",
+      "type_uri": "https://arkret.org/problems/cursor_expired",
+      "title": "Cursor expired"
     },
     {
       "code": "cursor_integrity_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Cursor integrity check failed for the v1 stateful opaque handle (client-sync §12.1, canonical body `{v, purpose, issued_at, expires_at, h}`): the `h` handle is unknown / revoked / expired / cross-bound, or its stored binding (principal, device, service, filter_digest, purpose) does not match the authenticated request. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe."
+      "description": "Cursor integrity check failed for the v1 stateful opaque handle (client-sync §12.1, canonical body `{v, purpose, issued_at, expires_at, h}`): the `h` handle is unknown / revoked / expired / cross-bound, or its stored binding (principal, device, service, filter_digest, purpose) does not match the authenticated request. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe.",
+      "type_uri": "https://arkret.org/problems/cursor_integrity_invalid",
+      "title": "Cursor integrity invalid"
     },
     {
       "code": "cursor_revoked",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "Cursor integrity is valid but the issuing service has explicitly revoked this cursor authority before TTL expiry. Endpoint MUST NOT advance subscription position, barrier wait, or dropped recovery state; caller MUST restart from a fresh cursor. To-device queue deletion is decoupled from cursors and unaffected (client-sync.md §10.1)."
+      "description": "Cursor integrity is valid but the issuing service has explicitly revoked this cursor authority before TTL expiry. Endpoint MUST NOT advance subscription position, barrier wait, or dropped recovery state; caller MUST restart from a fresh cursor. To-device queue deletion is decoupled from cursors and unaffected (client-sync.md §10.1).",
+      "type_uri": "https://arkret.org/problems/cursor_revoked",
+      "title": "Cursor revoked"
     },
     {
       "code": "cursor_unrecognized",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The cursor decoded successfully but cannot be used by this service because it is a stateful handle issued by another service. Caller MUST restart sync from a fresh cursor."
+      "description": "The cursor decoded successfully but cannot be used by this service because it is a stateful handle issued by another service. Caller MUST restart sync from a fresh cursor.",
+      "type_uri": "https://arkret.org/problems/cursor_unrecognized",
+      "title": "Cursor unrecognized"
     },
     {
       "code": "actor_seq_invalid",
       "http_status": 409,
       "scope": "both",
-      "description": "Event submission rejected an actor chain sequence number that is duplicate, skipped without allowed repair evidence, or inconsistent with the actor frontier."
+      "description": "Event submission rejected an actor chain sequence number that is duplicate, skipped without allowed repair evidence, or inconsistent with the actor frontier.",
+      "type_uri": "https://arkret.org/problems/actor_seq_invalid",
+      "title": "Actor seq invalid"
     },
     {
       "code": "seal_ref_stale",
       "http_status": 409,
       "scope": "both",
-      "description": "The supplied seal_ref or seal_basis exceeds the operation or policy tier's verifiable historical Seal-distance grace (or a separately defined frontier token freshness rule). For Event revocation admission this is not age since signing, first delivery, receiver admission, or replay."
+      "description": "The supplied seal_ref or seal_basis exceeds the operation or policy tier's verifiable historical Seal-distance grace (or a separately defined frontier token freshness rule). For Event revocation admission this is not age since signing, first delivery, receiver admission, or replay.",
+      "type_uri": "https://arkret.org/problems/seal_ref_stale",
+      "title": "Seal ref stale"
     },
     {
       "code": "seal_ref_unknown",
       "http_status": 404,
       "scope": "both",
-      "description": "The supplied seal_ref or seal_basis leaf does not identify a Seal known to the receiving service for the target Realm."
+      "description": "The supplied seal_ref or seal_basis leaf does not identify a Seal known to the receiving service for the target Realm.",
+      "type_uri": "https://arkret.org/problems/seal_ref_unknown",
+      "title": "Seal ref unknown"
     },
     {
       "code": "audience_unknown",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "A token, invite, notification, or delivery request names an audience that is unknown or not visible to the caller."
+      "description": "A token, invite, notification, or delivery request names an audience that is unknown or not visible to the caller.",
+      "type_uri": "https://arkret.org/problems/audience_unknown",
+      "title": "Audience unknown"
     },
     {
       "code": "blob_digest_mismatch",
       "http_status": 422,
       "scope": "endpoint",
-      "description": "Blob upload, head, download, or presign verification found that the transferred content digest does not match the declared digest."
+      "description": "Blob upload, head, download, or presign verification found that the transferred content digest does not match the declared digest.",
+      "type_uri": "https://arkret.org/problems/blob_digest_mismatch",
+      "title": "Blob digest mismatch"
     },
     {
       "code": "blob_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "The referenced blob, upload slot, or presigned blob authority has expired."
+      "description": "The referenced blob, upload slot, or presigned blob authority has expired.",
+      "type_uri": "https://arkret.org/problems/blob_expired",
+      "title": "Blob expired"
     },
     {
       "code": "blob_presign_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "A blob presign request or presigned URL token is malformed, out of policy, expired, or fails integrity checks."
+      "description": "A blob presign request or presigned URL token is malformed, out of policy, expired, or fails integrity checks.",
+      "type_uri": "https://arkret.org/problems/blob_presign_invalid",
+      "title": "Blob presign invalid"
     },
     {
       "code": "blob_quota_exceeded",
       "http_status": 403,
       "scope": "endpoint",
-      "description": "The blob operation exceeds actor, Realm, organization, or deployment storage/bandwidth quota."
+      "description": "The blob operation exceeds actor, Realm, organization, or deployment storage/bandwidth quota.",
+      "type_uri": "https://arkret.org/problems/blob_quota_exceeded",
+      "title": "Blob quota exceeded"
     },
     {
       "code": "cursor_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The supplied cursor fails syntax, schema, purpose, binding, or integrity validation before the operation can advance state."
+      "description": "The supplied cursor fails syntax, schema, purpose, binding, or integrity validation before the operation can advance state.",
+      "type_uri": "https://arkret.org/problems/cursor_invalid",
+      "title": "Cursor invalid"
     },
     {
       "code": "device_unknown",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The referenced device id is unknown, not visible, or no longer active for the target principal."
+      "description": "The referenced device id is unknown, not visible, or no longer active for the target principal.",
+      "type_uri": "https://arkret.org/problems/device_unknown",
+      "title": "Device unknown"
     },
     {
       "code": "did_already_exists",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "A DID operation attempted to create or register a DID that already exists under the registry's uniqueness rules."
+      "description": "A DID operation attempted to create or register a DID that already exists under the registry's uniqueness rules.",
+      "type_uri": "https://arkret.org/problems/did_already_exists",
+      "title": "Did already exists"
     },
     {
       "code": "did_not_found",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The requested DID cannot be found under the active identity registry and anti-enumeration policy."
+      "description": "The requested DID cannot be found under the active identity registry and anti-enumeration policy.",
+      "type_uri": "https://arkret.org/problems/did_not_found",
+      "title": "Did not found"
     },
     {
       "code": "did_revoked",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "The requested DID exists in historical registry state but has been deactivated, revoked, or superseded."
+      "description": "The requested DID exists in historical registry state but has been deactivated, revoked, or superseded.",
+      "type_uri": "https://arkret.org/problems/did_revoked",
+      "title": "Did revoked"
     },
     {
       "code": "frontier_unavailable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The service cannot currently produce the requested frontier because required seal, reducer, or witness state is unavailable."
+      "description": "The service cannot currently produce the requested frontier because required seal, reducer, or witness state is unavailable.",
+      "type_uri": "https://arkret.org/problems/frontier_unavailable",
+      "title": "Frontier unavailable"
     },
     {
       "code": "frontier_sequence_exhausted",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The requested Realm-scoped actor frontier has accepted actor_seq u64::MAX, so no valid next_actor_seq exists. Producers MUST NOT wrap, reset, or author another Event for that chain."
+      "description": "The requested Realm-scoped actor frontier has accepted actor_seq u64::MAX, so no valid next_actor_seq exists. Producers MUST NOT wrap, reset, or author another Event for that chain.",
+      "type_uri": "https://arkret.org/problems/frontier_sequence_exhausted",
+      "title": "Frontier sequence exhausted"
     },
     {
       "code": "mls_governance_anchor_unreachable",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The exact canonical proof_target_basis does not dominate the exact caller-supplied, locally trusted canonical proof_base_basis: at least one base leaf is neither retained as a target leaf nor an ancestor of a target leaf. Concurrent or otherwise unreachable cuts produce this error; byte-identical base and target antichains are a valid zero-transition query and MUST NOT produce it. Missing required Seal/Event/witness material that prevents the service from deciding dominance is frontier_unavailable instead. The service MUST NOT substitute a single head, common descendant, target, or untrusted base. The caller MAY retry only with another complete locally trusted basis or another authorized proof service."
+      "description": "The exact canonical proof_target_basis does not dominate the exact caller-supplied, locally trusted canonical proof_base_basis: at least one base leaf is neither retained as a target leaf nor an ancestor of a target leaf. Concurrent or otherwise unreachable cuts produce this error; byte-identical base and target antichains are a valid zero-transition query and MUST NOT produce it. Missing required Seal/Event/witness material that prevents the service from deciding dominance is frontier_unavailable instead. The service MUST NOT substitute a single head, common descendant, target, or untrusted base. The caller MAY retry only with another complete locally trusted basis or another authorized proof service.",
+      "type_uri": "https://arkret.org/problems/mls_governance_anchor_unreachable",
+      "title": "Mls governance anchor unreachable"
     },
     {
       "code": "mls_governance_proof_bounds_exceeded",
       "http_status": 422,
       "scope": "endpoint",
-      "description": "The complete near-current group_security_frontier outcome cannot fit the caller byte_limit or the v1 1 MiB canonical-response ceiling without splitting a registered frontier cell or completeness witness. The service MUST NOT truncate, omit boundary/nonmembership evidence, return a partial outcome, or split the request. The caller must present a closer independently verified proof_base_basis or fail closed; bulk history uses receipt-bound direct traversal and does not alter this query."
+      "description": "The complete near-current group_security_frontier outcome cannot fit the caller byte_limit or the v1 1 MiB canonical-response ceiling without splitting a registered frontier cell or completeness witness. The service MUST NOT truncate, omit boundary/nonmembership evidence, return a partial outcome, or split the request. The caller must present a closer independently verified proof_base_basis or fail closed; bulk history uses receipt-bound direct traversal and does not alter this query.",
+      "type_uri": "https://arkret.org/problems/mls_governance_proof_bounds_exceeded",
+      "title": "Mls governance proof bounds exceeded"
     },
     {
       "code": "handle_unverified",
       "http_status": 403,
       "scope": "endpoint",
-      "description": "A handle or alias exists but lacks a verifiable current claim binding for the requested operation."
+      "description": "A handle or alias exists but lacks a verifiable current claim binding for the requested operation.",
+      "type_uri": "https://arkret.org/problems/handle_unverified",
+      "title": "Handle unverified"
     },
     {
       "code": "key_replay",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "A key upload, claim, consume, or device-message operation reuses one-time key material or a claim nonce outside the allowed single-use window."
+      "description": "A key upload, claim, consume, or device-message operation reuses one-time key material or a claim nonce outside the allowed single-use window.",
+      "type_uri": "https://arkret.org/problems/key_replay",
+      "title": "Key replay"
     },
     {
       "code": "keypackage_already_consumed",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "An MLS KeyPackage claim/consume/revoke operation targeted a KeyPackage that has already been consumed by a Welcome."
+      "description": "An MLS KeyPackage claim/consume/revoke operation targeted a KeyPackage that has already been consumed by a Welcome.",
+      "type_uri": "https://arkret.org/problems/keypackage_already_consumed",
+      "title": "Keypackage already consumed"
     },
     {
       "code": "keypackage_unknown",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The referenced MLS KeyPackage is unknown, expired, revoked, or not visible to the caller under the active claim policy."
+      "description": "The referenced MLS KeyPackage is unknown, expired, revoked, or not visible to the caller under the active claim policy.",
+      "type_uri": "https://arkret.org/problems/keypackage_unknown",
+      "title": "Keypackage unknown"
     },
     {
       "code": "claim_failed",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "An atomic one-time key, pre-key, or KeyPackage claim failed. On privacy-sensitive claim surfaces this code deliberately collapses target absence, visibility, inventory, consent, policy, capability, freshness, and abuse-control failures into one non-enumerable outward result."
+      "description": "An atomic one-time key, pre-key, or KeyPackage claim failed. On privacy-sensitive claim surfaces this code deliberately collapses target absence, visibility, inventory, consent, policy, capability, freshness, and abuse-control failures into one non-enumerable outward result.",
+      "type_uri": "https://arkret.org/problems/claim_failed",
+      "title": "Claim failed"
     },
     {
       "code": "one_time_keys_exhausted",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "No suitable one-time key or KeyPackage remains available for the requested device, principal, cipher suite, or profile."
+      "description": "No suitable one-time key or KeyPackage remains available for the requested device, principal, cipher suite, or profile.",
+      "type_uri": "https://arkret.org/problems/one_time_keys_exhausted",
+      "title": "One time keys exhausted"
     },
     {
       "code": "policy_stale",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The request depends on policy state older than the freshness window required for this operation or risk tier."
+      "description": "The request depends on policy state older than the freshness window required for this operation or risk tier.",
+      "type_uri": "https://arkret.org/problems/policy_stale",
+      "title": "Policy stale"
     },
     {
       "code": "policy_unavailable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The policy service, policy frontier, or policy proof required for this operation is temporarily unavailable."
+      "description": "The policy service, policy frontier, or policy proof required for this operation is temporarily unavailable.",
+      "type_uri": "https://arkret.org/problems/policy_unavailable",
+      "title": "Policy unavailable"
     },
     {
       "code": "principal_unknown",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The referenced principal DID or account principal is unknown or not visible to the caller."
+      "description": "The referenced principal DID or account principal is unknown or not visible to the caller.",
+      "type_uri": "https://arkret.org/problems/principal_unknown",
+      "title": "Principal unknown"
     },
     {
       "code": "push_gateway_unreachable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The push gateway or downstream push provider could not be reached or is unavailable for this route. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
+      "description": "The push gateway or downstream push provider could not be reached or is unavailable for this route. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/push_gateway_unreachable",
+      "title": "Push gateway unreachable"
     },
     {
       "code": "push_payload_too_large",
       "http_status": 413,
       "scope": "endpoint",
-      "description": "The notification payload exceeds the push profile, provider, or deployment size limit. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
+      "description": "The notification payload exceeds the push profile, provider, or deployment size limit. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/push_payload_too_large",
+      "title": "Push payload too large"
     },
     {
       "code": "push_target_unknown",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The requested push target, device route, or notification subscription is unknown or no longer visible. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
+      "description": "The requested push target, device route, or notification subscription is unknown or no longer visible. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/push_target_unknown",
+      "title": "Push target unknown"
     },
     {
       "code": "push_token_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The supplied push token is malformed, fails provider validation, or is not bound to the authenticated principal/device. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
+      "description": "The supplied push token is malformed, fails provider validation, or is not bound to the authenticated principal/device. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/push_token_invalid",
+      "title": "Push token invalid"
     },
     {
       "code": "push_token_unknown",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The push token or registration id is unknown, revoked, expired, or already unregistered. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
+      "description": "The push token or registration id is unknown, revoked, expired, or already unregistered. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/push_token_unknown",
+      "title": "Push token unknown"
     },
     {
       "code": "quarantine",
       "http_status": 409,
       "scope": "both",
-      "description": "The submitted item or operation result was quarantined by moderation, abuse, fork, policy, or risk handling and is not accepted as ordinary visible state."
+      "description": "The submitted item or operation result was quarantined by moderation, abuse, fork, policy, or risk handling and is not accepted as ordinary visible state.",
+      "type_uri": "https://arkret.org/problems/quarantine",
+      "title": "Quarantine"
     },
     {
       "code": "snapshot_authority_unverified",
       "http_status": 403,
       "scope": "endpoint",
-      "description": "The snapshot issuer, witness quorum, or signing authority cannot be verified for the requested Realm and manifest time."
+      "description": "The snapshot issuer, witness quorum, or signing authority cannot be verified for the requested Realm and manifest time.",
+      "type_uri": "https://arkret.org/problems/snapshot_authority_unverified",
+      "title": "Snapshot authority unverified"
     },
     {
       "code": "snapshot_unavailable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The requested snapshot head or snapshot artifact is not currently available from this service."
+      "description": "The requested snapshot head or snapshot artifact is not currently available from this service.",
+      "type_uri": "https://arkret.org/problems/snapshot_unavailable",
+      "title": "Snapshot unavailable"
     },
     {
       "code": "stream_dropped",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "A subscription stream dropped events or account updates and the client must follow the server-directed recovery path."
+      "description": "A subscription stream dropped events or account updates and the client must follow the server-directed recovery path.",
+      "type_uri": "https://arkret.org/problems/stream_dropped",
+      "title": "Stream dropped"
     },
     {
       "code": "stream_resync_required",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "A subscription stream cannot safely continue from the supplied cursor; the client must resync from a fresh cursor or snapshot."
+      "description": "A subscription stream cannot safely continue from the supplied cursor; the client must resync from a fresh cursor or snapshot.",
+      "type_uri": "https://arkret.org/problems/stream_resync_required",
+      "title": "Stream resync required"
     },
     {
       "code": "too_large",
       "http_status": 413,
       "scope": "both",
-      "description": "Generic request, query, batch, or envelope size limit exceeded. More specific blob/push/payload variants may be used when available."
+      "description": "Generic request, query, batch, or envelope size limit exceeded. More specific blob/push/payload variants may be used when available.",
+      "type_uri": "https://arkret.org/problems/too_large",
+      "title": "Too large"
     },
     {
       "code": "unsupported_did_method",
       "http_status": 422,
       "scope": "endpoint",
-      "description": "The DID method is syntactically valid but not supported by the active identity registry or resolver policy."
+      "description": "The DID method is syntactically valid but not supported by the active identity registry or resolver policy.",
+      "type_uri": "https://arkret.org/problems/unsupported_did_method",
+      "title": "Unsupported did method"
     },
     {
       "code": "unsupported_media_policy",
       "http_status": 422,
       "scope": "endpoint",
-      "description": "The requested media, call, recording, or SFU policy is not supported by the service or negotiated media profile."
+      "description": "The requested media, call, recording, or SFU policy is not supported by the service or negotiated media profile.",
+      "type_uri": "https://arkret.org/problems/unsupported_media_policy",
+      "title": "Unsupported media policy"
     },
     {
       "code": "media_negotiation_failed",
       "http_status": 409,
       "scope": "service_call",
-      "description": "SDP / ICE media negotiation failed after the request passed authorization and schema validation. Clients MAY retry with a fresh offer or rejoin flow; services MUST NOT treat this as authorization success for any durable call-state transition."
+      "description": "SDP / ICE media negotiation failed after the request passed authorization and schema validation. Clients MAY retry with a fresh offer or rejoin flow; services MUST NOT treat this as authorization success for any durable call-state transition.",
+      "type_uri": "https://arkret.org/problems/media_negotiation_failed",
+      "title": "Media negotiation failed"
     },
     {
       "code": "unsupported_feature",
       "http_status": 501,
       "scope": "both",
-      "description": "A required protocol feature is not supported."
+      "description": "A required protocol feature is not supported.",
+      "type_uri": "https://arkret.org/problems/unsupported_feature",
+      "title": "Unsupported feature"
     },
     {
       "code": "unsupported_operation_binding",
       "http_status": 422,
       "scope": "endpoint",
-      "description": "The caller and role-scoped ServiceDescribe have no exact operation carrier/schema intersection. This disables only the selected operation and MUST NOT be translated to an authorization, account, Realm, or service-wide failure. Dual-registered as a top-level service code and a reason_code (see reason_codes[])."
+      "description": "The caller and role-scoped ServiceDescribe have no exact operation carrier/schema intersection. This disables only the selected operation and MUST NOT be translated to an authorization, account, Realm, or service-wide failure. Dual-registered as a top-level service code and a reason_code (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/unsupported_operation_binding",
+      "title": "Unsupported operation binding"
     },
     {
       "code": "unsupported_event_kind",
       "http_status": 501,
       "scope": "both",
-      "description": "The service does not accept the requested active standard Event kind."
+      "description": "The service does not accept the requested active standard Event kind.",
+      "type_uri": "https://arkret.org/problems/unsupported_event_kind",
+      "title": "Unsupported event kind"
     },
     {
       "code": "not_implemented",
       "http_status": 501,
       "scope": "both",
-      "description": "The operation is registered but this deployment has not implemented the endpoint or binding."
+      "description": "The operation is registered but this deployment has not implemented the endpoint or binding.",
+      "type_uri": "https://arkret.org/problems/not_implemented",
+      "title": "Not implemented"
     },
     {
       "code": "projection_incomplete",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The requested projection cannot be claimed complete under the current supported feature set or dependency frontier."
+      "description": "The requested projection cannot be claimed complete under the current supported feature set or dependency frontier.",
+      "type_uri": "https://arkret.org/problems/projection_incomplete",
+      "title": "Projection incomplete"
     },
     {
       "code": "internal_error",
       "http_status": 500,
       "scope": "endpoint",
-      "description": "An internal service error occurred."
+      "description": "An internal service error occurred.",
+      "type_uri": "https://arkret.org/problems/internal_error",
+      "title": "Internal error"
     },
     {
       "code": "temporarily_unavailable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The service is temporarily unavailable or cannot currently satisfy the request."
+      "description": "The service is temporarily unavailable or cannot currently satisfy the request.",
+      "type_uri": "https://arkret.org/problems/temporarily_unavailable",
+      "title": "Temporarily unavailable"
     },
     {
       "code": "service_unavailable",
       "http_status": 503,
       "scope": "both",
-      "description": "The service or a required upstream dependency is unavailable; callers MAY retry according to Retry-After / next_retry_at when provided."
+      "description": "The service or a required upstream dependency is unavailable; callers MAY retry according to Retry-After / next_retry_at when provided.",
+      "type_uri": "https://arkret.org/problems/service_unavailable",
+      "title": "Service unavailable"
     },
     {
       "code": "service_identity_unavailable",
       "http_status": 503,
       "scope": "both",
-      "description": "The target service cannot serve the request because its runtime service identity is not ready. The response SHOULD carry Retry-After when retry timing is known."
+      "description": "The target service cannot serve the request because its runtime service identity is not ready. The response SHOULD carry Retry-After when retry timing is known.",
+      "type_uri": "https://arkret.org/problems/service_identity_unavailable",
+      "title": "Service identity unavailable"
     },
     {
       "code": "service_identity_provider_unavailable",
       "http_status": 503,
       "scope": "service_call",
-      "description": "The configured Service Identity Provider is temporarily unreachable or unavailable. Callers may retry without changing the registration request."
+      "description": "The configured Service Identity Provider is temporarily unreachable or unavailable. Callers may retry without changing the registration request.",
+      "type_uri": "https://arkret.org/problems/service_identity_provider_unavailable",
+      "title": "Service identity provider unavailable"
     },
     {
       "code": "service_registration_denied",
       "http_status": 400,
       "scope": "both",
-      "description": "A service-registration request is well formed but its signed inception, service type, canonical public base, or control proof violates the Provider profile."
+      "description": "A service-registration request is well formed but its signed inception, service type, canonical public base, or control proof violates the Provider profile.",
+      "type_uri": "https://arkret.org/problems/service_registration_denied",
+      "title": "Service registration denied"
     },
     {
       "code": "service_identity_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "The service registration key or declared public base is already bound to a different DID, inception operation, or control root. Providers MUST return this error instead of minting a fork."
+      "description": "The service registration key or declared public base is already bound to a different DID, inception operation, or control root. Providers MUST return this error instead of minting a fork.",
+      "type_uri": "https://arkret.org/problems/service_identity_conflict",
+      "title": "Service identity conflict"
     },
     {
       "code": "policy_combination_invalid",
       "http_status": 422,
       "scope": "both",
-      "description": "The submitted Realm policy combination (discoverability × join_rule × history_access) violates the v1 normative compatibility matrix in zh/discovery/discovery-directory.md §3.1. Reducer keeps the prior accepted state."
+      "description": "The submitted Realm policy combination (discoverability × join_rule × history_access) violates the v1 normative compatibility matrix in zh/discovery/discovery-directory.md §3.1. Reducer keeps the prior accepted state.",
+      "type_uri": "https://arkret.org/problems/policy_combination_invalid",
+      "title": "Policy combination invalid"
     },
     {
       "code": "history_not_visible",
       "http_status": 403,
       "scope": "both",
-      "description": "The requested Event range, backfill window, preview field, or E2EE history key share is not visible to the caller under the target Event's T0 history_access and the current safety policy. Non-enumerating surfaces MAY map this to not_found. See zh/governance/history-visibility.md."
+      "description": "The requested Event range, backfill window, preview field, or E2EE history key share is not visible to the caller under the target Event's T0 history_access and the current safety policy. Non-enumerating surfaces MAY map this to not_found. See zh/governance/history-visibility.md.",
+      "type_uri": "https://arkret.org/problems/history_not_visible",
+      "title": "History not visible"
     },
     {
       "code": "preview_policy_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "A directory/resolve/search/projection request attempted to obtain a stripped preview, history stub, history snippet, or token-scoped preview that is not allowed by the effective ak.realm.preview_policy. External responses that must be non-enumerating MAY map this to not_found. See zh/governance/history-visibility.md §4."
+      "description": "A directory/resolve/search/projection request attempted to obtain a stripped preview, history stub, history snippet, or token-scoped preview that is not allowed by the effective ak.realm.preview_policy. External responses that must be non-enumerating MAY map this to not_found. See zh/governance/history-visibility.md §4.",
+      "type_uri": "https://arkret.org/problems/preview_policy_denied",
+      "title": "Preview policy denied"
     },
     {
       "code": "notary_recovery_missing",
       "http_status": 422,
       "scope": "both",
-      "description": "Realm create rejected: notary.kind=single_signer was configured without the required disjoint recovery signer organization, in violation of zh/authz/event-auth-state-resolution.md §9.3."
+      "description": "Realm create rejected: notary.kind=single_signer was configured without the required disjoint recovery signer organization, in violation of zh/authz/event-auth-state-resolution.md §9.3.",
+      "type_uri": "https://arkret.org/problems/notary_recovery_missing",
+      "title": "Notary recovery missing"
     },
     {
       "code": "unsupported_lattice_type",
       "http_status": 422,
       "scope": "both",
-      "description": "The Realm schema or Event references a lattice type outside the active, fully specified v1 lattice set. Receivers fail closed; implementation-local CRDT support does not activate a wire lattice."
+      "description": "The Realm schema or Event references a lattice type outside the active, fully specified v1 lattice set. Receivers fail closed; implementation-local CRDT support does not activate a wire lattice.",
+      "type_uri": "https://arkret.org/problems/unsupported_lattice_type",
+      "title": "Unsupported lattice type"
     },
     {
       "code": "organization_registration_challenge_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The referenced organization registration challenge is unknown, expired, already consumed without an exact successful-replay ledger match, or its purpose / audience / origin / trust_domain / local_admin_subject / requested_scopes binding does not match the submitted request. On first success the registry atomically records (challenge_id, canonical_request_digest, outcome): a byte-identical retry returns that outcome, while the same challenge with a different digest fails here rather than authorising a second intent."
+      "description": "The referenced organization registration challenge is unknown, expired, already consumed without an exact successful-replay ledger match, or its purpose / audience / origin / trust_domain / local_admin_subject / requested_scopes binding does not match the submitted request. On first success the registry atomically records (challenge_id, canonical_request_digest, outcome): a byte-identical retry returns that outcome, while the same challenge with a different digest fails here rather than authorising a second intent.",
+      "type_uri": "https://arkret.org/problems/organization_registration_challenge_invalid",
+      "title": "Organization registration challenge invalid"
     },
     {
       "code": "organization_registration_control_proof_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The method-native control proof fails verification, was produced under a different signing context, does not bind the submitted challenge / organization / version_id, or its signer is not in the organization DID's control relationship at the pinned version. Resolvability of the DID is never accepted in place of this proof."
+      "description": "The method-native control proof fails verification, was produced under a different signing context, does not bind the submitted challenge / organization / version_id, or its signer is not in the organization DID's control relationship at the pinned version. Resolvability of the DID is never accepted in place of this proof.",
+      "type_uri": "https://arkret.org/problems/organization_registration_control_proof_invalid",
+      "title": "Organization registration control proof invalid"
     },
     {
       "code": "organization_registration_quorum_not_met",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "proof_kind=governance_quorum but fewer than quorum_threshold distinct valid governance signatures were supplied, or two signatures resolve to the same verification method. JSON Schema cannot compare the array length against the declared threshold, so the receiver enforces it and fails closed rather than accepting a partial quorum."
+      "description": "proof_kind=governance_quorum but fewer than quorum_threshold distinct valid governance signatures were supplied, or two signatures resolve to the same verification method. JSON Schema cannot compare the array length against the declared threshold, so the receiver enforces it and fails closed rather than accepting a partial quorum.",
+      "type_uri": "https://arkret.org/problems/organization_registration_quorum_not_met",
+      "title": "Organization registration quorum not met"
     },
     {
       "code": "unsupported_organization_registration_scope",
       "http_status": 422,
       "scope": "endpoint",
-      "description": "A requested delegated scope is outside the closed organization registration scope set, or this deployment does not offer it. The scope vocabulary is closed so that a deployment cannot mint administrative authority the organization never consented to."
+      "description": "A requested delegated scope is outside the closed organization registration scope set, or this deployment does not offer it. The scope vocabulary is closed so that a deployment cannot mint administrative authority the organization never consented to.",
+      "type_uri": "https://arkret.org/problems/unsupported_organization_registration_scope",
+      "title": "Unsupported organization registration scope"
     },
     {
       "code": "organization_registration_revoked",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The local organization binding generation is revoked, which is terminal. This also covers an older generation atomically terminated with reason organization_registration_superseded when a new current generation was opened. Refresh MUST NOT revive it, and a receipt from it MUST NOT authorize after the current-generation pointer advances: a binding withdrawn locally, superseded by changed admin/scopes, or forced to revoked because the external DID was deactivated can only be replaced by a fresh registration with a new challenge and proof."
+      "description": "The local organization binding generation is revoked, which is terminal. This also covers an older generation atomically terminated with reason organization_registration_superseded when a new current generation was opened. Refresh MUST NOT revive it, and a receipt from it MUST NOT authorize after the current-generation pointer advances: a binding withdrawn locally, superseded by changed admin/scopes, or forced to revoked because the external DID was deactivated can only be replaced by a fresh registration with a new challenge and proof.",
+      "type_uri": "https://arkret.org/problems/organization_registration_revoked",
+      "title": "Organization registration revoked"
     },
     {
       "code": "organization_registration_stale",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The organization binding is stale — the pinned version no longer reflects current control after a controller rotation, or the receipt has passed expires_at — and the attempted operation is on a high-risk path. Low-risk reads may still proceed; high-risk paths MUST fail closed until a successful refresh, so that one first-time proof cannot authorise the relationship indefinitely."
+      "description": "The organization binding is stale — the pinned version no longer reflects current control after a controller rotation, or the receipt has passed expires_at — and the attempted operation is on a high-risk path. Low-risk reads may still proceed; high-risk paths MUST fail closed until a successful refresh, so that one first-time proof cannot authorise the relationship indefinitely.",
+      "type_uri": "https://arkret.org/problems/organization_registration_stale",
+      "title": "Organization registration stale"
     },
     {
       "code": "unsupported_profile",
       "http_status": 422,
       "scope": "both",
-      "description": "The selected operation, portable artifact, Realm genesis, or Realm reducer-profile control state requires a profile or feature the service does not implement. Reducer support is advertised in ServiceDescribe.supported_reducer_profiles; other capabilities use supported_features / supported_profiles. The server MUST fail closed and MUST NOT substitute a local default or permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
+      "description": "The selected operation, portable artifact, Realm genesis, or Realm reducer-profile control state requires a profile or feature the service does not implement. Reducer support is advertised in ServiceDescribe.supported_reducer_profiles; other capabilities use supported_features / supported_profiles. The server MUST fail closed and MUST NOT substitute a local default or permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/unsupported_profile",
+      "title": "Unsupported profile"
     },
     {
       "code": "unsupported_join_rule",
       "http_status": 422,
       "scope": "both",
-      "description": "A third-party (3PID) invite claim targeted a join-rule Realm whose continuation profile is outside v1 base conformance (e.g. knock_restricted) and the deployment has not declared the required candidate profile in ak.find.directory.read.describe / ak.account.describe. The verification service MUST reject the token claim instead of silently downgrading. See zh/sync/third-party-invites.md §4.3."
+      "description": "A third-party (3PID) invite claim targeted a join-rule Realm whose continuation profile is outside v1 base conformance (e.g. knock_restricted) and the deployment has not declared the required candidate profile in ak.find.directory.read.describe / ak.account.describe. The verification service MUST reject the token claim instead of silently downgrading. See zh/sync/third-party-invites.md §4.3.",
+      "type_uri": "https://arkret.org/problems/unsupported_join_rule",
+      "title": "Unsupported join rule"
     },
     {
       "code": "failed_precondition",
       "http_status": 409,
       "scope": "both",
-      "description": "Reducer state-machine precondition failed. Carried with a reason_code in the {strand,space,morph}_not_active / _not_archived family or the {strand,space,morph,message,relation}_already_terminal family, or with object-specific reasons like space_parent_cycle. See zh/models/common-fields.md §5.1."
+      "description": "Reducer state-machine precondition failed. Carried with a reason_code in the {strand,space,morph}_not_active / _not_archived family or the {strand,space,morph,message,relation}_already_terminal family, or with object-specific reasons like space_parent_cycle. See zh/models/common-fields.md §5.1.",
+      "type_uri": "https://arkret.org/problems/failed_precondition",
+      "title": "Failed precondition"
     },
     {
       "code": "failed_plane",
       "http_status": 412,
       "scope": "both",
-      "description": "CBA plane invariant failed: the registered reducer projection for a Control Move targeted a data-plane cell, or a DataEvent targeted a control-plane cell. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md §13 and zh/sync/service-http-binding.md (write outcomes)."
+      "description": "CBA plane invariant failed: the registered reducer projection for a Control Move targeted a data-plane cell, or a DataEvent targeted a control-plane cell. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md §13 and zh/sync/service-http-binding.md (write outcomes).",
+      "type_uri": "https://arkret.org/problems/failed_plane",
+      "title": "Failed plane"
     },
     {
       "code": "failed_bottom",
       "http_status": 409,
       "scope": "both",
-      "description": "CBA lattice join produced bottom (irreconcilable state) while applying the reducer-projected writes. Terminal failure state per zh/authz/event-auth-state-resolution.md §13; MUST NOT be reported as cas_conflict."
+      "description": "CBA lattice join produced bottom (irreconcilable state) while applying the reducer-projected writes. Terminal failure state per zh/authz/event-auth-state-resolution.md §13; MUST NOT be reported as cas_conflict.",
+      "type_uri": "https://arkret.org/problems/failed_bottom",
+      "title": "Failed bottom"
     },
     {
       "code": "direct_conversation_unavailable",
       "http_status": 409,
       "scope": "both",
-      "description": "Opaque failed_precondition sub-reason for direct-conversation resolution when the peer, either directional Contact head/scope, trust-domain binding, or no-create binding state cannot be disclosed. Consent is not queried. Requester-visible status, body and timing MUST NOT distinguish those causes; detail is holder-private audit only."
+      "description": "Opaque failed_precondition sub-reason for direct-conversation resolution when the peer, either directional Contact head/scope, trust-domain binding, or no-create binding state cannot be disclosed. Consent is not queried. Requester-visible status, body and timing MUST NOT distinguish those causes; detail is holder-private audit only.",
+      "type_uri": "https://arkret.org/problems/direct_conversation_unavailable",
+      "title": "Direct conversation unavailable"
     },
     {
       "code": "contact_request_not_pending",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond or ak.self.contact.command.reject targets a request that has already been accepted, rejected, tombstoned, withdrawn, or otherwise left the pending state."
+      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond or ak.self.contact.command.reject targets a request that has already been accepted, rejected, tombstoned, withdrawn, or otherwise left the pending state.",
+      "type_uri": "https://arkret.org/problems/contact_request_not_pending",
+      "title": "Contact request not pending"
     },
     {
       "code": "contact_request_expired",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond or ak.self.contact.command.reject targets a contact request older than contact_request_pending_ttl. The request projection is expired and no terminal response may be authored from it."
+      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond or ak.self.contact.command.reject targets a contact request older than contact_request_pending_ttl. The request projection is expired and no terminal response may be authored from it.",
+      "type_uri": "https://arkret.org/problems/contact_request_expired",
+      "title": "Contact request expired"
     },
     {
       "code": "unsupported_ciphersuite",
       "http_status": 422,
       "scope": "both",
-      "description": "An MLS ciphersuite selector is not an active row of artifacts/registry/mls-ciphersuite-registry.json (unknown, inactive, or reserved-but-not-activated) during KeyPackage claim or group negotiation. One of the four algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). Receivers MUST fail closed even if the underlying MLS library supports the suite. See zh/crypto-media/encryption-and-audit.md §2.6."
+      "description": "An MLS ciphersuite selector is not an active row of artifacts/registry/mls-ciphersuite-registry.json (unknown, inactive, or reserved-but-not-activated) during KeyPackage claim or group negotiation. One of the four algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). Receivers MUST fail closed even if the underlying MLS library supports the suite. See zh/crypto-media/encryption-and-audit.md §2.6.",
+      "type_uri": "https://arkret.org/problems/unsupported_ciphersuite",
+      "title": "Unsupported ciphersuite"
     },
     {
       "code": "unsupported_digest_algorithm",
       "http_status": 422,
       "scope": "both",
-      "description": "The digest suite prefix in a typed digest value (e.g. sha256:<hex>, cbor.sha256:<hex>) is not an active row of artifacts/registry/digest-suite-registry.json supported by the receiver (unknown id, unregistered tuple, or reserved suite) on a critical field. See zh/conformance/encoding.md §3.1-§3.2. Dual-registered (also a reason_code): all four algorithm-agility fail-closed errors (unsupported_digest_algorithm / unsupported_signature_alg / unsupported_hpke_suite / unsupported_ciphersuite) appear in both `codes` (top-level service error) and `reason_codes` (per-item sub-reason); see zh/conformance/schema-registry.md §1.1.1."
+      "description": "The digest suite prefix in a typed digest value (e.g. sha256:<hex>, cbor.sha256:<hex>) is not an active row of artifacts/registry/digest-suite-registry.json supported by the receiver (unknown id, unregistered tuple, or reserved suite) on a critical field. See zh/conformance/encoding.md §3.1-§3.2. Dual-registered (also a reason_code): all four algorithm-agility fail-closed errors (unsupported_digest_algorithm / unsupported_signature_alg / unsupported_hpke_suite / unsupported_ciphersuite) appear in both `codes` (top-level service error) and `reason_codes` (per-item sub-reason); see zh/conformance/schema-registry.md §1.1.1.",
+      "type_uri": "https://arkret.org/problems/unsupported_digest_algorithm",
+      "title": "Unsupported digest algorithm"
     },
     {
       "code": "unsupported_signature_alg",
       "http_status": 422,
       "scope": "both",
-      "description": "Proof / event signature `alg` is not in the conformance signature-algorithm allowlist (artifacts/registry/signature-alg-registry.json) on a critical field. One of the four algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). See zh/conformance/encoding.md §6.1."
+      "description": "Proof / event signature `alg` is not in the conformance signature-algorithm allowlist (artifacts/registry/signature-alg-registry.json) on a critical field. One of the four algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). See zh/conformance/encoding.md §6.1.",
+      "type_uri": "https://arkret.org/problems/unsupported_signature_alg",
+      "title": "Unsupported signature alg"
     },
     {
       "code": "unsupported_hpke_suite",
       "http_status": 422,
       "scope": "both",
-      "description": "HPKE suite id on an application-layer sealed surface is not an active row of artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). One of the four algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. See zh/identity/key-management.md §7.5.2."
+      "description": "HPKE suite id on an application-layer sealed surface is not an active row of artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). One of the four algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. See zh/identity/key-management.md §7.5.2.",
+      "type_uri": "https://arkret.org/problems/unsupported_hpke_suite",
+      "title": "Unsupported hpke suite"
     },
     {
       "code": "unsupported_protocol_version",
       "http_status": 422,
       "scope": "both",
-      "description": "A syntactically well-formed protocol-family bootstrap discriminator is not supported by the receiver. For v1 ServiceDescribe and equivalent ping surfaces, a protocol_version string other than the canonical value 1.0 makes the complete service unusable before capability intersection or route caching. Missing or non-string values remain schema_violation. A binding that implements Arkret-Protocol-Version header or equivalent media-type negotiation returns this code for an unsupported requested version. Dual-registered as a top-level service code and a reason_code. See zh/overview/evolution-and-compatibility.md §1 and §4."
+      "description": "A syntactically well-formed protocol-family bootstrap discriminator is not supported by the receiver. For v1 ServiceDescribe and equivalent ping surfaces, a protocol_version string other than the canonical value 1.0 makes the complete service unusable before capability intersection or route caching. Missing or non-string values remain schema_violation. A binding that implements Arkret-Protocol-Version header or equivalent media-type negotiation returns this code for an unsupported requested version. Dual-registered as a top-level service code and a reason_code. See zh/overview/evolution-and-compatibility.md §1 and §4.",
+      "type_uri": "https://arkret.org/problems/unsupported_protocol_version",
+      "title": "Unsupported protocol version"
     },
     {
       "code": "genesis_seal_invalid",
       "http_status": 422,
       "scope": "both",
-      "description": "The first Seal of a Realm did not atomically cover and materialize the complete registered bootstrap unit, or it declared an empty covered set or an empty control_event_set_root. The five ak.realm.create writes are genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots in the same unit. For MLS-backed scope, epoch-0 binding is instead required on the first successor Seal covering ak.mls.genesis, whose seal_basis is the accepted Genesis Seal. Omitted founding state is never repairable by later Seals. See zh/authz/cba-profiles.md section 3."
+      "description": "The first Seal of a Realm did not atomically cover and materialize the complete registered bootstrap unit, or it declared an empty covered set or an empty control_event_set_root. The five ak.realm.create writes are genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots in the same unit. For MLS-backed scope, epoch-0 binding is instead required on the first successor Seal covering ak.mls.genesis, whose seal_basis is the accepted Genesis Seal. Omitted founding state is never repairable by later Seals. See zh/authz/cba-profiles.md section 3.",
+      "type_uri": "https://arkret.org/problems/genesis_seal_invalid",
+      "title": "Genesis seal invalid"
     },
     {
       "code": "seal_incomplete",
       "http_status": 409,
       "scope": "both",
-      "description": "Seal coverage has gaps within the receiver's control auth-chain backfill bound; soft-fail per zh/conformance/scalability-constraints.md."
+      "description": "Seal coverage has gaps within the receiver's control auth-chain backfill bound; soft-fail per zh/conformance/scalability-constraints.md.",
+      "type_uri": "https://arkret.org/problems/seal_incomplete",
+      "title": "Seal incomplete"
     },
     {
       "code": "franking_proof_unavailable",
       "http_status": 503,
       "scope": "both",
-      "description": "E2EE franking proof cannot be produced for the requested ciphertext (sender did not include franking sidecar). See zh/governance/content-moderation.md §3.4."
+      "description": "E2EE franking proof cannot be produced for the requested ciphertext (sender did not include franking sidecar). See zh/governance/content-moderation.md §3.4.",
+      "type_uri": "https://arkret.org/problems/franking_proof_unavailable",
+      "title": "Franking proof unavailable"
     },
     {
       "code": "turn_credential_expired",
       "http_status": 401,
       "scope": "endpoint",
-      "description": "TURN REST-style ephemeral credential is past its TTL; client MUST request a fresh credential. See zh/crypto-media/webrtc-signaling.md §4.1."
+      "description": "TURN REST-style ephemeral credential is past its TTL; client MUST request a fresh credential. See zh/crypto-media/webrtc-signaling.md §4.1.",
+      "type_uri": "https://arkret.org/problems/turn_credential_expired",
+      "title": "Turn credential expired"
     },
     {
       "code": "delivery_binding_stale",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_service_id and handover_frontier so the sender can retry at the current service. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
+      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_service_id and handover_frontier so the sender can retry at the current service. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/delivery_binding_stale",
+      "title": "Delivery binding stale"
     },
     {
       "code": "delivery_binding_handed_over",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Federation sender continued using a previous recipient_service_id after the handover grace window expired; sender MUST resolve the current binding and retry there."
+      "description": "Federation sender continued using a previous recipient_service_id after the handover grace window expired; sender MUST resolve the current binding and retry there.",
+      "type_uri": "https://arkret.org/problems/delivery_binding_handed_over",
+      "title": "Delivery binding handed over"
     },
     {
       "code": "delivery_binding_unresolvable",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_service_id after the bounded retry limit; sender MUST NOT fall back to the DID Document ArkretPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md §5.1.4."
+      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_service_id after the bounded retry limit; sender MUST NOT fall back to the DID Document ArkretPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md §5.1.4.",
+      "type_uri": "https://arkret.org/problems/delivery_binding_unresolvable",
+      "title": "Delivery binding unresolvable"
     },
     {
       "code": "historical_only",
       "http_status": 200,
       "scope": "endpoint",
-      "description": "Idempotency cache replay is served only as a historical diagnostic after key or binding state changed; receivers MUST NOT perform new reducer side effects."
+      "description": "Idempotency cache replay is served only as a historical diagnostic after key or binding state changed; receivers MUST NOT perform new reducer side effects.",
+      "type_uri": "https://arkret.org/problems/historical_only",
+      "title": "Historical only"
     },
     {
       "code": "applet_registration_unauthorized",
@@ -1188,7 +1574,9 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "An Applet registration or transaction attempted to enter a Realm without an explicit grant from the Realm owner, Realm admin, or Realm-policy-authorized registry/authz service. Namespace claims and self-signed applet registration are insufficient. See zh/extensions/applet-integration.md §4."
+      "description": "An Applet registration or transaction attempted to enter a Realm without an explicit grant from the Realm owner, Realm admin, or Realm-policy-authorized registry/authz service. Namespace claims and self-signed applet registration are insufficient. See zh/extensions/applet-integration.md §4.",
+      "type_uri": "https://arkret.org/problems/applet_registration_unauthorized",
+      "title": "Applet registration unauthorized"
     },
     {
       "code": "applet_install_plan_mismatch",
@@ -1197,7 +1585,9 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "ak.self.applet.command.install recomputed the canonical InstallPlan from the submitted Applet Package, caller-signed registration/capability-grant Events, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before formal Event admission. See zh/extensions/applet-integration.md §4b."
+      "description": "ak.self.applet.command.install recomputed the canonical InstallPlan from the submitted Applet Package, caller-signed registration/capability-grant Events, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before formal Event admission. See zh/extensions/applet-integration.md §4b.",
+      "type_uri": "https://arkret.org/problems/applet_install_plan_mismatch",
+      "title": "Applet install plan mismatch"
     },
     {
       "code": "applet_e2ee_join_unauthorized",
@@ -1208,7 +1598,9 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "An Applet, bot actor, or Applet-managed Ghost Actor attempted to join an E2EE Realm / MLS group without the independent E2EE join authorization required by ak.profile.applet_e2ee_join.v1. Ordinary message/write capability grants do not imply MLS join authority. See zh/extensions/applet-integration.md §12."
+      "description": "An Applet, bot actor, or Applet-managed Ghost Actor attempted to join an E2EE Realm / MLS group without the independent E2EE join authorization required by ak.profile.applet_e2ee_join.v1. Ordinary message/write capability grants do not imply MLS join authority. See zh/extensions/applet-integration.md §12.",
+      "type_uri": "https://arkret.org/problems/applet_e2ee_join_unauthorized",
+      "title": "Applet e2ee join unauthorized"
     },
     {
       "code": "applet_revoked",
@@ -1218,7 +1610,9 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ak.self.applet.command.revoke / ak.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b."
+      "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ak.self.applet.command.revoke / ak.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b.",
+      "type_uri": "https://arkret.org/problems/applet_revoked",
+      "title": "Applet revoked"
     },
     {
       "code": "avatar_blob_ref_invalid",
@@ -1228,7 +1622,9 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ak.self.account.command.update_profile` received an `avatar_blob_ref` that is not a valid Arkret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is not a protocol field."
+      "description": "`ak.self.account.command.update_profile` received an `avatar_blob_ref` that is not a valid Arkret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is not a protocol field.",
+      "type_uri": "https://arkret.org/problems/avatar_blob_ref_invalid",
+      "title": "Avatar blob ref invalid"
     },
     {
       "code": "unsupported_profile_patch_path",
@@ -1238,7 +1634,9 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ak.self.account.command.update_profile` received a patch path outside the account self-service allowlist (`display_name`, `avatar_blob_ref`, `profile_fields.<key>`). Handle, lifecycle, principal, actor_kind, accountability, authorization, and handle-claim paths MUST be rejected instead of silently ignored."
+      "description": "`ak.self.account.command.update_profile` received a patch path outside the account self-service allowlist (`display_name`, `avatar_blob_ref`, `profile_fields.<key>`). Handle, lifecycle, principal, actor_kind, accountability, authorization, and handle-claim paths MUST be rejected instead of silently ignored.",
+      "type_uri": "https://arkret.org/problems/unsupported_profile_patch_path",
+      "title": "Unsupported profile patch path"
     },
     {
       "code": "session_grant_not_found",
@@ -1248,7 +1646,9 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "`ak.gate.account.command.revoke_session` targeted a session grant that is unknown, already inactive, or not owned by the current principal. Implementations SHOULD use a uniform response shape that does not disclose another principal's session grant existence."
+      "description": "`ak.gate.account.command.revoke_session` targeted a session grant that is unknown, already inactive, or not owned by the current principal. Implementations SHOULD use a uniform response shape that does not disclose another principal's session grant existence.",
+      "type_uri": "https://arkret.org/problems/session_grant_not_found",
+      "title": "Session grant not found"
     },
     {
       "code": "session_revoke_selector_conflict",
@@ -1258,7 +1658,9 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ak.gate.account.command.revoke_session` supplied more than one mutually exclusive selector (`target_session_grant_id`, `target_device_id`, `all_sessions=true`) or otherwise failed selector closure. Receivers MUST reject instead of choosing one selector implicitly."
+      "description": "`ak.gate.account.command.revoke_session` supplied more than one mutually exclusive selector (`target_session_grant_id`, `target_device_id`, `all_sessions=true`) or otherwise failed selector closure. Receivers MUST reject instead of choosing one selector implicitly.",
+      "type_uri": "https://arkret.org/problems/session_revoke_selector_conflict",
+      "title": "Session revoke selector conflict"
     },
     {
       "code": "reviewer_capability_revoked",
@@ -1267,499 +1669,665 @@
       "description": "Recipient device no longer holds the review capability required for member application review delivery.",
       "applies_to": [
         "ak.member.application.review"
-      ]
+      ],
+      "type_uri": "https://arkret.org/problems/reviewer_capability_revoked",
+      "title": "Reviewer capability revoked"
     },
     {
       "code": "not_member",
       "http_status": 403,
       "scope": "both",
-      "description": "Actor is not a member of the target Realm or scoped membership set for this operation."
+      "description": "Actor is not a member of the target Realm or scoped membership set for this operation.",
+      "type_uri": "https://arkret.org/problems/not_member",
+      "title": "Not member"
     },
     {
       "code": "call_not_found",
       "http_status": 404,
       "scope": "service_call",
-      "description": "Call does not exist or is not visible to the caller."
+      "description": "Call does not exist or is not visible to the caller.",
+      "type_uri": "https://arkret.org/problems/call_not_found",
+      "title": "Call not found"
     },
     {
       "code": "call_expired",
       "http_status": 410,
       "scope": "service_call",
-      "description": "Call exists but its signaling window has expired."
+      "description": "Call exists but its signaling window has expired.",
+      "type_uri": "https://arkret.org/problems/call_expired",
+      "title": "Call expired"
     },
     {
       "code": "call_already_answered",
       "http_status": 409,
       "scope": "service_call",
-      "description": "Call answer was already accepted and the operation is not idempotent for this participant."
+      "description": "Call answer was already accepted and the operation is not idempotent for this participant.",
+      "type_uri": "https://arkret.org/problems/call_already_answered",
+      "title": "Call already answered"
     },
     {
       "code": "media_permission_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "Caller lacks permission to create, join, answer, or modify the media session."
+      "description": "Caller lacks permission to create, join, answer, or modify the media session.",
+      "type_uri": "https://arkret.org/problems/media_permission_denied",
+      "title": "Media permission denied"
     },
     {
       "code": "ice_config_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "Service refused to issue ICE configuration for this call or participant."
+      "description": "Service refused to issue ICE configuration for this call or participant.",
+      "type_uri": "https://arkret.org/problems/ice_config_denied",
+      "title": "Ice config denied"
     },
     {
       "code": "sfu_not_allowed",
       "http_status": 403,
       "scope": "service_call",
-      "description": "Requested SFU or media focus is not allowed by Realm policy or media service binding."
+      "description": "Requested SFU or media focus is not allowed by Realm policy or media service binding.",
+      "type_uri": "https://arkret.org/problems/sfu_not_allowed",
+      "title": "Sfu not allowed"
     },
     {
       "code": "e2ee_required",
       "http_status": 403,
       "scope": "service_call",
-      "description": "Realm or call policy requires E2EE and the requested media path did not satisfy it."
+      "description": "Realm or call policy requires E2EE and the requested media path did not satisfy it.",
+      "type_uri": "https://arkret.org/problems/e2ee_required",
+      "title": "E2ee required"
     },
     {
       "code": "recording_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "Recording or transcription is denied by Realm policy or participant consent state."
+      "description": "Recording or transcription is denied by Realm policy or participant consent state.",
+      "type_uri": "https://arkret.org/problems/recording_denied",
+      "title": "Recording denied"
     },
     {
       "code": "morph_profile_widens_schema_ref",
       "http_status": 422,
       "scope": "both",
-      "description": "Morph profile attempted to widen or replace schema_ref in a way that violates create-locked morph type rules."
+      "description": "Morph profile attempted to widen or replace schema_ref in a way that violates create-locked morph type rules.",
+      "type_uri": "https://arkret.org/problems/morph_profile_widens_schema_ref",
+      "title": "Morph profile widens schema ref"
     },
     {
       "code": "morph_kind_immutable",
       "http_status": 422,
       "scope": "both",
-      "description": "A Morph update attempted to change an immutable morph_kind after creation."
+      "description": "A Morph update attempted to change an immutable morph_kind after creation.",
+      "type_uri": "https://arkret.org/problems/morph_kind_immutable",
+      "title": "Morph kind immutable"
     },
     {
       "code": "applet_already_registered",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "An applet with the same identity is already registered for the realm."
+      "description": "An applet with the same identity is already registered for the realm.",
+      "type_uri": "https://arkret.org/problems/applet_already_registered",
+      "title": "Applet already registered"
     },
     {
       "code": "applet_effective_scope_mismatch",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The applet install projection does not match the requested effective scope."
+      "description": "The applet install projection does not match the requested effective scope.",
+      "type_uri": "https://arkret.org/problems/applet_effective_scope_mismatch",
+      "title": "Applet effective scope mismatch"
     },
     {
       "code": "applet_install_projection_incomplete",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The applet install projection is not yet complete."
+      "description": "The applet install projection is not yet complete.",
+      "type_uri": "https://arkret.org/problems/applet_install_projection_incomplete",
+      "title": "Applet install projection incomplete"
     },
     {
       "code": "applet_install_required",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The operation requires the applet to be installed first."
+      "description": "The operation requires the applet to be installed first.",
+      "type_uri": "https://arkret.org/problems/applet_install_required",
+      "title": "Applet install required"
     },
     {
       "code": "applet_namespace_conflict",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The applet namespace conflicts with an existing registration."
+      "description": "The applet namespace conflicts with an existing registration.",
+      "type_uri": "https://arkret.org/problems/applet_namespace_conflict",
+      "title": "Applet namespace conflict"
     },
     {
       "code": "applet_package_expired",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The submitted applet package has expired."
+      "description": "The submitted applet package has expired.",
+      "type_uri": "https://arkret.org/problems/applet_package_expired",
+      "title": "Applet package expired"
     },
     {
       "code": "authoring_request_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "A first Applet managed-actor authoring or install commit attempt arrived after the Principal Server-signed authoring request expiry. Exact durable replay of an already successful request remains available; the caller must otherwise obtain a fresh preview."
+      "description": "A first Applet managed-actor authoring or install commit attempt arrived after the Principal Server-signed authoring request expiry. Exact durable replay of an already successful request remains available; the caller must otherwise obtain a fresh preview.",
+      "type_uri": "https://arkret.org/problems/authoring_request_expired",
+      "title": "Authoring request expired"
     },
     {
       "code": "applet_registration_epoch_evidence_deactivated",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The exact DID method version pinned by the Applet registration epoch evidence resolves successfully but is deactivated. Preview and authoring fail closed without unversioned refetch or service-local key fallback."
+      "description": "The exact DID method version pinned by the Applet registration epoch evidence resolves successfully but is deactivated. Preview and authoring fail closed without unversioned refetch or service-local key fallback.",
+      "type_uri": "https://arkret.org/problems/applet_registration_epoch_evidence_deactivated",
+      "title": "Applet registration epoch evidence deactivated"
     },
     {
       "code": "applet_registration_epoch_evidence_mismatch",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Applet registration epoch evidence does not match the expected epoch."
+      "description": "Applet registration epoch evidence does not match the expected epoch.",
+      "type_uri": "https://arkret.org/problems/applet_registration_epoch_evidence_mismatch",
+      "title": "Applet registration epoch evidence mismatch"
     },
     {
       "code": "applet_registration_epoch_evidence_missing",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Applet registration epoch evidence is missing."
+      "description": "Applet registration epoch evidence is missing.",
+      "type_uri": "https://arkret.org/problems/applet_registration_epoch_evidence_missing",
+      "title": "Applet registration epoch evidence missing"
     },
     {
       "code": "applet_registration_epoch_signing_key_mismatch",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Applet registration epoch signing key does not match the registered key."
+      "description": "Applet registration epoch signing key does not match the registered key.",
+      "type_uri": "https://arkret.org/problems/applet_registration_epoch_signing_key_mismatch",
+      "title": "Applet registration epoch signing key mismatch"
     },
     {
       "code": "applet_transaction_in_progress",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Another applet transaction is already in progress."
+      "description": "Another applet transaction is already in progress.",
+      "type_uri": "https://arkret.org/problems/applet_transaction_in_progress",
+      "title": "Applet transaction in progress"
     },
     {
       "code": "enclave_no_upstream_proxy_for_external",
       "http_status": 403,
       "scope": "endpoint",
-      "description": "No upstream proxy is configured for external egress from the enclave."
+      "description": "No upstream proxy is configured for external egress from the enclave.",
+      "type_uri": "https://arkret.org/problems/enclave_no_upstream_proxy_for_external",
+      "title": "Enclave no upstream proxy for external"
     },
     {
       "code": "enclave_not_trusted",
       "http_status": 403,
       "scope": "endpoint",
-      "description": "The enclave is not trusted for the requested operation."
+      "description": "The enclave is not trusted for the requested operation.",
+      "type_uri": "https://arkret.org/problems/enclave_not_trusted",
+      "title": "Enclave not trusted"
     },
     {
       "code": "external_invite_actor_mismatch",
       "http_status": 403,
       "scope": "endpoint",
-      "description": "The external invite actor does not match the authenticated actor."
+      "description": "The external invite actor does not match the authenticated actor.",
+      "type_uri": "https://arkret.org/problems/external_invite_actor_mismatch",
+      "title": "External invite actor mismatch"
     },
     {
       "code": "external_user_no_main_access",
       "http_status": 403,
       "scope": "endpoint",
-      "description": "The external user has no access to the main deployment surface."
+      "description": "The external user has no access to the main deployment surface.",
+      "type_uri": "https://arkret.org/problems/external_user_no_main_access",
+      "title": "External user no main access"
     },
     {
       "code": "upstream_unavailable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "A required upstream dependency is temporarily unavailable. HTTP bindings MUST use 503 Service Unavailable and SHOULD include Retry-After when a retry window is known; 412 is reserved for failed request preconditions."
+      "description": "A required upstream dependency is temporarily unavailable. HTTP bindings MUST use 503 Service Unavailable and SHOULD include Retry-After when a retry window is known; 412 is reserved for failed request preconditions.",
+      "type_uri": "https://arkret.org/problems/upstream_unavailable",
+      "title": "Upstream unavailable"
     },
     {
       "code": "agent_provision_fanout_unavailable",
       "http_status": 501,
       "scope": "endpoint",
-      "description": "Agent provisioning fanout is not available on this deployment."
+      "description": "Agent provisioning fanout is not available on this deployment.",
+      "type_uri": "https://arkret.org/problems/agent_provision_fanout_unavailable",
+      "title": "Agent provision fanout unavailable"
     },
     {
       "code": "cannot_pair_current_device",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The current device cannot pair with itself."
+      "description": "The current device cannot pair with itself.",
+      "type_uri": "https://arkret.org/problems/cannot_pair_current_device",
+      "title": "Cannot pair current device"
     },
     {
       "code": "device_already_authorized",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The device is already authorized."
+      "description": "The device is already authorized.",
+      "type_uri": "https://arkret.org/problems/device_already_authorized",
+      "title": "Device already authorized"
     },
     {
       "code": "device_unauthorized",
       "http_status": 403,
       "scope": "endpoint",
-      "description": "The device is not authorized for the requested operation. This is the typed local/self-surface outcome when no complete current accepted device authorization can be derived; anti-enumerating peer device-revocation checks instead return a signed authority_mismatch decision. A malformed row that claims current verified authorization while omitting its required Event/generation binding is an internal projection-integrity failure, not this ordinary authorization outcome."
+      "description": "The device is not authorized for the requested operation. This is the typed local/self-surface outcome when no complete current accepted device authorization can be derived; anti-enumerating peer device-revocation checks instead return a signed authority_mismatch decision. A malformed row that claims current verified authorization while omitting its required Event/generation binding is an internal projection-integrity failure, not this ordinary authorization outcome.",
+      "type_uri": "https://arkret.org/problems/device_unauthorized",
+      "title": "Device unauthorized"
     },
     {
       "code": "device_revoked",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The device has been revoked."
+      "description": "The device has been revoked.",
+      "type_uri": "https://arkret.org/problems/device_revoked",
+      "title": "Device revoked"
     },
     {
       "code": "device_revocation_pending",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The exact device generation is blocked by one or more durable accepted ak.device.revoke proposals that have not been terminally signed-rejected or covered by an accepted Seal. Timeout and cache eviction do not clear this state."
+      "description": "The exact device generation is blocked by one or more durable accepted ak.device.revoke proposals that have not been terminally signed-rejected or covered by an accepted Seal. Timeout and cache eviction do not clear this state.",
+      "type_uri": "https://arkret.org/problems/device_revocation_pending",
+      "title": "Device revocation pending"
     },
     {
       "code": "discovery_failed",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "Discovery of the requested resource failed."
+      "description": "Discovery of the requested resource failed.",
+      "type_uri": "https://arkret.org/problems/discovery_failed",
+      "title": "Discovery failed"
     },
     {
       "code": "first_backup_gate_unsatisfied",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery-material gate requirements (first accepted Seal and genesis recovery policy) are not satisfied."
+      "description": "The recovery-material gate requirements (first accepted Seal and genesis recovery policy) are not satisfied.",
+      "type_uri": "https://arkret.org/problems/first_backup_gate_unsatisfied",
+      "title": "First backup gate unsatisfied"
     },
     {
       "code": "recovery_authorization_device_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery authorization device does not match."
+      "description": "The recovery authorization device does not match.",
+      "type_uri": "https://arkret.org/problems/recovery_authorization_device_mismatch",
+      "title": "Recovery authorization device mismatch"
     },
     {
       "code": "recovery_authorization_principal_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery authorization principal does not match."
+      "description": "The recovery authorization principal does not match.",
+      "type_uri": "https://arkret.org/problems/recovery_authorization_principal_mismatch",
+      "title": "Recovery authorization principal mismatch"
     },
     {
       "code": "recovery_authorization_session_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery authorization session does not match."
+      "description": "The recovery authorization session does not match.",
+      "type_uri": "https://arkret.org/problems/recovery_authorization_session_mismatch",
+      "title": "Recovery authorization session mismatch"
     },
     {
       "code": "recovery_control_event_kind_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery control event kind does not match the expected kind."
+      "description": "The recovery control event kind does not match the expected kind.",
+      "type_uri": "https://arkret.org/problems/recovery_control_event_kind_mismatch",
+      "title": "Recovery control event kind mismatch"
     },
     {
       "code": "recovery_control_event_not_found",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The referenced recovery control event was not found."
+      "description": "The referenced recovery control event was not found.",
+      "type_uri": "https://arkret.org/problems/recovery_control_event_not_found",
+      "title": "Recovery control event not found"
     },
     {
       "code": "recovery_list_update_device_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery list update device does not match."
+      "description": "The recovery list update device does not match.",
+      "type_uri": "https://arkret.org/problems/recovery_list_update_device_mismatch",
+      "title": "Recovery list update device mismatch"
     },
     {
       "code": "recovery_list_update_principal_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery list update principal does not match."
+      "description": "The recovery list update principal does not match.",
+      "type_uri": "https://arkret.org/problems/recovery_list_update_principal_mismatch",
+      "title": "Recovery list update principal mismatch"
     },
     {
       "code": "recovery_policy_conflict",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery policy conflicts with the current state."
+      "description": "The recovery policy conflicts with the current state.",
+      "type_uri": "https://arkret.org/problems/recovery_policy_conflict",
+      "title": "Recovery policy conflict"
     },
     {
       "code": "recovery_policy_device_unauthorized",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The device is not authorized under the recovery policy."
+      "description": "The device is not authorized under the recovery policy.",
+      "type_uri": "https://arkret.org/problems/recovery_policy_device_unauthorized",
+      "title": "Recovery policy device unauthorized"
     },
     {
       "code": "recovery_policy_id_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery policy id does not match."
+      "description": "The recovery policy id does not match.",
+      "type_uri": "https://arkret.org/problems/recovery_policy_id_mismatch",
+      "title": "Recovery policy id mismatch"
     },
     {
       "code": "recovery_policy_missing",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "No recovery policy is registered for the principal."
+      "description": "No recovery policy is registered for the principal.",
+      "type_uri": "https://arkret.org/problems/recovery_policy_missing",
+      "title": "Recovery policy missing"
     },
     {
       "code": "recovery_policy_revoked",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery policy has been revoked."
+      "description": "The recovery policy has been revoked.",
+      "type_uri": "https://arkret.org/problems/recovery_policy_revoked",
+      "title": "Recovery policy revoked"
     },
     {
       "code": "recovery_policy_trust_domain_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery policy trust domain does not match."
+      "description": "The recovery policy trust domain does not match.",
+      "type_uri": "https://arkret.org/problems/recovery_policy_trust_domain_mismatch",
+      "title": "Recovery policy trust domain mismatch"
     },
     {
       "code": "recovery_policy_version_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery policy version does not match."
+      "description": "The recovery policy version does not match.",
+      "type_uri": "https://arkret.org/problems/recovery_policy_version_mismatch",
+      "title": "Recovery policy version mismatch"
     },
     {
       "code": "recovery_proof_authority_invalid",
       "http_status": 401,
       "scope": "endpoint",
-      "description": "The recovery proof authority is invalid."
+      "description": "The recovery proof authority is invalid.",
+      "type_uri": "https://arkret.org/problems/recovery_proof_authority_invalid",
+      "title": "Recovery proof authority invalid"
     },
     {
       "code": "recovery_proof_kind_not_allowed",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery proof kind is not allowed."
+      "description": "The recovery proof kind is not allowed.",
+      "type_uri": "https://arkret.org/problems/recovery_proof_kind_not_allowed",
+      "title": "Recovery proof kind not allowed"
     },
     {
       "code": "recovery_proof_kind_unimplemented",
       "http_status": 501,
       "scope": "endpoint",
-      "description": "The recovery proof kind is not implemented."
+      "description": "The recovery proof kind is not implemented.",
+      "type_uri": "https://arkret.org/problems/recovery_proof_kind_unimplemented",
+      "title": "Recovery proof kind unimplemented"
     },
     {
       "code": "recovery_receipt_conflict",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery receipt conflicts with the current state."
+      "description": "The recovery receipt conflicts with the current state.",
+      "type_uri": "https://arkret.org/problems/recovery_receipt_conflict",
+      "title": "Recovery receipt conflict"
     },
     {
       "code": "recovery_session_conflict",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery session conflicts with the current state."
+      "description": "The recovery session conflicts with the current state.",
+      "type_uri": "https://arkret.org/problems/recovery_session_conflict",
+      "title": "Recovery session conflict"
     },
     {
       "code": "recovery_session_id_reused",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery session id has already been used."
+      "description": "The recovery session id has already been used.",
+      "type_uri": "https://arkret.org/problems/recovery_session_id_reused",
+      "title": "Recovery session id reused"
     },
     {
       "code": "recovery_session_not_pending",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The recovery session is not in a pending state."
+      "description": "The recovery session is not in a pending state.",
+      "type_uri": "https://arkret.org/problems/recovery_session_not_pending",
+      "title": "Recovery session not pending"
     },
     {
       "code": "federation_actor_origin_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "The federated actor origin was rejected by inbound policy."
+      "description": "The federated actor origin was rejected by inbound policy.",
+      "type_uri": "https://arkret.org/problems/federation_actor_origin_denied",
+      "title": "Federation actor origin denied"
     },
     {
       "code": "federation_interop_track_only",
       "http_status": 501,
       "scope": "service_call",
-      "description": "The requested federation surface is interop-track only."
+      "description": "The requested federation surface is interop-track only.",
+      "type_uri": "https://arkret.org/problems/federation_interop_track_only",
+      "title": "Federation interop track only"
     },
     {
       "code": "federation_origin_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "The federated origin was denied."
+      "description": "The federated origin was denied.",
+      "type_uri": "https://arkret.org/problems/federation_origin_denied",
+      "title": "Federation origin denied"
     },
     {
       "code": "federation_private_read_rail_local_only",
       "http_status": 501,
       "scope": "service_call",
-      "description": "The private read rail is local-only and not federated."
+      "description": "The private read rail is local-only and not federated.",
+      "type_uri": "https://arkret.org/problems/federation_private_read_rail_local_only",
+      "title": "Federation private read rail local only"
     },
     {
       "code": "realm_federation_policy_closed",
       "http_status": 403,
       "scope": "service_call",
-      "description": "The realm federation policy is closed."
+      "description": "The realm federation policy is closed.",
+      "type_uri": "https://arkret.org/problems/realm_federation_policy_closed",
+      "title": "Realm federation policy closed"
     },
     {
       "code": "realm_federation_policy_invalid",
       "http_status": 403,
       "scope": "service_call",
-      "description": "The realm federation policy is invalid."
+      "description": "The realm federation policy is invalid.",
+      "type_uri": "https://arkret.org/problems/realm_federation_policy_invalid",
+      "title": "Realm federation policy invalid"
     },
     {
       "code": "realm_federation_policy_quarantine",
       "http_status": 403,
       "scope": "service_call",
-      "description": "The realm federation policy has quarantined the peer."
+      "description": "The realm federation policy has quarantined the peer.",
+      "type_uri": "https://arkret.org/problems/realm_federation_policy_quarantine",
+      "title": "Realm federation policy quarantine"
     },
     {
       "code": "realm_federation_policy_restricted",
       "http_status": 403,
       "scope": "service_call",
-      "description": "The realm federation policy restricts this peer."
+      "description": "The realm federation policy restricts this peer.",
+      "type_uri": "https://arkret.org/problems/realm_federation_policy_restricted",
+      "title": "Realm federation policy restricted"
     },
     {
       "code": "realm_moderation_policy_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "The realm moderation policy denied the federated action."
+      "description": "The realm moderation policy denied the federated action.",
+      "type_uri": "https://arkret.org/problems/realm_moderation_policy_denied",
+      "title": "Realm moderation policy denied"
     },
     {
       "code": "mimi_e2ee_boundary_unmarked",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The MIMI payload crosses the E2EE boundary without being marked."
+      "description": "The MIMI payload crosses the E2EE boundary without being marked.",
+      "type_uri": "https://arkret.org/problems/mimi_e2ee_boundary_unmarked",
+      "title": "Mimi e2ee boundary unmarked"
     },
     {
       "code": "mimi_payload_digest_mismatch",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The MIMI payload digest does not match."
+      "description": "The MIMI payload digest does not match.",
+      "type_uri": "https://arkret.org/problems/mimi_payload_digest_mismatch",
+      "title": "Mimi payload digest mismatch"
     },
     {
       "code": "mimi_payload_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The MIMI payload is invalid."
+      "description": "The MIMI payload is invalid.",
+      "type_uri": "https://arkret.org/problems/mimi_payload_invalid",
+      "title": "Mimi payload invalid"
     },
     {
       "code": "mimi_room_binding_event_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The caller-authored room binding Event is missing, unexpected, semantically inconsistent, or does not exactly bind the authenticated MIMI room update. These pre-admission causes deliberately share one outward envelope; the precise reason is audit-only."
+      "description": "The caller-authored room binding Event is missing, unexpected, semantically inconsistent, or does not exactly bind the authenticated MIMI room update. These pre-admission causes deliberately share one outward envelope; the precise reason is audit-only.",
+      "type_uri": "https://arkret.org/problems/mimi_room_binding_event_invalid",
+      "title": "Mimi room binding event invalid"
     },
     {
       "code": "mimi_reporter_resolution_required",
       "http_status": 403,
       "scope": "endpoint",
-      "description": "MIMI reporter resolution is required before this action."
+      "description": "MIMI reporter resolution is required before this action.",
+      "type_uri": "https://arkret.org/problems/mimi_reporter_resolution_required",
+      "title": "Mimi reporter resolution required"
     },
     {
       "code": "peer_state_stale_unavailable",
       "http_status": 503,
       "scope": "service_call",
-      "description": "The peer's state is stale and temporarily unavailable."
+      "description": "The peer's state is stale and temporarily unavailable.",
+      "type_uri": "https://arkret.org/problems/peer_state_stale_unavailable",
+      "title": "Peer state stale unavailable"
     },
     {
       "code": "franking_tampered",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The franking tag is tampered or does not verify."
+      "description": "The franking tag is tampered or does not verify.",
+      "type_uri": "https://arkret.org/problems/franking_tampered",
+      "title": "Franking tampered"
     },
     {
       "code": "mls_keypackage_claim_request_expired",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The MLS KeyPackage claim request has expired."
+      "description": "The MLS KeyPackage claim request has expired.",
+      "type_uri": "https://arkret.org/problems/mls_keypackage_claim_request_expired",
+      "title": "Mls keypackage claim request expired"
     },
     {
       "code": "mls_genesis_already_exists",
       "http_status": 409,
       "scope": "both",
-      "description": "An MLS genesis operation attempted to initialize a group whose genesis state is already durably accepted. Receivers MUST preserve the existing group state and reject the conflicting initialization."
+      "description": "An MLS genesis operation attempted to initialize a group whose genesis state is already durably accepted. Receivers MUST preserve the existing group state and reject the conflicting initialization.",
+      "type_uri": "https://arkret.org/problems/mls_genesis_already_exists",
+      "title": "Mls genesis already exists"
     },
     {
       "code": "snapshot_chunk_digest_mismatch",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "A conformance snapshot chunk digest does not match the declared digest."
+      "description": "A conformance snapshot chunk digest does not match the declared digest.",
+      "type_uri": "https://arkret.org/problems/snapshot_chunk_digest_mismatch",
+      "title": "Snapshot chunk digest mismatch"
     },
     {
       "code": "unsupported_content_encoding",
       "http_status": 415,
       "scope": "both",
-      "description": "A canonical non-streaming JSON operation carried a Content-Encoding header. Canonical JSON bindings MUST reject the request before reading or decompressing the body; see zh/conformance/scalability-constraints.md section 2.1.4."
+      "description": "A canonical non-streaming JSON operation carried a Content-Encoding header. Canonical JSON bindings MUST reject the request before reading or decompressing the body; see zh/conformance/scalability-constraints.md section 2.1.4.",
+      "type_uri": "https://arkret.org/problems/unsupported_content_encoding",
+      "title": "Unsupported content encoding"
     },
     {
       "code": "contact_scope_stale",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "An existing Contact binding is discoverable but the source-signed issuer head checkpoint/current lease is stale, unknown or incomplete. Contact-based create/send fails closed while coordinates remain visible to authorized participants."
+      "description": "An existing Contact binding is discoverable but the source-signed issuer head checkpoint/current lease is stale, unknown or incomplete. Contact-based create/send fails closed while coordinates remain visible to authorized participants.",
+      "type_uri": "https://arkret.org/problems/contact_scope_stale",
+      "title": "Contact scope stale"
     },
     {
       "code": "contact_lineage_conflict",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "A Contact fact forks an issuer-local version, skips a version, references a non-current predecessor, reuses a consumed request ref, or attempts to revive a tombstoned generation. The conflicting fact is quarantined."
+      "description": "A Contact fact forks an issuer-local version, skips a version, references a non-current predecessor, reuses a consumed request ref, or attempts to revive a tombstoned generation. The conflicting fact is quarantined.",
+      "type_uri": "https://arkret.org/problems/contact_lineage_conflict",
+      "title": "Contact lineage conflict"
     },
     {
       "code": "continuity_evidence_unavailable",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "A required bilateral continuity checkpoint, predecessor checkpoint or uncompressed tail segment is not currently available. The operation writes nothing and may be retried only after importing or retrieving the exact portable evidence; no gap is inferred or skipped."
+      "description": "A required bilateral continuity checkpoint, predecessor checkpoint or uncompressed tail segment is not currently available. The operation writes nothing and may be retried only after importing or retrieving the exact portable evidence; no gap is inferred or skipped.",
+      "type_uri": "https://arkret.org/problems/continuity_evidence_unavailable",
+      "title": "Continuity evidence unavailable"
     },
     {
       "code": "continuity_invalid",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Bilateral continuity evidence has an invalid signature, root/participant mismatch, broken or trimmed edge, rollback, same-sequence fork, accumulator mismatch or one-sided checkpoint. The operation writes nothing and MUST NOT downgrade this result to evidence retrieval."
+      "description": "Bilateral continuity evidence has an invalid signature, root/participant mismatch, broken or trimmed edge, rollback, same-sequence fork, accumulator mismatch or one-sided checkpoint. The operation writes nothing and MUST NOT downgrade this result to evidence retrieval.",
+      "type_uri": "https://arkret.org/problems/continuity_invalid",
+      "title": "Continuity invalid"
     },
     {
       "code": "membership_compensation_conflict",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "A compensation delegation/action/executor/admission/incarnation binding is wrong, already consumed or conflicts with the current membership provenance. Newer incarnations are never removed; absent or superseded destinations return their registered signed no-write outcomes."
+      "description": "A compensation delegation/action/executor/admission/incarnation binding is wrong, already consumed or conflicts with the current membership provenance. Newer incarnations are never removed; absent or superseded destinations return their registered signed no-write outcomes.",
+      "type_uri": "https://arkret.org/problems/membership_compensation_conflict",
+      "title": "Membership compensation conflict"
     }
   ],
   "reason_codes": [

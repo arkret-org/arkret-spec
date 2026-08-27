@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.5",
+  "version": "2026-08-27.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T05:30:00+08:00",
+  "generated_at": "2026-08-27T09:00:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -49,10 +49,10 @@
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome",
         "schema_kind": "object",
         "required": [
-          "ok"
+          "status"
         ],
         "properties": [
-          "ok",
+          "status",
           "rejected",
           "retry_after_ms"
         ],
@@ -137,13 +137,11 @@
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "applet_id",
           "service_id",
           "protocol_version"
         ],
         "properties": [
-          "ok",
           "applet_id",
           "service_id",
           "protocol_version"
@@ -281,11 +279,9 @@
         "schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "push_target_id"
         ],
         "properties": [
-          "ok",
           "push_target_id",
           "registration_id",
           "expires_at"
@@ -295,7 +291,7 @@
     },
     {
       "operation_id": "ak.edge.push.command.unregister_device",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "empty_response",
       "request": {
         "schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body",
         "schema_kind": "object",
@@ -306,17 +302,6 @@
           "device_id",
           "push_key",
           "app_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome",
-        "schema_kind": "object",
-        "required": [
-          "ok"
-        ],
-        "properties": [
-          "ok"
         ],
         "closed": true
       }
@@ -1519,11 +1504,9 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "revoked"
         ],
         "properties": [
-          "ok",
           "revoked"
         ],
         "closed": true
@@ -1583,12 +1566,10 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "grant_chain_terminated",
           "auth_session_logged_out"
         ],
         "properties": [
-          "ok",
           "grant_chain_terminated",
           "auth_session_logged_out"
         ],
@@ -1628,13 +1609,11 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "activation_state",
           "authorize_event_ref",
           "signing_key_binding"
         ],
         "properties": [
-          "ok",
           "activation_state",
           "authorize_event_ref",
           "signing_key_binding"
@@ -1992,12 +1971,10 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "approval_request_id",
           "status"
         ],
         "properties": [
-          "ok",
           "approval_request_id",
           "status"
         ],
@@ -2062,14 +2039,12 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "lifecycle",
           "runtime_state",
           "readiness",
           "presence"
         ],
         "properties": [
-          "ok",
           "lifecycle",
           "runtime_state",
           "readiness",
@@ -4296,7 +4271,6 @@
         "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "policy_id",
           "principal_id",
           "version",
@@ -4304,7 +4278,6 @@
           "accepted_at"
         ],
         "properties": [
-          "ok",
           "policy_id",
           "principal_id",
           "version",
@@ -4913,12 +4886,10 @@
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "account_data_key",
           "revision"
         ],
         "properties": [
-          "ok",
           "account_data_key",
           "revision"
         ],
@@ -5041,11 +5012,9 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "status"
         ],
         "properties": [
-          "ok",
           "status"
         ],
         "closed": true
@@ -5132,11 +5101,9 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "status"
         ],
         "properties": [
-          "ok",
           "status"
         ],
         "closed": true
@@ -5298,11 +5265,9 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "status"
         ],
         "properties": [
-          "ok",
           "status"
         ],
         "closed": true
@@ -5328,11 +5293,9 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "grant_id"
         ],
         "properties": [
-          "ok",
           "grant_id"
         ],
         "closed": true
@@ -5356,11 +5319,9 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "revoked_at"
         ],
         "properties": [
-          "ok",
           "revoked_at"
         ],
         "closed": true
@@ -5373,12 +5334,10 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "agent_id",
           "entries"
         ],
         "properties": [
-          "ok",
           "agent_id",
           "entries"
         ],
@@ -5407,12 +5366,10 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "agent_id",
           "entries"
         ],
         "properties": [
-          "ok",
           "agent_id",
           "entries"
         ],
@@ -5558,7 +5515,6 @@
           "context_attach_event_draft",
           "sidecar_id",
           "accepted_phase",
-          "ok",
           "source_context_ref",
           "access_readiness",
           "pending_access_reconciliations"
@@ -5618,7 +5574,6 @@
               "status",
               "operation_id",
               "accepted_phase",
-              "ok",
               "sidecar_id",
               "source_context_ref",
               "access_readiness",
@@ -5628,7 +5583,6 @@
               "status",
               "operation_id",
               "accepted_phase",
-              "ok",
               "sidecar_id",
               "source_context_ref",
               "access_readiness",
@@ -5853,14 +5807,12 @@
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "operation_id",
           "revoke_plan_digest",
           "status",
           "steps"
         ],
         "properties": [
-          "ok",
           "operation_id",
           "revoke_plan_digest",
           "status",
@@ -6661,7 +6613,6 @@
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
         "schema_kind": "object",
         "required": [
-          "ok",
           "cell_id",
           "holder_principal_id",
           "peer_principal_id",
@@ -6673,7 +6624,6 @@
           "revoked_dots"
         ],
         "properties": [
-          "ok",
           "cell_id",
           "holder_principal_id",
           "peer_principal_id",
@@ -6708,11 +6658,9 @@
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_outcome",
         "schema_kind": "object",
         "required": [
-          "ok",
           "accepted_for_processing"
         ],
         "properties": [
-          "ok",
           "accepted_for_processing"
         ],
         "closed": true
@@ -6736,7 +6684,6 @@
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
         "schema_kind": "object",
         "required": [
-          "ok",
           "cell_id",
           "holder_principal_id",
           "peer_principal_id",
@@ -6748,7 +6695,6 @@
           "revoked_dots"
         ],
         "properties": [
-          "ok",
           "cell_id",
           "holder_principal_id",
           "peer_principal_id",
@@ -6771,11 +6717,9 @@
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list",
         "schema_kind": "object",
         "required": [
-          "ok",
           "cells"
         ],
         "properties": [
-          "ok",
           "cells"
         ],
         "closed": true
@@ -6788,7 +6732,6 @@
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
         "schema_kind": "object",
         "required": [
-          "ok",
           "cell_id",
           "holder_principal_id",
           "peer_principal_id",
@@ -6800,7 +6743,6 @@
           "revoked_dots"
         ],
         "properties": [
-          "ok",
           "cell_id",
           "holder_principal_id",
           "peer_principal_id",
@@ -7377,10 +7319,9 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome",
         "schema_kind": "object",
         "required": [
-          "ok"
+          "pruned_count"
         ],
         "properties": [
-          "ok",
           "pruned_count"
         ],
         "closed": true
@@ -7404,10 +7345,10 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome",
         "schema_kind": "object",
         "required": [
-          "ok"
+          "delivered",
+          "unknown_devices"
         ],
         "properties": [
-          "ok",
           "delivered",
           "unknown_devices"
         ],
@@ -9283,14 +9224,12 @@
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "schema_kind": "object",
         "required": [
-          "ok",
           "realm_id",
           "owner_id",
           "members",
           "deleted"
         ],
         "properties": [
-          "ok",
           "realm_id",
           "owner_id",
           "members",
@@ -9322,14 +9261,12 @@
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "schema_kind": "object",
         "required": [
-          "ok",
           "realm_id",
           "owner_id",
           "members",
           "deleted"
         ],
         "properties": [
-          "ok",
           "realm_id",
           "owner_id",
           "members",
@@ -9361,14 +9298,12 @@
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "schema_kind": "object",
         "required": [
-          "ok",
           "realm_id",
           "owner_id",
           "members",
           "deleted"
         ],
         "properties": [
-          "ok",
           "realm_id",
           "owner_id",
           "members",
@@ -9400,14 +9335,12 @@
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "schema_kind": "object",
         "required": [
-          "ok",
           "realm_id",
           "owner_id",
           "members",
           "deleted"
         ],
         "properties": [
-          "ok",
           "realm_id",
           "owner_id",
           "members",
@@ -9659,14 +9592,12 @@
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "schema_kind": "object",
         "required": [
-          "ok",
           "realm_id",
           "owner_id",
           "members",
           "deleted"
         ],
         "properties": [
-          "ok",
           "realm_id",
           "owner_id",
           "members",

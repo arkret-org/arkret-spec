@@ -563,13 +563,9 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "ok",
         "revoked"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean"
-        },
         "revoked": {
           "type": "boolean",
           "description": "Whether a live device session was revoked."
@@ -610,14 +606,10 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "ok",
         "grant_chain_terminated",
         "auth_session_logged_out"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean"
-        },
         "grant_chain_terminated": {
           "type": "boolean",
           "description": "Whether the grant rotation chain is now unable to refresh, including the already-terminated idempotent case."
@@ -1378,17 +1370,13 @@
     "DeviceMessagesAckOutcome": {
       "type": "object",
       "required": [
-        "ok"
+        "pruned_count"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean",
-          "description": "True when the acknowledgement was accepted, including the legal no-op case of re-acking the same or an older token (the acknowledged position MUST NOT move backward)."
-        },
         "pruned_count": {
           "type": "integer",
           "minimum": 0,
-          "description": "Number of queued messages actually deleted by this acknowledgement."
+          "description": "Number of queued messages actually deleted by this acknowledgement; zero is the legal result for a repeated or older acknowledgement token."
         }
       },
       "additionalProperties": false
@@ -1464,17 +1452,29 @@
     "DeviceMessagesSendOutcome": {
       "type": "object",
       "required": [
-        "ok"
+        "delivered",
+        "unknown_devices"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean"
-        },
         "delivered": {
-          "type": "object"
+          "type": "object",
+          "description": "Principal-id to device-id map for messages accepted for delivery.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/DeviceMessageDeliveredResult"
+            }
+          }
         },
         "unknown_devices": {
-          "type": "object"
+          "type": "object",
+          "description": "Principal-id to device-id map for targets that were not deliverable.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/DeviceMessageUnknownResult"
+            }
+          }
         }
       },
       "additionalProperties": false
@@ -2190,7 +2190,7 @@
     },
     "EventsDependencyMissingProblem": {
       "type": "object",
-      "description": "Closed ErrorEnvelope.error.details for an atomic federation unit rejected with top-level dependency_missing. The unit performed zero Event, Seal, reducer, projection, or frontier writes.",
+      "description": "Closed RFC 9457 Problem Details extension members for an atomic federation unit rejected with top-level dependency_missing. The unit performed zero Event, Seal, reducer, projection, or frontier writes.",
       "required": [
         "reason_code",
         "missing_event_ids",
@@ -6724,7 +6724,7 @@
       }
     },
     "SessionGrantReplayProblem": {
-      "description": "Closed union of the two replay error-detail shapes. The error envelope code selects the matching subtype in OpenAPI.",
+      "description": "Closed union of the two replay error-detail shapes. The Problem Details code selects the matching subtype in OpenAPI.",
       "anyOf": [
         {
           "$ref": "#/$defs/SessionGrantReplayExpiredProblem"
@@ -6736,7 +6736,7 @@
     },
     "SessionGrantReplayExpiredProblem": {
       "type": "object",
-      "description": "Closed ErrorEnvelope.error.details for session_grant_replay_expired. The named issuer-ledger record remains authoritative and no replacement grant is created under the same request identity.",
+      "description": "Closed RFC 9457 Problem Details extension members for session_grant_replay_expired. The named issuer-ledger record remains authoritative and no replacement grant is created under the same request identity.",
       "required": [
         "session_grant_id",
         "state"
@@ -6754,7 +6754,7 @@
     },
     "SessionGrantReplayTerminalProblem": {
       "type": "object",
-      "description": "Closed ErrorEnvelope.error.details for session_grant_replay_terminal. The state is an exact durable issuer-ledger terminal state and no replacement grant is created under the same request identity.",
+      "description": "Closed RFC 9457 Problem Details extension members for session_grant_replay_terminal. The state is an exact durable issuer-ledger terminal state and no replacement grant is created under the same request identity.",
       "required": [
         "session_grant_id",
         "state"
@@ -6769,6 +6769,45 @@
             "revoked",
             "superseded"
           ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeviceMessageDeliveredResult": {
+      "type": "object",
+      "required": [
+        "device_message_id",
+        "status"
+      ],
+      "properties": {
+        "device_message_id": {
+          "$ref": "device-message.schema.json#/$defs/device_message_id"
+        },
+        "status": {
+          "const": "delivered"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeviceMessageUnknownResult": {
+      "type": "object",
+      "required": [
+        "device_message_id",
+        "status",
+        "reason_code"
+      ],
+      "properties": {
+        "device_message_id": {
+          "$ref": "device-message.schema.json#/$defs/device_message_id"
+        },
+        "status": {
+          "const": "unknown"
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "minLength": 1,
+          "maxLength": 128
         }
       },
       "additionalProperties": false

@@ -14,9 +14,6 @@
       "$ref": "#/$defs/push_unregister_device_request_body"
     },
     {
-      "$ref": "#/$defs/push_unregister_device_outcome"
-    },
-    {
       "$ref": "#/$defs/push_notify_request_body"
     },
     {
@@ -423,14 +420,9 @@
     "push_register_device_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "push_target_id"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
         "push_target_id": {
           "$ref": "./common-ids.schema.json#/$defs/push_target_id",
           "description": "Server-derived pairwise pseudonym for this registration, derived per push-notifications.md section 2.2 (HMAC-SHA256 over the service-private push secret and the canonical recipient_service_id / principal_id / device_id / push_route_id / salt_epoch_id tuple). The caller and the device MUST use this exact value as the notify target; they MUST NOT mint their own push_target_id."
@@ -465,19 +457,6 @@
               "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
             }
           ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "push_unregister_device_outcome": {
-      "type": "object",
-      "required": [
-        "ok"
-      ],
-      "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
         }
       },
       "additionalProperties": false

@@ -4456,7 +4456,7 @@ Steps:
 
 Expected:
 
-- C 对 `R1` / `R2` 均只能看到 `ReferenceProjectionState.locked` 或等价 locked stub,wire 字段集合、error envelope、metadata 集合必须相同。
+- C 对 `R1` / `R2` 均只能看到 `ReferenceProjectionState.locked` 或等价 locked stub,wire 字段集合、Problem Details、metadata 集合必须相同。
 - C 的视图 MUST NOT 泄露目标 `realm_id`、title、member_count、created_at、issuer set、preview 或任何能区分"目标存在 vs 不存在"的信息。
 - raw event / backfill / federation fanout 对 C MUST 返回同一类 redacted event view 或 locked stub，不得暴露完整 `from_ref` / `to_ref` canonical bytes。
 - 两类样本 p95 服务端耗时差异 SHOULD <= 50ms；声明高安全 profile 时 p99 MUST 落入同一 timing bucket。
@@ -4813,7 +4813,7 @@ Steps：
 
 Expected：
 
-- 第一次响应使用统一 ErrorEnvelope：`error.code=claim_required`，`error.details` 必须严格通过 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`，即只含 `reason_code=human_approval_required` 与 `approval_request_id`。
+- 第一次响应使用统一 RFC 9457 Problem Details：`error.code=claim_required`，`error.details` 必须严格通过 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`，即只含 `reason_code=human_approval_required` 与 `approval_request_id`。
 - Runtime 响应中 MUST NOT 出现 CAPTCHA、OTP、password prompt、browser redirect 或等价 interactive human challenge。
 - 批准前不得签发 session grant；带外批准成功后的 retry 仍须重新验证 agent key proof、scope ceiling、approval evidence 新鲜度与单次消费语义。
 
@@ -5451,7 +5451,7 @@ Steps：
 
 Expected：
 
-- 三类失败的对外响应 MUST 使用同一 HTTP status 与同一统一鉴权失败 `reason_code`（`error-code-registry` 已登记的统一码，如 `capability_denied`），error envelope 可见字段集合 MUST 相同，MUST NOT 携带 Realm / Actor / Event / binding / frontier 是否存在的任何可区分信息；真实失败原因 MUST 只写入接收方审计日志。
+- 三类失败的对外响应 MUST 使用同一 HTTP status 与同一统一鉴权失败 `reason_code`（`error-code-registry` 已登记的统一码，如 `capability_denied`），Problem Details 可见字段集合 MUST 相同，MUST NOT 携带 Realm / Actor / Event / binding / frontier 是否存在的任何可区分信息；真实失败原因 MUST 只写入接收方审计日志。
 - timing 同桶判定按 [`relation.md`](../models/relation.md) §4.5 口径：每类 ≥ 30 次采样下，各失败类别两两之间 p95 处理时延差异 SHOULD ≤ 50ms；声明高安全 profile 时 MUST 使用 padding / jitter 使 p99 也落入同一 timing bucket。
 - conformance runner MAY 在同一网络条件下补充端到端抽样，但判定以服务端本地口径为准。
 
@@ -5477,7 +5477,7 @@ Expected：支持 `ak.reducer.core.v1` 时普通 Event 继续 admission；本地
 
 ## 16. Streaming Chunked AEAD Attachment Vectors
 
-本节收拢分块流式 AEAD 加密附件 scheme `ak.blob.stream_aead.v1` 的 conformance 向量，固化 [`media-and-blob.md`](../crypto-media/media-and-blob.md) §3.2 形态选择与 §3.3 的分块构造 / nonce / AAD / 整体 digest / 解密验证 MUST。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；error envelope `reason_code` 取 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 已登记的稳定码。
+本节收拢分块流式 AEAD 加密附件 scheme `ak.blob.stream_aead.v1` 的 conformance 向量，固化 [`media-and-blob.md`](../crypto-media/media-and-blob.md) §3.2 形态选择与 §3.3 的分块构造 / nonce / AAD / 整体 digest / 解密验证 MUST。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；Problem Details `reason_code` 取 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 已登记的稳定码。
 
 ### 16.1 Vector: Streaming AEAD Roundtrip
 

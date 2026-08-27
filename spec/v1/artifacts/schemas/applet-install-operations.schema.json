@@ -100,8 +100,12 @@
     },
     "applet_install_request_body": {
       "oneOf": [
-        { "$ref": "#/$defs/applet_install_first_request_body" },
-        { "$ref": "#/$defs/applet_install_reuse_request_body" }
+        {
+          "$ref": "#/$defs/applet_install_first_request_body"
+        },
+        {
+          "$ref": "#/$defs/applet_install_reuse_request_body"
+        }
       ]
     },
     "applet_install_first_request_body": {
@@ -137,23 +141,47 @@
         "initial_package_bot_actor_id"
       ],
       "properties": {
-        "actor_id": { "$ref": "#/$defs/did_core_id" },
-        "actor_principal_server_id": { "$ref": "#/$defs/did_core_id" },
-        "managed_actor_provision_ref": { "$ref": "#/$defs/event_ref" },
-        "pcr_genesis_ref": { "$ref": "#/$defs/event_ref" },
-        "accountability_grant_ref": { "$ref": "#/$defs/event_ref" },
-        "profile_event_ref": { "$ref": "#/$defs/event_ref" },
-        "initial_package_bot_actor_id": { "$ref": "#/$defs/did_core_id" }
+        "actor_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "actor_principal_server_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "managed_actor_provision_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "pcr_genesis_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "accountability_grant_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "profile_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "initial_package_bot_actor_id": {
+          "$ref": "#/$defs/did_core_id"
+        }
       },
       "additionalProperties": false
     },
     "applet_install_reuse_request_body": {
       "type": "object",
-      "required": ["applet_package", "authoring_request", "reuse_existing_managed_actor"],
+      "required": [
+        "applet_package",
+        "authoring_request",
+        "reuse_existing_managed_actor"
+      ],
       "properties": {
-        "applet_package": { "$ref": "#/$defs/applet_package" },
-        "authoring_request": { "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request" },
-        "reuse_existing_managed_actor": { "$ref": "#/$defs/reuse_existing_managed_actor" }
+        "applet_package": {
+          "$ref": "#/$defs/applet_package"
+        },
+        "authoring_request": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
+        },
+        "reuse_existing_managed_actor": {
+          "$ref": "#/$defs/reuse_existing_managed_actor"
+        }
       },
       "additionalProperties": false
     },
@@ -563,16 +591,12 @@
     "applet_revoke_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "operation_id",
         "revoke_plan_digest",
         "status",
         "steps"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean"
-        },
         "operation_id": {
           "type": "string",
           "pattern": "^ak:operation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"

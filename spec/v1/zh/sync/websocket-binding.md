@@ -304,7 +304,7 @@ channel-scoped `control(kind="drain")`，不得删除 durable account/events fra
 ## 8. Close、错误与回退
 
 WebSocket `error.error` 使用本 binding 的 closed transport error body
-`{code,message,retry_after_ms?}`，不是 HTTP `ErrorEnvelope`；`code` 必须是
+`{code,message,retry_after_ms?}`，不是 HTTP `RFC 9457 Problem Details`；`code` 必须是
 `error-code-registry.json` 的 `codes[]` 中已登记的 code，未知 code fail closed。Channel-scoped `error`
 另带 `channel_id`；connection-scoped `error` 禁止该字段。`closed` 表示该 channel 终止，
 不等于 cursor checkpoint或Signal delivery receipt。

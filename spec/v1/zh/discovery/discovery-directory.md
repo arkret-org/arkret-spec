@@ -382,17 +382,16 @@ quota denial（blind 阶段，HTTP 429 + `Retry-After` header）：
 
 ```json
 {
-  "ok": false,
-  "error": {
-    "code": "psi_quota_exhausted",
-    "message": "psi quota exhausted for this device in the current quota window"
-  },
-  "request_id": "req_0196429a0000700080000000000000aa",
+  "type": "https://arkret.org/problems/psi_quota_exhausted",
+  "title": "Psi quota exhausted",
+  "status": 429,
+  "detail": "psi quota exhausted for this device in the current quota window",
+  "instance": "ak:request:0196429a-0000-7000-8000-0000000000aa",
   "padding": "    "
 }
 ```
 
-- 这是 §6.4 Class B 失败形态：标准 ErrorEnvelope 的 PSI padding extension + canonical 错误码 `psi_quota_exhausted`；`Retry-After` 与精确 body / delay bucket 规则见 §6.4。
+- 这是 §6.4 Class B 失败形态：标准 RFC 9457 Problem Details 的 PSI padding extension + canonical 错误码 `psi_quota_exhausted`；`Retry-After` 与精确 body / delay bucket 规则见 §6.4。
 - quota denial 只在 blind 阶段出现；已被接纳的 `batch_id` 的 match 请求 MUST NOT 再因 quota 被拒。
 
 ### 6.4 规则
@@ -400,16 +399,16 @@ quota denial（blind 阶段，HTTP 429 + `Retry-After` header）：
 - Raw email、phone number、address-book label、local contact name 和未加盐低熵 hash MUST NOT 被发送给公共 Directory，包括第一轮的 OPRF input（OPRF Blind 已经做了 unlinkable 化，但实现仍 MUST 在客户端先做 normalization + canonical encoding，杜绝把明文写入 audit log）。
 - Provider MUST 对 batch 大小、dummy padding、失败响应、计时和 result cardinality 做反枚举处理。**不可区分性分两类界定（normative）**：
   - **Class A（逐目标 outcome）**：目标不存在、不可发现、逐目标 policy-denied 与 OPRF mismatch MUST 统一编码为固定 cardinality 成功 outcome（`hit_bitmap`）中的未命中位，在 HTTP status、字段集合与字节形态上逐目标不可区分；MUST NOT 通过专用错误码、额外字段或逐目标延迟差暴露上述任何一种情形。
-  - **Class B（整请求级失败）**：quota 耗尽与 batch 级 `policy_denied`（如 requester 被封禁、profile 未启用）MUST 使用带顶层 `padding` 的标准 ErrorEnvelope；其内容只允许描述 requester / batch 自身状态，MUST NOT 携带逐目标信息。Class B 触发条件 MUST 只依赖 requester / batch 级状态，MUST NOT 依赖目标集合内容。quota 与初始 batch policy 准入发生在 blind 阶段；已接纳 batch 后发生的账号冻结等 requester 状态仍 MAY 在 match 阶段以 Class B 拒绝，但不得重新执行逐目标判断。
+  - **Class B（整请求级失败）**：quota 耗尽与 batch 级 `policy_denied`（如 requester 被封禁、profile 未启用）MUST 使用带顶层 `padding` 的标准 RFC 9457 Problem Details；其内容只允许描述 requester / batch 自身状态，MUST NOT 携带逐目标信息。Class B 触发条件 MUST 只依赖 requester / batch 级状态，MUST NOT 依赖目标集合内容。quota 与初始 batch policy 准入发生在 blind 阶段；已接纳 batch 后发生的账号冻结等 requester 状态仍 MAY 在 match 阶段以 Class B 拒绝，但不得重新执行逐目标判断。
   - **固定请求 cardinality**：客户端 MUST 在发送前把 blind batch 填充到 describe 的精确 `batch_item_count`；Provider 对 cardinality 不等于该值的请求 MUST 在目标评估前以 `schema_violation` 拒绝。Provider 不得在收到可变长数组后自行追加 dummy 来声称隐藏了客户端原始 cardinality。
-- **PSI HTTP entity-body bucket（normative）**：describe 固定 buckets `[4096, 16384, 65536, 262144]` bytes。对 blind / match 各 phase，Provider 分别构造该 phase 最大合法 200 success，以及每一种允许的 Class B ErrorEnvelope / `PsiPaddedProblem` 最大投影（均令 `padding=""`），取其中 RFC 8785 JCS UTF-8 body 最大者，再选择能容纳它的最小 bucket `B_phase`；计算必须纳入 schema 允许的最大字符串转义长度。若无 bucket 可容纳，MUST NOT advertise 该配置。Provider MUST 分别把结果写入 `blind_response_bucket_bytes` / `match_response_bucket_bytes`，客户端与 runner MUST 重算并拒绝不是最小可容纳 bucket 的 describe。产生实际响应时，先对 `padding=""` 的完整对象执行 RFC 8785 JCS 并取 UTF-8 byte length `N`，再把 `padding` 设为恰好 `B_phase-N` 个 ASCII SP，最后再次执行 JCS 得到 wire body；由于 SP 在 JSON string 中不转义，最终 HTTP entity body 的实际 `Content-Length` MUST **恰好等于** describe 的 phase bucket。该 phase 的每个 200 success 与 Class B ErrorEnvelope 都使用此算法。响应 MUST **省略 `Content-Encoding`**（即不应用任何 content coding）并设置 `Cache-Control: no-store, no-transform`；origin 与受控 gateway MUST NOT 压缩或改写 body。RFC 9110 将 `identity` 保留给 `Accept-Encoding`，因此实现 MUST NOT 发送 `Content-Encoding: identity`。`application/problem+json` 使用闭合的 `PsiPaddedProblem`，`padding` 是唯一 extension member，并满足同一算法；此 PSI surface 的 `type` MUST 为 `urn:arkret:error:<canonical_error_code>`，`status` MUST 与 HTTP status line 及 error registry 一致。不得因 content negotiation 旁路 padding 或改变错误语义。
+- **PSI HTTP entity-body bucket（normative）**：describe 固定 buckets `[4096, 16384, 65536, 262144]` bytes。对 blind / match 各 phase，Provider 分别构造该 phase 最大合法 200 success，以及每一种允许的 Class B RFC 9457 Problem Details / `PsiPaddedProblem` 最大投影（均令 `padding=""`），取其中 RFC 8785 JCS UTF-8 body 最大者，再选择能容纳它的最小 bucket `B_phase`；计算必须纳入 schema 允许的最大字符串转义长度。若无 bucket 可容纳，MUST NOT advertise 该配置。Provider MUST 分别把结果写入 `blind_response_bucket_bytes` / `match_response_bucket_bytes`，客户端与 runner MUST 重算并拒绝不是最小可容纳 bucket 的 describe。产生实际响应时，先对 `padding=""` 的完整对象执行 RFC 8785 JCS 并取 UTF-8 byte length `N`，再把 `padding` 设为恰好 `B_phase-N` 个 ASCII SP，最后再次执行 JCS 得到 wire body；由于 SP 在 JSON string 中不转义，最终 HTTP entity body 的实际 `Content-Length` MUST **恰好等于** describe 的 phase bucket。该 phase 的每个 200 success 与 Class B RFC 9457 Problem Details 都使用此算法。响应 MUST **省略 `Content-Encoding`**（即不应用任何 content coding）并设置 `Cache-Control: no-store, no-transform`；origin 与受控 gateway MUST NOT 压缩或改写 body。RFC 9110 将 `identity` 保留给 `Accept-Encoding`，因此实现 MUST NOT 发送 `Content-Encoding: identity`。`application/problem+json` 使用闭合的 `PsiPaddedProblem`，`padding` 是唯一 extension member，并满足同一算法；此 PSI surface 的 `type` MUST 为 `https://arkret.org/problems/<canonical_error_code>`，`status` MUST 与 HTTP status line 及 error registry 一致。该 endpoint 不因 content negotiation 旁路 padding 或改变错误语义。
 - **反枚举 delay class（normative）**：describe 的 `anti_enumeration_delay={minimum_ms,jitter_ms,distribution="uniform"}` 定义 origin 从完成认证 / schema 校验到开始发送响应前的等待分布：`minimum_ms + UniformInteger(0..jitter_ms)`。同一 phase 的成功与 Class B 路径 MUST 调用同一 sampler；不得按错误原因选择不同 floor / jitter。Conformance runner MUST 检查配置路径一致，并在同机条件下对每类至少采样 30 次；success 与 Class B 的 p95 差异 MUST ≤ `max(50ms, jitter_ms/4)`。
 - Provider MUST NOT 在第二轮返回 contact request handoff token、reachability proof、handle verified claim、完整 profile、组织成员资格、Realm membership 或读取权限。这些声明只能通过后续 contact / invite + consent 流程获得。既有最小 invite/consent handoff stub 只可声明 consent state hash、grant/revoke 状态或下一步引导，不得成为可直接创建 contact relation 的凭据。
 - Private discovery 结果**仅** 证明"在 provider 当前可联系集合中存在 OPRF derived 与某项匹配的条目"——不证明该条目对应的真实身份、handle、活跃度或意愿。客户端 UI MUST 把它表述为"可能可联系"而不是"已确认存在"。
 - 高隐私客户端 SHOULD 为每个 provider 或关系使用 pairwise DID，并在 consent 完成前避免披露全局 public persona DID。
 - 实现 MUST NOT 在同一 quota window 内允许同一 quota key 提交超过 `max_psi_queries_per_window`（默认 1）次 batch；默认 quota window 为 24h，且 MUST 与 VOPRF key epoch 解耦。quota 以**已认证 device credential**为主键；provider MAY 额外施加 per-principal 与 IP 反滥用上限，但单一 IP MUST NOT 是唯一 quota key。一次完整 PSI query 的 blind + match 整体计 1 次，quota 只在首次 blind 准入时原子执行；已接纳 batch 的 match 与完全相同重试 MUST NOT 再扣 quota。
 - **batch replay / retry binding（normative）**：Provider 以 `(authenticated_device_credential, batch_id)` 为唯一域。首次通过语法、固定 cardinality、ciphersuite / epoch 校验的 blind 请求计算 `blind_digest = SHA-256(JCS(closed blind request body))`，原子完成 quota 准入、计数、digest / epoch 绑定与 outcome 缓存；在 `batch_completion_ttl_seconds` 接纳区间内，同 digest 重试 MUST 返回缓存的同一语义 outcome、不重新计数，并继续使用相同 phase bucket / delay sampler；同一 batch_id 携带不同 blind digest MUST 返回 409 `duplicate_conflict`，不得重新求值。首次合法 match 同样绑定 `match_digest = SHA-256(JCS(closed match request body))` 并缓存 outcome；相同 match 重试返回缓存 outcome，不同 digest 返回 `duplicate_conflict`。batch 未知、属于其它 device，或请求到达时刻大于等于 `admission_time + batch_completion_ttl_seconds`，统一返回 410 `psi_batch_unavailable`，不得区分具体原因。Provider MUST 在接纳区间内保留绑定、pinned epoch 与缓存；不得以 epoch 已轮换为由拒绝合法 match，区间结束后不得接受孤立 match。
-- **超额响应（normative）**：超额 blind 返回 HTTP 429 + `psi_quota_exhausted` 的 padded Class B ErrorEnvelope，并携带十进制秒数形式 `Retry-After`；取值为距 quota window 滚动剩余秒数向上量化到 300s 整数倍，最小值 300。Provider MUST NOT 把 quota denial 伪装成 200 no-match：quota 是 requester 自身状态，伪装会产生可缓存假阴性且可被自控 canary 识破。新 VOPRF key epoch 不得单独重置 quota；只有 quota window 滚动或 operator 明确解封可重置。
+- **超额响应（normative）**：超额 blind 返回 HTTP 429 + `psi_quota_exhausted` 的 padded Class B RFC 9457 Problem Details，并携带十进制秒数形式 `Retry-After`；取值为距 quota window 滚动剩余秒数向上量化到 300s 整数倍，最小值 300。Provider MUST NOT 把 quota denial 伪装成 200 no-match：quota 是 requester 自身状态，伪装会产生可缓存假阴性且可被自控 canary 识破。新 VOPRF key epoch 不得单独重置 quota；只有 quota window 滚动或 operator 明确解封可重置。
 
 ## 7. Directory Service Role
 
@@ -993,11 +992,10 @@ Result：
 
 ```json
 {
-  "ok": false,
-  "error": {
-    "code": "not_found",
-    "message": "not found"
-  }
+  "type": "https://arkret.org/problems/not_found",
+  "title": "Not found",
+  "status": 404,
+  "detail": "not found"
 }
 ```
 

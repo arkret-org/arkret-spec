@@ -504,14 +504,13 @@ Content-Type: application/json
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `ok` | `boolean` | required | 请求是否被**接受处理**（见下 partial-success 规则）。 |
-| `delivered` | `object` | optional | 已入队或已投递设备摘要。 |
-| `unknown_devices` | `object` | optional | 无法识别或不可投递的设备。 |
+| `delivered` | `object` | required | 已入队或已投递设备的 typed map；没有结果时为 `{}`。 |
+| `unknown_devices` | `object` | required | 无法识别或不可投递设备的 typed map；没有结果时为 `{}`。 |
 
 **Partial-success / 全局失败语义（normative）**：
 
-- **整体拒绝**（请求级失败：认证 / 授权失败、`Idempotency-Key` 冲突、所有目标 envelope 缺 `expires_at` / 已过期 / 超 TTL 上限、body 非 canonical）MUST 走 HTTP 错误响应（4xx，按 [`../sync/api-conventions.md`](../sync/api-conventions.md) error envelope），**不**用 `ok=false` 表达；此时不入队任何消息。
-- **部分成功**（请求被接受、至少一个目标被处理，但部分设备落入 `unknown_devices`）：`ok` MUST 为 `true`——`ok` 表达"请求已被接受并逐设备处理"，而非"全部设备均成功"。逐设备结果由 `delivered` / `unknown_devices` 表达。
+- **整体拒绝**（请求级失败：认证 / 授权失败、`Idempotency-Key` 冲突、所有目标 envelope 缺 `expires_at` / 已过期 / 超 TTL 上限、body 非 canonical）MUST 走 HTTP 错误响应（4xx，按 [`../sync/api-conventions.md`](../sync/api-conventions.md) Problem Details）；此时不入队任何消息。
+- **部分成功**（请求被接受、至少一个目标被处理，但部分设备落入 `unknown_devices`）：逐设备结果只由必填的 `delivered` / `unknown_devices` typed map 表达，不附加通用布尔判别。
 - **覆盖关系**：`delivered` 与 `unknown_devices` 的设备集合 MUST 互不相交，且其并集 MUST 等于请求 `messages` 中的全部 `(principal_id, device_id)` 目标全集（每个目标恰好出现在二者之一）。consumer 据此可断言无目标被静默丢弃。
 - 单设备因 TTL / `expires_at` 等可投递性原因不可入队时，该设备 MUST 计入 `unknown_devices`（携带可投递性失败语义），不使整请求失败。
 
@@ -652,10 +651,9 @@ Content-Type: application/json
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `ok` | `boolean` | required | 确认是否被接受（含旧令牌 no-op 的情况）。 |
-| `pruned_count` | `int` | optional | 本次实际删除的消息数。 |
+| `pruned_count` | `int` | required | 本次实际删除的消息数；重复或旧令牌的合法 no-op 返回 0。 |
 
-确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{ok: true}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `param_invalid`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / verification transcript / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端 MUST 先按 `(sender_principal_id, sender endpoint id, device_message_id)` 查询 durable 去重记录：已成功持久化的消息不得再次执行副作用，但仍计入连续完成位点并允许累计 ack。kind-specific `transaction_id` / `request_id` 只用于业务 transcript 关联，不得替代 envelope 级去重键。
+确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{pruned_count: 0}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `param_invalid`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / verification transcript / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端 MUST 先按 `(sender_principal_id, sender endpoint id, device_message_id)` 查询 durable 去重记录：已成功持久化的消息不得再次执行副作用，但仍计入连续完成位点并允许累计 ack。kind-specific `transaction_id` / `request_id` 只用于业务 transcript 关联，不得替代 envelope 级去重键。
 
 ## 8. One-Time and Fallback Keys
 

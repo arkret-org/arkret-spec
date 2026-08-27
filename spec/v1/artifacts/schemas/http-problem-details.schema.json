@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/http-problem-details.schema.json",
+  "title": "Arkret HTTP Problem Details",
+  "description": "Canonical RFC 9457 application/problem+json error response. The type URI is the stable machine discriminator and must resolve through error-code-registry.json. Unknown extension members are tolerated by consumers as required by RFC 9457; producers may emit only extensions registered for the selected type.",
+  "type": "object",
+  "required": [
+    "type",
+    "title",
+    "status",
+    "detail"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://arkret\\.org/problems/[a-z][a-z0-9_]{0,127}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "status": {
+      "type": "integer",
+      "minimum": 400,
+      "maximum": 599
+    },
+    "detail": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "instance": {
+      "type": "string",
+      "format": "uri-reference",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "retry_after_ms": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "reason_code": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    }
+  },
+  "additionalProperties": true
+}

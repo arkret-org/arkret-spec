@@ -26,7 +26,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "8cc98e7a3bcdd10629e595262bf4b53705faafa09a2a84ebe16e378fd1f80d5e"
+      "sha256": "b0f106ebe5eef2e78988259a6b8482839734d3ba893a4125d31f5675c2169125"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
@@ -66,7 +66,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-notification-fixture.json",
-      "sha256": "ccbf04bbf84c46f534b317d1e98038773eef8488740df9342af3b11b5b48b3ab"
+      "sha256": "a94823c94575b03f50633b91d6cf33243549c69810ecea4bc4b668802fd8ead9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "9709efbf11a9c6f6c6bd329660645731976a4e2c8a33bde6f31deca8ece4a9c2"
+      "sha256": "809d4ff5d9f7926edbf1ae535a423d03b74fee8eaf93eac0e28f73f4061e506f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

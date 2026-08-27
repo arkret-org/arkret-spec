@@ -576,14 +576,9 @@
     "operation_status_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "status"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
         "status": {
           "$ref": "#/$defs/agent_status"
         }
@@ -725,16 +720,11 @@
     "agent_key_pair_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "activation_state",
         "authorize_event_ref",
         "signing_key_binding"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
         "activation_state": {
           "type": "string",
           "enum": [
@@ -823,7 +813,7 @@
     },
     "agent_human_approval_error_details": {
       "type": "object",
-      "description": "Closed error.details shape returned by ak.gate.account.command.issue_session_grant when an agent_key_proof request needs out-of-band controller approval. The enclosing ErrorEnvelope.error.code MUST be claim_required. The agent runtime MUST NOT be given CAPTCHA, OTP, browser-login, or other interactive human challenge material.",
+      "description": "Closed RFC 9457 extension set returned by ak.gate.account.command.issue_session_grant when an agent_key_proof request needs out-of-band controller approval. The enclosing Problem type MUST be https://arkret.org/problems/claim_required. The agent runtime MUST NOT be given CAPTCHA, OTP, browser-login, or other interactive human challenge material.",
       "required": [
         "reason_code",
         "approval_request_id"
@@ -841,15 +831,10 @@
     "agent_runtime_approval_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "approval_request_id",
         "status"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
         "approval_request_id": {
           "$ref": "#/$defs/opaque_local_id"
         },
@@ -885,17 +870,12 @@
       "type": "object",
       "description": "Controller-decision status for one runtime key pairing request. runtime_state is an operation-specific pairing diagnostic, not a fourth general Agent status axis. While the polled pairing is open it is pending_runtime_key (bootstrap) or replacing (replacement). Once the controller has approved this exact pairing, authorized_event_ref plus the authorized key binding fields are present; the runtime MUST compare authorized_public_key_digest against its own key. Presence and digest match of those fields — never lifecycle, readiness, presence or runtime_state alone — is the approval signal. An expired bootstrap reports pairing_expired; an expired replacement reports ready with no authorization fields for this request.",
       "required": [
-        "ok",
         "lifecycle",
         "runtime_state",
         "readiness",
         "presence"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
         "lifecycle": {
           "$ref": "#/$defs/agent_status"
         },
@@ -1732,14 +1712,9 @@
     "agent_grant_attach_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "grant_id"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
         "grant_id": {
           "$ref": "#/$defs/grant_id"
         }
@@ -1815,14 +1790,9 @@
     "agent_grant_detach_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "revoked_at"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
         "revoked_at": {
           "$ref": "#/$defs/timestamp"
         }
@@ -2040,15 +2010,10 @@
     "agent_participation_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "agent_id",
         "entries"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
         "agent_id": {
           "type": "string"
         },

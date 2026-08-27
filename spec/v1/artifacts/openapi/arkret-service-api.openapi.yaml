@@ -915,7 +915,7 @@ components:
         result:
           type: object
         error:
-          $ref: '#/components/schemas/ErrorEnvelope'
+          $ref: '#/components/schemas/Problem'
       additionalProperties: false
     ConsentCellList:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_list
@@ -1150,279 +1150,6 @@ components:
       $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome
     ErasureReceiptSubmitRequestBody:
       $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body
-    ErrorEnvelope:
-      type: object
-      required:
-      - ok
-      - error
-      - request_id
-      properties:
-        ok:
-          const: false
-        error:
-          type: object
-          required:
-          - code
-          - message
-          properties:
-            code:
-              type: string
-              description: 'Standard error code from artifacts/registry/error-code-registry.json.
-
-                The enum below is generated from that registry; clients MUST treat
-
-                unknown values as forward-compatible failures and SHOULD log them.'
-              enum:
-              - json_invalid
-              - query_invalid
-              - schema_violation
-              - historical_did_evidence_invalid
-              - current_did_authority_unavailable
-              - pcr_authority_stale
-              - did_method_successor_invalid
-              - agent_signer_evidence_missing
-              - agent_signer_evidence_stale
-              - agent_authorization_inactive
-              - agent_authorization_conflicted
-              - agent_signing_key_mismatch
-              - agent_mls_leaf_binding_mismatch
-              - duplicate_clause_claim
-              - key_transparency_proof_missing
-              - param_missing
-              - param_invalid
-              - controller_signed_event_required
-              - unauthenticated
-              - auth_expired
-              - grant_already_consumed
-              - session_logged_out
-              - audience_mismatch
-              - soft_logged_out
-              - account_locked
-              - account_suspended
-              - account_deactivated
-              - account_erased
-              - reauthentication_required
-              - did_proof_required
-              - signature_invalid
-              - http_signature_required
-              - http_signature_invalid
-              - signature_window_invalid
-              - capability_denied
-              - realm_frozen
-              - claim_required
-              - policy_violation
-              - policy_denied
-              - read_receipt_compliance_floor_violated
-              - not_found
-              - unrecognized_endpoint
-              - method_not_allowed
-              - conflict
-              - cas_conflict
-              - causal_conflict
-              - dependency_missing
-              - discussion_track_disabled
-              - track_disabled
-              - selector_too_complex
-              - device_generation_fenced
-              - recovery_policy_mismatch
-              - device_reanchor_authority_mismatch
-              - device_reanchor_entry_not_head
-              - device_reanchor_frontier_mismatch
-              - device_reanchor_authorize_mismatch
-              - device_reanchor_conflict
-              - epoch_mismatch
-              - duplicate_conflict
-              - session_grant_replay_expired
-              - session_grant_replay_terminal
-              - session_grant_replay_indeterminate
-              - rank_exhausted
-              - hlc_logical_overflow
-              - payload_too_large
-              - digest_mismatch
-              - aad_digest_mismatch
-              - payload_digest_mismatch
-              - key_unavailable
-              - state_mismatch
-              - seal_signer_unauthorized
-              - seal_deferred_future_skew
-              - audit_receipt_invalidated
-              - did_unknown
-              - quota_exceeded
-              - limit_exceeded
-              - rate_limited
-              - psi_batch_unavailable
-              - psi_quota_exhausted
-              - timeout
-              - frontier_stale
-              - authorized_grant_revoked
-              - device_recovery_generation_mismatch
-              - cursor_expired
-              - cursor_integrity_invalid
-              - cursor_revoked
-              - cursor_unrecognized
-              - actor_seq_invalid
-              - seal_ref_stale
-              - seal_ref_unknown
-              - audience_unknown
-              - blob_digest_mismatch
-              - blob_expired
-              - blob_presign_invalid
-              - blob_quota_exceeded
-              - cursor_invalid
-              - device_unknown
-              - did_already_exists
-              - did_not_found
-              - did_revoked
-              - frontier_unavailable
-              - frontier_sequence_exhausted
-              - mls_governance_anchor_unreachable
-              - mls_governance_proof_bounds_exceeded
-              - handle_unverified
-              - key_replay
-              - keypackage_already_consumed
-              - keypackage_unknown
-              - claim_failed
-              - one_time_keys_exhausted
-              - policy_stale
-              - policy_unavailable
-              - principal_unknown
-              - push_gateway_unreachable
-              - push_payload_too_large
-              - push_target_unknown
-              - push_token_invalid
-              - push_token_unknown
-              - quarantine
-              - snapshot_authority_unverified
-              - snapshot_unavailable
-              - stream_dropped
-              - stream_resync_required
-              - too_large
-              - unsupported_did_method
-              - unsupported_media_policy
-              - unsupported_feature
-              - unsupported_operation_binding
-              - unsupported_event_kind
-              - not_implemented
-              - projection_incomplete
-              - internal_error
-              - temporarily_unavailable
-              - service_unavailable
-              - service_identity_unavailable
-              - service_registration_denied
-              - service_identity_conflict
-              - policy_combination_invalid
-              - history_not_visible
-              - notary_recovery_missing
-              - unsupported_lattice_type
-              - organization_registration_challenge_invalid
-              - organization_registration_control_proof_invalid
-              - organization_registration_quorum_not_met
-              - unsupported_organization_registration_scope
-              - organization_registration_revoked
-              - organization_registration_stale
-              - unsupported_profile
-              - unsupported_join_rule
-              - failed_precondition
-              - failed_plane
-              - failed_bottom
-              - direct_conversation_unavailable
-              - contact_request_not_pending
-              - contact_request_expired
-              - unsupported_ciphersuite
-              - unsupported_digest_algorithm
-              - unsupported_signature_alg
-              - unsupported_hpke_suite
-              - unsupported_protocol_version
-              - genesis_seal_invalid
-              - seal_incomplete
-              - franking_proof_unavailable
-              - turn_credential_expired
-              - delivery_binding_stale
-              - delivery_binding_handed_over
-              - delivery_binding_unresolvable
-              - historical_only
-              - applet_registration_unauthorized
-              - applet_install_plan_mismatch
-              - applet_e2ee_join_unauthorized
-              - applet_revoked
-              - avatar_blob_ref_invalid
-              - unsupported_profile_patch_path
-              - session_grant_not_found
-              - session_revoke_selector_conflict
-              - not_member
-              - morph_profile_widens_schema_ref
-              - morph_kind_immutable
-              - applet_already_registered
-              - applet_effective_scope_mismatch
-              - applet_install_projection_incomplete
-              - applet_install_required
-              - applet_namespace_conflict
-              - applet_package_expired
-              - authoring_request_expired
-              - applet_registration_epoch_evidence_deactivated
-              - applet_registration_epoch_evidence_mismatch
-              - applet_registration_epoch_evidence_missing
-              - applet_registration_epoch_signing_key_mismatch
-              - applet_transaction_in_progress
-              - enclave_no_upstream_proxy_for_external
-              - enclave_not_trusted
-              - external_invite_actor_mismatch
-              - external_user_no_main_access
-              - upstream_unavailable
-              - agent_provision_fanout_unavailable
-              - cannot_pair_current_device
-              - device_already_authorized
-              - device_unauthorized
-              - device_revoked
-              - device_revocation_pending
-              - discovery_failed
-              - first_backup_gate_unsatisfied
-              - recovery_authorization_device_mismatch
-              - recovery_authorization_principal_mismatch
-              - recovery_authorization_session_mismatch
-              - recovery_control_event_kind_mismatch
-              - recovery_control_event_not_found
-              - recovery_list_update_device_mismatch
-              - recovery_list_update_principal_mismatch
-              - recovery_policy_conflict
-              - recovery_policy_device_unauthorized
-              - recovery_policy_id_mismatch
-              - recovery_policy_missing
-              - recovery_policy_revoked
-              - recovery_policy_trust_domain_mismatch
-              - recovery_policy_version_mismatch
-              - recovery_proof_authority_invalid
-              - recovery_proof_kind_not_allowed
-              - recovery_proof_kind_unimplemented
-              - recovery_receipt_conflict
-              - recovery_session_conflict
-              - recovery_session_id_reused
-              - recovery_session_not_pending
-              - mimi_e2ee_boundary_unmarked
-              - mimi_payload_digest_mismatch
-              - mimi_payload_invalid
-              - mimi_room_binding_event_invalid
-              - mimi_reporter_resolution_required
-              - franking_tampered
-              - mls_keypackage_claim_request_expired
-              - mls_genesis_already_exists
-              - snapshot_chunk_digest_mismatch
-              - unsupported_content_encoding
-              - contact_scope_stale
-              - contact_lineage_conflict
-              - continuity_evidence_unavailable
-              - continuity_invalid
-              - membership_compensation_conflict
-            message:
-              type: string
-            retry_after_ms:
-              type:
-              - integer
-              - 'null'
-            details:
-              type: object
-        request_id:
-          type: string
     EventDeliveryStatusOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome
     EventDeliveryStatusRequestBody:
@@ -1935,38 +1662,7 @@ components:
     PrincipalLocatorResolveRequestBody:
       $ref: ../schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body
     Problem:
-      type: object
-      description: |
-        RFC 9457 (application/problem+json) projection of the default
-        ErrorEnvelope, returned by HTTP-binding services only when the request
-        carries `Accept: application/problem+json`. This is a content-negotiated
-        view over the default `{ok:false, error:{...}}` wire, not a new error
-        namespace: `type` carries the same standard `error.code` string from
-        artifacts/registry/error-code-registry.json. Field mapping:
-        `error.code → type`, `error.message → detail`, HTTP status → `status`,
-        `request_id → instance`. See zh/sync/api-conventions.md §5.
-      properties:
-        type:
-          type: string
-          description: |
-            Problem type identifier. Carries the standard `error.code` string
-            (MAY be expressed as a URN or relative URI). Clients MUST treat
-            unknown values as forward-compatible failures.
-        title:
-          type: string
-          description: Optional short, human-readable summary of the problem type.
-        status:
-          type: integer
-          description: HTTP status code, mirroring the response status line.
-          minimum: 100
-          maximum: 599
-        detail:
-          type: string
-          description: Developer-facing diagnostic text (from `error.message`); MUST NOT be used for stable program logic.
-        instance:
-          type: string
-          description: Request identifier (from `request_id`).
-      additionalProperties: true
+      $ref: ../schemas/http-problem-details.schema.json
     ProjectionAssignedToRelation:
       type: object
       additionalProperties: false
@@ -2208,45 +1904,12 @@ components:
           $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
         updated_at:
           $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
-    PsiPaddedErrorEnvelope:
-      type: object
-      description: >-
-        Closed PSI Class B projection of the standard ErrorEnvelope with the
-        required padding extension. Details and retry_after_ms are intentionally
-        absent so the maximal semantic body size is bounded.
-      required: [ok, error, request_id, padding]
-      additionalProperties: false
-      properties:
-        ok:
-          const: false
-        error:
-          type: object
-          required: [code, message]
-          additionalProperties: false
-          properties:
-            code:
-              type: string
-              enum:
-              - duplicate_conflict
-              - policy_denied
-              - psi_batch_unavailable
-              - psi_quota_exhausted
-            message:
-              type: string
-              minLength: 1
-              maxLength: 256
-        request_id:
-          type: string
-          minLength: 1
-          maxLength: 128
-        padding:
-          $ref: '#/components/schemas/PsiResponsePadding'
     PsiPaddedProblem:
       type: object
       description: >-
-        Closed RFC 9457 projection of PsiPaddedErrorEnvelope. padding is an RFC
+        Closed RFC 9457 Problem Details shape for PSI Class B failures. padding is an RFC
         9457 extension member and the only extension allowed on this surface.
-      required: [type, status, detail, instance, padding]
+      required: [type, title, status, detail, instance, padding]
       additionalProperties: false
       properties:
         type:
@@ -2283,8 +1946,6 @@ components:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_register_device_outcome
     PushRegisterDeviceRequestBody:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_register_device_request_body
-    PushUnregisterDeviceOutcome:
-      $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome
     PushUnregisterDeviceRequestBody:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body
     QueryFilter:
@@ -3261,9 +2922,6 @@ components:
     NotFound:
       description: Not found or not visible.
       content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorEnvelope'
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
@@ -3274,9 +2932,6 @@ components:
           schema:
             type: string
       content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorEnvelope'
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
@@ -3286,9 +2941,9 @@ components:
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
       content:
-        application/json:
+        application/problem+json:
           schema:
-            $ref: '#/components/schemas/ErrorEnvelope'
+            $ref: '#/components/schemas/Problem'
     PsiQuotaExhausted:
       description: >-
         PSI window quota exhausted (error code psi_quota_exhausted), returned
@@ -3311,20 +2966,12 @@ components:
             type: integer
             enum: [4096, 16384, 65536, 262144]
       content:
-        application/json:
-          schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedErrorEnvelope'
-            - properties:
-                error:
-                  properties:
-                    code: {const: psi_quota_exhausted}
         application/problem+json:
           schema:
             allOf:
             - $ref: '#/components/schemas/PsiPaddedProblem'
             - properties:
-                type: {const: 'urn:arkret:error:psi_quota_exhausted'}
+                type: {const: 'https://arkret.org/problems/psi_quota_exhausted'}
                 status: {const: 429}
     PsiPolicyDenied:
       description: >-
@@ -3337,20 +2984,12 @@ components:
         Content-Length:
           schema: {type: integer, enum: [4096, 16384, 65536, 262144]}
       content:
-        application/json:
-          schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedErrorEnvelope'
-            - properties:
-                error:
-                  properties:
-                    code: {const: policy_denied}
         application/problem+json:
           schema:
             allOf:
             - $ref: '#/components/schemas/PsiPaddedProblem'
             - properties:
-                type: {const: 'urn:arkret:error:policy_denied'}
+                type: {const: 'https://arkret.org/problems/policy_denied'}
                 status: {const: 403}
     PsiDuplicateConflict:
       description: >-
@@ -3362,20 +3001,12 @@ components:
         Content-Length:
           schema: {type: integer, enum: [4096, 16384, 65536, 262144]}
       content:
-        application/json:
-          schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedErrorEnvelope'
-            - properties:
-                error:
-                  properties:
-                    code: {const: duplicate_conflict}
         application/problem+json:
           schema:
             allOf:
             - $ref: '#/components/schemas/PsiPaddedProblem'
             - properties:
-                type: {const: 'urn:arkret:error:duplicate_conflict'}
+                type: {const: 'https://arkret.org/problems/duplicate_conflict'}
                 status: {const: 409}
     PsiBatchUnavailable:
       description: >-
@@ -3389,20 +3020,12 @@ components:
         Content-Length:
           schema: {type: integer, enum: [4096, 16384, 65536, 262144]}
       content:
-        application/json:
-          schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedErrorEnvelope'
-            - properties:
-                error:
-                  properties:
-                    code: {const: psi_batch_unavailable}
         application/problem+json:
           schema:
             allOf:
             - $ref: '#/components/schemas/PsiPaddedProblem'
             - properties:
-                type: {const: 'urn:arkret:error:psi_batch_unavailable'}
+                type: {const: 'https://arkret.org/problems/psi_batch_unavailable'}
                 status: {const: 410}
     TemporarilyUnavailable:
       description: Temporarily unavailable.
@@ -3410,9 +3033,9 @@ components:
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
       content:
-        application/json:
+        application/problem+json:
           schema:
-            $ref: '#/components/schemas/ErrorEnvelope'
+            $ref: '#/components/schemas/Problem'
 paths:
   /_arkret/describe:
     get:
@@ -3557,15 +3180,15 @@ paths:
         '400':
           description: Signed inception or registration-key binding rejected
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
         '409':
           description: Registration key or hosted document conflicts with another service identity
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
         '503':
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/service-registrations:
@@ -3631,9 +3254,9 @@ paths:
         '422':
           description: Requested delegated scope is outside the closed scope set or unsupported here
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
         '503':
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/organization-registrations:ensure:
@@ -3661,23 +3284,23 @@ paths:
         '400':
           description: Challenge, control proof or governance quorum rejected
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           description: Same idempotency identity submitted with different canonical content
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
         '422':
           description: Requested delegated scope is outside the closed scope set or unsupported here
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
         '503':
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/organization-registrations:
@@ -3732,17 +3355,17 @@ paths:
         '400':
           description: Challenge, control proof or governance quorum rejected
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           description: Binding is revoked, which is terminal and cannot be revived by refresh
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
         '503':
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/organization-registrations:revoke:
@@ -4695,9 +4318,9 @@ paths:
         '409':
           description: The account already has a different authoritative PCR genesis. Event-derived ids never collide across two genesis attempts, so this uniqueness is enforced at the account dimension rather than by realm_id equality.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
   /_arkret/peer/account-status/resolve:
     post:
       operationId: ak.peer.account_status.read.resolve
@@ -4729,9 +4352,9 @@ paths:
         '404':
           description: Non-enumerating unknown, unrelated, or unauthorized account outcome.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
   /_arkret/peer/account-status:
     post:
       operationId: ak.peer.account_status.command.submit
@@ -4780,9 +4403,9 @@ paths:
         '409':
           description: Idempotency-Key conflict or invalid account-status transition.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
   /_arkret/peer/mls/group-state-material:
     post:
       operationId: ak.peer.mls.read.group_state_material
@@ -4818,15 +4441,15 @@ paths:
         '409':
           description: Event/object material is unavailable, inconsistent, or not accepted.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
         '422':
           description: The complete response exceeds the caller or protocol byte bound.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
   /_arkret/peer/erasure-receipts:
     post:
       operationId: ak.peer.erasure_receipt.command.submit
@@ -4869,9 +4492,9 @@ paths:
         '409':
           description: Idempotency conflict or invalid receipt package.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
   /_arkret/peer/erasure-receipts/{receipt_id}:
     get:
       operationId: ak.peer.erasure_receipt.resource.get
@@ -4899,9 +4522,9 @@ paths:
         '404':
           description: Unknown, hidden or unauthorized receipt.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
   /_arkret/peer/device-revocations/check:
     post:
       operationId: ak.peer.device_revocations.command.check
@@ -5025,10 +4648,10 @@ paths:
         '409':
           description: Registered atomic federation unit rejected with zero writes because exact Event or CBA dependencies are missing. error.code is dependency_missing and error.details conforms to EventsDependencyMissingProblem.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/ErrorEnvelope'
+                - $ref: '#/components/schemas/Problem'
                 - type: object
                   properties:
                     error:
@@ -6832,12 +6455,8 @@ paths:
       security:
       - bearerAuth: []
       responses:
-        '200':
-          description: Device unregistration result
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PushUnregisterDeviceOutcome'
+        '204':
+          description: Device registration removed; the response has no body.
       requestBody:
         required: true
         content:
@@ -7185,9 +6804,6 @@ paths:
             reason resolution_history_ancestor_unknown when the supplied ancestor
             is not in this account's current resolution lineage.
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
@@ -7941,9 +7557,9 @@ paths:
             carries neither transcript_binding nor an explicit e2ee_downgrade
             marker.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
       requestBody:
         required: true
         content:
@@ -10059,17 +9675,17 @@ paths:
         '403':
           description: Human device is unauthorized (device_unauthorized, zero grant) or Agent high-risk scope requires out-of-band controller approval (claim_required).
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/Problem'
         '409':
           description: Conflicting canonical intent, terminal recorded replay, or replay record no longer decidable. A terminal replay carries closed session_grant_id/state details and never creates a replacement grant.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 oneOf:
                 - allOf:
-                  - $ref: '#/components/schemas/ErrorEnvelope'
+                  - $ref: '#/components/schemas/Problem'
                   - type: object
                     properties:
                       error:
@@ -10079,7 +9695,7 @@ paths:
                           code:
                             enum: [duplicate_conflict, session_grant_replay_indeterminate, device_revocation_pending, device_revoked, device_generation_fenced]
                 - allOf:
-                  - $ref: '#/components/schemas/ErrorEnvelope'
+                  - $ref: '#/components/schemas/Problem'
                   - type: object
                     properties:
                       error:
@@ -10093,10 +9709,10 @@ paths:
         '410':
           description: The recorded exact-replay outcome has expired; the issuer returns its session_grant_id/state and creates no replacement.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/ErrorEnvelope'
+                - $ref: '#/components/schemas/Problem'
                 - type: object
                   properties:
                     error:
@@ -10146,10 +9762,10 @@ paths:
         '409':
           description: The stable revoke request identity conflicts with a different canonical intent, or replay retention no longer proves whether the mutation committed. Both outcomes fail closed with zero new state changes.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/ErrorEnvelope'
+                - $ref: '#/components/schemas/Problem'
                 - type: object
                   properties:
                     error:
@@ -10198,11 +9814,11 @@ paths:
         '409':
           description: Conflicting refresh intent, terminal recorded successor, or replay record no longer decidable. A terminal replay carries closed session_grant_id/state details and never creates a second successor.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 oneOf:
                 - allOf:
-                  - $ref: '#/components/schemas/ErrorEnvelope'
+                  - $ref: '#/components/schemas/Problem'
                   - type: object
                     properties:
                       error:
@@ -10212,7 +9828,7 @@ paths:
                           code:
                             enum: [duplicate_conflict, session_grant_replay_indeterminate, device_revocation_pending, device_revoked, device_generation_fenced]
                 - allOf:
-                  - $ref: '#/components/schemas/ErrorEnvelope'
+                  - $ref: '#/components/schemas/Problem'
                   - type: object
                     properties:
                       error:
@@ -10226,10 +9842,10 @@ paths:
         '410':
           description: The recorded successor has expired; the issuer returns its session_grant_id/state and creates no second successor.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/ErrorEnvelope'
+                - $ref: '#/components/schemas/Problem'
                 - type: object
                   properties:
                     error:

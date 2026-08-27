@@ -1017,7 +1017,7 @@ def check_binding_variant_non_http(lint: Lint) -> None:
 
 
 def check_openapi_error_enum_alignment(lint: Lint) -> None:
-    """ErrorEnvelope.error.code must be generated from the canonical error registry."""
+    """RFC 9457 problem types and OpenAPI error media must stay canonical."""
     registry_path = ARTIFACTS / "registry" / "error-code-registry.json"
     openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     registry = load_json(lint, registry_path)
@@ -1025,34 +1025,74 @@ def check_openapi_error_enum_alignment(lint: Lint) -> None:
     if not isinstance(registry, dict) or not isinstance(openapi, dict):
         return
 
-    expected = [
-        row.get("code")
-        for row in registry.get("codes", [])
-        if isinstance(row, dict) and row.get("scope") in {"both", "endpoint"}
-    ]
-    enum = (
-        openapi.get("components", {})
-        .get("schemas", {})
-        .get("ErrorEnvelope", {})
-        .get("properties", {})
-        .get("error", {})
-        .get("properties", {})
-        .get("code", {})
-        .get("enum")
-    )
-    if not isinstance(enum, list):
-        lint.fail(openapi_path, "ErrorEnvelope.error.code.enum missing")
-        return
+    for index, row in enumerate(registry.get("codes", [])):
+        if not isinstance(row, dict):
+            continue
+        code = row.get("code")
+        expected_type = f"https://arkret.org/problems/{code}"
+        if row.get("type_uri") != expected_type:
+            lint.fail(
+                registry_path,
+                f"codes[{index}].type_uri must equal {expected_type!r}",
+            )
+        if not isinstance(row.get("title"), str) or not row["title"].strip():
+            lint.fail(registry_path, f"codes[{index}].title must be non-empty")
 
-    if enum != expected:
-        missing = sorted(set(expected) - set(enum))
-        extra = sorted(set(enum) - set(expected))
-        order_note = "" if missing or extra else "; same values but registry order differs"
+    components = openapi.get("components", {}).get("schemas", {})
+    if not isinstance(components, dict):
+        lint.fail(openapi_path, "components.schemas missing")
+        return
+    if components.get("Problem") != {
+        "$ref": "../schemas/http-problem-details.schema.json"
+    }:
         lint.fail(
             openapi_path,
-            "ErrorEnvelope.error.code.enum must match error-code-registry codes with "
-            f"scope endpoint/both: missing={missing}, extra={extra}{order_note}",
+            "components.schemas.Problem must reference the canonical RFC 9457 schema",
         )
+    for legacy in ("ErrorEnvelope",):
+        if legacy in components:
+            lint.fail(openapi_path, f"legacy OpenAPI error schema {legacy} is forbidden")
+
+    paths = openapi.get("paths", {})
+    for route, path_item in paths.items() if isinstance(paths, dict) else []:
+        if not isinstance(path_item, dict):
+            continue
+        for method, operation in path_item.items():
+            if not isinstance(operation, dict):
+                continue
+            responses = operation.get("responses", {})
+            for status, response in responses.items() if isinstance(responses, dict) else []:
+                try:
+                    status_code = int(status)
+                except (TypeError, ValueError):
+                    continue
+                if status_code < 400 or status_code > 599 or not isinstance(response, dict):
+                    continue
+                content = response.get("content")
+                if content is None:
+                    # A component $ref is checked at its definition site.
+                    continue
+                if not isinstance(content, dict) or set(content) != {"application/problem+json"}:
+                    lint.fail(
+                        openapi_path,
+                        f"{method.upper()} {route} {status} must expose only application/problem+json",
+                    )
+
+    def find_ok_property(node: Any, location: str) -> None:
+        if isinstance(node, dict):
+            properties = node.get("properties")
+            if isinstance(properties, dict) and "ok" in properties:
+                lint.fail(openapi_path, f"generic HTTP response discriminator forbidden at {location}/properties/ok")
+            for key, value in node.items():
+                find_ok_property(value, f"{location}/{key}")
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                find_ok_property(value, f"{location}/{index}")
+
+    for schema_path in sorted((ARTIFACTS / "schemas").glob("*.json")):
+        document = load_json(lint, schema_path)
+        if document is not None:
+            find_ok_property(document, schema_path.name)
 
 
 

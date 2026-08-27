@@ -108,7 +108,7 @@
     "ak.schema.extension_manifest.v1",
     "ak.schema.high_risk_authority_proof.v1",
     "ak.schema.history_key.v1",
-    "ak.schema.http_error_envelope.v1",
+    "ak.schema.http_problem_details.v1",
     "ak.schema.ice_config_response.v1",
     "ak.schema.inclusion_list.v1",
     "ak.schema.invite_delivery.v1",
@@ -2037,8 +2037,8 @@
       }
     },
     {
-      "schema_id": "ak.schema.http_error_envelope.v1",
-      "file": "schemas/http-error-envelope.schema.json",
+      "schema_id": "ak.schema.http_problem_details.v1",
+      "file": "schemas/http-problem-details.schema.json",
       "consumers": {
         "declared_wire": "dynamic_schema_ref",
         "startup_compile": "exact"
@@ -2051,7 +2051,7 @@
       },
       "consumer_binding": {
         "kind": "dynamic_schema_ref",
-        "selector": "application/json error responses selected by operations-error-mapping.json",
+        "selector": "application/problem+json error responses selected by operations-error-mapping.json",
         "normative_ref": "zh/sync/api-conventions.md#5"
       }
     },

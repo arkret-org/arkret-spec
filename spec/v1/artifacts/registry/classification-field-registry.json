@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-25.1",
+  "version": "2026-08-27.1",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
@@ -9,6 +9,15 @@
     "tier": "Finite classifications with a declared strict total order and comparison semantics."
   },
   "external_type_fields": [
+    {
+      "schema_ref": "schemas/http-problem-details.schema.json",
+      "json_pointer": "/properties/type",
+      "external_standard": "RFC 9457 Problem Details",
+      "external_field_path": "Problem Details type",
+      "round_trip_requirement": "Preserve the absolute problem type URI and dispatch on the complete URI; unknown values remain forward-compatible failures.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
     {
       "schema_ref": "schemas/blob-operations.schema.json",
       "json_pointer": "/$defs/blob_upload_outcome/properties/media_type",

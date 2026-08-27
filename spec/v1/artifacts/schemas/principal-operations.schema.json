@@ -836,7 +836,6 @@
             "status",
             "operation_id",
             "accepted_phase",
-            "ok",
             "sidecar_id",
             "source_context_ref",
             "access_readiness",
@@ -855,9 +854,6 @@
                 "commit",
                 "attach"
               ]
-            },
-            "ok": {
-              "const": true
             },
             "sidecar_id": {
               "$ref": "./common-ids.schema.json#/$defs/sidecar_id"

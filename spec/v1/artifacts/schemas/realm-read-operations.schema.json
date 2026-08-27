@@ -42,16 +42,12 @@
     "realm_lifecycle_view": {
       "type": "object",
       "required": [
-        "ok",
         "realm_id",
         "owner_id",
         "members",
         "deleted"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean"
-        },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },

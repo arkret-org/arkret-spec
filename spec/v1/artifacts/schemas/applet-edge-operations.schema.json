@@ -177,16 +177,11 @@
     "applet_ping_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "applet_id",
         "service_id",
         "protocol_version"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
         "applet_id": {
           "$ref": "#/$defs/applet_id"
         },
@@ -249,11 +244,17 @@
     "applet_transaction_outcome": {
       "type": "object",
       "required": [
-        "ok"
+        "status"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean"
+        "status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "partial",
+            "rejected"
+          ],
+          "description": "Closed transaction result: all items accepted, a mixed result, or all items rejected."
         },
         "rejected": {
           "type": "array",

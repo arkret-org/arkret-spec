@@ -330,7 +330,7 @@ checkpoint issuance 复用现有 Contact 机器面而不再建立一套三阶段
 
 导出与导入也不新增平行 carrier：`ak.self.contact.read.list` 在已有 committed checkpoint 时返回 `continuity_evidence`（完整 checkpoint + 精确未压缩尾段），recontact 继续把该对象原样复制到 `ak.self.contact.command.request` 已登记的 `continuity_evidence`。pending proposal、单边签名、projection 摘要和临时 outbox 状态都不得导出成 continuity evidence。
 
-每次 checkpoint 成功后，双方 holder 都 **MUST** 得到并可导出同一 portable checkpoint 与未压缩尾段；Principal Server 可以缓存，但不承担永久保存全量 prefix 的隐含义务。checkpoint、前一 checkpoint 或尾段暂时取不到时只返回固定 409 `continuity_evidence_unavailable`，取回/导入 exact evidence 后可重试；密码学、root、pair、rollback、fork 或断链错误返回固定 409 `continuity_invalid`，不得降级成“稍后重试”。两个 outward bucket 共享相同 ErrorEnvelope 尺寸类、无 target-sensitive header，且不披露缺哪段、错哪方或内部 Contact 状态。无法取得双签 checkpoint 且尾段已满 64 时，旧 lineage 暂停新增 recontact；双方只能显式建立**不声称 continuity**的新 lineage，新 lineage 不继承旧 history、audit identity、checkpoint、Direct Conversation 或 MLS state。
+每次 checkpoint 成功后，双方 holder 都 **MUST** 得到并可导出同一 portable checkpoint 与未压缩尾段；Principal Server 可以缓存，但不承担永久保存全量 prefix 的隐含义务。checkpoint、前一 checkpoint 或尾段暂时取不到时只返回固定 409 `continuity_evidence_unavailable`，取回/导入 exact evidence 后可重试；密码学、root、pair、rollback、fork 或断链错误返回固定 409 `continuity_invalid`，不得降级成“稍后重试”。两个 outward bucket 共享相同 RFC 9457 Problem Details 尺寸类、无 target-sensitive header，且不披露缺哪段、错哪方或内部 Contact 状态。无法取得双签 checkpoint 且尾段已满 64 时，旧 lineage 暂停新增 recontact；双方只能显式建立**不声称 continuity**的新 lineage，新 lineage 不继承旧 history、audit identity、checkpoint、Direct Conversation 或 MLS state。
 
 断链、多根、成环、跳过非 terminal round、或两个 directional proof 导出不同根，**MUST** 拒绝创建与回放。current recontact 的 responder 即使与根 round 的 responder 不同，也 **MUST NOT** 取得创建权。Realm 一经 accepted，founder 身份只保留为 founding 审计与 §7.2 bootstrap authority 的 actor 约束；日常 authority、repair 与 recontact **MUST NOT** 再读取它。
 

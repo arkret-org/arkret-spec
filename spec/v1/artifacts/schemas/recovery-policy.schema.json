@@ -869,7 +869,6 @@
       "type": "object",
       "description": "Response for ak.root.identity.recovery_policy.command.publish after accepting a ak.schema.recovery_policy.v1 publish or rotation.",
       "required": [
-        "ok",
         "policy_id",
         "principal_id",
         "version",
@@ -877,9 +876,6 @@
         "accepted_at"
       ],
       "properties": {
-        "ok": {
-          "const": true
-        },
         "policy_id": {
           "$ref": "#/$defs/policy_id_ref"
         },

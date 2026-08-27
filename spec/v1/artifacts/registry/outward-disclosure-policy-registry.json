@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-15.1",
+  "version": "2026-08-27.1",
   "source_of_truth": true,
   "description": "Reusable outward-disclosure policies. Operations and carrier exposures reference a policy id instead of reproducing operation/profile matrices. Authorization decides whether a caller may reach a value; this registry decides which internal failures may cross the boundary and which observable response properties must remain equivalent.",
   "registry_rules": [
@@ -10,8 +10,8 @@
     "An operation references the narrowest reusable policy. Per-profile rows are forbidden unless the profile genuinely changes the trust boundary; duplicating an identical policy by operation or profile is a lint failure."
   ],
   "body_shape_classes": {
-    "standard_error_constant": "The standard ErrorEnvelope with no target-derived fields and one fixed size class.",
-    "standard_not_found_constant": "The standard not_found ErrorEnvelope with no selector-derived detail.",
+    "standard_error_constant": "The standard RFC 9457 Problem Details with no target-derived fields and one fixed size class.",
+    "standard_not_found_constant": "The standard not_found RFC 9457 Problem Details with no selector-derived detail.",
     "none": "No failure envelope is defined by this policy."
   },
   "header_classes": {

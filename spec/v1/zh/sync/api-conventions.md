@@ -340,54 +340,44 @@ Account Authority MUST 验证 DPoP signature key thumbprint 等于 handoff `cnf.
 
 DPoP 本身不覆盖 request body。`create_handoff` 的 body 完整性由上述 holder signature覆盖；`register(identity_creation)` 的身份关键字段由 root-signed control proof 与 reserved operation digest覆盖。高安全部署 MAY 额外要求 §3.2 RFC 9421 `content-digest`，但不得因此省略 DPoP holder 校验或 root control proof。
 
-## 4. 标准响应 envelope
+## 4. 标准 HTTP 成功响应
 
-**v1 现状（normative）**：成功响应 MUST 直接返回 endpoint-specific JSON 对象（字段集由对应 endpoint 在 `service-http-binding.md` §2.3 / §2.4 与 `contract-registry.json` 定义）；每个 operation MUST 在 `contract-registry.json#operation_registry.operations[].success_shape_kind` 声明机器可读成功形态，供 SDK / conformance 工具判定。**不存在跨 endpoint 强制的统一 success envelope**。错误响应 MUST 使用 §5 的统一错误 envelope (`{"ok": false, "error": {...}}`)，但成功响应没有等价的"包裹后再返回"模式。
+HTTP 成功响应没有跨 operation 的通用 envelope，也没有通用 `ok` discriminator。每个 operation 必须在 `contract-registry.json#operation_registry.operations[].success_shape_kind` 声明且只声明下列一种成功形态：
 
-各 endpoint 当前实际使用的成功标记形态可分为三类，调用方应直接按 endpoint 文档判定：
+- `typed_response`：返回 endpoint-specific JSON 对象；其必填字段必须直接表达业务结果，例如资源标识、closed `status`、计数或逐项结果。响应对象及其递归子对象均 MUST NOT 使用名为 `ok` 的字段；
+- `empty_response`：返回无 entity body 的成功状态；默认使用 HTTP 204，MUST NOT 发送 JSON `{}`、`null` 或 `{ "ok": true }` 作为占位。
 
-- **`{ok: true, ...payload}`** — 简单 mutation (push / self.device_messages.command.send / applet.transactions / 等)；
-- **`{status: enum, ...payload}`** — 批量提交语义复杂时 (self.events.command.submit `status ∈ {accepted, duplicate, partial}`、self.keys.backups.resource.replace `status ∈ {accepted, duplicate}`)；
-- **裸字段直接返回** — 创建 / 解析类 (self.blob.upload.create `{blob_ref, size_bytes, ...}`、find.directory.command.announce `{announce_id, indexed_at, ...}`、account session grant 等)。
+请求级失败必须走 §5 的非 2xx Problem Details，MUST NOT 在 2xx body 中使用 `ok=false` 表达。多结果操作若允许部分成功，必须以 operation-specific closed `status` 和逐项结果完整表达；例如 Applet transaction 使用 `status ∈ {accepted, partial, rejected}`，而不是把任意布尔值与 `rejected[]` 拼接。
 
-新增 endpoint SHOULD 按下列分类选择成功形态:
-- 简单 idempotent mutation 默认走 `{ok: true, ...payload}`；
-- 批量 / 多结果路径走 `{status, accepted[], rejected[], ...}`；
-- 创建 / 解析类直接返回构造好的对象，不另加包裹。
+流式 endpoint MAY 使用 newline-delimited JSON、SSE 或 WebSocket frame，但 frame 合同由对应 transport binding 独立定义，不得把本节 HTTP body 规则机械套入 WebSocket、gRPC 或 MQ。成功建立的 subscribe stream 若需要指示客户端延迟重连，MUST 使用 control frame 上的 `reconnect_after_ms`。
 
-`ok` 是简单 mutation 的唯一通用成功 discriminator。`deleted`、`accepted` 等字段只有在某个 operation 的 typed response schema 把它们定义为独立业务状态时才可出现，MUST NOT 与 `ok` 互换；客户端与服务端不得为同一 operation 实现双读或别名输出。
+## 5. RFC 9457 HTTP 错误响应
 
-流式 endpoint MAY 使用 newline-delimited JSON、SSE 或 WebSocket frame，但每个 frame 仍 SHOULD 是独立 JSON 对象。`request_id` 字段（若返回）SHOULD 与请求侧的 idempotency / tracing id 对齐，但不作为 success/failure discriminator。成功建立的 subscribe stream 若需要指示客户端延迟重连，MUST 使用 control frame 上的 `reconnect_after_ms`；`retry_after_ms` 保留给错误响应、非 HTTP binding 的失败诊断或显式 retry 语义。
-
-## 5. 标准错误响应
-
-错误响应 MUST 使用统一 JSON 格式：
+Arkret v1 HTTP endpoint 的所有非 2xx 响应 MUST 只使用 [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457)，并设置 `Content-Type: application/problem+json`；该行为不依赖请求的 `Accept`，也不存在旧私有错误 envelope 的 content-negotiation 双轨。
 
 ```json
 {
-  "ok": false,
-  "error": {
-    "code": "capability_denied",
-    "message": "actor does not have ak.strand.update on this strand",
-    "retry_after_ms": null,
-    "details": {}
-  },
-  "request_id": "ak:request:01964137-0000-7000-8000-000000000000"
+  "type": "https://arkret.org/problems/capability_denied",
+  "title": "Capability denied",
+  "status": 403,
+  "detail": "actor does not have ak.strand.update on this strand",
+  "instance": "ak:request:01964137-0000-7000-8000-000000000000"
 }
 ```
 
-`message` 用于开发者诊断，不应用于稳定程序逻辑。
-客户端 MUST 以 `code` 作为主要错误分类。
+核心成员规则如下：
 
-**RFC 9457 problem+json 可协商投影（normative）.** 默认错误 wire 仍是上文的 `{ok: false, error: {...}}` 形态，**不变**。在此之上，本规范定义一个与 [RFC 9457 problem+json](https://www.rfc-editor.org/rfc/rfc9457) 对齐的、可经 content negotiation 协商的标准错误投影：
+- `type` 是稳定且唯一的机器判别字段，固定为 `https://arkret.org/problems/{code}`；`{code}` 必须来自 `error-code-registry.json`，客户端不得从 `title` 或 `detail` 推断错误类型；
+- `title` 是该 problem type 的稳定短标题；`status` 必须与 HTTP status line 一致；`detail` 仅用于本次错误的开发者诊断，不得承载稳定程序逻辑；
+- `instance` SHOULD 是本次请求的可追踪 URI-reference；含敏感上下文的内部日志定位信息不得直接放入 wire；
+- `retry_after_ms`、`reason_code` 及其它扩展成员直接位于 problem 根对象。producer 只能发送该 `type` 在 registry 或对应 typed schema 登记的扩展；不得重新引入通用 `details` bag；
+- consumer 必须容忍未知扩展成员，但必须校验核心成员类型，并以完整 `type` URI 进行分派；未知 `type` 仍按其 HTTP status 类别作为失败处理。
 
-- 支持 HTTP binding 的 server 在请求携带 `Accept: application/problem+json` 时 **MUST** 返回符合 RFC 9457 的 problem 对象，并 **MUST** 设置 `Content-Type: application/problem+json`。该 problem 对象的字段由默认错误形态确定性映射而来：`error.code → type`（`type` MAY 为 URN 或相对 URI 形式的 type 标识）、`error.message → detail`、HTTP status → `status`、`request_id → instance`；server MAY 额外附带 `title`。
-- 不支持 HTTP binding，或客户端未通过 `Accept` 协商该 media type 时，server **MUST** 维持默认 `{ok: false, error: {...}}` 形态，不得改变默认 wire。
-- 该投影是默认形态之上的确定性 content-negotiation 对齐，不引入新的错误码命名空间：`type` 承载的仍是 §5.1 标准 `error.code` 字符串，客户端 MUST 以其作为主要错误分类，`detail` 仅用于开发者诊断，不应用于稳定程序逻辑。
+`Retry-After` header 是 HTTP 重试时序的权威来源；若同时存在注册的 `retry_after_ms` 扩展，两者必须语义一致。WebSocket、gRPC 与 MQ 的错误 frame/status 合同保持各自 transport 形态，不伪装为 `application/problem+json`。
 
 ### 5.1 标准错误码
 
-标准 `error.code` 与批处理/联邦响应中的逐项 `reason_code` 共享同一字符串命名空间。**Canonical 单一来源** 是 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)：所有标准 code、HTTP 状态、scope (`response` / `endpoint` / `both`) 与简短描述均以该 registry 为准。新增、修改或删除代码 MUST 先更新 registry；本文与 `service-http-binding.md` §9 只引用该 registry，不维护并行表格。
+Problem `type` URI 的 `{code}` 尾段与批处理/联邦响应中的逐项 `reason_code` 共享同一字符串命名空间。**Canonical 单一来源** 是 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)：所有标准 code、`type_uri`、`title`、HTTP 状态、scope (`response` / `endpoint` / `both`) 与简短描述均以该 registry 为准。新增、修改或删除 problem type MUST 先更新 registry；本文与 `service-http-binding.md` §9 只引用该 registry，不维护并行表格。
 
 实现使用要点（registry 之外的语义协议）：
 

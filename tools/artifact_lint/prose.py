@@ -246,6 +246,18 @@ def check_naming_predicates(lint: Lint) -> None:
             f"registry={sorted(forbidden_lexemes)}, predicate={sorted(DEFAULT_FORBIDDEN_LEXEMES)}",
         )
 
+    # RFC 9457 `type` is an absolute URI in an externally defined dispatch
+    # slot. The exact Arkret problem URI set is closed by the error registry,
+    # so these are qualified external forms rather than Arkret-owned field or
+    # enum aliases.
+    error_registry = load_json(lint, ARTIFACTS / "registry" / "error-code-registry.json")
+    if isinstance(error_registry, dict):
+        lexeme_qualified_external_forms.update(
+            row["type_uri"]
+            for row in error_registry.get("codes", [])
+            if isinstance(row, dict) and isinstance(row.get("type_uri"), str)
+        )
+
     dto_schema_path = ARTIFACTS / "schemas" / "service-operation-dtos.schema.json"
     dto_schema = load_json(lint, dto_schema_path)
     if isinstance(dto_schema, dict):

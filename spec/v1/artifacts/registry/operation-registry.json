@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.2",
+  "version": "2026-08-27.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T05:30:00+08:00",
+  "generated_at": "2026-08-27T09:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -727,14 +727,13 @@
       "grpc": "EdgePush/UnregisterDevice",
       "mq": "edge.push.command.unregister_device",
       "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "empty_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": false,
       "uncertain_outcome": {
         "strategy": "manual_confirmation"
       },
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body",
-      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"

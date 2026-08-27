@@ -167,14 +167,10 @@
     "account_data_delete_outcome": {
       "type": "object",
       "required": [
-        "ok",
         "account_data_key",
         "revision"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean"
-        },
         "account_data_key": {
           "$ref": "#/$defs/account_data_key"
         },

@@ -1166,7 +1166,7 @@
     },
     "psi_blind_request_body": {
       "type": "object",
-      "description": "Round 1 of the §6.2 two-round OPRF set-membership PSI: the client submits blinded connection identifiers. PSI window quota is enforced here; denial is HTTP 429 psi_quota_exhausted in the standard ErrorEnvelope, never a 200 outcome.",
+      "description": "Round 1 of the §6.2 two-round OPRF set-membership PSI: the client submits blinded connection identifiers. PSI window quota is enforced here; denial is HTTP 429 psi_quota_exhausted in the standard RFC 9457 Problem Details, never a 200 outcome.",
       "required": [
         "profile",
         "phase",
@@ -1421,7 +1421,7 @@
       "additionalProperties": false
     },
     "directory_private_contact_discovery_outcome": {
-      "description": "Two-round PSI success outcomes, discriminated by phase. PSI quota denial is NOT an outcome shape: it is HTTP 429 psi_quota_exhausted in the standard ErrorEnvelope at the blind phase, padded to the success-path size bucket and delay class (§6.4 Class B).",
+      "description": "Two-round PSI success outcomes, discriminated by phase. PSI quota denial is NOT an outcome shape: it is HTTP 429 psi_quota_exhausted in the standard RFC 9457 Problem Details at the blind phase, padded to the success-path size bucket and delay class (§6.4 Class B).",
       "oneOf": [
         {
           "$ref": "#/$defs/psi_blind_outcome"

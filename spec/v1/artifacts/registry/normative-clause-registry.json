@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-08-27.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-27T09:18:00+08:00",
+  "generated_at": "2026-08-27T10:27:54+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -383,7 +383,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/client-sync.md#10-to-device-delivery",
-      "section_digest": "sha256:187de32b5d61d27a1a558e5946084398f1386f6766bc3ee7e3844f65a0e0e243",
+      "section_digest": "sha256:33eb909c576fdc97e084bb63d034dc084c8c6e6d1df7f394f7d6144fc125567e",
       "requirement": "To-device delivery executes each durable handler effect exactly once: redelivery is deduplicated by the closed sender endpoint plus device_message_id and queue removal happens only on explicit ack.",
       "testability_grade": "vector",
       "evidence_refs": [

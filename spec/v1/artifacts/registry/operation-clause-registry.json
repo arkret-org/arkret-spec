@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-17",
+  "version": "2026-08-27.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-17T06:40:00+08:00",
+  "generated_at": "2026-08-27T09:00:00+08:00",
   "description": "Canonical selector-based normative-clause coverage registry for service operations. A profile conformance claim computes its inherited required_endpoints closure and MUST satisfy every active clause whose selector matches each operation. This registry complements operation-registry shape; it does not create a second operation namespace.",
   "certification_rule": {
     "profile_operation_source": "profiles/conformance-profiles.json#profile_requirements",
@@ -102,7 +102,7 @@
       "selector": {
         "kind": "all_operations"
       },
-      "requirement": "Operation-specific and universal failures MUST use registered error codes and preserve the minimal-disclosure error envelope.",
+      "requirement": "Operation-specific and universal failures MUST use registered error codes and preserve the minimal-disclosure Problem Details.",
       "required_evidence": [
         "error_code_registry_coverage_fixture",
         "operations_error_mapping_check"

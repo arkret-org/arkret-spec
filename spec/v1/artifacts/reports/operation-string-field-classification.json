@@ -8,12 +8,12 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 74,
+    "total_fields": 78,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 34,
-      "closed_literal": 15,
-      "validated_open_reason_code": 18
+      "closed_enum": 35,
+      "closed_literal": 17,
+      "validated_open_reason_code": 19
     },
     "unclassified": 0
   },
@@ -162,6 +162,14 @@
       "pointer": "#/$defs/sync_bundle/properties/schema",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "applet-edge-operations.schema.json",
+      "shape": "applet_transaction_outcome",
+      "field": "status",
+      "pointer": "#/$defs/applet_transaction_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
     },
     {
       "schema_file": "applet-edge-operations.schema.json",
@@ -498,6 +506,30 @@
       "pointer": "#/$defs/ControlGovernanceHealth/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "DeviceMessageDeliveredResult",
+      "field": "status",
+      "pointer": "#/$defs/DeviceMessageDeliveredResult/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "DeviceMessageUnknownResult",
+      "field": "reason_code",
+      "pointer": "#/$defs/DeviceMessageUnknownResult/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "DeviceMessageUnknownResult",
+      "field": "status",
+      "pointer": "#/$defs/DeviceMessageUnknownResult/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",

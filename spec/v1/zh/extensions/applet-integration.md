@@ -430,9 +430,9 @@ Base URL 来自 registration 的 `base_url`。
 
 | operation_id | surface / 调用方向 | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- | --- |
-| `ak.edge.applet.read.ping` | edge（节点→Applet） | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_id: did_core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
+| `ak.edge.applet.read.ping` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: did_core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
 | `ak.edge.applet.read.describe` | edge（节点→Applet） | 无 | 无 | SDK `ServiceDescribe` | public mode 只返回 canonical discovery capabilities；不得私定义 Applet describe DTO。 |
-| `ak.edge.applet.command.transaction` | edge（节点→Applet） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_service_id: did_core_id` | `events: EventEnvelope[]`; `signals: SignalEnvelope[]`（两者**至少出现一个**） | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | 字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。接收方 MUST 以 exact `applet_id + source_service_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、event signature、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_service_id, Idempotency-Key)`。 |
+| `ak.edge.applet.command.transaction` | edge（节点→Applet） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_service_id: did_core_id` | `events: EventEnvelope[]`; `signals: SignalEnvelope[]`（两者**至少出现一个**） | `status: enum(accepted,partial,rejected)`; `rejected: object[]?`; `retry_after_ms: int?` | 字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。接收方 MUST 以 exact `applet_id + source_service_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、event signature、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_service_id, Idempotency-Key)`。 |
 | `ak.edge.applet.actor.read.resolve` | edge（节点→Applet） | `path.actor_id: did_core_id` | 无 | `exists: boolean`; `actor_id: did_core_id?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
 | `ak.edge.applet.realm.read.resolve` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.read.protocol_metadata` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
@@ -442,7 +442,7 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.edge.applet.managed_actor.command.author` | edge（客户端→Applet service） | `authoring_request` | 无 | `managed_actor_bundle` | 统一消费 `purpose=install_bot|provision_ghost`；四个 role-neutral Event 仅在 bundle 出现一次。 |
 | `ak.self.applet.command.install` | self（管理员→Principal Server） | `Idempotency-Key`; `applet_package`; `authoring_request`; 首次分支 `managed_actor_bundle` 或后续分支 `reuse_existing_managed_actor` | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源 | 两分支 closed XOR；同一 applet/target PS 后续 scope install 必须复用首次 anchors。 |
 | `ak.self.applet.revoke.command.preview` | self（管理员→Principal Server） | `path.applet_id`; `effective_scope`; `reason_code`; `revoke_mode` | 无 | `revoke_plan_digest`; `revoke_plan` | 只读枚举 exact revoke intents；见 §4b。 |
-| `ak.self.applet.command.revoke` | self（管理员→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `revoke_plan_digest`; `effective_scope`; `reason_code`; `revoke_mode`; `capability_revoke_events[]`; `membership_state_events[]` | `proof?: AccountLifecycleProof` | `ok`; `operation_id`; `revoke_plan_digest`; `status`; `steps[]`; `revoked_refs[]?`; `rejected[]?` | caller-signed event-log saga；见 §4b。 |
+| `ak.self.applet.command.revoke` | self（管理员→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `revoke_plan_digest`; `effective_scope`; `reason_code`; `revoke_mode`; `capability_revoke_events[]`; `membership_state_events[]` | `proof?: AccountLifecycleProof` | `operation_id`; `revoke_plan_digest`; `status`; `steps[]`; `revoked_refs[]?`; `rejected[]?` | caller-signed event-log saga；见 §4b。 |
 | `ak.self.applet.ghost.command.preview` | self（已安装 Applet service→Principal Server） | `path.applet_id`; `realm_id`; `external_ref` | `display_name` | `authoring_request` | PS 从 active install 派生全部 current 坐标并签发唯一 current generation；preview 有 durable winner/supersede ledger。 |
 | `ak.self.applet.ghost.command.provision` | self（已安装 Applet service→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `authoring_request`; `managed_actor_bundle` | 无 | Ghost provision outcome | commit 重验 PS proof、Applet bundle proof、hosting notary、external tuple 与 active install；不接受裸四 Event body。 |
 
@@ -456,7 +456,6 @@ GET /_arkret/edge/applet/ping
 
 ```json
 {
-  "ok": true,
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
   "service_id": "ak:did_core:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
   "protocol_version": "1.0"
@@ -534,7 +533,7 @@ Arkret Principal Server sync surface / Events API 向 Applet 推送事件批次�
 
 ```json
 {
-  "ok": true
+  "status": "accepted"
 }
 ```
 

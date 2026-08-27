@@ -51,7 +51,6 @@
     "consent_cell_view": {
       "type": "object",
       "required": [
-        "ok",
         "cell_id",
         "holder_principal_id",
         "peer_principal_id",
@@ -63,9 +62,6 @@
         "revoked_dots"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean"
-        },
         "cell_id": {
           "type": "string",
           "pattern": "^ak:cell:ak\\.component\\.consent\\.grant\\.v1:ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -117,13 +113,9 @@
     "consent_cell_list": {
       "type": "object",
       "required": [
-        "ok",
         "cells"
       ],
       "properties": {
-        "ok": {
-          "type": "boolean"
-        },
         "cells": {
           "type": "array",
           "items": {
@@ -226,13 +218,9 @@
       "type": "object",
       "description": "Constant anti-enumeration response. Missing holder, denial, rate-limit drop and quarantine acceptance all return this exact shape; no cell id, state, dots, timestamps or expiry are exposed.",
       "required": [
-        "ok",
         "accepted_for_processing"
       ],
       "properties": {
-        "ok": {
-          "const": true
-        },
         "accepted_for_processing": {
           "const": true
         }

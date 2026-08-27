@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.2",
+  "version": "2026-08-27.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T05:30:00+08:00",
+  "generated_at": "2026-08-27T09:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1164,13 +1164,13 @@
       "description": "Closed request/response DTO bundle for ak.self.keys.upload.create, query, claim, and key backup put/list/delete responses."
     },
     {
-      "schema_id": "ak.schema.http_error_envelope.v1",
-      "file": "schemas/http-error-envelope.schema.json",
+      "schema_id": "ak.schema.http_problem_details.v1",
+      "file": "schemas/http-problem-details.schema.json",
       "status": "active",
-      "description": "Canonical default application/json HTTP error envelope from sync/api-conventions.md section 5.",
+      "description": "Canonical RFC 9457 application/problem+json HTTP error response from sync/api-conventions.md section 5.",
       "consumer_binding": {
         "kind": "dynamic_schema_ref",
-        "selector": "application/json error responses selected by operations-error-mapping.json",
+        "selector": "application/problem+json error responses selected by operations-error-mapping.json",
         "normative_ref": "zh/sync/api-conventions.md#5"
       }
     },
