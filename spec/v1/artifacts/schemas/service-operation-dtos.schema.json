@@ -2308,6 +2308,21 @@
           "pattern": "^sha256:[0-9a-f]{64}$",
           "description": "Hash commitment returned to an authorized federation peer."
         },
+        "auth_state_root": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Issuer-local authorization-state commitment for the actor_id named by the request. Present exactly when actor_id is supplied."
+        },
+        "policy_frontier_root": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Filtered policy-cell state root for the requested Realm. Present exactly when actor_id is supplied."
+        },
+        "membership_frontier_root": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Filtered membership and role state root for the actor_id named by the request. Present exactly when actor_id is supplied."
+        },
         "actor_seq_upper_bounds": {
           "type": "object",
           "additionalProperties": {
@@ -2360,6 +2375,10 @@
       "properties": {
         "realm_id": {
           "$ref": "#/$defs/RealmId"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Optional actor scope for policy-check authorization, policy, and membership roots. Generic federation probes omit it."
         }
       },
       "additionalProperties": false,
@@ -4254,6 +4273,10 @@
       "properties": {
         "realm_id": {
           "$ref": "#/$defs/RealmId"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Optional actor scope for policy-check authorization, policy, and membership roots. Generic federation probes omit it."
         }
       },
       "additionalProperties": false

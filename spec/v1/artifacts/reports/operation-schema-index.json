@@ -3347,7 +3347,8 @@
           "realm_id"
         ],
         "properties": [
-          "realm_id"
+          "realm_id",
+          "actor_id"
         ],
         "closed": true
       },
@@ -3367,6 +3368,9 @@
           "heads",
           "max_hlc",
           "frontier_root",
+          "auth_state_root",
+          "policy_frontier_root",
+          "membership_frontier_root",
           "actor_seq_upper_bounds",
           "witness_receipts",
           "observed_at",
@@ -3421,7 +3425,8 @@
           "realm_id"
         ],
         "properties": [
-          "realm_id"
+          "realm_id",
+          "actor_id"
         ],
         "closed": true
       },
@@ -7848,7 +7853,8 @@
           "realm_id"
         ],
         "properties": [
-          "realm_id"
+          "realm_id",
+          "actor_id"
         ],
         "closed": true
       },
