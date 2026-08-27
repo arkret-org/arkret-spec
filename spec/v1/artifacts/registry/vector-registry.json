@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-08-28",
   "source_of_truth": true,
-  "generated_at": "2026-08-27T14:00:00+08:00",
+  "generated_at": "2026-08-28T05:27:23+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -6588,7 +6588,7 @@
       "applies_to_fixtures": [
         "service-protocol-version-bootstrap-fixture.json"
       ],
-      "description": "ServiceDescribe, Applet ping and IdentityDescription consumers inspect the protocol-family bootstrap discriminator before typed v1 claims, route caching, capability intersection, or business traffic; unsupported canonical strings and malformed discriminators remain distinct failures.",
+      "description": "Generic ServiceDescribe, Applet ping, and the identity-role ServiceDescribe endpoint inspect the protocol-family bootstrap discriminator before typed v1 claims, route caching, capability intersection, or business traffic; unsupported canonical strings and malformed discriminators remain distinct failures.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json"

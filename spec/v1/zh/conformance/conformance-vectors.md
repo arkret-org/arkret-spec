@@ -631,11 +631,11 @@ cursor base64url 解码后对应 canonical JSON：
 
 `ak.vector.service.protocol_version_bootstrap.v1` 由
 [`service-protocol-version-bootstrap-fixture.json`](../../artifacts/fixtures/service-protocol-version-bootstrap-fixture.json)
-冻结 ServiceDescribe、Applet ping 与 IdentityDescription 的两段式消费顺序。Runner MUST 先从 raw JSON 读取 `protocol_version`，不得先构造
+冻结通用 ServiceDescribe、Applet ping 与 identity 角色端点 ServiceDescribe 的两段式消费顺序。Runner MUST 先从 raw JSON 读取 `protocol_version`，不得先构造
 v1 typed response 或读取任何 capability/routing 字段。精确值 `"1.0"` 才允许继续 schema 校验与 capability 交集；
 形状合法的其它字符串返回 `unsupported_protocol_version`，且观测到的路由缓存写入与后续业务请求必须均为零；
-缺失、非字符串或非 canonical `"1.0.0"` 返回 `schema_violation`。三个 carrier 必须执行同一分类，不得让 Applet
-ping 或 identity describe 退化为普通字符串健康检查。
+缺失、非字符串或非 canonical `"1.0.0"` 返回 `schema_violation`。三个调用面必须执行同一分类，不得让 Applet
+ping 或 identity 角色端点的 ServiceDescribe 退化为普通字符串健康检查。
 
 ### 1.12 Vector: Reconstructed Encrypted Envelope AAD
 

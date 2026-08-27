@@ -374,7 +374,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
-      "sha256": "83385193a2fa4fa2fb84df8f52b9856122b7c30fb1ba1b8e99ad1a0ab22c75e2"
+      "sha256": "3b08dce1a470a11e6ec27cf9928b594c52293b0db9aeb047bb10bfa3b1b01d69"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",
