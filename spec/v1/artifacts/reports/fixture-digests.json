@@ -250,7 +250,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/operation-registry-coverage-fixture.json",
-      "sha256": "6bef63979e88f70f9fa778f9356d8d35b1bf65bd3334a8a9ae2103a14d72e732"
+      "sha256": "2344c4befe476fb0fbfbc064607ba2e6de14aaf3e6b83decf8b75687e3361ad4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/organization-registration-fixture.json",

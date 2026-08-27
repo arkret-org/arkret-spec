@@ -75,9 +75,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-08-27.8",
-      "generated_at": "2026-08-27T15:10:00+08:00",
-      "content_digest": "sha256:f47e499a7879fecfb0185d96a74becbdf3103b431f9410714d726624cccbac72"
+      "version": "2026-08-27.9",
+      "generated_at": "2026-08-27T16:39:00+08:00",
+      "content_digest": "sha256:d0dc7811ba171e9e9225a0a569233b43f7a2acb75b021a9c83cf202e24af91b0"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
@@ -99,9 +99,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-08-27.4",
-      "generated_at": "2026-08-27T14:00:00+08:00",
-      "content_digest": "sha256:4b79290e0eb09b1bb3ce861ae0707a309eba335a7dbddc303aa126892bd9c44e"
+      "version": "2026-08-27.5",
+      "generated_at": "2026-08-27T16:39:00+08:00",
+      "content_digest": "sha256:8a3179261eaa9a7f2e81242e2232a4477c4adb27a47edd68cb13f2698062c745"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
@@ -201,9 +201,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-08-27.3",
-      "generated_at": "2026-08-27T14:00:00+08:00",
-      "content_digest": "sha256:5d93f650ba121fb9149912130ba11de3a313d4db93e51dbc0d02aa12b7f4e2ae"
+      "version": "2026-08-27.5",
+      "generated_at": "2026-08-27T16:45:00+08:00",
+      "content_digest": "sha256:2ed655effb22189ff59e0b936f9139c0a89f3e0cfadc79ada6dfd0ddff25cc3c"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -225,9 +225,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-08-27.8",
-      "generated_at": "2026-08-27T15:10:00+08:00",
-      "content_digest": "sha256:1e818d88741a3baef0f296e9d3661fae3158d625bfd3603c148b267bb7de63c4"
+      "version": "2026-08-27.9",
+      "generated_at": "2026-08-27T16:39:00+08:00",
+      "content_digest": "sha256:cd1cd0f52278fb8399723d31f6a27bcc8194aba2de0acf9247a3f32bacbdeef9"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",

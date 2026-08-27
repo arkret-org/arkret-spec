@@ -54,11 +54,12 @@ class OpenApiSessionGrantAuthLintTest(unittest.TestCase):
 
     @staticmethod
     def _operation(document: dict, operation_id: str) -> dict:
+        endpoint_id = bindings.endpoint_id_for_operation(operation_id)
         for path_item in document["paths"].values():
             if not isinstance(path_item, dict):
                 continue
             for operation in path_item.values():
-                if isinstance(operation, dict) and operation.get("operationId") == operation_id:
+                if isinstance(operation, dict) and operation.get("operationId") == endpoint_id:
                     return operation
         raise AssertionError(f"operation missing: {operation_id}")
 

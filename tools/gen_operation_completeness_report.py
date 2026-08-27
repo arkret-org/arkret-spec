@@ -141,7 +141,7 @@ def collect_openapi_facts(openapi: dict[str, Any]) -> dict[str, dict[str, Any]]:
     for path_item in openapi.get("paths", {}).values():
         if not isinstance(path_item, dict):
             continue
-        for method in ("get", "post", "put", "patch", "delete", "head"):
+        for method in ("get", "post", "put", "patch", "delete", "head", "query"):
             operation = path_item.get(method)
             if not isinstance(operation, dict):
                 continue
@@ -167,7 +167,7 @@ def collect_openapi_facts(openapi: dict[str, Any]) -> dict[str, dict[str, Any]]:
             ok = operation.get("responses", {}).get("200", {})
             if isinstance(ok, dict):
                 response_media = sorted((ok.get("content") or {}).keys())
-            facts[operation_id] = {
+            operation_facts = {
                 "method": method,
                 "request_component_ref": req_raw_ref,
                 "response_component_ref": resp_raw_ref,
@@ -178,6 +178,21 @@ def collect_openapi_facts(openapi: dict[str, Any]) -> dict[str, dict[str, Any]]:
                 "has_request_body": has_request_body,
                 "response_media": response_media,
             }
+            facts[operation_id] = operation_facts
+            for parameter in operation.get("parameters", []) or []:
+                if not isinstance(parameter, dict) or parameter.get("name") != "Arkret-Operation":
+                    continue
+                schema = parameter.get("schema")
+                if not isinstance(schema, dict):
+                    continue
+                selector_ids = []
+                if isinstance(schema.get("const"), str):
+                    selector_ids.append(schema["const"])
+                if isinstance(schema.get("enum"), list):
+                    selector_ids.extend(schema["enum"])
+                for selector_id in selector_ids:
+                    if isinstance(selector_id, str):
+                        facts[selector_id] = operation_facts
     return facts
 
 

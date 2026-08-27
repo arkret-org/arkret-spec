@@ -31,6 +31,14 @@ from .core import (
 )
 
 
+VERSIONED_OPERATION_ID_RE = re.compile(r"^(?P<endpoint>ak\.[a-z0-9_.]+)\.v[1-9][0-9]*$")
+
+
+def endpoint_id_for_operation(operation_id: str) -> str:
+    match = VERSIONED_OPERATION_ID_RE.fullmatch(operation_id)
+    return match.group("endpoint") if match else operation_id
+
+
 
 def load_artifact_schema_from_ref(lint: Lint, owner: Path, ref: str) -> Any:
     normalized = normalize_artifact_schema_ref(ref)
@@ -442,27 +450,31 @@ def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
     check_openapi_contract_shape(lint, openapi_path, openapi_text)
     openapi_operation_ids = OPENAPI_OPERATION_ID_RE.findall(openapi_text)
     openapi_set = set(openapi_operation_ids)
+    expected_endpoint_ids = {
+        endpoint_id_for_operation(operation_id) for operation_id in known["operation_ids"]
+    }
     if len(openapi_operation_ids) != len(openapi_set):
         duplicates = sorted({item for item in openapi_operation_ids if openapi_operation_ids.count(item) > 1})
         lint.fail(openapi_path, f"duplicate operationId values: {', '.join(duplicates)}")
-    for operation_id in sorted(openapi_set - known["operation_ids"]):
-        lint.fail(openapi_path, f"operationId not registered: {operation_id}")
-    for operation_id in sorted(known["operation_ids"] - openapi_set):
-        lint.fail(openapi_path, f"registered operation_id missing from OpenAPI: {operation_id}")
+    for endpoint_id in sorted(openapi_set - expected_endpoint_ids):
+        lint.fail(openapi_path, f"OpenAPI endpoint operationId not backed by a registered operation: {endpoint_id}")
+    for endpoint_id in sorted(expected_endpoint_ids - openapi_set):
+        lint.fail(openapi_path, f"registered endpoint identity missing from OpenAPI: {endpoint_id}")
     openapi_http_map, openapi_parse_errors = parse_openapi_operation_http_map(openapi_text)
     for error in openapi_parse_errors:
         lint.fail(openapi_path, error)
     for operation_id in sorted(known["operation_ids"]):
+        endpoint_id = endpoint_id_for_operation(operation_id)
         expected_http = known["operation_http_map"].get(operation_id)
-        actual_http = openapi_http_map.get(operation_id)
+        actual_http = openapi_http_map.get(endpoint_id)
         if expected_http is None:
             continue
         if actual_http is None:
-            lint.fail(openapi_path, f"operationId missing HTTP path/method mapping: {operation_id}")
+            lint.fail(openapi_path, f"endpoint operationId missing HTTP path/method mapping: {endpoint_id}")
         elif actual_http != expected_http:
             lint.fail(
                 openapi_path,
-                f"operationId HTTP binding mismatch for {operation_id}: "
+                f"endpoint operationId HTTP binding mismatch for {operation_id} via {endpoint_id}: "
                 f"registry={expected_http!r}, openapi={actual_http!r}",
             )
 
@@ -634,7 +646,19 @@ def openapi_operations_by_id(openapi: dict[str, Any]) -> dict[str, dict[str, Any
                 continue
             operation_id = operation.get("operationId")
             if isinstance(operation_id, str) and operation_id:
-                operations[operation_id] = operation
+                selector_schema = openapi_parameter_schema(operation, "Arkret-Operation")
+                selector_ids: list[Any] = []
+                if isinstance(selector_schema, dict):
+                    if isinstance(selector_schema.get("const"), str):
+                        selector_ids.append(selector_schema["const"])
+                    if isinstance(selector_schema.get("enum"), list):
+                        selector_ids.extend(selector_schema["enum"])
+                if selector_ids:
+                    for selector_id in selector_ids:
+                        if isinstance(selector_id, str):
+                            operations[selector_id] = operation
+                else:
+                    operations[operation_id] = operation
     return operations
 
 
@@ -665,7 +689,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
                 continue
             for method in ("get", "post", "put", "patch", "delete", "head", "query"):
                 operation = path_item.get(method)
-                if isinstance(operation, dict) and operation.get("operationId") == operation_id:
+                if isinstance(operation, dict) and operation.get("operationId") == endpoint_id_for_operation(operation_id):
                     return operation
         return None
 
@@ -726,7 +750,9 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
             if not isinstance(operation, dict):
                 continue
             operation_id = operation.get("operationId")
-            if operation_id in expected or operation_id in expected_response_only:
+            if operation_id in {
+                endpoint_id_for_operation(item) for item in (*expected, *expected_response_only)
+            }:
                 continue
             for label, schema in (("requestBody", request_schema(operation)), ("200 response", response_schema(operation))):
                 if isinstance(schema, dict) and schema.get("$ref") in dedicated_schema_refs:
@@ -1242,7 +1268,7 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
                     if isinstance(media, dict) and isinstance(media.get("schema"), dict):
                         response_schema = media["schema"]
                         break
-            facts[operation_id] = {
+            operation_facts = {
                 "generic_request": isinstance(request_schema, dict)
                 and request_schema.get("$ref") == GENERIC_OPERATION_REQUEST_REF,
                 "generic_response": isinstance(response_schema, dict)
@@ -1251,6 +1277,17 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
                 "response_schema_ref": openapi_artifact_schema_ref(response_schema, components),
                 "success_shape_kind": infer_openapi_success_shape(method, response_content),
             }
+            facts[operation_id] = operation_facts
+            selector_schema = openapi_parameter_schema(operation, "Arkret-Operation")
+            if isinstance(selector_schema, dict):
+                selector_ids: list[Any] = []
+                if isinstance(selector_schema.get("const"), str):
+                    selector_ids.append(selector_schema["const"])
+                if isinstance(selector_schema.get("enum"), list):
+                    selector_ids.extend(selector_schema["enum"])
+                for selector_id in selector_ids:
+                    if isinstance(selector_id, str):
+                        facts[selector_id] = operation_facts
     return facts
 
 

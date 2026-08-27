@@ -1685,9 +1685,13 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
         if key == "event_kind" and value.startswith("ak.") and value not in known["event_kinds"]:
             lint.fail(path, f"{json_path} markdown JSON references unregistered Event.kind: {value}")
 
-        if key in {"operation_id", "mapped_operation_id", "operationId"} and value.startswith("ak."):
+        if key in {"operation_id", "mapped_operation_id"} and value.startswith("ak."):
             if value not in known["operation_ids"]:
                 lint.fail(path, f"{json_path} markdown JSON references unregistered operation_id: {value}")
+        if key == "operationId" and value.startswith("ak."):
+            endpoint_ids = {re.sub(r"\.v[1-9][0-9]*$", "", item) for item in known["operation_ids"]}
+            if value not in endpoint_ids:
+                lint.fail(path, f"{json_path} markdown JSON references unregistered endpoint operationId: {value}")
 
         if key == "constraint_kind" and value not in known["constraint_types"]:
             lint.fail(path, f"{json_path} markdown JSON uses invalid constraint_kind: {value}")

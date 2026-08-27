@@ -16,8 +16,8 @@
       "rule": "contract-registry operations and generated operation-registry rows form a one-to-one mapping by operation_id."
     },
     {
-      "id": "registry_openapi_bijection",
-      "rule": "Every operation-registry operation_id appears exactly once as an OpenAPI operationId and no extra operationId exists."
+      "id": "registry_openapi_endpoint_projection",
+      "rule": "Every registered HTTP operation projects to exactly one OpenAPI method/path endpoint whose stable operationId is the versioned operation_id without its terminal .vN; multiple operation_id versions may share that endpoint."
     },
     {
       "id": "registry_binding_coverage",

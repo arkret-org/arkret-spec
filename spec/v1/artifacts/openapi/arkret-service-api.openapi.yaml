@@ -2526,13 +2526,13 @@ components:
 paths:
   /_arkret/describe:
     get:
-      operationId: ak.server.read.describe.v1
+      operationId: ak.server.read.describe
       security: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.server.read.describe.v1
@@ -2567,12 +2567,12 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/resolve:
     post:
-      operationId: ak.root.identity.read.resolve.v1
+      operationId: ak.root.identity.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.read.resolve.v1
@@ -2601,7 +2601,7 @@ paths:
           $ref: '#/components/responses/NotFound'
   /_arkret/root/identity/document:
     get:
-      operationId: ak.root.identity.document.resource.get.v1
+      operationId: ak.root.identity.document.resource.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -2610,8 +2610,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.document.resource.get.v1
@@ -2630,12 +2630,12 @@ paths:
                 $ref: '#/components/schemas/IdentityDocumentView'
   /_arkret/root/identity/log:
     get:
-      operationId: ak.root.identity.log.read.list.v1
+      operationId: ak.root.identity.log.read.list
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.log.read.list.v1
@@ -2653,12 +2653,12 @@ paths:
                 $ref: '#/components/schemas/IdentityLogListOutcome'
   /_arkret/root/identity/submit-did-operation:
     post:
-      operationId: ak.root.identity.command.submit_did_operation.v1
+      operationId: ak.root.identity.command.submit_did_operation
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.command.submit_did_operation.v1
@@ -2682,12 +2682,12 @@ paths:
               $ref: '#/components/schemas/DidOperationSubmitRequestBody'
   /_arkret/root/identity/service-registrations:ensure:
     post:
-      operationId: ak.root.identity.service_registration.command.ensure.v1
+      operationId: ak.root.identity.service_registration.command.ensure
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.service_registration.command.ensure.v1
@@ -2726,7 +2726,7 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/service-registrations:
     get:
-      operationId: ak.root.identity.service_registration.resource.get.v1
+      operationId: ak.root.identity.service_registration.resource.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -2735,8 +2735,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.service_registration.resource.get.v1
@@ -2769,12 +2769,12 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/organization-registrations:prepare:
     post:
-      operationId: ak.root.identity.organization_registration.command.prepare.v1
+      operationId: ak.root.identity.organization_registration.command.prepare
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.organization_registration.command.prepare.v1
@@ -2809,12 +2809,12 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/organization-registrations:ensure:
     post:
-      operationId: ak.root.identity.organization_registration.command.ensure.v1
+      operationId: ak.root.identity.organization_registration.command.ensure
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.organization_registration.command.ensure.v1
@@ -2861,7 +2861,7 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/organization-registrations:
     get:
-      operationId: ak.root.identity.organization_registration.resource.get.v1
+      operationId: ak.root.identity.organization_registration.resource.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -2870,8 +2870,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.organization_registration.resource.get.v1
@@ -2895,12 +2895,12 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/organization-registrations:refresh:
     post:
-      operationId: ak.root.identity.organization_registration.command.refresh.v1
+      operationId: ak.root.identity.organization_registration.command.refresh
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.organization_registration.command.refresh.v1
@@ -2941,12 +2941,12 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/organization-registrations:revoke:
     post:
-      operationId: ak.root.identity.organization_registration.command.revoke.v1
+      operationId: ak.root.identity.organization_registration.command.revoke
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.organization_registration.command.revoke.v1
@@ -2975,12 +2975,12 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/receipts:
     get:
-      operationId: ak.root.identity.receipts.read.list.v1
+      operationId: ak.root.identity.receipts.read.list
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.receipts.read.list.v1
@@ -2998,12 +2998,12 @@ paths:
                 $ref: '#/components/schemas/IdentityReceiptListOutcome'
   /_arkret/root/identity/recovery-policy:
     post:
-      operationId: ak.root.identity.recovery_policy.command.publish.v1
+      operationId: ak.root.identity.recovery_policy.command.publish
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.recovery_policy.command.publish.v1
@@ -3024,15 +3024,15 @@ paths:
               schema:
                 $ref: ../schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome
     get:
-      operationId: ak.root.identity.recovery_policy.resource.get.v1
+      operationId: ak.root.identity.recovery_policy.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.recovery_policy.resource.get.v1
@@ -3053,12 +3053,12 @@ paths:
                 $ref: ../schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome
   /_arkret/root/identity/recovery-sessions:
     post:
-      operationId: ak.root.identity.recovery_session.command.create.v1
+      operationId: ak.root.identity.recovery_session.command.create
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.recovery_session.command.create.v1
@@ -3080,15 +3080,15 @@ paths:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_state
   /_arkret/root/identity/recovery-sessions/{recovery_session_id}:
     get:
-      operationId: ak.root.identity.recovery_session.resource.get.v1
+      operationId: ak.root.identity.recovery_session.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.recovery_session.resource.get.v1
@@ -3106,15 +3106,15 @@ paths:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_state
   /_arkret/root/identity/recovery-sessions/{recovery_session_id}/proofs:
     post:
-      operationId: ak.root.identity.recovery_session.command.submit_proof.v1
+      operationId: ak.root.identity.recovery_session.command.submit_proof
       security:
       - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.recovery_session.command.submit_proof.v1
@@ -3138,12 +3138,12 @@ paths:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome
   /_arkret/self/security-transactions:
     post:
-      operationId: ak.self.security_transaction.command.create.v1
+      operationId: ak.self.security_transaction.command.create
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.security_transaction.command.create.v1
@@ -3168,7 +3168,7 @@ paths:
                 $ref: ../schemas/security-transaction.schema.json
   /_arkret/self/security-transactions/{transaction_id}:
     get:
-      operationId: ak.self.security_transaction.resource.get.v1
+      operationId: ak.self.security_transaction.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -3178,8 +3178,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.security_transaction.resource.get.v1
@@ -3198,7 +3198,7 @@ paths:
                 $ref: ../schemas/security-transaction.schema.json
   /_arkret/self/security-transactions/{transaction_id}/continue:
     post:
-      operationId: ak.self.security_transaction.command.continue.v1
+      operationId: ak.self.security_transaction.command.continue
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -3208,8 +3208,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.security_transaction.command.continue.v1
@@ -3234,12 +3234,12 @@ paths:
                 $ref: ../schemas/security-transaction.schema.json
   /_arkret/self/control-proposal-acks:
     post:
-      operationId: ak.self.control_proposal_acks.command.issue.v1
+      operationId: ak.self.control_proposal_acks.command.issue
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.control_proposal_acks.command.issue.v1
@@ -3264,12 +3264,12 @@ paths:
                 $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome
   /_arkret/self/control-proposal-decisions:
     post:
-      operationId: ak.self.control_proposal_decisions.command.submit.v1
+      operationId: ak.self.control_proposal_decisions.command.submit
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.control_proposal_decisions.command.submit.v1
@@ -3295,12 +3295,12 @@ paths:
                 $ref: '#/components/schemas/ControlProposalDecisionSubmitOutcome'
   /_arkret/self/control-proposal-decisions/query:
     post:
-      operationId: ak.self.control_proposal_decisions.read.get.v1
+      operationId: ak.self.control_proposal_decisions.read.get
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.control_proposal_decisions.read.get.v1
@@ -3326,12 +3326,12 @@ paths:
                 $ref: '#/components/schemas/ControlProposalDecisionReadOutcome'
   /_arkret/self/authorization-leases:
     post:
-      operationId: ak.self.authorization_leases.command.issue.v1
+      operationId: ak.self.authorization_leases.command.issue
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.authorization_leases.command.issue.v1
@@ -3358,12 +3358,12 @@ paths:
                 $ref: '#/components/schemas/AuthorizationLeaseIssueOutcome'
   /_arkret/self/events:
     query:
-      operationId: ak.self.events.read.scan.v1
+      operationId: ak.self.events.read.scan
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.events.read.scan.v1
@@ -3397,12 +3397,12 @@ paths:
         '400':
           description: '`param_invalid` — unrecognized `order` value, malformed cursor, or invalid selector.'
     post:
-      operationId: ak.self.events.command.submit.v1
+      operationId: ak.self.events.command.submit
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.events.command.submit.v1
@@ -3455,7 +3455,7 @@ paths:
             slot was already closed by a different unit. Both write zero Events.
   /_arkret/self/events/subscribe:
     get:
-      operationId: ak.self.events.stream.subscribe.v1
+      operationId: ak.self.events.stream.subscribe
       x-arkret-required-any-of:
       - - realms
       - - actors
@@ -3482,8 +3482,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.events.stream.subscribe.v1
@@ -3527,12 +3527,12 @@ paths:
                 $ref: '#/components/schemas/EventsSubscribeFrame'
   /_arkret/self/events/delivery-status:
     query:
-      operationId: ak.self.events.read.delivery_status.v1
+      operationId: ak.self.events.read.delivery_status
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.events.read.delivery_status.v1
@@ -3567,12 +3567,12 @@ paths:
           description: '`not_found` — Event is unknown or not visible to the caller.'
   /_arkret/self/events/describe:
     query:
-      operationId: ak.self.events.read.describe.v1
+      operationId: ak.self.events.read.describe
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.events.read.describe.v1
@@ -3592,7 +3592,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/self/events/{event_id}:
     get:
-      operationId: ak.self.events.resource.get.v1
+      operationId: ak.self.events.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -3602,8 +3602,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.events.resource.get.v1
@@ -3626,12 +3626,12 @@ paths:
                 $ref: '#/components/schemas/EventView'
   /_arkret/self/events/resolve:
     query:
-      operationId: ak.self.events.read.resolve.v1
+      operationId: ak.self.events.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.events.read.resolve.v1
@@ -3657,12 +3657,12 @@ paths:
                 $ref: '#/components/schemas/EventsResolveOutcome'
   /_arkret/self/events/frontier:
     query:
-      operationId: ak.self.events.read.frontier.v1
+      operationId: ak.self.events.read.frontier
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.events.read.frontier.v1
@@ -3688,12 +3688,12 @@ paths:
                 $ref: '#/components/schemas/EventsFrontierState'
   /_arkret/self/seals/frontier:
     query:
-      operationId: ak.self.seals.read.frontier.v1
+      operationId: ak.self.seals.read.frontier
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.seals.read.frontier.v1
@@ -3715,12 +3715,12 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealFrontierState
   /_arkret/self/seals/resolve:
     query:
-      operationId: ak.self.seals.read.resolve.v1
+      operationId: ak.self.seals.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.seals.read.resolve.v1
@@ -3742,12 +3742,12 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome
   /_arkret/self/seals:
     post:
-      operationId: ak.self.seals.command.submit.v1
+      operationId: ak.self.seals.command.submit
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.seals.command.submit.v1
@@ -3770,12 +3770,12 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealSubmitOutcome
   /_arkret/self/seals/mls-governance-proof:
     post:
-      operationId: ak.self.seals.read.mls_governance_proof.v1
+      operationId: ak.self.seals.read.mls_governance_proof
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.seals.read.mls_governance_proof.v1
@@ -3798,12 +3798,12 @@ paths:
                 $ref: '#/components/schemas/MlsGovernanceProofBundle'
   /_arkret/self/seals/governance-dependencies:
     post:
-      operationId: ak.self.seals.read.governance_dependencies.v1
+      operationId: ak.self.seals.read.governance_dependencies
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.seals.read.governance_dependencies.v1
@@ -3826,12 +3826,12 @@ paths:
                 $ref: '#/components/schemas/GovernanceDependencyResolveOutcome'
   /_arkret/self/history-key-requests:
     post:
-      operationId: ak.self.history_key_requests.command.create.v1
+      operationId: ak.self.history_key_requests.command.create
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.history_key_requests.command.create.v1
@@ -3854,12 +3854,12 @@ paths:
                 $ref: '#/components/schemas/HistoryKeyRequestCreateOutcome'
   /_arkret/self/history-key-requests/read:
     post:
-      operationId: ak.self.history_key_requests.read.list.v1
+      operationId: ak.self.history_key_requests.read.list
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.history_key_requests.read.list.v1
@@ -3882,12 +3882,12 @@ paths:
                 $ref: '#/components/schemas/HistoryKeyRequestListOutcome'
   /_arkret/self/history-key-responses:
     post:
-      operationId: ak.self.history_key_responses.command.send.v1
+      operationId: ak.self.history_key_responses.command.send
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.history_key_responses.command.send.v1
@@ -3910,12 +3910,12 @@ paths:
                 $ref: '#/components/schemas/HistoryKeyResponseSendReceipt'
   /_arkret/self/history-key-responses/read:
     post:
-      operationId: ak.self.history_key_responses.read.list.v1
+      operationId: ak.self.history_key_responses.read.list
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.history_key_responses.read.list.v1
@@ -3937,12 +3937,12 @@ paths:
                 $ref: '#/components/schemas/HistoryKeyResponseListOutcome'
   /_arkret/self/history-key-responses/ack:
     post:
-      operationId: ak.self.history_key_responses.command.ack.v1
+      operationId: ak.self.history_key_responses.command.ack
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.history_key_responses.command.ack.v1
@@ -3964,12 +3964,12 @@ paths:
                 $ref: '#/components/schemas/HistoryKeyResponseAckOutcome'
   /_arkret/self/organization-recovery-archives/read:
     post:
-      operationId: ak.self.organization_recovery_archives.read.list.v1
+      operationId: ak.self.organization_recovery_archives.read.list
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.organization_recovery_archives.read.list.v1
@@ -3992,12 +3992,12 @@ paths:
                 $ref: '#/components/schemas/OrganizationRecoveryArchiveListOutcome'
   /_arkret/peer/history-key-requests/replicate:
     post:
-      operationId: ak.peer.history_key_requests.command.replicate.v1
+      operationId: ak.peer.history_key_requests.command.replicate
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.history_key_requests.command.replicate.v1
@@ -4022,12 +4022,12 @@ paths:
                 $ref: '#/components/schemas/HistoryKeyRequestReplicaOutcome'
   /_arkret/peer/history-key-responses/relay:
     post:
-      operationId: ak.peer.history_key_responses.command.relay.v1
+      operationId: ak.peer.history_key_responses.command.relay
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.history_key_responses.command.relay.v1
@@ -4052,12 +4052,12 @@ paths:
                 $ref: '#/components/schemas/HistoryKeyResponseSendReceipt'
   /_arkret/peer/seals/mls-governance-proof:
     post:
-      operationId: ak.peer.seals.read.mls_governance_proof.v1
+      operationId: ak.peer.seals.read.mls_governance_proof
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.seals.read.mls_governance_proof.v1
@@ -4082,12 +4082,12 @@ paths:
                 $ref: '#/components/schemas/MlsGovernanceProofBundle'
   /_arkret/peer/seals/governance-dependencies:
     post:
-      operationId: ak.peer.seals.read.governance_dependencies.v1
+      operationId: ak.peer.seals.read.governance_dependencies
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.seals.read.governance_dependencies.v1
@@ -4112,12 +4112,12 @@ paths:
                 $ref: '#/components/schemas/GovernanceDependencyResolveOutcome'
   /_arkret/peer/organization-recovery-archives/replicate:
     post:
-      operationId: ak.peer.organization_recovery_archives.command.replicate.v1
+      operationId: ak.peer.organization_recovery_archives.command.replicate
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.organization_recovery_archives.command.replicate.v1
@@ -4142,7 +4142,7 @@ paths:
                 $ref: '#/components/schemas/OrganizationRecoveryArchiveReplicaOutcome'
   /_arkret/peer/principal-genesis:
     post:
-      operationId: ak.peer.principal_genesis.command.submit.v1
+      operationId: ak.peer.principal_genesis.command.submit
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4165,8 +4165,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.principal_genesis.command.submit.v1
@@ -4198,12 +4198,12 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /_arkret/peer/account-status/resolve:
     post:
-      operationId: ak.peer.account_status.read.resolve.v1
+      operationId: ak.peer.account_status.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.account_status.read.resolve.v1
@@ -4240,7 +4240,7 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /_arkret/peer/account-status:
     post:
-      operationId: ak.peer.account_status.command.submit.v1
+      operationId: ak.peer.account_status.command.submit
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4260,8 +4260,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.account_status.command.submit.v1
@@ -4298,12 +4298,12 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /_arkret/peer/mls/group-state-material:
     post:
-      operationId: ak.peer.mls.read.group_state_material.v1
+      operationId: ak.peer.mls.read.group_state_material
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.mls.read.group_state_material.v1
@@ -4350,7 +4350,7 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /_arkret/peer/erasure-receipts:
     post:
-      operationId: ak.peer.erasure_receipt.command.submit.v1
+      operationId: ak.peer.erasure_receipt.command.submit
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4369,8 +4369,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.erasure_receipt.command.submit.v1
@@ -4402,7 +4402,7 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /_arkret/peer/erasure-receipts/{receipt_id}:
     get:
-      operationId: ak.peer.erasure_receipt.resource.get.v1
+      operationId: ak.peer.erasure_receipt.resource.get
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4413,8 +4413,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.erasure_receipt.resource.get.v1
@@ -4439,12 +4439,12 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /_arkret/peer/device-revocations/check:
     post:
-      operationId: ak.peer.device_revocations.command.check.v1
+      operationId: ak.peer.device_revocations.command.check
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.device_revocations.command.check.v1
@@ -4472,12 +4472,12 @@ paths:
                 $ref: '#/components/schemas/DeviceRevocationGateCheckOutcome'
   /_arkret/peer/events/describe:
     query:
-      operationId: ak.peer.events.read.describe.v1
+      operationId: ak.peer.events.read.describe
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.events.read.describe.v1
@@ -4497,12 +4497,12 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/peer/events:
     query:
-      operationId: ak.peer.events.read.scan.v1
+      operationId: ak.peer.events.read.scan
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.events.read.scan.v1
@@ -4528,7 +4528,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsQueryOutcome'
     post:
-      operationId: ak.peer.events.command.submit.v1
+      operationId: ak.peer.events.command.submit
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4554,8 +4554,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.events.command.submit.v1
@@ -4606,12 +4606,12 @@ paths:
                           $ref: '#/components/schemas/EventsDependencyMissingProblem'
   /_arkret/peer/events/resolve:
     query:
-      operationId: ak.peer.events.read.resolve.v1
+      operationId: ak.peer.events.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.events.read.resolve.v1
@@ -4637,12 +4637,12 @@ paths:
                 $ref: '#/components/schemas/PeerEventsResolveOutcome'
   /_arkret/peer/events/frontier:
     query:
-      operationId: ak.peer.events.read.frontier.v1
+      operationId: ak.peer.events.read.frontier
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.events.read.frontier.v1
@@ -4668,12 +4668,12 @@ paths:
                 $ref: '#/components/schemas/EventsFrontierFederationPeerState'
   /_arkret/peer/seals/frontier:
     query:
-      operationId: ak.peer.seals.read.frontier.v1
+      operationId: ak.peer.seals.read.frontier
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.seals.read.frontier.v1
@@ -4699,12 +4699,12 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState
   /_arkret/peer/seals/resolve:
     query:
-      operationId: ak.peer.seals.read.resolve.v1
+      operationId: ak.peer.seals.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.seals.read.resolve.v1
@@ -4730,12 +4730,12 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome
   /_arkret/peer/invites:
     post:
-      operationId: ak.peer.invites.command.submit.v1
+      operationId: ak.peer.invites.command.submit
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.invites.command.submit.v1
@@ -4768,12 +4768,12 @@ paths:
                 $ref: '#/components/schemas/InviteDeliveryOutcome'
   /_arkret/peer/contacts:
     post:
-      operationId: ak.peer.contacts.command.submit.v1
+      operationId: ak.peer.contacts.command.submit
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.contacts.command.submit.v1
@@ -4810,7 +4810,7 @@ paths:
                 $ref: ../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome
   /_arkret/peer/keys/keypackages/claim:
     post:
-      operationId: ak.peer.keys.keypackages.command.claim.v1
+      operationId: ak.peer.keys.keypackages.command.claim
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4830,8 +4830,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.keys.keypackages.command.claim.v1
@@ -4862,12 +4862,12 @@ paths:
                 $ref: '#/components/schemas/PeerKeyPackagesClaimOutcome'
   /_arkret/peer/keys/keypackages/claims/query:
     post:
-      operationId: ak.peer.keys.keypackages.read.claim.v1
+      operationId: ak.peer.keys.keypackages.read.claim
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.keys.keypackages.read.claim.v1
@@ -4899,7 +4899,7 @@ paths:
                 $ref: '#/components/schemas/PeerKeyPackagesClaimQueryOutcome'
   /_arkret/peer/service-resolution/publish:
     post:
-      operationId: ak.peer.service_resolution.command.publish.v1
+      operationId: ak.peer.service_resolution.command.publish
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4920,8 +4920,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.service_resolution.command.publish.v1
@@ -4952,12 +4952,12 @@ paths:
           description: Canonical request body exceeds 256 KiB.
   /_arkret/peer/service-resolution/resolve:
     query:
-      operationId: ak.peer.service_resolution.read.resolve.v1
+      operationId: ak.peer.service_resolution.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.service_resolution.read.resolve.v1
@@ -4994,12 +4994,12 @@ paths:
           description: Requested or produced material exceeds the registered response budget.
   /_arkret/peer/signal:
     post:
-      operationId: ak.peer.signal.command.relay.v1
+      operationId: ak.peer.signal.command.relay
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.signal.command.relay.v1
@@ -5048,12 +5048,12 @@ paths:
           description: Canonical request body exceeds 1 MiB.
   /_arkret/self/signal:
     post:
-      operationId: ak.self.signal.command.send.v1
+      operationId: ak.self.signal.command.send
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.signal.command.send.v1
@@ -5094,12 +5094,12 @@ paths:
             declared signal_class in the signed scope.
   /_arkret/self/signal/subscribe:
     get:
-      operationId: ak.self.signal.stream.subscribe.v1
+      operationId: ak.self.signal.stream.subscribe
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.signal.stream.subscribe.v1
@@ -5129,12 +5129,12 @@ paths:
             has no eligible encrypted Signal scope.
   /_arkret/self/rtc/token:
     post:
-      operationId: ak.self.call.media.exchange.issue_token.v1
+      operationId: ak.self.call.media.exchange.issue_token
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.call.media.exchange.issue_token.v1
@@ -5194,12 +5194,12 @@ paths:
             not declare explicit media foci.
   /_arkret/self/account/viewer:
     get:
-      operationId: ak.self.account.read.viewer.v1
+      operationId: ak.self.account.read.viewer
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.account.read.viewer.v1
@@ -5232,7 +5232,7 @@ paths:
                 $ref: '#/components/schemas/AccountView'
   /_arkret/self/account/subscribe:
     get:
-      operationId: ak.self.account.stream.subscribe.v1
+      operationId: ak.self.account.stream.subscribe
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5259,8 +5259,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.account.stream.subscribe.v1
@@ -5314,12 +5314,12 @@ paths:
                 $ref: '#/components/schemas/AccountSubscribeFrame'
   /_arkret/self/account/profile:
     post:
-      operationId: ak.self.account.command.update_profile.v1
+      operationId: ak.self.account.command.update_profile
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.account.command.update_profile.v1
@@ -5363,12 +5363,12 @@ paths:
               $ref: '#/components/schemas/AccountUpdateProfileRequestBody'
   /_arkret/self/account/cursor/revoke:
     post:
-      operationId: ak.self.account.command.revoke_cursor.v1
+      operationId: ak.self.account.command.revoke_cursor
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.account.command.revoke_cursor.v1
@@ -5398,12 +5398,12 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome
   /_arkret/self/contacts/request:
     post:
-      operationId: ak.self.contact.command.request.v1
+      operationId: ak.self.contact.command.request
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.contact.command.request.v1
@@ -5429,12 +5429,12 @@ paths:
                 $ref: '#/components/schemas/ContactRequestOutcome'
   /_arkret/self/contacts/respond:
     post:
-      operationId: ak.self.contact.command.respond.v1
+      operationId: ak.self.contact.command.respond
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.contact.command.respond.v1
@@ -5462,12 +5462,12 @@ paths:
                 $ref: '#/components/schemas/ContactRespondOutcome'
   /_arkret/self/contacts/reject:
     post:
-      operationId: ak.self.contact.command.reject.v1
+      operationId: ak.self.contact.command.reject
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.contact.command.reject.v1
@@ -5494,7 +5494,7 @@ paths:
                 $ref: '#/components/schemas/ContactRejectOutcome'
   /_arkret/self/contacts:
     get:
-      operationId: ak.self.contact.read.list.v1
+      operationId: ak.self.contact.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5520,8 +5520,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.contact.read.list.v1
@@ -5558,12 +5558,12 @@ paths:
                 $ref: '#/components/schemas/ContactList'
   /_arkret/self/contacts/tombstone:
     post:
-      operationId: ak.self.contact.command.tombstone.v1
+      operationId: ak.self.contact.command.tombstone
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.contact.command.tombstone.v1
@@ -5589,12 +5589,12 @@ paths:
                 $ref: '#/components/schemas/ContactTombstone'
   /_arkret/self/contacts/continuity-checkpoint:
     post:
-      operationId: ak.self.contact.command.checkpoint.v1
+      operationId: ak.self.contact.command.checkpoint
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.contact.command.checkpoint.v1
@@ -5623,12 +5623,12 @@ paths:
                 $ref: '#/components/schemas/ContactContinuityCheckpointOutcome'
   /_arkret/self/contacts/scope-update:
     post:
-      operationId: ak.self.contact.command.scope_update.v1
+      operationId: ak.self.contact.command.scope_update
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.contact.command.scope_update.v1
@@ -5656,7 +5656,7 @@ paths:
                 $ref: '#/components/schemas/ContactScopeUpdateOutcome'
   /_arkret/self/circles:
     get:
-      operationId: ak.self.circle.read.list.v1
+      operationId: ak.self.circle.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5667,8 +5667,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.circle.read.list.v1
@@ -5686,12 +5686,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/CircleList'
     post:
-      operationId: ak.self.circle.command.create.v1
+      operationId: ak.self.circle.command.create
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.circle.command.create.v1
@@ -5718,7 +5718,7 @@ paths:
                 $ref: '#/components/schemas/CircleView'
   /_arkret/self/circles/{circle_id}:
     get:
-      operationId: ak.self.circle.resource.get.v1
+      operationId: ak.self.circle.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5729,8 +5729,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.circle.resource.get.v1
@@ -5748,7 +5748,7 @@ paths:
                 $ref: '#/components/schemas/CircleView'
   /_arkret/self/circles/{circle_id}/members:
     post:
-      operationId: ak.self.circle.member.command.add.v1
+      operationId: ak.self.circle.member.command.add
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5760,8 +5760,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.circle.member.command.add.v1
@@ -5785,7 +5785,7 @@ paths:
                 $ref: '#/components/schemas/CircleMembershipOutcome'
   /_arkret/self/circles/{circle_id}/members/{actor_id}:
     delete:
-      operationId: ak.self.circle.member.resource.delete.v1
+      operationId: ak.self.circle.member.resource.delete
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5793,8 +5793,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.circle.member.resource.delete.v1
@@ -5823,7 +5823,7 @@ paths:
                 $ref: '#/components/schemas/CircleMembershipOutcome'
   /_arkret/self/circles/{circle_id}/scope-rotate:
     post:
-      operationId: ak.self.circle.command.rotate_scope.v1
+      operationId: ak.self.circle.command.rotate_scope
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5835,8 +5835,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.circle.command.rotate_scope.v1
@@ -5861,7 +5861,7 @@ paths:
                 $ref: '#/components/schemas/CircleScopeRotateOutcome'
   /_arkret/self/circles/{circle_id}/archive:
     post:
-      operationId: ak.self.circle.command.archive.v1
+      operationId: ak.self.circle.command.archive
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5869,8 +5869,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.circle.command.archive.v1
@@ -5894,7 +5894,7 @@ paths:
                 $ref: '#/components/schemas/CircleView'
   /_arkret/self/circles/{circle_id}/restore:
     post:
-      operationId: ak.self.circle.command.restore.v1
+      operationId: ak.self.circle.command.restore
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5902,8 +5902,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.circle.command.restore.v1
@@ -5927,7 +5927,7 @@ paths:
                 $ref: '#/components/schemas/CircleView'
   /_arkret/self/circles/{circle_id}/tombstone:
     post:
-      operationId: ak.self.circle.command.tombstone.v1
+      operationId: ak.self.circle.command.tombstone
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5935,8 +5935,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.circle.command.tombstone.v1
@@ -5960,12 +5960,12 @@ paths:
                 $ref: '#/components/schemas/CircleView'
   /_arkret/self/invite-receive-policy:
     get:
-      operationId: ak.self.invite_receive_policy.resource.get.v1
+      operationId: ak.self.invite_receive_policy.resource.get
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.invite_receive_policy.resource.get.v1
@@ -5985,12 +5985,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/InviteReceivePolicy'
     put:
-      operationId: ak.self.invite_receive_policy.resource.replace.v1
+      operationId: ak.self.invite_receive_policy.resource.replace
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.invite_receive_policy.resource.replace.v1
@@ -6017,12 +6017,12 @@ paths:
                 $ref: '#/components/schemas/InviteReceivePolicy'
   /_arkret/self/invites/dispatch:
     post:
-      operationId: ak.self.invites.command.dispatch.v1
+      operationId: ak.self.invites.command.dispatch
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.invites.command.dispatch.v1
@@ -6051,12 +6051,12 @@ paths:
                 $ref: '#/components/schemas/InviteDeliveryOutcome'
   /_arkret/self/invite-locators:
     post:
-      operationId: ak.self.invite_locator.command.issue.v1
+      operationId: ak.self.invite_locator.command.issue
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.invite_locator.command.issue.v1
@@ -6084,12 +6084,12 @@ paths:
                 $ref: '#/components/schemas/InviteLocatorIssueOutcome'
   /_arkret/self/invite-locators/rotate:
     post:
-      operationId: ak.self.invite_locator.command.rotate.v1
+      operationId: ak.self.invite_locator.command.rotate
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.invite_locator.command.rotate.v1
@@ -6117,12 +6117,12 @@ paths:
                 $ref: '#/components/schemas/InviteLocatorIssueOutcome'
   /_arkret/self/invite-locators/revoke:
     post:
-      operationId: ak.self.invite_locator.command.revoke.v1
+      operationId: ak.self.invite_locator.command.revoke
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.invite_locator.command.revoke.v1
@@ -6145,12 +6145,12 @@ paths:
                 $ref: '#/components/schemas/InviteLocatorRevokeOutcome'
   /_arkret/self/direct-conversations/resolve:
     post:
-      operationId: ak.self.direct_conversation.read.resolve.v1
+      operationId: ak.self.direct_conversation.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.direct_conversation.read.resolve.v1
@@ -6184,7 +6184,7 @@ paths:
                 $ref: '#/components/schemas/DirectConversationResolveOutcome'
   /_arkret/self/snapshot/head:
     get:
-      operationId: ak.self.snapshot.read.manifest_head.v1
+      operationId: ak.self.snapshot.read.manifest_head
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -6194,8 +6194,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.snapshot.read.manifest_head.v1
@@ -6220,7 +6220,7 @@ paths:
                 $ref: ../schemas/snapshot.schema.json
   /_arkret/peer/snapshot/head:
     get:
-      operationId: ak.peer.snapshot.read.manifest_head.v1
+      operationId: ak.peer.snapshot.read.manifest_head
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -6230,8 +6230,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.peer.snapshot.read.manifest_head.v1
@@ -6253,7 +6253,7 @@ paths:
                 $ref: ../schemas/snapshot.schema.json
   /_arkret/self/realms/{realm_id}/spaces:
     get:
-      operationId: ak.self.space.read.list.v1
+      operationId: ak.self.space.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -6269,8 +6269,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.space.read.list.v1
@@ -6309,7 +6309,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionSpaceList'
   /_arkret/self/realms/{realm_id}/strands:
     get:
-      operationId: ak.self.strand.read.list.v1
+      operationId: ak.self.strand.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -6324,8 +6324,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.strand.read.list.v1
@@ -6364,7 +6364,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionStrandList'
   /_arkret/self/realms/{realm_id}/morphs:
     get:
-      operationId: ak.self.morph.read.list.v1
+      operationId: ak.self.morph.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -6379,8 +6379,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.morph.read.list.v1
@@ -6419,7 +6419,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionMorphList'
   /_arkret/self/views/{view_id}/projection:
     post:
-      operationId: ak.self.views.collection_projection.command.materialize.v1
+      operationId: ak.self.views.collection_projection.command.materialize
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -6435,8 +6435,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.views.collection_projection.command.materialize.v1
@@ -6461,7 +6461,7 @@ paths:
                 $ref: '#/components/schemas/CollectionProjectionView'
   /_arkret/self/realms/{realm_id}/morphs/{morph_id}:
     get:
-      operationId: ak.self.morph.resource.get.v1
+      operationId: ak.self.morph.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -6477,8 +6477,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.morph.resource.get.v1
@@ -6503,12 +6503,12 @@ paths:
                 $ref: '#/components/schemas/DocumentMorphProjectionOutcome'
   /_arkret/find/directory/resolve-handle:
     post:
-      operationId: ak.find.directory.read.resolve_handle.v1
+      operationId: ak.find.directory.read.resolve_handle
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.resolve_handle.v1
@@ -6533,12 +6533,12 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveHandleRequestBody'
   /_arkret/find/directory/resolve-agent-selector:
     post:
-      operationId: ak.find.directory.read.resolve_agent_selector.v1
+      operationId: ak.find.directory.read.resolve_agent_selector
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.resolve_agent_selector.v1
@@ -6563,12 +6563,12 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveAgentSelectorRequestBody'
   /_arkret/find/directory/list-handles-for-subject:
     post:
-      operationId: ak.find.directory.read.list_handles_for_subject.v1
+      operationId: ak.find.directory.read.list_handles_for_subject
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.list_handles_for_subject.v1
@@ -6594,12 +6594,12 @@ paths:
                 $ref: '#/components/schemas/DirectorySubjectHandleList'
   /_arkret/find/directory/private-contact-discovery:
     post:
-      operationId: ak.find.directory.read.private_contact_discovery.v1
+      operationId: ak.find.directory.read.private_contact_discovery
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.private_contact_discovery.v1
@@ -6642,12 +6642,12 @@ paths:
           $ref: '#/components/responses/PsiQuotaExhausted'
   /_arkret/self/blob/upload:
     post:
-      operationId: ak.self.blob.upload.create.v1
+      operationId: ak.self.blob.upload.create
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.blob.upload.create.v1
@@ -6675,12 +6675,12 @@ paths:
                 contentType: application/octet-stream
   /_arkret/self/blob/get:
     head:
-      operationId: ak.self.blob.resource.head.v1
+      operationId: ak.self.blob.resource.head
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.blob.resource.head.v1
@@ -6695,7 +6695,7 @@ paths:
         '200':
           description: Blob metadata
     get:
-      operationId: ak.self.blob.resource.get.v1
+      operationId: ak.self.blob.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -6706,8 +6706,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.blob.resource.get.v1
@@ -6765,12 +6765,12 @@ paths:
         type: string
   /_arkret/self/blob/presign:
     post:
-      operationId: ak.self.blob.command.presign.v1
+      operationId: ak.self.blob.command.presign
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.blob.command.presign.v1
@@ -6804,12 +6804,12 @@ paths:
             visibility.
   /_arkret/edge/push/register-device:
     post:
-      operationId: ak.edge.push.command.register_device.v1
+      operationId: ak.edge.push.command.register_device
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.push.command.register_device.v1
@@ -6830,12 +6830,12 @@ paths:
               $ref: '#/components/schemas/PushRegisterDeviceRequestBody'
   /_arkret/edge/push/unregister-device:
     post:
-      operationId: ak.edge.push.command.unregister_device.v1
+      operationId: ak.edge.push.command.unregister_device
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.push.command.unregister_device.v1
@@ -6852,7 +6852,7 @@ paths:
               $ref: '#/components/schemas/PushUnregisterDeviceRequestBody'
   /_arkret/edge/push/notify:
     post:
-      operationId: ak.edge.push.command.notify.v1
+      operationId: ak.edge.push.command.notify
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -6861,8 +6861,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.push.command.notify.v1
@@ -6893,12 +6893,12 @@ paths:
               $ref: '#/components/schemas/PushNotifyRequestBody'
   /_arkret/self/authz/check:
     post:
-      operationId: ak.self.authz.read.check.v1
+      operationId: ak.self.authz.read.check
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.authz.read.check.v1
@@ -6924,7 +6924,7 @@ paths:
                 $ref: '#/components/schemas/AuthzCheckOutcome'
   /_arkret/self/authz/effective-grants:
     get:
-      operationId: ak.self.authz.grants.read.effective.v1
+      operationId: ak.self.authz.grants.read.effective
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -6934,8 +6934,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.authz.grants.read.effective.v1
@@ -6971,7 +6971,7 @@ paths:
                 $ref: '#/components/schemas/GrantList'
   /_arkret/self/device_messages:
     post:
-      operationId: ak.self.device_messages.command.send.v1
+      operationId: ak.self.device_messages.command.send
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -6982,8 +6982,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.device_messages.command.send.v1
@@ -7006,15 +7006,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesSendOutcome'
     get:
-      operationId: ak.self.device_messages.read.list.v1
+      operationId: ak.self.device_messages.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.device_messages.read.list.v1
@@ -7040,12 +7040,12 @@ paths:
                 $ref: '#/components/schemas/DeviceMessagesGetOutcome'
   /_arkret/self/device_messages/ack:
     post:
-      operationId: ak.self.device_messages.command.ack.v1
+      operationId: ak.self.device_messages.command.ack
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.device_messages.command.ack.v1
@@ -7075,12 +7075,12 @@ paths:
                 $ref: '#/components/schemas/DeviceMessagesAckOutcome'
   /_arkret/self/keys/upload:
     post:
-      operationId: ak.self.keys.upload.create.v1
+      operationId: ak.self.keys.upload.create
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.upload.create.v1
@@ -7102,12 +7102,12 @@ paths:
               $ref: '#/components/schemas/KeysUploadRequestBody'
   /_arkret/self/keys/query:
     post:
-      operationId: ak.self.keys.read.lookup.v1
+      operationId: ak.self.keys.read.lookup
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.read.lookup.v1
@@ -7133,12 +7133,12 @@ paths:
               $ref: '#/components/schemas/KeysQueryRequestBody'
   /_arkret/self/keys/claim:
     post:
-      operationId: ak.self.keys.command.claim.v1
+      operationId: ak.self.keys.command.claim
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.command.claim.v1
@@ -7164,12 +7164,12 @@ paths:
               $ref: '#/components/schemas/KeysClaimRequestBody'
   /_arkret/self/actor-profiles/query:
     post:
-      operationId: ak.self.actor_profile.read.resolve.v1
+      operationId: ak.self.actor_profile.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.actor_profile.read.resolve.v1
@@ -7206,12 +7206,12 @@ paths:
               $ref: ../schemas/actor-profile-operations.schema.json#/$defs/resolve_request
   /_arkret/self/agent-signer-evidence/query:
     post:
-      operationId: ak.self.agent_signer_evidence.read.resolve.v1
+      operationId: ak.self.agent_signer_evidence.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent_signer_evidence.read.resolve.v1
@@ -7237,12 +7237,12 @@ paths:
               $ref: '#/components/schemas/AgentSignerEvidenceQueryRequestBody'
   /_arkret/self/identity/resolution-audit/query:
     post:
-      operationId: ak.self.identity.read.resolution_audit.v1
+      operationId: ak.self.identity.read.resolution_audit
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.identity.read.resolution_audit.v1
@@ -7298,12 +7298,12 @@ paths:
               $ref: ../schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request
   /_arkret/self/keys/keypackages/upload:
     post:
-      operationId: ak.self.keys.keypackages.upload.create.v1
+      operationId: ak.self.keys.keypackages.upload.create
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.keypackages.upload.create.v1
@@ -7325,12 +7325,12 @@ paths:
               $ref: '#/components/schemas/KeyPackagesUploadRequestBody'
   /_arkret/self/keys/keypackages/claim:
     post:
-      operationId: ak.self.keys.keypackages.command.claim.v1
+      operationId: ak.self.keys.keypackages.command.claim
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.keypackages.command.claim.v1
@@ -7356,12 +7356,12 @@ paths:
               $ref: '#/components/schemas/KeyPackagesClaimRequestBody'
   /_arkret/self/keys/keypackages/consume:
     post:
-      operationId: ak.self.keys.keypackages.command.consume.v1
+      operationId: ak.self.keys.keypackages.command.consume
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.keypackages.command.consume.v1
@@ -7387,12 +7387,12 @@ paths:
               $ref: '#/components/schemas/KeyPackagesConsumeRequestBody'
   /_arkret/self/keys/keypackages/revoke:
     post:
-      operationId: ak.self.keys.keypackages.command.revoke.v1
+      operationId: ak.self.keys.keypackages.command.revoke
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.keypackages.command.revoke.v1
@@ -7414,15 +7414,15 @@ paths:
               $ref: '#/components/schemas/KeyPackagesRevokeRequestBody'
   /_arkret/self/keys/backups/{backup_id}:
     put:
-      operationId: ak.self.keys.backups.resource.replace.v1
+      operationId: ak.self.keys.backups.resource.replace
       security:
       - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.backups.resource.replace.v1
@@ -7456,7 +7456,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/KeysBackupsReplaceOutcome'
     delete:
-      operationId: ak.self.keys.backups.resource.delete.v1
+      operationId: ak.self.keys.backups.resource.delete
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -7468,8 +7468,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.backups.resource.delete.v1
@@ -7494,15 +7494,15 @@ paths:
                 $ref: '#/components/schemas/KeysBackupsDeleteOutcome'
   /_arkret/self/keys/backups/{backup_id}/delete-challenge:
     post:
-      operationId: ak.self.keys.backups.command.issue_delete_challenge.v1
+      operationId: ak.self.keys.backups.command.issue_delete_challenge
       security:
       - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.backups.command.issue_delete_challenge.v1
@@ -7527,7 +7527,7 @@ paths:
                 $ref: '#/components/schemas/KeysBackupsDeleteChallenge'
   /_arkret/self/keys/backups/{backup_id}/unlock:
     post:
-      operationId: ak.self.keys.backups.command.unlock.v1
+      operationId: ak.self.keys.backups.command.unlock
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -7539,8 +7539,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.backups.command.unlock.v1
@@ -7565,12 +7565,12 @@ paths:
                 $ref: ../schemas/key-backup.schema.json
   /_arkret/self/keys/backup-series/erase:
     post:
-      operationId: ak.self.keys.backup_series.command.erase.v1
+      operationId: ak.self.keys.backup_series.command.erase
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.backup_series.command.erase.v1
@@ -7595,15 +7595,15 @@ paths:
                 $ref: ../schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome
   /_arkret/self/keys/backups:
     get:
-      operationId: ak.self.keys.backups.read.list.v1
+      operationId: ak.self.keys.backups.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.keys.backups.read.list.v1
@@ -7632,12 +7632,12 @@ paths:
                 $ref: '#/components/schemas/KeysBackupsList'
   /_arkret/self/moderation/franking/seal-observation:
     post:
-      operationId: ak.self.moderation.read.franking_seal_observation.v1
+      operationId: ak.self.moderation.read.franking_seal_observation
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.moderation.read.franking_seal_observation.v1
@@ -7668,12 +7668,12 @@ paths:
           $ref: '#/components/responses/NotFound'
   /_arkret/self/moderation/report:
     post:
-      operationId: ak.self.moderation.command.report.v1
+      operationId: ak.self.moderation.command.report
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.moderation.command.report.v1
@@ -7705,7 +7705,7 @@ paths:
                 $ref: '#/components/schemas/ModerationReportOutcome'
   /_arkret/open/principals/{principal_id}/resolution:
     get:
-      operationId: ak.open.identity.read.resolution.v1
+      operationId: ak.open.identity.read.resolution
       security: []
       x-arkret-auth:
         public_metadata: true
@@ -7728,8 +7728,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.identity.read.resolution.v1
@@ -7768,7 +7768,7 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/open/services/{service_id}/resolution:
     get:
-      operationId: ak.open.service.read.resolution.v1
+      operationId: ak.open.service.read.resolution
       security: []
       x-arkret-auth:
         public_metadata: true
@@ -7788,8 +7788,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.service.read.resolution.v1
@@ -7819,12 +7819,12 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/open/invite-locators/resolve:
     post:
-      operationId: ak.open.invite_locator.read.resolve.v1
+      operationId: ak.open.invite_locator.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.invite_locator.read.resolve.v1
@@ -7853,12 +7853,12 @@ paths:
                 $ref: '#/components/schemas/PrincipalLocator'
   /_arkret/open/agent-pairing/resolve:
     post:
-      operationId: ak.open.agent_pairing.read.resolve.v1
+      operationId: ak.open.agent_pairing.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.agent_pairing.read.resolve.v1
@@ -7887,12 +7887,12 @@ paths:
                 $ref: '#/components/schemas/AgentPairingBootstrap'
   /_arkret/open/agent-pairing/runtime-key-requests:
     post:
-      operationId: ak.open.agent_pairing.command.submit_runtime_key_request.v1
+      operationId: ak.open.agent_pairing.command.submit_runtime_key_request
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.agent_pairing.command.submit_runtime_key_request.v1
@@ -7923,12 +7923,12 @@ paths:
                 $ref: '#/components/schemas/AgentRuntimeApprovalOutcome'
   /_arkret/open/agent-pairing/runtime-key-requests/status:
     post:
-      operationId: ak.open.agent_pairing.read.runtime_key_request_status.v1
+      operationId: ak.open.agent_pairing.read.runtime_key_request_status
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.agent_pairing.read.runtime_key_request_status.v1
@@ -7962,12 +7962,12 @@ paths:
                 $ref: '#/components/schemas/AgentRuntimeApprovalStatusOutcome'
   /_arkret/open/device-pairing/requests:
     post:
-      operationId: ak.open.device_pairing.command.stage.v1
+      operationId: ak.open.device_pairing.command.stage
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.device_pairing.command.stage.v1
@@ -8004,12 +8004,12 @@ paths:
                 $ref: '#/components/schemas/DevicePairingStageOutcome'
   /_arkret/open/device-pairing/resolve:
     post:
-      operationId: ak.open.device_pairing.read.resolve.v1
+      operationId: ak.open.device_pairing.read.resolve
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.device_pairing.read.resolve.v1
@@ -8043,12 +8043,12 @@ paths:
                 $ref: '#/components/schemas/DevicePairingBootstrap'
   /_arkret/open/device-pairing/requests/status:
     post:
-      operationId: ak.open.device_pairing.read.status.v1
+      operationId: ak.open.device_pairing.read.status
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.device_pairing.read.status.v1
@@ -8086,12 +8086,12 @@ paths:
                 $ref: '#/components/schemas/DevicePairingStatusOutcome'
   /_arkret/open/mimi/provider-directory:
     get:
-      operationId: ak.open.mimi.read.provider_directory.v1
+      operationId: ak.open.mimi.read.provider_directory
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.read.provider_directory.v1
@@ -8105,12 +8105,12 @@ paths:
                 $ref: ../schemas/mimi-interop.schema.json
   /_arkret/open/mimi/key-material:
     post:
-      operationId: ak.open.mimi.exchange.request_key_material.v1
+      operationId: ak.open.mimi.exchange.request_key_material
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.exchange.request_key_material.v1
@@ -8134,7 +8134,7 @@ paths:
               $ref: '#/components/schemas/MimiKeyMaterialRequestBody'
   /_arkret/open/mimi/strands/{strand_id}/update:
     post:
-      operationId: ak.open.mimi.command.update_room.v1
+      operationId: ak.open.mimi.command.update_room
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -8143,8 +8143,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.command.update_room.v1
@@ -8168,7 +8168,7 @@ paths:
               $ref: '#/components/schemas/MimiRoomUpdateRequestBody'
   /_arkret/open/mimi/strands/{strand_id}/notify:
     post:
-      operationId: ak.open.mimi.command.notify.v1
+      operationId: ak.open.mimi.command.notify
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -8177,8 +8177,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.command.notify.v1
@@ -8202,7 +8202,7 @@ paths:
               $ref: '#/components/schemas/MimiNotifyRequestBody'
   /_arkret/open/mimi/strands/{strand_id}/messages:
     post:
-      operationId: ak.open.mimi.command.submit_message.v1
+      operationId: ak.open.mimi.command.submit_message
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -8211,8 +8211,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.command.submit_message.v1
@@ -8245,7 +8245,7 @@ paths:
               $ref: '#/components/schemas/MimiSubmitMessageRequestBody'
   /_arkret/open/mimi/strands/{strand_id}/group-info:
     get:
-      operationId: ak.open.mimi.read.group_info.v1
+      operationId: ak.open.mimi.read.group_info
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -8253,8 +8253,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.read.group_info.v1
@@ -8283,12 +8283,12 @@ paths:
                 $ref: '#/components/schemas/MimiGroupInfoOutcome'
   /_arkret/open/mimi/consent/request:
     post:
-      operationId: ak.open.mimi.command.request_consent.v1
+      operationId: ak.open.mimi.command.request_consent
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.command.request_consent.v1
@@ -8312,12 +8312,12 @@ paths:
               $ref: '#/components/schemas/MimiRequestConsentRequestBody'
   /_arkret/open/mimi/consent/update:
     post:
-      operationId: ak.open.mimi.command.update_consent.v1
+      operationId: ak.open.mimi.command.update_consent
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.command.update_consent.v1
@@ -8341,12 +8341,12 @@ paths:
               $ref: '#/components/schemas/MimiUpdateConsentRequestBody'
   /_arkret/open/mimi/identifiers/query:
     post:
-      operationId: ak.open.mimi.read.identifiers.v1
+      operationId: ak.open.mimi.read.identifiers
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.read.identifiers.v1
@@ -8370,12 +8370,12 @@ paths:
               $ref: '#/components/schemas/MimiIdentifierQueryRequestBody'
   /_arkret/open/mimi/report-abuse:
     post:
-      operationId: ak.open.mimi.command.report_abuse.v1
+      operationId: ak.open.mimi.command.report_abuse
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.command.report_abuse.v1
@@ -8399,12 +8399,12 @@ paths:
               $ref: '#/components/schemas/MimiReportAbuseRequestBody'
   /_arkret/open/mimi/proxy-download:
     post:
-      operationId: ak.open.mimi.command.proxy_download.v1
+      operationId: ak.open.mimi.command.proxy_download
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.open.mimi.command.proxy_download.v1
@@ -8428,12 +8428,12 @@ paths:
               $ref: '#/components/schemas/MimiProxyDownloadRequestBody'
   /_arkret/root/identity/describe:
     get:
-      operationId: ak.root.identity.registry.read.describe.v1
+      operationId: ak.root.identity.registry.read.describe
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.root.identity.registry.read.describe.v1
@@ -8447,12 +8447,12 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/self/account/describe:
     get:
-      operationId: ak.self.account.read.describe.v1
+      operationId: ak.self.account.read.describe
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.account.read.describe.v1
@@ -8466,12 +8466,12 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/find/directory/describe:
     get:
-      operationId: ak.find.directory.read.describe.v1
+      operationId: ak.find.directory.read.describe
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.describe.v1
@@ -8485,12 +8485,12 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/find/directory/announce:
     post:
-      operationId: ak.find.directory.command.announce.v1
+      operationId: ak.find.directory.command.announce
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.command.announce.v1
@@ -8515,12 +8515,12 @@ paths:
               $ref: '#/components/schemas/DirectoryAnnounceRequestBody'
   /_arkret/find/directory/withdraw:
     post:
-      operationId: ak.find.directory.command.withdraw.v1
+      operationId: ak.find.directory.command.withdraw
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.command.withdraw.v1
@@ -8545,12 +8545,12 @@ paths:
               $ref: '#/components/schemas/DirectoryWithdrawRequestBody'
   /_arkret/find/directory/takedown/appeal:
     post:
-      operationId: ak.find.directory.command.takedown_appeal.v1
+      operationId: ak.find.directory.command.takedown_appeal
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.command.takedown_appeal.v1
@@ -8575,12 +8575,12 @@ paths:
               $ref: '#/components/schemas/DirectoryTakedownAppealRequestBody'
   /_arkret/find/directory/search-realms:
     post:
-      operationId: ak.find.directory.read.search_realms.v1
+      operationId: ak.find.directory.read.search_realms
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.search_realms.v1
@@ -8605,12 +8605,12 @@ paths:
               $ref: '#/components/schemas/DirectorySearchRealmsRequestBody'
   /_arkret/find/directory/resolve-realm:
     post:
-      operationId: ak.find.directory.read.resolve_realm.v1
+      operationId: ak.find.directory.read.resolve_realm
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.resolve_realm.v1
@@ -8635,12 +8635,12 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveRealmRequestBody'
   /_arkret/find/directory/resolve-target:
     post:
-      operationId: ak.find.directory.read.resolve_target.v1
+      operationId: ak.find.directory.read.resolve_target
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.resolve_target.v1
@@ -8665,12 +8665,12 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveTargetRequestBody'
   /_arkret/find/directory/search-organizations:
     post:
-      operationId: ak.find.directory.read.search_organizations.v1
+      operationId: ak.find.directory.read.search_organizations
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.search_organizations.v1
@@ -8695,12 +8695,12 @@ paths:
               $ref: '#/components/schemas/DirectorySearchOrganizationsRequestBody'
   /_arkret/find/directory/resolve-organization:
     post:
-      operationId: ak.find.directory.read.resolve_organization.v1
+      operationId: ak.find.directory.read.resolve_organization
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.resolve_organization.v1
@@ -8725,12 +8725,12 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveOrganizationRequestBody'
   /_arkret/find/directory/search-actors:
     post:
-      operationId: ak.find.directory.read.search_actors.v1
+      operationId: ak.find.directory.read.search_actors
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.search_actors.v1
@@ -8755,12 +8755,12 @@ paths:
               $ref: '#/components/schemas/DirectorySearchActorsRequestBody'
   /_arkret/find/directory/search-users:
     post:
-      operationId: ak.find.directory.read.search_users.v1
+      operationId: ak.find.directory.read.search_users
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.read.search_users.v1
@@ -8785,12 +8785,12 @@ paths:
               $ref: '#/components/schemas/DirectorySearchUsersRequestBody'
   /_arkret/find/directory/push/register:
     post:
-      operationId: ak.find.directory.push.command.register.v1
+      operationId: ak.find.directory.push.command.register
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.find.directory.push.command.register.v1
@@ -8815,15 +8815,15 @@ paths:
               $ref: '#/components/schemas/DirectoryPushRegisterRequestBody'
   /_arkret/self/authz/invites:
     get:
-      operationId: ak.self.authz.invites.read.list.v1
+      operationId: ak.self.authz.invites.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.authz.invites.read.list.v1
@@ -8855,12 +8855,12 @@ paths:
                 $ref: '#/components/schemas/AuthzInviteList'
   /_arkret/edge/applet/ping:
     get:
-      operationId: ak.edge.applet.read.ping.v1
+      operationId: ak.edge.applet.read.ping
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.applet.read.ping.v1
@@ -8877,12 +8877,12 @@ paths:
                 $ref: '#/components/schemas/AppletPingOutcome'
   /_arkret/edge/applet/describe:
     get:
-      operationId: ak.edge.applet.read.describe.v1
+      operationId: ak.edge.applet.read.describe
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.applet.read.describe.v1
@@ -8896,7 +8896,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/edge/applet/transactions:
     post:
-      operationId: ak.edge.applet.command.transaction.v1
+      operationId: ak.edge.applet.command.transaction
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -8946,8 +8946,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.applet.command.transaction.v1
@@ -8972,7 +8972,7 @@ paths:
               $ref: '#/components/schemas/AppletTransactionRequestBody'
   /_arkret/edge/applet/actors/{actor_id}:
     get:
-      operationId: ak.edge.applet.actor.read.resolve.v1
+      operationId: ak.edge.applet.actor.read.resolve
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -8980,8 +8980,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.applet.actor.read.resolve.v1
@@ -9001,7 +9001,7 @@ paths:
                 $ref: '#/components/schemas/AppletActorView'
   /_arkret/edge/applet/realms/{realm_id_or_alias}:
     get:
-      operationId: ak.edge.applet.realm.read.resolve.v1
+      operationId: ak.edge.applet.realm.read.resolve
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -9009,8 +9009,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.applet.realm.read.resolve.v1
@@ -9029,13 +9029,13 @@ paths:
                 $ref: '#/components/schemas/AppletRealmView'
   /_arkret/edge/applet/protocols/{protocol}:
     get:
-      operationId: ak.edge.applet.read.protocol_metadata.v1
+      operationId: ak.edge.applet.read.protocol_metadata
       security: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.applet.read.protocol_metadata.v1
@@ -9054,7 +9054,7 @@ paths:
                 $ref: '#/components/schemas/AppletProtocolMetadata'
   /_arkret/edge/applet/third_party/users:
     get:
-      operationId: ak.edge.applet.third_party_users.read.list.v1
+      operationId: ak.edge.applet.third_party_users.read.list
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -9062,8 +9062,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.applet.third_party_users.read.list.v1
@@ -9094,7 +9094,7 @@ paths:
                 $ref: '#/components/schemas/AppletThirdPartyUserList'
   /_arkret/edge/applet/third_party/locations:
     get:
-      operationId: ak.edge.applet.third_party_locations.read.list.v1
+      operationId: ak.edge.applet.third_party_locations.read.list
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -9102,8 +9102,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.applet.third_party_locations.read.list.v1
@@ -9134,12 +9134,12 @@ paths:
                 $ref: '#/components/schemas/AppletThirdPartyLocationList'
   /_arkret/edge/applet/managed-actors/author:
     post:
-      operationId: ak.edge.applet.managed_actor.command.author.v1
+      operationId: ak.edge.applet.managed_actor.command.author
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.edge.applet.managed_actor.command.author.v1
@@ -9164,12 +9164,12 @@ paths:
               $ref: '#/components/schemas/AppletManagedActorAuthorRequestBody'
   /_arkret/self/applets/install/preview:
     post:
-      operationId: ak.self.applet.install.command.preview.v1
+      operationId: ak.self.applet.install.command.preview
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.applet.install.command.preview.v1
@@ -9191,15 +9191,15 @@ paths:
               $ref: '#/components/schemas/AppletInstallPreviewRequestBody'
   /_arkret/self/applets/install:
     post:
-      operationId: ak.self.applet.command.install.v1
+      operationId: ak.self.applet.command.install
       security:
       - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.applet.command.install.v1
@@ -9225,7 +9225,7 @@ paths:
               $ref: '#/components/schemas/AppletInstallRequestBody'
   /_arkret/self/applets/{applet_id}/ghosts/provision/preview:
     post:
-      operationId: ak.self.applet.ghost.command.preview.v1
+      operationId: ak.self.applet.ghost.command.preview
       summary: Issue the current signed Ghost managed-actor authoring request.
       description: >-
         The active Applet service supplies only the Realm, exact external tuple,
@@ -9240,8 +9240,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.applet.ghost.command.preview.v1
@@ -9265,7 +9265,7 @@ paths:
               $ref: '#/components/schemas/GhostPreviewRequestBody'
   /_arkret/self/applets/{applet_id}/ghosts/provision:
     post:
-      operationId: ak.self.applet.ghost.command.provision.v1
+      operationId: ak.self.applet.ghost.command.provision
       summary: Provision an Applet-managed Ghost Actor for one external user.
       description: |
         Called by an installed bridge Applet (authenticating as its service DID)
@@ -9287,8 +9287,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.applet.ghost.command.provision.v1
@@ -9319,15 +9319,15 @@ paths:
               $ref: '#/components/schemas/GhostActorProvisionRequestBody'
   /_arkret/self/applets/{applet_id}/revoke:
     post:
-      operationId: ak.self.applet.command.revoke.v1
+      operationId: ak.self.applet.command.revoke
       security:
       - sessionGrantAuth: []
         dpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.applet.command.revoke.v1
@@ -9358,7 +9358,7 @@ paths:
               $ref: '#/components/schemas/AppletRevokeRequestBody'
   /_arkret/self/applets/{applet_id}/revoke/preview:
     post:
-      operationId: ak.self.applet.revoke.command.preview.v1
+      operationId: ak.self.applet.revoke.command.preview
       summary: Recompute the exact caller-authored Applet revoke plan.
       description: |
         Read-only preview over the current effective install. The returned
@@ -9370,8 +9370,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.applet.revoke.command.preview.v1
@@ -9395,12 +9395,12 @@ paths:
               $ref: '#/components/schemas/AppletRevokePreviewRequestBody'
   /_arkret/self/policy/check:
     post:
-      operationId: ak.self.policy.read.check.v1
+      operationId: ak.self.policy.read.check
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.policy.read.check.v1
@@ -9430,7 +9430,7 @@ paths:
               $ref: '#/components/schemas/PolicyCheckRequestBody'
   /_arkret/self/realms/{realm_id}/links:
     get:
-      operationId: ak.self.realm_link.read.list.v1
+      operationId: ak.self.realm_link.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9438,8 +9438,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm_link.read.list.v1
@@ -9470,7 +9470,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/RealmLinkList'
     post:
-      operationId: ak.self.realm_link.command.create.v1
+      operationId: ak.self.realm_link.command.create
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9484,8 +9484,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm_link.command.create.v1
@@ -9509,7 +9509,7 @@ paths:
                 $ref: '#/components/schemas/RealmLinkMutationOutcome'
   /_arkret/self/realms/{realm_id}/links/{target_realm_id}:
     delete:
-      operationId: ak.self.realm_link.resource.delete.v1
+      operationId: ak.self.realm_link.resource.delete
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9521,8 +9521,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm_link.resource.delete.v1
@@ -9551,7 +9551,7 @@ paths:
                 $ref: '#/components/schemas/RealmLinkMutationOutcome'
   /_arkret/self/realms/{realm_id}/effective-policy:
     get:
-      operationId: ak.self.realm_link.read.effective_policy.v1
+      operationId: ak.self.realm_link.read.effective_policy
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9559,8 +9559,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm_link.read.effective_policy.v1
@@ -9578,7 +9578,7 @@ paths:
                 $ref: '#/components/schemas/RealmEffectivePolicyOutcome'
   /_arkret/self/realms/{realm_id}/organizations:
     get:
-      operationId: ak.self.realm_organization.read.list.v1
+      operationId: ak.self.realm_organization.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9586,8 +9586,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm_organization.read.list.v1
@@ -9605,7 +9605,7 @@ paths:
                 $ref: '#/components/schemas/RealmOrganizationRelationshipList'
   /_arkret/self/realms/{realm_id}/policy-server:
     get:
-      operationId: ak.self.realm_policy_server.resource.get.v1
+      operationId: ak.self.realm_policy_server.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9613,8 +9613,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm_policy_server.resource.get.v1
@@ -9631,7 +9631,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/RealmPolicyServerView'
     put:
-      operationId: ak.self.realm_policy_server.resource.replace.v1
+      operationId: ak.self.realm_policy_server.resource.replace
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9639,8 +9639,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm_policy_server.resource.replace.v1
@@ -9663,7 +9663,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/RealmPolicyServerView'
     delete:
-      operationId: ak.self.realm_policy_server.resource.delete.v1
+      operationId: ak.self.realm_policy_server.resource.delete
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9675,8 +9675,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm_policy_server.resource.delete.v1
@@ -9698,7 +9698,7 @@ paths:
           description: The Realm direct cell has never been written or is inherited-only; no ancestor cell is mutated.
   /_arkret/self/realms/{realm_id}:
     get:
-      operationId: ak.self.realm.resource.get.v1
+      operationId: ak.self.realm.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9706,8 +9706,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.resource.get.v1
@@ -9725,7 +9725,7 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/archive:
     post:
-      operationId: ak.self.realm.command.archive.v1
+      operationId: ak.self.realm.command.archive
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9733,8 +9733,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.command.archive.v1
@@ -9758,7 +9758,7 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/freeze:
     post:
-      operationId: ak.self.realm.command.freeze.v1
+      operationId: ak.self.realm.command.freeze
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9766,8 +9766,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.command.freeze.v1
@@ -9791,7 +9791,7 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/tombstone:
     post:
-      operationId: ak.self.realm.command.tombstone.v1
+      operationId: ak.self.realm.command.tombstone
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9799,8 +9799,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.command.tombstone.v1
@@ -9824,7 +9824,7 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/destroy:
     post:
-      operationId: ak.self.realm.command.destroy.v1
+      operationId: ak.self.realm.command.destroy
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9832,8 +9832,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.command.destroy.v1
@@ -9857,7 +9857,7 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/export:
     get:
-      operationId: ak.self.realm.read.export.v1
+      operationId: ak.self.realm.read.export
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9865,8 +9865,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.read.export.v1
@@ -9884,7 +9884,7 @@ paths:
                 $ref: '#/components/schemas/RealmExport'
   /_arkret/self/realms/{realm_id}/moderation-policy/effective:
     get:
-      operationId: ak.self.realm.moderation_policy.read.effective.v1
+      operationId: ak.self.realm.moderation_policy.read.effective
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9892,8 +9892,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.moderation_policy.read.effective.v1
@@ -9911,7 +9911,7 @@ paths:
                 $ref: '#/components/schemas/RealmEffectiveModerationPolicy'
   /_arkret/self/realms/{realm_id}/moderation-policy:
     put:
-      operationId: ak.self.realm.moderation_policy.resource.replace.v1
+      operationId: ak.self.realm.moderation_policy.resource.replace
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9928,8 +9928,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.moderation_policy.resource.replace.v1
@@ -9953,7 +9953,7 @@ paths:
                 $ref: '#/components/schemas/RealmModerationPolicyDocument'
   /_arkret/self/realms/{realm_id}/join-applications:
     post:
-      operationId: ak.self.realm.join_application.command.submit.v1
+      operationId: ak.self.realm.join_application.command.submit
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -9961,8 +9961,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.join_application.command.submit.v1
@@ -9992,7 +9992,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JoinApplicationMutationOutcome'
     get:
-      operationId: ak.self.realm.join_application.read.list.v1
+      operationId: ak.self.realm.join_application.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10000,8 +10000,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.join_application.read.list.v1
@@ -10031,7 +10031,7 @@ paths:
                 $ref: '#/components/schemas/JoinApplicationListOutcome'
   /_arkret/self/realms/{realm_id}/join-applications/{application_ref}:
     get:
-      operationId: ak.self.realm.join_application.resource.get.v1
+      operationId: ak.self.realm.join_application.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10039,8 +10039,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.join_application.resource.get.v1
@@ -10064,7 +10064,7 @@ paths:
                 $ref: '#/components/schemas/JoinApplicationGetOutcome'
   /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews:
     post:
-      operationId: ak.self.realm.join_application.command.review.v1
+      operationId: ak.self.realm.join_application.command.review
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10072,8 +10072,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.join_application.command.review.v1
@@ -10110,7 +10110,7 @@ paths:
                 $ref: '#/components/schemas/JoinApplicationMutationOutcome'
   /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel:
     post:
-      operationId: ak.self.realm.join_application.command.cancel.v1
+      operationId: ak.self.realm.join_application.command.cancel
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10118,8 +10118,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.join_application.command.cancel.v1
@@ -10156,7 +10156,7 @@ paths:
                 $ref: '#/components/schemas/JoinApplicationMutationOutcome'
   /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit:
     get:
-      operationId: ak.self.realm.join_application.audit.read.list.v1
+      operationId: ak.self.realm.join_application.audit.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10164,8 +10164,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.realm.join_application.audit.read.list.v1
@@ -10189,12 +10189,12 @@ paths:
                 $ref: '#/components/schemas/JoinApplicationAuditOutcome'
   /_arkret/self/consent/cells:
     get:
-      operationId: ak.self.consent.read.list.v1
+      operationId: ak.self.consent.read.list
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.consent.read.list.v1
@@ -10211,7 +10211,7 @@ paths:
                 $ref: '#/components/schemas/ConsentCellList'
   /_arkret/self/consent/cells/{holder_principal_id}:
     get:
-      operationId: ak.self.consent.resource.get.v1
+      operationId: ak.self.consent.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10219,8 +10219,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.consent.resource.get.v1
@@ -10255,7 +10255,7 @@ paths:
                 $ref: '#/components/schemas/ConsentCellView'
   /_arkret/self/consent/cells/{holder_principal_id}/grant:
     post:
-      operationId: ak.self.consent.command.grant.v1
+      operationId: ak.self.consent.command.grant
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10263,8 +10263,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.consent.command.grant.v1
@@ -10288,7 +10288,7 @@ paths:
                 $ref: '#/components/schemas/ConsentCellView'
   /_arkret/self/consent/cells/{holder_principal_id}/revoke:
     post:
-      operationId: ak.self.consent.command.revoke.v1
+      operationId: ak.self.consent.command.revoke
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10296,8 +10296,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.consent.command.revoke.v1
@@ -10321,12 +10321,12 @@ paths:
                 $ref: '#/components/schemas/ConsentCellView'
   /_arkret/self/consent/request:
     post:
-      operationId: ak.self.consent.command.request.v1
+      operationId: ak.self.consent.command.request
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.consent.command.request.v1
@@ -10349,12 +10349,12 @@ paths:
                 $ref: '#/components/schemas/ConsentRequestOutcome'
   /_arkret/self/account_data:
     get:
-      operationId: ak.self.account_data.read.list.v1
+      operationId: ak.self.account_data.read.list
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.account_data.read.list.v1
@@ -10371,7 +10371,7 @@ paths:
                 $ref: '#/components/schemas/AccountDataList'
   /_arkret/self/account_data/{account_data_key}:
     get:
-      operationId: ak.self.account_data.resource.get.v1
+      operationId: ak.self.account_data.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10379,8 +10379,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.account_data.resource.get.v1
@@ -10397,7 +10397,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountDataRow'
     put:
-      operationId: ak.self.account_data.resource.replace.v1
+      operationId: ak.self.account_data.resource.replace
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10405,8 +10405,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.account_data.resource.replace.v1
@@ -10429,7 +10429,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountDataRow'
     delete:
-      operationId: ak.self.account_data.resource.delete.v1
+      operationId: ak.self.account_data.resource.delete
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10437,8 +10437,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.account_data.resource.delete.v1
@@ -10462,7 +10462,7 @@ paths:
                 $ref: '#/components/schemas/AccountDataDeleteOutcome'
   /_arkret/self/read-cursors:
     get:
-      operationId: ak.self.read_cursor.read.list.v1
+      operationId: ak.self.read_cursor.read.list
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -10470,8 +10470,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.read_cursor.read.list.v1
@@ -10488,12 +10488,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ReadCursorList'
     post:
-      operationId: ak.self.read_cursor.command.advance.v1
+      operationId: ak.self.read_cursor.command.advance
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.read_cursor.command.advance.v1
@@ -10521,12 +10521,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.self.media.read.ice_config.v1
+      operationId: ak.self.media.read.ice_config
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.media.read.ice_config.v1
@@ -10553,12 +10553,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.exchange.create_handoff.v1
+      operationId: ak.gate.account.exchange.create_handoff
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.exchange.create_handoff.v1
@@ -10603,12 +10603,12 @@ paths:
         host:
           default: localhost
     get:
-      operationId: ak.gate.account.read.onboarding.v1
+      operationId: ak.gate.account.read.onboarding
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.read.onboarding.v1
@@ -10640,12 +10640,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.issue_identity_binding_challenge.v1
+      operationId: ak.gate.account.command.issue_identity_binding_challenge
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.issue_identity_binding_challenge.v1
@@ -10690,12 +10690,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.issue_did_binding_challenge.v1
+      operationId: ak.gate.account.command.issue_did_binding_challenge
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.issue_did_binding_challenge.v1
@@ -10742,12 +10742,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.issue_identity_abandonment_challenge.v1
+      operationId: ak.gate.account.command.issue_identity_abandonment_challenge
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.issue_identity_abandonment_challenge.v1
@@ -10796,12 +10796,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.abandon_identity_creation.v1
+      operationId: ak.gate.account.command.abandon_identity_creation
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.abandon_identity_creation.v1
@@ -10851,12 +10851,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.register.v1
+      operationId: ak.gate.account.command.register
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.register.v1
@@ -10908,12 +10908,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.issue_session_grant.v1
+      operationId: ak.gate.account.command.issue_session_grant
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.issue_session_grant.v1
@@ -11003,12 +11003,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.revoke_session.v1
+      operationId: ak.gate.account.command.revoke_session
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.revoke_session.v1
@@ -11062,12 +11062,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.refresh_session_grant.v1
+      operationId: ak.gate.account.command.refresh_session_grant
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.refresh_session_grant.v1
@@ -11152,12 +11152,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.issue_recovery_completion_grant.v1
+      operationId: ak.gate.account.command.issue_recovery_completion_grant
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.issue_recovery_completion_grant.v1
@@ -11190,12 +11190,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.logout_auth_session.v1
+      operationId: ak.gate.account.command.logout_auth_session
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.logout_auth_session.v1
@@ -11235,12 +11235,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.introspect_session_grant.v1
+      operationId: ak.gate.account.command.introspect_session_grant
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.introspect_session_grant.v1
@@ -11278,12 +11278,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.issue_controller_gate_attestation.v1
+      operationId: ak.gate.account.command.issue_controller_gate_attestation
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.issue_controller_gate_attestation.v1
@@ -11330,12 +11330,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.logout.v1
+      operationId: ak.gate.account.command.logout
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.logout.v1
@@ -11373,12 +11373,12 @@ paths:
               $ref: '#/components/schemas/AccountLogoutRequestBody'
   /_arkret/gate/account/erasure-requests:
     post:
-      operationId: ak.gate.account.command.request_erasure.v1
+      operationId: ak.gate.account.command.request_erasure
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.request_erasure.v1
@@ -11432,12 +11432,12 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.pair_device.v1
+      operationId: ak.gate.account.command.pair_device
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.pair_device.v1
@@ -11464,7 +11464,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.gate.account.command.pair_agent_key.v1
+      operationId: ak.gate.account.command.pair_agent_key
       description: Native personal agent runtime key pairing. Admission validates current controller/Agent authority, the fresh pairing handle, the verifier/audience/challenge-bound private requested_scope disclosure, proof-of-possession and the accepted control frontier. Backup availability and history-only MLS material are neither inputs nor readiness gates. The operation validates verification_method ↔ agent_id consistency and writes one ak.agent.key.authorize on approval. Agent runtime private keys are locally generated and never uploaded or restored.
       security:
       - bearerAuth: []
@@ -11472,8 +11472,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.gate.account.command.pair_agent_key.v1
@@ -11503,12 +11503,12 @@ paths:
               $ref: '#/components/schemas/AgentKeyPairRequestBody'
   /_arkret/self/agents:
     get:
-      operationId: ak.self.agent.read.list.v1
+      operationId: ak.self.agent.read.list
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.read.list.v1
@@ -11524,12 +11524,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/AgentList'
     post:
-      operationId: ak.self.agent.command.provision.v1
+      operationId: ak.self.agent.command.provision
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.command.provision.v1
@@ -11552,12 +11552,12 @@ paths:
               $ref: '#/components/schemas/AgentProvisionRequestBody'
   /_arkret/self/agent-provisioning-abandonment-challenges:
     post:
-      operationId: ak.self.agent.command.issue_provisioning_abandonment_challenge.v1
+      operationId: ak.self.agent.command.issue_provisioning_abandonment_challenge
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.command.issue_provisioning_abandonment_challenge.v1
@@ -11595,12 +11595,12 @@ paths:
               $ref: '#/components/schemas/AgentProvisioningAbandonmentChallengeRequestBody'
   /_arkret/self/agent-provisioning-abandonments:
     post:
-      operationId: ak.self.agent.command.abandon_provisioning.v1
+      operationId: ak.self.agent.command.abandon_provisioning
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.command.abandon_provisioning.v1
@@ -11641,7 +11641,7 @@ paths:
               $ref: '#/components/schemas/AgentProvisioningAbandonmentRequestBody'
   /_arkret/self/agents/{agent_id}:
     get:
-      operationId: ak.self.agent.resource.get.v1
+      operationId: ak.self.agent.resource.get
       description: Read one native personal agent projection.
       security:
       - sessionGrantAuth: []
@@ -11649,8 +11649,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.resource.get.v1
@@ -11668,7 +11668,7 @@ paths:
                 $ref: '#/components/schemas/AgentView'
   /_arkret/self/agents/{agent_id}/renew-pairing:
     post:
-      operationId: ak.self.agent.command.renew_pairing.v1
+      operationId: ak.self.agent.command.renew_pairing
       description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle and the unchanged requested_scope_digest DID commitment. All previously issued handles stay permanently unresolvable. An Agent without an active accepted runtime-key authorization uses bootstrap; an Agent holding an active authorized key (lifecycle active or paused) uses replacement while lifecycle intent, existing keys and grants stay untouched until one controller-signed authorization atomically supersedes the prior keys. Generic views express the open branch through pairing_mode/handle fields and readiness blockers and never expose runtime_state or backup readiness; that diagnostic is pairing-poll-local. Neither branch creates, revokes, or re-issues Realm grants. Pair commit does not depend on history-only backup availability; deactivated rejects.
       security:
       - sessionGrantAuth: []
@@ -11676,8 +11676,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.command.renew_pairing.v1
@@ -11701,7 +11701,7 @@ paths:
               $ref: '#/components/schemas/AgentRenewPairingRequestBody'
   /_arkret/self/agents/{agent_id}/pause:
     post:
-      operationId: ak.self.agent.command.pause.v1
+      operationId: ak.self.agent.command.pause
       description: Pause a native personal agent and reject new agent sessions.
       security:
       - sessionGrantAuth: []
@@ -11709,8 +11709,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.command.pause.v1
@@ -11734,7 +11734,7 @@ paths:
               $ref: '#/components/schemas/AgentPauseRequestBody'
   /_arkret/self/agents/{agent_id}/resume:
     post:
-      operationId: ak.self.agent.command.resume.v1
+      operationId: ak.self.agent.command.resume
       description: Resume a paused native personal agent after freshness and sidecar disclosure checks.
       security:
       - sessionGrantAuth: []
@@ -11742,8 +11742,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.command.resume.v1
@@ -11767,7 +11767,7 @@ paths:
               $ref: '#/components/schemas/AgentResumeRequestBody'
   /_arkret/self/agents/{agent_id}/deactivate:
     post:
-      operationId: ak.self.agent.command.deactivate.v1
+      operationId: ak.self.agent.command.deactivate
       description: Terminally deactivate a native personal agent with one controller-authorized lifecycle Event. Once accepted, the parent lifecycle AND gate makes every subordinate key, session, pairing handle, capability grant, KeyPackage, presence and future submission ineffective; client-authored revoke bundles are forbidden and asynchronous cleanup is not a success prerequisite.
       security:
       - sessionGrantAuth: []
@@ -11775,8 +11775,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.command.deactivate.v1
@@ -11800,7 +11800,7 @@ paths:
               $ref: '#/components/schemas/AgentDeactivateRequestBody'
   /_arkret/self/agents/{agent_id}/grants:
     post:
-      operationId: ak.self.agent.grant.command.attach.v1
+      operationId: ak.self.agent.grant.command.attach
       description: Attach a complete controller-authored ak.capability.grant EventInitialSubmission to a native personal agent together with a controller-signed, verifier-bound private requested_scope disclosure. The closed CapabilityGrantBody has no inner proof; the Event envelope proof is the sole durable issuer signature, and the service submits the exact Event bytes through ordinary admission without signing or synthesis fallback. The verifier recomputes the accepted-at public DID commitment; grant actions and resources must be covered by the disclosed immutable ceiling, all provision constraints remain mandatory, no defaults are added, and the disclosure is never copied into Realm history.
       security:
       - sessionGrantAuth: []
@@ -11808,8 +11808,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.grant.command.attach.v1
@@ -11833,7 +11833,7 @@ paths:
               $ref: '#/components/schemas/AgentGrantAttachRequestBody'
   /_arkret/self/agents/{agent_id}/grants/{grant_id}:
     delete:
-      operationId: ak.self.agent.grant.resource.delete.v1
+      operationId: ak.self.agent.grant.resource.delete
       description: Detach or revoke a capability grant from a native personal agent.
       security:
       - sessionGrantAuth: []
@@ -11841,8 +11841,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.grant.resource.delete.v1
@@ -11871,12 +11871,12 @@ paths:
               $ref: '#/components/schemas/AgentGrantDetachRequestBody'
   /_arkret/self/agent-sidecars:ensure:
     post:
-      operationId: ak.self.agent.sidecar.command.ensure.v1
+      operationId: ak.self.agent.sidecar.command.ensure
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.sidecar.command.ensure.v1
@@ -11907,7 +11907,7 @@ paths:
               $ref: '#/components/schemas/AgentSidecarEnsureRequestBody'
   /_arkret/self/agent-sidecars/{sidecar_id}:
     get:
-      operationId: ak.self.agent.sidecar.resource.get.v1
+      operationId: ak.self.agent.sidecar.resource.get
       description: Return one Agent Sidecar owned by the authenticated controller, including desired/effective Agent access and readiness. Foreign, unauthorized, and nonexistent IDs are indistinguishable.
       security:
       - sessionGrantAuth: []
@@ -11915,8 +11915,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.sidecar.resource.get.v1
@@ -11935,7 +11935,7 @@ paths:
                 $ref: '#/components/schemas/AgentSidecarView'
   /_arkret/self/agent-sidecars:
     get:
-      operationId: ak.self.agent.sidecar.read.list.v1
+      operationId: ak.self.agent.sidecar.read.list
       description: List Agent Sidecars owned by the authenticated controller. An optional realm_id filter narrows the result without exposing other controllers' objects.
       security:
       - sessionGrantAuth: []
@@ -11943,8 +11943,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.sidecar.read.list.v1
@@ -11968,7 +11968,7 @@ paths:
                 $ref: '#/components/schemas/AgentSidecarList'
   /_arkret/self/agents/{agent_id}/participation:
     put:
-      operationId: ak.self.agent.participation.resource.replace.v1
+      operationId: ak.self.agent.participation.resource.replace
       description: Replace one controller-private per-scope participation selection at its Account Authority. First write uses expected_version=0; successful writes increment by one. Selection grants no capability and is intersected with current target policy at action time.
       security:
       - sessionGrantAuth: []
@@ -11976,8 +11976,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.participation.resource.replace.v1
@@ -12000,7 +12000,7 @@ paths:
             schema:
               $ref: '#/components/schemas/AgentParticipationReplaceRequestBody'
     get:
-      operationId: ak.self.agent.participation.resource.get.v1
+      operationId: ak.self.agent.participation.resource.get
       description: Get the Account Authority's current versioned per-scope participation selections (controller-self only).
       security:
       - sessionGrantAuth: []
@@ -12008,8 +12008,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: true
-        description: Exact versioned operation selector; validated before body parsing.
+        required: false
+        description: Exact operation_id selector; required only when endpoint context cannot select one version.
         schema:
           type: string
           const: ak.self.agent.participation.resource.get.v1

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.3",
+  "version": "2026-08-27.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-27T14:00:00+08:00",
+  "generated_at": "2026-08-27T16:45:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -126,7 +126,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:6c2191343936d3c9cc79b09f73a1025b7eb63202117edf029c4367ecefd971c7",
+      "section_digest": "sha256:8bf4bb9ced8a120b4b0fa1215e81fcb53c14f78989fd617f680e422c70763f53",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -141,7 +141,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#24-operation-id-kindaction-taxonomy",
-      "section_digest": "sha256:5557c34a4ca394d6ccb93d7eda20e617be264cd19d7ed1ad56351c704dd2ec69",
+      "section_digest": "sha256:09d1e36c5d672e08cb5d5cca4076acf8b4291d600dba8673c020ccfa09b2d697",
       "requirement": "Every operation_id ends with <kind>.<action> drawn from the closed kind set, and the action MUST describe a protocol effect rather than an HTTP method name.",
       "testability_grade": "api_shape",
       "test_plan": "Enforced mechanically by tools/artifact_lint: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."

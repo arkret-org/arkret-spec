@@ -225,7 +225,7 @@ def check_fixture_runner_contract(lint: Lint) -> None:
         },
         "operation_registry_coverage_fixture": {
             "catalog_registry_bijection",
-            "registry_openapi_bijection",
+            "registry_openapi_endpoint_projection",
             "registry_binding_coverage",
             "schema_refs_resolve",
             "write_retry_contract",

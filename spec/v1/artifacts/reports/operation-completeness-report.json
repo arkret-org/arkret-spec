@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.8",
+  "version": "2026-08-27.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T15:10:00+08:00",
+  "generated_at": "2026-08-27T16:39:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1054,7 +1054,10 @@
       "success_shape_kind": "service_describe",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody",
       "response_schema_ref": "schemas/service-describe.schema.json",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody",
+        "response": "#/components/schemas/ServiceDescribe"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -1065,7 +1068,10 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody",
+        "response": "#/components/schemas/EventsFrontierFederationPeerState"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -1076,7 +1082,10 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "#/components/schemas/PeerEventsResolveRequestBody",
+        "response": "#/components/schemas/PeerEventsResolveOutcome"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -1087,7 +1096,10 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
+        "response": "#/components/schemas/EventsQueryOutcome"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -1210,7 +1222,10 @@
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -1249,7 +1264,10 @@
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -1274,7 +1292,10 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_request",
       "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_outcome",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ServiceResolutionResolveRequestBody",
+        "response": "#/components/schemas/ServiceResolutionResolveOutcome"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -2523,7 +2544,10 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "#/components/schemas/EventDeliveryStatusRequestBody",
+        "response": "#/components/schemas/EventDeliveryStatusOutcome"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -2534,7 +2558,10 @@
       "success_shape_kind": "service_describe",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody",
       "response_schema_ref": "schemas/service-describe.schema.json",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody",
+        "response": "#/components/schemas/ServiceDescribe"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -2545,7 +2572,10 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody",
+        "response": "#/components/schemas/EventsFrontierState"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -2556,7 +2586,10 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "#/components/schemas/EventsResolveRequestBody",
+        "response": "#/components/schemas/EventsResolveOutcome"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -2567,7 +2600,10 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
+        "response": "#/components/schemas/EventsQueryOutcome"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -3384,7 +3420,10 @@
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierState",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/SealFrontierState"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -3423,7 +3462,10 @@
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-      "openapi_component_refs": {},
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody",
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome"
+      },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },

@@ -38,7 +38,7 @@ HTTP/JSON 是参考绑定；同一操作应能无语义损失映射到其它 tra
 
 - 所有 canonical operation 均使用 `encoding.md` 的 canonical JSON 与签名输入规则。
 - 关键行为不由路径决定，而由 `operation_id` 与数据语义决定。
-- Arkret 协议字段和 feature discovery 使用 `operation_id`，取值使用 `ak.<namespace>.<lower_snake_case>`。OpenAPI 3.2 标准字段名为 `operationId`，其值应等于对应的 Arkret `operation_id`；RFC 10008 HTTP QUERY 使用 Path Item 的标准 `query:` 字段。
+- Arkret operation registry 和 feature discovery 使用带版本的 `operation_id`。OpenAPI 3.2 标准字段 `operationId` 标识稳定 endpoint family，其值等于对应 `operation_id` 去掉末尾 `.vN` 后的无版本 identity；具体 `operation_id` 仅在无法由 endpoint context 唯一推导时通过 `Arkret-Operation` 选择。RFC 10008 HTTP QUERY 使用 Path Item 的标准 `query:` 字段。
 - 服务发现使用 canonical `ServiceDescribe` shape；响应 core shape 包含：
   - `service_id`
   - `trust_domain`
@@ -106,267 +106,267 @@ servers:
 paths:
   /_arkret/describe:
     get:
-      operationId: ak.server.read.describe.v1
+      operationId: ak.server.read.describe
       responses:
         '200': { description: service profile }
 
   /_arkret/root/identity/resolve:
     post:
-      operationId: ak.root.identity.read.resolve.v1
+      operationId: ak.root.identity.read.resolve
   /_arkret/root/identity/describe:
     get:
-      operationId: ak.root.identity.registry.read.describe.v1
+      operationId: ak.root.identity.registry.read.describe
   /_arkret/root/identity/document:
     get:
-      operationId: ak.root.identity.document.resource.get.v1
+      operationId: ak.root.identity.document.resource.get
   /_arkret/root/identity/log:
     get:
-      operationId: ak.root.identity.log.read.list.v1
+      operationId: ak.root.identity.log.read.list
   /_arkret/root/identity/submit-did-operation:
     post:
-      operationId: ak.root.identity.command.submit_did_operation.v1
+      operationId: ak.root.identity.command.submit_did_operation
   /_arkret/root/identity/receipts:
     get:
-      operationId: ak.root.identity.receipts.read.list.v1
+      operationId: ak.root.identity.receipts.read.list
 
   /_arkret/self/security-transactions:
     post:
-      operationId: ak.self.security_transaction.command.create.v1
+      operationId: ak.self.security_transaction.command.create
   /_arkret/self/security-transactions/{transaction_id}:
     get:
-      operationId: ak.self.security_transaction.resource.get.v1
+      operationId: ak.self.security_transaction.resource.get
   /_arkret/self/security-transactions/{transaction_id}/continue:
     post:
-      operationId: ak.self.security_transaction.command.continue.v1
+      operationId: ak.self.security_transaction.command.continue
 
   /_arkret/self/events/describe:
     query:
-      operationId: ak.self.events.read.describe.v1
+      operationId: ak.self.events.read.describe
   /_arkret/self/events:
     post:
-      operationId: ak.self.events.command.submit.v1
+      operationId: ak.self.events.command.submit
     query:
-      operationId: ak.self.events.read.scan.v1
+      operationId: ak.self.events.read.scan
   /_arkret/self/events/subscribe:
     get:
-      operationId: ak.self.events.stream.subscribe.v1
+      operationId: ak.self.events.stream.subscribe
   /_arkret/self/events/{event_id}:
     get:
-      operationId: ak.self.events.resource.get.v1
+      operationId: ak.self.events.resource.get
   /_arkret/self/events/resolve:
     query:
-      operationId: ak.self.events.read.resolve.v1
+      operationId: ak.self.events.read.resolve
   /_arkret/self/events/frontier:
     query:
-      operationId: ak.self.events.read.frontier.v1
+      operationId: ak.self.events.read.frontier
   /_arkret/self/signal:
     post:
-      operationId: ak.self.signal.command.send.v1
+      operationId: ak.self.signal.command.send
   /_arkret/self/signal/subscribe:
     get:
-      operationId: ak.self.signal.stream.subscribe.v1
+      operationId: ak.self.signal.stream.subscribe
   /_arkret/peer/signal:
     post:
-      operationId: ak.peer.signal.command.relay.v1
+      operationId: ak.peer.signal.command.relay
 
   /_arkret/peer/events/describe:
     query:
-      operationId: ak.peer.events.read.describe.v1
+      operationId: ak.peer.events.read.describe
   /_arkret/peer/events:
     post:
-      operationId: ak.peer.events.command.submit.v1
+      operationId: ak.peer.events.command.submit
     query:
-      operationId: ak.peer.events.read.scan.v1
+      operationId: ak.peer.events.read.scan
   /_arkret/peer/events/resolve:
     query:
-      operationId: ak.peer.events.read.resolve.v1
+      operationId: ak.peer.events.read.resolve
   /_arkret/peer/events/frontier:
     query:
-      operationId: ak.peer.events.read.frontier.v1
+      operationId: ak.peer.events.read.frontier
 
   /_arkret/self/account/viewer:
     get:
-      operationId: ak.self.account.read.viewer.v1
+      operationId: ak.self.account.read.viewer
   /_arkret/self/account/profile:
     post:
-      operationId: ak.self.account.command.update_profile.v1
+      operationId: ak.self.account.command.update_profile
   /_arkret/self/account/subscribe:
     get:
-      operationId: ak.self.account.stream.subscribe.v1
+      operationId: ak.self.account.stream.subscribe
   /_arkret/self/account/describe:
     get:
-      operationId: ak.self.account.read.describe.v1
+      operationId: ak.self.account.read.describe
   /_arkret/self/account/cursor/revoke:
     post:
-      operationId: ak.self.account.command.revoke_cursor.v1
+      operationId: ak.self.account.command.revoke_cursor
   /_arkret/self/snapshot/head:
     get:
-      operationId: ak.self.snapshot.read.manifest_head.v1
+      operationId: ak.self.snapshot.read.manifest_head
   /_arkret/peer/snapshot/head:
     get:
-      operationId: ak.peer.snapshot.read.manifest_head.v1
+      operationId: ak.peer.snapshot.read.manifest_head
 
   /_arkret/find/directory/describe:
     get:
-      operationId: ak.find.directory.read.describe.v1
+      operationId: ak.find.directory.read.describe
   /_arkret/find/directory/search-realms:
     post:
-      operationId: ak.find.directory.read.search_realms.v1
+      operationId: ak.find.directory.read.search_realms
   /_arkret/find/directory/resolve-realm:
     post:
-      operationId: ak.find.directory.read.resolve_realm.v1
+      operationId: ak.find.directory.read.resolve_realm
   /_arkret/find/directory/search-organizations:
     post:
-      operationId: ak.find.directory.read.search_organizations.v1
+      operationId: ak.find.directory.read.search_organizations
   /_arkret/find/directory/resolve-organization:
     post:
-      operationId: ak.find.directory.read.resolve_organization.v1
+      operationId: ak.find.directory.read.resolve_organization
   /_arkret/find/directory/search-actors:
     post:
-      operationId: ak.find.directory.read.search_actors.v1
+      operationId: ak.find.directory.read.search_actors
   /_arkret/find/directory/search-users:
     post:
-      operationId: ak.find.directory.read.search_users.v1
+      operationId: ak.find.directory.read.search_users
   /_arkret/find/directory/resolve-handle:
     post:
-      operationId: ak.find.directory.read.resolve_handle.v1
+      operationId: ak.find.directory.read.resolve_handle
   /_arkret/find/directory/list-handles-for-subject:
     post:
-      operationId: ak.find.directory.read.list_handles_for_subject.v1
+      operationId: ak.find.directory.read.list_handles_for_subject
   /_arkret/find/directory/private-contact-discovery:
     post:
-      operationId: ak.find.directory.read.private_contact_discovery.v1
+      operationId: ak.find.directory.read.private_contact_discovery
   /_arkret/find/directory/announce:
     post:
-      operationId: ak.find.directory.command.announce.v1
+      operationId: ak.find.directory.command.announce
   /_arkret/find/directory/withdraw:
     post:
-      operationId: ak.find.directory.command.withdraw.v1
+      operationId: ak.find.directory.command.withdraw
   /_arkret/find/directory/push/register:
     post:
-      operationId: ak.find.directory.push.command.register.v1
+      operationId: ak.find.directory.push.command.register
 
   /_arkret/self/blob/upload:
     post:
-      operationId: ak.self.blob.upload.create.v1
+      operationId: ak.self.blob.upload.create
   /_arkret/self/blob/get:
     head:
-      operationId: ak.self.blob.resource.head.v1
+      operationId: ak.self.blob.resource.head
     get:
-      operationId: ak.self.blob.resource.get.v1
+      operationId: ak.self.blob.resource.get
 
   /_arkret/edge/push/register-device:
     post:
-      operationId: ak.edge.push.command.register_device.v1
+      operationId: ak.edge.push.command.register_device
   /_arkret/edge/push/unregister-device:
     post:
-      operationId: ak.edge.push.command.unregister_device.v1
+      operationId: ak.edge.push.command.unregister_device
   /_arkret/edge/push/notify:
     post:
-      operationId: ak.edge.push.command.notify.v1
+      operationId: ak.edge.push.command.notify
 
   /_arkret/self/device_messages:
     post:
-      operationId: ak.self.device_messages.command.send.v1
+      operationId: ak.self.device_messages.command.send
     get:
-      operationId: ak.self.device_messages.read.list.v1
+      operationId: ak.self.device_messages.read.list
   /_arkret/self/keys/upload:
     post:
-      operationId: ak.self.keys.upload.create.v1
+      operationId: ak.self.keys.upload.create
   /_arkret/self/keys/query:
     post:
-      operationId: ak.self.keys.read.lookup.v1
+      operationId: ak.self.keys.read.lookup
   /_arkret/self/keys/claim:
     post:
-      operationId: ak.self.keys.command.claim.v1
+      operationId: ak.self.keys.command.claim
   /_arkret/self/keys/keypackages/upload:
     post:
-      operationId: ak.self.keys.keypackages.upload.create.v1
+      operationId: ak.self.keys.keypackages.upload.create
   /_arkret/self/keys/keypackages/claim:
     post:
-      operationId: ak.self.keys.keypackages.command.claim.v1
+      operationId: ak.self.keys.keypackages.command.claim
   /_arkret/self/keys/keypackages/consume:
     post:
-      operationId: ak.self.keys.keypackages.command.consume.v1
+      operationId: ak.self.keys.keypackages.command.consume
   /_arkret/self/keys/keypackages/revoke:
     post:
-      operationId: ak.self.keys.keypackages.command.revoke.v1
+      operationId: ak.self.keys.keypackages.command.revoke
   /_arkret/self/keys/backups/{backup_id}:
     put:
-      operationId: ak.self.keys.backups.resource.replace.v1
+      operationId: ak.self.keys.backups.resource.replace
     delete:
-      operationId: ak.self.keys.backups.resource.delete.v1
+      operationId: ak.self.keys.backups.resource.delete
   /_arkret/self/keys/backups/{backup_id}/unlock:
     post:
-      operationId: ak.self.keys.backups.command.unlock.v1
+      operationId: ak.self.keys.backups.command.unlock
   /_arkret/self/keys/backups:
     get:
-      operationId: ak.self.keys.backups.read.list.v1
+      operationId: ak.self.keys.backups.read.list
 
   /_arkret/gate/account/register:
     post:
-      operationId: ak.gate.account.command.register.v1
+      operationId: ak.gate.account.command.register
   /_arkret/gate/account/session-grants:
     post:
-      operationId: ak.gate.account.command.issue_session_grant.v1
+      operationId: ak.gate.account.command.issue_session_grant
   /_arkret/gate/account/session-grants/revoke:
     post:
-      operationId: ak.gate.account.command.revoke_session.v1
+      operationId: ak.gate.account.command.revoke_session
   /_arkret/gate/account/auth-sessions/logout:
     post:
-      operationId: ak.gate.account.command.logout_auth_session.v1
+      operationId: ak.gate.account.command.logout_auth_session
   /_arkret/gate/account/logout:
     post:
-      operationId: ak.gate.account.command.logout.v1
+      operationId: ak.gate.account.command.logout
   /_arkret/gate/account/device-pair:
     post:
-      operationId: ak.gate.account.command.pair_device.v1
+      operationId: ak.gate.account.command.pair_device
   /_arkret/self/authz/check:
     post:
-      operationId: ak.self.authz.read.check.v1
+      operationId: ak.self.authz.read.check
   /_arkret/self/authz/effective-grants:
     get:
-      operationId: ak.self.authz.grants.read.effective.v1
+      operationId: ak.self.authz.grants.read.effective
   /_arkret/self/authz/invites:
     get:
-      operationId: ak.self.authz.invites.read.list.v1
+      operationId: ak.self.authz.invites.read.list
   /_arkret/self/policy/check:
     post:
-      operationId: ak.self.policy.read.check.v1
+      operationId: ak.self.policy.read.check
   /_arkret/self/rtc/ice-config:
     post:
-      operationId: ak.self.media.read.ice_config.v1
+      operationId: ak.self.media.read.ice_config
   /_arkret/self/rtc/token:
     post:
-      operationId: ak.self.call.media.exchange.issue_token.v1
+      operationId: ak.self.call.media.exchange.issue_token
   /_arkret/self/moderation/report:
     post:
-      operationId: ak.self.moderation.command.report.v1
+      operationId: ak.self.moderation.command.report
 
   /_arkret/edge/applet/ping:
     get:
-      operationId: ak.edge.applet.read.ping.v1
+      operationId: ak.edge.applet.read.ping
   /_arkret/edge/applet/describe:
     get:
-      operationId: ak.edge.applet.read.describe.v1
+      operationId: ak.edge.applet.read.describe
   /_arkret/edge/applet/transactions:
     post:
-      operationId: ak.edge.applet.command.transaction.v1
+      operationId: ak.edge.applet.command.transaction
   /_arkret/edge/applet/actors/{actor_id}:
     get:
-      operationId: ak.edge.applet.actor.read.resolve.v1
+      operationId: ak.edge.applet.actor.read.resolve
   /_arkret/edge/applet/realms/{realm_id_or_alias}:
     get:
-      operationId: ak.edge.applet.realm.read.resolve.v1
+      operationId: ak.edge.applet.realm.read.resolve
   /_arkret/edge/applet/protocols/{protocol}:
     get:
-      operationId: ak.edge.applet.read.protocol_metadata.v1
+      operationId: ak.edge.applet.read.protocol_metadata
   /_arkret/edge/applet/third_party/users:
     get:
-      operationId: ak.edge.applet.third_party_users.read.list.v1
+      operationId: ak.edge.applet.third_party_users.read.list
   /_arkret/edge/applet/third_party/locations:
     get:
-      operationId: ak.edge.applet.third_party_locations.read.list.v1
+      operationId: ak.edge.applet.third_party_locations.read.list
 ```
 
 ## 4. Canonical 操作与 transport 映射

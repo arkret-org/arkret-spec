@@ -101,21 +101,32 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>.v1
 - `command.publish` 表示发布调用方签名的 policy / identity state / 权威文档，由服务端按签名、版本和 `supersedes` 链验证后接受；除非目标 URI 本身就是可完整替换的 slot，否则 MUST 使用 `POST`。
 - `command.send` / `command.notify` 表示投递、入队或 fanout；即使有幂等键，也不是 `resource.replace`。
 - `command.ack` 表示对已投递数据做显式确认；天然幂等，但不得被 cursor 推进隐式替代。
-HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan.v1` 为例，其 HTTP binding 唯一为 `QUERY /_arkret/self/events`，OpenAPI 3.2 的 `query:` Operation Object 持有唯一 `operationId`。实现不得为同一 operation 暴露未登记的 GET / POST 别名；gRPC / MQ 同样只暴露 registry 中的 canonical operation。
+HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan.v1` 为例，其 HTTP binding 唯一为 `QUERY /_arkret/self/events`，OpenAPI 3.2 的 `query:` Operation Object 使用稳定、无版本的 endpoint identity `ak.self.events.read.scan` 作为 `operationId`。实现不得为同一 operation 暴露未登记的 GET / POST 别名；gRPC / MQ 同样只暴露 registry 中的 canonical operation contract。
 
 ### 2.4.1 HTTP operation selector（normative）
 
-每个 canonical HTTP 请求（包括 `GET /_arkret/describe`）都 MUST 携带请求头
-`Arkret-Operation`，其值 MUST 是 operation registry 中完整、带版本的 exact
-`operation_id`。接收方 MUST 在读取或解析 body 之前完成以下检查：
+OpenAPI `operationId` 标识稳定的 HTTP endpoint family，不是带版本的 `operation_id`：其值 MUST 等于 canonical
+`operation_id` 去掉末尾 `.vN` 后的 endpoint identity。同一 method/path 的多个 `operation_id` 版本共享同一个
+OpenAPI Operation Object 和同一个无版本 `operationId`。
 
-1. 缺失 header 返回 HTTP 400 / `operation_selector_required`；
-2. operation id 未注册、服务未支持该 exact 版本，或该 id 不属于当前 method/path route family，返回 HTTP 422 / `unsupported_operation_version`；
-3. 不得按 URL、body schema、字段相似度、无版本别名或其他版本回退来猜测 operation。
+接收方 MUST 在读取或解析 body 之前，从当前 method/path route family、已验证的服务能力交集、binding
+kind，以及其它由该 binding 明确定义且已认证的版本判别信息，计算本次请求可接受的 exact versioned
+`operation_id` 候选集。不得按 body shape、字段相似度、无版本别名、客户端 SDK 版本或失败回退来猜测。
 
-成功响应 MUST 以 `Arkret-Operation` response header 原样回显本次选择的 exact id。
-需要 RFC 9421 HTTP Message Signature 的请求与响应，签名基串 MUST 覆盖该 header；
-选择器因此也是授权、幂等和审计 transcript 的一部分，而不是路由提示。
+`Arkret-Operation` 是**条件式** exact-version selector：
+
+1. 候选集恰有一个成员时，接收方 MUST 从 endpoint context 唯一推导该成员；请求 MAY 省略
+   `Arkret-Operation`。若请求提供该 header，其值仍 MUST 精确等于唯一候选；
+2. 候选集多于一个成员，且 binding 没有其它已认证判别信息能唯一选择时，请求 MUST 携带
+   `Arkret-Operation`；缺失返回 HTTP 400 / `operation_selector_required`；
+3. header 重复、值未注册、服务未支持该 exact 版本，或该 id 不属于当前 method/path route family，返回
+   HTTP 422 / `unsupported_operation_version`；
+4. 候选集为空时返回 `unsupported_operation_version`，不得回退到相邻版本或未广告 `operation_id`。
+
+成功响应 MUST 以 `Arkret-Operation` response header 回显最终选中的 exact versioned id，无论请求是否
+显式携带 selector。需要 RFC 9421 HTTP Message Signature 且请求携带该 header 时，签名基串 MUST 覆盖它；
+省略 header 的请求仍必须把唯一推导出的 exact `operation_id` 用于授权、幂等和审计，不能把无版本
+OpenAPI `operationId` 当作带版本的协议 operation。
 
 ### 2.4.2 写操作的 durable Event authorship 闭包（normative）
 
