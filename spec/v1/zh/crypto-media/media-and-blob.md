@@ -64,13 +64,11 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 可续传上传是 `ak.self.blob.upload.create.v1` 操作的**可选替代传输 binding**，面向大文件与弱网下的断点续传。它不是新的 operation_id，也不改变 Blob 的内容寻址与 receipt 语义；§2 的上传规则（声明 metadata 不可信、文件名清理、receipt 签名）对该 binding 同样适用。普通实现 MAY 暴露该 binding；当服务端未在 `/_arkret/describe` 声明该能力时，客户端 MUST 回退到 §2 的 canonical `multipart/form-data` 上传，不得对猜测的 endpoint 直接发起续传。
 
-TUS 创建请求的 `POST` 在当前 advertised candidate 只有
-`ak.self.blob.upload.create.v1` 时 MAY 省略 `Arkret-Operation`，服务端在读取 upload
-metadata/body 之前按 HTTP selector 规则唯一推导该 exact `operation_id`；若未来同时广告多个候选且
-无法由其它已认证 binding context 唯一选择，缺失才返回 `operation_selector_required`。提供的 selector
-未知、未广告或与 route family 不匹配时返回 `unsupported_operation_version`。后续 `PATCH` / `HEAD` /
-`DELETE` 由创建成功的 upload resource 绑定到这一 exact operation，不得另行选择或
-从 payload 推导其他 schema 版本。
+TUS 创建请求的 `POST` MUST 携带
+`Arkret-Operation: ak.self.blob.upload.create.v1`；即使当前 advertised candidate 只有该版本也不得省略。
+服务端 MUST 在读取 upload metadata/body 之前验证 selector。缺失返回 `operation_selector_required`；未知、
+未广告或与 route family 不匹配时返回 `unsupported_operation_version`。后续 `PATCH` / `HEAD` / `DELETE`
+同样 MUST 携带创建资源时绑定的 exact `Arkret-Operation`，不得另行选择或从 payload 推导其他 schema 版本。
 
 **协议绑定（normative）**
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.9",
+  "version": "2026-08-27.12",
   "source_of_truth": true,
-  "generated_at": "2026-08-27T16:39:00+08:00",
+  "generated_at": "2026-08-27T19:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -11339,7 +11339,7 @@
       "max_canonical_body_bytes is OPTIONAL and only for a body_class=non_streaming_json operation whose normative limit is LOWER than the general 8 MiB. It MUST NOT declare a value above 8 MiB, and deployments MUST NOT lower the general interoperability constants through Describe (scalability-constraints section 2.1.6).",
       "max_items is REQUIRED for a body_class=non_streaming_json operation whose request or response carries a top-level array with a normative count bound. max_items and the byte budget are a conjunctive two-dimensional constraint: a count bound never promises that max_items objects of near-maximum size fit in one body, and implementations MUST NOT lower a registered count because a fixture-median product exceeds the byte budget (scalability-constraints section 2.1.5).",
       "Every operation_id is an explicit versioned operation identity ending in .v1. Its stable HTTP endpoint identity is derived by removing the terminal .vN and is used as the OpenAPI operationId; the unversioned identity is not an alias for a versioned operation_id.",
-      "Before body parsing, an HTTP receiver MUST derive the locally advertised exact operation_id candidates for the selected method/path family and binding. Arkret-Operation is OPTIONAL when that candidate set or another authenticated binding discriminator selects exactly one contract, and REQUIRED with operation_selector_required only when multiple candidates remain ambiguous. A supplied selector must name one advertised candidate; an empty candidate set, unknown id, duplicate selector, or value outside the route family fails with unsupported_operation_version. Payload-shape inference and version fallback are forbidden.",
+      "Every canonical Arkret HTTP request MUST carry exactly one Arkret-Operation header naming the exact versioned operation_id before body parsing. The receiver MUST verify that the selector is locally advertised and belongs to the selected method/path family and binding. A missing selector fails with operation_selector_required; an empty candidate set, unknown id, duplicate selector, or value outside the route family fails with unsupported_operation_version. Endpoint uniqueness, payload-shape inference, client SDK version, implicit defaults, and version fallback MUST NOT replace the selector. This invariant keeps existing clients stable when another operation version is added to the same HTTP endpoint family.",
       "operation_bundles is the only canonical bundle member source. Each registered bundle freezes one service_kind and a canonical unique set of (operation_id,binding_kind) members; changing a member requires a new bundle id.",
       "Within one service_kind, active current-v1 bundles MUST NOT overlap on an identical (operation_id,binding_kind) pair. Pairs using a different binding kind are distinct.",
       "Only registered ak.operation_bundle.*.v1 ids may appear in current-v1 ServiceDescribe. Current-v1 defines no vendor bundle wire namespace; vendor-private collections may only appear as ignorable x_* metadata and never affect capability decisions. Unknown bundle ids fail closed and are never expanded by name."
@@ -15971,8 +15971,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-27.8",
-    "generated_at": "2026-08-27T16:39:00+08:00",
+    "version": "2026-08-27.12",
+    "generated_at": "2026-08-27T19:00:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_principal_server.v1",
@@ -16007,7 +16007,7 @@
         "prototype_id": "ak.deployment_prototype.coauth_auth_server.v1",
         "service_kind": "auth_server",
         "evidence_kind": "reference_implementation",
-        "evidence_ref": "coauth:crates/backend/src/handlers/arkret/service_describe.rs#SUPPORTED_OPERATIONS",
+        "evidence_ref": "coauth:crates/backend/src/server/routers.rs#build_account_api_router",
         "independent_gates": []
       },
       {
@@ -16148,6 +16148,39 @@
         "service_kind": "turn_service",
         "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
         "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.auth_server.account_authority.v1",
+        "service_kind": "auth_server",
+        "deployment_evidence": [
+          "ak.deployment_prototype.coauth_auth_server.v1"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.gate.account.command.abandon_identity_creation.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.gate.account.command.issue_did_binding_challenge.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.gate.account.command.request_erasure.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.gate.account.read.onboarding.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       },
       {
         "operation_bundle_id": "ak.operation_bundle.auth_server.http_core.v1",

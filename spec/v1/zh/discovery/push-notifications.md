@@ -383,7 +383,7 @@ POST /_arkret/edge/push/notify
 
 `blind_wakeup` 下上述最小化义务覆盖 `counts` 内的所有绝对活动计数，包括未读数与未接来电数；`badge` 与 `missed_call` 均只能使用布尔存在标志或 policy 声明的封闭 bucket 字符串，MUST NOT 发送明文绝对计数。`unread_increment` 是唯一允许的有界增量形态，不得被解释为累计总数。
 
-> **传输层 header（非 body 字段）**：notify 的 exact `operation_id` 当前可由 endpoint family 唯一推导，因而 `Arkret-Operation` MAY 省略；若提供则必须为 `ak.edge.push.command.notify.v1`，未来同 endpoint 同时广告多个 `operation_id` 版本且无法由其它已认证上下文唯一选择时才必填。`idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-ID` header；目标服务 DID 与 `recipient_service_id` 复用→`Destination-Service-ID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 OpenAPI securitySchemes）。这些字段都不在 body 重复承载，且 **MUST NOT** 出现在请求体内。
+> **传输层 header（非 body 字段）**：notify MUST 携带 exact selector `Arkret-Operation: ak.edge.push.command.notify.v1`；即使 endpoint family 当前只有该候选也不得省略。`idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-ID` header；目标服务 DID 与 `recipient_service_id` 复用→`Destination-Service-ID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 OpenAPI securitySchemes）。这些字段都不在 body 重复承载，且 **MUST NOT** 出现在请求体内。
 
 **Notify body / product-private body / provider payload 三层边界（normative）**：
 

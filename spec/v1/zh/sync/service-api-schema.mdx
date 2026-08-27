@@ -38,7 +38,7 @@ HTTP/JSON 是参考绑定；同一操作应能无语义损失映射到其它 tra
 
 - 所有 canonical operation 均使用 `encoding.md` 的 canonical JSON 与签名输入规则。
 - 关键行为不由路径决定，而由 `operation_id` 与数据语义决定。
-- Arkret operation registry 和 feature discovery 使用带版本的 `operation_id`。OpenAPI 3.2 标准字段 `operationId` 标识稳定 endpoint family，其值等于对应 `operation_id` 去掉末尾 `.vN` 后的无版本 identity；具体 `operation_id` 仅在无法由 endpoint context 唯一推导时通过 `Arkret-Operation` 选择。RFC 10008 HTTP QUERY 使用 Path Item 的标准 `query:` 字段。
+- Arkret operation registry 和 feature discovery 使用带版本的 `operation_id`。OpenAPI 3.2 标准字段 `operationId` 标识稳定 endpoint family，其值等于对应 `operation_id` 去掉末尾 `.vN` 后的无版本 identity；每个 canonical Arkret HTTP 请求 MUST 通过 `Arkret-Operation` 明确选择 exact versioned `operation_id`，不得因 endpoint 当前只有一个候选而省略。RFC 10008 HTTP QUERY 使用 Path Item 的标准 `query:` 字段。
 - 服务发现使用 canonical `ServiceDescribe` shape；响应 core shape 包含：
   - `service_id`
   - `trust_domain`

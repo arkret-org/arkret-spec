@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-08-27.2",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -19,6 +19,10 @@
     {
       "operation_bundle_id": "ak.operation_bundle.archive_node.describe.v1",
       "sha256": "sha256:c6c9103cbb436f41eb8a008ca75ea72cd3c7e678999a10bf9cd9d0e1d5b55e23"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.auth_server.account_authority.v1",
+      "sha256": "sha256:df275ec795ef115b12f9bb5bf1429e3dea5d22b6e17df8cc3951eb8eb4d1f8bf"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.auth_server.describe.v1",

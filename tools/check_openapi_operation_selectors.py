@@ -60,8 +60,8 @@ def selector_lines(candidates: list[str]) -> list[str]:
     lines = [
         "      - name: Arkret-Operation",
         "        in: header",
-        "        required: false",
-        "        description: Exact operation_id selector; required only when endpoint context cannot select one version.",
+        "        required: true",
+        "        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.",
         "        schema:",
         "          type: string",
     ]
@@ -126,8 +126,8 @@ def validate(text: str) -> list[str]:
             continue
         header_start = operation_index + header_indexes[0]
         header = lines[header_start:header_end(lines, header_start, end)]
-        if "        required: false" not in header:
-            errors.append(f"{endpoint_id}: Arkret-Operation must be optional in static OpenAPI")
+        if "        required: true" not in header:
+            errors.append(f"{endpoint_id}: Arkret-Operation must be required in static OpenAPI")
         candidates = candidates_by_endpoint.get(endpoint_id, [])
         expected = selector_lines(candidates)
         if header != expected:

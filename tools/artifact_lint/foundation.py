@@ -2419,8 +2419,8 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         if canonical_members != sorted(set(canonical_members)):
             lint.fail(operation_path, f"{bundle_id}.members must be unique and canonical-sorted")
 
-    if len(bundle_ids) != 38:
-        lint.fail(operation_path, f"operation_bundles must contain the 38 evidenced v1 bundles, got {len(bundle_ids)}")
+    if len(bundle_ids) != 39:
+        lint.fail(operation_path, f"operation_bundles must contain the 39 evidenced v1 bundles, got {len(bundle_ids)}")
     describe_pair = ("ak.server.read.describe.v1", "http_json")
     for service_kind in sorted(service_kinds):
         describe_bundle_id = f"ak.operation_bundle.{service_kind}.describe.v1"
@@ -2516,6 +2516,23 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
     ):
         if exact_http_members(bundle_id) != {operation_id}:
             lint.fail(operation_path, f"{bundle_id} must contain only {operation_id}")
+
+    auth_account_authority = exact_http_members(
+        "ak.operation_bundle.auth_server.account_authority.v1"
+    )
+    expected_auth_account_authority = {
+        "ak.gate.account.command.abandon_identity_creation.v1",
+        "ak.gate.account.command.issue_controller_gate_attestation.v1",
+        "ak.gate.account.command.issue_did_binding_challenge.v1",
+        "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
+        "ak.gate.account.command.request_erasure.v1",
+        "ak.gate.account.read.onboarding.v1",
+    }
+    if auth_account_authority != expected_auth_account_authority:
+        lint.fail(
+            operation_path,
+            "auth_server.account_authority must exactly project Coauth's unconditional Account Authority routes",
+        )
 
     principal_core = exact_http_members("ak.operation_bundle.principal_server.http_core.v1")
     leaked_role_operations = sorted(principal_core & (identity_surface | directory_surface))

@@ -109,24 +109,20 @@ OpenAPI `operationId` 标识稳定的 HTTP endpoint family，不是带版本的 
 `operation_id` 去掉末尾 `.vN` 后的 endpoint identity。同一 method/path 的多个 `operation_id` 版本共享同一个
 OpenAPI Operation Object 和同一个无版本 `operationId`。
 
-接收方 MUST 在读取或解析 body 之前，从当前 method/path route family、已验证的服务能力交集、binding
-kind，以及其它由该 binding 明确定义且已认证的版本判别信息，计算本次请求可接受的 exact versioned
-`operation_id` 候选集。不得按 body shape、字段相似度、无版本别名、客户端 SDK 版本或失败回退来猜测。
+每个 canonical Arkret HTTP 请求 MUST 在接收方读取或解析 body 之前携带**恰好一个**
+`Arkret-Operation` header，值为 exact versioned `operation_id`。接收方 MUST 从当前 method/path route
+family、已验证的服务能力交集与 binding kind 计算可接受候选集，并验证 selector 属于该候选集。
 
-`Arkret-Operation` 是**条件式** exact-version selector：
-
-1. 候选集恰有一个成员时，接收方 MUST 从 endpoint context 唯一推导该成员；请求 MAY 省略
-   `Arkret-Operation`。若请求提供该 header，其值仍 MUST 精确等于唯一候选；
-2. 候选集多于一个成员，且 binding 没有其它已认证判别信息能唯一选择时，请求 MUST 携带
-   `Arkret-Operation`；缺失返回 HTTP 400 / `operation_selector_required`；
-3. header 重复、值未注册、服务未支持该 exact 版本，或该 id 不属于当前 method/path route family，返回
+1. header 缺失时返回 HTTP 400 / `operation_selector_required`；endpoint 当前只有一个版本也不得隐式补全；
+2. header 重复、值未注册、服务未支持该 exact 版本，或该 id 不属于当前 method/path route family，返回
    HTTP 422 / `unsupported_operation_version`；
-4. 候选集为空时返回 `unsupported_operation_version`，不得回退到相邻版本或未广告 `operation_id`。
+3. 候选集为空时返回 `unsupported_operation_version`，不得回退到相邻版本或未广告 `operation_id`；
+4. 不得按 endpoint 唯一性、body shape、字段相似度、无版本别名、客户端 SDK 版本或失败回退猜测版本。
 
-成功响应 MUST 以 `Arkret-Operation` response header 回显最终选中的 exact versioned id，无论请求是否
-显式携带 selector。需要 RFC 9421 HTTP Message Signature 且请求携带该 header 时，签名基串 MUST 覆盖它；
-省略 header 的请求仍必须把唯一推导出的 exact `operation_id` 用于授权、幂等和审计，不能把无版本
-OpenAPI `operationId` 当作带版本的协议 operation。
+强制 selector 保证同一 endpoint family 新增版本时，旧客户端仍继续明确选择原版本，不会因服务端候选集
+变化而突然失败或被静默切换。成功响应 MUST 以 `Arkret-Operation` response header 回显最终选中的 exact
+versioned id。需要 RFC 9421 HTTP Message Signature 时，签名基串 MUST 覆盖该 header；授权、幂等和审计
+MUST 使用 exact `operation_id`，不能把无版本 OpenAPI `operationId` 当作带版本的协议 operation。
 
 ### 2.4.2 写操作的 durable Event authorship 闭包（normative）
 

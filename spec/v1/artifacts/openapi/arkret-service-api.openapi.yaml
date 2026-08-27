@@ -2531,8 +2531,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.server.read.describe.v1
@@ -2571,8 +2571,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.read.resolve.v1
@@ -2610,8 +2610,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.document.resource.get.v1
@@ -2634,8 +2634,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.log.read.list.v1
@@ -2657,8 +2657,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.command.submit_did_operation.v1
@@ -2686,8 +2686,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.service_registration.command.ensure.v1
@@ -2735,8 +2735,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.service_registration.resource.get.v1
@@ -2773,8 +2773,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.organization_registration.command.prepare.v1
@@ -2813,8 +2813,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.organization_registration.command.ensure.v1
@@ -2870,8 +2870,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.organization_registration.resource.get.v1
@@ -2899,8 +2899,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.organization_registration.command.refresh.v1
@@ -2945,8 +2945,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.organization_registration.command.revoke.v1
@@ -2979,8 +2979,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.receipts.read.list.v1
@@ -3002,8 +3002,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.recovery_policy.command.publish.v1
@@ -3031,8 +3031,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.recovery_policy.resource.get.v1
@@ -3057,8 +3057,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.recovery_session.command.create.v1
@@ -3087,8 +3087,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.recovery_session.resource.get.v1
@@ -3113,8 +3113,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.recovery_session.command.submit_proof.v1
@@ -3142,8 +3142,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.security_transaction.command.create.v1
@@ -3178,8 +3178,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.security_transaction.resource.get.v1
@@ -3208,8 +3208,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.security_transaction.command.continue.v1
@@ -3238,8 +3238,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.control_proposal_acks.command.issue.v1
@@ -3268,8 +3268,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.control_proposal_decisions.command.submit.v1
@@ -3299,8 +3299,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.control_proposal_decisions.read.get.v1
@@ -3330,8 +3330,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.authorization_leases.command.issue.v1
@@ -3362,8 +3362,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.events.read.scan.v1
@@ -3401,8 +3401,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.events.command.submit.v1
@@ -3482,8 +3482,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.events.stream.subscribe.v1
@@ -3531,8 +3531,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.events.read.delivery_status.v1
@@ -3571,8 +3571,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.events.read.describe.v1
@@ -3602,8 +3602,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.events.resource.get.v1
@@ -3630,8 +3630,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.events.read.resolve.v1
@@ -3661,8 +3661,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.events.read.frontier.v1
@@ -3692,8 +3692,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.seals.read.frontier.v1
@@ -3719,8 +3719,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.seals.read.resolve.v1
@@ -3746,8 +3746,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.seals.command.submit.v1
@@ -3774,8 +3774,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.seals.read.mls_governance_proof.v1
@@ -3802,8 +3802,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.seals.read.governance_dependencies.v1
@@ -3830,8 +3830,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.history_key_requests.command.create.v1
@@ -3858,8 +3858,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.history_key_requests.read.list.v1
@@ -3886,8 +3886,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.history_key_responses.command.send.v1
@@ -3914,8 +3914,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.history_key_responses.read.list.v1
@@ -3941,8 +3941,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.history_key_responses.command.ack.v1
@@ -3968,8 +3968,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.organization_recovery_archives.read.list.v1
@@ -3996,8 +3996,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.history_key_requests.command.replicate.v1
@@ -4026,8 +4026,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.history_key_responses.command.relay.v1
@@ -4056,8 +4056,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.seals.read.mls_governance_proof.v1
@@ -4086,8 +4086,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.seals.read.governance_dependencies.v1
@@ -4116,8 +4116,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.organization_recovery_archives.command.replicate.v1
@@ -4165,8 +4165,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.principal_genesis.command.submit.v1
@@ -4202,8 +4202,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.account_status.read.resolve.v1
@@ -4260,8 +4260,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.account_status.command.submit.v1
@@ -4302,8 +4302,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.mls.read.group_state_material.v1
@@ -4369,8 +4369,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.erasure_receipt.command.submit.v1
@@ -4413,8 +4413,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.erasure_receipt.resource.get.v1
@@ -4443,8 +4443,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.device_revocations.command.check.v1
@@ -4476,8 +4476,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.events.read.describe.v1
@@ -4501,8 +4501,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.events.read.scan.v1
@@ -4554,8 +4554,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.events.command.submit.v1
@@ -4610,8 +4610,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.events.read.resolve.v1
@@ -4641,8 +4641,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.events.read.frontier.v1
@@ -4672,8 +4672,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.seals.read.frontier.v1
@@ -4703,8 +4703,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.seals.read.resolve.v1
@@ -4734,8 +4734,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.invites.command.submit.v1
@@ -4772,8 +4772,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.contacts.command.submit.v1
@@ -4830,8 +4830,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.keys.keypackages.command.claim.v1
@@ -4866,8 +4866,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.keys.keypackages.read.claim.v1
@@ -4920,8 +4920,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.service_resolution.command.publish.v1
@@ -4956,8 +4956,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.service_resolution.read.resolve.v1
@@ -4998,8 +4998,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.signal.command.relay.v1
@@ -5052,8 +5052,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.signal.command.send.v1
@@ -5098,8 +5098,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.signal.stream.subscribe.v1
@@ -5133,8 +5133,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.call.media.exchange.issue_token.v1
@@ -5198,8 +5198,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.account.read.viewer.v1
@@ -5259,8 +5259,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.account.stream.subscribe.v1
@@ -5318,8 +5318,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.account.command.update_profile.v1
@@ -5367,8 +5367,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.account.command.revoke_cursor.v1
@@ -5402,8 +5402,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.contact.command.request.v1
@@ -5433,8 +5433,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.contact.command.respond.v1
@@ -5466,8 +5466,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.contact.command.reject.v1
@@ -5520,8 +5520,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.contact.read.list.v1
@@ -5562,8 +5562,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.contact.command.tombstone.v1
@@ -5593,8 +5593,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.contact.command.checkpoint.v1
@@ -5627,8 +5627,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.contact.command.scope_update.v1
@@ -5667,8 +5667,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.circle.read.list.v1
@@ -5690,8 +5690,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.circle.command.create.v1
@@ -5729,8 +5729,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.circle.resource.get.v1
@@ -5760,8 +5760,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.circle.member.command.add.v1
@@ -5793,8 +5793,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.circle.member.resource.delete.v1
@@ -5835,8 +5835,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.circle.command.rotate_scope.v1
@@ -5869,8 +5869,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.circle.command.archive.v1
@@ -5902,8 +5902,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.circle.command.restore.v1
@@ -5935,8 +5935,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.circle.command.tombstone.v1
@@ -5964,8 +5964,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.invite_receive_policy.resource.get.v1
@@ -5989,8 +5989,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.invite_receive_policy.resource.replace.v1
@@ -6021,8 +6021,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.invites.command.dispatch.v1
@@ -6055,8 +6055,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.invite_locator.command.issue.v1
@@ -6088,8 +6088,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.invite_locator.command.rotate.v1
@@ -6121,8 +6121,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.invite_locator.command.revoke.v1
@@ -6149,8 +6149,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.direct_conversation.read.resolve.v1
@@ -6194,8 +6194,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.snapshot.read.manifest_head.v1
@@ -6230,8 +6230,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.peer.snapshot.read.manifest_head.v1
@@ -6269,8 +6269,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.space.read.list.v1
@@ -6324,8 +6324,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.strand.read.list.v1
@@ -6379,8 +6379,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.morph.read.list.v1
@@ -6435,8 +6435,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.views.collection_projection.command.materialize.v1
@@ -6477,8 +6477,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.morph.resource.get.v1
@@ -6507,8 +6507,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.resolve_handle.v1
@@ -6537,8 +6537,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.resolve_agent_selector.v1
@@ -6567,8 +6567,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.list_handles_for_subject.v1
@@ -6598,8 +6598,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.private_contact_discovery.v1
@@ -6646,8 +6646,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.blob.upload.create.v1
@@ -6679,8 +6679,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.blob.resource.head.v1
@@ -6706,8 +6706,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.blob.resource.get.v1
@@ -6769,8 +6769,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.blob.command.presign.v1
@@ -6808,8 +6808,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.push.command.register_device.v1
@@ -6834,8 +6834,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.push.command.unregister_device.v1
@@ -6861,8 +6861,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.push.command.notify.v1
@@ -6897,8 +6897,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.authz.read.check.v1
@@ -6934,8 +6934,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.authz.grants.read.effective.v1
@@ -6982,8 +6982,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.device_messages.command.send.v1
@@ -7013,8 +7013,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.device_messages.read.list.v1
@@ -7044,8 +7044,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.device_messages.command.ack.v1
@@ -7079,8 +7079,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.upload.create.v1
@@ -7106,8 +7106,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.read.lookup.v1
@@ -7137,8 +7137,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.command.claim.v1
@@ -7168,8 +7168,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.actor_profile.read.resolve.v1
@@ -7210,8 +7210,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent_signer_evidence.read.resolve.v1
@@ -7241,8 +7241,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.identity.read.resolution_audit.v1
@@ -7302,8 +7302,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.keypackages.upload.create.v1
@@ -7329,8 +7329,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.keypackages.command.claim.v1
@@ -7360,8 +7360,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.keypackages.command.consume.v1
@@ -7391,8 +7391,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.keypackages.command.revoke.v1
@@ -7421,8 +7421,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.backups.resource.replace.v1
@@ -7468,8 +7468,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.backups.resource.delete.v1
@@ -7501,8 +7501,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.backups.command.issue_delete_challenge.v1
@@ -7539,8 +7539,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.backups.command.unlock.v1
@@ -7569,8 +7569,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.backup_series.command.erase.v1
@@ -7602,8 +7602,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.keys.backups.read.list.v1
@@ -7636,8 +7636,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.moderation.read.franking_seal_observation.v1
@@ -7672,8 +7672,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.moderation.command.report.v1
@@ -7728,8 +7728,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.identity.read.resolution.v1
@@ -7788,8 +7788,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.service.read.resolution.v1
@@ -7823,8 +7823,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.invite_locator.read.resolve.v1
@@ -7857,8 +7857,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.agent_pairing.read.resolve.v1
@@ -7891,8 +7891,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.agent_pairing.command.submit_runtime_key_request.v1
@@ -7927,8 +7927,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.agent_pairing.read.runtime_key_request_status.v1
@@ -7966,8 +7966,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.device_pairing.command.stage.v1
@@ -8008,8 +8008,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.device_pairing.read.resolve.v1
@@ -8047,8 +8047,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.device_pairing.read.status.v1
@@ -8090,8 +8090,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.read.provider_directory.v1
@@ -8109,8 +8109,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.exchange.request_key_material.v1
@@ -8143,8 +8143,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.command.update_room.v1
@@ -8177,8 +8177,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.command.notify.v1
@@ -8211,8 +8211,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.command.submit_message.v1
@@ -8253,8 +8253,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.read.group_info.v1
@@ -8287,8 +8287,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.command.request_consent.v1
@@ -8316,8 +8316,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.command.update_consent.v1
@@ -8345,8 +8345,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.read.identifiers.v1
@@ -8374,8 +8374,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.command.report_abuse.v1
@@ -8403,8 +8403,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.open.mimi.command.proxy_download.v1
@@ -8432,8 +8432,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.root.identity.registry.read.describe.v1
@@ -8451,8 +8451,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.account.read.describe.v1
@@ -8470,8 +8470,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.describe.v1
@@ -8489,8 +8489,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.command.announce.v1
@@ -8519,8 +8519,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.command.withdraw.v1
@@ -8549,8 +8549,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.command.takedown_appeal.v1
@@ -8579,8 +8579,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.search_realms.v1
@@ -8609,8 +8609,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.resolve_realm.v1
@@ -8639,8 +8639,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.resolve_target.v1
@@ -8669,8 +8669,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.search_organizations.v1
@@ -8699,8 +8699,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.resolve_organization.v1
@@ -8729,8 +8729,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.search_actors.v1
@@ -8759,8 +8759,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.read.search_users.v1
@@ -8789,8 +8789,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.find.directory.push.command.register.v1
@@ -8822,8 +8822,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.authz.invites.read.list.v1
@@ -8859,8 +8859,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.applet.read.ping.v1
@@ -8881,8 +8881,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.applet.read.describe.v1
@@ -8946,8 +8946,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.applet.command.transaction.v1
@@ -8980,8 +8980,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.applet.actor.read.resolve.v1
@@ -9009,8 +9009,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.applet.realm.read.resolve.v1
@@ -9034,8 +9034,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.applet.read.protocol_metadata.v1
@@ -9062,8 +9062,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.applet.third_party_users.read.list.v1
@@ -9102,8 +9102,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.applet.third_party_locations.read.list.v1
@@ -9138,8 +9138,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.edge.applet.managed_actor.command.author.v1
@@ -9168,8 +9168,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.applet.install.command.preview.v1
@@ -9198,8 +9198,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.applet.command.install.v1
@@ -9240,8 +9240,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.applet.ghost.command.preview.v1
@@ -9287,8 +9287,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.applet.ghost.command.provision.v1
@@ -9326,8 +9326,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.applet.command.revoke.v1
@@ -9370,8 +9370,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.applet.revoke.command.preview.v1
@@ -9399,8 +9399,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.policy.read.check.v1
@@ -9438,8 +9438,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm_link.read.list.v1
@@ -9484,8 +9484,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm_link.command.create.v1
@@ -9521,8 +9521,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm_link.resource.delete.v1
@@ -9559,8 +9559,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm_link.read.effective_policy.v1
@@ -9586,8 +9586,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm_organization.read.list.v1
@@ -9613,8 +9613,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm_policy_server.resource.get.v1
@@ -9639,8 +9639,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm_policy_server.resource.replace.v1
@@ -9675,8 +9675,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm_policy_server.resource.delete.v1
@@ -9706,8 +9706,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.resource.get.v1
@@ -9733,8 +9733,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.command.archive.v1
@@ -9766,8 +9766,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.command.freeze.v1
@@ -9799,8 +9799,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.command.tombstone.v1
@@ -9832,8 +9832,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.command.destroy.v1
@@ -9865,8 +9865,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.read.export.v1
@@ -9892,8 +9892,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.moderation_policy.read.effective.v1
@@ -9928,8 +9928,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.moderation_policy.resource.replace.v1
@@ -9961,8 +9961,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.join_application.command.submit.v1
@@ -10000,8 +10000,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.join_application.read.list.v1
@@ -10039,8 +10039,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.join_application.resource.get.v1
@@ -10072,8 +10072,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.join_application.command.review.v1
@@ -10118,8 +10118,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.join_application.command.cancel.v1
@@ -10164,8 +10164,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.realm.join_application.audit.read.list.v1
@@ -10193,8 +10193,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.consent.read.list.v1
@@ -10219,8 +10219,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.consent.resource.get.v1
@@ -10263,8 +10263,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.consent.command.grant.v1
@@ -10296,8 +10296,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.consent.command.revoke.v1
@@ -10325,8 +10325,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.consent.command.request.v1
@@ -10353,8 +10353,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.account_data.read.list.v1
@@ -10379,8 +10379,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.account_data.resource.get.v1
@@ -10405,8 +10405,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.account_data.resource.replace.v1
@@ -10437,8 +10437,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.account_data.resource.delete.v1
@@ -10470,8 +10470,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.read_cursor.read.list.v1
@@ -10492,8 +10492,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.read_cursor.command.advance.v1
@@ -10525,8 +10525,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.media.read.ice_config.v1
@@ -10557,8 +10557,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.exchange.create_handoff.v1
@@ -10607,8 +10607,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.read.onboarding.v1
@@ -10644,8 +10644,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.issue_identity_binding_challenge.v1
@@ -10694,8 +10694,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.issue_did_binding_challenge.v1
@@ -10746,8 +10746,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.issue_identity_abandonment_challenge.v1
@@ -10800,8 +10800,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.abandon_identity_creation.v1
@@ -10855,8 +10855,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.register.v1
@@ -10912,8 +10912,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.issue_session_grant.v1
@@ -11007,8 +11007,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.revoke_session.v1
@@ -11066,8 +11066,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.refresh_session_grant.v1
@@ -11156,8 +11156,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.issue_recovery_completion_grant.v1
@@ -11194,8 +11194,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.logout_auth_session.v1
@@ -11239,8 +11239,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.introspect_session_grant.v1
@@ -11282,8 +11282,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.issue_controller_gate_attestation.v1
@@ -11334,8 +11334,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.logout.v1
@@ -11377,8 +11377,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.request_erasure.v1
@@ -11436,8 +11436,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.pair_device.v1
@@ -11472,8 +11472,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.gate.account.command.pair_agent_key.v1
@@ -11507,8 +11507,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.read.list.v1
@@ -11528,8 +11528,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.command.provision.v1
@@ -11556,8 +11556,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.command.issue_provisioning_abandonment_challenge.v1
@@ -11599,8 +11599,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.command.abandon_provisioning.v1
@@ -11649,8 +11649,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.resource.get.v1
@@ -11676,8 +11676,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.command.renew_pairing.v1
@@ -11709,8 +11709,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.command.pause.v1
@@ -11742,8 +11742,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.command.resume.v1
@@ -11775,8 +11775,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.command.deactivate.v1
@@ -11808,8 +11808,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.grant.command.attach.v1
@@ -11841,8 +11841,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.grant.resource.delete.v1
@@ -11875,8 +11875,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.sidecar.command.ensure.v1
@@ -11915,8 +11915,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.sidecar.resource.get.v1
@@ -11943,8 +11943,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.sidecar.read.list.v1
@@ -11976,8 +11976,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.participation.resource.replace.v1
@@ -12008,8 +12008,8 @@ paths:
       parameters:
       - name: Arkret-Operation
         in: header
-        required: false
-        description: Exact operation_id selector; required only when endpoint context cannot select one version.
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
           const: ak.self.agent.participation.resource.get.v1

@@ -75,9 +75,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-08-27.9",
-      "generated_at": "2026-08-27T16:39:00+08:00",
-      "content_digest": "sha256:d0dc7811ba171e9e9225a0a569233b43f7a2acb75b021a9c83cf202e24af91b0"
+      "version": "2026-08-27.12",
+      "generated_at": "2026-08-27T19:00:00+08:00",
+      "content_digest": "sha256:208878850ffdbee065ae425d13919287d931e5c349131bd207140c34b7a487fd"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
@@ -201,15 +201,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-08-27.5",
-      "generated_at": "2026-08-27T16:45:00+08:00",
-      "content_digest": "sha256:2ed655effb22189ff59e0b936f9139c0a89f3e0cfadc79ada6dfd0ddff25cc3c"
+      "version": "2026-08-27.6",
+      "generated_at": "2026-08-27T19:05:00+08:00",
+      "content_digest": "sha256:42302b1509caacaaea34107de531afb7286eb18736e715ea111c7afa32e61223"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
-      "version": "2026-08-27.1",
+      "version": "2026-08-27.2",
       "generated_at": null,
-      "content_digest": "sha256:b38787651e1bbd7ea268ad035159ced22f2b537063352731ec5b7029397b265f"
+      "content_digest": "sha256:41e93fae2dfe4e3b374ca1f8020645d0a5c3398c2653c993fe2a6c0efea01427"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -225,9 +225,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-08-27.9",
-      "generated_at": "2026-08-27T16:39:00+08:00",
-      "content_digest": "sha256:cd1cd0f52278fb8399723d31f6a27bcc8194aba2de0acf9247a3f32bacbdeef9"
+      "version": "2026-08-27.12",
+      "generated_at": "2026-08-27T19:00:00+08:00",
+      "content_digest": "sha256:d0ffce4c545ef96efed4097256a9fa097ba068ccff43a47735f88588e993c4fa"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
