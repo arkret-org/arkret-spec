@@ -48,7 +48,7 @@ updated: 2026-07-13
 ## 2. 设计原则
 
 1. **Gate 是组合的，不是命名的。** Realm 通过 `gates[]` + `combinator` 表达任意 AND/OR 组合；`knock_restricted` 等组合 enum 的语义由 `combinator` 直接表达，避免每加一类 gate 就要再造 enum。
-2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。实现声明 `ak.profile.candidate.join_policy.v1` 并启用 application / review workflow 时，申请正文 MUST 仅对 `ak.realm.join.review` capability 持有方可见：E2EE Realm 中通过 reviewer-only encryption envelope；非 E2EE Realm 中由 Principal Server sync surface 强制访问控制并审计读取（`ak.audit.accessed`）。
+2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。实现声明 `ak.profile.candidate.join_policy.v1` 并启用 application / review workflow 时，申请正文 MUST 仅对持有目标 Realm 精确 `ak.realm.admin` capability 的 reviewer 可见：E2EE Realm 中通过 reviewer-only encryption envelope；非 E2EE Realm 中由 Principal Server sync surface 强制访问控制并审计读取（`ak.audit.accessed`）。
 3. **审核决策必须有稳定审计材料。** 实现声明 `ak.profile.candidate.join_policy.v1` 时，所有审核接受 / 拒绝 MUST 是签名且被 accepted Seal 覆盖的 Control Move、profile-private Event 或 signed receipt，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §5.5](./content-moderation.md) 申诉流程与 [`./content-moderation.md` §10](./content-moderation.md) 审计要求）依赖该 trail。
 4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：candidate profile 下随后的 `ak.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
 5. **自动解析路径不强制走人工。** 当所有 gate 都可自动解析（claim presentation 验证、challenge proof 验证），applicant 可直接提交 `ak.member.state{membership=join}` Control Move，由 reducer 内联校验，无需 application / review Control Move。这条路径替代既有 `restricted` 入口模式的实质语义。
@@ -78,7 +78,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | --- | --- | --- | --- | --- |
 | `gates` | yes | `array<Gate>` | 1..16 项；空数组 MUST schema_violation。 | 必须穿越的 gate 列表。 |
 | `combinator` | yes | `enum(all, any)` | 无默认值；producer MUST 显式写入。 | gate 之间的组合语义。 |
-| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；wire payload MUST 显式写入。 | 审核所需 capability，取 **capability action token** 形态（如 `ak.realm.join.review`），不是 grant id 引用；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
+| `review_capability` | conditional | `const ak.realm.admin` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；wire payload MUST 显式写入。 | current-v1 复用既有 exact-Realm admin grant，不登记 candidate 专用 action，也不从 profile claim 推导 issuer authority；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
 | `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, reviewers: did[] }` 表达 N-of-M。 | 审核法定人数。 |
 | `application_ttl` | no | `duration` | 默认 `PT168H`，最小 `PT1H`，最大 `P1Y`。 | 申请未决超时即失效。 |
 | `cooldown_after_reject` | no | `duration` | 默认 `PT72H`。 | 拒绝后同一 actor 重新申请的最短间隔。 |
@@ -346,7 +346,7 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Contr
 | 1. 敲门 | `ak.member.state{membership=knock}` | applicant |
 | 2. 提交申请 | `member.application` | applicant |
 | 3. 审核决策 | `member.application.review` | reviewer（持 `review_capability`） |
-| 4. 签发定向邀请 | `ak.invite.create`（注册 projection：`ak.component.invite.lifecycle.v1` → `pending` **且** `ak.component.member.state.v1:<invitee>` `knock -> invite`） | reviewer（持 `ak.realm.join.review` 或 `ak.realm.admin`） |
+| 4. 签发定向邀请 | `ak.invite.create`（注册 projection：`ak.component.invite.lifecycle.v1` → `pending` **且** `ak.component.member.state.v1:<invitee>` `knock -> invite`） | reviewer（持目标 Realm 精确 `ak.realm.admin`） |
 | 5. 接受邀请 | `ak.invite.accept`（注册 projection：`invite.lifecycle` → `accepted` **且** `member.state` `invite -> join`） | applicant（invitee 本人） |
 
 stage 4 / 5 的两条 Event **各自**在同一 Control Move 内同时推进 invite 流程轴与 membership cell，不是"invite 对象变了、成员态由 reducer 顺带跟进"。invite 被 reject / revoke / 过期时的 `invite -> leave` 原子回写见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)。
@@ -636,7 +636,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
           "max_proof_age": "PT5M"
         }
       ],
-      "review_capability": "ak.realm.join.review",
+      "review_capability": "ak.realm.admin",
       "reviewer_quorum": "any",
       "application_ttl": "PT168H",
       "cooldown_after_reject": "PT168H",
@@ -660,7 +660,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 ## 15. 规范性引用
 
 - Realm 对象模型：[`../models/realm-and-space.md`](../models/realm-and-space.md)
-- Capability 与 `ak.realm.join.review` 等 action：[`../authz/capabilities.md`](../authz/capabilities.md)
+- Capability 与 `ak.realm.admin`：[`../authz/capabilities.md`](../authz/capabilities.md)
 - Policy Server 与 obligation：[`../authz/policy-server.md`](../authz/policy-server.md)
 - Claim 与 constraint：[`../authz/constraint-schema.md`](../authz/constraint-schema.md)
 - Federation 跨域加入：[`../sync/federation.md` §5.2](../sync/federation.md)

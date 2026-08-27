@@ -5655,7 +5655,7 @@
           ]
         },
         "review_capability": {
-          "type": "string"
+          "const": "ak.realm.admin"
         },
         "reviewer_quorum": {
           "oneOf": [

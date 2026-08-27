@@ -566,7 +566,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 1. Bob 发现 Realm S 的元数据，并取得 `join_candidates[]`
 2. Bob 提交 `ak.member.state{membership="knock"}` Control Move（不携带正文），并提交 profile 声明的 signed `member.application` receipt / private record（携带 answers / claim presentation / challenge proof，E2EE Realm 中 application 正文必须通过 reviewer sub-group MLS 或 envelope encryption 加密给 reviewer set）。`member.application` 是候选 workflow 概念，不是 v1 base `Event.kind`。
 3. knock Control Move 与 application receipt / private record 先提交给 Bob 的 Principal Server；后者 admission 后按有界 candidate 转发，接收方验证完整 proofs 与 candidate provenance 后扇出至 reviewer 的设备列表
-4. 持有 `ak.realm.join.review` capability 的 reviewer 评估申请，产生 `member.application.review{decision=accept|reject|request_changes}` 候选 workflow 决策（不是 v1 base Event.kind；capability action 自身仍按 `ak.realm.join.review` 注册）；`reviewer_quorum != "any"` 时 reducer 收集足够 accept 后视为 accepted
+4. 持有目标 Realm 精确 `ak.realm.admin` capability 的 reviewer 评估申请，产生 `member.application.review{decision=accept|reject|request_changes}` 候选 workflow 决策（不是 v1 base Event.kind；candidate profile 不登记专用 capability action）；`reviewer_quorum != "any"` 时 reducer 收集足够 accept 后视为 accepted
 5. 任一 reviewer 提交 `ak.invite.create`，`refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id
 6. Bob 提交 `ak.invite.accept`；reducer 校验 join_authorisation 链有效后收敛 `membership=join`
 7. 若 Realm 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob

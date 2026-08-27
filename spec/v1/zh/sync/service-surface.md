@@ -433,7 +433,7 @@ operation/schema/fixture closure 时才可独立声明它，缺少其中任一 o
 消费方 MUST 按下列固定顺序处理能力：
 
 1. 要求 `supported_operation_bundles[]` canonical 升序、无重复，并逐项查本地 registry。未知
-   `ak.operation_bundle.*`、vendor 私有 bundle 未被本地显式登记、或 bundle 的 `service_kind` 与响应不符时，整个能力决策
+   `ak.operation_bundle.*`、非 `ak.operation_bundle.*.v1` ID、或 bundle 的 `service_kind` 与响应不符时，整个能力决策
    fail closed；不得解析 bundle 名称或从 profile/surface 猜成员。
 2. 展开每个 bundle 冻结的 `(operation_id,binding_kind)`，取 role-local union；同一 pair 重叠表示无效 Describe。
 3. union 中每种 `binding_kind` 都 MUST 至少有一条同 kind 的 `transport_bindings[]`；没有 endpoint 覆盖的 pair 不得公告。
@@ -445,8 +445,9 @@ operation/schema/fixture closure 时才可独立声明它，缺少其中任一 o
 5. `supported_features[]` 只能在其 feature-registry 前置 operation pair、profile 与 limit 全部满足时启用；feature 不能增加
    bundle union 中不存在的 operation。profile 同样不能推导实时 route。
 
-`ak.operation_bundle.*` 是必须登记的 Arkret 标准命名空间；厂商集合只能用厂商命名空间。current-v1 不接受旧扁平 operation
-广告、transport 内嵌成员清单、无版本 operation alias、双读或 fallback。
+`ak.operation_bundle.*.v1` 是 current-v1 唯一可上 wire 且必须登记的 operation bundle 命名空间。current-v1 不定义
+vendor bundle wire namespace；厂商私有集合不得进入 `supported_operation_bundles[]`，只能作为不影响任何协议决策的可忽略
+`x_*` metadata。current-v1 也不接受旧扁平 operation 广告、transport 内嵌成员清单、无版本 operation alias、双读或 fallback。
 
 ### 3.1 Identity Resolution Surface
 

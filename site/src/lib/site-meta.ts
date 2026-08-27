@@ -1,19 +1,17 @@
+import releaseMetadata from "@spec/release-metadata.json";
+
 /**
- * Single source of truth for site-level metadata that is referenced from
- * multiple pages but isn't derivable from `spec/v1/artifacts/`.
+ * Site adapters for metadata referenced from multiple pages.
  *
  * Specifically:
  * - The canonical GitHub repo URL — used by every catalog detail page that
  *   wants to deep-link to the registry row that backs it.
  * - The current spec release tag shown in the homepage hero eyebrow and
- *   marketing footer. `tools/artifact_pipeline.py check` requires the
- *   matching public catalog snapshot to be byte-identical to the canonical
- *   registry catalog. The current snapshot is committed and checked by the
- *   artifact pipeline so a deployment cannot publish a stale contract.
+ *   marketing footer. Its canonical machine source is
+ *   `spec/v1/release-metadata.json`.
  *
- * Anything that lives inside `contract-registry.json` (catalog version,
- * registry counts, ...) stays in `lib/artifacts.ts`; this file is for
- * meta that no machine artifact owns.
+ * Registry catalog data stays in `lib/artifacts.ts`; publication metadata is
+ * adapted from its canonical JSON rather than copied into this module.
  */
 
 export const repoUrl = "https://github.com/arkret-org/arkret-spec";
@@ -33,5 +31,5 @@ export function specFileUrl(relPath: string): string {
  * this tag by `tools/artifact_pipeline.py generate`, committed, and verified by
  * `tools/artifact_pipeline.py check`.
  */
-export const specReleaseTag = "v1.0.0-candidate";
+export const specReleaseTag = releaseMetadata.release_tag;
 export const specReleaseLabel = "v1";

@@ -445,13 +445,13 @@ Realm 与 Circle membership 共用本节唯一的状态图。`initial_state=leav
 
 | from | to | wire event kind（Realm） | Realm guard / writer | Circle guard / writer |
 | --- | --- | --- | --- | --- |
-| `leave` | `invite` | `ak.invite.create`（directed 分支，条件性 `member.state` projection） | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
+| `leave` | `invite` | `ak.invite.create`（directed 分支，条件性 `member.state` projection） | `ak.realm.admin` | `ak.circle.member.manage` |
 | `leave` | `knock` | `ak.member.state` | target actor，且 Join Rule / Join Policy 允许 | target actor，且 `join_rule=knock` |
 | `leave` | `join` | `ak.member.state`（Realm bootstrap 的 creator slot 同样走本 kind，见 [`realm-and-space.md` §2.7](realm-and-space.md)；`ak.realm.create` 自身不承载 membership 边） | target actor 通过 public/restricted gate，或 `ak.realm.admin`；Native Personal Agent carve-out 见 Realm 文档 | target actor 仅当 `join_rule=public`，否则 `ak.circle.member.manage` |
 | `invite` | `join` | `ak.invite.accept` | target actor 或 `ak.realm.admin` | target actor（`ak.circle.member.add`）或 `ak.circle.member.manage` |
 | `invite` | `leave` | `ak.invite.cancel` / `ak.invite.revoke`（条件性 `member.state` projection） | target actor、inviter 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
-| `knock` | `invite` | `ak.invite.create`（reviewer 批准后签发定向 invite） | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
-| `knock` | `join` | `ak.member.state` | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
+| `knock` | `invite` | `ak.invite.create`（reviewer 批准后签发定向 invite） | `ak.realm.admin` | `ak.circle.member.manage` |
+| `knock` | `join` | `ak.member.state` | `ak.realm.admin` | `ak.circle.member.manage` |
 | `knock` | `leave` | `ak.member.state` | target actor、reviewer 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
 | `join` | `join` | `ak.member.state` | 仅当 `delivery_binding_rebind=true`：target actor 或 rebind-authorized service，且只更新 delivery binding / membership metadata | 不可用（`delivery_binding_rebind=false`） |
 | `join` | `leave` | `ak.member.state` | target actor 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
@@ -460,7 +460,7 @@ Realm 与 Circle membership 共用本节唯一的状态图。`initial_state=leav
 
 实现 MUST 以 `(scope_kind, delivery_binding_rebind)` 选择 FSM 实例，再按上表对应 scope 列求值 writer/guard，不得分别硬编码两套 transition graph。Bare knock / invite 的本地计时器不产生隐式边；任何过期清理仍须由该 scope 对应列授权的 writer 显式提交 `leave`。
 
-**`default_join_rule=closed` 下的可用分支（normative）**：Realm scope 下 `default_join_rule=closed` 只关闭 **applicant-initiated 入口**——`leave -> knock` 与 applicant 自助的 `leave -> join` MUST 被拒绝。上表 `leave -> join` / `invite -> join` / `knock -> join` 三行的 **authorized-writer 分支仍然可用**（`ak.realm.admin`、`ak.realm.join.review`、Native Personal Agent controller carve-out、Realm bootstrap batch 内 creator 写入的初始成员）；封闭豁免列表见 [`../governance/join-policy.md` §4](../governance/join-policy.md)。所有分支仍 MUST 通过 Join Policy 的 A 轴 `principal_admission` 与 B 轴 `cooldown`。
+**`default_join_rule=closed` 下的可用分支（normative）**：Realm scope 下 `default_join_rule=closed` 只关闭 **applicant-initiated 入口**——`leave -> knock` 与 applicant 自助的 `leave -> join` MUST 被拒绝。上表 `leave -> join` / `invite -> join` / `knock -> join` 三行的 **authorized-writer 分支仍然可用**（`ak.realm.admin`、Native Personal Agent controller carve-out、Realm bootstrap batch 内 creator 写入的初始成员）；封闭豁免列表见 [`../governance/join-policy.md` §4](../governance/join-policy.md)。所有分支仍 MUST 通过 Join Policy 的 A 轴 `principal_admission` 与 B 轴 `cooldown`。
 
 **Realm `invite` 态与 Invite 对象的原子绑定（normative）**：Realm scope 下 `member.state=invite` 与一条 live 定向 Invite 对象（[`governance-objects.md` §5](governance-objects.md)）**一一对应**，二者的转换 MUST 在同一 Control Move 内原子完成：
 

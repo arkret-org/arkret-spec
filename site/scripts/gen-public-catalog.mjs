@@ -15,14 +15,16 @@ const here = dirname(fileURLToPath(import.meta.url));
 const siteRoot = resolve(here, "..");
 const repoRoot = resolve(siteRoot, "..");
 
-const metaText = readFileSync(resolve(siteRoot, "src/lib/site-meta.ts"), "utf8");
-const match = metaText.match(/export const specReleaseTag\s*=\s*"([^"]+)";/);
-if (!match) {
-  throw new Error("site-meta.ts missing specReleaseTag");
+const releaseMetadataPath = resolve(repoRoot, "spec/v1/release-metadata.json");
+const releaseMetadata = JSON.parse(readFileSync(releaseMetadataPath, "utf8"));
+if (releaseMetadata.format_version !== 1) {
+  throw new Error("unsupported release metadata format_version");
 }
-const tag = match[1];
-if (!tag.startsWith("v")) {
-  throw new Error(`specReleaseTag must start with 'v': ${tag}`);
+const tag = releaseMetadata.release_tag;
+const releaseTagPattern =
+  /^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-candidate(?:\.[0-9A-Za-z-]+)*)?$/;
+if (!releaseTagPattern.test(tag)) {
+  throw new Error(`invalid release_tag in ${releaseMetadataPath}`);
 }
 const version = tag.slice(1);
 

@@ -67,6 +67,7 @@ def text_contract_files() -> list[Path]:
     files.update(raw_artifact_files())
     files.update(sorted((SPEC_ROOT / "en").rglob("*.md")))
     files.add(ROOT / "CHANGELOG.md")
+    files.add(SPEC_ROOT / "release-metadata.json")
     files.add(ROOT / "site" / "src" / "lib" / "site-meta.ts")
     return sorted(path for path in files if path.is_file())
 

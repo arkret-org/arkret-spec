@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Freeze operation contract and operation-bundle membership closures.
+"""Guard operation contract and operation-bundle membership closures.
 
 ``generate`` is intentionally append-only: it creates the initial lock or adds
 new versioned identities, but refuses to rewrite an existing identity whose
 closure changed.  Therefore the command cannot be used to bless an in-place
-contract change accidentally.
+contract change accidentally.  Before stable promotion, ``refresh-candidate``
+is the explicit clean-break path for replacing the current candidate locks.
 """
 
 from __future__ import annotations
@@ -13,9 +14,15 @@ import argparse
 import copy
 import hashlib
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
+
+try:
+    from .release_metadata import current_release_tag, is_candidate_release_tag
+except ImportError:  # Direct script execution: python tools/check_operation_closure_locks.py
+    from release_metadata import current_release_tag, is_candidate_release_tag
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +33,7 @@ ERROR_MAPPING = REGISTRY / "operations-error-mapping.json"
 ERROR_CODES = REGISTRY / "error-code-registry.json"
 OPERATION_LOCK = REGISTRY / "operation-contract-closure-lock.json"
 BUNDLE_LOCK = REGISTRY / "operation-bundle-closure-lock.json"
+LOCK_VERSION_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})\.(\d+)$")
 
 
 def load(path: Path) -> Any:
@@ -38,6 +46,16 @@ def canonical(value: Any) -> bytes:
 
 def digest(value: Any) -> str:
     return "sha256:" + hashlib.sha256(canonical(value)).hexdigest()
+
+
+def require_candidate_release() -> str:
+    tag = current_release_tag()
+    if not is_candidate_release_tag(tag):
+        raise ValueError(
+            "refresh-candidate is forbidden after stable promotion; "
+            f"current specReleaseTag is {tag!r}"
+        )
+    return tag
 
 
 def pointer(document: Any, fragment: str) -> Any:
@@ -172,6 +190,16 @@ def payload(kind: str, rows: list[dict[str, str]]) -> dict[str, Any]:
     }
 
 
+def next_lock_version(path: Path, actual: dict[str, Any]) -> str:
+    version = actual.get("version")
+    match = LOCK_VERSION_RE.fullmatch(version) if isinstance(version, str) else None
+    if not match:
+        raise ValueError(
+            f"{path.name}: cannot advance unsupported lock version {version!r}"
+        )
+    return f"{match.group(1)}.{int(match.group(2)) + 1}"
+
+
 def verify_or_append(path: Path, expected: dict[str, Any], generate: bool) -> list[str]:
     if not path.exists():
         if generate:
@@ -183,7 +211,8 @@ def verify_or_append(path: Path, expected: dict[str, Any], generate: bool) -> li
     existing = {row[key]: row["sha256"] for row in actual.get("closures", [])}
     current = {row[key]: row["sha256"] for row in expected["closures"]}
     errors = [
-        f"{path.name}: closure changed without version upgrade: {identity}"
+        f"{path.name}: closure changed: {identity}; use refresh-candidate before "
+        "stable promotion, or add a versioned successor after promotion"
         for identity in sorted(existing.keys() & current.keys())
         if existing[identity] != current[identity]
     ]
@@ -199,10 +228,49 @@ def verify_or_append(path: Path, expected: dict[str, Any], generate: bool) -> li
             [*actual.get("closures", []), *(expected_rows[item] for item in additions)],
             key=lambda row: row[key],
         )
+        actual["version"] = next_lock_version(path, actual)
         path.write_text(json.dumps(actual, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     elif additions:
         errors.append(f"{path.name}: new identities are not locked: {additions}")
     return errors
+
+
+def refresh_candidate_lock(
+    path: Path, expected: dict[str, Any]
+) -> dict[str, list[str]]:
+    key = expected["identity_key"]
+    actual = load(path) if path.exists() else {"closures": []}
+    existing = {row[key]: row["sha256"] for row in actual.get("closures", [])}
+    current = {row[key]: row["sha256"] for row in expected["closures"]}
+    summary = {
+        "changed": sorted(
+            identity
+            for identity in existing.keys() & current.keys()
+            if existing[identity] != current[identity]
+        ),
+        "added": sorted(current.keys() - existing.keys()),
+        "removed": sorted(existing.keys() - current.keys()),
+    }
+    changed = any(summary.values())
+    if not path.exists() or changed:
+        refreshed = copy.deepcopy(expected)
+        if path.exists():
+            refreshed["version"] = next_lock_version(path, actual)
+        path.write_text(
+            json.dumps(refreshed, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+    return summary
+
+
+def print_refresh_summary(path: Path, summary: dict[str, list[str]]) -> None:
+    print(f"{path.name}: candidate closure lock refreshed")
+    for category in ("changed", "added", "removed"):
+        identities = summary[category]
+        print(f"  {category}: {len(identities)}")
+        for identity in identities:
+            print(f"    {identity}")
 
 
 def self_test(catalog: dict[str, Any]) -> list[str]:
@@ -217,20 +285,50 @@ def self_test(catalog: dict[str, Any]) -> list[str]:
     mutated["operation_registry"]["operation_bundles"][0]["members"] = []
     if bundle_closures(mutated)[0]["sha256"] == base_bundle:
         errors.append("bundle membership mutation probe did not change digest")
+    if not is_candidate_release_tag("v9.8.7-candidate.probe"):
+        errors.append("candidate release tag probe was rejected")
+    if is_candidate_release_tag("v9.8.7"):
+        errors.append("stable release tag probe was accepted as candidate")
+    if next_lock_version(Path("probe.json"), {"version": "2026-08-27.1"}) != "2026-08-27.2":
+        errors.append("lock version advance probe failed")
     return errors
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=("generate", "check"))
+    parser.add_argument("mode", choices=("generate", "check", "refresh-candidate"))
     args = parser.parse_args()
     catalog = load(CONTRACT)
     errors = self_test(catalog)
+    if errors:
+        for error in errors:
+            print(error)
+        return 1
+
+    operation_payload = payload("operation_contract", operation_closures(catalog))
+    bundle_payload = payload("operation_bundle_members", bundle_closures(catalog))
+    if args.mode == "refresh-candidate":
+        try:
+            release_tag = require_candidate_release()
+        except (OSError, ValueError) as exc:
+            print(exc)
+            return 1
+        try:
+            operation_summary = refresh_candidate_lock(OPERATION_LOCK, operation_payload)
+            bundle_summary = refresh_candidate_lock(BUNDLE_LOCK, bundle_payload)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(exc)
+            return 1
+        print(f"release state: {release_tag}")
+        print_refresh_summary(OPERATION_LOCK, operation_summary)
+        print_refresh_summary(BUNDLE_LOCK, bundle_summary)
+        return 0
+
     errors.extend(verify_or_append(
-        OPERATION_LOCK, payload("operation_contract", operation_closures(catalog)), args.mode == "generate"
+        OPERATION_LOCK, operation_payload, args.mode == "generate"
     ))
     errors.extend(verify_or_append(
-        BUNDLE_LOCK, payload("operation_bundle_members", bundle_closures(catalog)), args.mode == "generate"
+        BUNDLE_LOCK, bundle_payload, args.mode == "generate"
     ))
     if errors:
         for error in errors:

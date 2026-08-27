@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-27.3",
-  "generated_at": "2026-08-27T14:00:00+08:00",
+  "version": "2026-08-27.4",
+  "generated_at": "2026-08-27T15:10:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2524,11 +2524,6 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.find.directory.read.resolve_agent_selector.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.find.directory.command.announce.v1",
           "binding_kind": "http_json"
         },
@@ -2551,7 +2546,6 @@
       ],
       "required_schemas": [
         "ak.schema.actor_profile.v1",
-        "ak.schema.agent_selector_claim.v1",
         "ak.schema.handle_claim.v1"
       ],
       "required_fixtures": [
@@ -5861,7 +5855,7 @@
       }
     },
     "ak.profile.candidate.join_policy.v1": {
-      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `ak.realm.join.review`. These bare names remain forbidden as v1 wire Event.kind values. Claiming this profile commits the implementation to the complete profile-private HTTP receipt carrier in governance/join-policy.md §7.1.1; partial intake/review/read surfaces are non-conformant. Receivers that do not implement this profile MUST treat `ak.realm.join.review` as unknown and omit the profile claim.",
+      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the existing exact-Realm `ak.realm.admin` capability. These bare names remain forbidden as v1 wire Event.kind values. Claiming this profile commits the implementation to the complete profile-private HTTP receipt carrier in governance/join-policy.md §7.1.1; partial intake/review/read surfaces are non-conformant. The profile introduces no capability action and does not expand the Realm owner grant ceiling.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -5910,7 +5904,7 @@
       ],
       "optional_extensions": [],
       "required_capability_actions": [
-        "ak.realm.join.review"
+        "ak.realm.admin"
       ],
       "feature_discovery": {
         "required": [

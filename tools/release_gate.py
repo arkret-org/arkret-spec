@@ -19,6 +19,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+try:
+    from .release_metadata import current_release_tag
+except ImportError:  # Direct script execution: python tools/release_gate.py
+    from release_metadata import current_release_tag
+
 ROOT = Path(__file__).resolve().parents[1]
 
 CHECKS: list[tuple[str, list[str]]] = [
@@ -28,9 +33,11 @@ CHECKS: list[tuple[str, list[str]]] = [
 
 
 def check_stable_promotion_evidence() -> str | None:
-    site_meta = (ROOT / "site" / "src" / "lib" / "site-meta.ts").read_text(encoding="utf-8")
-    match = re.search(r"specReleaseTag\s*=\s*['\"]([^'\"]+)['\"]", site_meta)
-    if match is None or match.group(1) != "v1.0.0":
+    try:
+        release_tag = current_release_tag()
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        return f"release metadata is unreadable: {exc}"
+    if release_tag != "v1.0.0":
         return None
     vector_gap_path = (
         ROOT

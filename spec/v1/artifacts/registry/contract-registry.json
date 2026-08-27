@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.7",
+  "version": "2026-08-27.8",
   "source_of_truth": true,
-  "generated_at": "2026-08-27T14:00:00+08:00",
+  "generated_at": "2026-08-27T15:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -11342,7 +11342,7 @@
       "Every canonical HTTP request MUST carry Arkret-Operation with the exact operation_id selected before body parsing. Missing selection fails with operation_selector_required; an unknown id or a value outside the route family fails with unsupported_operation_version.",
       "operation_bundles is the only canonical bundle member source. Each registered bundle freezes one service_kind and a canonical unique set of (operation_id,binding_kind) members; changing a member requires a new bundle id.",
       "Within one service_kind, active current-v1 bundles MUST NOT overlap on an identical (operation_id,binding_kind) pair. Pairs using a different binding kind are distinct.",
-      "Only registered ak.operation_bundle.* ids are standard. Vendor bundles use a vendor namespace; unknown bundles are never expanded by name and fail closed for capability decisions."
+      "Only registered ak.operation_bundle.*.v1 ids may appear in current-v1 ServiceDescribe. Current-v1 defines no vendor bundle wire namespace; vendor-private collections may only appear as ignorable x_* metadata and never affect capability decisions. Unknown bundle ids fail closed and are never expanded by name."
     ],
     "surface_classes": {
       "core": "Base interoperable surfaces implied by claiming Arkret v1 protocol support (service discovery, identity registry, events/account aggregate).",
@@ -18518,15 +18518,6 @@
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.realm.join.review",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "target_event_kinds": [],
-        "profile": "ak.profile.candidate.join_policy.v1",
-        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "ak.realm.link",

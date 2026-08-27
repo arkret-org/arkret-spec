@@ -39,6 +39,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+try:
+    from .release_metadata import current_release_tag as read_current_release_tag
+except ImportError:  # Direct script execution: python tools/artifact_pipeline.py
+    from release_metadata import current_release_tag as read_current_release_tag
+
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_ROOT = ROOT / "spec" / "v1"
 ARTIFACTS = SPEC_ROOT / "artifacts"
@@ -75,7 +80,6 @@ OPENAPI_OPERATION_SELECTOR_SCRIPT = Path(__file__).with_name(
 OPERATION_CLOSURE_LOCK_SCRIPT = Path(__file__).with_name(
     "check_operation_closure_locks.py"
 )
-SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
 CLASSIFICATION_FIELD_REGISTRY_PATH = REGISTRY / "classification-field-registry.json"
@@ -146,16 +150,10 @@ def registry_generation_metadata(catalog: dict[str, Any]) -> tuple[str, str]:
 
 
 def current_release_tag() -> str:
-    if not SITE_META_PATH.exists():
-        raise SystemExit(f"missing site release metadata: {SITE_META_PATH.relative_to(ROOT).as_posix()}")
-    text = SITE_META_PATH.read_text(encoding="utf-8")
-    match = re.search(r'export const specReleaseTag\s*=\s*"([^"]+)";', text)
-    if not match:
-        raise SystemExit("site-meta.ts missing specReleaseTag")
-    tag = match.group(1)
-    if not tag.startswith("v"):
-        raise SystemExit(f"specReleaseTag must start with 'v': {tag}")
-    return tag
+    try:
+        return read_current_release_tag()
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"invalid spec/v1/release-metadata.json: {exc}") from exc
 
 
 def current_public_registry_path() -> Path:
@@ -1312,6 +1310,10 @@ def cmd_snapshot(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_refresh_operation_closure_locks(_: argparse.Namespace) -> int:
+    return run_operation_closure_locks("refresh-candidate")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -1333,6 +1335,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="write the committed version-pinned public registry snapshot under site/public/v1",
     )
     snapshot_parser.set_defaults(func=cmd_snapshot)
+
+    refresh_closure_parser = subparsers.add_parser(
+        "refresh-operation-closure-locks",
+        help=(
+            "explicitly replace operation closure locks while the canonical "
+            "spec release tag is candidate"
+        ),
+    )
+    refresh_closure_parser.set_defaults(func=cmd_refresh_operation_closure_locks)
 
     return parser
 
