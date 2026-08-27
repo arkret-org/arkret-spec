@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/media-operations.schema.json",
   "title": "Arkret Realtime Media Operation DTOs",
-  "description": "Closed request DTOs for realtime media service operations. ak.self.media.read.ice_config responses use ice-config-response.schema.json.",
+  "description": "Closed request DTOs for realtime media service operations. ak.self.media.read.ice_config.v1 responses use ice-config-response.schema.json.",
   "anyOf": [
     {
       "$ref": "#/$defs/media_ice_config_request_body"

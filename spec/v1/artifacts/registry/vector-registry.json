@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.5",
+  "version": "2026-08-27.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-26T20:50:00+08:00",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1709,7 +1709,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "The ak.self.contact.read.list projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its basis_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged.",
+      "description": "The ak.self.contact.read.list.v1 projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its basis_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
@@ -1722,7 +1722,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "The ak.self.contact.read.list projection carries the complete signed request_receipt on a pending_incoming row, so respond and reject become authorable: the field name is byte-identical to the prepare field that consumes it, it is copied verbatim and never narrowed to a reference, and because it is signed by the peer's source service rather than by the holder's own server the client verifies it independently instead of trusting its server's retelling. pending_outgoing, accepted, rejected, expired and tombstoned rows MUST NOT carry it, a glare pair is structurally never pending_incoming so respond and reject stay forbidden without a new code, and a consumed receipt is refused by prepare with zero writes and MUST be re-read rather than cached or replayed. The client obtains the exact request Event itself only through the closed Contact mirror branch of ak.self.events.read.resolve: it reads exclusively from a Contact verified mirror whose receipt was cryptographically verified at ingest and CAS-stored, it opens only while the row is pending_incoming, it returns the complete payload including the original message because the stub rule constrains delivery surfaces rather than the exact target holder, and it discloses no covering Seal at all, so seal_refs is never satisfied through it. When the row leaves pending_incoming the receipt is cleared and the visibility closes in the same transaction, and the selector is accounted into missing rather than unauthorized.",
+      "description": "The ak.self.contact.read.list.v1 projection carries the complete signed request_receipt on a pending_incoming row, so respond and reject become authorable: the field name is byte-identical to the prepare field that consumes it, it is copied verbatim and never narrowed to a reference, and because it is signed by the peer's source service rather than by the holder's own server the client verifies it independently instead of trusting its server's retelling. pending_outgoing, accepted, rejected, expired and tombstoned rows MUST NOT carry it, a glare pair is structurally never pending_incoming so respond and reject stay forbidden without a new code, and a consumed receipt is refused by prepare with zero writes and MUST be re-read rather than cached or replayed. The client obtains the exact request Event itself only through the closed Contact mirror branch of ak.self.events.read.resolve.v1: it reads exclusively from a Contact verified mirror whose receipt was cryptographically verified at ingest and CAS-stored, it opens only while the row is pending_incoming, it returns the complete payload including the original message because the stub rule constrains delivery surfaces rather than the exact target holder, and it discloses no covering Seal at all, so seal_refs is never satisfied through it. When the row leaves pending_incoming the receipt is cleared and the visibility closes in the same transaction, and the selector is accounted into missing rather than unauthorized.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
@@ -2303,6 +2303,20 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.dnd.schedule_boundary_validation.v1",
+      "status": "active",
+      "domain": "dnd",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "DND uses closed canonical account data, half-open recurring wall-clock periods, explicit all-day state, fixed tzdb, deterministic DST conversion, and last-valid recovery for malformed updates.",
+      "source_refs": [
+        "spec/v1/zh/discovery/push-notifications.md",
+        "spec/v1/artifacts/schemas/dnd-schedule.schema.json",
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
     },
     {
@@ -4471,19 +4485,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.moderation.franking_roundtrip.v1",
-      "status": "active",
-      "domain": "moderation",
-      "applies_to_fixtures": [
-        "final-conformance-closure-fixture.json"
-      ],
-      "description": "E2EE franking proof construction, report submission, and moderator-side verification roundtrip per content-moderation.md section 3.4; digest mismatch or minimal-disclosure violations downgrade or reject the proof.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.moderation.franking_proof_transcript.v1",
       "status": "active",
       "domain": "moderation",
@@ -4493,6 +4494,19 @@
       "description": "Byte-exact Ed25519 KAT for the seven-field ak.franking_proof.signature.v1 transcript. The fixture removes only payload.signature, prepends the registered domain field, and rejects mutation of every bound member.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.moderation.franking_roundtrip.v1",
+      "status": "active",
+      "domain": "moderation",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
+      "description": "E2EE franking proof construction, report submission, and moderator-side verification roundtrip per content-moderation.md section 3.4; digest mismatch or minimal-disclosure violations downgrade or reject the proof.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -5972,7 +5986,7 @@
       "applies_to_fixtures": [
         "push-notify-outcome-fixture.json"
       ],
-      "description": "ak.edge.push.command.notify returns one outcome per input device: every notification.devices[] device_id appears in outcomes[] exactly once, none missing, none duplicated, none unrequested, and a target-level failure is expanded per device instead of collapsing into a second response shape. accepted/duplicate forbid caller resend; only a rejected outcome carrying retry_after_ms, and only for the two registered caller-retryable reasons, transfers the next attempt to the caller. Provider delivery state, provider message ids and raw push tokens never appear in the response.",
+      "description": "ak.edge.push.command.notify.v1 returns one outcome per input device: every notification.devices[] device_id appears in outcomes[] exactly once, none missing, none duplicated, none unrequested, and a target-level failure is expanded per device instead of collapsing into a second response shape. accepted/duplicate forbid caller resend; only a rejected outcome carrying retry_after_ms, and only for the two registered caller-retryable reasons, transfers the next attempt to the caller. Provider delivery state, provider message ids and raw push tokens never appear in the response.",
       "source_refs": [
         "spec/v1/zh/discovery/push-notifications.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -6449,20 +6463,6 @@
         "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/zh/conformance/conformance-profiles.md",
         "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.dnd.schedule_boundary_validation.v1",
-      "status": "active",
-      "domain": "dnd",
-      "applies_to_fixtures": [
-        "protocol-edge-cases-fixture.json"
-      ],
-      "description": "DND uses closed canonical account data, half-open recurring wall-clock periods, explicit all-day state, fixed tzdb, deterministic DST conversion, and last-valid recovery for malformed updates.",
-      "source_refs": [
-        "spec/v1/zh/discovery/push-notifications.md",
-        "spec/v1/artifacts/schemas/dnd-schedule.schema.json",
-        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
     },
     {

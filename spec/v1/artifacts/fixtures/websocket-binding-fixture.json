@@ -23,11 +23,6 @@
       "instance": {
         "kind": "websocket",
         "base_url": "wss://server.example/_arkret/ws",
-        "operations": [
-          "ak.self.account.stream.subscribe",
-          "ak.self.events.stream.subscribe",
-          "ak.self.signal.stream.subscribe"
-        ],
         "extension_profile_required": "ak.profile.binding.websocket.v1",
         "subprotocol": "arkret.v1",
         "authentication": "challenge_dpop_session_v1",
@@ -39,7 +34,7 @@
     },
     {
       "name": "partial_operations_rejected",
-      "mutation": "remove ak.self.signal.stream.subscribe",
+      "mutation": "remove ak.self.signal.stream.subscribe.v1",
       "expect_valid": false,
       "expected_transport": "http_json"
     },
@@ -223,37 +218,37 @@
     {
       "name": "open_account",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
-      "wire_utf8": "{\"channel_id\":\"account-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.account.stream.subscribe\",\"parameters\":{\"catchup\":true}}",
+      "wire_utf8": "{\"channel_id\":\"account-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.account.stream.subscribe.v1\",\"parameters\":{\"catchup\":true}}",
       "expect_valid": true
     },
     {
       "name": "open_events",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
-      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.events.stream.subscribe\",\"parameters\":{\"catchup\":false,\"realms\":[\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"]}}",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.events.stream.subscribe.v1\",\"parameters\":{\"catchup\":false,\"realms\":[\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"]}}",
       "expect_valid": true
     },
     {
       "name": "open_signal",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
-      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.signal.stream.subscribe\",\"parameters\":{}}",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.signal.stream.subscribe.v1\",\"parameters\":{}}",
       "expect_valid": true
     },
     {
       "name": "opened",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"account-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.account.stream.subscribe\"}",
+      "wire_utf8": "{\"channel_id\":\"account-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.account.stream.subscribe.v1\"}",
       "expect_valid": true
     },
     {
       "name": "opened_events",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.events.stream.subscribe\"}",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.events.stream.subscribe.v1\"}",
       "expect_valid": true
     },
     {
       "name": "opened_signal",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.signal.stream.subscribe\"}",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.signal.stream.subscribe.v1\"}",
       "expect_valid": true
     },
     {
@@ -390,7 +385,7 @@
     },
     {
       "name": "payload_does_not_match_channel_operation",
-      "channel_operation": "ak.self.signal.stream.subscribe",
+      "channel_operation": "ak.self.signal.stream.subscribe.v1",
       "wire_utf8": "{\"channel_id\":\"signal-1\",\"frame_scope\":\"channel\",\"kind\":\"control\",\"payload\":{\"cursor\":\"ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx\",\"kind\":\"frontier\"}}",
       "rejection_stage": "channel_operation_schema",
       "expected_channel_result": "error_then_closed",

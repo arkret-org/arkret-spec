@@ -346,7 +346,7 @@
     },
     "account_registration_control_proof": {
       "type": "object",
-      "description": "Closed control proof for binding an already-published full_id to principal_id through account register. OIDC, passkey, or agent authentication alone is insufficient to establish DID control. The Account Authority resolves full_id at high freshness, requires project(full_id)=principal_id, and selects the current active update key of the entry pinned by did_version_id from verified method history rather than from request-supplied key material. The signature covers every field except signature as canonical JSON with domain separator ak.account_registration_control_proof.v1 and MUST replay the durable challenge issued by ak.gate.account.command.issue_did_binding_challenge.",
+      "description": "Closed control proof for binding an already-published full_id to principal_id through account register. OIDC, passkey, or agent authentication alone is insufficient to establish DID control. The Account Authority resolves full_id at high freshness, requires project(full_id)=principal_id, and selects the current active update key of the entry pinned by did_version_id from verified method history rather than from request-supplied key material. The signature covers every field except signature as canonical JSON with domain separator ak.account_registration_control_proof.v1 and MUST replay the durable challenge issued by ak.gate.account.command.issue_did_binding_challenge.v1.",
       "required": [
         "proof_kind",
         "challenge_id",
@@ -585,7 +585,7 @@
         },
         "reserved_identity": {
           "$ref": "#/$defs/reserved_identity_creation",
-          "description": "Holder-authenticated identity-creation checkpoint carried while a reservation exists. It MUST be omitted once the provisional identity has been explicitly abandoned through ak.gate.account.command.abandon_identity_creation: after abandonment the checkpoint MUST NOT remain readable on this or any other holder-readable surface, because leaving it would keep publishing that some account once tried to create an identity. That is a security property, not a cleanup policy."
+          "description": "Holder-authenticated identity-creation checkpoint carried while a reservation exists. It MUST be omitted once the provisional identity has been explicitly abandoned through ak.gate.account.command.abandon_identity_creation.v1: after abandonment the checkpoint MUST NOT remain readable on this or any other holder-readable surface, because leaving it would keep publishing that some account once tried to create an identity. That is a security property, not a cleanup policy."
         }
       },
       "additionalProperties": false
@@ -709,13 +709,13 @@
         },
         "allowed_operations": {
           "const": [
-            "ak.gate.account.command.issue_identity_binding_challenge",
-            "ak.gate.account.command.issue_did_binding_challenge",
-            "ak.gate.account.command.issue_identity_abandonment_challenge",
-            "ak.gate.account.command.abandon_identity_creation",
-            "ak.gate.account.command.register",
-            "ak.gate.account.command.issue_session_grant",
-            "ak.gate.account.command.issue_recovery_completion_grant"
+            "ak.gate.account.command.issue_identity_binding_challenge.v1",
+            "ak.gate.account.command.issue_did_binding_challenge.v1",
+            "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
+            "ak.gate.account.command.abandon_identity_creation.v1",
+            "ak.gate.account.command.register.v1",
+            "ak.gate.account.command.issue_session_grant.v1",
+            "ak.gate.account.command.issue_recovery_completion_grant.v1"
           ],
           "description": "Closed set of operations this handoff may be presented at. The two abandonment operations are members because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can carry them; membership here does not widen the handoff into a session credential."
         },
@@ -1410,7 +1410,7 @@
       "propertyNames": {
         "type": "string",
         "pattern": "^(display_name|avatar_blob_ref|profile_fields\\.[a-z][a-z0-9_]{0,63})$",
-        "description": "ak.self.account.command.update_profile only accepts display_name, avatar_blob_ref, and profile_fields.<key>. The bio is carried as profile_fields.bio."
+        "description": "ak.self.account.command.update_profile.v1 only accepts display_name, avatar_blob_ref, and profile_fields.<key>. The bio is carried as profile_fields.bio."
       }
     },
     "account_materialized_profile": {
@@ -2527,7 +2527,7 @@
     },
     "account_request_erasure_request_body": {
       "type": "object",
-      "description": "Record the authenticated account holder's explicit request to erase the account (ak.gate.account.command.request_erasure; zh/identity/account-lifecycle.md section 8.1). The Account Authority accepts it directly on the gate surface; acceptance only records the intent and continues the Account Authority's existing erasure_pending issuance flow within the same service — it is neither the signed AccountStatusRecord nor a completion receipt. The Account Authority MUST treat this as a high-risk action and require fresh high-risk action authentication (recent login, WebAuthn, recovery key or a deployment equivalent), judged locally by the Account Authority; re-authentication strength, risk checks and cooldown are deployment governance.",
+      "description": "Record the authenticated account holder's explicit request to erase the account (ak.gate.account.command.request_erasure.v1; zh/identity/account-lifecycle.md section 8.1). The Account Authority accepts it directly on the gate surface; acceptance only records the intent and continues the Account Authority's existing erasure_pending issuance flow within the same service — it is neither the signed AccountStatusRecord nor a completion receipt. The Account Authority MUST treat this as a high-risk action and require fresh high-risk action authentication (recent login, WebAuthn, recovery key or a deployment equivalent), judged locally by the Account Authority; re-authentication strength, risk checks and cooldown are deployment governance.",
       "required": [
         "request_id"
       ],

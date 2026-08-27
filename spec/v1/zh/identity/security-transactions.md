@@ -44,7 +44,7 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 不得携带该值，`prepared_plan` 内也不得携带自身 digest，计算时没有排除字段的隐式规则。
 每个 `prepared_event_unit` 的 wire 形态固定为 `{request,request_digest}`：`request` 必须独立满足
 `EventsSubmitBatchRequestBody`，`request_digest` 必须等于其 digest suite 对 `RFC8785_JCS(request)` 的计算结果。
-该 unit 的 operation 固定为 `ak.self.events.command.submit`，request schema 固定为上述 DTO，destination 与 audience
+该 unit 的 operation 固定为 `ak.self.events.command.submit.v1`，request schema 固定为上述 DTO，destination 与 audience
 都从父 transaction 的 `coordinator_service_id` 取得；这四项与 canonical request bytes 是构造时的 computed view，
 不得作为平行 wire 输入或 durable 真相源。coordinator 必须以同一 `JCS(request)` bytes 执行和持久化。
 `accepted_steps[]` 的每项固定为
@@ -75,9 +75,9 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 
 | operation | HTTP | body/outcome |
 | --- | --- | --- |
-| `ak.self.security_transaction.command.create` | `POST /_arkret/self/security-transactions` | `security-transaction.schema.json#/$defs/create_request` → `SecurityTransaction` |
-| `ak.self.security_transaction.resource.get` | `GET /_arkret/self/security-transactions/{transaction_id}` | `SecurityTransaction` |
-| `ak.self.security_transaction.command.continue` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | `#/$defs/continue_request` → `SecurityTransaction` |
+| `ak.self.security_transaction.command.create.v1` | `POST /_arkret/self/security-transactions` | `security-transaction.schema.json#/$defs/create_request` → `SecurityTransaction` |
+| `ak.self.security_transaction.resource.get.v1` | `GET /_arkret/self/security-transactions/{transaction_id}` | `SecurityTransaction` |
+| `ak.self.security_transaction.command.continue.v1` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | `#/$defs/continue_request` → `SecurityTransaction` |
 
 两种 `create` 都只接受完整 typed plan；coordinator 必须在一个 durable transaction 中保存 canonical request
 bytes/digest、typed prepared plan、自己重算的 plan digest、全部 reserved ids 与初始 resource，然后才能执行第一个副作用。
@@ -179,9 +179,9 @@ revoke
 terminal result，不能重新上传或重新 erase。
 
 `erase_old_material` 的唯一 wire operation 是
-`ak.self.keys.backup_series.command.erase`。request 必须携带 transaction/request/plan digest、
+`ak.self.keys.backup_series.command.erase.v1`。request 必须携带 transaction/request/plan digest、
 预留 `erase_confirmation_digest`、两条完整 binding、high-risk
-`AuthorizationLease(action=ak.self.keys.backup_series.command.erase)` 与必要CBA bundle。服务端必须先验证：
+`AuthorizationLease(action=ak.self.keys.backup_series.command.erase.v1)` 与必要CBA bundle。服务端必须先验证：
 
 1. transaction当前next step确为`erase_old_material`；
 2. 两个new series及其各自`ak.key_backup.active_series` Event均已accepted且仍是authoritative；

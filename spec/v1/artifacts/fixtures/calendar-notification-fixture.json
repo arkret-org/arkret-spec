@@ -49,35 +49,10 @@
         "supported_profiles": [
           "ak.profile.calendar_notification_dispatch.v1"
         ],
-        "operation_bindings": [
-          {
-            "operation_id": "ak.server.read.describe",
-            "binding_kind": "http_json",
-            "preference": 100,
-            "response_schema_ref": "schemas/service-describe.schema.json",
-            "error_schema_ref": "schemas/http-problem-details.schema.json",
-            "success_shape_kind": "service_describe"
-          },
-          {
-            "operation_id": "ak.self.events.read.scan",
-            "binding_kind": "http_json",
-            "preference": 100,
-            "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
-            "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-            "error_schema_ref": "schemas/http-problem-details.schema.json",
-            "success_shape_kind": "typed_response"
-          }
-        ],
-        "supported_bindings": [
-          {
-            "kind": "http"
-          }
-        ],
         "supported_features": [],
         "auth_metadata": {},
         "limits": {},
         "plaintext_visibility": {},
-        "implemented_features": [],
         "claimed_profiles": [
           {
             "profile_id": "ak.profile.calendar_notification_dispatch.v1",
@@ -85,9 +60,19 @@
           }
         ],
         "verified_profiles": [],
-        "experimental_features": [],
         "interop_surfaces": [],
-        "development_mode": false
+        "development_mode": false,
+          "supported_operation_bundles": [
+            "ak.operation_bundle.principal_server.describe.v1",
+            "ak.operation_bundle.principal_server.http_core.v1"
+        ],
+        "transport_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://service.example/",
+            "extension_profile_required": null
+          }
+        ]
       }
     }
   ],

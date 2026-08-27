@@ -27,7 +27,7 @@ from tools.artifact_lint import prose as lint_artifacts
 REGISTRY = ROOT / "spec" / "v1" / "artifacts" / "registry" / "operation-registry.json"
 
 
-SYNTHETIC_OPERATION_ID = "ak.self.example.command.create"
+SYNTHETIC_OPERATION_ID = "ak.self.example.command.create.v1"
 
 
 class EventLogSignedRequestLintTest(unittest.TestCase):
@@ -109,7 +109,7 @@ class EventLogSignedRequestLintTest(unittest.TestCase):
         )
 
     def test_the_closed_circle_create_shape_is_what_closing_looks_like(self) -> None:
-        # `ak.self.circle.command.create` was the first entry closed: its request body
+        # `ak.self.circle.command.create.v1` was the first entry closed: its request body
         # is now nothing but the caller-signed `ak.circle.create` submission.
         self.assertTrue(
             lint_artifacts._request_schema_reaches_signed_event(

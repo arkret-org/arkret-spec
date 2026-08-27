@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.3",
+  "version": "2026-08-27.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-08-27T09:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^[a-z][a-z0-9_]*$",
@@ -19,23 +19,15 @@
       "status": "active",
       "extension_profile_required": null,
       "schema_ref": "schemas/transport-binding.schema.json#/$defs/tus",
-      "operations": [
-        "ak.self.blob.upload.create"
-      ],
-      "description": "Per-operation HTTPS tus companion binding for resumable Blob upload."
+      "description": "Optional HTTPS tus companion binding; operation coverage comes only from advertised operation bundles."
     },
     {
       "kind": "websocket",
       "status": "candidate",
       "extension_profile_required": "ak.profile.binding.websocket.v1",
       "schema_ref": "schemas/transport-binding.schema.json#/$defs/websocket",
-      "operations": [
-        "ak.self.account.stream.subscribe",
-        "ak.self.events.stream.subscribe",
-        "ak.self.signal.stream.subscribe"
-      ],
       "profile_document": "zh/sync/websocket-binding.md",
-      "description": "Optional authenticated multiplexed WebSocket binding for account, events, and encrypted Signal subscribe channels."
+      "description": "Optional authenticated multiplexed WebSocket binding; operation coverage comes only from advertised operation bundles."
     }
   ]
 }

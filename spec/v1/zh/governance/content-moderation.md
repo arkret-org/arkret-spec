@@ -200,7 +200,7 @@ MIMI facade provenance。它是 DataEvent，MUST 携带 `seal_ref + auth_context
 
 ### 3.3 举报的处理
 
-- 举报 service operation（`ak.self.moderation.command.report`）接受 reporter 已签名的 `ak.self.moderation.report` Event，并原样写入 Realm Event history；服务端不得物化或代签该 Event。Circle 举报的 plaintext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
+- 举报 service operation（`ak.self.moderation.command.report.v1`）接受 reporter 已签名的 `ak.self.moderation.report` Event，并原样写入 Realm Event history；服务端不得物化或代签该 Event。Circle 举报的 plaintext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
 - 该事件仅对目标 scope 的管理员 / moderator 可见；Realm-default 内容是 Realm moderator，Circle 内容是 Circle moderator 或显式覆盖该 Circle 的 Realm grant 持有者。
 - 被举报人不会收到通知。
 - 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）。
@@ -266,7 +266,7 @@ Canonical franking proof 结构（示例中的 signature 字节以 `...` 省略�
 
 #### 3.4.1 不存在治理密钥释放
 
-Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ak.self.moderation.command.report` 自动升级为 `ak.audit.session.request`，MUST NOT 因举报向 moderator、Policy Server、Principal Server sync surface 或外部 verifier release 历史 key / epoch key。
+Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ak.self.moderation.command.report.v1` 自动升级为 `ak.audit.session.request`，MUST NOT 因举报向 moderator、Policy Server、Principal Server sync surface 或外部 verifier release 历史 key / epoch key。
 
 需要政府 / 企业合规审计时，必须走 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 Audit Applet Binding + sealed release session；这与用户举报是不同协议流程。
 
@@ -442,7 +442,7 @@ Domain target 的匹配必须基于已验证 service `did_core_id` / current `Se
 规则：
 
 - 修改 `ak.realm.moderation_policy` MUST 持有 `ak.realm.moderation_policy` 或 `ak.policy.manage` capability。
-- `ak.self.realm.moderation_policy.resource.replace` MUST 只接受 closed `{moderation_policy_event: EventInitialSubmission}`。该 Event 的 `kind` 必须逐字为 `ak.realm.moderation_policy`，`realm_id` 必须逐字等于 path Realm，`actor_id` 必须逐字等于认证 session actor；payload 必须且只能为 `{value: object}`，不得把 policy 放入 `state`、`reason` 或 unsigned request 字段。服务端 MUST 将 exact caller-signed bytes 送入 ordinary Event admission，MUST NOT 重建、代签、共同签名或在签名后补 CAS。
+- `ak.self.realm.moderation_policy.resource.replace.v1` MUST 只接受 closed `{moderation_policy_event: EventInitialSubmission}`。该 Event 的 `kind` 必须逐字为 `ak.realm.moderation_policy`，`realm_id` 必须逐字等于 path Realm，`actor_id` 必须逐字等于认证 session actor；payload 必须且只能为 `{value: object}`，不得把 policy 放入 `state`、`reason` 或 unsigned request 字段。服务端 MUST 将 exact caller-signed bytes 送入 ordinary Event admission，MUST NOT 重建、代签、共同签名或在签名后补 CAS。
 - 每次 moderation-policy replace MUST 在 Event 签名内恰好携带一条目标为 `ak:cell:ak.component.realm.moderation_policy.v1:null` 的 `head_eq`，其 value 是调用方观察到的完整 settled cell value；cell 缺失时使用 `null`。stale、Bottom、缺失或多条适用 CAS 均 MUST fail closed。相同 Event identity 与 exact bytes 的已接受重放 MUST 返回 byte-identical outcome；相同 identity 异 bytes 必须零新增写入拒绝。
 - capability 判定只按 registry：`ak.realm.moderation_policy` 或 `ak.policy.manage`。Realm owner 不具有 owner-only 特例；没有上述 capability 时同样 `capability_denied`。
 - Realm blocklist MUST 在 signature / DID 基础校验之后、事件进入用户可见 reducer 状态之前进行评估。
@@ -605,7 +605,7 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
 
 ### 6.3 与联邦协议的关系
 
-Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md) §3.4）起作用。当 Principal Server 收到来自被 deny 的 peer 的 `ak.peer.events.command.submit`（`/_arkret/peer/events`，`Source-Service-ID`、source trust domain 或已验证 endpoint domain 命中 deny list）请求时，MUST fail closed，SHOULD 返回 `403 policy_denied` 或 `403 capability_denied`，并保持错误最小披露。
+Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md) §3.4）起作用。当 Principal Server 收到来自被 deny 的 peer 的 `ak.peer.events.command.submit.v1`（`/_arkret/peer/events`，`Source-Service-ID`、source trust domain 或已验证 endpoint domain 命中 deny list）请求时，MUST fail closed，SHOULD 返回 `403 policy_denied` 或 `403 capability_denied`，并保持错误最小披露。
 
 整机级 defederation 需要入站与出站同时配置：拒收该 peer 的 push / pull / frontier probe，并停止向其 fanout 新 Event、push、to-device、key-package、backfill 和媒体 / snapshot fetch。
 

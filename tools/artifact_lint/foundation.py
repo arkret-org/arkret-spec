@@ -1840,21 +1840,21 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             lint.fail(operation_path, f"operation_id has invalid format: {operation_id}")
             continue
         segments = operation_id.split(".")
-        if len(segments) < 4:
+        if len(segments) < 5 or segments[-1] != "v1":
             lint.fail(
                 operation_path,
-                f"operation_id must be ak.<surface>.<domain...>.<kind>.<action>: {operation_id}",
+                f"operation_id must be ak.<surface>.<domain...>.<kind>.<action>.v1: {operation_id}",
             )
             continue
-        if segments[-2] not in OPERATION_KINDS:
+        if segments[-3] not in OPERATION_KINDS:
             lint.fail(
                 operation_path,
-                f"operation_id kind segment {segments[-2]!r} is not one of {sorted(OPERATION_KINDS)}: {operation_id}",
+                f"operation_id kind segment {segments[-3]!r} is not one of {sorted(OPERATION_KINDS)}: {operation_id}",
             )
-        if segments[-1] in FORBIDDEN_OPERATION_ACTIONS:
+        if segments[-2] in FORBIDDEN_OPERATION_ACTIONS:
             lint.fail(
                 operation_path,
-                f"operation_id action segment {segments[-1]!r} is an HTTP method name, not a protocol effect: {operation_id}",
+                f"operation_id action segment {segments[-2]!r} is an HTTP method name, not a protocol effect: {operation_id}",
             )
     for row in operation_rows if isinstance(operation_rows, list) else []:
         if not isinstance(row, dict):
@@ -1890,8 +1890,8 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         # exchange kinds, plus resource.replace / resource.delete) MUST declare
         # idempotency_mechanism + retry_safe; read-only operations MUST NOT.
         segments = operation_id.split(".")
-        op_kind = segments[-2] if len(segments) >= 2 else ""
-        op_action = segments[-1] if segments else ""
+        op_kind = segments[-3] if len(segments) >= 3 else ""
+        op_action = segments[-2] if len(segments) >= 2 else ""
         is_write_operation = op_kind in {"command", "upload", "exchange"} or (
             op_kind == "resource" and op_action in {"replace", "delete"}
         )
@@ -2271,6 +2271,8 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     f"{action} required_constraints references unknown grant constraint field: {constraint_name}",
                 )
 
+    check_operation_bundles_and_features(lint)
+
     return {
         "event_kinds": event_kinds,
         "active_event_kinds": {
@@ -2316,6 +2318,299 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         "constraint_types": constraint_types,
         "capability_actions": capability_actions,
     }
+
+
+def check_operation_bundles_and_features(lint: Lint) -> None:
+    """Validate the clean-break ServiceDescribe deployment catalogs."""
+    operation_path = ARTIFACTS / "registry" / "operation-registry.json"
+    binding_path = ARTIFACTS / "registry" / "binding-kind-registry.json"
+    service_path = ARTIFACTS / "registry" / "service-kind-registry.json"
+    feature_path = ARTIFACTS / "registry" / "feature-registry.json"
+    profile_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    operation_registry = load_json(lint, operation_path) or {}
+    binding_registry = load_json(lint, binding_path) or {}
+    service_registry = load_json(lint, service_path) or {}
+    feature_registry = load_json(lint, feature_path) or {}
+    profile_registry = load_json(lint, profile_path) or {}
+
+    operations = {
+        row.get("operation_id")
+        for row in operation_registry.get("operations", [])
+        if isinstance(row, dict) and isinstance(row.get("operation_id"), str)
+    }
+    bindings = {
+        row.get("kind")
+        for row in binding_registry.get("entries", [])
+        if isinstance(row, dict) and row.get("status") in {"active", "candidate"}
+    }
+    service_kinds = {
+        row.get("canonical_id")
+        for row in service_registry.get("service_kinds", [])
+        if isinstance(row, dict)
+        and row.get("status") == "active"
+        and "service_describe" in (row.get("valid_in") or [])
+    }
+    prototypes = {
+        row.get("prototype_id")
+        for row in operation_registry.get("deployment_prototypes", [])
+        if isinstance(row, dict) and isinstance(row.get("prototype_id"), str)
+    }
+    bundle_pattern = re.compile(r"^ak\.operation_bundle(?:\.[a-z0-9_]+)+\.v1$")
+    pair_owners: dict[tuple[str, str, str], str] = {}
+    bundle_ids: set[str] = set()
+    bundle_pairs: set[tuple[str, str]] = set()
+    expected_bundle_keys = {
+        "operation_bundle_id", "service_kind", "deployment_evidence", "members"
+    }
+    for index, bundle in enumerate(operation_registry.get("operation_bundles", [])):
+        spot = f"operation_bundles[{index}]"
+        if not isinstance(bundle, dict):
+            lint.fail(operation_path, f"{spot} must be an object")
+            continue
+        if set(bundle) != expected_bundle_keys:
+            lint.fail(operation_path, f"{spot} must use the closed bundle row shape")
+        bundle_id = bundle.get("operation_bundle_id")
+        service_kind = bundle.get("service_kind")
+        if not isinstance(bundle_id, str) or not bundle_pattern.fullmatch(bundle_id):
+            lint.fail(operation_path, f"{spot}.operation_bundle_id must be a registered current-v1 id")
+            continue
+        if bundle_id in bundle_ids:
+            lint.fail(operation_path, f"duplicate operation bundle id: {bundle_id}")
+        bundle_ids.add(bundle_id)
+        if service_kind not in service_kinds:
+            lint.fail(operation_path, f"{bundle_id} references unavailable service_kind {service_kind!r}")
+        evidence = bundle.get("deployment_evidence")
+        if not isinstance(evidence, list) or not evidence or len(evidence) != len(set(evidence)):
+            lint.fail(operation_path, f"{bundle_id}.deployment_evidence must be non-empty and unique")
+        else:
+            for prototype_id in evidence:
+                if isinstance(prototype_id, str) and prototype_id.split("#", 1)[0] in prototypes:
+                    continue
+                if isinstance(prototype_id, str) and prototype_id.startswith("normative:"):
+                    file_ref = prototype_id.removeprefix("normative:").split("#", 1)[0]
+                    if (SPEC_ROOT / file_ref).is_file():
+                        continue
+                lint.fail(operation_path, f"{bundle_id} references unknown deployment evidence {prototype_id!r}")
+        members = bundle.get("members")
+        if not isinstance(members, list) or not members:
+            lint.fail(operation_path, f"{bundle_id}.members must be non-empty")
+            continue
+        canonical_members: list[tuple[str, str]] = []
+        for member_index, member in enumerate(members):
+            member_spot = f"{bundle_id}.members[{member_index}]"
+            if not isinstance(member, dict) or set(member) != {"operation_id", "binding_kind"}:
+                lint.fail(operation_path, f"{member_spot} must be a closed operation/binding pair")
+                continue
+            operation_id = member.get("operation_id")
+            binding_kind = member.get("binding_kind")
+            pair = (operation_id, binding_kind)
+            canonical_members.append(pair)
+            if operation_id not in operations:
+                lint.fail(operation_path, f"{member_spot} references unknown operation {operation_id!r}")
+            if binding_kind not in bindings:
+                lint.fail(operation_path, f"{member_spot} references unknown binding {binding_kind!r}")
+            owner_key = (str(service_kind), str(operation_id), str(binding_kind))
+            previous = pair_owners.get(owner_key)
+            if previous is not None:
+                lint.fail(operation_path, f"{bundle_id} overlaps {previous} on pair {pair!r}")
+            pair_owners[owner_key] = bundle_id
+            bundle_pairs.add((str(operation_id), str(binding_kind)))
+        if canonical_members != sorted(set(canonical_members)):
+            lint.fail(operation_path, f"{bundle_id}.members must be unique and canonical-sorted")
+
+    if len(bundle_ids) != 38:
+        lint.fail(operation_path, f"operation_bundles must contain the 38 evidenced v1 bundles, got {len(bundle_ids)}")
+    describe_pair = ("ak.server.read.describe.v1", "http_json")
+    for service_kind in sorted(service_kinds):
+        describe_bundle_id = f"ak.operation_bundle.{service_kind}.describe.v1"
+        matching = [
+            row
+            for row in operation_registry.get("operation_bundles", [])
+            if isinstance(row, dict) and row.get("operation_bundle_id") == describe_bundle_id
+        ]
+        if len(matching) != 1:
+            lint.fail(
+                operation_path,
+                f"{service_kind} must have exactly one role-local {describe_bundle_id}",
+            )
+            continue
+        member_pairs = [
+            (member.get("operation_id"), member.get("binding_kind"))
+            for member in matching[0].get("members", [])
+            if isinstance(member, dict)
+        ]
+        if matching[0].get("service_kind") != service_kind or member_pairs != [describe_pair]:
+            lint.fail(
+                operation_path,
+                f"{describe_bundle_id} must belong to {service_kind} and contain only {describe_pair!r}",
+            )
+
+    bundles_by_id = {
+        row.get("operation_bundle_id"): row
+        for row in operation_registry.get("operation_bundles", [])
+        if isinstance(row, dict) and isinstance(row.get("operation_bundle_id"), str)
+    }
+    surface_operations = {
+        row.get("surface"): {
+            operation_id
+            for operation_id in row.get("operations", [])
+            if isinstance(operation_id, str)
+        }
+        for row in operation_registry.get("surface_groups", [])
+        if isinstance(row, dict) and isinstance(row.get("surface"), str)
+    }
+
+    def exact_http_members(bundle_id: str) -> set[str]:
+        bundle = bundles_by_id.get(bundle_id)
+        if not isinstance(bundle, dict):
+            lint.fail(operation_path, f"required evidenced bundle is missing: {bundle_id}")
+            return set()
+        members = bundle.get("members")
+        if not isinstance(members, list):
+            return set()
+        if any(
+            not isinstance(member, dict) or member.get("binding_kind") != "http_json"
+            for member in members
+        ):
+            lint.fail(operation_path, f"{bundle_id} must be an HTTP/JSON-only evidenced bundle")
+        return {
+            member.get("operation_id")
+            for member in members
+            if isinstance(member, dict) and isinstance(member.get("operation_id"), str)
+        }
+
+    identity_surface = surface_operations.get("identity_registry", set())
+    identity_core = exact_http_members("ak.operation_bundle.identity_registry.http_core.v1")
+    if identity_core != identity_surface:
+        lint.fail(
+            operation_path,
+            "identity_registry.http_core must exactly project Soland's mounted identity_registry surface",
+        )
+
+    directory_surface = surface_operations.get("directory_discovery", set())
+    directory_optional = {
+        "ak.find.directory.read.private_contact_discovery.v1",
+        "ak.find.directory.read.resolve_agent_selector.v1",
+        "ak.find.directory.command.takedown_appeal.v1",
+    }
+    directory_core = exact_http_members("ak.operation_bundle.directory_service.http_core.v1")
+    if directory_core != directory_surface - directory_optional:
+        lint.fail(
+            operation_path,
+            "directory_service.http_core must be the exact Soland/Teabay common support vector",
+        )
+    for bundle_id, operation_id in (
+        (
+            "ak.operation_bundle.directory_service.private_contact_discovery.v1",
+            "ak.find.directory.read.private_contact_discovery.v1",
+        ),
+        (
+            "ak.operation_bundle.directory_service.resolve_agent_selector.v1",
+            "ak.find.directory.read.resolve_agent_selector.v1",
+        ),
+        (
+            "ak.operation_bundle.directory_service.takedown_appeal.v1",
+            "ak.find.directory.command.takedown_appeal.v1",
+        ),
+    ):
+        if exact_http_members(bundle_id) != {operation_id}:
+            lint.fail(operation_path, f"{bundle_id} must contain only {operation_id}")
+
+    principal_core = exact_http_members("ak.operation_bundle.principal_server.http_core.v1")
+    leaked_role_operations = sorted(principal_core & (identity_surface | directory_surface))
+    if leaked_role_operations:
+        lint.fail(
+            operation_path,
+            "principal_server.http_core leaks identity/directory role operations: "
+            f"{leaked_role_operations}",
+        )
+
+    migration_path = ROOT / "tools" / "operation-id-v1-migration.json"
+    migration = load_json(lint, migration_path) or {}
+    if migration.get("runtime_aliases") is not False:
+        lint.fail(migration_path, "operation migration map must explicitly forbid runtime aliases")
+    mappings = migration.get("mappings")
+    mapped_new: set[str] = set()
+    mapped_old: set[str] = set()
+    if not isinstance(mappings, list):
+        lint.fail(migration_path, "mappings must be an array")
+    else:
+        for index, row in enumerate(mappings):
+            if not isinstance(row, dict) or set(row) != {"old", "new"}:
+                lint.fail(migration_path, f"mappings[{index}] must contain exactly old and new")
+                continue
+            old = row.get("old")
+            new = row.get("new")
+            if not isinstance(old, str) or not isinstance(new, str) or new != old + ".v1":
+                lint.fail(migration_path, f"mappings[{index}] must be a mechanical old -> old.v1 rename")
+                continue
+            mapped_old.add(old)
+            mapped_new.add(new)
+        if len(mapped_old) != len(mappings) or len(mapped_new) != len(mappings):
+            lint.fail(migration_path, "migration mappings must be one-to-one")
+        if mapped_new != operations:
+            lint.fail(
+                migration_path,
+                "migration new-id set must exactly equal the canonical operation registry",
+            )
+
+    profiles = {
+        row.get("profile")
+        for row in profile_registry.get("profile_requirements", [])
+        if isinstance(row, dict) and isinstance(row.get("profile"), str)
+    }
+    feature_pattern = re.compile(r"^ak\.feature(?:\.[a-z0-9_]+)+\.v1$")
+    feature_ids: set[str] = set()
+    expected_feature_keys = {
+        "feature_id", "status", "defined_in", "service_kinds",
+        "required_operation_pairs", "required_profiles", "required_limits",
+        "semantic_guarantees", "conflicts",
+    }
+    for index, feature in enumerate(feature_registry.get("features", [])):
+        spot = f"features[{index}]"
+        if not isinstance(feature, dict):
+            lint.fail(feature_path, f"{spot} must be an object")
+            continue
+        if set(feature) != expected_feature_keys:
+            lint.fail(feature_path, f"{spot} must use the closed feature row shape")
+        feature_id = feature.get("feature_id")
+        if not isinstance(feature_id, str) or not feature_pattern.fullmatch(feature_id):
+            lint.fail(feature_path, f"{spot}.feature_id must be an exact current-v1 id")
+            continue
+        if feature_id in feature_ids:
+            lint.fail(feature_path, f"duplicate feature id: {feature_id}")
+        feature_ids.add(feature_id)
+        if feature.get("status") not in {"active", "test_only"}:
+            lint.fail(feature_path, f"{feature_id}.status must be active or test_only")
+        defined_in = feature.get("defined_in")
+        if not isinstance(defined_in, str) or not (SPEC_ROOT / defined_in.split("#", 1)[0]).is_file():
+            lint.fail(feature_path, f"{feature_id}.defined_in does not resolve: {defined_in!r}")
+        for service_kind in feature.get("service_kinds", []) or []:
+            if service_kind not in service_kinds:
+                lint.fail(feature_path, f"{feature_id} references unknown service_kind {service_kind!r}")
+        for pair in feature.get("required_operation_pairs", []) or []:
+            if not isinstance(pair, dict) or set(pair) != {"operation_id", "binding_kind"}:
+                lint.fail(feature_path, f"{feature_id} has a malformed required operation pair")
+                continue
+            exact_pair = (pair.get("operation_id"), pair.get("binding_kind"))
+            if exact_pair not in bundle_pairs:
+                lint.fail(feature_path, f"{feature_id} requires a pair absent from every bundle: {exact_pair!r}")
+        for profile in feature.get("required_profiles", []) or []:
+            if profile not in profiles:
+                lint.fail(feature_path, f"{feature_id} references unknown profile {profile!r}")
+        guarantees = feature.get("semantic_guarantees")
+        if feature.get("status") == "active" and not feature.get("required_operation_pairs") and not guarantees:
+            lint.fail(feature_path, f"{feature_id} is redundant: no operation prerequisite or semantic guarantee")
+        conflicts = feature.get("conflicts")
+        if not isinstance(conflicts, list) or len(conflicts) != len(set(conflicts)):
+            lint.fail(feature_path, f"{feature_id}.conflicts must be a unique array")
+
+    feature_token = re.compile(r"ak\.feature(?:\.[a-z0-9_]+)+\.v1")
+    referenced: set[str] = set()
+    for path in text_contract_files():
+        referenced.update(feature_token.findall(read_text(path)))
+    for feature_id in sorted(referenced - feature_ids):
+        lint.fail(feature_path, f"unregistered exact feature token referenced by spec: {feature_id}")
 
 
 

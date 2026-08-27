@@ -12,8 +12,8 @@
     "schemas/contact-operations.schema.json#/$defs/bilateral_continuity_checkpoint",
     "schemas/contact-operations.schema.json#/$defs/bilateral_continuity_checkpoint_proposal",
     "schemas/contact-operations.schema.json#/$defs/contact_continuity_evidence",
-    "registry/operation-registry.json#ak.self.contact.command.checkpoint",
-    "registry/operation-registry.json#ak.peer.contacts.command.submit",
+    "registry/operation-registry.json#ak.self.contact.command.checkpoint.v1",
+    "registry/operation-registry.json#ak.peer.contacts.command.submit.v1",
     "registry/outward-disclosure-policy-registry.json"
   ],
   "cases": [
@@ -54,7 +54,7 @@
     },
     {
       "name": "single_roundtrip_countersigns_and_commits_same_checkpoint",
-      "peer_operation": "ak.peer.contacts.command.submit",
+      "peer_operation": "ak.peer.contacts.command.submit.v1",
       "control_kind": "continuity_checkpoint",
       "proposer_signature_count": 1,
       "committed_signature_count": 2,

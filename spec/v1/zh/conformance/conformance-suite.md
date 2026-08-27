@@ -177,7 +177,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 | Moderation | report / queue item schema、E2EE evidence package、franking、operator ACL | appeal / audit trail |
 | Agent Runtime | capability grant 解释、knowledge source 声明、owner presence policy、join policy、capability revoke | approval UX、tool call audit |
 
-**向量与 operation clause 覆盖（normative）**：领域行为的 active 向量以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为真相源；HTTP/API 行为以 [`operation-clause-registry.json`](../../artifacts/registry/operation-clause-registry.json) 的 selector-based clause closure 为认证入口。runner MUST 先计算 profile 继承后的 `required_endpoints`，再对每个 operation 执行全部匹配的 active `AK-OP-NNN` clause；OpenAPI shape、认证、错误、限额、幂等/uncertain outcome、stream recovery、partial outcome 与 privacy evidence 任一缺失，均不得声明该 profile 为 `v1-conformance-certified`。prose 或 OpenAPI 形状检查不能替代 registry 声明的行为证据。
+**向量与 operation clause 覆盖（normative）**：领域行为的 active 向量以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为真相源；HTTP/API 行为以 [`operation-clause-registry.json`](../../artifacts/registry/operation-clause-registry.json) 的 selector-based clause closure 为认证入口。runner MUST 先计算 profile 继承后的 `operation_requirements`，再对每个 operation 执行全部匹配的 active `AK-OP-NNN` clause；OpenAPI shape、认证、错误、限额、幂等/uncertain outcome、stream recovery、partial outcome 与 privacy evidence 任一缺失，均不得声明该 profile 为 `v1-conformance-certified`。prose 或 OpenAPI 形状检查不能替代 registry 声明的行为证据。
 
 不变量（normative）：实现 **MUST NOT 仅凭通过现有向量集合就宣称尚未被 registry active vectors 覆盖的行"已认证覆盖"**；某行的 gate 是否生效 MUST 以 vector-registry 的 active 状态、fixture 证据与 runner 断言为准（见 §6.1），不得以本表"MUST 覆盖"承诺或任何 prose 列举替代该查询。
 

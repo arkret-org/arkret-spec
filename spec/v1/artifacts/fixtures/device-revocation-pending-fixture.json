@@ -64,7 +64,7 @@
     {
       "name": "session_issuer_uses_origin_ps_linearization_receipt",
       "given": "an Account Authority has an immutable prepared grant intent for an exact account pair and device",
-      "action": "call ak.peer.device_revocations.command.check and commit the issuer record",
+      "action": "call ak.peer.device_revocations.command.check.v1 and commit the issuer record",
       "expected": "allow_only_for_exact_pre_pending_intent",
       "invariants": [
         "origin derives the authorization Event and PCR generation from its own durable projection inside the gate transaction",
@@ -189,7 +189,7 @@
       "expected": "only_exact_decision_clears",
       "invariants": [
         "wrong decisions change no state",
-        "exact decision is persisted through ak.self.control_proposal_decisions.command.submit",
+        "exact decision is persisted through ak.self.control_proposal_decisions.command.submit.v1",
         "device returns to its independently verified lifecycle state",
         "minimal recovery material retained during pending remains available"
       ]

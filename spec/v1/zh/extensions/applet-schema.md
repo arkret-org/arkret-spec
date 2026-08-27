@@ -189,7 +189,7 @@ mint request ID。相同 subject/payload 的 preview 返回 ledger 中已保存�
 
 客户端把 exact signed request relay 到标准
 `POST /_arkret/edge/applet/managed-actors/author`
-（`ak.edge.applet.managed_actor.command.author`）。该 operation 以
+（`ak.edge.applet.managed_actor.command.author.v1`）。该 operation 以
 `purpose=install_bot|provision_ghost` 的 closed union 同时服务 Bot 与 Ghost；Applet service 必须用
 current trusted Principal Server service identity/key 验证 proof，并逐字校验 package/service/admin
 Event/evidence/actor/plan/expiry 绑定；不得只接受自洽历史 key。Applet service 按既有 creation admission 签

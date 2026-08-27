@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.2",
+  "version": "2026-08-27.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -224,7 +224,7 @@
       "payload_pattern": "[0-9a-f]{64}",
       "status": "active",
       "storage_recommendation": "Store the 32 raw challenge octets together with the challenge consumption ledger row; it is registry-local single-use state, never a federated object ID and never a native UUID column.",
-      "description": "Single-use Organization registration control challenge identifier issued by ak.root.identity.organization_registration.command.prepare. It is registry-allocated, neither content-addressed nor Event-derived, and it never denotes a durable protocol object.",
+      "description": "Single-use Organization registration control challenge identifier issued by ak.root.identity.organization_registration.command.prepare.v1. It is registry-allocated, neither content-addressed nor Event-derived, and it never denotes a durable protocol object.",
       "allocation": {
         "method": "registry_csprng_random",
         "entropy_bits": 256,

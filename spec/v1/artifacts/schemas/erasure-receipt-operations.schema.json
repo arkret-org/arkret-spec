@@ -63,7 +63,7 @@
     },
     "erasure_receipt_submit_request_body": {
       "type": "object",
-      "description": "Canonical body of ak.peer.erasure_receipt.command.submit. Idempotency-Key is a required signed HTTP header and is not duplicated in the body.",
+      "description": "Canonical body of ak.peer.erasure_receipt.command.submit.v1. Idempotency-Key is a required signed HTTP header and is not duplicated in the body.",
       "required": [
         "package"
       ],
@@ -152,7 +152,7 @@
     },
     "erasure_receipt_resource": {
       "type": "object",
-      "description": "Result of ak.peer.erasure_receipt.resource.get. The package is byte-identical in semantic content to the accepted submit package; no later lookup may substitute another retained stub.",
+      "description": "Result of ak.peer.erasure_receipt.resource.get.v1. The package is byte-identical in semantic content to the accepted submit package; no later lookup may substitute another retained stub.",
       "required": [
         "package"
       ],

@@ -20,7 +20,7 @@ updated: 2026-07-02
 
 地址层**只负责寻址**。授权不是地址的一部分，而是挂在地址上的、有 expiry、audience-bound、可吊销的签名 token。**寻址 ≠ 授权**：裸地址解析仍受 [`discovery-directory.md` §2/§3](./discovery-directory.md) 的 discoverability / join / history 三 gate 约束，请求方看不见的资源 MUST 解析为与不存在不可区分的 `not_found`。
 
-本文定义一套地址 grammar、三种 envelope，以及解析 operation `ak.find.directory.read.resolve_target`。v1 的 preview link type 依赖 Realm 侧 `ak.realm.preview_policy`，但地址层本身仍不授予 membership 或写权限。
+本文定义一套地址 grammar、三种 envelope，以及解析 operation `ak.find.directory.read.resolve_target.v1`。v1 的 preview link type 依赖 Realm 侧 `ak.realm.preview_policy`，但地址层本身仍不授予 membership 或写权限。
 
 ## 2. 三个 envelope，一套 grammar
 
@@ -113,12 +113,12 @@ sigil 是展示与输入层 affordance，**不是 wire 的一部分**：strip �
 **alias 的唯一 wire 承载（normative）**：realm alias 的唯一 wire 承载是专用 facet Event `ak.realm.alias`，它写入 `ak.component.realm.alias.v1`（`cas_register`，`cell_subject=null`，`bottom=reject`，`concurrency_class=security_barrier`）。payload 封闭为两种互斥形态：declaration `{"alias": "<localpart>:<domain>"}` 与精确 value tombstone `{"tombstone": true}`（wire schema 见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `$defs/realm_alias_payload`）。由此推出以下 MUST：
 
 - **Realm genesis/profile 不承载 alias**：`realm-genesis.schema.json` 与 `realm-profile.schema.json` 都是闭合 schema，且不注册 `alias` 属性；`ak.realm.create` 的 `payload.object.alias`、`ak.realm.profile` 的 `payload.object.alias`、以及任何 Realm 生命周期 Event 的 payload 顶层 `alias` / `realm_alias` 一律 MUST 拒绝为 `schema_violation`（登记见 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。**同一事实只有一个输入形态**：接受多形态是 create-time alias 与闭合 schema 分叉的根因，实现 MUST NOT 保留 fallback 读取链。
-- **创建时设置 alias 是 bootstrap facet**：需要在创建时即拥有 alias 的 Realm 在同一 `ak.self.events.command.submit` 原子 bootstrap unit 内，按登记顺序提交 `ak.realm.alias`。该 kind 属 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的免 `seal_basis` 封闭 facet；bootstrap 之外的 `ak.realm.alias` 与普通 Control Move 一样 MUST 携带 `seal_basis`。
+- **创建时设置 alias 是 bootstrap facet**：需要在创建时即拥有 alias 的 Realm 在同一 `ak.self.events.command.submit.v1` 原子 bootstrap unit 内，按登记顺序提交 `ak.realm.alias`。该 kind 属 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的免 `seal_basis` 封闭 facet；bootstrap 之外的 `ak.realm.alias` 与普通 Control Move 一样 MUST 携带 `seal_basis`。
 - **rename / release**：改名是对同一 cell 的后继 `set`，释放 alias 是显式 tombstone；命中既有 settled value 时 MUST 携带 whole-value `head_eq` 前置条件。tombstone 是 Event / Seal / 联邦回放 / `state_root` 共同承诺的显式值，不是物理删除；tombstone 后该 Realm 只能按 `realm_id` 寻址。
 - **授权**：`ak.realm.alias` 由同名 action `ak.realm.alias`（`risk_tier=high`）或覆盖它的聚合 `ak.realm.admin` 授权（见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。
 - **issuer authority 绑定**：alias 的 `<domain>` 是签发该 alias 的 authority，Realm 自身 notary 签名并不证明该 domain 的 issuer 批准了这次占用。因此 reducer / registrar MUST 校验 `<domain>` 是该 Realm `trust_domain` 的 authority domain，否则 fail closed（`failed_precondition`，`reason="realm_alias_authority_mismatch"`）。
 - **命名空间占用**：canonical alias 已被同一 authority 的 realm-alias namespace 内**另一个** Realm 持有时，后来的 declaration MUST 拒绝（`failed_precondition`，`reason="realm_alias_taken"`），MUST NOT 把 alias 改指到新 Realm；释放必须由持有方先发 tombstone。handle namespace 的同名占用**不**构成冲突（两命名空间不相交，见上）。
-- **解析方向**：`resolve_realm` / `resolve_target` / `ak.edge.applet.realm.read.resolve` 的 alias 输入 MUST 解析自 effective `ak.component.realm.alias.v1`（tombstone 视为不存在），并按 §3.1 规范化为 canonical `realm_id` 后再做身份比对。Directory 行是该 cell 的投影，不是独立真相源。
+- **解析方向**：`resolve_realm` / `resolve_target` / `ak.edge.applet.realm.read.resolve.v1` 的 alias 输入 MUST 解析自 effective `ak.component.realm.alias.v1`（tombstone 视为不存在），并按 §3.1 规范化为 canonical `realm_id` 后再做身份比对。Directory 行是该 cell 的投影，不是独立真相源。
 - **PCR 不得有 alias**：`ak.realm.alias` 不在 `ak.profile.principal_control_realm.v1` 的 event-kind allowlist 内，Principal Control Realm 只能按 `realm_id` 寻址（写入 MUST `principal_control_event_kind_forbidden`）。
 
 本条的规范执行向量是 `ak.vector.event_kind.realm_alias_single_carrier.v1`。
@@ -146,7 +146,7 @@ v1 定义三种 link 类型：
 授权组件**统一**用两个 query 参数，**禁止** `invite_token=` / `signed_link=` 等分叉参数名（否则不同客户端生成互不互通的链接）：
 
 - `lt=<reference|invite|preview>`，省略等价 `reference`。解析方遇到其它值时 MUST 按最严格的 `reference` 语义处理（不授予任何权限）。
-- `tok=<opaque-token>`，**当且仅当** `lt ∈ {invite, preview}` 出现；直接映射到 `ak.find.directory.read.resolve_target` 的 `token` 输入。
+- `tok=<opaque-token>`，**当且仅当** `lt ∈ {invite, preview}` 出现；直接映射到 `ak.find.directory.read.resolve_target.v1` 的 `token` 输入。
 - token 的内部类别（`invite_token` 风格 vs `signed_link` 风格）由签名 payload 自身表达，**不**靠 URL 参数名区分。
 - token 存在时，**权威 address_link_kind 取自 token 签名 payload**；URL `lt` 仅是解析前的展示 hint，**MUST NOT** 用于放大权限，与 token 内声明矛盾时以 token 为准。
 
@@ -208,13 +208,13 @@ HTTPS 落地链接中，`strand` / `m` / 尤其 `tok` **MUST** 放在 URL **frag
 - 客户端 **MUST NOT** 因 landing 域名、handler 模板域名、或链接外壳与某个已信任部署"看起来相同 / 不同"而授予任何额外权限、放大 token scope、跳过 §6 的 `resolve_target` 校验，或自动向该域名提交 `tok` / 任何授权 material。token 的兑换目标仍由其签名 payload 内的 target descriptor 决定，与承载它的 landing 域无关。
 - 对**未知 / 不在本地信任集合内**的 landing 域名，客户端 **SHOULD** 在解析或兑换前提示用户确认，避免任意域名借 Arkret 链接外壳诱导用户提交 token。
 
-## 6. 解析 operation：`ak.find.directory.read.resolve_target`
+## 6. 解析 operation：`ak.find.directory.read.resolve_target.v1`
 
-`ak.find.directory.read.resolve_target` 是 [`discovery-directory.md` §9](./discovery-directory.md) `resolve_realm` 的对象级泛化。两者**共存**：`resolve_realm` 保留为 realm-only 入口；`resolve_target` 解析 realm 目标时 MUST 委托给同一 Realm 解析路径（不另发明 realm 解析语义，避免漂移）。
+`ak.find.directory.read.resolve_target.v1` 是 [`discovery-directory.md` §9](./discovery-directory.md) `resolve_realm` 的对象级泛化。两者**共存**：`resolve_realm` 保留为 realm-only 入口；`resolve_target` 解析 realm 目标时 MUST 委托给同一 Realm 解析路径（不另发明 realm 解析语义，避免漂移）。
 
 | operation_id | 必填 | 可选 | 响应 | 约束 |
 | --- | --- | --- | --- | --- |
-| `ak.find.directory.read.resolve_target` | `address: string`（§3 canonical grammar） | `requester: did`; `proofs: proof[]`; `token: string`（`lt ∈ {invite, preview}` 时） | `target_kind: enum(realm,strand,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; 以及 [§9.1](./discovery-directory.md) 全部通用字段 | 见下。 |
+| `ak.find.directory.read.resolve_target.v1` | `address: string`（§3 canonical grammar） | `requester: did`; `proofs: proof[]`; `token: string`（`lt ∈ {invite, preview}` 时） | `target_kind: enum(realm,strand,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; 以及 [§9.1](./discovery-directory.md) 全部通用字段 | 见下。 |
 
 响应约束（normative）：
 

@@ -254,7 +254,7 @@ Calendar schedule 变更通过 `ak.strand.update` 修改 §2 字段。`metadata.
 
 ## 11. 一致性与非目标
 
-两个 profile 的 fixture **必须分开**，因为 [`conformance-suite.md` §2](../conformance/conformance-suite.md) 的向量适用性闭包规定profile 的认证集合包含其 `required_fixtures[]` 所映射向量的并集：client profile 要求 [`calendar-rsvp-fixture.json`](../../artifacts/fixtures/calendar-rsvp-fixture.json)（§1–§9 的 12 条向量），server notification profile 只要求 [`calendar-notification-fixture.json`](../../artifacts/fixtures/calendar-notification-fixture.json)（§10 的 1 条向量）。若让 server profile 引用 client fixture，它会被闭包规则要求通过 recurrence authoring 与 RSVP 投影等它根本不声明的向量，声明块自身即不可满足。只有 submit / scan endpoint 可达而未通过对应向量的实现 MUST NOT verified-claim 任一 profile。局部实现只 MAY 逐项列入 `implemented_features` / `experimental_features`。
+两个 profile 的 fixture **必须分开**，因为 [`conformance-suite.md` §2](../conformance/conformance-suite.md) 的向量适用性闭包规定profile 的认证集合包含其 `required_fixtures[]` 所映射向量的并集：client profile 要求 [`calendar-rsvp-fixture.json`](../../artifacts/fixtures/calendar-rsvp-fixture.json)（§1–§9 的 12 条向量），server notification profile 只要求 [`calendar-notification-fixture.json`](../../artifacts/fixtures/calendar-notification-fixture.json)（§10 的 1 条向量）。若让 server profile 引用 client fixture，它会被闭包规则要求通过 recurrence authoring 与 RSVP 投影等它根本不声明的向量，声明块自身即不可满足。只有 submit / scan endpoint 可达而未通过对应向量的实现 MUST NOT verified-claim 任一 profile。局部实现只 MAY 逐项列入 `supported_features` / `supported_features`。
 
 v1 明确不包含下列能力；它们是 non-goal / unsupported extension，未实现时 MUST NOT 用"完整日历系统"表述 profile 能力：
 

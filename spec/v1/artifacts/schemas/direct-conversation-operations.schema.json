@@ -152,7 +152,7 @@
     },
     "direct_conversation_resolve_outcome": {
       "type": "object",
-      "description": "Closed tagged outcome of ak.self.direct_conversation.read.resolve. Evaluation order is fixed: temporarily_unavailable when the current basis or founder cannot be verified; then creation_blocked, creation_required or awaiting_founder while no Realm exists; then suspended for identity, materialization, terminal or gate conflicts; then provisional while no binding endorsement exists; found last. awaiting_founder never transfers authority by timeout, recovery policy, successor designation or permanent-unavailability inference; v1 defines no founder_unrecoverable state.",
+      "description": "Closed tagged outcome of ak.self.direct_conversation.read.resolve.v1. Evaluation order is fixed: temporarily_unavailable when the current basis or founder cannot be verified; then creation_blocked, creation_required or awaiting_founder while no Realm exists; then suspended for identity, materialization, terminal or gate conflicts; then provisional while no binding endorsement exists; found last. awaiting_founder never transfers authority by timeout, recovery policy, successor designation or permanent-unavailability inference; v1 defines no founder_unrecoverable state.",
       "required": [
         "state"
       ],
@@ -327,7 +327,7 @@
     },
     "direct_conversation_resolve_request": {
       "type": "object",
-      "description": "Closed query body for ak.self.direct_conversation.read.resolve. Creation is never carried here: a Direct Conversation Realm is created only by the derived founder through the direct_conversation_genesis admission variant of ak.realm.create.",
+      "description": "Closed query body for ak.self.direct_conversation.read.resolve.v1. Creation is never carried here: a Direct Conversation Realm is created only by the derived founder through the direct_conversation_genesis admission variant of ak.realm.create.",
       "required": [
         "peer"
       ],

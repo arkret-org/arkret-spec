@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.6",
+  "version": "2026-08-27.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T09:00:00+08:00",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -443,7 +443,7 @@
       "schema_id": "ak.schema.events_subscribe_frame.v1",
       "file": "schemas/events-subscribe-frame.schema.json",
       "status": "active",
-      "description": "Closed data/control frame union for ak.self.events.stream.subscribe."
+      "description": "Closed data/control frame union for ak.self.events.stream.subscribe.v1."
     },
     {
       "schema_id": "ak.schema.account_operations.v1",
@@ -582,7 +582,7 @@
       "schema_id": "ak.schema.signal_stream_frame.v1",
       "file": "schemas/signal-stream-frame.schema.json",
       "status": "active",
-      "description": "Closed data/control frame union for ak.self.signal.stream.subscribe."
+      "description": "Closed data/control frame union for ak.self.signal.stream.subscribe.v1."
     },
     {
       "schema_id": "ak.schema.cba_proof_bundle.v1",
@@ -807,7 +807,7 @@
       "schema_id": "ak.schema.did_webvh_witness_receipt.v1",
       "file": "schemas/did-webvh-witness-receipt.schema.json",
       "status": "active",
-      "description": "Arkret-layer record that a named did:webvh witness was observed attesting a specific log versionId. Separate object family from ak.schema.identity_receipt.v1, whose witness_role describes a DID registry consensus role rather than a method-native witness; both are returned by ak.root.identity.receipts.read.list as a tagged union discriminated on schema. Never substitutes for verifying the standard did-witness.json proofs."
+      "description": "Arkret-layer record that a named did:webvh witness was observed attesting a specific log versionId. Separate object family from ak.schema.identity_receipt.v1, whose witness_role describes a DID registry consensus role rather than a method-native witness; both are returned by ak.root.identity.receipts.read.list.v1 as a tagged union discriminated on schema. Never substitutes for verifying the standard did-witness.json proofs."
     },
     {
       "schema_id": "ak.schema.identity_link.v1",
@@ -910,7 +910,7 @@
       "schema_id": "ak.schema.applet_package.v1",
       "file": "schemas/applet-package.schema.json",
       "status": "active",
-      "description": "Controller-signed package used by ak.self.applet.command.install preview/commit to derive ak.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
+      "description": "Controller-signed package used by ak.self.applet.command.install.v1 preview/commit to derive ak.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
     },
     {
       "schema_id": "ak.schema.applet_managed_actor_provision.v1",
@@ -1010,13 +1010,13 @@
       "schema_id": "ak.schema.applet_install_operations.v1",
       "file": "schemas/applet-install-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ak.self.applet.install.command.preview and ak.applet.install."
+      "description": "Closed request/response DTO bundle for ak.self.applet.install.command.preview.v1 and ak.applet.install."
     },
     {
       "schema_id": "ak.schema.applet_ghost_operations.v1",
       "file": "schemas/applet-ghost-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
+      "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision.v1 (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
     },
     {
       "schema_id": "ak.schema.join_policy_operations.v1",
@@ -1161,7 +1161,7 @@
       "schema_id": "ak.schema.keys_operations.v1",
       "file": "schemas/keys-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ak.self.keys.upload.create, query, claim, and key backup put/list/delete responses."
+      "description": "Closed request/response DTO bundle for ak.self.keys.upload.create.v1, query, claim, and key backup put/list/delete responses."
     },
     {
       "schema_id": "ak.schema.http_problem_details.v1",
@@ -1189,13 +1189,13 @@
       "schema_id": "ak.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
-      "description": "Canonical ServiceDescribe response for ak.server.read.describe and per-surface describe operations: base service metadata plus exact operation_bindings and claim-level partitions (implemented_features / claimed_profiles / verified_profiles / experimental_features / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+      "description": "Canonical ServiceDescribe response for ak.server.read.describe.v1 and per-surface describe operations: base service metadata plus exact supported_operation_bundles and claim-level partitions (supported_features / claimed_profiles / verified_profiles / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe.v1. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
     },
     {
       "schema_id": "ak.schema.transport_binding.v1",
       "file": "schemas/transport-binding.schema.json",
       "status": "active",
-      "description": "Closed ServiceDescribe supported_bindings union for registered HTTP companion and extension transports.",
+      "description": "Closed ServiceDescribe transport_bindings union for registered HTTP companion and extension transports.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "schemas/service-describe.schema.json#/$defs/transport_binding",

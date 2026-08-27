@@ -156,7 +156,7 @@ Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠
 
 **Agent participation selection 不是 Account Data（normative）**：逐 scope 的 Agent participation
 selection 由 Account Authority 持有，寻址键是 `(agent_id, target_scope)`，读写入口只有
-`ak.self.agent.participation.resource.get` / `.replace`（见
+`ak.self.agent.participation.resource.get.v1` / `.replace`（见
 [`../sync/service-http-binding.md` §5](../sync/service-http-binding.md) 与
 [`../authz/capabilities.md` §11](../authz/capabilities.md)）。它 **MUST NOT** 登记 account-data key，也
 **MUST NOT** 经 `ak.account_data.set` 写入：那会给同一记录造出第二套 CAS 计数器
@@ -174,8 +174,8 @@ closed `{target_scope, selection, version}`，`selection` 五位恰为
 针对上述 agent-attributed private state:
 
 - 存储 MUST 使用 `wire_scope=actor_private_event` 通道(encrypted account data 或 actor-private stream);不得进入 shared Realm data-plane history 或 control-plane Seal history。
-- 目标 Realm 的 `ak.self.events.stream.subscribe` / `ak.self.events.read.scan` / shared reducer / Realm search index / notification fanout / push preview MUST NOT 返回 draft、Sidecar view state 或本地 exchange cache 内容。
-- `ak.self.account.stream.subscribe` 只能把 controller-owned approval draft / Sidecar view state 返回给 controller principal 的授权 session。Agent runtime MUST NOT 接收上述 controller-owned encrypted account data：其 value 以 controller account secret 派生密钥加密（[`account-data.md`](./account-data.md) §3），不同 principal 的 account secret 强制隔离，不存在也不得新增向 Agent runtime 分发该 secret 的机制。Agent runtime 所需的 Sidecar exchange identity 只经 Event 内的 exchange binding 传递（runtime 从 `role=request` binding 取得 `exchange_id`，不存在 Account Data projection 读写路径），判据见 [`../conformance/conformance-vectors.md` §11.10.3](../conformance/conformance-vectors.md)。
+- 目标 Realm 的 `ak.self.events.stream.subscribe.v1` / `ak.self.events.read.scan.v1` / shared reducer / Realm search index / notification fanout / push preview MUST NOT 返回 draft、Sidecar view state 或本地 exchange cache 内容。
+- `ak.self.account.stream.subscribe.v1` 只能把 controller-owned approval draft / Sidecar view state 返回给 controller principal 的授权 session。Agent runtime MUST NOT 接收上述 controller-owned encrypted account data：其 value 以 controller account secret 派生密钥加密（[`account-data.md`](./account-data.md) §3），不同 principal 的 account secret 强制隔离，不存在也不得新增向 Agent runtime 分发该 secret 的机制。Agent runtime 所需的 Sidecar exchange identity 只经 Event 内的 exchange binding 传递（runtime 从 `role=request` binding 取得 `exchange_id`，不存在 Account Data projection 读写路径），判据见 [`../conformance/conformance-vectors.md` §11.10.3](../conformance/conformance-vectors.md)。
 - 若服务端存储明文，该 deployment MUST 把"明文可见服务"写入 profile / policy 并向 controller 披露；默认语义 SHOULD 是服务端只保存 encrypted account data。
 - Draft 发布到目标 Strand 时,shared event MAY 通过 `refs[].role="draft_source"` 携带 opaque digest,但明文 draft id、private metadata、scratchpad、private prompt 或历史版本 MUST NOT 泄露到共享历史。
 - Sidecar 发布到目标 Strand 时，MUST NOT 泄露 `sidecar_id`、private Event id、MLS material、private messages、scratchpad 或 draft history。

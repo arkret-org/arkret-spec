@@ -17,11 +17,11 @@ from tools.artifact_lint import runner
 
 OPENAPI = ROOT / "spec" / "v1" / "artifacts" / "openapi" / "arkret-service-api.openapi.yaml"
 OPERATIONS = (
-    "ak.root.identity.recovery_policy.command.publish",
-    "ak.root.identity.recovery_policy.resource.get",
-    "ak.root.identity.recovery_session.command.create",
-    "ak.root.identity.recovery_session.resource.get",
-    "ak.root.identity.recovery_session.command.submit_proof",
+    "ak.root.identity.recovery_policy.command.publish.v1",
+    "ak.root.identity.recovery_policy.resource.get.v1",
+    "ak.root.identity.recovery_session.command.create.v1",
+    "ak.root.identity.recovery_session.resource.get.v1",
+    "ak.root.identity.recovery_session.command.submit_proof.v1",
 )
 
 

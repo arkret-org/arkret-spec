@@ -1,0 +1,321 @@
+{
+  "version": "2026-08-27.3",
+  "source_of_truth": false,
+  "generated_at": "2026-08-27T09:00:00+08:00",
+  "generated_from": "registry/contract-registry.json",
+  "generated_by": "tools/artifact_pipeline.py",
+  "description": "Canonical exact feature identities advertised only through ServiceDescribe.supported_features.",
+  "registry_rules": [
+    "Every standard feature id is registered here and ends in .v1; unregistered ak.feature.* values are invalid.",
+    "supported_features is the only public runtime feature claim set. Registry status describes lifecycle and never creates a second advertised set.",
+    "A feature cannot make an operation available; every required operation pair must already be present in the union of advertised operation bundles.",
+    "A feature cannot widen a selected operation schema. Contract-shape changes require a distinct versioned operation identity."
+  ],
+  "features": [
+    {
+      "feature_id": "ak.feature.agent_runtime_approval_notifications.v1",
+      "status": "active",
+      "defined_in": "zh/sync/client-sync.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "Agent runtime approval transitions emit the normative user-visible notification surface."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.blob.resumable_upload.tus.v1",
+      "status": "active",
+      "defined_in": "zh/crypto-media/media-and-blob.md#21-可续传上传resumable-upload-bindingoptional-extension",
+      "service_kinds": [],
+      "required_operation_pairs": [
+        {
+          "operation_id": "ak.self.blob.upload.create.v1",
+          "binding_kind": "tus"
+        }
+      ],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.cursor_revoke_high_assurance.v1",
+      "status": "active",
+      "defined_in": "zh/sync/client-sync.md#1221-high-assurance-cursor-revoke",
+      "service_kinds": [],
+      "required_operation_pairs": [
+        {
+          "operation_id": "ak.self.account.command.revoke_cursor.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.detached_jws.v1",
+      "status": "active",
+      "defined_in": "zh/conformance/encoding.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "Detached JWS inputs and verification results follow the canonical Arkret detached-signature transcript."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.direct_conversation_realm_role.v1",
+      "status": "active",
+      "defined_in": "zh/identity/contact-and-direct-conversation.md",
+      "service_kinds": [],
+      "required_operation_pairs": [
+        {
+          "operation_id": "ak.self.direct_conversation.read.resolve.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.e2ee_relaxed.v1",
+      "status": "active",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "The deployment supports the explicitly relaxed E2EE policy branch defined by the normative encryption contract."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.events_query_range_completeness.v1",
+      "status": "active",
+      "defined_in": "zh/sync/service-http-binding.md#335-range-completeness-optional-feature",
+      "service_kinds": [],
+      "required_operation_pairs": [
+        {
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.example.unknown.v1",
+      "status": "test_only",
+      "defined_in": "artifacts/fixtures/schema-validation-fixture.json",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.future_optional.v1",
+      "status": "test_only",
+      "defined_in": "artifacts/fixtures/event-envelope-negative-fixture.json",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.future_required.v1",
+      "status": "test_only",
+      "defined_in": "artifacts/fixtures/event-envelope-negative-fixture.json",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.history_key_recovery.v1",
+      "status": "active",
+      "defined_in": "zh/governance/history-visibility.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "Eligible members can execute the normative private history-key recovery protocol."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.identity.webvh_native_log.v1",
+      "status": "active",
+      "defined_in": "zh/identity/identity-did.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "Identity resolution verifies and serves the native did:webvh log contract."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.invite_addressing.v1",
+      "status": "active",
+      "defined_in": "zh/sync/invite-addressing.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "Invite addressing accepts only the registered introduction kinds and advertised maximum-behavior policy."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.message_content_block.v1",
+      "status": "active",
+      "defined_in": "zh/models/strand-and-message.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "Message bodies accept the versioned Content Block structural contract."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.mls_exporter_aead.v1",
+      "status": "active",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "Application encryption derives AEAD material through the registered MLS exporter labels."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.mls_governance_binding.full.v1",
+      "status": "active",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "MLS epochs are fully bound to the accepted Arkret governance frontier."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.mls_last_resort_keypackage.v1",
+      "status": "active",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "Last-resort KeyPackages follow the replay, consumption, and rotation rules of the normative MLS contract."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.notifications.v1",
+      "status": "active",
+      "defined_in": "zh/sync/client-sync.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "The deployment can emit the normative notification projection without implying push transport support."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.realm_service_resolution_mirror.v1",
+      "status": "active",
+      "defined_in": "zh/sync/service-surface.md",
+      "service_kinds": [],
+      "required_operation_pairs": [],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [
+        "Realm service-resolution state is mirrored with the normative authenticated frontier semantics."
+      ],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.service_route_handover.v1",
+      "status": "active",
+      "defined_in": "zh/sync/service-surface.md",
+      "service_kinds": [],
+      "required_operation_pairs": [
+        {
+          "operation_id": "ak.peer.service_resolution.command.publish.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.service_resolution.read.resolve.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.snapshot.v1",
+      "status": "active",
+      "defined_in": "zh/sync/service-surface.md",
+      "service_kinds": [],
+      "required_operation_pairs": [
+        {
+          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [],
+      "conflicts": []
+    },
+    {
+      "feature_id": "ak.feature.sync_stream.v1",
+      "status": "active",
+      "defined_in": "zh/sync/client-sync.md",
+      "service_kinds": [],
+      "required_operation_pairs": [
+        {
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "required_profiles": [],
+      "required_limits": [],
+      "semantic_guarantees": [],
+      "conflicts": []
+    }
+  ]
+}

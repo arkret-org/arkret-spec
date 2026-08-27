@@ -235,7 +235,7 @@
       "vector_id": "ak.vector.key_backup.delete_authority.v1",
       "kind": "active_series_tail_delete_authority",
       "proof_context": "ak.key_backup_delete_proof.v1",
-      "consumer_operation": "ak.self.keys.backups.resource.delete",
+      "consumer_operation": "ak.self.keys.backups.resource.delete.v1",
       "assertions": [
         "principal_signing, deduplicated device_quorum at policy k, and a live trusted_recovery_service session are the only accepted authority branches",
         "every branch signs one canonical delete-intent transcript whose context is the registered ak.key_backup_delete_proof.v1",

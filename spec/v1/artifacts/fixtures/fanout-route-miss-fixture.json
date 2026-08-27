@@ -89,7 +89,7 @@
     {
       "name": "authorized_status_read_is_complete_and_topology_redacted",
       "given": "a caller can read the Event but can read only one of two contributing member delivery-bindings",
-      "action": "QUERY ak.self.events.read.delivery_status",
+      "action": "QUERY ak.self.events.read.delivery_status.v1",
       "expected": "full_opaque_target_set",
       "invariants": [
         "all targets are returned sorted by unique stable target_id",

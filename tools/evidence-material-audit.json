@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 264,
+  "audited_occurrence_count": 364,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1136,6 +1136,48 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Selects material families from a heterogeneous evidence response."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "deployment_evidence",
+      "occurrences": 38,
+      "disposition": "registry_contract",
+      "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "evidence_kind",
+      "occurrences": 6,
+      "disposition": "qualifier",
+      "reason": "Classifies the registered deployment prototype evidence source without carrying evidence material itself."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "evidence_ref",
+      "occurrences": 6,
+      "disposition": "registry_contract",
+      "reason": "Stable reference to the implementation source location used to audit a deployment support vector."
+    },
+    {
+      "file": "operation-registry.json",
+      "key": "deployment_evidence",
+      "occurrences": 38,
+      "disposition": "registry_contract",
+      "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
+    },
+    {
+      "file": "operation-registry.json",
+      "key": "evidence_kind",
+      "occurrences": 6,
+      "disposition": "qualifier",
+      "reason": "Generated deployment-prototype evidence classification."
+    },
+    {
+      "file": "operation-registry.json",
+      "key": "evidence_ref",
+      "occurrences": 6,
+      "disposition": "registry_contract",
+      "reason": "Generated stable source reference for deployment support-vector audit."
     }
   ]
 }

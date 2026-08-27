@@ -84,7 +84,7 @@ DID Document SHOULD 只负责：
 
 ### 2.5 实际服务器与服务面组合
 
-实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但每个 `ServiceDescribe` MUST 只描述一个逻辑角色，并明确该角色的 `service_kind`、`operation_bindings`、认证方式、限制、plaintext visibility 和 profile；不得把多角色聚合成一个 compound `service_kind`，也不得把其它角色的 operation 或明文边界混入当前响应。多个角色共享同一 public binding 时，部署 MUST 为每个角色支持 `GET /_arkret/describe?service_kind=<registered-id>` 的 role-scoped 响应；查询值、响应 `service_kind` 和该角色的 DID/service binding 必须一致。查询省略规则和错误语义见 [`service-http-binding.md` §2.3](./service-http-binding.md)。
+实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但每个 `ServiceDescribe` MUST 只描述一个逻辑角色，并明确该角色的 `service_kind`、`supported_operation_bundles`、认证方式、限制、plaintext visibility 和 profile；不得把多角色聚合成一个 compound `service_kind`，也不得把其它角色的 operation 或明文边界混入当前响应。多个角色共享同一 public binding 时，部署 MUST 为每个角色支持 `GET /_arkret/describe?service_kind=<registered-id>` 的 role-scoped 响应；查询值、响应 `service_kind` 和该角色的 DID/service binding 必须一致。查询省略规则和错误语义见 [`service-http-binding.md` §2.3](./service-http-binding.md)。
 
 协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。登录与账号准入另有一个客户端可见的 **Account Authority** 角色：客户端从 Principal Server 的 `/_arkret/describe` 发现它，之后所有客户端可见的 `/_arkret/gate/account/*` 请求都只发往该 Account Authority。部署内部 S2S 子操作只可由 Account Authority 按对应 operation 契约调用，不能由客户端派生。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Blob、Identity Resolution 等能力表达。
 
@@ -96,7 +96,7 @@ DID Document SHOULD 只负责：
 | --- | --- | --- |
 | Principal Server | 普通用户或组织自建的核心入口 | 用户/组织的受控入口、Event 提交/读取、account viewer / profile 自服务、client sync、联邦 transaction、invite locator / 私有 invite delivery、服务发现聚合、明文可见边界执行；其 describe MUST 发布 `auth_metadata.account_authority`。 |
 | Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
-| Account Authority | 个人部署通常与 Principal Server 同 origin；组织可由统一网关、Auth Server 或独立前置承载 | 账号准入、注册、session grant 签发 / 刷新 / 撤销 / 登出、device pairing、passkey/OIDC/SSO 结果换 grant、hard logout 内部编排。对客户端必须是单一 `gate_account_base`；内部 MAY 委托 Auth Server 与 Principal Server，并在 split Auth-side 时通过标准 `ak.gate.account.command.logout_auth_session` S2S 子操作终结 Auth-side session。 |
+| Account Authority | 个人部署通常与 Principal Server 同 origin；组织可由统一网关、Auth Server 或独立前置承载 | 账号准入、注册、session grant 签发 / 刷新 / 撤销 / 登出、device pairing、passkey/OIDC/SSO 结果换 grant、hard logout 内部编排。对客户端必须是单一 `gate_account_base`；内部 MAY 委托 Auth Server 与 Principal Server，并在 split Auth-side 时通过标准 `ak.gate.account.command.logout_auth_session.v1` S2S 子操作终结 Auth-side session。 |
 | Auth Server / method provider | 个人部署可内置；组织通常独立或接入 SSO / IdP | 认证仪式、浏览器登录上下文、passkey/OIDC/SSO、issuer / subject 校验；不得作为零散 `gate/account` operation 的客户端可见目标，除非它整体就是 Account Authority。 |
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | client sync、subscription、backfill、snapshot head、跨域 transaction、invite delivery、重放和 destination 绑定校验。 |
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
@@ -115,11 +115,11 @@ REST namespace 第一段路径（`self` / `gate` / `root` / `find` / `peer` / `o
 
 #### 2.5.1 Account Authority 与认证方法发现
 
-Principal Server 的根级 `/_arkret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base`，客户端发起的 Arkret `/_arkret/gate/account/*` 请求都 MUST 从该 base 派生。客户端 MUST NOT 根据 operation 名称自行判断某个请求该打 Principal Server、某个请求该打 Auth Server；若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置（网关、反代或同进程合并）完整承载该 base，并在内部按 operation 路由。`ak.gate.account.command.logout_auth_session` 是 Account Authority → Auth Server 的 S2S 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base` 派生。
+Principal Server 的根级 `/_arkret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base`，客户端发起的 Arkret `/_arkret/gate/account/*` 请求都 MUST 从该 base 派生。客户端 MUST NOT 根据 operation 名称自行判断某个请求该打 Principal Server、某个请求该打 Auth Server；若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置（网关、反代或同进程合并）完整承载该 base，并在内部按 operation 路由。`ak.gate.account.command.logout_auth_session.v1` 是 Account Authority → Auth Server 的 S2S 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base` 派生。
 
 `auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Arkret 不定义 `/_arkret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Arkret 的桥是 Account Authority 的 `POST {gate_account_base}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
-Account Authority 内部分派不得改变 operation 的协议身份。尤其 `ak.gate.account.command.pair_agent_key` 依赖 Principal Server 的 pairing record、Agent PCR Event acceptance 与 activation projection 时，split deployment MUST 将原始 typed request 委托到权威 Principal Server 的同一 `/_arkret/gate/account/agent-key-pair` binding，并保留 Event ID 幂等身份；不得把该职责改造成产品私有 `fanout` URL 或只入本地队列后向客户端报告成功。具体 commit 规则见 [`../identity/key-management.md` §3.6.1 / §3.6.2](../identity/key-management.md)。
+Account Authority 内部分派不得改变 operation 的协议身份。尤其 `ak.gate.account.command.pair_agent_key.v1` 依赖 Principal Server 的 pairing record、Agent PCR Event acceptance 与 activation projection 时，split deployment MUST 将原始 typed request 委托到权威 Principal Server 的同一 `/_arkret/gate/account/agent-key-pair` binding，并保留 Event ID 幂等身份；不得把该职责改造成产品私有 `fanout` URL 或只入本地队列后向客户端报告成功。具体 commit 规则见 [`../identity/key-management.md` §3.6.1 / §3.6.2](../identity/key-management.md)。
 
 本登录 / account flow 最多并存三类 origin：Principal Server（发现启动）、Account Authority（全部 `gate/account` Arkret 操作）和认证 method provider / issuer（标准认证协议）。完整 Arkret 客户端仍可按其它 spec 访问 Directory、Blob、Media、Push 等 service origin；这些不改变 account flow 的路由规则。
 
@@ -141,13 +141,13 @@ Deployment profile 的 canonical 机器真源是 [`conformance-profiles.json`](.
 `describe_digest` 不是对整个动态 `ServiceDescribe` 的摘要，而是
 `sha256(RFC8785_JCS(route_binding_projection))`；`route_binding_projection` 仅含
 `{service_id, service_kind, service_resolution:{full_id,method_history_head,version_id}, http_json_base_url}`。
-`http_json_base_url` 是对被选中 `supported_bindings[kind=http_json].base_url` 执行上述 canonical URL 规则后的值，不是原始字符串的另一个别名。
+`http_json_base_url` 是对被选中 `transport_bindings[kind=http_json].base_url` 执行上述 canonical URL 规则后的值，不是原始字符串的另一个别名。
 `limits`、rate policy、feature/profile claims、verified artifacts 与 `x_*` 扩展不进入该投影，它们的正常变化不应使路由失效。完整 record 的内容地址摘要固定为 `sha256(RFC8785_JCS(service_resolution_record))`，计算对象包含 `record` 和 `proof`。
 
 首跳 carrier 可携带 inline signed record，也可携带
 `current_record_url` 与可选 `pinned_record_digest`。该 URL 指向稳定的
 `GET /_arkret/open/services/{service_id}/resolution`（`service_id` 按 RFC 3986 percent-encode）返回完整 `AuthenticatedServiceResolution`，canonical
-operation 是 `ak.open.service.read.resolution`。响应以当前完整签名 `ServiceResolutionRecord` 为核心，并携带验证该版本所需的 exact method-history evidence 与 normalized DID document。对于 `did:webvh`，evidence **MUST** 携带从 inception 到 record 所钉位置的完整无缺口 native log，以及该区间所有 witness policy 所要求的完整 witness records；resolver 生成的摘要、部分区间或仅当前 DID Document 均不构成历史验证材料。旧
+operation 是 `ak.open.service.read.resolution.v1`。响应以当前完整签名 `ServiceResolutionRecord` 为核心，并携带验证该版本所需的 exact method-history evidence 与 normalized DID document。对于 `did:webvh`，evidence **MUST** 携带从 inception 到 record 所钉位置的完整无缺口 native log，以及该区间所有 witness policy 所要求的完整 witness records；resolver 生成的摘要、部分区间或仅当前 DID Document 均不构成历史验证材料。旧
 `pinned_record_digest` 只锁定它所属的旧版本，不得用来拒绝在同一 `current_record_url`
 上取得的新版本。新版本 MUST 重新验证完整 record digest、service proof、method history、
 `project(full_id) == service_id`、`service_kind`、document digest、时间序和 endpoint 绑定后才能入 cache。
@@ -210,62 +210,36 @@ GET /_arkret/describe
   "supported_profiles": [
     "ak.profile.principal_server.v1"
   ],
-  "operation_bindings": [
-    {
-      "operation_id": "ak.server.read.describe",
-      "binding_kind": "http_json",
-      "preference": 100,
-      "response_schema_ref": "schemas/service-describe.schema.json",
-      "error_schema_ref": "schemas/http-problem-details.schema.json",
-      "success_shape_kind": "service_describe"
-    },
-    {
-      "operation_id": "ak.self.account.stream.subscribe",
-      "binding_kind": "websocket",
-      "preference": 10,
-      "request_schema_ref": "schemas/websocket-frame.schema.json#/$defs/open_account",
-      "response_schema_ref": "schemas/account-subscribe-frame.schema.json",
-      "error_schema_ref": "schemas/websocket-frame.schema.json#/$defs/error",
-      "success_shape_kind": "event_stream"
-    },
-    {
-      "operation_id": "ak.self.blob.upload.create",
-      "binding_kind": "tus",
-      "preference": 10,
-      "success_shape_kind": "metadata_headers"
-    }
+  "supported_operation_bundles": [
+    "ak.operation_bundle.principal_server.describe.v1",
+    "ak.operation_bundle.principal_server.http_core.v1",
+    "ak.operation_bundle.principal_server.tus_upload.v1",
+    "ak.operation_bundle.principal_server.websocket.v1"
   ],
-  "supported_bindings": [
+  "transport_bindings": [
     {
       "kind": "http_json",
       "base_url": "https://alice.example.net/",
-      "operations": [
-        "ak.server.read.describe",
-        "ak.open.service.read.resolution",
-        "ak.self.account.read.viewer",
-        "ak.self.account.stream.subscribe"
-      ],
       "extension_profile_required": null
     },
     {
       "kind": "tus",
       "base_url": "https://alice.example.net/_arkret/self/blob/resumable",
-      "operations": ["ak.self.blob.upload.create"],
       "extension_profile_required": null,
       "tus_version": ["1.0.0"],
       "tus_extensions": ["creation", "creation-with-upload", "checksum", "expiration", "termination"]
     }
   ],
   "supported_features": [
-    "sync_stream",
-    "snapshot",
-    "invite_addressing",
-    "notifications",
+    "ak.feature.invite_addressing.v1",
+    "ak.feature.notifications.v1",
+    "ak.feature.snapshot.v1",
+    "ak.feature.sync_stream.v1",
     "ak.feature.blob.resumable_upload.tus.v1",
     "ak.feature.history_key_recovery.v1",
     "ak.feature.mls_exporter_aead.v1"
   ],
-  "x_invite_addressing": {
+  "invite_addressing": {
     "supported_introduction_kinds": [
       "locator_ref",
       "consent_grant",
@@ -274,9 +248,8 @@ GET /_arkret/describe
       "same_principal_server",
       "explicit_address"
     ],
-    "recommended_introduction_kind": "locator_ref",
-    "handle_claim_default_behavior": "quarantine",
-    "explicit_address_default_behavior": "quarantine"
+    "handle_claim_max_behavior": "quarantine",
+    "explicit_address_max_behavior": "drop"
   },
   "receive_policy_constraints": {
     "policy_version": "2026-06-21",
@@ -334,7 +307,7 @@ GET /_arkret/describe
     "policy_version": "2026-05-02",
     "entries": [
       {
-        "operation_id": "ak.self.events.command.submit",
+        "operation_id": "ak.self.events.command.submit.v1",
         "rate_limit_scope": ["service_id", "realm_id"],
         "window_seconds": 60,
         "max_requests": 120,
@@ -342,10 +315,6 @@ GET /_arkret/describe
       }
     ]
   },
-  "implemented_features": [
-    "sync_stream",
-    "snapshot"
-  ],
   "claimed_profiles": [
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -365,23 +334,26 @@ GET /_arkret/describe
       "timestamp": "2026-05-02T00:00:00.000Z"
     }
   ],
-  "experimental_features": [],
   "interop_surfaces": [],
   "development_mode": false
 }
 ```
 
-能力发现示例（normative 指引）：客户端判断服务端是否支持某项**可选传输能力**时，MUST 以 describe 的 `supported_features` / `supported_bindings` / `limits` 为权威发现面，而不是对猜测 endpoint 直接探测。以可续传 Blob 上传为例，服务端支持时 MUST 同时声明 `supported_features` 含 `ak.feature.blob.resumable_upload.tus.v1`、`supported_bindings` 含一条 `kind="tus"` 的 binding，并在 `limits` 暴露续传上限；客户端据此发现后再用 tus `OPTIONS`（`Tus-Resumable` / `Tus-Version` / `Tus-Extension`）做 endpoint 级线上确认。完整 binding 语义、内容寻址不变式与隐私约束见 [`crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)。
+能力发现示例（normative 指引）：客户端判断服务端是否支持某项**可选传输能力**时，MUST 先从 `supported_operation_bundles` 展开精确 operation/binding pair，再按 `transport_bindings` 的数组顺序选择可用 endpoint，并检查对应 `supported_features` / `limits`，不得探测猜测 endpoint。以可续传 Blob 上传为例，服务端支持时 MUST 同时声明 `ak.operation_bundle.principal_server.tus_upload.v1`、`ak.feature.blob.resumable_upload.tus.v1` 与一条 `kind="tus"` 的 transport binding；客户端据此发现后再用 tus `OPTIONS`（`Tus-Resumable` / `Tus-Version` / `Tus-Extension`）做 endpoint 级线上确认。完整 binding 语义、内容寻址不变式与隐私约束见 [`crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)。
 
 本规范登记的标准 `supported_features` 还包括：`ak.feature.history_key_recovery.v1`（唯一 private exporter-history
 request/response-stream/S2S relay/RRK archive 合同）、`ak.feature.mls_exporter_aead.v1`（接受并同步
 `content_scheme=mls_exporter_aead_v1` Realm/Circle；见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)
 §2.10）与 `ak.feature.agent_runtime_approval_notifications.v1`。声明 `history_key_recovery` 的服务 MUST 同时暴露
-`ak.self.seals.read.{frontier,resolve,mls_governance_proof,governance_dependencies}`、`ak.self.history_key_requests.{command.create,read.list}`、
-`ak.self.history_key_responses.{command.send,read.list,command.ack}`、
-`ak.self.organization_recovery_archives.read.list`、`ak.peer.seals.read.{mls_governance_proof,governance_dependencies}`、
-`ak.peer.history_key_requests.command.replicate`、`ak.peer.history_key_responses.command.relay` 与
-`ak.peer.organization_recovery_archives.command.replicate`，并支持 `history-key.schema.json`、near-current frontier proof schema 与
+`ak.self.seals.read.frontier.v1`、`ak.self.seals.read.resolve.v1`、
+`ak.self.seals.read.mls_governance_proof.v1`、`ak.self.seals.read.governance_dependencies.v1`、
+`ak.self.history_key_requests.command.create.v1`、`ak.self.history_key_requests.read.list.v1`、
+`ak.self.history_key_responses.command.send.v1`、`ak.self.history_key_responses.read.list.v1`、
+`ak.self.history_key_responses.command.ack.v1`、
+`ak.self.organization_recovery_archives.read.list.v1`、
+`ak.peer.seals.read.mls_governance_proof.v1`、`ak.peer.seals.read.governance_dependencies.v1`、
+`ak.peer.history_key_requests.command.replicate.v1`、`ak.peer.history_key_responses.command.relay.v1` 与
+`ak.peer.organization_recovery_archives.command.replicate.v1`，并支持 `history-key.schema.json`、near-current frontier proof schema 与
 receipt-bound direct Seal traversal 及 typed dependency resolve；
 不能只声明其中一个旧 relay/backup/archive 子能力。创建或处理 `mls_exporter_aead_v1 +
 history_access=all_history_for_current_members` scope 的 client/server MUST 声明该 feature；任一端缺失时 fail closed，不能回退到
@@ -397,20 +369,32 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 ### 3.0 Describe response claim levels
 
 `server/describe`（以及结构等价的 `identity/describe` / `events/describe` / `sync/describe` /
-`directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version`、`supported_profiles`、`operation_bindings`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
+`directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version`、`supported_profiles`、`supported_operation_bundles`、`transport_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)（`ak.schema.service_describe.v1`）：
 
-完整 role-scoped `ServiceDescribe` 的 canonical response body MUST 不超过 1 MiB（1,048,576 bytes），且 MUST 省略 `Content-Encoding`、禁止 redirect。该上限覆盖完整 `operation_bindings[]` 与 `supported_bindings[]` 闭包；实现不得沿用只适用于旧精简 describe 的 64 KiB 本地限制。超过上限的服务 MUST 收窄其 role surface 或拆分为独立 role-scoped endpoint，不得静默截断 binding rows。
+完整 role-scoped `ServiceDescribe` 的 canonical response body MUST 不超过 1 MiB（1,048,576 bytes），且 MUST 省略 `Content-Encoding`、禁止 redirect。该上限覆盖完整 `supported_operation_bundles[]` 与 `transport_bindings[]` 闭包；实现不得沿用只适用于旧精简 describe 的 64 KiB 本地限制。超过上限的服务 MUST 收窄其 role surface 或拆分为独立 role-scoped endpoint，不得静默截断 binding rows。
 
 `service_id` MUST 是该逻辑角色的 `did_core_id`，`service_resolution` MUST 投影当前 `full_id` 与 method history position。这个投影只用于将已选定 endpoint 与首跳 `ServiceResolutionRecord` 交叉确认，不能让 describe 变成 resolver，也不能单独创建 service 授权。
 
-当 `service_kind=directory_service` 时，`ak.find.directory.read.describe` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-akfinddirectoryreaddescribe-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_kinds[]`、`discovery_profiles[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。
+顶层 `x_*` 只允许承载可安全忽略的展示、日志或厂商 metadata。对任意合法 Describe 删除全部顶层 `x_*` 后，
+operation/transport 可用集合、feature 可用集合、profile claim、认证、授权、route、payload/contract 选择与错误分类 MUST
+完全不变；因此 `x_*` MUST NOT 承载 endpoint、operation、transport、schema selector、认证要求、授权约束、协议 limit 或
+跨实现行为选择。需要影响这些结果的第一方字段必须先登记为 closed schema 字段；`invite_addressing` 即按此规则登记，且与
+`ak.feature.invite_addressing.v1` 双向共现，不保留扩展别名。
 
-- `operation_bindings: OperationBinding[]` — 当前 role endpoint 可实际调用的完整精确载体集合。每行 MUST 命中
-  `operation-registry.json` 的 operation、request/response schema 与 success shape；`binding_kind` MUST 命中同一响应
-  `supported_bindings` 中覆盖该 operation 的 transport。该集合只表示 wire 可达，不构成 profile claim。
+当 `service_kind=directory_service` 时，`ak.find.directory.read.describe.v1` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-akfinddirectoryreaddescribev1-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_kinds[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。
+`service_kind` 只选择 role overlay，不自动产生任何 conformance profile claim；尤其
+`directory_service` 不要求 `supported_profiles` 含 `ak.profile.directory_service.v1`。实现只有在满足该 profile 的完整 typed
+operation/schema/fixture closure 时才可独立声明它，缺少其中任一 operation 时应只公告真实 bundle，不得虚假 claim。
+
+- `supported_operation_bundles: operation_bundle_id[]` — 当前 role endpoint 可实际调用的已登记 bundle ID 集合。
+  每个 ID 必须在 `operation-registry.json#operation_bundles` 登记且 `service_kind` 与本响应逐字相同；展开后的
+  `(operation_id,binding_kind)` union 是唯一 wire 可达性真源。该集合只表示 wire 可达，不构成 profile claim。
+  每个可返回 role-scoped Describe 的角色都 MUST 至少公告本角色的
+  `ak.operation_bundle.<service_kind>.describe.v1`；该 bundle 唯一成员为
+  `(ak.server.read.describe.v1,http_json)`，所以本字段不得为空。
 - `trust_domain: ak:trust_domain:<scope>` — 部署级 replay boundary。客户端 / 接收方 MUST 要求它与 Realm create-locked trust domain、federation header 和本地 receive context 一致；不一致时不得接受 replay-sensitive proof。
-- `implemented_features: feature_id[]` — 服务有实现代码、但 **不一定** 通过 conformance verification 的 feature。
+- `supported_features: feature_id[]` — 服务有实现代码、但 **不一定** 通过 conformance verification 的 feature。
   构建 conformance matrix 的工具 MUST 把它视为严格弱于 `claimed_profiles`。
 - `claimed_profiles: [{profile_id, claim_kind: "self_claimed", ...}]` — 服务自声明加入的 profile。
   `claim_kind` 当前固定为 `self_claimed`；Conformance Verifier 验证结果 MUST 改写到 `verified_profiles`，不得复制到本字段。
@@ -418,8 +402,6 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
   附带 verification run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、verifier identity、签名与验证时间戳的已验证 profile。`verifier_service_id` 承载稳定 verifier `did_core_id`；artifact proof 的 verification-method DID URL 必须取 bare `full_id`，经已登记 adapter 验证并投影到该值，不得把完整 DID 填入此字段。签发主体是中立角色 **Conformance Verifier**（定义见
   [`conformance-suite.md`](../conformance/conformance-suite.md) §6.2）。**约束**：当 `development_mode=true`
   时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
-- `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT
-  把它当成协议级决策的依据，也不得继承到 `claimed_profiles`。
 - `interop_surfaces: [{name, kind, since?, notes?}]` — Arkret v1 conformance 之外的 surface：
   被桥接的第三方协议，以及代他方承载的 resolver 姿态
   （`kind` ∈ {`matrix_passthrough`, `mimi_passthrough`, `delegated_resolver`, `external_interop`}，
@@ -434,7 +416,7 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
   item 对象是封闭的（`additionalProperties: false`），扩展键不能用作绕过路径。
 - `development_mode: boolean` — 必填；为 `true` 时 `verified_profiles` MUST 为空。省略不是 false，SDK / conformance tooling MUST 把缺失视为 invalid describe。
 - `egress_network_policy` — 可选的出站网络策略摘要。会解析 DID、联邦 peer、媒体、snapshot、Policy Server、Webhook、Applet 或 Agent endpoint 的服务 SHOULD 暴露粗粒度策略；完整 SSRF 防护语义见 [`api-conventions.md`](./api-conventions.md) §11.2。
-- `receive_policy_constraints` — Principal Server 可选的部署 / 管理员级接收策略上限。它约束 `ak.peer.invites.command.submit` 与 `ak.peer.contacts.command.submit` 对 `locator_ref`、`handle_claim`、`explicit_address` 等 introduction evidence 的处理；客户端 MUST 把它渲染为“服务器约束”，不得把它当作 subject 自愿公开。语义见 [`invite-addressing.md`](./invite-addressing.md) §5.2。
+- `receive_policy_constraints` — Principal Server 可选的部署 / 管理员级接收策略上限。它约束 `ak.peer.invites.command.submit.v1` 与 `ak.peer.contacts.command.submit.v1` 对 `locator_ref`、`handle_claim`、`explicit_address` 等 introduction evidence 的处理；客户端 MUST 把它渲染为“服务器约束”，不得把它当作 subject 自愿公开。语义见 [`invite-addressing.md`](./invite-addressing.md) §5.2。
 
 实现 MUST 明确区分 endpoint 可达性、feature 实现、profile claim 与 conformance verification：
 
@@ -446,23 +428,25 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 
 `plaintext_visibility.data_classes` 是机器可判定的明文类别白名单。`event_kinds`、`payload_paths`、`blob_purposes` 和 `projection_outputs` 只是进一步缩小或解释范围，不能替代 `data_classes`；`notes` 只供人读。Realm policy 的 `plaintext_visible_services[].data_classes` MUST 是目标 `ServiceDescribe.plaintext_visibility.data_classes` 的子集，且 `visibility` 不得高于 `max_visibility`。若 describe 缺失 `data_classes` 或只给出自由文本 `purposes`，客户端 / reducer MUST 把它视为不能接收私有明文。
 
-#### 3.0.1 OperationBinding 精确求交
+#### 3.0.1 Bundle 展开与 transport 求交
 
-`OperationBinding` 的身份是
-`(operation_id, binding_kind, request_schema_ref?, response_schema_ref?, error_schema_ref?, success_shape_kind)`；
-`preference` 不进入身份。缺少 schema ref 表示该方向没有 Arkret JSON schema（例如 empty response、binary stream 或
-TUS 原生 carrier），不得解释为“任意 schema”。同一响应不得出现身份重复行，且每个广告的 operation 至少有一行。
+消费方 MUST 按下列固定顺序处理能力：
 
-客户端只在本地实现集合与服务端行的上述身份逐字段相等时认为存在交集；不得从 profile、SDK/产品版本、
-`supported_bindings`、404 body 或字段缺省猜测替代 carrier。多个交集候选按服务端 `preference` 从小到大选择；相同
-preference 时按身份字段组成的 canonical JSON 字节序升序选择。给定相同的本地集合和 describe 字节，所有实现 MUST
-得到同一结果。
+1. 要求 `supported_operation_bundles[]` canonical 升序、无重复，并逐项查本地 registry。未知
+   `ak.operation_bundle.*`、vendor 私有 bundle 未被本地显式登记、或 bundle 的 `service_kind` 与响应不符时，整个能力决策
+   fail closed；不得解析 bundle 名称或从 profile/surface 猜成员。
+2. 展开每个 bundle 冻结的 `(operation_id,binding_kind)`，取 role-local union；同一 pair 重叠表示无效 Describe。
+3. union 中每种 `binding_kind` 都 MUST 至少有一条同 kind 的 `transport_bindings[]`；没有 endpoint 覆盖的 pair 不得公告。
+   `transport_bindings[]` 的数组顺序就是 endpoint 偏好，首个本地可用且满足 profile/limit 的 endpoint 获选，不另设
+   额外排序字段。
+4. operation 的 request/response/error schema、success shape、retry/idempotency 与 effect 从该 exact
+   `operation_id` 的本地 versioned registry closure 取得，Describe 不再复制这些静态字段。没有本地 exact version 就不调用，
+   不按 payload shape 或相邻版本推导。
+5. `supported_features[]` 只能在其 feature-registry 前置 operation pair、profile 与 limit 全部满足时启用；feature 不能增加
+   bundle union 中不存在的 operation。profile 同样不能推导实时 route。
 
-没有交集只禁用该 operation，并报告 `unsupported_operation_binding`；不得转译为权限错误、Bottom state，亦不得使
-整个服务、账户或 Realm 失效。未知 operation/schema/binding kind、registry 不闭合或重复身份属于当前 describe 的
-`schema_violation`。`supported_bindings` 仅声明 transport endpoint 与 transport 参数；它必须覆盖
-`operation_bindings`，但不能替代逐 operation 的 schema/carrier 声明。current-v1 不接受旧的扁平 operation 字段，
-也不提供 alias、双读或 fallback。
+`ak.operation_bundle.*` 是必须登记的 Arkret 标准命名空间；厂商集合只能用厂商命名空间。current-v1 不接受旧扁平 operation
+广告、transport 内嵌成员清单、无版本 operation alias、双读或 fallback。
 
 ### 3.1 Identity Resolution Surface
 
@@ -653,23 +637,23 @@ Content-Type: application/json
 
 ## 5. Account Aggregate / Snapshot Surface
 
-Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ak.self.events.read.scan` / `ak.self.events.stream.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 unread / notification counts 的视图；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入该聚合。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared notary / Principal Server sync surface。
+Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ak.self.events.read.scan.v1` / `ak.self.events.stream.subscribe.v1`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 unread / notification counts 的视图；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入该聚合。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared notary / Principal Server sync surface。
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
-- `GET /_arkret/self/account/viewer`：当前 holder 的账号主体自读（`ak.self.account.read.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段；请求无 authority selector，跨 PCR lineage 只有唯一 accepted Profile 时才返回 `profile`，歧义时省略而不隐式选择 current PCR。
-- `POST /_arkret/self/account/profile`：当前账号 holder-signed Profile Event 提交（`ak.self.account.command.update_profile`）。closed body 只携 `profile_event: EventInitialSubmission`；Event `realm_id` 选择 pair 内本地 PCR lineage，`actor_id` 与 `principal_server_id` 必须匹配 session account pair。无 accepted Profile 时接受 ID 从 Event 派生的 `ak.profile.create`，已有 Profile 时接受 target_ref 命中的 `ak.profile.update`。update patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；Event `preconditions` 为空，并发只使用 update payload 可选 `expected_state_digest`。
-- `GET /_arkret/self/account/subscribe`：客户端账号视角聚合同步（`ak.self.account.stream.subscribe`），见 `client-sync.md`。
-- `GET /_arkret/self/account/describe`：account aggregate service describe（`ak.self.account.read.describe`）。
-- `POST /_arkret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ak.self.account.command.revoke_cursor`）。
+- `GET /_arkret/self/account/viewer`：当前 holder 的账号主体自读（`ak.self.account.read.viewer.v1`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段；请求无 authority selector，跨 PCR lineage 只有唯一 accepted Profile 时才返回 `profile`，歧义时省略而不隐式选择 current PCR。
+- `POST /_arkret/self/account/profile`：当前账号 holder-signed Profile Event 提交（`ak.self.account.command.update_profile.v1`）。closed body 只携 `profile_event: EventInitialSubmission`；Event `realm_id` 选择 pair 内本地 PCR lineage，`actor_id` 与 `principal_server_id` 必须匹配 session account pair。无 accepted Profile 时接受 ID 从 Event 派生的 `ak.profile.create`，已有 Profile 时接受 target_ref 命中的 `ak.profile.update`。update patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；Event `preconditions` 为空，并发只使用 update payload 可选 `expected_state_digest`。
+- `GET /_arkret/self/account/subscribe`：客户端账号视角聚合同步（`ak.self.account.stream.subscribe.v1`），见 `client-sync.md`。
+- `GET /_arkret/self/account/describe`：account aggregate service describe（`ak.self.account.read.describe.v1`）。
+- `POST /_arkret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ak.self.account.command.revoke_cursor.v1`）。
 - `GET /_arkret/self/snapshot/head`：snapshot manifest 入口。
 
-`ak.self.account.command.update_profile` 的 accepted Profile effect 恰好一次推进该 account pair 的 account-aggregate projection/cursor，使同一 pair 的其它绑定设备在 PCR Realm delta 中观察 canonical Event / Profile；exact replay 不产生第二条 delta，account-scoped wakeup 也不是真相源。
+`ak.self.account.command.update_profile.v1` 的 accepted Profile effect 恰好一次推进该 account pair 的 account-aggregate projection/cursor，使同一 pair 的其它绑定设备在 PCR Realm delta 中观察 canonical Event / Profile；exact replay 不产生第二条 delta，account-scoped wakeup 也不是真相源。
 
 事件流读取统一在：
 
-- `QUERY /_arkret/self/events` + JSON content（`ak.self.events.read.scan`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
-- `GET /_arkret/self/events/subscribe?realms=...&catchup=...`（`ak.self.events.stream.subscribe`，可从 `after=` 追赶到当前 frontier，并支持多 realm 一次订阅）
+- `QUERY /_arkret/self/events` + JSON content（`ak.self.events.read.scan.v1`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
+- `GET /_arkret/self/events/subscribe?realms=...&catchup=...`（`ak.self.events.stream.subscribe.v1`，可从 `after=` 追赶到当前 frontier，并支持多 realm 一次订阅）
 
 实现不得把账号聚合 (`/_arkret/self/account/subscribe`) 和裸事件读 (`/_arkret/self/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
 
@@ -688,7 +672,7 @@ POST /_arkret/self/account/cursor/revoke
 GET /_arkret/self/snapshot/head?realm_id=<id>
 ```
 
-用于拿到当前推荐 snapshot manifest：响应即完整 `ak.schema.snapshot.v1` manifest（不含 chunk bytes），chunk bytes 经 manifest `chunks[].chunk_ref` 走 blob surface 获取。v1 的 `snapshot` namespace 仅 `ak.self.snapshot.read.manifest_head` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段。
+用于拿到当前推荐 snapshot manifest：响应即完整 `ak.schema.snapshot.v1` manifest（不含 chunk bytes），chunk bytes 经 manifest `chunks[].chunk_ref` 走 blob surface 获取。v1 的 `snapshot` namespace 仅 `ak.self.snapshot.read.manifest_head.v1` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段。
 
 ### 5.3 Event / Seal 状态与 Bottom 暴露
 
@@ -967,9 +951,9 @@ Native personal agent 的 management、pairing、session grant 与 Sidecar opera
 - 本 surface 不引入 custom URI scheme(`arkret://` 等);所有 deep-link 由客户端用 deployment 已知的 `arkret_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
 - `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `ak:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
 - `{agent_id}` 是 DID,在 URL path 中 MUST 按 RFC 3986 percent-encoding。
-- `ak.self.agent.command.provision` MUST 接收非空 `slug`；`slug` 是 Agent 自身的固有字段，因此 provision request 与 list/get projection 均使用裸名 `slug`。controller 签署的唯一 `ak.agent.provision` Event 在一次 reducer transaction 中派生当前 selector projection，其中引用 Agent selector 的字段使用 `agent_slug=slug`；服务端不得另造 `ak.agent.selector_claim` Event。controller E2EE client MAY 在随后由其本地生成并加密提交的 Agent Actor Profile 中写入 `agent_slug` 作为投影 hint；服务端不得代写该 Agent PCR Profile。`agent_slug` 只用于 `@<controller-handle>/<agent_slug>` 输入别名到 agent principal DID 的 compose-time 解析；服务端 MUST 拒绝或 fail closed 处理同一 verified controller 下 active native agent 的 selector claim 冲突。
+- `ak.self.agent.command.provision.v1` MUST 接收非空 `slug`；`slug` 是 Agent 自身的固有字段，因此 provision request 与 list/get projection 均使用裸名 `slug`。controller 签署的唯一 `ak.agent.provision` Event 在一次 reducer transaction 中派生当前 selector projection，其中引用 Agent selector 的字段使用 `agent_slug=slug`；服务端不得另造 `ak.agent.selector_claim` Event。controller E2EE client MAY 在随后由其本地生成并加密提交的 Agent Actor Profile 中写入 `agent_slug` 作为投影 hint；服务端不得代写该 Agent PCR Profile。`agent_slug` 只用于 `@<controller-handle>/<agent_slug>` 输入别名到 agent principal DID 的 compose-time 解析；服务端 MUST 拒绝或 fail closed 处理同一 verified controller 下 active native agent 的 selector claim 冲突。
 - participation replace/get 都是 controller-only。replace body 固定为 `{target_scope,selection,expected_version}`，GET 与 replace outcome 的 entry 固定为 `{target_scope,selection,version,next_replace_input:{expected_version}}`，且 `next_replace_input.expected_version=version`。Account Authority 只校验 controller、closed scope/五位 shape 与 CAS version；selection 可以表达希望开启但当前 policy/capability 尚不允许的位，因为它本身不产生权限。
-- `ak.gate.account.command.issue_session_grant` 为 agent runtime 签发 session 时，若 scope request 覆盖 participation-aware scope，`scope_details.participation[]` MUST 使用与 `agent_participation_entry` 同构的 `{target_scope,selection,version,next_replace_input:{expected_version}}` 条目，且 `next_replace_input.expected_version=version`。runtime 可据此避免无效动作；target 仍必须在动作时读取当前 deployment/Realm/Circle/Strand policy，并独立校验 capability、session scope、membership 与 lifecycle，不得信任 session 中携带的预计算 ceiling/effective。
+- `ak.gate.account.command.issue_session_grant.v1` 为 agent runtime 签发 session 时，若 scope request 覆盖 participation-aware scope，`scope_details.participation[]` MUST 使用与 `agent_participation_entry` 同构的 `{target_scope,selection,version,next_replace_input:{expected_version}}` 条目，且 `next_replace_input.expected_version=version`。runtime 可据此避免无效动作；target 仍必须在动作时读取当前 deployment/Realm/Circle/Strand policy，并独立校验 capability、session scope、membership 与 lifecycle，不得信任 session 中携带的预计算 ceiling/effective。
 
 详细 wire 规则见 [`service-http-binding.md` §2.4](./service-http-binding.md)、[`../identity/key-management.md` §3.6.1](../identity/key-management.md)、[`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md)、[`../models/circle.md` §11.1](../models/circle.md)、[`../models/private-objects.md` §4.1](../models/private-objects.md) 与 [`../authz/capabilities.md` §5](../authz/capabilities.md)。
 
@@ -982,7 +966,7 @@ Arkret v1 的首次加入流程：
 3. 从 Realm link / invite / locator / delivery binding / peer evidence 携带的 inline record 或 `current_record_url` 得到 service `did_core_id` 的首跳 `full_id` / `base_url`，验证 method history、record 签名、freshness 与 Realm policy，再以 role-scoped describe 确认 Principal Server / identity registry / events / account / snapshot / blob / authz 能力
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Principal Server sync surface 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。`authority_kind="witness_quorum"` 时，`authority_binding.witness_attestations[]` 是 v1 唯一的 quorum 证据载体：客户端 MUST 按 [`snapshot-schema.md` §5.1](../conformance/snapshot-schema.md) 逐行重算 `ak.snapshot_witness_attestation_proof.v1` canonical projection 验签，并只以 `created_at` 时点的 accepted Realm auth/policy state 判定授权 witness set、key validity、撤销新鲜度与 threshold（按 `witness_id` 去重）。不存在"等价 quorum proof"：缺失、未达阈值或使用任何未登记的替代载体时 MUST 以 `snapshot_authority_unverified` 拒绝，不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan`，JSON content 携带 `before`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Principal Server sync surface 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。`authority_kind="witness_quorum"` 时，`authority_binding.witness_attestations[]` 是 v1 唯一的 quorum 证据载体：客户端 MUST 按 [`snapshot-schema.md` §5.1](../conformance/snapshot-schema.md) 逐行重算 `ak.snapshot_witness_attestation_proof.v1` canonical projection 验签，并只以 `created_at` 时点的 accepted Realm auth/policy state 判定授权 witness set、key validity、撤销新鲜度与 threshold（按 `witness_id` 去重）。不存在"等价 quorum proof"：缺失、未达阈值或使用任何未登记的替代载体时 MUST 以 `snapshot_authority_unverified` 拒绝，不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan.v1`，JSON content 携带 `before`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read cursor、notification cursor 等个人状态
@@ -1063,7 +1047,7 @@ Arkret v1 固定：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_expires_at`；`decision` 只能是 `allow`、`soft_deny`、`hard_deny`、`quarantine` 或 `require_review`。
-- Service describe MUST 声明 `service_id: did_core_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version="1.0"`、`supported_profiles`、`operation_bindings`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 在使用任何其它 describe 字段前先比较 `protocol_version`；其形状合法但不等于 `"1.0"` 时 MUST 以 `unsupported_protocol_version` 将整个服务标记为不可用，MUST NOT 缓存其路由、对其做 capability 交集或发起业务请求。缺失或非字符串的 `protocol_version` 仍是 `schema_violation`。客户端还 MUST 拒绝 service `did_core_id` / `full_id` projection、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
-- Service describe 响应 MUST 同时给出逐 operation 的 `operation_bindings`，并按 §3.0 区分 `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `interop_surfaces` 五个 claim level 字段，schema 见 `ak.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 verification artifact、verifier 签名和 hash 后才把它作为生产 conformance 依据。
+- Service describe MUST 声明 `service_id: did_core_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version="1.0"`、`supported_profiles`、`supported_operation_bundles`、`transport_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `transport_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 在使用任何其它 describe 字段前先比较 `protocol_version`；其形状合法但不等于 `"1.0"` 时 MUST 以 `unsupported_protocol_version` 将整个服务标记为不可用，MUST NOT 缓存其路由、对其做 capability 交集或发起业务请求。缺失或非字符串的 `protocol_version` 仍是 `schema_violation`。客户端还 MUST 拒绝 service `did_core_id` / `full_id` projection、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
+- Service describe 响应 MUST 同时给出 `supported_operation_bundles`，并按 §3.0 区分 `supported_features` / `claimed_profiles` / `verified_profiles` / `interop_surfaces` 四个 claim level 字段，schema 见 `ak.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 verification artifact、verifier 签名和 hash 后才把它作为生产 conformance 依据。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。

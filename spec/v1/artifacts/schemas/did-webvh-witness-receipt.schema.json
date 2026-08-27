@@ -26,7 +26,7 @@
   "properties": {
     "schema": {
       "const": "ak.schema.did_webvh_witness_receipt.v1",
-      "description": "Closed discriminator. ak.root.identity.receipts.read.list returns a tagged union of receipt families; this constant is what lets a verifier pick the did:webvh method-witness branch instead of the registry consensus branch without guessing."
+      "description": "Closed discriminator. ak.root.identity.receipts.read.list.v1 returns a tagged union of receipt families; this constant is what lets a verifier pick the did:webvh method-witness branch instead of the registry consensus branch without guessing."
     },
     "receipt_id": {
       "type": "string",

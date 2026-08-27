@@ -718,7 +718,7 @@
       "name": "creation_required_carries_the_authoring_material",
       "vector_id": "ak.vector.direct_conversation.founding_authoring_material.v1",
       "precondition": "the pair has an accepted Contact round and no accepted Direct Conversation Realm; the caller is the founder and the current gates allow creation",
-      "action": "resolve the pair through ak.self.direct_conversation.read.resolve",
+      "action": "resolve the pair through ak.self.direct_conversation.read.resolve.v1",
       "semantic_outcome": "accept",
       "assertions": [
         "state is creation_required and next_founding_input is present",
@@ -786,7 +786,7 @@
     {
       "name": "founding_coordinates_are_derived_from_unit_bytes",
       "precondition": "founder authored the four-Event unit in fixed wire order, ending with its explicit head_eq-null membership join",
-      "action": "submit the direct_conversation_founding branch of ak.self.events.command.submit",
+      "action": "submit the direct_conversation_founding branch of ak.self.events.command.submit.v1",
       "semantic_outcome": "accept",
       "assertions": [
         "realm_id equals retype of the first Event ID and main_strand_id equals retype of the third Event ID",
@@ -959,7 +959,7 @@
     {
       "name": "list_next_prepare_input_authors_scope_update_and_tombstone",
       "precondition": "one accepted non-terminal Contact round whose issuer-local lineage head is at version 1",
-      "action": "read ak.self.contact.read.list and copy next_prepare_input into the prepare phase of ak.self.contact.command.scope_update and of ak.self.contact.command.tombstone",
+      "action": "read ak.self.contact.read.list.v1 and copy next_prepare_input into the prepare phase of ak.self.contact.command.scope_update.v1 and of ak.self.contact.command.tombstone.v1",
       "semantic_outcome": "accept",
       "assertions": [
         "the accepted row carries next_prepare_input and the three field names are byte-identical to the prepare fields that consume them",
@@ -972,7 +972,7 @@
     {
       "name": "non_authorable_contact_states_omit_next_prepare_input",
       "precondition": "rows in pending_outgoing, pending_incoming, rejected, expired and tombstoned",
-      "action": "read ak.self.contact.read.list",
+      "action": "read ak.self.contact.read.list.v1",
       "semantic_outcome": "accept",
       "assertions": [
         "no row in these five states carries next_prepare_input, because the first two have no basis or lineage yet and the last three are terminal",
@@ -984,7 +984,7 @@
       "name": "glare_first_successor_uses_version_two",
       "vector_id": "ak.vector.contact.next_prepare_input.v1",
       "precondition": "a glare-derived accepted Contact round whose issuer-local lineage has only that issuer's request head and no versioned accepted successor",
-      "action": "read ak.self.contact.read.list and prepare the first scope_update or tombstone successor with next_prepare_input copied verbatim",
+      "action": "read ak.self.contact.read.list.v1 and prepare the first scope_update or tombstone successor with next_prepare_input copied verbatim",
       "semantic_outcome": "accept",
       "assertions": [
         "next_prepare_input.version is exactly 2",
@@ -1008,12 +1008,12 @@
     {
       "name": "stale_next_prepare_input_is_refused_and_reread",
       "precondition": "the holder holds a next_prepare_input read before a concurrent accepted successor advanced the lineage head",
-      "action": "prepare ak.self.contact.command.scope_update or ak.self.contact.command.tombstone with the stale triple",
+      "action": "prepare ak.self.contact.command.scope_update.v1 or ak.self.contact.command.tombstone.v1 with the stale triple",
       "semantic_outcome": "reject",
       "expected_reason_code": "contact_lineage_conflict",
       "assertions": [
         "prepare is refused with zero writes and a scope replacement whose current proof is stale is refused with contact_scope_stale",
-        "the client re-reads ak.self.contact.read.list and retries with the fresh cursor",
+        "the client re-reads ak.self.contact.read.list.v1 and retries with the fresh cursor",
         "the client never guesses a lineage head and never retries the same triple"
       ]
     },
@@ -1021,7 +1021,7 @@
       "name": "resolver_send_blockers_are_server_verifiable_only",
       "vector_id": "ak.vector.direct_conversation.send_blocker_authority.v1",
       "precondition": "the holder blocked the peer in ak.account.blocklist and one historical epoch secret was never installed on this device",
-      "action": "resolve the pair through ak.self.direct_conversation.read.resolve",
+      "action": "resolve the pair through ak.self.direct_conversation.read.resolve.v1",
       "semantic_outcome": "accept",
       "assertions": [
         "found.send_blockers[] carries only blockers the service can prove from accepted authoritative state",
@@ -1047,7 +1047,7 @@
       "name": "presence_and_keypackage_blockers_are_participant_only",
       "vector_id": "ak.vector.direct_conversation.send_blocker_authority.v1",
       "precondition": "the caller is not one of the two exact-pair participants of the requested pair",
-      "action": "probe ak.self.direct_conversation.read.resolve for that pair to learn peer presence or KeyPackage inventory",
+      "action": "probe ak.self.direct_conversation.read.resolve.v1 for that pair to learn peer presence or KeyPackage inventory",
       "semantic_outcome": "reject",
       "expected_reason_code": "direct_conversation_unavailable",
       "assertions": [
@@ -1060,7 +1060,7 @@
       "name": "pending_incoming_row_authors_respond_and_reject",
       "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
       "precondition": "the holder holds one verified mirror of a peer-authored ak.contact.requested plus the request_acceptance_receipt issued by the peer's own source service",
-      "action": "read ak.self.contact.read.list and copy request_receipt into the prepare phase of ak.self.contact.command.respond and of ak.self.contact.command.reject",
+      "action": "read ak.self.contact.read.list.v1 and copy request_receipt into the prepare phase of ak.self.contact.command.respond.v1 and of ak.self.contact.command.reject.v1",
       "semantic_outcome": "accept",
       "assertions": [
         "the pending_incoming row carries the complete signed request_receipt object and the field name is byte-identical to the prepare field that consumes it",
@@ -1073,7 +1073,7 @@
       "name": "non_pending_incoming_states_omit_request_receipt",
       "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
       "precondition": "rows in pending_outgoing, accepted, rejected, expired and tombstoned",
-      "action": "read ak.self.contact.read.list",
+      "action": "read ak.self.contact.read.list.v1",
       "semantic_outcome": "accept",
       "assertions": [
         "no row in these five states carries request_receipt, because pending_outgoing has no incoming request to answer and the other four have a consumed slot or a terminal round",
@@ -1085,7 +1085,7 @@
       "name": "contact_mirror_branch_returns_exact_event_without_seal",
       "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
       "precondition": "the holder holds a Contact verified mirror whose receipt was cryptographically verified at ingest and CAS-stored, the contact row is pending_incoming, and the requester lives on a different Principal Server so the Event is absent from the holder's realm event store",
-      "action": "call ak.self.events.read.resolve for the exact request Event id with include_payload true",
+      "action": "call ak.self.events.read.resolve.v1 for the exact request Event id with include_payload true",
       "semantic_outcome": "accept",
       "assertions": [
         "the exact signed Event and its complete payload are returned from the Contact verified mirror, so the client can recompute event_digest and check the receipt binding itself",
@@ -1098,7 +1098,7 @@
       "name": "contact_mirror_branch_has_no_seal_selector_and_refuses_unverified_rows",
       "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
       "precondition": "the same pending_incoming mirror, plus a second holder-local row that was stored without completing receipt verification at ingest",
-      "action": "confirm ak.self.events.read.resolve has no seal_refs selector, and separately request the Event backed only by the unverified local row",
+      "action": "confirm ak.self.events.read.resolve.v1 has no seal_refs selector, and separately request the Event backed only by the unverified local row",
       "semantic_outcome": "reject",
       "assertions": [
         "the Event-only request schema rejects a seal_refs member before handler execution",
@@ -1110,7 +1110,7 @@
       "name": "contact_mirror_visibility_closes_on_terminal_round",
       "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
       "precondition": "the same mirror after the contact row transitions out of pending_incoming into accepted, rejected, expired or tombstoned",
-      "action": "call ak.self.events.read.resolve for the same exact request Event id",
+      "action": "call ak.self.events.read.resolve.v1 for the same exact request Event id",
       "semantic_outcome": "reject",
       "assertions": [
         "the transition clears request_receipt and closes resolve visibility in the same transaction, so the credential and the visibility share one lifetime",

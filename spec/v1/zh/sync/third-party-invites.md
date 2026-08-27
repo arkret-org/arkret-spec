@@ -168,7 +168,7 @@ Reducer 处理 `ak.invite.claim` 时 MUST 按下列顺序 fail closed；所有�
 
 > **Conformance vector（normative）**：上述 reducer 闭环由 `ak.vector.invite.claim_reducer_state_machine.v1` 覆盖（登记于 `artifacts/registry/vector-registry.json`，fixture 位于 `artifacts/fixtures/security-closure-fixture.json`）：正路径必须产生 `pending -> claimed` 与 membership proposal；token commitment mismatch、allowlist 复校验失败、claim nonce 重放、expired cleanup 四类负路径均不得产生 membership proposal。
 
-**v1 base wire 范围（normative）**：v1 base conformance 仅支持 `invite` / `restricted` join-rule Realm 的 third-party claim 接续到 `ak.invite.create`（或等价 membership proposal）路径，如上述步骤 7 所述。knock_restricted Realm 的 third-party 接续依赖 `ak.realm.join.review` candidate profile（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）以及 `member.application` candidate kind（见 [`operations-sync.md`](operations-sync.md)），**不属于 v1 base conformance**；部署 MUST 在 `ak.find.directory.read.describe` / `ak.self.account.read.describe` 中显式声明该 candidate profile 后才可在 `knock_restricted` Realm 上使用 third-party claim 流程，否则验证服务 MUST 以 `unsupported_join_rule` 拒绝该 token claim。
+**v1 base wire 范围（normative）**：v1 base conformance 仅支持 `invite` / `restricted` join-rule Realm 的 third-party claim 接续到 `ak.invite.create`（或等价 membership proposal）路径，如上述步骤 7 所述。knock_restricted Realm 的 third-party 接续依赖 `ak.realm.join.review` candidate profile（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）以及 `member.application` candidate kind（见 [`operations-sync.md`](operations-sync.md)），**不属于 v1 base conformance**；部署 MUST 在 `ak.find.directory.read.describe.v1` / `ak.self.account.read.describe.v1` 中显式声明该 candidate profile 后才可在 `knock_restricted` Realm 上使用 third-party claim 流程，否则验证服务 MUST 以 `unsupported_join_rule` 拒绝该 token claim。
 
 ## 5. E2EE 场景处理
 

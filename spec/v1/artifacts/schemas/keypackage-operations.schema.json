@@ -398,7 +398,7 @@
         },
         "endpoint_signature": {
           "$ref": "#/$defs/signature",
-        "description": "Required authoritative batch signature over the complete typed upload request with only this top-level signature omitted, using the ak.self.keys.keypackages.upload.create domain. The selected human device, Native Agent runtime, or minimal-metadata pairwise did:key endpoint signs the same transcript."
+        "description": "Required authoritative batch signature over the complete typed upload request with only this top-level signature omitted, using the ak.self.keys.keypackages.upload.create.v1 domain. The selected human device, Native Agent runtime, or minimal-metadata pairwise did:key endpoint signs the same transcript."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -1512,7 +1512,7 @@
         },
         "signature": {
           "$ref": "#/$defs/signature",
-          "description": "Signature over the typed consume request with this field omitted, using the ak.self.keys.keypackages.command.consume domain."
+          "description": "Signature over the typed consume request with this field omitted, using the ak.self.keys.keypackages.command.consume.v1 domain."
         }
       },
       "additionalProperties": false
@@ -1549,7 +1549,7 @@
         },
         "signature": {
           "$ref": "#/$defs/signature",
-          "description": "Signature over the typed revoke request with this field omitted, using the ak.self.keys.keypackages.command.revoke domain."
+          "description": "Signature over the typed revoke request with this field omitted, using the ak.self.keys.keypackages.command.revoke.v1 domain."
         },
         "reason": {
           "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"

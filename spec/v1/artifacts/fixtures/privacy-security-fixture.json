@@ -47,7 +47,7 @@
     {
       "vector_id": "ak.vector.directory.invite_not_found_blinding.v1",
       "name": "hidden_realm_resolve_indistinguishable",
-      "operation_id": "ak.find.directory.read.resolve_realm",
+      "operation_id": "ak.find.directory.read.resolve_realm.v1",
       "inputs": [
         {
           "label": "missing",
@@ -93,7 +93,7 @@
     {
       "vector_id": "ak.vector.directory.resolve_handle_failure_blinding.v1",
       "name": "resolve_handle_failure_blinding",
-      "operation_id": "ak.find.directory.read.resolve_handle",
+      "operation_id": "ak.find.directory.read.resolve_handle.v1",
       "inputs": [
         {
           "label": "missing_handle",
@@ -139,7 +139,7 @@
     {
       "vector_id": "ak.vector.directory.resolve_agent_selector_failure_blinding.v1",
       "name": "resolve_agent_selector_failure_blinding",
-      "operation_id": "ak.find.directory.read.resolve_agent_selector",
+      "operation_id": "ak.find.directory.read.resolve_agent_selector.v1",
       "inputs": [
         {
           "label": "missing_selector",
@@ -188,7 +188,7 @@
     {
       "vector_id": "ak.vector.psi.padding_and_cardinality.v1",
       "name": "private_contact_discovery_padding_and_cardinality",
-      "operation_id": "ak.find.directory.read.private_contact_discovery",
+      "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
       "input": {
         "local_real_identifier_count": 2,
         "private_contact_discovery_config": {
@@ -262,7 +262,7 @@
     {
       "vector_id": "ak.vector.psi.quota_blinded_denial.v1",
       "name": "private_contact_discovery_quota_blind_phase_denial",
-      "operation_id": "ak.find.directory.read.private_contact_discovery",
+      "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
       "input": {
         "private_contact_discovery_config": {
           "profile": "ak.private_contact_discovery.v1",
@@ -348,12 +348,12 @@
     {
       "name": "directory_query_and_ingest_vector_closure",
       "operation_ids": [
-        "ak.find.directory.read.search_realms",
-        "ak.find.directory.read.resolve_realm",
-        "ak.find.directory.read.resolve_target",
-        "ak.find.directory.command.announce",
-        "ak.find.directory.command.withdraw",
-        "ak.find.directory.read.private_contact_discovery"
+        "ak.find.directory.read.search_realms.v1",
+        "ak.find.directory.read.resolve_realm.v1",
+        "ak.find.directory.read.resolve_target.v1",
+        "ak.find.directory.command.announce.v1",
+        "ak.find.directory.command.withdraw.v1",
+        "ak.find.directory.read.private_contact_discovery.v1"
       ],
       "covers_vectors": [
         "ak.vector.directory.public_realm_search.v1",
@@ -397,7 +397,7 @@
     },
     {
       "name": "plaintext_visible_service_required_for_private_body_processing",
-      "operation_id": "ak.self.events.command.submit",
+      "operation_id": "ak.self.events.command.submit.v1",
       "input": {
         "service_id": "ak:did_core:webvh:z6mkfixturesearchexample",
         "event_kind": "ak.message.create",
@@ -428,7 +428,7 @@
     },
     {
       "name": "private_blob_head_range_anti_enumeration",
-      "operation_id": "ak.self.blob.resource.head",
+      "operation_id": "ak.self.blob.resource.head.v1",
       "inputs": [
         {
           "label": "missing",
@@ -454,7 +454,7 @@
     },
     {
       "name": "push_blind_wakeup_payload",
-      "operation_id": "ak.edge.push.command.notify",
+      "operation_id": "ak.edge.push.command.notify.v1",
       "input": {
         "notification": {
           "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
@@ -560,7 +560,7 @@
           {
             "surface": "directory_search",
             "profile": "ak.profile.directory_service.v1",
-            "operation_id": "ak.find.directory.read.search_realms",
+            "operation_id": "ak.find.directory.read.search_realms.v1",
             "payload": {
               "realm_id": "ak:realm:AXHSTVD5ytlxxQe9ylL4IJEfvL9QDJ0A6XqSjW8G2tBI",
               "title": "Launch calendar",
@@ -592,7 +592,7 @@
           {
             "surface": "bridge_interop",
             "profile": "ak.profile.mimi_interop.v1",
-            "operation_id": "ak.open.mimi.command.notify",
+            "operation_id": "ak.open.mimi.command.notify.v1",
             "payload": {
               "room_id": "mimi-room-7d9e",
               "notification_kind": "message",

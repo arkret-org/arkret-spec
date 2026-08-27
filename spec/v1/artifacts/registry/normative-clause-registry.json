@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.2",
+  "version": "2026-08-27.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-27T10:27:54+08:00",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -126,7 +126,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:578b1c536514beaad69b19290d69111fbb257bf2155699a2997bbfedf7f1aea9",
+      "section_digest": "sha256:6c2191343936d3c9cc79b09f73a1025b7eb63202117edf029c4367ecefd971c7",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -141,7 +141,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#24-operation-id-kindaction-taxonomy",
-      "section_digest": "sha256:89d24d810f265cad44040722051b5f31a4da7a4b0f7d9722cedc02f445875d64",
+      "section_digest": "sha256:5557c34a4ca394d6ccb93d7eda20e617be264cd19d7ed1ad56351c704dd2ec69",
       "requirement": "Every operation_id ends with <kind>.<action> drawn from the closed kind set, and the action MUST describe a protocol effect rather than an HTTP method name.",
       "testability_grade": "api_shape",
       "test_plan": "Enforced mechanically by tools/artifact_lint: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."
@@ -151,7 +151,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#6-幂等",
-      "section_digest": "sha256:6866a113981a1a13b5b62edc5333889e3b2444350baad97953823961477492ad",
+      "section_digest": "sha256:005ac3bd1a7753958ccf56c77f58feef4c0ff7d5e8ce23b04682d941e8133f6d",
       "requirement": "Every write operation declares a machine-readable idempotency mechanism and retry safety; clients MUST NOT be left to guess the recovery path of an uncertain outcome.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -163,7 +163,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:cfa35a3b9f523f38953f861a2a84ee6c126221fd8a89e66ff97f779e92096478",
+      "section_digest": "sha256:8dd558657d39ec6ec3c93916c2d9d1f787e5020fbae3d136d02f23129c045056",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -178,7 +178,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:fe1c2c6bec59bc36824d5dfc3f637a3164c7791ac9486b458aa5af16e36d161f",
+      "section_digest": "sha256:3a3cc57727cdfdbd9f34ee550cba2554b25d5631fe1d7d51dba3d0b8f1cef74e",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id plus its in-envelope Principal Server admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; every MLS epoch binds the independently re-derived security frontier for its accepted key-access state; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -214,7 +214,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:f106a1b2e21d1573a61f6a3140199534e7056a71c0ee93cda65a66de35f6d1f5",
+      "section_digest": "sha256:c8fe58621b2c0f58b74de05fdff7b04f3af9cb724e81dbaebfb70614833d7d26",
       "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. Ordinary Collaboration bootstrap uses the ordered machine-registry facet closure with an explicit final creator membership and no implicit creator membership. The mutually exclusive Direct Conversation branch is exactly create, explicit peer membership, one basis-free main ak.strand.create, then explicit founder membership with head_eq null. Batch admission MUST reject both no-basis shapes anywhere else.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -250,7 +250,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:04eabb8b5674a7a12747ffc7e7b80fd9f0ea7be418bb57daf0f92e3ea8f88edb",
+      "section_digest": "sha256:ace1289f6b25a3f4bcee86322a7850f30b2879e94627ce9449a6e323bdb508a5",
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. The reducer derives issuer_principal_server_id from the accepted carrier Event, and a grant ref supplies issuer authority only when its complete subject authority pair equals the child issuer pair; cycles, inactive refs and same-DID cross-Principal-Server replay MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -359,7 +359,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/models/account-data.md#5-并发写入与收敛契约normative",
-      "section_digest": "sha256:ff241d98330358e93978e580e745833b06419738ed425f06c579847210307586",
+      "section_digest": "sha256:871f648bff880c6c9968ce13231a17de5cf67da27a5cb044937d3aebe3a5be65",
       "requirement": "Account Data keys are server-versioned compare-and-set registers with explicitly registered writer authority and holder self operations: a stale write MUST fail with cas_conflict, the revision high-water mark never goes backwards, and domain merge runs client-side on plaintext.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -383,7 +383,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/client-sync.md#10-to-device-delivery",
-      "section_digest": "sha256:33eb909c576fdc97e084bb63d034dc084c8c6e6d1df7f394f7d6144fc125567e",
+      "section_digest": "sha256:b6d3ea5c9b2ee01c04e047d8313fd1975b80c895a8c5be66b16a79f9bae8ac9f",
       "requirement": "To-device delivery executes each durable handler effect exactly once: redelivery is deduplicated by the closed sender endpoint plus device_message_id and queue removal happens only on explicit ack.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -396,7 +396,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/governance/member-delivery-binding.md#5-路由不可降级normative",
-      "section_digest": "sha256:a31aff42d9a4b15323fdfbeccb7b7e1def87c8e794edcaff9dd2d076091aef8e",
+      "section_digest": "sha256:c44a594b30351f6884d55ee187dd40f9ada3b74e8e0c3ba052090b88b690bdbb",
       "requirement": "Member delivery binding never silently downgrades: a stale binding frontier, an expired handover grace window or an unresolvable binding MUST fail closed instead of routing to the previous service.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -434,7 +434,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:386e6ac26ee5887884d7fe0aae2800c29a216b799bd2339bf31977214235f21f",
+      "section_digest": "sha256:65d24fabfd3790d54d9fcdaefb4c275c251320fd3bf4f7e0ebd0249df628df4a",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -456,7 +456,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:386e6ac26ee5887884d7fe0aae2800c29a216b799bd2339bf31977214235f21f",
+      "section_digest": "sha256:65d24fabfd3790d54d9fcdaefb4c275c251320fd3bf4f7e0ebd0249df628df4a",
       "requirement": "An accepted ordinary-Realm or managed-Agent closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent. The separately specified human self-principal PCR authority-authored path omits the Ack but not the pending index or covering-Seal obligation.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -480,7 +480,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#254-sealbasis-信任来源normative",
-      "section_digest": "sha256:d5f0bd7106a9769daacd9f956795e7d0257e2be6fa6311333d817acc8cd7834b",
+      "section_digest": "sha256:4b567c8b121c962219959443dbd1eb47d715f1bcadaa234fb4aeff4807ac40c7",
       "requirement": "A client MUST NOT admit a Seal into its local MLS governance trust store because a service reported it as a head, because a proof bundle self-reported it, or because an error suggested it. A candidate is admissible only when the client verifies it locally: for an event-derived Realm, the genesis Seal must cover the ak.realm.create Event derived from realm_id and be signed by the notary named in that create payload; for a Principal Control Realm, the genesis Seal must cover the principal's critical did_inception root anchor; otherwise only a Seal verified as a descendant of an already-trusted anchor may replace the pin.",
       "testability_grade": "vector",
       "evidence_refs": [

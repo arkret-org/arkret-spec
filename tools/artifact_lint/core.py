@@ -70,7 +70,7 @@ ARTIFACTS = SPEC_ROOT / "artifacts"
 
 EVENT_KIND_TOKEN_RE = re.compile(r"\bak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\b")
 
-OPERATION_ID_RE = re.compile(r"^ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$")
+OPERATION_ID_RE = re.compile(r"^ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\.v1$")
 
 # zh/sync/api-conventions.md §2.4: ak.<surface>.<domain...>.<kind>.<action>.
 OPERATION_KINDS = frozenset({"read", "stream", "resource", "command", "upload", "exchange"})
@@ -486,7 +486,7 @@ SIGNED_EVENT_REQUEST_MARKERS = ("EventInitialSubmission", "event-envelope.schema
 # 可以省略持久化、CAS、签名 envelope 或重放校验". It is still a signed Event, so the
 # service still cannot produce the signature.
 #
-# Scoping this check to `event_log` alone hid `ak.self.account_data.resource.delete`,
+# Scoping this check to `event_log` alone hid `ak.self.account_data.resource.delete.v1`,
 # whose sibling `resource.replace` writes the same `ak.account_data.set` kind — the same
 # "adding is an Event, removing is not" asymmetry the circle and realm_link DELETEs have.
 EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")

@@ -44,7 +44,7 @@
     },
     "sender_service_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "Principal Server service identity that internally materialized an actor-private update for the holder. This branch is restricted to actor_private_update_kind, sender_principal_id MUST equal recipient_principal_id, and the service id MUST equal the Principal Server identity bound to the recipient's current authenticated self/to-device surface. It is not a bearer delegation and cannot be submitted through ak.self.device_messages.command.send."
+      "description": "Principal Server service identity that internally materialized an actor-private update for the holder. This branch is restricted to actor_private_update_kind, sender_principal_id MUST equal recipient_principal_id, and the service id MUST equal the Principal Server identity bound to the recipient's current authenticated self/to-device surface. It is not a bearer delegation and cannot be submitted through ak.self.device_messages.command.send.v1."
     },
     "recipient_principal_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -550,11 +550,11 @@
         },
         "new_device_pubkey": {
           "$ref": "./public-key.schema.json#/$defs/public_key",
-          "description": "Canonical PublicKey for the requesting device when purpose=same_principal_device_authorization. kid MUST be the requesting ak:device:<uuidv7> id and the key material MUST be carried in key. The {kid, alg, public_key} spelling is not canonical wire and MUST be rejected. The object is later consumed verbatim by ak.gate.account.command.pair_device."
+          "description": "Canonical PublicKey for the requesting device when purpose=same_principal_device_authorization. kid MUST be the requesting ak:device:<uuidv7> id and the key material MUST be carried in key. The {kid, alg, public_key} spelling is not canonical wire and MUST be rejected. The object is later consumed verbatim by ak.gate.account.command.pair_device.v1."
         },
         "challenge_proof": {
           "$ref": "./device-pairing.schema.json#/$defs/device_pairing_challenge_proof",
-          "description": "Fresh requesting-device proof of possession over the ak.device-pairing.challenge.to_device.v1 transcript, which commits to {expires_at, gate_audience, new_device_pubkey_digest, pairing_code, request_canonical_digest, transaction_id}. The receiving authorized device MUST recompute the transcript from the values it displays to the user and verify the signature before treating the requesting device as pairable; it is later submitted verbatim to ak.gate.account.command.pair_device."
+          "description": "Fresh requesting-device proof of possession over the ak.device-pairing.challenge.to_device.v1 transcript, which commits to {expires_at, gate_audience, new_device_pubkey_digest, pairing_code, request_canonical_digest, transaction_id}. The receiving authorized device MUST recompute the transcript from the values it displays to the user and verify the signature before treating the requesting device as pairable; it is later submitted verbatim to ak.gate.account.command.pair_device.v1."
         },
         "target_attestation": {
           "$ref": "./device-pairing.schema.json#/$defs/device_pairing_target_attestation",

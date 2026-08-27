@@ -938,7 +938,7 @@ Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transpo
 
 Materializer matrix MUST 覆盖精确有效输出、`base == target` 与 ancestor→descendant 正例，以及并发/不可达 basis（`mls_governance_anchor_unreachable`）、必需 Seal/Event/witness 缺失（`frontier_unavailable`）、撤销后的 notary、control-cell Bottom、scope visibility denial 与 exact response 超界（`mls_governance_proof_bounds_exceeded`）；失败时 response count 必须为 0，不能输出 partial outcome 或替换 basis。两条 runner 在同一 profile certification job 中还 MUST 执行 companion `ak.vector.scalability.mls_governance_proof_bounds.v1` 的全部 `limit-1 / limit / limit+1` 与 exact-response cases，并记录每 case 的 stage、reason/error、response count、query/outcome digest、epoch transition 与 peak buffer bytes。
 
-MLS group tracker 的 companion matrix MUST 另外对 `ak.peer.mls.read.group_state_material` 执行：两组 ref/digest/raw
+MLS group tracker 的 companion matrix MUST 另外对 `ak.peer.mls.read.group_state_material.v1` 执行：两组 ref/digest/raw
 bytes 完全匹配的 accepted genesis 正例；Event id、scope、group 或 epoch cross-binding；只有 ref/只有 digest；
 object missing；ref 内嵌 hash mismatch；raw-byte digest mismatch；GroupInfo 与 ratchet tree / GroupContext 不一致；
 未 accepted 或 quarantine genesis；响应总界超限。所有失败必须 response count 0。正例必须从验证后的 RFC 9420
@@ -2660,7 +2660,7 @@ ak.vector.auth.sensitive_field_handling.v1
 
 `vector_id`: `ak.vector.sync.stream_frame_sequence.v1`
 
-机器 fixture：`sync-fixture.json#stream_frame_sequence`；执行入口以 fixture `runner` 元数据为准。Runner MUST 对 `ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 各执行同一组完整 frame trace，而不是把 frame 拆成互不关联的 schema cases。
+机器 fixture：`sync-fixture.json#stream_frame_sequence`；执行入口以 fixture `runner` 元数据为准。Runner MUST 对 `ak.self.account.stream.subscribe.v1` 与 `ak.self.events.stream.subscribe.v1` 各执行同一组完整 frame trace，而不是把 frame 拆成互不关联的 schema cases。
 
 Cases：
 
@@ -2731,7 +2731,7 @@ Cases：
 4. **两设备反序到达**：把 case 1 与 case 3 的请求对以两种到达顺序各执行一次。两次的终态 `revision` 与 `content` MUST 逐字节相同。
 5. **tombstone GC 后不复活**：删除该 key 得到 tombstone `revision=M`；GC 掉 tombstone 元数据后，持有 `expected_revision<M` 的离线设备重放旧写。该写 MUST 以 `cas_conflict` 拒绝；`resource.get` 的 `not_found` details MUST 给出 `current_revision=M`。
 6. **create 与 recreate**：对从未写入的 key 用 `expected_revision=0` 创建 MUST 成功；重复该请求 MUST 以 `cas_conflict` 拒绝。对已 tombstone 的 key 用 `expected_revision=M` 重建 MUST 成功。
-7. **value_tombstone 类型不得物理删除**：对 `deletion_mode=value_tombstone` 的 key（例如 `ak.file_transfer.v1:<transfer_key>`）调用 `ak.self.account_data.resource.delete` MUST 被拒绝；其删除态只能作为 value 写入，且任一副本观察到该终态后 MUST NOT 被后续非 deleted 状态复活。
+7. **value_tombstone 类型不得物理删除**：对 `deletion_mode=value_tombstone` 的 key（例如 `ak.file_transfer.v1:<transfer_key>`）调用 `ak.self.account_data.resource.delete.v1` MUST 被拒绝；其删除态只能作为 value 写入，且任一副本观察到该终态后 MUST NOT 被后续非 deleted 状态复活。
 
 Expected：
 
@@ -2775,7 +2775,7 @@ Cases：
 6. **收件箱合并**：同一 notification 的两份 value 先比 HLC，HLC 相等时比 `origin_device_id`
    字典序。两种到达顺序 MUST 选出同一 winner，且合并只发生在客户端 CAS 重试循环内的明文上。
 7. **physical_delete**：两个 key 的 `deletion_mode` 均为 `physical_delete`，
-   `ak.self.account_data.resource.delete` MUST 接受；删除后 `resource.get` 返回 `not_found`
+   `ak.self.account_data.resource.delete.v1` MUST 接受；删除后 `resource.get` 返回 `not_found`
    且带 revision high-water mark，离线设备的旧 `expected_revision` 重写 MUST 以 `cas_conflict`
    拒绝，不得复活。
 
@@ -3301,7 +3301,7 @@ Negative cases：
 
 Steps：
 
-1. Origin service `did:webvh:z6mkfixture:alpha.example` 使用 active service key 向 destination 提交 `POST /_arkret/peer/events`（`ak.peer.events.command.submit`），header 绑定 `Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Content-Digest`、`Idempotency-Key`，批次 accepted；destination 从已验证 body bytes 内部计算 request digest。
+1. Origin service `did:webvh:z6mkfixture:alpha.example` 使用 active service key 向 destination 提交 `POST /_arkret/peer/events`（`ak.peer.events.command.submit.v1`），header 绑定 `Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Content-Digest`、`Idempotency-Key`，批次 accepted；destination 从已验证 body bytes 内部计算 request digest。
 2. Realm policy 或 DID Document 随后撤销该 origin service key；destination 的 accepted authorization frontier 前进。
 3. 攻击者重放完全相同的 HTTP body、signature 与 `Idempotency-Key`。
 
@@ -3391,7 +3391,7 @@ Expected：
 
 Steps：
 
-1. 认证 principal 调用 `ak.self.invite_locator.command.issue`，确认响应 token 至少 192 bit 熵、响应含 `Cache-Control: private, no-store`、服务端仅持久化 digest；分别发行 reusable 与 `one_time_use=true` locator。
+1. 认证 principal 调用 `ak.self.invite_locator.command.issue.v1`，确认响应 token 至少 192 bit 熵、响应含 `Cache-Control: private, no-store`、服务端仅持久化 digest；分别发行 reusable 与 `one_time_use=true` locator。
 2. 分别对 reusable 与 one-time locator 省略可选项调用 rotate，确认响应同样禁止缓存、旧 token 在 rotate 成功后立即失效、新 token 可 resolve，且 granted lifetime、`one_time_use`、`display_hint` 均继承旧 record；resolve outcome 的 `locator_ref_digest` 必须等于新 record 的 `token_digest`。对 revoke 重试两次，确认同 actor 的第二次调用返回相同 `revoked_at`。
 3. 注入 rotate 已提交但响应丢失的 transport fault；客户端必须先 revoke 旧 `locator_id`，再 fresh issue，且不得在确认旧 token 失效前直接 issue。
 4. 并发两次 resolve one-time locator，确认最多一次成功；随后把该 token 与不存在、过期、已撤销、策略拒绝 token 一起提交 `POST /_arkret/open/invite-locators/resolve`。
@@ -3577,7 +3577,7 @@ Expected：
 
 Steps：
 
-1. 调用 `ak.self.space.read.list` / `strand` / `morph`，请求 `limit=1`。
+1. 调用 `ak.self.space.read.list.v1` / `strand` / `morph`，请求 `limit=1`。
 2. 使用返回的 `next_cursor` 继续读取。
 3. 下游 service-call 返回缺失 `has_more` 或 cursor 形态不合法的响应。
 
@@ -3789,7 +3789,7 @@ Steps：
 
 Expected：
 
-- 第 2 步 MUST 返回 `cursor_revoked`，且不推进 subscription position（to-device 队列删除只由 `ak.self.device_messages.command.ack` 驱动，与 cursor 无关）。
+- 第 2 步 MUST 返回 `cursor_revoked`，且不推进 subscription position（to-device 队列删除只由 `ak.self.device_messages.command.ack.v1` 驱动，与 cursor 无关）。
 - 第 3 步 MUST 返回 `cursor_integrity_invalid`，不得泄露 revocation set 是否命中。
 
 ### 10.9 Vector: PCR Genesis 与 Root Re-anchor
@@ -3834,8 +3834,8 @@ Expected：
 Steps：
 
 1. PCR 未 accepted 且 identity root 已丢失。以当前 lease holder 的 handoff grant 调用
-   `ak.gate.account.command.issue_identity_abandonment_challenge`，再以**另一份新鲜** handoff grant 调用
-   `ak.gate.account.command.abandon_identity_creation` 完成放弃。
+   `ak.gate.account.command.issue_identity_abandonment_challenge.v1`，再以**另一份新鲜** handoff grant 调用
+   `ak.gate.account.command.abandon_identity_creation.v1` 完成放弃。
 2. 不取 challenge，直接调用确认；以及取到 challenge 后复用签发它的那份 handoff grant 再确认。
 3. challenge 已签发、尚未确认时让该 PCR 被 accepted，然后提交确认。
 4. 成功放弃后重新取 handoff，读取该账号所有 holder 可读面上的 `reserved_identity_creation`。
@@ -3892,10 +3892,10 @@ Expected：
 
 Steps：
 
-1. `ak.device.revoke` 作为 Control Move 提交，信封携带有效 `seal_basis`（单 leaf，取自 `ak.self.seals.read.frontier` 的 Realm Seal view），随后被 principal control stream 的 accepted Seal S 覆盖（`control_sealed`）。
+1. `ak.device.revoke` 作为 Control Move 提交，信封携带有效 `seal_basis`（单 leaf，取自 `ak.self.seals.read.frontier.v1` 的 Realm Seal view），随后被 principal control stream 的 accepted Seal S 覆盖（`control_sealed`）。
 2. 攻击者重放该设备在 S 之后（以 S 或其后继 Seal view 判定）签发的 session grant、KeyPackage publish 或 to-device write。
 3. 某 E2EE Realm 提交 MLS Remove，但其 `governance_binding.security_frontier_digest` 不是从包含该 device revoke/leaf remove 的 accepted state 重算所得。
-4. 客户端在 `ak.self.seals.read.frontier` 来源不可用（错误、缺完整 `seal_basis.leaves[]` 或任一 leaf 无法验证）时尝试提交 `ak.device.revoke`。
+4. 客户端在 `ak.self.seals.read.frontier.v1` 来源不可用（错误、缺完整 `seal_basis.leaves[]` 或任一 leaf 无法验证）时尝试提交 `ak.device.revoke`。
 
 Expected：
 
@@ -3911,7 +3911,7 @@ Runner MUST 执行 `device-revocation-pending-fixture.json` 的全部 semantic c
 
 1. revoke 在 schema / proof / authority / exact current device+PCR generation / precondition / admission 与 mandatory canonical Ack 全部通过后，以单一事务持久化 accepted Event、Ack、derived record、pending index；无 Ack 零写入，不能套用 self-principal PCR Ack-less 例外。
 2. pending 时 base、E2EE 与 hardening profile 对 session issue/refresh、KeyPackage claim、to-device write、Event write、Principal Server admission-proof issuance 全部 fail closed 且零业务写；可区分本地主体操作使用 `device_revocation_pending`，KeyPackage anti-enumeration surface 保持 `claim_failed`，不得因 profile 改变 gate 结论。
-3. Account Authority 只可凭 `ak.peer.device_revocations.command.check` 的 fresh signed exact-intent receipt 铸造/刷新 grant；origin 在同一事务从自身 durable projection 派生 selector、同一 durable order 线性化、receipt 最长30秒且不能由 cache/private RPC 替代。introspection 不承载可复用 receipt；origin Principal Server 对每个 protected self request 在本地事务读取 durable gate。
+3. Account Authority 只可凭 `ak.peer.device_revocations.command.check.v1` 的 fresh signed exact-intent receipt 铸造/刷新 grant；origin 在同一事务从自身 durable projection 派生 selector、同一 durable order 线性化、receipt 最长30秒且不能由 cache/private RPC 替代。introspection 不承载可复用 receipt；origin Principal Server 对每个 protected self request 在本地事务读取 durable gate。
    - returning human 使用 `returning_session_grant_issue`，不携 expected binding但强制 accepted-device proof；registration/recovery 使用 `session_grant_issue` 且禁带该 proof；两类 `allow` receipt 的 derived selectors 逐字成为 grant `device_binding`，客户端自报 Event/generation 无法进入。
    - expected binding 两字段必须同时出现或同时缺省，且只有两个 issue action 可缺省；refresh 必须携 predecessor binding。与 derived 值不等时 decision 为 `generation_mismatch`，receipt 不回携新 binding。
    - 无权 caller、非本服务账号、未知设备与他人设备统一返回同形 `authority_mismatch`，且 caller 授权校验先于任何 device-private 读取。
@@ -3989,7 +3989,7 @@ Expected：
 
 `vector_id`: `ak.vector.push.notify_outcome_conservation.v1`
 
-前置：调用方对同一 `push_target_id` 提交一次 `ak.edge.push.command.notify`，`notification.devices[]` 含两个不同 `device_id`（`D1`、`D2`）。
+前置：调用方对同一 `push_target_id` 提交一次 `ak.edge.push.command.notify.v1`，`notification.devices[]` 含两个不同 `device_id`（`D1`、`D2`）。
 
 Steps：
 
@@ -4038,11 +4038,11 @@ Expected：
 
 `vector_id`: `ak.vector.sync.range_completeness_client_query.v1`
 
-前置：服务端 `supported_features[]` 声明 `events_query_range_completeness`；Realm 配置 `audit.range_completeness_witnesses[]` 且已存在覆盖区间 `(F1, F2]` 的 `federation_witness_attested` attestation；区间内 actor Bob 产生过 `seq 10..20` 的 reducer-input event。
+前置：服务端 `supported_features[]` 声明 `ak.feature.events_query_range_completeness.v1`；Realm 配置 `audit.range_completeness_witnesses[]` 且已存在覆盖区间 `(F1, F2]` 的 `federation_witness_attested` attestation；区间内 actor Bob 产生过 `seq 10..20` 的 reducer-input event。
 
 Steps：
 
-1. 客户端因 `dropped` / cursor 失效按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复，调用 `ak.self.events.read.scan`（`include_completeness=true`）backfill 区间 `(F1, F2]`。
+1. 客户端因 `dropped` / cursor 失效按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复，调用 `ak.self.events.read.scan.v1`（`include_completeness=true`）backfill 区间 `(F1, F2]`。
 2. 服务端返回完整事件页 + `range_completeness.attestation_refs[]`；客户端按 [`operations-sync.md` §6.4.4](../sync/operations-sync.md) 重算 Merkle root 并核对 `actor_seq_ranges[]`。
 3. 变体 A：服务端从响应中扣下 Bob `seq 14..16` 的事件，但返回同一 attestation。
 4. 变体 B：服务端未声明该 feature，收到 `include_completeness=true`。
@@ -4063,7 +4063,7 @@ Expected：
 
 Steps:
 
-1. Controller client 先生成 Agent WebVH root、binding update key 与下一代 key，在网络提交前可恢复地持久化更新密钥；签名并发布只含 Principal Server + managed-controller delegation、**不含 PCR binding** 的 entry 0。entry 0 accepted 后，Controller 以其 `full_id` 调用 `ak.self.agent.command.provision`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 exact `initial_resolution`、allocation 与 digest 且没有 Agent durable side effect，也不分配 Agent PCR id；Controller 逐字核对 inception pin，按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算 digest，本地冻结含该 `initial_resolution` 的 managed Agent PCR `ak.realm.create`、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再 author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create；accepted 后 outcome 只能是 `awaiting_did_binding`。Controller 再用 entry 0 预承诺的 update key 签发连续 entry 1，新增 exact `ArkretPrincipalControlRealm.serviceEndpoint` 四元组；entry 1 accepted 后才返回 `pairing_request_id` 并推进到 `complete`。公开 history 只固定 digest，不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope`、inception 预含 PCR id、错 inception pin 的变体必须失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
+1. Controller client 先生成 Agent WebVH root、binding update key 与下一代 key，在网络提交前可恢复地持久化更新密钥；签名并发布只含 Principal Server + managed-controller delegation、**不含 PCR binding** 的 entry 0。entry 0 accepted 后，Controller 以其 `full_id` 调用 `ak.self.agent.command.provision.v1`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 exact `initial_resolution`、allocation 与 digest 且没有 Agent durable side effect，也不分配 Agent PCR id；Controller 逐字核对 inception pin，按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算 digest，本地冻结含该 `initial_resolution` 的 managed Agent PCR `ak.realm.create`、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再 author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create；accepted 后 outcome 只能是 `awaiting_did_binding`。Controller 再用 entry 0 预承诺的 update key 签发连续 entry 1，新增 exact `ArkretPrincipalControlRealm.serviceEndpoint` 四元组；entry 1 accepted 后才返回 `pairing_request_id` 并推进到 `complete`。公开 history 只固定 digest，不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope`、inception 预含 PCR id、错 inception pin 的变体必须失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
 2. Agent runtime 生成 key pair，取得 pairing verifier 签名的 presentation request/challenge；controller 生成符合 `ak.schema.agent_requested_scope_disclosure.v1`、绑定该 verifier/audience/challenge 且接收窗口不超过 300 秒的私有披露，与 key pair request 一起提交。controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
 4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 提交一个 controller-authored `ak.capability.grant` `EventInitialSubmission` 以附加更窄的 Realm-scoped grant。其 `event.payload.grant` 不含内层 proof，Event envelope proof 是唯一 durable issuer signature；另分别尝试提交 body-local proof、让服务端代签/合成 Event、含未 provision action及超出显式内容 resource ceiling 的变体。
@@ -4072,7 +4072,7 @@ Expected:
 
 - 第 3 步 verification_method 与 agent_id 不一致时 MUST `failed_precondition` `reason=verification_method_principal_mismatch`。
 - 第 1 步 entry 0 必须无 PCR service，`initial_resolution` 必须与其 accepted head/version 逐字一致，且 controller 必须用 entry 0 预承诺 key 签发 entry 1；DID commitment 必须与 fixture 固定 digest 匹配。`ak.agent.provision` Event proof 是唯一签名，payload 出现内层 proof、拆成 accountability/selector Event pair 或 reducer 暴露部分 projection 都 MUST reject。entry 1 的公开 service endpoint 必须是 `{realm_id, controller_did, authorization_ref, requested_scope_digest}` 闭合四元组，出现 `requested_scope` 或其它 scope/resource/constraint 明文字段 MUST reject。
-- 第 1 步的 `principal_control_realm_id` 必须逐字等于 controller 本地算出的 `retype(genesis event_id)`，且按 `entry0 -> initial_resolution -> genesis -> realm_id -> entry1` 顺序真的可推导，不产生 `event_id_digest_mismatch`；服务端自选该值、无 accepted provision 声明本 create、两条 provision 声明同一 realm id 三种形态 MUST 分别 fail closed 且零写入。entry 1 尚未接受时 pairing handle 与 `ak.self.agent.read.list` / `ak.self.agent.resource.get` MUST 都不暴露该 Agent。
+- 第 1 步的 `principal_control_realm_id` 必须逐字等于 controller 本地算出的 `retype(genesis event_id)`，且按 `entry0 -> initial_resolution -> genesis -> realm_id -> entry1` 顺序真的可推导，不产生 `event_id_digest_mismatch`；服务端自选该值、无 accepted provision 声明本 create、两条 provision 声明同一 realm id 三种形态 MUST 分别 fail closed 且零写入。entry 1 尚未接受时 pairing handle 与 `ak.self.agent.read.list.v1` / `ak.self.agent.resource.get.v1` MUST 都不暴露该 Agent。
 - 第 2 步 disclosure 的 controller proof、request/challenge 单次性、verifier/audience、接收窗口与 digest 必须全部通过；缺失、摘要不匹配、重放或错 audience MUST fail closed，且不得退回服务本地 Agent row 作为权威来源。完整 disclosure 不得进入 authorize Event、Realm history、pairing code 或通知。
 - 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed。
 - 第 2 步更窄 key scope MUST 接受；任何 action/resource 越界或删除 mandatory constraint 的 key scope MUST fail closed。实现不得要求 key scope 与 provision scope 完全相等。
@@ -4147,8 +4147,8 @@ Expected:
 
 Steps:
 
-1. 在 §11.1.2 第 2 步之后（provision accepted、genesis 未提交），controller 调用 `ak.self.agent.command.issue_provisioning_abandonment_challenge`，取得钉死 `agent_id` / `agent_slug` / `principal_control_realm_id` / `allocation_handle` 与封闭后果集合的一次性 challenge。
-2. controller 出示新鲜凭据调用 `ak.self.agent.command.abandon_provisioning`，在一个事务内消费 challenge、释放 slug selector claim 与 realm id claim、写 tombstone/audit reservation。
+1. 在 §11.1.2 第 2 步之后（provision accepted、genesis 未提交），controller 调用 `ak.self.agent.command.issue_provisioning_abandonment_challenge.v1`，取得钉死 `agent_id` / `agent_slug` / `principal_control_realm_id` / `allocation_handle` 与封闭后果集合的一次性 challenge。
+2. controller 出示新鲜凭据调用 `ak.self.agent.command.abandon_provisioning.v1`，在一个事务内消费 challenge、释放 slug selector claim 与 realm id claim、写 tombstone/audit reservation。
 3. 同 `request_id` 重放确认。
 4. 变体 A：不取 challenge 直接确认；变体 B：复用签发 challenge 时那一份凭据；变体 C：challenge 过期后确认；变体 D：challenge 已消费后以不同 canonical intent 再确认；变体 E：challenge 签发与确认之间 genesis 已被接纳。
 
@@ -4158,7 +4158,7 @@ Expected:
 - 被放弃的 `ak.agent.provision` Event 仍留在 controller PCR history 中，MUST NOT 被删除或重写；放弃只释放 claim 并写 tombstone。
 - 第 3 步返回与第 2 步 byte-identical 的终态，且系统中只有**一条** tombstone。
 - 变体 A、B MUST 以 `failed_precondition` 拒绝；变体 C MUST 以 `agent_provisioning_challenge_expired`、变体 D MUST 以 `agent_provisioning_challenge_already_consumed` 拒绝；四者均零写入。
-- 变体 E MUST 以稳定终态 `agent_pcr_genesis_already_accepted` 失败，MUST NOT 放弃任何东西、MUST NOT 消费 challenge，并提示改走 `ak.self.agent.command.deactivate`。
+- 变体 E MUST 以稳定终态 `agent_pcr_genesis_already_accepted` 失败，MUST NOT 放弃任何东西、MUST NOT 消费 challenge，并提示改走 `ak.self.agent.command.deactivate.v1`。
 
 
 ### 11.2 Vector: Pairing Expiry Auto-Revoke
@@ -4167,14 +4167,14 @@ Expected:
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.command.provision`,pairing 窗口 12 小时，grant TTL 30 天。
-2. Pairing 12 小时窗口过期，未提交 `ak.gate.account.command.pair_agent_key`。
+1. Controller 调用 `ak.self.agent.command.provision.v1`,pairing 窗口 12 小时，grant TTL 30 天。
+2. Pairing 12 小时窗口过期，未提交 `ak.gate.account.command.pair_agent_key.v1`。
 
 Expected:
 
 - generic list/get 必须关闭并省略 open-handle fields，返回 lifecycle 不变且 `readiness={state:not_ready,blockers:[...,runtime_key_missing]}`；`key_state` 不得出现 `status` / `runtime_state`。只有用该 handle 轮询 pairing poll 时才返回 operation-local `runtime_state=pairing_expired`。不得创建、撤销或改写任何 Realm grant。
-- 重放 `ak.gate.account.command.pair_agent_key`(使用过期 pairing_request_id)MUST fail closed。
-- Controller 可通过 `ak.self.agent.command.renew_pairing` 对同一 agent principal 原地重开 bootstrap pairing，也可重新发起 `ak.self.agent.command.provision`;后者得到新 agent_id,旧 agent_id 与新 provisioning 不复用。两种操作都不得从 `requested_scope` 物化 Realm grant。
+- 重放 `ak.gate.account.command.pair_agent_key.v1`(使用过期 pairing_request_id)MUST fail closed。
+- Controller 可通过 `ak.self.agent.command.renew_pairing.v1` 对同一 agent principal 原地重开 bootstrap pairing，也可重新发起 `ak.self.agent.command.provision.v1`;后者得到新 agent_id,旧 agent_id 与新 provisioning 不复用。两种操作都不得从 `requested_scope` 物化 Realm grant。
 
 ### 11.2.1 Vector: Stable Runtime Key Binding 与审批 CAS
 
@@ -4235,7 +4235,7 @@ Expected:
 Preconditions:
 
 - Controller `C` 有 current accepted recovery policy `RP_C` 与 recovery public key；managed Agent `A` 的 DID service binding 指向 `PCR_A`，delegation purpose 覆盖 `principal_control_realm_bootstrap`、agent-control authoring 与 `principal_control_realm_recovery`。
-- `ak.self.agent.command.provision` 已完成；`PCR_A` 使用 exporter content scheme，并已有可备份的连续 history-secret range；尚无 runtime key authorization。
+- `ak.self.agent.command.provision.v1` 已完成；`PCR_A` 使用 exporter content scheme，并已有可备份的连续 history-secret range；尚无 runtime key authorization。
 
 Steps:
 
@@ -4264,9 +4264,9 @@ Preconditions:
 
 Steps:
 
-1. 对已持有 active authorized key 且 lifecycle 为 `active` 的 agent，Controller 直接调用 `ak.self.agent.command.renew_pairing`，得到新一次性 `pairing_request_id` + `pairing_code` 与 `pairing_mode="replacement"`；`paused` 变体同样 MUST 成功。响应不得包含 backup readiness。怀疑旧 key 失陷时 Controller SHOULD 先提交 controller-signed delegated `ak.self.agent.pause`，但 pause 不是 operation 前置条件。
+1. 对已持有 active authorized key 且 lifecycle 为 `active` 的 agent，Controller 直接调用 `ak.self.agent.command.renew_pairing.v1`，得到新一次性 `pairing_request_id` + `pairing_code` 与 `pairing_mode="replacement"`；`paused` 变体同样 MUST 成功。响应不得包含 backup readiness。怀疑旧 key 失陷时 Controller SHOULD 先提交 controller-signed delegated `ak.self.agent.pause`，但 pause 不是 operation 前置条件。
 2. Agent 保持 `paused`；旧 key `K1` 与既有 grants 尚未被 replacement 撤销，但服务端不得签发新的 agent session grant 或执行新的 capability action。Controller 在 replacement 完成前调用 resume 的变体 MUST `failed_precondition`。
-3. 新 runtime 生成 key `K2` 提交 runtime-key-request；controller 签 `ak.agent.key.authorize`(K2)，其 payload 带 `supersedes=[{key_id: K1, authorized_event_ref: <K1 authorize Event>}]`，再调用 `ak.gate.account.command.pair_agent_key` 完成配对。
+3. 新 runtime 生成 key `K2` 提交 runtime-key-request；controller 签 `ak.agent.key.authorize`(K2)，其 payload 带 `supersedes=[{key_id: K1, authorized_event_ref: <K1 authorize Event>}]`，再调用 `ak.gate.account.command.pair_agent_key.v1` 完成配对。
 4. 用 `K1` 再次请求 `agent_key_proof` session grant;`S1` 在 freshness window 后被使用。
 5. 变体 A:第 1 步的 handle 过期，未走到第 3 步。
 6. 变体 B:agent 已 `deactivated`,controller 调用 renew_pairing。
@@ -4288,7 +4288,7 @@ Steps:
 
 1. Controller provision agent；单一 `ak.agent.provision` 派生的 accountability projection 不声明 `expires_at`，`ak.agent.key.authorize` 不声明 `expires_at`，并授予不带 temporal constraint 的低风险内容 grant（如 `ak.agent.draft.propose` + 显式 resource selector）。
 2. 模拟长时间推移(超过任何常见部署 TTL,如 400 天)后,runtime 用 authorized key 签发 session 并执行 grant 内动作。
-3. Controller 执行 `ak.self.agent.command.pause`。
+3. Controller 执行 `ak.self.agent.command.pause.v1`。
 4. 提交 `risk_tier=high` action 的 agent grant(如 act-on-behalf 链路)但不带 `expires_at`。
 5. Controller 对同一 `(agent_id, key_id)` 提交 re-authorization，在 `seal_basis` view 中 observe 当前单一 authorize dot。
 6. 变体 A：两个 re-authorization 基于同一旧 `seal_basis` 并发，并声明不同的 scope / audience / `expires_at`。
@@ -4376,7 +4376,7 @@ Expected:
 
 Steps:
 
-1. Agent runtime 提交 `ak.gate.account.command.issue_session_grant`,`proof.proof_kind="agent_key_proof"`,proof 含 challenge / audience / request_canonical_digest / expires_at / signature。
+1. Agent runtime 提交 `ak.gate.account.command.issue_session_grant.v1`,`proof.proof_kind="agent_key_proof"`,proof 含 challenge / audience / request_canonical_digest / expires_at / signature。
 2. 第二次提交同样的 proof(同样 challenge / digest / signature)。
 3. 提交一份 audience 改成另一 service 的 proof。
 4. 把 proof.signature 改写但 challenge 不变。
@@ -4400,7 +4400,7 @@ Steps:
 Expected:
 
 - A 的 active session `S` MUST 在 revocation freshness window(≤ session TTL)内 fail closed。
-- A 后续任何 `ak.gate.account.command.issue_session_grant` MUST fail closed。
+- A 后续任何 `ak.gate.account.command.issue_session_grant.v1` MUST fail closed。
 - A MUST 立即离开相关 Sidecar effective access；服务端停止投递，并为每个受影响的 native Sidecar MLS group 建立 durable remove/epoch-rotation obligation。
 
 同一 vector 还必须覆盖 Agent 自身的 terminal deactivation：request 只携带一个 controller-signed
@@ -4450,7 +4450,7 @@ Steps:
 
 1. Realm A 中存在 weak semantic Relation `R1`，目标指向 Realm B 内对象；调用者 C 可读 Realm A，但不能 discover / reference Realm B。
 2. Realm A 中存在形态相同的 Relation `R2`，目标指向不存在或不可发现的 Realm / object id。
-3. C 分别调用 Relation projection query、`ak.self.events.read.scan` raw event API、backfill pull 与 federation peer fanout 视图。
+3. C 分别调用 Relation projection query、`ak.self.events.read.scan.v1` raw event API、backfill pull 与 federation peer fanout 视图。
 4. 在同一服务端测量点、同一请求类别与同一部署 profile 下，对 `R1` / `R2` 每类至少采样 30 次。
 5. Auditor D 同时持有 source + target disclosure，读取 `R1` 的完整 canonical event。
 
@@ -4532,7 +4532,7 @@ Expected:
 
 Steps（均以非 controller 且非其 owned Agent 的 caller 视角）:
 
-1. `ak.self.events.stream.subscribe` / `ak.self.events.read.scan` 目标 Realm。
+1. `ak.self.events.stream.subscribe.v1` / `ak.self.events.read.scan.v1` 目标 Realm。
 2. 对 `to_ref=<target_message_id>` 的 relation query。
 3. Realm directory 调用。
 4. 触发目标 Strand 的 notification fanout。
@@ -4555,7 +4555,7 @@ Steps:
 1. Alice 的 active owned Agents `{S, R}` 都是当前 Realm active member。S 已 paired/MLS-ready；R 尚未发布 KeyPackage。
 2. Alice 调用 ensure。
 3. R 发布 KeyPackage，服务端 async reconcile。
-4. Alice 调用 `ak.self.agent.command.deactivate` 对 R。
+4. Alice 调用 `ak.self.agent.command.deactivate.v1` 对 R。
 
 Expected:
 
@@ -4768,7 +4768,7 @@ Expected:
 
 Steps:
 
-1. Agent runtime 调用 `ak.gate.account.command.issue_session_grant`，`proof.proof_kind="agent_key_proof"`，`agent_scope_request` 覆盖某 participation-aware scope。
+1. Agent runtime 调用 `ak.gate.account.command.issue_session_grant.v1`，`proof.proof_kind="agent_key_proof"`，`agent_scope_request` 覆盖某 participation-aware scope。
 2. 服务端签发 session，响应 `scope_details.participation[]`。
 3. runtime 收到 `reply=false` 的 scope 后仍尝试 `ak.message.create`(模拟 runtime bug)。
 
@@ -4796,9 +4796,9 @@ Steps:
 
 Expected:
 
-- 第 1 步 MUST NOT 为 `A` 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入 `A` 的 `ak.self.events.stream.subscribe` 投影；抑制只针对 `A`，对 message 的其他 human target、shared history、其它投影无影响。
+- 第 1 步 MUST NOT 为 `A` 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入 `A` 的 `ak.self.events.stream.subscribe.v1` 投影；抑制只针对 `A`，对 message 的其他 human target、shared history、其它投影无影响。
 - 第 2 步照常投递(controller 自己的 mention 不受此 gate，仍受 `A` 是否被授权读取该 scope 约束)。
-- 第 3 步翻转 **非追溯**：第 1 步发生在 `false` 期间的历史 mention，翻转为 `true` 后对 `A` 仍 MUST 零记录(notification / inbox row / `ak.self.events.stream.subscribe` 投影皆无)。
+- 第 3 步翻转 **非追溯**：第 1 步发生在 `false` 期间的历史 mention，翻转为 `true` 后对 `A` 仍 MUST 零记录(notification / inbox row / `ak.self.events.stream.subscribe.v1` 投影皆无)。
 - 第 4 步在 `true` 期间的第三方 mention 照常投递，并受 `level=muted`、blocklist、DND、rate-limit 等既有更高优先级规则约束。
 
 ### 11.17 Vector: Agent Human Approval Required
@@ -4807,7 +4807,7 @@ Expected:
 
 Steps：
 
-1. Agent runtime 以 `proof.proof_kind="agent_key_proof"` 调用 `ak.gate.account.command.issue_session_grant`，请求 policy 标记为 high-risk 且需 controller 批准的 scope。
+1. Agent runtime 以 `proof.proof_kind="agent_key_proof"` 调用 `ak.gate.account.command.issue_session_grant.v1`，请求 policy 标记为 high-risk 且需 controller 批准的 scope。
 2. Account Authority 生成 opaque `approval_request_id`，但不向 runtime 返回人类交互 challenge。
 3. Controller 在带外 UI 批准，产生 accepted approval / capability / delegation evidence；agent 带该 evidence 重试。
 
@@ -5165,7 +5165,7 @@ Setup:
 
 1. Realm R 的 discoverability 为 `invite_only`，但 Alice 给 Bob 发出 `lt=preview` token。token payload 绑定 `target_digest`、`address_link_kind="preview"`、`preview_policy_digest`、`aud=Bob`、短 TTL。
 2. Effective `ak.realm.preview_policy.value.mode = "stripped_state"`，fields 只包含 `title`、`summary`、`join_rule`、`member_count_bucket`。
-3. Bob 调用 `ak.find.directory.read.resolve_target`，携带 address 与 token。
+3. Bob 调用 `ak.find.directory.read.resolve_target.v1`，携带 address 与 token。
 4. 攻击者 Mallory 把同一 token 放到另一个 Strand address，或把 URL `lt` 改为 `invite`。
 
 Expected:
@@ -5261,13 +5261,13 @@ Steps：
 
 - **Case A — roundtrip 正路径**：
   1. E2EE Realm 中 sender 发送密文消息；receiving service 按 §3.4 生成只含 `realm_id`、目标 `event_id`、`received_by`、`verification_method`、`received_at`、`replay_nonce`、`signature` 的 `ak.moderation.franking_proof` payload，并先发布为 durable proof Event。
-  2. reporter 提交 `ak.self.moderation.command.report`，附加密 evidence package（加密给 `effective_scope` 对应 moderator audience）与该 `franking_proof`。
+  2. reporter 提交 `ak.self.moderation.command.report.v1`，附加密 evidence package（加密给 `effective_scope` 对应 moderator audience）与该 `franking_proof`。
   3. moderator 按 §3.4.1 “Franking 信任链”步骤 1–6 验证目标 Event ID、历史 service key/binding、唯一 JCS 签名、byte-identical durable proof Event 与首次 covering Seal 的 inclusion/time anchor。
 - **Case B — 篡改 / 闭合字段违反**：(a) target Event bytes 或 `event_id`、Realm、service、received time/replay nonce 任一被篡改；(b) proof 携带 schema 外的 digest、sender claim、proof id、payload kind 或 plaintext body。
 
 Expected：
 
-- **Case A**：全部校验通过后，moderator MAY 把 `franking_proof` 视为可验证投递证明；evidence package MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料；举报 MUST NOT 触发任何治理密钥释放（§3.4.1：MUST NOT 把 `ak.self.moderation.command.report` 自动升级为 `ak.audit.session.request`）。
+- **Case A**：全部校验通过后，moderator MAY 把 `franking_proof` 视为可验证投递证明；evidence package MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料；举报 MUST NOT 触发任何治理密钥释放（§3.4.1：MUST NOT 把 `ak.self.moderation.command.report.v1` 自动升级为 `ak.audit.session.request`）。
 - **Case B(a)**：任一 Event commitment、签名、historical binding、nonce 或 Seal observation 环节不符时，moderator MAY 把材料作为人工线索，但 MUST NOT 将该 `franking_proof` 视为可验证投递证明。
 - **Case B(b)**：closed schema / receiver MUST 拒绝全部 schema 外字段与 plaintext body。
 
@@ -5398,7 +5398,7 @@ log 并参与后续 federation / snapshot；重启回放或从 sealed cell store
 
 `vector_id`: `ak.vector.key_backup.unlock_proof.v1`
 
-本向量固化 [`key-management.md`](../identity/key-management.md) §7.7.1 / §7.8 的取回校验 MUST：取回完整 ciphertext 的协议操作是 `ak.self.keys.backups.command.unlock`（`POST /_arkret/self/keys/backups/{backup_id}/unlock`），unlock proof MUST 作为 request body 的 `proof` 字段提交；“服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed”；“`POST /_arkret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof……bearer token 单独到达 MUST 被拒绝”。
+本向量固化 [`key-management.md`](../identity/key-management.md) §7.7.1 / §7.8 的取回校验 MUST：取回完整 ciphertext 的协议操作是 `ak.self.keys.backups.command.unlock.v1`（`POST /_arkret/self/keys/backups/{backup_id}/unlock`），unlock proof MUST 作为 request body 的 `proof` 字段提交；“服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed”；“`POST /_arkret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof……bearer token 单独到达 MUST 被拒绝”。
 
 Steps：
 
@@ -5577,7 +5577,7 @@ Expected：
 
 本向量固化 §2.6.2 的优先序、复用与幂等 consume MUST：池中存在普通包时 claim MUST 优先返回普通包，仅普通包池空时 MAY 返回 `last_resort=true` 包；last-resort 包 MUST NOT 进入单次 `claimed` / `consumed` 状态，而是始终保持 `published`，每次领取以独立 `keypackage_claim_record` 表达；`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` MUST 被识别为幂等（返回成功但不改 `published`，不得返回 `keypackage_already_consumed`）；每次消费 MUST 追加 claim audit record，不得伪造 KeyPackage FSM transition。
 
-Steps（前置：服务端在 `ak.server.read.describe.supported_features` 声明 `ak.feature.mls_last_resort_keypackage.v1`，目标 Realm policy 允许 last-resort join）：
+Steps（前置：服务端在 `ak.server.read.describe.v1.supported_features` 声明 `ak.feature.mls_last_resort_keypackage.v1`，目标 Realm policy 允许 last-resort join）：
 
 1. 该 Realm 的普通（单次）KeyPackage 池耗尽；requester 发起 claim。
 2. 同一 `intended_realm_id` 内对该 last-resort 包发起多次 Welcome（多次 claim / consume）。
@@ -5616,7 +5616,7 @@ Expected：
 Steps：
 
 - **Case A — 跨 Realm 复用拒绝**：声明该 feature 的服务端，尝试把绑定 `intended_realm_id = R1` 的 last-resort 包用于另一 Realm `R2` 的 Welcome / claim（`intended_realm_id` 不一致）。
-- **Case B — 未声明 feature 池空 fail-closed**：未在 `ak.server.read.describe.supported_features` 声明 `ak.feature.mls_last_resort_keypackage.v1` 的服务端，其某 Realm 普通包池耗尽；requester claim，并显式请求 last-resort 回退。
+- **Case B — 未声明 feature 池空 fail-closed**：未在 `ak.server.read.describe.v1.supported_features` 声明 `ak.feature.mls_last_resort_keypackage.v1` 的服务端，其某 Realm 普通包池耗尽；requester claim，并显式请求 last-resort 回退。
 - **Case C — holder 无该 Realm 条目（对照）**：声明该 feature 但 holder 离线期间某 Realm 尚无 last-resort 条目，该 Realm 普通包池空。
 - **Case D — 高保证 profile 禁用**：服务端全局支持 `ak.feature.mls_last_resort_keypackage.v1`，但目标 Realm 声明 `ak.profile.high_security_organization.v1` 或 `ak.profile.sovereign_deployment.v1`。
 
@@ -5692,7 +5692,7 @@ Expected：
 
 `vector_id`: `ak.vector.applet.transaction_delivery_authentication_record_digest.v1`
 
-本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 closed `delivery_authentication_record` 及其 domain-separated digest，幂等 identity 绑定 `operation_id`、方向、source/destination service `did_core_id` 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 receiver 重算的 authentication-record digest。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
+本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction.v1` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 closed `delivery_authentication_record` 及其 domain-separated digest，幂等 identity 绑定 `operation_id`、方向、source/destination service `did_core_id` 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 receiver 重算的 authentication-record digest。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
 
 Steps：
 
@@ -5845,7 +5845,7 @@ runner MUST 实际验证 challenge 消费、proof 绑定与状态机转移，只
 - 要求 distinct controlling organization 时，两个 witness key 同属一个组织 → `webvh_witness_controlling_organization_unverified`。计数按控制组织而非按 key，否则单一运营方持多把 key 即可独自满足"两个不同组织"；
 - evidence 超过生效 max age → `webvh_witness_evidence_stale`。age 自 `observed_at` 起算，重新签发旧观测不构成刷新。
 
-**Arkret 层**：`ak.schema.did_webvh_witness_receipt.v1` 与 `ak.schema.identity_receipt.v1` 是两个不同对象族，经 `ak.root.identity.receipts.read.list` 以 `schema` 常量为 discriminator 的 tagged union 返回。runner MUST 验证：两族可在同一响应中共存并被正确分支；receipt 缺 `expires_at` 或 `controlling_organization` MUST 被拒（前者会让缓存记录退化为永久断言，后者使该 receipt 无法计入 distinct-organization）；`witness_did` 非 `did:key` MUST 被拒；receipt 携带 `max_age_seconds` 等 policy 字段 MUST 被拒——receipt 记录观测，不承载 policy，否则新鲜度门槛会落回被审对象手中。
+**Arkret 层**：`ak.schema.did_webvh_witness_receipt.v1` 与 `ak.schema.identity_receipt.v1` 是两个不同对象族，经 `ak.root.identity.receipts.read.list.v1` 以 `schema` 常量为 discriminator 的 tagged union 返回。runner MUST 验证：两族可在同一响应中共存并被正确分支；receipt 缺 `expires_at` 或 `controlling_organization` MUST 被拒（前者会让缓存记录退化为永久断言，后者使该 receipt 无法计入 distinct-organization）；`witness_did` 非 `did:key` MUST 被拒；receipt 携带 `max_age_seconds` 等 policy 字段 MUST 被拒——receipt 记录观测，不承载 policy，否则新鲜度门槛会落回被审对象手中。
 
 receipt 与 `threshold_met` 均 MUST NOT 替代对标准 `did-witness.json` proof、entry hash chain 与 controller proof 的直接验证；`threshold_met` 缺席 MUST NOT 被读作 `true`。
 
@@ -5991,7 +5991,7 @@ Steps:
 
 1. default consent profile + 高信任 evidence + holder 无 active invite grant，投递 invite。
 2. 对同一 `(requester, holder)` 分别触发：限速静默丢弃、TTL 超时丢弃、holder 不存在、holder policy deny。
-3. 对同一输入分别经 invite delivery、contact delivery 与 `ak.self.consent.command.request` 三条通道观测。
+3. 对同一输入分别经 invite delivery、contact delivery 与 `ak.self.consent.command.request.v1` 三条通道观测。
 
 Expected:
 
@@ -6029,7 +6029,7 @@ Expected:
 - 负例：坏 `gate_audience`、坏 `request_canonical_digest`、旧 `pairing_code`、跨 request 重放、过期窗口外、改 key、坏签名、proof `kid` 与 `new_device_pubkey.kid` 不等、proof 使用已废弃的 `verification_method` 字段名承载 device key id、路径 A 的 proof 用于路径 B，一律 MUST 拒绝。
 - 负例：正文旧示例形态 `{kid, alg, public_key}` MUST 被 canonical `PublicKey` schema 拒绝（缺 `kty` / 缺 `key` / 多余 `public_key`）。
 - 负例：stage 请求携带 challenge proof MUST `schema_violation`（proof 必须承诺 stage 才铸出的值，因此不可能在 stage 时存在）。
-- 负例：`ak.gate.account.command.pair_device` 同时携带 `device_pairing_request_id` 与 `challenge_transcript`，或两者都不携带，MUST `schema_violation`（schema 以 `oneOf` 强制该 XOR，gate 必须确定该用哪套 transcript）。
+- 负例：`ak.gate.account.command.pair_device.v1` 同时携带 `device_pairing_request_id` 与 `challenge_transcript`，或两者都不携带，MUST `schema_violation`（schema 以 `oneOf` 强制该 XOR，gate 必须确定该用哪套 transcript）。
 - 负例：路径 B 下 gate 采用请求体提供的 `gate_audience` 而非自身 origin，视为不合规——那会让跨 Account Authority 重放重新成立。
 
 `vector_id`: `ak.vector.device_pairing.accepted_device_attestation.v1`
@@ -6049,7 +6049,7 @@ Expected:
 - 正例：路径 A 与路径 B 共享同一个 `device_pairing_target_attestation` schema 与同一个 domain；路径判别由 `pairing_challenge_transcript_digest` 所承诺的封闭 challenge transcript 承担。
 - 正例：`hpke_key` 与 `algorithms` 只从验签通过的 attestation 取得；stage 请求与 `DevicePairingBootstrap` 都不承载这两个值。
 - 负例：attestation 的 `pairing_challenge_transcript_digest` 与本次 pairing 重算得到的 `transcript_digest` 不等 MUST 拒绝，且 MUST 在验签之前拒绝。
-- 负例：attestation 的 `hpke_key` 与 `ak.gate.account.command.pair_device` 的 `hpke_key` 或 `authorize_event.event.payload.hpke_key` 不一致 MUST 拒绝；`algorithms` / `device_public_key` / `device_id` 同理。
+- 负例：attestation 的 `hpke_key` 与 `ak.gate.account.command.pair_device.v1` 的 `hpke_key` 或 `authorize_event.event.payload.hpke_key` 不一致 MUST 拒绝；`algorithms` / `device_public_key` / `device_id` 同理。
 - 负例：把 `root_anchored` 的 `ak.device_authorize_possession_proof.v1` transcript 用于 `accepted_device`，或把 `accepted_device` attestation 用于 genesis / re-anchor 的第二条 authorize，双向 MUST 拒绝。
 - 负例：attestation 的 `device_public_key` 与 `new_device_pubkey.key` 解码为不同 key，或 `device_id` 与 `new_device_pubkey.kid` 不等，MUST 拒绝。
 - 负例：把 attestation 经免认证 stage / resolve 面回传，或在 `DevicePairingBootstrap` 中镜像 `hpke_key` / `algorithms`，视为不合规。
@@ -6524,7 +6524,7 @@ Runner MUST 加载
    `record_sequence=from_record_sequence+1`、`previous_record_digest=from_record_digest` 的
    `ServiceResolutionRecord`，并通过 method history、freshness、SSRF 与 describe reverse binding，才能成为
    effective route。wrong core、sequence gap、wrong predecessor 或 describe mismatch 均 fail closed。
-5. `ak.peer.service_resolution.command.publish` 必须同时验证两个独立 durable 幂等键：transport key 是
+5. `ak.peer.service_resolution.command.publish.v1` 必须同时验证两个独立 durable 幂等键：transport key 是
    `(source_service_id, realm_id, request_id)` 并绑定 complete canonical `request_digest`，HTTP
    `Idempotency-Key` 必须逐字等于 body `request_id`；artifact integrity key 是
    `(source_service_id, realm_id, artifact_key)` 并绑定 `artifact_digest`。同 transport key、同 request digest
@@ -6534,7 +6534,7 @@ Runner MUST 加载
    publisher 必须按 sequence 逐份 publish 每条缺失 `ServiceResolutionRecord`，逐份取得 durable ack 并推进
    floor，最后才以新的独立 request publish notice；缺少任一前置 record ack 时 notice 必须
    `service_route_notice_basis_stale`，且 notice ack 不得被解释为整条 record chain 的原子 ack。
-7. `ak.peer.service_resolution.read.resolve` 最多返回 32 条连续 successor，canonical response 至多
+7. `ak.peer.service_resolution.read.resolve.v1` 最多返回 32 条连续 successor，canonical response 至多
    256 KiB；33 条与 256 KiB+1 均拒绝或截成仍连续的合法 page，不得跳 gap；
    `successor_records=[]` 与 `has_more=true` 的组合必须 schema-invalid。认证/当前 peer/target visibility gate
    失败统一为 `capability_denied`；通过 gate 后的 unknown、invisible、not-held、gap、fork、cancelled、expired
@@ -6575,7 +6575,7 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 5. 全部 witness 失效时必须在网络发送前 terminal CAS 为 `cancelled_authority_lost`；后来相同 member/service 的
    新 join/rebind 不能复活旧 intent。
 6. 长期离线 target 不阻塞同 Realm 后续合法 Event；每个 Event 冻结自己的 authority generation 和独立 intent。
-7. `ak.self.events.read.delivery_status` 对可见 Event 返回按 opaque target_id 排序的完整 target set；service_id
+7. `ak.self.events.read.delivery_status.v1` 对可见 Event 返回按 opaque target_id 排序的完整 target set；service_id
    只在 caller 当前可读对应 member delivery-binding 时出现。unknown 与不可见 Event 统一 `not_found`，query
    不得触发 route lookup、retry 或状态转换。
 8. submit outcome 保留的 `pending_delivery_count` 必须精确等于 pending_route 与 pending_delivery rows 数；read outcome 由完整 `targets[]` 现算该 count。两者的 aggregate state 均由 count 唯一派生：零为 complete，非零为 pending，wire 不重复携带 state。
@@ -6592,7 +6592,7 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 
 Runner MUST 覆盖：
 
-1. `ak.peer.events.command.submit` 的成功 outcome MUST 为 `accepted[] ∪ duplicate[]` 中每个 Native Agent Event
+1. `ak.peer.events.command.submit.v1` 的成功 outcome MUST 为 `accepted[] ∪ duplicate[]` 中每个 Native Agent Event
    返回恰好一个 receiver-signed `agent_event_admission_receipts[]` 项；非 Agent Event 不产生 receipt；
    `rejected[]`、`quarantine[]` 与 dependency-missing 项 MUST NOT 签发或返回 receipt；self submit outcome 不带该字段。
 2. receipt MUST 与 Event durable acceptance 在同一事务写入。receipt 写入失败 MUST 使该 Event 的接受整体回滚，

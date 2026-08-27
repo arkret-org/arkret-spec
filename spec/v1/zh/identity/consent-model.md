@@ -126,7 +126,7 @@ Payload-only schema 示例：
 }
 ```
 
-Event `actor_id` 与认证 holder MUST 是 holder Principal Control Realm 当前 authority-root controller，且 `authorization_ref` MUST 绑定当前 authority-root 授权。`ak.consent.grant` / `ak.consent.revoke` 是 `root_control_only` action，不支持由不同主体独立 managed-behalf 执行，也不可作为 `consent_write` capability 授予 controller / agent；通用 PCR write、co-owner grant、agent 自动化权限、payload approval evidence 或 `ak.self.events.command.submit` 均不得替代 authority-root authorization。普通 Event admission MUST 验证上述约束，缺失或由其他 actor 提交时 MUST 以 `unauthorized` reject。
+Event `actor_id` 与认证 holder MUST 是 holder Principal Control Realm 当前 authority-root controller，且 `authorization_ref` MUST 绑定当前 authority-root 授权。`ak.consent.grant` / `ak.consent.revoke` 是 `root_control_only` action，不支持由不同主体独立 managed-behalf 执行，也不可作为 `consent_write` capability 授予 controller / agent；通用 PCR write、co-owner grant、agent 自动化权限、payload approval evidence 或 `ak.self.events.command.submit.v1` 均不得替代 authority-root authorization。普通 Event admission MUST 验证上述约束，缺失或由其他 actor 提交时 MUST 以 `unauthorized` reject。
 
 `dot` 由 `ak:event:<enclosing event_id>:<write_index>` 派生，全局唯一。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or_set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
 
@@ -268,7 +268,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 §3.1 缺省判定与 §6.1 step 2 提到的 **quarantine inbox** 是 default profile 下"无 active consent 的 invite"既不直接拒绝、也不直接放行的暂存区，其最小定义如下：
 
-- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder 的 Principal Server CAS account-data cell（key `ak.account.invite_quarantine`，plaintext value 符合 `ak.schema.invite_quarantine.v1`）。权威状态只在该 cell；实时提示经 account subscribe 的 `to_device.messages[]` rail 以 `ak.account_data.update` service-sender envelope 投递，离线补取/重建经 `ak.self.account_data.read.list` 或 `ak.self.account_data.resource.get`。该 CAS-only cell **不会**出现在 `delta.account_data.events[]`，也不得被合成为 authorless 或 service-authored `ak.account_data.set` Event。每条暂存项记录待 review 的 invite 引用（invite event_id / 来源 peer DID / consent_scope / 收到时间）,**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。
+- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder 的 Principal Server CAS account-data cell（key `ak.account.invite_quarantine`，plaintext value 符合 `ak.schema.invite_quarantine.v1`）。权威状态只在该 cell；实时提示经 account subscribe 的 `to_device.messages[]` rail 以 `ak.account_data.update` service-sender envelope 投递，离线补取/重建经 `ak.self.account_data.read.list.v1` 或 `ak.self.account_data.resource.get.v1`。该 CAS-only cell **不会**出现在 `delta.account_data.events[]`，也不得被合成为 authorless 或 service-authored `ak.account_data.set` Event。每条暂存项记录待 review 的 invite 引用（invite event_id / 来源 peer DID / consent_scope / 收到时间）,**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。
 - **生命周期与 TTL**：暂存项停留在 `pending_review` 直到 holder 在 UI review;实现 SHOULD 为暂存项设置 deployment-policy 声明的 TTL（缺省建议 30 天）,超时后 MUST 按"丢弃"处理（等价 holder 未授权，不得自动转 grant）。
 - **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ak.consent.grant` Control Move 写入 consent cell（此后该 peer 的 invite 走正常 active-grant 路径）,并 MAY 接受原 invite;(b) **丢弃** → 删除暂存项，不产生任何 consent dot。review 动作本身不绕过 consent cell:授权始终经 grant Control Move 落入 consent cell,quarantine inbox 永远不是授权根。
 - **profile 边界**：quarantine inbox 仅在 default profile 生效;`require_explicit_consent` profile 下无 active grant 的 invite 直接 `failed_precondition` 拒绝(§6.1 step 2),不进入 quarantine inbox。
@@ -281,13 +281,13 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
   requester 只有在 holder 显式 review 接受并构造 grant Control Move(本节 review 后转换 (a))后，才 MAY 从正常 active-grant 路径观察到可联系状态。否则 quarantine 暂存本身会成为"holder 真实存在且 inbox 可达"的可联系侧信道，违背 consent gate 的"非授权即不可联系"语义。
 - **反滥用限速（normative）**：为闭合"换 pairwise DID 即重新入列"的骚扰放大面，服务端对写入同一 holder quarantine inbox 的**新来源**（此前未见过的 `peer` pairwise DID）首次接触项 MUST 施加 per-holder 速率与总量上限（与 [`../discovery/discovery-directory.md` §6.4](../discovery/discovery-directory.md) 的 private contact discovery 限速同构；具体阈值由 deployment policy 声明，缺省 SHOULD 收敛到与该 PSI quota 同量级）。超过上限的新来源接触 MUST 被静默丢弃——不入列、不向 requester 暴露任何送达 / 可联系信号（遵守上一条不可区分要求）；holder MAY 在 UI 显式放宽。该限速仅针对"新陌生 pairwise 首次接触"；已被 holder grant 过、走正常 active-grant 路径的 peer 不受此限。
 
-#### 6.1.2 `ak.self.consent.command.request`（normative）
+#### 6.1.2 `ak.self.consent.command.request.v1`（normative）
 
 该 self-surface operation 只把 authenticated actor 的请求提交给上述 quarantine/anti-abuse pipeline；它**不**创建 consent grant dot、pending consent state 或 contact fact。peer principal 只取认证上下文，不由 request body 携带。
 
 服务端对 holder 不存在、holder policy deny、per-holder 限速、静默丢弃与成功进入 quarantine MUST 返回完全相同的 `consent_request_outcome {accepted_for_processing:true}`，并 SHOULD 做统一时序填充。响应 MUST NOT 包含 cell id、state、dots、expiry、request timestamp、account-existence flag 或可关联 queue id。写入 quarantine 时必须执行 §6.1.1 的总量/速率上限；`require_explicit_consent` profile 下请求被静默丢弃，仍返回相同 opaque outcome。
 
-完整 consent cell 查询 `ak.self.consent.read.list` / `.resource.get` 仅允许 holder 或 holder 明确授权的 controller 调用。Peer MUST NOT 读取 consent cell、grant/revoked dots、expiry 或 request history；peer 若获 holder 主动披露，只能消费 §2.1/§6.2.2 定义的 audience-bound 短期 opaque green-light。
+完整 consent cell 查询 `ak.self.consent.read.list.v1` / `.resource.get` 仅允许 holder 或 holder 明确授权的 controller 调用。Peer MUST NOT 读取 consent cell、grant/revoked dots、expiry 或 request history；peer 若获 holder 主动披露，只能消费 §2.1/§6.2.2 定义的 audience-bound 短期 opaque green-light。
 
 **UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 明确披露两点语义：已发出的 invite 不会因 consent revoke 自动失效；如需撤销已发出的 invite，必须单独执行 `ak.invite.revoke`。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
 
@@ -297,7 +297,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 WebRTC `ak.call.signal{signal_kind=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Principal Server sync surface 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 
-`ak.self.direct_conversation.read.resolve`与§5.4的DM founding admission均不得查询Consent。普通分支只验证双方current directional Contact heads与source freshness；owned-Agent分支验证immutable controller/provision/runtime binding。无权主体统一opaque unavailable。其它基于Consent的一次性通信若未来需要，必须另行注册operation/profile，不得复用resolver或伪造Contact。
+`ak.self.direct_conversation.read.resolve.v1`与§5.4的DM founding admission均不得查询Consent。普通分支只验证双方current directional Contact heads与source freshness；owned-Agent分支验证immutable controller/provision/runtime binding。无权主体统一opaque unavailable。其它基于Consent的一次性通信若未来需要，必须另行注册operation/profile，不得复用resolver或伪造Contact。
 
 `ak.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 
@@ -316,7 +316,7 @@ contact discovery / PSI 端点 MUST 按 `(requester, holder)` 维度限速，防
 
 ## 7. MIMI Interop
 
-MIMI 协议有 `request_consent` / `update_consent` 操作（`ak.open.mimi.command.request_consent` / `ak.open.mimi.command.update_consent`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
+MIMI 协议有 `request_consent` / `update_consent` 操作（`ak.open.mimi.command.request_consent.v1` / `ak.open.mimi.command.update_consent.v1`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
 
 - 接收 MIMI consent update：facade MUST 先验证私有 request correlation 声明的 holder、Event actor 与认证主体均是该 holder Principal Control Realm 当前 authority-root controller，且 `authorization_ref` 绑定该 authority root；不同主体的 managed-behalf 执行不受支持。facade MUST 把调用方携带的 exact `ak.consent.grant` / `ak.consent.revoke` `EventInitialSubmission` 原样送入普通 Event admission，不得构造、代签或重建该 Control Move。只有 accepted Event 才能写入 holder principal control Realm 的 consent cell。
 - 发送 Arkret consent state 到 MIMI：facade MUST 把当前 consent cell or_set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。

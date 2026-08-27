@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.3",
+  "version": "2026-08-27.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -114,7 +114,7 @@
       "binding_event_kind": "ak.sidecar.create",
       "binding_ref_role": "sidecar_parent_realm",
       "action_allowlist": [
-        "ak.self.agent.sidecar.command.ensure"
+        "ak.self.agent.sidecar.command.ensure.v1"
       ],
       "activation_checks": [
         "controller_current_and_exact",

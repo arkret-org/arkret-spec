@@ -69,6 +69,12 @@ OPERATION_STRING_CLASSIFICATION_SCRIPT = Path(__file__).with_name(
 OPERATION_STRING_CLASSIFICATION_TEST = Path(__file__).with_name(
     "test_operation_string_field_classification.py"
 )
+OPENAPI_OPERATION_SELECTOR_SCRIPT = Path(__file__).with_name(
+    "check_openapi_operation_selectors.py"
+)
+OPERATION_CLOSURE_LOCK_SCRIPT = Path(__file__).with_name(
+    "check_operation_closure_locks.py"
+)
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
@@ -1223,10 +1229,26 @@ def run_operation_string_classification_test() -> int:
     return result.returncode
 
 
+def run_openapi_operation_selector(mode: str) -> int:
+    result = subprocess.run(
+        [sys.executable, str(OPENAPI_OPERATION_SELECTOR_SCRIPT), mode], cwd=ROOT
+    )
+    return result.returncode
+
+
+def run_operation_closure_locks(mode: str) -> int:
+    result = subprocess.run(
+        [sys.executable, str(OPERATION_CLOSURE_LOCK_SCRIPT), mode], cwd=ROOT
+    )
+    return result.returncode
+
+
 def cmd_generate(_: argparse.Namespace) -> int:
     write_capability_action_derivations()
     write_id_wire_form_derivations()
     write_openapi_policy_projection()
+    selector_status = run_openapi_operation_selector("generate")
+    closure_status = run_operation_closure_locks("generate")
     write_derived_registry_views()
     write_operation_schema_index()
     write_public_registry_snapshot()
@@ -1237,7 +1259,9 @@ def cmd_generate(_: argparse.Namespace) -> int:
     string_classification_status = run_operation_string_classification("generate")
     print_contract_status()
     return (
-        completeness_status
+        selector_status
+        or closure_status
+        or completeness_status
         or event_reference_status
         or presence_status
         or coverage_status
@@ -1262,6 +1286,8 @@ def cmd_check(_: argparse.Namespace) -> int:
         return 1
     print_contract_status()
     checks = (
+        lambda: run_openapi_operation_selector("check"),
+        lambda: run_operation_closure_locks("check"),
         lambda: run_operation_completeness_report("check"),
         lambda: run_event_reference_inventory("check"),
         run_payload_validator_profile_check,

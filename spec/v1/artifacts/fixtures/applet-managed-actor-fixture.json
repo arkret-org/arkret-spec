@@ -100,7 +100,7 @@
     },
     {
       "name": "peer_federation_cannot_split_managed_authority",
-      "mutation": "submit the applet PCR genesis through ak.peer.events.command.submit with a peer_federated_event admission",
+      "mutation": "submit the applet PCR genesis through ak.peer.events.command.submit.v1 with a peer_federated_event admission",
       "expect": "applet_managed_pcr_genesis_requires_closed_aggregate"
     },
     {

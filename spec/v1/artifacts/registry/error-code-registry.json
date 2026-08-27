@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-27.3",
-  "generated_at": "2026-08-27T09:00:00+08:00",
+  "version": "2026-08-27.4",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -246,7 +246,7 @@
       "code": "reauthentication_required",
       "http_status": 401,
       "scope": "endpoint",
-      "description": "A high-risk self-service action (for example ak.gate.account.command.request_erasure) requires fresh high-risk action authentication — recent login, WebAuthn, recovery key or a deployment equivalent — and the presented session does not satisfy the deployment policy. The caller MUST re-authenticate and retry with new request material; the strength of the required proof is deployment governance. See zh/identity/account-lifecycle.md section 8.1 and section 10.",
+      "description": "A high-risk self-service action (for example ak.gate.account.command.request_erasure.v1) requires fresh high-risk action authentication — recent login, WebAuthn, recovery key or a deployment equivalent — and the presented session does not satisfy the deployment policy. The caller MUST re-authenticate and retry with new request material; the strength of the required proof is deployment governance. See zh/identity/account-lifecycle.md section 8.1 and section 10.",
       "type_uri": "https://arkret.org/problems/reauthentication_required",
       "title": "Reauthentication required"
     },
@@ -490,7 +490,7 @@
       "code": "signal_class_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "ak.self.signal.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that signal kind.",
+      "description": "ak.self.signal.command.send.v1 rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that signal kind.",
       "type_uri": "https://arkret.org/problems/signal_class_denied",
       "title": "Signal class denied"
     },
@@ -498,7 +498,7 @@
       "code": "signal_ttl_out_of_range",
       "http_status": 400,
       "scope": "service_call",
-      "description": "ak.self.signal.command.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range.",
+      "description": "ak.self.signal.command.send.v1 rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range.",
       "type_uri": "https://arkret.org/problems/signal_ttl_out_of_range",
       "title": "Signal ttl out of range"
     },
@@ -506,7 +506,7 @@
       "code": "signal_rail_unavailable",
       "http_status": 503,
       "scope": "service_call",
-      "description": "ak.self.signal.command.send could not enqueue or fan out the transient signal because the signal channel is temporarily unavailable; durable Event history is not affected.",
+      "description": "ak.self.signal.command.send.v1 could not enqueue or fan out the transient signal because the signal channel is temporarily unavailable; durable Event history is not affected.",
       "type_uri": "https://arkret.org/problems/signal_rail_unavailable",
       "title": "Signal rail unavailable"
     },
@@ -802,7 +802,7 @@
       "code": "rate_limited",
       "http_status": 429,
       "scope": "both",
-      "description": "The caller exceeded the current rate limit policy. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "description": "The caller exceeded the current rate limit policy. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/rate_limited",
       "title": "Rate limited"
     },
@@ -1106,7 +1106,7 @@
       "code": "push_gateway_unreachable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The push gateway or downstream push provider could not be reached or is unavailable for this route. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "description": "The push gateway or downstream push provider could not be reached or is unavailable for this route. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/push_gateway_unreachable",
       "title": "Push gateway unreachable"
     },
@@ -1114,7 +1114,7 @@
       "code": "push_payload_too_large",
       "http_status": 413,
       "scope": "endpoint",
-      "description": "The notification payload exceeds the push profile, provider, or deployment size limit. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "description": "The notification payload exceeds the push profile, provider, or deployment size limit. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/push_payload_too_large",
       "title": "Push payload too large"
     },
@@ -1122,7 +1122,7 @@
       "code": "push_target_unknown",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The requested push target, device route, or notification subscription is unknown or no longer visible. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "description": "The requested push target, device route, or notification subscription is unknown or no longer visible. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/push_target_unknown",
       "title": "Push target unknown"
     },
@@ -1130,7 +1130,7 @@
       "code": "push_token_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The supplied push token is malformed, fails provider validation, or is not bound to the authenticated principal/device. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "description": "The supplied push token is malformed, fails provider validation, or is not bound to the authenticated principal/device. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/push_token_invalid",
       "title": "Push token invalid"
     },
@@ -1138,7 +1138,7 @@
       "code": "push_token_unknown",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The push token or registration id is unknown, revoked, expired, or already unregistered. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "description": "The push token or registration id is unknown, revoked, expired, or already unregistered. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/push_token_unknown",
       "title": "Push token unknown"
     },
@@ -1402,7 +1402,7 @@
       "code": "unsupported_profile",
       "http_status": 422,
       "scope": "both",
-      "description": "The selected operation, portable artifact, Realm genesis, or Realm reducer-profile control state requires a profile or feature the service does not implement. Reducer support is advertised in ServiceDescribe.supported_reducer_profiles; other capabilities use supported_features / supported_profiles. The server MUST fail closed and MUST NOT substitute a local default or permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "description": "The selected operation, portable artifact, Realm genesis, or Realm reducer-profile control state requires a profile or feature the service does not implement. Reducer support is advertised in ServiceDescribe.supported_reducer_profiles; other capabilities use supported_features / supported_profiles. The server MUST fail closed and MUST NOT substitute a local default or permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/unsupported_profile",
       "title": "Unsupported profile"
     },
@@ -1410,7 +1410,7 @@
       "code": "unsupported_join_rule",
       "http_status": 422,
       "scope": "both",
-      "description": "A third-party (3PID) invite claim targeted a join-rule Realm whose continuation profile is outside v1 base conformance (e.g. knock_restricted) and the deployment has not declared the required candidate profile in ak.find.directory.read.describe / ak.account.describe. The verification service MUST reject the token claim instead of silently downgrading. See zh/sync/third-party-invites.md §4.3.",
+      "description": "A third-party (3PID) invite claim targeted a join-rule Realm whose continuation profile is outside v1 base conformance (e.g. knock_restricted) and the deployment has not declared the required candidate profile in ak.find.directory.read.describe.v1 / ak.account.describe. The verification service MUST reject the token claim instead of silently downgrading. See zh/sync/third-party-invites.md §4.3.",
       "type_uri": "https://arkret.org/problems/unsupported_join_rule",
       "title": "Unsupported join rule"
     },
@@ -1450,7 +1450,7 @@
       "code": "contact_request_not_pending",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond or ak.self.contact.command.reject targets a request that has already been accepted, rejected, tombstoned, withdrawn, or otherwise left the pending state.",
+      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond.v1 or ak.self.contact.command.reject.v1 targets a request that has already been accepted, rejected, tombstoned, withdrawn, or otherwise left the pending state.",
       "type_uri": "https://arkret.org/problems/contact_request_not_pending",
       "title": "Contact request not pending"
     },
@@ -1458,7 +1458,7 @@
       "code": "contact_request_expired",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond or ak.self.contact.command.reject targets a contact request older than contact_request_pending_ttl. The request projection is expired and no terminal response may be authored from it.",
+      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond.v1 or ak.self.contact.command.reject.v1 targets a contact request older than contact_request_pending_ttl. The request projection is expired and no terminal response may be authored from it.",
       "type_uri": "https://arkret.org/problems/contact_request_expired",
       "title": "Contact request expired"
     },
@@ -1503,6 +1503,22 @@
       "title": "Unsupported protocol version"
     },
     {
+      "code": "operation_selector_required",
+      "http_status": 400,
+      "scope": "both",
+      "description": "A canonical operation carrier omitted its mandatory exact operation selector. HTTP requests, including ServiceDescribe, require Arkret-Operation before body parsing; WebSocket open frames require operation_id; TUS creation requests require Arkret-Operation. Receivers MUST NOT infer the operation from the route or payload shape.",
+      "type_uri": "https://arkret.org/problems/operation_selector_required",
+      "title": "Operation selector required"
+    },
+    {
+      "code": "unsupported_operation_version",
+      "http_status": 422,
+      "scope": "both",
+      "description": "The supplied exact versioned operation selector is unknown, is not supported on the selected carrier, or does not belong to the selected route family. Receivers MUST fail closed without version fallback, alias resolution, or payload-shape inference.",
+      "type_uri": "https://arkret.org/problems/unsupported_operation_version",
+      "title": "Unsupported operation version"
+    },
+    {
       "code": "genesis_seal_invalid",
       "http_status": 422,
       "scope": "both",
@@ -1538,7 +1554,7 @@
       "code": "delivery_binding_stale",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_service_id and handover_frontier so the sender can retry at the current service. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[]).",
+      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_service_id and handover_frontier so the sender can retry at the current service. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/delivery_binding_stale",
       "title": "Delivery binding stale"
     },
@@ -1585,7 +1601,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "ak.self.applet.command.install recomputed the canonical InstallPlan from the submitted Applet Package, caller-signed registration/capability-grant Events, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before formal Event admission. See zh/extensions/applet-integration.md §4b.",
+      "description": "ak.self.applet.command.install.v1 recomputed the canonical InstallPlan from the submitted Applet Package, caller-signed registration/capability-grant Events, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before formal Event admission. See zh/extensions/applet-integration.md §4b.",
       "type_uri": "https://arkret.org/problems/applet_install_plan_mismatch",
       "title": "Applet install plan mismatch"
     },
@@ -1610,7 +1626,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ak.self.applet.command.revoke / ak.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b.",
+      "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ak.self.applet.command.revoke.v1 / ak.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b.",
       "type_uri": "https://arkret.org/problems/applet_revoked",
       "title": "Applet revoked"
     },
@@ -1622,7 +1638,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ak.self.account.command.update_profile` received an `avatar_blob_ref` that is not a valid Arkret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is not a protocol field.",
+      "description": "`ak.self.account.command.update_profile.v1` received an `avatar_blob_ref` that is not a valid Arkret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is not a protocol field.",
       "type_uri": "https://arkret.org/problems/avatar_blob_ref_invalid",
       "title": "Avatar blob ref invalid"
     },
@@ -1634,7 +1650,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ak.self.account.command.update_profile` received a patch path outside the account self-service allowlist (`display_name`, `avatar_blob_ref`, `profile_fields.<key>`). Handle, lifecycle, principal, actor_kind, accountability, authorization, and handle-claim paths MUST be rejected instead of silently ignored.",
+      "description": "`ak.self.account.command.update_profile.v1` received a patch path outside the account self-service allowlist (`display_name`, `avatar_blob_ref`, `profile_fields.<key>`). Handle, lifecycle, principal, actor_kind, accountability, authorization, and handle-claim paths MUST be rejected instead of silently ignored.",
       "type_uri": "https://arkret.org/problems/unsupported_profile_patch_path",
       "title": "Unsupported profile patch path"
     },
@@ -1646,7 +1662,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "`ak.gate.account.command.revoke_session` targeted a session grant that is unknown, already inactive, or not owned by the current principal. Implementations SHOULD use a uniform response shape that does not disclose another principal's session grant existence.",
+      "description": "`ak.gate.account.command.revoke_session.v1` targeted a session grant that is unknown, already inactive, or not owned by the current principal. Implementations SHOULD use a uniform response shape that does not disclose another principal's session grant existence.",
       "type_uri": "https://arkret.org/problems/session_grant_not_found",
       "title": "Session grant not found"
     },
@@ -1658,7 +1674,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ak.gate.account.command.revoke_session` supplied more than one mutually exclusive selector (`target_session_grant_id`, `target_device_id`, `all_sessions=true`) or otherwise failed selector closure. Receivers MUST reject instead of choosing one selector implicitly.",
+      "description": "`ak.gate.account.command.revoke_session.v1` supplied more than one mutually exclusive selector (`target_session_grant_id`, `target_device_id`, `all_sessions=true`) or otherwise failed selector closure. Receivers MUST reject instead of choosing one selector implicitly.",
       "type_uri": "https://arkret.org/problems/session_revoke_selector_conflict",
       "title": "Session revoke selector conflict"
     },
@@ -2403,7 +2419,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "Returned in three surfaces. (1) `event_envelope` / `auth_decision`: an Actor Profile update declares an `accountable_principal_ids[]` entry without a corresponding active `ak.identity.accountability_grant` (issuer=that DID, subject=profile.principal_id, grant_status=active, within validity window). Reducer MUST reject the entire Event with this reason and MUST NOT accept a field-stripped projection. See zh/models/actor.md §3.3.1. (2) `service_call`: returned by orchestrator HTTP operations that fan-out an accountability grant — `ak.self.agent.command.provision` rejects when the controller cannot present an issuable accountability grant for the new agent principal, and `ak.self.agent.command.resume` rejects when the controller's accountability grant over the agent has been revoked or has lapsed its freshness window since `ak.self.agent.command.pause`. HTTP callers MUST treat this as a precondition-class failure, not transient."
+      "description": "Returned in three surfaces. (1) `event_envelope` / `auth_decision`: an Actor Profile update declares an `accountable_principal_ids[]` entry without a corresponding active `ak.identity.accountability_grant` (issuer=that DID, subject=profile.principal_id, grant_status=active, within validity window). Reducer MUST reject the entire Event with this reason and MUST NOT accept a field-stripped projection. See zh/models/actor.md §3.3.1. (2) `service_call`: returned by orchestrator HTTP operations that fan-out an accountability grant — `ak.self.agent.command.provision.v1` rejects when the controller cannot present an issuable accountability grant for the new agent principal, and `ak.self.agent.command.resume.v1` rejects when the controller's accountability grant over the agent has been revoked or has lapsed its freshness window since `ak.self.agent.command.pause.v1`. HTTP callers MUST treat this as a precondition-class failure, not transient."
     },
     {
       "code": "actor_kind_reducer_managed",
@@ -2427,7 +2443,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An event was signed with a device key that the deactivation/lock fanout has marked revoked. Subsequent ak.self.events.command.submit signed by that device MUST be rejected. See zh/identity/account-lifecycle.md §7.1."
+      "description": "An event was signed with a device key that the deactivation/lock fanout has marked revoked. Subsequent ak.self.events.command.submit.v1 signed by that device MUST be rejected. See zh/identity/account-lifecycle.md §7.1."
     },
     {
       "code": "aead_nonce_counter_replay",
@@ -2515,7 +2531,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A request targeted an agent principal whose current `ak.component.agent.status.v1` cell is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ak.self.agent.command.resume` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md §3.6 §4.11."
+      "description": "A request targeted an agent principal whose current `ak.component.agent.status.v1` cell is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ak.self.agent.command.resume.v1` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md §3.6 §4.11."
     },
     {
       "code": "agent_pcr_genesis_already_accepted",
@@ -2523,7 +2539,7 @@
         "service_call",
         "pcr_genesis"
       ],
-      "description": "The managed Agent PCR genesis for the declared principal_control_realm_id was accepted between abandonment-challenge issuance and the abandonment confirmation, so the Agent now exists and its provisioning MUST NOT be abandoned. The service decides this from the principal_control_realm_id and allocation pinned by the challenge, MUST return this stable terminal outcome with zero writes, and MUST NOT release the slug or realm-id claim, record a tombstone or consume the challenge. Retiring an established Agent is ak.self.agent.command.deactivate. See zh/identity/key-management.md §3.6.3."
+      "description": "The managed Agent PCR genesis for the declared principal_control_realm_id was accepted between abandonment-challenge issuance and the abandonment confirmation, so the Agent now exists and its provisioning MUST NOT be abandoned. The service decides this from the principal_control_realm_id and allocation pinned by the challenge, MUST return this stable terminal outcome with zero writes, and MUST NOT release the slug or realm-id claim, record a tombstone or consume the challenge. Retiring an established Agent is ak.self.agent.command.deactivate.v1. See zh/identity/key-management.md §3.6.3."
     },
     {
       "code": "agent_pcr_genesis_declaration_conflict",
@@ -3003,7 +3019,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A Policy Server challenge obligation was not satisfied within `max_proof_age`, or a challenge_proof was submitted whose issuance is older than `max_proof_age`. The reducer / Policy Server MUST reject with failed_precondition and MUST NOT auto-renew; the applicant must re-run ak.self.policy.read.check to obtain a fresh challenge_id. See zh/governance/join-policy.md §11."
+      "description": "A Policy Server challenge obligation was not satisfied within `max_proof_age`, or a challenge_proof was submitted whose issuance is older than `max_proof_age`. The reducer / Policy Server MUST reject with failed_precondition and MUST NOT auto-renew; the applicant must re-run ak.self.policy.read.check.v1 to obtain a fresh challenge_id. See zh/governance/join-policy.md §11."
     },
     {
       "code": "challenge_failed",
@@ -3303,7 +3319,7 @@
       "applies_to": [
         "push_notify_outcome"
       ],
-      "description": "Per-device rejection reason in ak.edge.push.command.notify: the receiver's delivery-binding frontier has advanced past the route this notify was built against. Terminal for this attempt; the caller MUST re-resolve the route rather than retry the same one. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+      "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the receiver's delivery-binding frontier has advanced past the route this notify was built against. Terminal for this attempt; the caller MUST re-resolve the route rather than retry the same one. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
       "code": "delivery_target_unreachable",
@@ -3447,7 +3463,7 @@
         "service_call",
         "federation_transaction"
       ],
-      "description": "The founder's current Principal Server already closed its local (founder_id, trust_domain_id, pair_key) founding slot with a different unit, so this unit is refused with zero writes. Carried under conflict. The caller MUST re-resolve the existing coordinates through ak.self.direct_conversation.read.resolve instead of authoring another unit; the service MUST NOT accept a second unit, degrade it to a partial acceptance or quarantine it. A byte-identical replay of the committed unit is not this code: it returns the stored byte-identical receipt. See zh/identity/contact-and-direct-conversation.md section 5.5."
+      "description": "The founder's current Principal Server already closed its local (founder_id, trust_domain_id, pair_key) founding slot with a different unit, so this unit is refused with zero writes. Carried under conflict. The caller MUST re-resolve the existing coordinates through ak.self.direct_conversation.read.resolve.v1 instead of authoring another unit; the service MUST NOT accept a second unit, degrade it to a partial acceptance or quarantine it. A byte-identical replay of the committed unit is not this code: it returns the stored byte-identical receipt. See zh/identity/contact-and-direct-conversation.md section 5.5."
     },
     {
       "code": "direct_conversation_space_forbidden",
@@ -3594,7 +3610,7 @@
       "applies_to": [
         "account_status"
       ],
-      "description": "Sub-reason for failed_precondition on ak.gate.account.command.request_erasure: the account already holds a live self-initiated erasure intent whose erasure_pending AccountStatusRecord has not yet been signed. The client MUST NOT submit a second distinct request; it either awaits the recorded intent or withdraws it inside the deployment-granted withdrawal window. Once the record is signed, requests fail at authentication with account_erased instead. See zh/identity/account-lifecycle.md section 8.1."
+      "description": "Sub-reason for failed_precondition on ak.gate.account.command.request_erasure.v1: the account already holds a live self-initiated erasure intent whose erasure_pending AccountStatusRecord has not yet been signed. The client MUST NOT submit a second distinct request; it either awaits the recorded intent or withdraws it inside the deployment-granted withdrawal window. Once the record is signed, requests fail at authentication with account_erased instead. See zh/identity/account-lifecycle.md section 8.1."
     },
     {
       "code": "event_id_digest_mismatch",
@@ -3655,7 +3671,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "Media token exchange (ak.self.call.media.exchange.issue_token) requested a `focus_id` different from the already-committed `ak.call.state.session_focus`. Token issuer MUST reject; clients MUST re-target the established focus rather than retrying with the original preference. See zh/crypto-media/media-service-binding.md §3 and §5."
+      "description": "Media token exchange (ak.self.call.media.exchange.issue_token.v1) requested a `focus_id` different from the already-committed `ak.call.state.session_focus`. Token issuer MUST reject; clients MUST re-target the established focus rather than retrying with the original preference. See zh/crypto-media/media-service-binding.md §3 and §5."
     },
     {
       "code": "focus_unavailable_for_client",
@@ -3982,14 +3998,14 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch resolves invite_event_id to an accepted Event whose signing actor is not the authenticated session actor. The request carries only the Event ID; the service MUST NOT co-sign or re-author the resolved Event; see zh/sync/invite-addressing.md §7."
+      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch.v1 resolves invite_event_id to an accepted Event whose signing actor is not the authenticated session actor. The request carries only the Event ID; the service MUST NOT co-sign or re-author the resolved Event; see zh/sync/invite-addressing.md §7."
     },
     {
       "code": "invite_event_unaccepted",
       "applies_to": [
         "service_call"
       ],
-      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch supplies an invite_event_id that this Principal Server cannot resolve to an accepted durable ak.invite.create Event. Private delivery only starts from that resolved accepted Event; see zh/sync/invite-addressing.md §7."
+      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch.v1 supplies an invite_event_id that this Principal Server cannot resolve to an accepted durable ak.invite.create Event. Private delivery only starts from that resolved accepted Event; see zh/sync/invite-addressing.md §7."
     },
     {
       "code": "invite_kind_requires_revoke",
@@ -4134,7 +4150,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "Requested operation targets a blob / object currently under legal hold. ak.self.blob.command.presign / ak.blob.delete / redaction-equivalent operations MUST be rejected with this code; legal hold takes precedence over capability and TTL. See zh/crypto-media/media-and-blob.md §5.4.4.1."
+      "description": "Requested operation targets a blob / object currently under legal hold. ak.self.blob.command.presign.v1 / ak.blob.delete / redaction-equivalent operations MUST be rejected with this code; legal hold takes precedence over capability and TTL. See zh/crypto-media/media-and-blob.md §5.4.4.1."
     },
     {
       "code": "lite_profile_writes_disallowed_event_kind",
@@ -4494,7 +4510,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A `ak.gate.account.command.pair_agent_key` pairing request was presented after its `pairing_expires_at` (or the runtime key-pairing session id has been retired). The endpoint MUST fail closed; the controller MUST initiate a fresh pairing strand. See zh/identity/key-management.md §3.6 §4.5."
+      "description": "A `ak.gate.account.command.pair_agent_key.v1` pairing request was presented after its `pairing_expires_at` (or the runtime key-pairing session id has been retired). The endpoint MUST fail closed; the controller MUST initiate a fresh pairing strand. See zh/identity/key-management.md §3.6 §4.5."
     },
     {
       "code": "partial_auth_state",
@@ -4630,7 +4646,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A ak.self.blob.command.presign bearer URL was presented outside its nbf / exp window or after its nonce was revoked. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
+      "description": "A ak.self.blob.command.presign.v1 bearer URL was presented outside its nbf / exp window or after its nonce was revoked. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
     },
     {
       "code": "presign_invalid",
@@ -4638,7 +4654,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A ak.self.blob.command.presign bearer envelope is syntactically invalid, has an unrecognised scheme, fails signature verification, mixes with Authorization header auth, or otherwise cannot be validated. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
+      "description": "A ak.self.blob.command.presign.v1 bearer envelope is syntactically invalid, has an unrecognised scheme, fails signature verification, mixes with Authorization header auth, or otherwise cannot be validated. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
     },
     {
       "code": "presign_scope_mismatch",
@@ -4646,7 +4662,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A ak.self.blob.command.presign envelope scope does not match the requested blob_ref, method, byte range, purpose, Realm, issuer trust state, or current blob visibility. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
+      "description": "A ak.self.blob.command.presign.v1 envelope scope does not match the requested blob_ref, method, byte range, purpose, Realm, issuer trust state, or current blob visibility. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
     },
     {
       "code": "prev_refs_too_large",
@@ -4703,7 +4719,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "Per-actor outcome of ak.self.actor_profile.read.resolve. Unknown actor, actor without an accepted global profile, actor that is not an effective joined member of the request realm_id, and a caller not authorized for that actor MUST all report this single value, so the only outward carrier for PCR-resident ak.profile.create / ak.profile.update cannot be used to probe membership or account existence. See zh/discovery/profiles-presence.md §2.3."
+      "description": "Per-actor outcome of ak.self.actor_profile.read.resolve.v1. Unknown actor, actor without an accepted global profile, actor that is not an effective joined member of the request realm_id, and a caller not authorized for that actor MUST all report this single value, so the only outward carrier for PCR-resident ak.profile.create / ak.profile.update cannot be used to probe membership or account existence. See zh/discovery/profiles-presence.md §2.3."
     },
     {
       "code": "projection_incomplete",
@@ -4741,14 +4757,14 @@
       "applies_to": [
         "push_notify_outcome"
       ],
-      "description": "Per-device rejection reason in ak.edge.push.command.notify: the gateway could not durably take the route over. One of exactly two caller-retryable notify reasons; it MAY carry retry_after_ms, and its presence is the wire signal that the caller — not the gateway — owns the next attempt. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+      "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the gateway could not durably take the route over. One of exactly two caller-retryable notify reasons; it MAY carry retry_after_ms, and its presence is the wire signal that the caller — not the gateway — owns the next attempt. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
       "code": "push_payload_too_large",
       "applies_to": [
         "push_notify_outcome"
       ],
-      "description": "Per-device rejection reason in ak.edge.push.command.notify: the notification exceeds the push profile, provider, or deployment size limit. Target-level, so the gateway MUST expand it into one same-reason rejected outcome per input device. Terminal until the caller shrinks the payload; MUST NOT carry retry_after_ms. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+      "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the notification exceeds the push profile, provider, or deployment size limit. Target-level, so the gateway MUST expand it into one same-reason rejected outcome per input device. Terminal until the caller shrinks the payload; MUST NOT carry retry_after_ms. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
       "code": "push_route_limit_exceeded",
@@ -4770,21 +4786,21 @@
       "applies_to": [
         "push_notify_outcome"
       ],
-      "description": "Per-device rejection reason in ak.edge.push.command.notify: the push target is unknown or no longer visible. Target-level, so the gateway MUST expand it into one same-reason rejected outcome per input device. Terminal; not caller-retryable and MUST NOT carry retry_after_ms. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+      "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the push target is unknown or no longer visible. Target-level, so the gateway MUST expand it into one same-reason rejected outcome per input device. Terminal; not caller-retryable and MUST NOT carry retry_after_ms. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
       "code": "push_token_invalid",
       "applies_to": [
         "push_notify_outcome"
       ],
-      "description": "Per-device rejection reason in ak.edge.push.command.notify: the registered route failed provider validation or is no longer bound to this device. Terminal; the caller SHOULD drop the device registration. Cleanup is addressed by the composite identity — the response never returns the raw push_key. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+      "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the registered route failed provider validation or is no longer bound to this device. Terminal; the caller SHOULD drop the device registration. Cleanup is addressed by the composite identity — the response never returns the raw push_key. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
       "code": "push_token_unknown",
       "applies_to": [
         "push_notify_outcome"
       ],
-      "description": "Per-device rejection reason in ak.edge.push.command.notify: no active push registration exists for this (push_target_id, device_id). Terminal; the caller SHOULD drop the device registration. Cleanup is addressed by the composite identity — the response never returns the raw push_key. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+      "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: no active push registration exists for this (push_target_id, device_id). Terminal; the caller SHOULD drop the device registration. Cleanup is addressed by the composite identity — the response never returns the raw push_key. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
       "code": "quarantined",
@@ -4830,7 +4846,7 @@
       "applies_to": [
         "push_notify_outcome"
       ],
-      "description": "Per-device rejection reason in ak.edge.push.command.notify: gateway-side admission limiting refused durable takeover of this route. One of exactly two caller-retryable notify reasons; it MAY carry retry_after_ms. A route the gateway already accepted is retried by the gateway and never surfaces this reason. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+      "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: gateway-side admission limiting refused durable takeover of this route. One of exactly two caller-retryable notify reasons; it MAY carry retry_after_ms. A route the gateway already accepted is retried by the gateway and never surfaces this reason. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
       "code": "reaction_scope_mismatch",
@@ -4973,7 +4989,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "Realm has accepted ak.realm.tombstone or ak.realm.destroy and cannot accept new ordinary writes. Only audit-class events (ak.audit.*, ak.audit.erasure_receipt) are still acceptable. Receivers MUST reject ak.self.events.command.submit for any other kind targeting this Realm. See zh/models/realm-and-space.md §2.6."
+      "description": "Realm has accepted ak.realm.tombstone or ak.realm.destroy and cannot accept new ordinary writes. Only audit-class events (ak.audit.*, ak.audit.erasure_receipt) are still acceptable. Receivers MUST reject ak.self.events.command.submit.v1 for any other kind targeting this Realm. See zh/models/realm-and-space.md §2.6."
     },
     {
       "code": "realm_unavailable",
@@ -5223,7 +5239,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "Sub-reason for param_invalid when ak.self.identity.read.resolution_audit receives an after_resolution_event_ref that is neither the genesis Event nor an accepted ak.identity.resolution.update in this account's current resolution lineage. The audit surface is already exact-current-holder authorized, so a stale or foreign cursor is reported as an invalid parameter rather than folded into the anti-enumeration outcome. See zh/identity/identity-did.md §4.2."
+      "description": "Sub-reason for param_invalid when ak.self.identity.read.resolution_audit.v1 receives an after_resolution_event_ref that is neither the genesis Event nor an accepted ak.identity.resolution.update in this account's current resolution lineage. The audit surface is already exact-current-holder authorized, so a stale or foreign cursor is reported as an invalid parameter rather than folded into the anti-enumeration outcome. See zh/identity/identity-did.md §4.2."
     },
     {
       "code": "revocation_freshness_unknown",
@@ -5483,7 +5499,7 @@
         "identity_resolution",
         "federation_transaction"
       ],
-      "description": "Internal route evaluator diagnosis for a notice whose exact record basis is not the receiver's durable floor. It MUST NOT be serialized by ak.peer.service_resolution.read.resolve; the outward response is the blinded not_found/capability-denied or universal failure surface."
+      "description": "Internal route evaluator diagnosis for a notice whose exact record basis is not the receiver's durable floor. It MUST NOT be serialized by ak.peer.service_resolution.read.resolve.v1; the outward response is the blinded not_found/capability-denied or universal failure surface."
     },
     {
       "code": "service_route_notice_cancelled",
@@ -5861,7 +5877,7 @@
       "applies_to": [
         "push_notify_outcome"
       ],
-      "description": "Per-device rejection reason in ak.edge.push.command.notify: the device has not opted in to the requested notification profile (for example a visible notification sent to a device without visible_notification_opt_in). Terminal; the caller falls back to the blind_wakeup form and MUST NOT resend the same shape. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+      "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the device has not opted in to the requested notification profile (for example a visible notification sent to a device without visible_notification_opt_in). Terminal; the caller falls back to the blind_wakeup form and MUST NOT resend the same shape. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
       "code": "unsupported_protocol_version",
@@ -5894,7 +5910,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A request supplied a `verification_method` whose DID component does not bit-identically match the target principal id after stripping fragment/query. Surfaces in two places. (1) `ak.gate.account.command.pair_agent_key`: `verification_method` vs `agent_id`. (2) `ak.gate.account.command.issue_session_grant` agent branch (`proof.proof_kind=\"agent_key_proof\"`): `proof.verification_method` vs request `principal_id`. Endpoints MUST fail closed before invoking the proof validator so that mismatch is reported as this code rather than as a generic signature failure. See zh/identity/key-management.md §3.6.1."
+      "description": "A request supplied a `verification_method` whose DID component does not bit-identically match the target principal id after stripping fragment/query. Surfaces in two places. (1) `ak.gate.account.command.pair_agent_key.v1`: `verification_method` vs `agent_id`. (2) `ak.gate.account.command.issue_session_grant.v1` agent branch (`proof.proof_kind=\"agent_key_proof\"`): `proof.verification_method` vs request `principal_id`. Endpoints MUST fail closed before invoking the proof validator so that mismatch is reported as this code rather than as a generic signature failure. See zh/identity/key-management.md §3.6.1."
     },
     {
       "code": "view_already_terminal",

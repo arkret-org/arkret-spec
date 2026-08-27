@@ -63,7 +63,7 @@
     },
     "account_data_replace_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed ak.account_data.set Event and nothing else. The actor-private cell subject is composite[envelope.actor_id, payload.key], so the subject *is* the owner: the Event MUST be signed by the holder and the service MUST NOT author it under its own DID. key, expected_revision, and body / encrypted_payload live exclusively in set_event.event.payload and MUST NOT appear at the request top level. A tombstone payload is rejected here: erasure goes through ak.self.account_data.resource.delete, which enforces the registered deletion_mode.",
+      "description": "Carries the caller-signed ak.account_data.set Event and nothing else. The actor-private cell subject is composite[envelope.actor_id, payload.key], so the subject *is* the owner: the Event MUST be signed by the holder and the service MUST NOT author it under its own DID. key, expected_revision, and body / encrypted_payload live exclusively in set_event.event.payload and MUST NOT appear at the request top level. A tombstone payload is rejected here: erasure goes through ak.self.account_data.resource.delete.v1, which enforces the registered deletion_mode.",
       "required": [
         "set_event"
       ],

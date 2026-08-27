@@ -115,7 +115,7 @@
     },
     "realm_policy_server_delete_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed value-tombstone ak.realm.policy_server Move and nothing else. The payload is exactly {\"tombstone\":true}. This is a DELETE with a request body -- the same shape ak.self.keys.backups.resource.delete already uses -- because the durable removal is a signed Event and no signature fits in a bodyless request.",
+      "description": "Carries the caller-signed value-tombstone ak.realm.policy_server Move and nothing else. The payload is exactly {\"tombstone\":true}. This is a DELETE with a request body -- the same shape ak.self.keys.backups.resource.delete.v1 already uses -- because the durable removal is a signed Event and no signature fits in a bodyless request.",
       "required": [
         "policy_server_event"
       ],

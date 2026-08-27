@@ -169,7 +169,7 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 
 以下 **不** 套用“整个 body 8 / 16 MiB”：
 
-- NDJSON / SSE 长连接（`ak.self.events.stream.subscribe`、`ak.self.account.stream.subscribe`）；
+- NDJSON / SSE 长连接（`ak.self.events.stream.subscribe.v1`、`ak.self.account.stream.subscribe.v1`）；
 - Blob multipart upload、tus chunks；
 - Blob / media download、Range response；
 - WebRTC / media transport；
@@ -388,7 +388,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | `push_target_id` rotation 周期 | 默认 ≤ 90 days | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5.6.1。客户端 SHOULD 在 push token 变化、设备恢复、out-of-band 重新登录或自定义 rotation 周期到达时轮换；高安全部署 SHOULD 声明更短周期。 |
 | 旧 / 新 `push_target_id` 可逆映射保留 | ≤ 24h，或单条未投递消息 TTL，取较短者 | 服务方只可在 rotation 时短暂保留映射以迁移未投递消息；超过窗口 MUST 物理删除旧 pseudonym 与索引材料，不得保留能把新旧映射回同一 device 的信息。 |
 | DM Realm active member count | 等于 2 | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §8。向 active DM Realm 加第三人 MUST reject；升级多人聊天必须创建新的普通 Realm / Strand。 |
-| 加好友附言 `message` 长度 | 1..2000（NFC） | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §4。`ak.self.contact.command.request` 的可选 `message` 超长或非 NFC MUST reject（`schema_violation`）。 |
+| 加好友附言 `message` 长度 | 1..2000（NFC） | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §4。`ak.self.contact.command.request.v1` 的可选 `message` 超长或非 NFC MUST reject（`schema_violation`）。 |
 | 单 `(recipient_service_id, principal_id, device_id)` active `push_route` 条数 | 16 | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5.6.2。超过上限的 `ak.device.push_route` 注册 MUST reject，reason_code=`push_route_limit_exceeded`。 |
 | push-route 注册 / 轮换写入速率 | 60s 内 ≤ 8 次（同一上述维度） | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5.6.2。超额 MUST rate-limit，内部审计 reason `push_route_registration_rate_limited`。 |
 

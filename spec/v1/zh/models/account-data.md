@@ -55,7 +55,7 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id
 - 每次被接受的写入（包括 tombstone 写入）存储 `expected_revision + 1`。
 - `revision` 是**高水位**：MUST NOT 回退。即使 tombstone 已被 GC，服务端仍 MUST 保留该 key 的最后 `revision`。
 
-`holder_event` writer 的 `ak.account_data.set` payload MUST 携带 `expected_revision`。只有 registry row 的 `holder_self_operations` 显式包含相应操作时，`ak.self.account_data.resource.replace` / `.delete` 才可用于该 key；其 request body 只承载一个 signed `ak.account_data.set` Event，`expected_revision` 因此始终取自该 Event 的 payload，没有并行的 query 参数入口。`principal_server_cas` writer 从其受限内部投递事务携带 `expected_revision`，不得构造 holder Event，也不得经 self PUT/DELETE surface 暴露为客户端可写。创建一个从未写入的 key 使用 `expected_revision=0`。
+`holder_event` writer 的 `ak.account_data.set` payload MUST 携带 `expected_revision`。只有 registry row 的 `holder_self_operations` 显式包含相应操作时，`ak.self.account_data.resource.replace.v1` / `.delete` 才可用于该 key；其 request body 只承载一个 signed `ak.account_data.set` Event，`expected_revision` 因此始终取自该 Event 的 payload，没有并行的 query 参数入口。`principal_server_cas` writer 从其受限内部投递事务携带 `expected_revision`，不得构造 holder Event，也不得经 self PUT/DELETE surface 暴露为客户端可写。创建一个从未写入的 key 使用 `expected_revision=0`。
 
 服务端 MUST 在同一 key 上原子地比较并写入：`expected_revision` 不等于当前 `revision` 时 MUST 以 `cas_conflict` 拒绝，MUST NOT 存储任何内容、MUST NOT 推进 `revision`，也 MUST NOT 向其它设备 fanout。因此设备 A 的旧字节级 retry 在设备 B 的新写之后必然失败，而不是把 key 整体退回旧值。
 
@@ -70,7 +70,7 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id
 
 `deletion_mode` 由 registry row 声明：
 
-- `physical_delete`：`ak.self.account_data.resource.delete` 写入一个有版本的 tombstone，`revision` 推进；`resource.get` 返回 `not_found` 并在 details 中给出 `current_revision`。服务端 MAY 在不短于 `account_data_tombstone_retention_ms`（见 [`../conformance/scalability-constraints.md` §7](../conformance/scalability-constraints.md)）后 GC tombstone 元数据，但 MUST 永久保留 `revision` 高水位。该 key 之后 MAY 被重新创建：调用方以 `expected_revision = current_revision` 写入即可。
+- `physical_delete`：`ak.self.account_data.resource.delete.v1` 写入一个有版本的 tombstone，`revision` 推进；`resource.get` 返回 `not_found` 并在 details 中给出 `current_revision`。服务端 MAY 在不短于 `account_data_tombstone_retention_ms`（见 [`../conformance/scalability-constraints.md` §7](../conformance/scalability-constraints.md)）后 GC tombstone 元数据，但 MUST 永久保留 `revision` 高水位。该 key 之后 MAY 被重新创建：调用方以 `expected_revision = current_revision` 写入即可。
 - `value_tombstone`：删除态本身是一个通过 `ak.account_data.set` 写入的 value（例如 `status="deleted"`）。这类 key MUST NOT 使用 `resource.delete`，因为其领域要求删除是**不可复活的终态**，必须在 tombstone GC 之后仍然可被任何设备观察到。
 
 ### 5.4 登记要求

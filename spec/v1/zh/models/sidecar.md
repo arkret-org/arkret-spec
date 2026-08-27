@@ -18,7 +18,7 @@ Agent Sidecar（`ak:sidecar:`）是绑定到一个 `(realm_id, controller_id)` �
 也不是某个 Agent 的 1:1 会话。
 
 用户从 Contacts/Direct Messages 产品面点击自己的 Native Personal Agent 时，客户端 MUST 使用
-[`ak.self.direct_conversation.read.resolve`](../identity/contact-and-direct-conversation.md#91-resolver-状态)
+[`ak.self.direct_conversation.read.resolve.v1`](../identity/contact-and-direct-conversation.md#91-resolver-状态)
 定位 `{controller, agent}` 的独立双成员 Direct Conversation Realm；尚不存在时由 controller 按
 [contact-and-direct-conversation.md §5.4](../identity/contact-and-direct-conversation.md#54-create-判别与授权)
 的 `direct_conversation_agent_genesis` 分支创建。resolve 只是查询入口，MUST NOT 承载 create phase。
@@ -249,12 +249,12 @@ Circle 内容不得使用本节映射或发布规则跨越 Circle 边界。
 
 ## 9. Ensure 与读取
 
-`ak.self.agent.sidecar.command.ensure` 使用 prepare/commit：prepare 固定 new/existing 分支、Event ID、
+`ak.self.agent.sidecar.command.ensure.v1` 使用 prepare/commit：prepare 固定 new/existing 分支、Event ID、
 canonical unsigned bytes 与 digest；new 分支返回 create + context attach drafts，existing 分支只返回 attach。
 commit 只接受在 exact drafts 上追加的 controller proofs，并原子提交。reservation 不分配 Sidecar ID；
 Sidecar ID由已固定 create Event ID确定。
 
-读取只通过 `ak.self.agent.sidecar.resource.get` 与 `ak.self.agent.sidecar.query.list`。返回 Sidecar、
+读取只通过 `ak.self.agent.sidecar.resource.get.v1` 与 `ak.self.agent.sidecar.query.list`。返回 Sidecar、
 `desired_agent_ids` 只读派生投影、`effective_agent_ids`、MLS readiness、pending reconciliation 和 source
 context mappings。
 普通 Circle/Strand/Relation list 不得泄漏 Sidecar 存在、private Event、计数、未读、搜索或通知差异。

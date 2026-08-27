@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/push-operations.schema.json",
   "title": "Arkret Push Gateway Operation DTOs",
-  "description": "Closed request and response DTOs for ak.edge.push.command.register_device, ak.edge.push.command.unregister_device, and ak.push.notify.",
+  "description": "Closed request and response DTOs for ak.edge.push.command.register_device.v1, ak.edge.push.command.unregister_device.v1, and ak.push.notify.",
   "anyOf": [
     {
       "$ref": "#/$defs/push_register_device_request_body"

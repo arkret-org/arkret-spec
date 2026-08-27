@@ -88,7 +88,7 @@ class KeyPackageWriteTranscriptLintTest(unittest.TestCase):
     def test_case_cannot_switch_operation(self) -> None:
         def mutate(fixture):
             case = self._case(fixture, "revoke_with_reason")
-            case["operation_id"] = "ak.self.keys.keypackages.command.consume"
+            case["operation_id"] = "ak.self.keys.keypackages.command.consume.v1"
             case["domain"] = case["operation_id"] + "\n"
             self._resign(fixture, case)
 

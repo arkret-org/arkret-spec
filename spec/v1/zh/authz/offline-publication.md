@@ -214,7 +214,7 @@ Principal Server在不持有真实authority key时补签。
 
 ### 2.2 租约签发
 
-只有显式延迟/离线流程的客户端通过 `ak.self.authorization_leases.command.issue`
+只有显式延迟/离线流程的客户端通过 `ak.self.authorization_leases.command.issue.v1`
 （`POST /_arkret/self/authorization-leases`）提交且只能二选一：
 `AuthorizationLeaseIssueRequestBody {events: Event[1..500]}` 或
 `AuthorizationLeaseIssueRequestBody {intents: AuthorizationLeaseIssueIntent[1..500]}`。Event 必须已完成最终签名；服务端

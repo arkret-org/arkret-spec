@@ -1,0 +1,1047 @@
+{
+  "schema": "arkret.source_migration.operation_id_v1.v1",
+  "description": "Source-only clean-break rename map. These legacy spellings are not wire aliases and MUST NOT be accepted at runtime.",
+  "runtime_aliases": false,
+  "mappings": [
+    {
+      "old": "ak.edge.applet.actor.read.resolve",
+      "new": "ak.edge.applet.actor.read.resolve.v1"
+    },
+    {
+      "old": "ak.edge.applet.command.transaction",
+      "new": "ak.edge.applet.command.transaction.v1"
+    },
+    {
+      "old": "ak.edge.applet.managed_actor.command.author",
+      "new": "ak.edge.applet.managed_actor.command.author.v1"
+    },
+    {
+      "old": "ak.edge.applet.read.describe",
+      "new": "ak.edge.applet.read.describe.v1"
+    },
+    {
+      "old": "ak.edge.applet.read.ping",
+      "new": "ak.edge.applet.read.ping.v1"
+    },
+    {
+      "old": "ak.edge.applet.read.protocol_metadata",
+      "new": "ak.edge.applet.read.protocol_metadata.v1"
+    },
+    {
+      "old": "ak.edge.applet.realm.read.resolve",
+      "new": "ak.edge.applet.realm.read.resolve.v1"
+    },
+    {
+      "old": "ak.edge.applet.third_party_locations.read.list",
+      "new": "ak.edge.applet.third_party_locations.read.list.v1"
+    },
+    {
+      "old": "ak.edge.applet.third_party_users.read.list",
+      "new": "ak.edge.applet.third_party_users.read.list.v1"
+    },
+    {
+      "old": "ak.edge.push.command.notify",
+      "new": "ak.edge.push.command.notify.v1"
+    },
+    {
+      "old": "ak.edge.push.command.register_device",
+      "new": "ak.edge.push.command.register_device.v1"
+    },
+    {
+      "old": "ak.edge.push.command.unregister_device",
+      "new": "ak.edge.push.command.unregister_device.v1"
+    },
+    {
+      "old": "ak.find.directory.command.announce",
+      "new": "ak.find.directory.command.announce.v1"
+    },
+    {
+      "old": "ak.find.directory.command.takedown_appeal",
+      "new": "ak.find.directory.command.takedown_appeal.v1"
+    },
+    {
+      "old": "ak.find.directory.command.withdraw",
+      "new": "ak.find.directory.command.withdraw.v1"
+    },
+    {
+      "old": "ak.find.directory.push.command.register",
+      "new": "ak.find.directory.push.command.register.v1"
+    },
+    {
+      "old": "ak.find.directory.read.describe",
+      "new": "ak.find.directory.read.describe.v1"
+    },
+    {
+      "old": "ak.find.directory.read.list_handles_for_subject",
+      "new": "ak.find.directory.read.list_handles_for_subject.v1"
+    },
+    {
+      "old": "ak.find.directory.read.private_contact_discovery",
+      "new": "ak.find.directory.read.private_contact_discovery.v1"
+    },
+    {
+      "old": "ak.find.directory.read.resolve_agent_selector",
+      "new": "ak.find.directory.read.resolve_agent_selector.v1"
+    },
+    {
+      "old": "ak.find.directory.read.resolve_handle",
+      "new": "ak.find.directory.read.resolve_handle.v1"
+    },
+    {
+      "old": "ak.find.directory.read.resolve_organization",
+      "new": "ak.find.directory.read.resolve_organization.v1"
+    },
+    {
+      "old": "ak.find.directory.read.resolve_realm",
+      "new": "ak.find.directory.read.resolve_realm.v1"
+    },
+    {
+      "old": "ak.find.directory.read.resolve_target",
+      "new": "ak.find.directory.read.resolve_target.v1"
+    },
+    {
+      "old": "ak.find.directory.read.search_actors",
+      "new": "ak.find.directory.read.search_actors.v1"
+    },
+    {
+      "old": "ak.find.directory.read.search_organizations",
+      "new": "ak.find.directory.read.search_organizations.v1"
+    },
+    {
+      "old": "ak.find.directory.read.search_realms",
+      "new": "ak.find.directory.read.search_realms.v1"
+    },
+    {
+      "old": "ak.find.directory.read.search_users",
+      "new": "ak.find.directory.read.search_users.v1"
+    },
+    {
+      "old": "ak.gate.account.command.abandon_identity_creation",
+      "new": "ak.gate.account.command.abandon_identity_creation.v1"
+    },
+    {
+      "old": "ak.gate.account.command.introspect_session_grant",
+      "new": "ak.gate.account.command.introspect_session_grant.v1"
+    },
+    {
+      "old": "ak.gate.account.command.issue_controller_gate_attestation",
+      "new": "ak.gate.account.command.issue_controller_gate_attestation.v1"
+    },
+    {
+      "old": "ak.gate.account.command.issue_did_binding_challenge",
+      "new": "ak.gate.account.command.issue_did_binding_challenge.v1"
+    },
+    {
+      "old": "ak.gate.account.command.issue_identity_abandonment_challenge",
+      "new": "ak.gate.account.command.issue_identity_abandonment_challenge.v1"
+    },
+    {
+      "old": "ak.gate.account.command.issue_identity_binding_challenge",
+      "new": "ak.gate.account.command.issue_identity_binding_challenge.v1"
+    },
+    {
+      "old": "ak.gate.account.command.issue_recovery_completion_grant",
+      "new": "ak.gate.account.command.issue_recovery_completion_grant.v1"
+    },
+    {
+      "old": "ak.gate.account.command.issue_session_grant",
+      "new": "ak.gate.account.command.issue_session_grant.v1"
+    },
+    {
+      "old": "ak.gate.account.command.logout",
+      "new": "ak.gate.account.command.logout.v1"
+    },
+    {
+      "old": "ak.gate.account.command.logout_auth_session",
+      "new": "ak.gate.account.command.logout_auth_session.v1"
+    },
+    {
+      "old": "ak.gate.account.command.pair_agent_key",
+      "new": "ak.gate.account.command.pair_agent_key.v1"
+    },
+    {
+      "old": "ak.gate.account.command.pair_device",
+      "new": "ak.gate.account.command.pair_device.v1"
+    },
+    {
+      "old": "ak.gate.account.command.refresh_session_grant",
+      "new": "ak.gate.account.command.refresh_session_grant.v1"
+    },
+    {
+      "old": "ak.gate.account.command.register",
+      "new": "ak.gate.account.command.register.v1"
+    },
+    {
+      "old": "ak.gate.account.command.request_erasure",
+      "new": "ak.gate.account.command.request_erasure.v1"
+    },
+    {
+      "old": "ak.gate.account.command.revoke_session",
+      "new": "ak.gate.account.command.revoke_session.v1"
+    },
+    {
+      "old": "ak.gate.account.exchange.create_handoff",
+      "new": "ak.gate.account.exchange.create_handoff.v1"
+    },
+    {
+      "old": "ak.gate.account.read.onboarding",
+      "new": "ak.gate.account.read.onboarding.v1"
+    },
+    {
+      "old": "ak.open.agent_pairing.command.submit_runtime_key_request",
+      "new": "ak.open.agent_pairing.command.submit_runtime_key_request.v1"
+    },
+    {
+      "old": "ak.open.agent_pairing.read.resolve",
+      "new": "ak.open.agent_pairing.read.resolve.v1"
+    },
+    {
+      "old": "ak.open.agent_pairing.read.runtime_key_request_status",
+      "new": "ak.open.agent_pairing.read.runtime_key_request_status.v1"
+    },
+    {
+      "old": "ak.open.device_pairing.command.stage",
+      "new": "ak.open.device_pairing.command.stage.v1"
+    },
+    {
+      "old": "ak.open.device_pairing.read.resolve",
+      "new": "ak.open.device_pairing.read.resolve.v1"
+    },
+    {
+      "old": "ak.open.device_pairing.read.status",
+      "new": "ak.open.device_pairing.read.status.v1"
+    },
+    {
+      "old": "ak.open.identity.read.resolution",
+      "new": "ak.open.identity.read.resolution.v1"
+    },
+    {
+      "old": "ak.open.invite_locator.read.resolve",
+      "new": "ak.open.invite_locator.read.resolve.v1"
+    },
+    {
+      "old": "ak.open.mimi.command.notify",
+      "new": "ak.open.mimi.command.notify.v1"
+    },
+    {
+      "old": "ak.open.mimi.command.proxy_download",
+      "new": "ak.open.mimi.command.proxy_download.v1"
+    },
+    {
+      "old": "ak.open.mimi.command.report_abuse",
+      "new": "ak.open.mimi.command.report_abuse.v1"
+    },
+    {
+      "old": "ak.open.mimi.command.request_consent",
+      "new": "ak.open.mimi.command.request_consent.v1"
+    },
+    {
+      "old": "ak.open.mimi.command.submit_message",
+      "new": "ak.open.mimi.command.submit_message.v1"
+    },
+    {
+      "old": "ak.open.mimi.command.update_consent",
+      "new": "ak.open.mimi.command.update_consent.v1"
+    },
+    {
+      "old": "ak.open.mimi.command.update_room",
+      "new": "ak.open.mimi.command.update_room.v1"
+    },
+    {
+      "old": "ak.open.mimi.exchange.request_key_material",
+      "new": "ak.open.mimi.exchange.request_key_material.v1"
+    },
+    {
+      "old": "ak.open.mimi.read.group_info",
+      "new": "ak.open.mimi.read.group_info.v1"
+    },
+    {
+      "old": "ak.open.mimi.read.identifiers",
+      "new": "ak.open.mimi.read.identifiers.v1"
+    },
+    {
+      "old": "ak.open.mimi.read.provider_directory",
+      "new": "ak.open.mimi.read.provider_directory.v1"
+    },
+    {
+      "old": "ak.open.service.read.resolution",
+      "new": "ak.open.service.read.resolution.v1"
+    },
+    {
+      "old": "ak.peer.account_status.command.submit",
+      "new": "ak.peer.account_status.command.submit.v1"
+    },
+    {
+      "old": "ak.peer.account_status.read.resolve",
+      "new": "ak.peer.account_status.read.resolve.v1"
+    },
+    {
+      "old": "ak.peer.contacts.command.submit",
+      "new": "ak.peer.contacts.command.submit.v1"
+    },
+    {
+      "old": "ak.peer.device_revocations.command.check",
+      "new": "ak.peer.device_revocations.command.check.v1"
+    },
+    {
+      "old": "ak.peer.erasure_receipt.command.submit",
+      "new": "ak.peer.erasure_receipt.command.submit.v1"
+    },
+    {
+      "old": "ak.peer.erasure_receipt.resource.get",
+      "new": "ak.peer.erasure_receipt.resource.get.v1"
+    },
+    {
+      "old": "ak.peer.events.command.submit",
+      "new": "ak.peer.events.command.submit.v1"
+    },
+    {
+      "old": "ak.peer.events.read.describe",
+      "new": "ak.peer.events.read.describe.v1"
+    },
+    {
+      "old": "ak.peer.events.read.frontier",
+      "new": "ak.peer.events.read.frontier.v1"
+    },
+    {
+      "old": "ak.peer.events.read.resolve",
+      "new": "ak.peer.events.read.resolve.v1"
+    },
+    {
+      "old": "ak.peer.events.read.scan",
+      "new": "ak.peer.events.read.scan.v1"
+    },
+    {
+      "old": "ak.peer.history_key_requests.command.replicate",
+      "new": "ak.peer.history_key_requests.command.replicate.v1"
+    },
+    {
+      "old": "ak.peer.history_key_responses.command.relay",
+      "new": "ak.peer.history_key_responses.command.relay.v1"
+    },
+    {
+      "old": "ak.peer.invites.command.submit",
+      "new": "ak.peer.invites.command.submit.v1"
+    },
+    {
+      "old": "ak.peer.keys.keypackages.command.claim",
+      "new": "ak.peer.keys.keypackages.command.claim.v1"
+    },
+    {
+      "old": "ak.peer.keys.keypackages.read.claim",
+      "new": "ak.peer.keys.keypackages.read.claim.v1"
+    },
+    {
+      "old": "ak.peer.mls.read.group_state_material",
+      "new": "ak.peer.mls.read.group_state_material.v1"
+    },
+    {
+      "old": "ak.peer.organization_recovery_archives.command.replicate",
+      "new": "ak.peer.organization_recovery_archives.command.replicate.v1"
+    },
+    {
+      "old": "ak.peer.principal_genesis.command.submit",
+      "new": "ak.peer.principal_genesis.command.submit.v1"
+    },
+    {
+      "old": "ak.peer.seals.read.frontier",
+      "new": "ak.peer.seals.read.frontier.v1"
+    },
+    {
+      "old": "ak.peer.seals.read.governance_dependencies",
+      "new": "ak.peer.seals.read.governance_dependencies.v1"
+    },
+    {
+      "old": "ak.peer.seals.read.mls_governance_proof",
+      "new": "ak.peer.seals.read.mls_governance_proof.v1"
+    },
+    {
+      "old": "ak.peer.seals.read.resolve",
+      "new": "ak.peer.seals.read.resolve.v1"
+    },
+    {
+      "old": "ak.peer.service_resolution.command.publish",
+      "new": "ak.peer.service_resolution.command.publish.v1"
+    },
+    {
+      "old": "ak.peer.service_resolution.read.resolve",
+      "new": "ak.peer.service_resolution.read.resolve.v1"
+    },
+    {
+      "old": "ak.peer.signal.command.relay",
+      "new": "ak.peer.signal.command.relay.v1"
+    },
+    {
+      "old": "ak.peer.snapshot.read.manifest_head",
+      "new": "ak.peer.snapshot.read.manifest_head.v1"
+    },
+    {
+      "old": "ak.root.identity.command.submit_did_operation",
+      "new": "ak.root.identity.command.submit_did_operation.v1"
+    },
+    {
+      "old": "ak.root.identity.document.resource.get",
+      "new": "ak.root.identity.document.resource.get.v1"
+    },
+    {
+      "old": "ak.root.identity.log.read.list",
+      "new": "ak.root.identity.log.read.list.v1"
+    },
+    {
+      "old": "ak.root.identity.organization_registration.command.ensure",
+      "new": "ak.root.identity.organization_registration.command.ensure.v1"
+    },
+    {
+      "old": "ak.root.identity.organization_registration.command.prepare",
+      "new": "ak.root.identity.organization_registration.command.prepare.v1"
+    },
+    {
+      "old": "ak.root.identity.organization_registration.command.refresh",
+      "new": "ak.root.identity.organization_registration.command.refresh.v1"
+    },
+    {
+      "old": "ak.root.identity.organization_registration.command.revoke",
+      "new": "ak.root.identity.organization_registration.command.revoke.v1"
+    },
+    {
+      "old": "ak.root.identity.organization_registration.resource.get",
+      "new": "ak.root.identity.organization_registration.resource.get.v1"
+    },
+    {
+      "old": "ak.root.identity.read.resolve",
+      "new": "ak.root.identity.read.resolve.v1"
+    },
+    {
+      "old": "ak.root.identity.receipts.read.list",
+      "new": "ak.root.identity.receipts.read.list.v1"
+    },
+    {
+      "old": "ak.root.identity.recovery_policy.command.publish",
+      "new": "ak.root.identity.recovery_policy.command.publish.v1"
+    },
+    {
+      "old": "ak.root.identity.recovery_policy.resource.get",
+      "new": "ak.root.identity.recovery_policy.resource.get.v1"
+    },
+    {
+      "old": "ak.root.identity.recovery_session.command.create",
+      "new": "ak.root.identity.recovery_session.command.create.v1"
+    },
+    {
+      "old": "ak.root.identity.recovery_session.command.submit_proof",
+      "new": "ak.root.identity.recovery_session.command.submit_proof.v1"
+    },
+    {
+      "old": "ak.root.identity.recovery_session.resource.get",
+      "new": "ak.root.identity.recovery_session.resource.get.v1"
+    },
+    {
+      "old": "ak.root.identity.registry.read.describe",
+      "new": "ak.root.identity.registry.read.describe.v1"
+    },
+    {
+      "old": "ak.root.identity.service_registration.command.ensure",
+      "new": "ak.root.identity.service_registration.command.ensure.v1"
+    },
+    {
+      "old": "ak.root.identity.service_registration.resource.get",
+      "new": "ak.root.identity.service_registration.resource.get.v1"
+    },
+    {
+      "old": "ak.self.account.command.revoke_cursor",
+      "new": "ak.self.account.command.revoke_cursor.v1"
+    },
+    {
+      "old": "ak.self.account.command.update_profile",
+      "new": "ak.self.account.command.update_profile.v1"
+    },
+    {
+      "old": "ak.self.account.read.describe",
+      "new": "ak.self.account.read.describe.v1"
+    },
+    {
+      "old": "ak.self.account.read.viewer",
+      "new": "ak.self.account.read.viewer.v1"
+    },
+    {
+      "old": "ak.self.account.stream.subscribe",
+      "new": "ak.self.account.stream.subscribe.v1"
+    },
+    {
+      "old": "ak.self.account_data.read.list",
+      "new": "ak.self.account_data.read.list.v1"
+    },
+    {
+      "old": "ak.self.account_data.resource.delete",
+      "new": "ak.self.account_data.resource.delete.v1"
+    },
+    {
+      "old": "ak.self.account_data.resource.get",
+      "new": "ak.self.account_data.resource.get.v1"
+    },
+    {
+      "old": "ak.self.account_data.resource.replace",
+      "new": "ak.self.account_data.resource.replace.v1"
+    },
+    {
+      "old": "ak.self.actor_profile.read.resolve",
+      "new": "ak.self.actor_profile.read.resolve.v1"
+    },
+    {
+      "old": "ak.self.agent.command.abandon_provisioning",
+      "new": "ak.self.agent.command.abandon_provisioning.v1"
+    },
+    {
+      "old": "ak.self.agent.command.deactivate",
+      "new": "ak.self.agent.command.deactivate.v1"
+    },
+    {
+      "old": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+      "new": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1"
+    },
+    {
+      "old": "ak.self.agent.command.pause",
+      "new": "ak.self.agent.command.pause.v1"
+    },
+    {
+      "old": "ak.self.agent.command.provision",
+      "new": "ak.self.agent.command.provision.v1"
+    },
+    {
+      "old": "ak.self.agent.command.renew_pairing",
+      "new": "ak.self.agent.command.renew_pairing.v1"
+    },
+    {
+      "old": "ak.self.agent.command.resume",
+      "new": "ak.self.agent.command.resume.v1"
+    },
+    {
+      "old": "ak.self.agent.grant.command.attach",
+      "new": "ak.self.agent.grant.command.attach.v1"
+    },
+    {
+      "old": "ak.self.agent.grant.resource.delete",
+      "new": "ak.self.agent.grant.resource.delete.v1"
+    },
+    {
+      "old": "ak.self.agent.participation.resource.get",
+      "new": "ak.self.agent.participation.resource.get.v1"
+    },
+    {
+      "old": "ak.self.agent.participation.resource.replace",
+      "new": "ak.self.agent.participation.resource.replace.v1"
+    },
+    {
+      "old": "ak.self.agent.read.list",
+      "new": "ak.self.agent.read.list.v1"
+    },
+    {
+      "old": "ak.self.agent.resource.get",
+      "new": "ak.self.agent.resource.get.v1"
+    },
+    {
+      "old": "ak.self.agent.sidecar.command.ensure",
+      "new": "ak.self.agent.sidecar.command.ensure.v1"
+    },
+    {
+      "old": "ak.self.agent.sidecar.read.list",
+      "new": "ak.self.agent.sidecar.read.list.v1"
+    },
+    {
+      "old": "ak.self.agent.sidecar.resource.get",
+      "new": "ak.self.agent.sidecar.resource.get.v1"
+    },
+    {
+      "old": "ak.self.agent_signer_evidence.read.resolve",
+      "new": "ak.self.agent_signer_evidence.read.resolve.v1"
+    },
+    {
+      "old": "ak.self.applet.command.install",
+      "new": "ak.self.applet.command.install.v1"
+    },
+    {
+      "old": "ak.self.applet.command.revoke",
+      "new": "ak.self.applet.command.revoke.v1"
+    },
+    {
+      "old": "ak.self.applet.ghost.command.preview",
+      "new": "ak.self.applet.ghost.command.preview.v1"
+    },
+    {
+      "old": "ak.self.applet.ghost.command.provision",
+      "new": "ak.self.applet.ghost.command.provision.v1"
+    },
+    {
+      "old": "ak.self.applet.install.command.preview",
+      "new": "ak.self.applet.install.command.preview.v1"
+    },
+    {
+      "old": "ak.self.applet.revoke.command.preview",
+      "new": "ak.self.applet.revoke.command.preview.v1"
+    },
+    {
+      "old": "ak.self.authorization_leases.command.issue",
+      "new": "ak.self.authorization_leases.command.issue.v1"
+    },
+    {
+      "old": "ak.self.authz.grants.read.effective",
+      "new": "ak.self.authz.grants.read.effective.v1"
+    },
+    {
+      "old": "ak.self.authz.invites.read.list",
+      "new": "ak.self.authz.invites.read.list.v1"
+    },
+    {
+      "old": "ak.self.authz.read.check",
+      "new": "ak.self.authz.read.check.v1"
+    },
+    {
+      "old": "ak.self.blob.command.presign",
+      "new": "ak.self.blob.command.presign.v1"
+    },
+    {
+      "old": "ak.self.blob.resource.get",
+      "new": "ak.self.blob.resource.get.v1"
+    },
+    {
+      "old": "ak.self.blob.resource.head",
+      "new": "ak.self.blob.resource.head.v1"
+    },
+    {
+      "old": "ak.self.blob.upload.create",
+      "new": "ak.self.blob.upload.create.v1"
+    },
+    {
+      "old": "ak.self.call.media.exchange.issue_token",
+      "new": "ak.self.call.media.exchange.issue_token.v1"
+    },
+    {
+      "old": "ak.self.circle.command.archive",
+      "new": "ak.self.circle.command.archive.v1"
+    },
+    {
+      "old": "ak.self.circle.command.create",
+      "new": "ak.self.circle.command.create.v1"
+    },
+    {
+      "old": "ak.self.circle.command.restore",
+      "new": "ak.self.circle.command.restore.v1"
+    },
+    {
+      "old": "ak.self.circle.command.rotate_scope",
+      "new": "ak.self.circle.command.rotate_scope.v1"
+    },
+    {
+      "old": "ak.self.circle.command.tombstone",
+      "new": "ak.self.circle.command.tombstone.v1"
+    },
+    {
+      "old": "ak.self.circle.member.command.add",
+      "new": "ak.self.circle.member.command.add.v1"
+    },
+    {
+      "old": "ak.self.circle.member.resource.delete",
+      "new": "ak.self.circle.member.resource.delete.v1"
+    },
+    {
+      "old": "ak.self.circle.read.list",
+      "new": "ak.self.circle.read.list.v1"
+    },
+    {
+      "old": "ak.self.circle.resource.get",
+      "new": "ak.self.circle.resource.get.v1"
+    },
+    {
+      "old": "ak.self.consent.command.grant",
+      "new": "ak.self.consent.command.grant.v1"
+    },
+    {
+      "old": "ak.self.consent.command.request",
+      "new": "ak.self.consent.command.request.v1"
+    },
+    {
+      "old": "ak.self.consent.command.revoke",
+      "new": "ak.self.consent.command.revoke.v1"
+    },
+    {
+      "old": "ak.self.consent.read.list",
+      "new": "ak.self.consent.read.list.v1"
+    },
+    {
+      "old": "ak.self.consent.resource.get",
+      "new": "ak.self.consent.resource.get.v1"
+    },
+    {
+      "old": "ak.self.contact.command.checkpoint",
+      "new": "ak.self.contact.command.checkpoint.v1"
+    },
+    {
+      "old": "ak.self.contact.command.reject",
+      "new": "ak.self.contact.command.reject.v1"
+    },
+    {
+      "old": "ak.self.contact.command.request",
+      "new": "ak.self.contact.command.request.v1"
+    },
+    {
+      "old": "ak.self.contact.command.respond",
+      "new": "ak.self.contact.command.respond.v1"
+    },
+    {
+      "old": "ak.self.contact.command.scope_update",
+      "new": "ak.self.contact.command.scope_update.v1"
+    },
+    {
+      "old": "ak.self.contact.command.tombstone",
+      "new": "ak.self.contact.command.tombstone.v1"
+    },
+    {
+      "old": "ak.self.contact.read.list",
+      "new": "ak.self.contact.read.list.v1"
+    },
+    {
+      "old": "ak.self.control_proposal_acks.command.issue",
+      "new": "ak.self.control_proposal_acks.command.issue.v1"
+    },
+    {
+      "old": "ak.self.control_proposal_decisions.command.submit",
+      "new": "ak.self.control_proposal_decisions.command.submit.v1"
+    },
+    {
+      "old": "ak.self.control_proposal_decisions.read.get",
+      "new": "ak.self.control_proposal_decisions.read.get.v1"
+    },
+    {
+      "old": "ak.self.device_messages.command.ack",
+      "new": "ak.self.device_messages.command.ack.v1"
+    },
+    {
+      "old": "ak.self.device_messages.command.send",
+      "new": "ak.self.device_messages.command.send.v1"
+    },
+    {
+      "old": "ak.self.device_messages.read.list",
+      "new": "ak.self.device_messages.read.list.v1"
+    },
+    {
+      "old": "ak.self.direct_conversation.read.resolve",
+      "new": "ak.self.direct_conversation.read.resolve.v1"
+    },
+    {
+      "old": "ak.self.events.command.submit",
+      "new": "ak.self.events.command.submit.v1"
+    },
+    {
+      "old": "ak.self.events.read.delivery_status",
+      "new": "ak.self.events.read.delivery_status.v1"
+    },
+    {
+      "old": "ak.self.events.read.describe",
+      "new": "ak.self.events.read.describe.v1"
+    },
+    {
+      "old": "ak.self.events.read.frontier",
+      "new": "ak.self.events.read.frontier.v1"
+    },
+    {
+      "old": "ak.self.events.read.resolve",
+      "new": "ak.self.events.read.resolve.v1"
+    },
+    {
+      "old": "ak.self.events.read.scan",
+      "new": "ak.self.events.read.scan.v1"
+    },
+    {
+      "old": "ak.self.events.resource.get",
+      "new": "ak.self.events.resource.get.v1"
+    },
+    {
+      "old": "ak.self.events.stream.subscribe",
+      "new": "ak.self.events.stream.subscribe.v1"
+    },
+    {
+      "old": "ak.self.history_key_requests.command.create",
+      "new": "ak.self.history_key_requests.command.create.v1"
+    },
+    {
+      "old": "ak.self.history_key_requests.read.list",
+      "new": "ak.self.history_key_requests.read.list.v1"
+    },
+    {
+      "old": "ak.self.history_key_responses.command.ack",
+      "new": "ak.self.history_key_responses.command.ack.v1"
+    },
+    {
+      "old": "ak.self.history_key_responses.command.send",
+      "new": "ak.self.history_key_responses.command.send.v1"
+    },
+    {
+      "old": "ak.self.history_key_responses.read.list",
+      "new": "ak.self.history_key_responses.read.list.v1"
+    },
+    {
+      "old": "ak.self.identity.read.resolution_audit",
+      "new": "ak.self.identity.read.resolution_audit.v1"
+    },
+    {
+      "old": "ak.self.invite_locator.command.issue",
+      "new": "ak.self.invite_locator.command.issue.v1"
+    },
+    {
+      "old": "ak.self.invite_locator.command.revoke",
+      "new": "ak.self.invite_locator.command.revoke.v1"
+    },
+    {
+      "old": "ak.self.invite_locator.command.rotate",
+      "new": "ak.self.invite_locator.command.rotate.v1"
+    },
+    {
+      "old": "ak.self.invite_receive_policy.resource.get",
+      "new": "ak.self.invite_receive_policy.resource.get.v1"
+    },
+    {
+      "old": "ak.self.invite_receive_policy.resource.replace",
+      "new": "ak.self.invite_receive_policy.resource.replace.v1"
+    },
+    {
+      "old": "ak.self.invites.command.dispatch",
+      "new": "ak.self.invites.command.dispatch.v1"
+    },
+    {
+      "old": "ak.self.keys.backup_series.command.erase",
+      "new": "ak.self.keys.backup_series.command.erase.v1"
+    },
+    {
+      "old": "ak.self.keys.backups.command.issue_delete_challenge",
+      "new": "ak.self.keys.backups.command.issue_delete_challenge.v1"
+    },
+    {
+      "old": "ak.self.keys.backups.command.unlock",
+      "new": "ak.self.keys.backups.command.unlock.v1"
+    },
+    {
+      "old": "ak.self.keys.backups.read.list",
+      "new": "ak.self.keys.backups.read.list.v1"
+    },
+    {
+      "old": "ak.self.keys.backups.resource.delete",
+      "new": "ak.self.keys.backups.resource.delete.v1"
+    },
+    {
+      "old": "ak.self.keys.backups.resource.replace",
+      "new": "ak.self.keys.backups.resource.replace.v1"
+    },
+    {
+      "old": "ak.self.keys.command.claim",
+      "new": "ak.self.keys.command.claim.v1"
+    },
+    {
+      "old": "ak.self.keys.keypackages.command.claim",
+      "new": "ak.self.keys.keypackages.command.claim.v1"
+    },
+    {
+      "old": "ak.self.keys.keypackages.command.consume",
+      "new": "ak.self.keys.keypackages.command.consume.v1"
+    },
+    {
+      "old": "ak.self.keys.keypackages.command.revoke",
+      "new": "ak.self.keys.keypackages.command.revoke.v1"
+    },
+    {
+      "old": "ak.self.keys.keypackages.upload.create",
+      "new": "ak.self.keys.keypackages.upload.create.v1"
+    },
+    {
+      "old": "ak.self.keys.read.lookup",
+      "new": "ak.self.keys.read.lookup.v1"
+    },
+    {
+      "old": "ak.self.keys.upload.create",
+      "new": "ak.self.keys.upload.create.v1"
+    },
+    {
+      "old": "ak.self.media.read.ice_config",
+      "new": "ak.self.media.read.ice_config.v1"
+    },
+    {
+      "old": "ak.self.moderation.command.report",
+      "new": "ak.self.moderation.command.report.v1"
+    },
+    {
+      "old": "ak.self.moderation.read.franking_seal_observation",
+      "new": "ak.self.moderation.read.franking_seal_observation.v1"
+    },
+    {
+      "old": "ak.self.morph.read.list",
+      "new": "ak.self.morph.read.list.v1"
+    },
+    {
+      "old": "ak.self.morph.resource.get",
+      "new": "ak.self.morph.resource.get.v1"
+    },
+    {
+      "old": "ak.self.organization_recovery_archives.read.list",
+      "new": "ak.self.organization_recovery_archives.read.list.v1"
+    },
+    {
+      "old": "ak.self.policy.read.check",
+      "new": "ak.self.policy.read.check.v1"
+    },
+    {
+      "old": "ak.self.read_cursor.command.advance",
+      "new": "ak.self.read_cursor.command.advance.v1"
+    },
+    {
+      "old": "ak.self.read_cursor.read.list",
+      "new": "ak.self.read_cursor.read.list.v1"
+    },
+    {
+      "old": "ak.self.realm.command.archive",
+      "new": "ak.self.realm.command.archive.v1"
+    },
+    {
+      "old": "ak.self.realm.command.destroy",
+      "new": "ak.self.realm.command.destroy.v1"
+    },
+    {
+      "old": "ak.self.realm.command.freeze",
+      "new": "ak.self.realm.command.freeze.v1"
+    },
+    {
+      "old": "ak.self.realm.command.tombstone",
+      "new": "ak.self.realm.command.tombstone.v1"
+    },
+    {
+      "old": "ak.self.realm.join_application.audit.read.list",
+      "new": "ak.self.realm.join_application.audit.read.list.v1"
+    },
+    {
+      "old": "ak.self.realm.join_application.command.cancel",
+      "new": "ak.self.realm.join_application.command.cancel.v1"
+    },
+    {
+      "old": "ak.self.realm.join_application.command.review",
+      "new": "ak.self.realm.join_application.command.review.v1"
+    },
+    {
+      "old": "ak.self.realm.join_application.command.submit",
+      "new": "ak.self.realm.join_application.command.submit.v1"
+    },
+    {
+      "old": "ak.self.realm.join_application.read.list",
+      "new": "ak.self.realm.join_application.read.list.v1"
+    },
+    {
+      "old": "ak.self.realm.join_application.resource.get",
+      "new": "ak.self.realm.join_application.resource.get.v1"
+    },
+    {
+      "old": "ak.self.realm.moderation_policy.read.effective",
+      "new": "ak.self.realm.moderation_policy.read.effective.v1"
+    },
+    {
+      "old": "ak.self.realm.moderation_policy.resource.replace",
+      "new": "ak.self.realm.moderation_policy.resource.replace.v1"
+    },
+    {
+      "old": "ak.self.realm.read.export",
+      "new": "ak.self.realm.read.export.v1"
+    },
+    {
+      "old": "ak.self.realm.resource.get",
+      "new": "ak.self.realm.resource.get.v1"
+    },
+    {
+      "old": "ak.self.realm_link.command.create",
+      "new": "ak.self.realm_link.command.create.v1"
+    },
+    {
+      "old": "ak.self.realm_link.read.effective_policy",
+      "new": "ak.self.realm_link.read.effective_policy.v1"
+    },
+    {
+      "old": "ak.self.realm_link.read.list",
+      "new": "ak.self.realm_link.read.list.v1"
+    },
+    {
+      "old": "ak.self.realm_link.resource.delete",
+      "new": "ak.self.realm_link.resource.delete.v1"
+    },
+    {
+      "old": "ak.self.realm_organization.read.list",
+      "new": "ak.self.realm_organization.read.list.v1"
+    },
+    {
+      "old": "ak.self.realm_policy_server.resource.delete",
+      "new": "ak.self.realm_policy_server.resource.delete.v1"
+    },
+    {
+      "old": "ak.self.realm_policy_server.resource.get",
+      "new": "ak.self.realm_policy_server.resource.get.v1"
+    },
+    {
+      "old": "ak.self.realm_policy_server.resource.replace",
+      "new": "ak.self.realm_policy_server.resource.replace.v1"
+    },
+    {
+      "old": "ak.self.seals.command.submit",
+      "new": "ak.self.seals.command.submit.v1"
+    },
+    {
+      "old": "ak.self.seals.read.frontier",
+      "new": "ak.self.seals.read.frontier.v1"
+    },
+    {
+      "old": "ak.self.seals.read.governance_dependencies",
+      "new": "ak.self.seals.read.governance_dependencies.v1"
+    },
+    {
+      "old": "ak.self.seals.read.mls_governance_proof",
+      "new": "ak.self.seals.read.mls_governance_proof.v1"
+    },
+    {
+      "old": "ak.self.seals.read.resolve",
+      "new": "ak.self.seals.read.resolve.v1"
+    },
+    {
+      "old": "ak.self.security_transaction.command.continue",
+      "new": "ak.self.security_transaction.command.continue.v1"
+    },
+    {
+      "old": "ak.self.security_transaction.command.create",
+      "new": "ak.self.security_transaction.command.create.v1"
+    },
+    {
+      "old": "ak.self.security_transaction.resource.get",
+      "new": "ak.self.security_transaction.resource.get.v1"
+    },
+    {
+      "old": "ak.self.signal.command.send",
+      "new": "ak.self.signal.command.send.v1"
+    },
+    {
+      "old": "ak.self.signal.stream.subscribe",
+      "new": "ak.self.signal.stream.subscribe.v1"
+    },
+    {
+      "old": "ak.self.snapshot.read.manifest_head",
+      "new": "ak.self.snapshot.read.manifest_head.v1"
+    },
+    {
+      "old": "ak.self.space.read.list",
+      "new": "ak.self.space.read.list.v1"
+    },
+    {
+      "old": "ak.self.strand.read.list",
+      "new": "ak.self.strand.read.list.v1"
+    },
+    {
+      "old": "ak.self.views.collection_projection.command.materialize",
+      "new": "ak.self.views.collection_projection.command.materialize.v1"
+    },
+    {
+      "old": "ak.server.read.describe",
+      "new": "ak.server.read.describe.v1"
+    }
+  ]
+}

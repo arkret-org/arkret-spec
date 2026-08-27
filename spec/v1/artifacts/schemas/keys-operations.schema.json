@@ -166,7 +166,7 @@
     },
     "device_projection_attestation_core": {
       "type": "object",
-      "description": "Origin Principal Server assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the cross-principal keys/query surface: the row carries no PCR genesis receipt, no device authorization chain and no accepted Seal, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
+      "description": "Origin Principal Server assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the cross-principal keys/query surface: the row carries no PCR genesis receipt, no device authorization chain and no accepted Seal, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
       "required": [
         "principal_id",
         "principal_server_id",
@@ -644,7 +644,7 @@
     },
     "keys_backups_unlock_request_body": {
       "type": "object",
-      "description": "Request body for ak.self.keys.backups.command.unlock. The unlock proof MUST validate as ak.schema.key_backup_unlock_proof.v1 and MUST be verified against the recovery session, caller, requesting device key, active-series record, and target envelope before the full ciphertext is returned (key-management.md §7.7.1 / §7.8). The path backup_id and proof.backup_id MUST match.",
+      "description": "Request body for ak.self.keys.backups.command.unlock.v1. The unlock proof MUST validate as ak.schema.key_backup_unlock_proof.v1 and MUST be verified against the recovery session, caller, requesting device key, active-series record, and target envelope before the full ciphertext is returned (key-management.md §7.7.1 / §7.8). The path backup_id and proof.backup_id MUST match.",
       "required": [
         "proof"
       ],
@@ -657,7 +657,7 @@
     },
     "keys_backups_issue_delete_challenge_request_body": {
       "type": "object",
-      "description": "Request body for ak.self.keys.backups.command.issue_delete_challenge. While an issued challenge for the same (principal_id, backup_id, request_id) is still valid, the service MUST return the same challenge; a different request_id mints a new challenge.",
+      "description": "Request body for ak.self.keys.backups.command.issue_delete_challenge.v1. While an issued challenge for the same (principal_id, backup_id, request_id) is still valid, the service MUST return the same challenge; a different request_id mints a new challenge.",
       "required": [
         "request_id"
       ],
@@ -700,7 +700,7 @@
           "description": "Server-issued CSPRNG nonce bytes (base64url, no padding); distinct from challenge so the transcript binds two independent freshness values."
         },
         "operation": {
-          "const": "ak.self.keys.backups.resource.delete"
+          "const": "ak.self.keys.backups.resource.delete.v1"
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -730,7 +730,7 @@
     },
     "keys_backups_delete_request_body": {
       "type": "object",
-      "description": "Request body for ak.self.keys.backups.resource.delete. The service verifies the referenced challenge against the current caller/path/service, verifies the high-risk proof over the canonical delete-intent transcript, and consumes the challenge in the same transaction as the successful delete. A byte-identical network retry returns the stored terminal outcome without re-admitting the consumed challenge; the same request_id with a different canonical digest is a duplicate conflict.",
+      "description": "Request body for ak.self.keys.backups.resource.delete.v1. The service verifies the referenced challenge against the current caller/path/service, verifies the high-risk proof over the canonical delete-intent transcript, and consumes the challenge in the same transaction as the successful delete. A byte-identical network retry returns the stored terminal outcome without re-admitting the consumed challenge; the same request_id with a different canonical digest is a duplicate conflict.",
       "required": [
         "request_id",
         "challenge_id",

@@ -207,7 +207,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
             row = copy.deepcopy(self._row(document, "ak.key_backup_delete_proof.v1"))
             row["context"] = "ak.realm_history_erasure_proof.v1"
             row["object_family"] = "realm_history_erasure_authority"
-            row["consumer_operation"] = "ak.self.keys.backups.command.unlock"
+            row["consumer_operation"] = "ak.self.keys.backups.command.unlock.v1"
             document["contexts"].append(row)
 
         errors = self._run_with_mutations({REGISTRY: add_consumer})
@@ -217,7 +217,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
         def bogus(document) -> None:
             self._row(document, "ak.key_backup_delete_proof.v1")[
                 "consumer_operation"
-            ] = "ak.self.keys.backups.command.not_an_operation"
+            ] = "ak.self.keys.backups.command.not_an_operation.v1"
 
         errors = self._run_with_mutations({REGISTRY: bogus})
         self.assertAnyContains(errors, "consumer_operation is not a registered operation")

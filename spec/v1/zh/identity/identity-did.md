@@ -355,7 +355,7 @@ authority 的调用**；device / capability / membership / recovery 等由 human
 
 Arkret 层用 [`did-webvh-witness-receipt.schema.json`](../../artifacts/schemas/did-webvh-witness-receipt.schema.json)
 （`ak.schema.did_webvh_witness_receipt.v1`）承载 witness 观测结论，
-经 `ak.root.identity.receipts.read.list` 以**闭合 discriminator 的 tagged union** 返回。
+经 `ak.root.identity.receipts.read.list.v1` 以**闭合 discriminator 的 tagged union** 返回。
 
 该 receipt 与 `ak.schema.identity_receipt.v1` 是**两个不同的对象族**，不得合并：
 后者的 `witness_role ∈ {writer, witness, replica}` 描述的是 DID **registry consensus group** 中的复制角色，
@@ -455,8 +455,8 @@ verification 侧反向执行——「把 log entry 当作字符串，把从 DID 
 
 Service Identity Provider 的标准操作是：
 
-- `ak.root.identity.service_registration.command.ensure` → `POST /_arkret/root/identity/service-registrations:ensure`；
-- `ak.root.identity.service_registration.resource.get` → `GET /_arkret/root/identity/service-registrations?service_kind=...&public_base=...`。
+- `ak.root.identity.service_registration.command.ensure.v1` → `POST /_arkret/root/identity/service-registrations:ensure`；
+- `ak.root.identity.service_registration.resource.get.v1` → `GET /_arkret/root/identity/service-registrations?service_kind=...&public_base=...`。
 
 注册键由 registry 限定的 `service_kind` 与 canonical `public_base` 组成。同一个注册键 MUST 永远映射到同一个 DID；普通 ensure、重启、数据库重连和 key rotation 都不得改变它。Provider MUST 验证 client-signed `did:webvh` inception 内声明的 service type / endpoint 与注册键完全相等，MUST 以 `UNIQUE(service_kind, public_base)` 和单事务先查后建保证并发幂等，并且在 mapping 行缺失时扫描现存托管 DID Document：任何 document 已声明同一注册键都必须返回 `service_identity_conflict`，不得创建第二 DID。`idempotency_key` 只用于审计关联，不是并发正确性的来源。
 
@@ -591,13 +591,13 @@ attested projection，私有 resolver row、内联 DID Document 与 core→full 
 
 上述两个 history position 字段不得由实现自由命名或省略。`did:webvh:1.0` 的 `method_history_head` 是当前已验证 log entry 的 RFC 8785 JCS SHA-256，`version_id` 是同一 entry 的 method-native `versionId`；`did:web:1` 使用当前已验证 DID Document 的 RFC 8785 JCS SHA-256，并以同一摘要构造 `synthetic-jcs-sha256:<hex>`；`did:key:1` 使用 canonical `full_id` UTF-8 字节的 SHA-256，并以同一摘要构造 `synthetic-full-id-sha256:<hex>`。算法与字符串格式以 `contract-registry.json` 的 active adapter row 为唯一权威。
 
-Profile 是该 cell 的公开 **current projection**，可以发布当前 `full_id`、history head、version、resolution Event ref 与更新时间；Profile 不是授权根。公开 operation `ak.open.identity.read.resolution` MUST 以 `(principal_id, principal_server_id)` 选择账号并返回 current projection。
+Profile 是该 cell 的公开 **current projection**，可以发布当前 `full_id`、history head、version、resolution Event ref 与更新时间；Profile 不是授权根。公开 operation `ak.open.identity.read.resolution.v1` MUST 以 `(principal_id, principal_server_id)` 选择账号并返回 current projection。
 
 **公开面与账号内部审计面分离（normative）**：该公开 operation 的响应 **MUST** 恰为 closed `public_principal_resolution`——`principal_id`、`principal_server_id`、`resolution_projection`、bounded `method_history_evidence` 与 Principal Server 签名的 `projection_attestation`。它 **MUST NOT** 携带 `principal_control_realm_id`、PCR genesis Event、genesis receipt、resolution Event 或 accepted Seal，因此该面也不再有 history selector。`resolution_projection.resolution_event_ref` 只是用于比较新旧的 head 坐标，不是可在任何公开面取回该 Event 的句柄；conformance vector `ak.vector.identity.public_resolution_minimization.v1` 锁定这条最小化边界。
 
 `projection_attestation` **MUST** 由 `principal_server_id` 当前已验证 method history 下的 assertion 能力密钥，对登记的 canonical transcript 签名，并逐字绑定 account pair、完整 `resolution_projection`、`method_history_evidence` 的 JCS SHA-256 与 `issued_at`/`expires_at`；`proof.created_at` **MUST** 等于 `issued_at`。消费方 **MUST** 先验证 `principal_server_id` 的 service resolution，再验 attestation、`project(full_id) == principal_id` 与 bounded method history；**MUST NOT** 把一组无证明的裸字段当作 current projection。
 
-账号内部 PCR genesis/Seal/history 作为审计材料，只能由授权 operation `ak.self.identity.read.resolution_audit` 返回，其授权只取绑定 exact `principal_authority` 的 current holder session。recovery actor 必须先完成既有 recovery transaction、成为 current holder 后再读；v1 **MUST NOT** 为同一审计数据另建 recovery-session/capability 授权支路。**caller 自报的 intent 不构成授权**，因为任何已认证调用者都能自报。unknown 账号、错误 authority pair 与无权调用者 **MUST** 共用同一反枚举结果。该面复用统一 evidence 形状：exact genesis/current/predecessor Event、genesis receipt 与覆盖 current Event 的 accepted Seal；verifier 通过登记 reducer 重放 current Event，v1 **MUST NOT** 再叠加 resolution 专用的 state-cell Merkle proof。这样避免为单一字段建立第二套不可复用证明系统。这些字段不改变 external identity，也 **MUST NOT** 成为普通 federated Event 验证的前置条件；普通 Event 只验证 in-envelope producer proof 与 Principal Server admission proof。
+账号内部 PCR genesis/Seal/history 作为审计材料，只能由授权 operation `ak.self.identity.read.resolution_audit.v1` 返回，其授权只取绑定 exact `principal_authority` 的 current holder session。recovery actor 必须先完成既有 recovery transaction、成为 current holder 后再读；v1 **MUST NOT** 为同一审计数据另建 recovery-session/capability 授权支路。**caller 自报的 intent 不构成授权**，因为任何已认证调用者都能自报。unknown 账号、错误 authority pair 与无权调用者 **MUST** 共用同一反枚举结果。该面复用统一 evidence 形状：exact genesis/current/predecessor Event、genesis receipt 与覆盖 current Event 的 accepted Seal；verifier 通过登记 reducer 重放 current Event，v1 **MUST NOT** 再叠加 resolution 专用的 state-cell Merkle proof。这样避免为单一字段建立第二套不可复用证明系统。这些字段不改变 external identity，也 **MUST NOT** 成为普通 federated Event 验证的前置条件；普通 Event 只验证 in-envelope producer proof 与 Principal Server admission proof。
 
 审计面的 history 披露上限是闭合的：`history_depth` 取值范围 `0..256`，缺省 `0`（只返回 current head），越界 **MUST** `param_invalid`，实现 **MUST NOT** 用私有上限静默替换。`after_resolution_event_ref` 把披露区间排他性截止在调用方已持有的 ancestor，该 ref **MUST** 是本账号 current lineage 内的 genesis Event 或已接受 `ak.identity.resolution.update`，否则 **MUST** `param_invalid` 并带 reason `resolution_history_ancestor_unknown`；它与 `history_depth = 0` 同时出现同样 **MUST** `param_invalid`。返回的 predecessor 段 **MUST** 连续且不跳条，条数 **MUST NOT** 超过 `history_depth`；到达 head 0 或该 ancestor 时 `history_complete = true`，否则 `history_complete = false` 且 **MUST** 返回最旧一条已披露 Event 的 exact `head_eq` precondition 中 `value.resolution_event_ref` 作为 `next_audit_cursor`。该签名 guard 是最旧 Event 的直接前驱坐标；不得从已删除的 payload 回声字段派生。被省略的历史是 unknown，不是 absent。
 
@@ -993,8 +993,8 @@ service identity registration 分开：三者的主体模型不同，混用会�
 | Realm relationship | 由 `ak.realm.organization` statement 表达 | 不因本地 registration 自动获得 |
 | service delegation | organization → service DID 的 purpose/scope/validity | 另行验证，registration 不代替 |
 
-`ak.find.directory.read.resolve_organization` 只提供可见的 discovery/resolve 结果，
-`ak.self.realm_organization.read.list` 只是既有 Realm relationship 的投影。
+`ak.find.directory.read.resolve_organization.v1` 只提供可见的 discovery/resolve 结果，
+`ak.self.realm_organization.read.list.v1` 只是既有 Realm relationship 的投影。
 **能解析或能引用，不产生本地管理权**——规范必须堵住"可见 ⇒ 可管理"的权限升级。
 
 **为什么不复用 service registration。** 结构先例可以借：root identity 下的 operation 位置、

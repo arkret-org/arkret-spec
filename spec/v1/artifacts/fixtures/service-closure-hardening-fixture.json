@@ -141,7 +141,7 @@
       ],
       "caller": "did:webvh:z6mkfixture:alice.example",
       "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "purpose": "ak.self.space.read.list",
+      "purpose": "ak.self.space.read.list.v1",
       "responses": [
         {
           "name": "first_page",
@@ -153,7 +153,7 @@
           "cursor_binding": {
             "caller": "did:webvh:z6mkfixture:alice.example",
             "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "purpose": "ak.self.space.read.list"
+            "purpose": "ak.self.space.read.list.v1"
           },
           "expected": {
             "decision": "accept"
@@ -196,7 +196,7 @@
           "cursor_binding": {
             "caller": "did:webvh:z6mkfixturemalloryexample:mallory.example",
             "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "purpose": "ak.self.space.read.list"
+            "purpose": "ak.self.space.read.list.v1"
           },
           "expected": {
             "decision": "reject",

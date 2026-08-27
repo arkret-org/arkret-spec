@@ -306,26 +306,6 @@
         "supported_profiles": [
           "ak.profile.principal_server.v1"
         ],
-        "operation_bindings": [
-          {
-            "operation_id": "ak.server.read.describe",
-            "binding_kind": "http_json",
-            "preference": 100,
-            "response_schema_ref": "schemas/service-describe.schema.json",
-            "error_schema_ref": "schemas/http-problem-details.schema.json",
-            "success_shape_kind": "service_describe"
-          }
-        ],
-        "supported_bindings": [
-          {
-            "kind": "http_json",
-            "base_url": "https://alice.example.net",
-            "operations": [
-              "ak.server.read.describe"
-            ],
-            "extension_profile_required": null
-          }
-        ],
         "supported_features": [],
         "auth_metadata": {
           "account_authority": {
@@ -351,13 +331,100 @@
         "limits": {},
         "plaintext_visibility": {},
         "rate_limit_policy": {},
-        "implemented_features": [],
         "claimed_profiles": [],
         "verified_profiles": [],
-        "experimental_features": [],
         "interop_surfaces": [],
-        "development_mode": false
+        "development_mode": false,
+        "supported_operation_bundles": [
+          "ak.operation_bundle.principal_server.describe.v1",
+          "ak.operation_bundle.principal_server.http_core.v1"
+        ],
+        "transport_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://alice.example.net",
+            "extension_profile_required": null
+          }
+        ]
       }
+    },
+    {
+      "name": "service_describe_x_metadata_ignored_valid",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance_from": "service_describe_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/x_vendor_display_metadata",
+          "value": {
+            "label": "safe-to-ignore"
+          }
+        }
+      ],
+      "expect_valid": true
+    },
+    {
+      "name": "service_describe_invite_feature_without_field_rejected",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance_from": "service_describe_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/supported_features",
+          "value": [
+            "ak.feature.invite_addressing.v1"
+          ]
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:'invite_addressing' is a required property"
+    },
+    {
+      "name": "service_describe_invite_field_without_feature_rejected",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance_from": "service_describe_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/invite_addressing",
+          "value": {
+            "supported_introduction_kinds": [
+              "locator_ref"
+            ],
+            "handle_claim_max_behavior": "quarantine",
+            "explicit_address_max_behavior": "drop"
+          }
+        }
+      ],
+      "expect_valid": false,
+      "first_expected_error": "contains:does not contain items matching the given schema"
+    },
+    {
+      "name": "service_describe_invite_feature_and_field_valid",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance_from": "service_describe_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/supported_features",
+          "value": [
+            "ak.feature.invite_addressing.v1"
+          ]
+        },
+        {
+          "op": "add",
+          "path": "/invite_addressing",
+          "value": {
+            "supported_introduction_kinds": [
+              "locator_ref",
+              "consent_grant"
+            ],
+            "handle_claim_max_behavior": "quarantine",
+            "explicit_address_max_behavior": "drop"
+          }
+        }
+      ],
+      "expect_valid": true
     },
     {
       "name": "service_describe_directory_overlay_valid",
@@ -373,48 +440,14 @@
         "trust_domain": "ak:trust_domain:directory.example",
         "service_kind": "directory_service",
         "protocol_version": "1.0",
-        "supported_profiles": [
-          "ak.profile.directory_service.v1"
-        ],
-        "operation_bindings": [
-          {
-            "operation_id": "ak.find.directory.read.describe",
-            "binding_kind": "http_json",
-            "preference": 100,
-            "response_schema_ref": "schemas/service-describe.schema.json",
-            "error_schema_ref": "schemas/http-problem-details.schema.json",
-            "success_shape_kind": "service_describe"
-          },
-          {
-            "operation_id": "ak.find.directory.read.private_contact_discovery",
-            "binding_kind": "http_json",
-            "preference": 100,
-            "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
-            "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome",
-            "error_schema_ref": "schemas/http-problem-details.schema.json",
-            "success_shape_kind": "typed_response"
-          }
-        ],
-        "supported_bindings": [
-          {
-            "kind": "http_json",
-            "base_url": "https://directory.example.net",
-            "operations": [
-              "ak.find.directory.read.describe",
-              "ak.find.directory.read.private_contact_discovery"
-            ],
-            "extension_profile_required": null
-          }
-        ],
+        "supported_profiles": [],
         "supported_features": [],
         "auth_metadata": {},
         "limits": {},
         "plaintext_visibility": {},
         "rate_limit_policy": {},
-        "implemented_features": [],
         "claimed_profiles": [],
         "verified_profiles": [],
-        "experimental_features": [],
         "interop_surfaces": [],
         "development_mode": false,
         "resource_kinds": [
@@ -423,10 +456,6 @@
           "actor",
           "applet",
           "handle"
-        ],
-        "discovery_profiles": [
-          "ak.profile.directory_service.v1",
-          "ak.private_contact_discovery.v1"
         ],
         "private_contact_discovery": {
           "profile": "ak.private_contact_discovery.v1",
@@ -477,7 +506,19 @@
         ],
         "rate_limits": {
           "per_resource_per_min": 60
-        }
+        },
+        "supported_operation_bundles": [
+          "ak.operation_bundle.directory_service.describe.v1",
+          "ak.operation_bundle.directory_service.http_core.v1",
+          "ak.operation_bundle.directory_service.private_contact_discovery.v1"
+        ],
+        "transport_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://directory.example.net",
+            "extension_profile_required": null
+          }
+        ]
       }
     },
     {
@@ -496,26 +537,6 @@
         "service_kind": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [],
-        "operation_bindings": [
-          {
-            "operation_id": "ak.server.read.describe",
-            "binding_kind": "http_json",
-            "preference": 100,
-            "response_schema_ref": "schemas/service-describe.schema.json",
-            "error_schema_ref": "schemas/http-problem-details.schema.json",
-            "success_shape_kind": "service_describe"
-          }
-        ],
-        "supported_bindings": [
-          {
-            "kind": "http_json",
-            "base_url": "https://alice.example.net",
-            "operations": [
-              "ak.server.read.describe"
-            ],
-            "extension_profile_required": null
-          }
-        ],
         "supported_features": [],
         "auth_metadata": {
           "account_authority": {
@@ -541,11 +562,20 @@
         "limits": {},
         "plaintext_visibility": {},
         "rate_limit_policy": {},
-        "implemented_features": [],
         "claimed_profiles": [],
         "verified_profiles": [],
-        "experimental_features": [],
-        "interop_surfaces": []
+        "interop_surfaces": [],
+        "supported_operation_bundles": [
+          "ak.operation_bundle.principal_server.describe.v1",
+          "ak.operation_bundle.principal_server.http_core.v1"
+        ],
+        "transport_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://alice.example.net",
+            "extension_profile_required": null
+          }
+        ]
       }
     },
     {
@@ -563,26 +593,6 @@
         "service_kind": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [],
-        "operation_bindings": [
-          {
-            "operation_id": "ak.server.read.describe",
-            "binding_kind": "http_json",
-            "preference": 100,
-            "response_schema_ref": "schemas/service-describe.schema.json",
-            "error_schema_ref": "schemas/http-problem-details.schema.json",
-            "success_shape_kind": "service_describe"
-          }
-        ],
-        "supported_bindings": [
-          {
-            "kind": "http_json",
-            "base_url": "https://alice.example.net",
-            "operations": [
-              "ak.server.read.describe"
-            ],
-            "extension_profile_required": null
-          }
-        ],
         "supported_features": [],
         "auth_metadata": {
           "account_authority": {
@@ -608,12 +618,21 @@
         "limits": {},
         "plaintext_visibility": {},
         "rate_limit_policy": {},
-        "implemented_features": [],
         "claimed_profiles": [],
         "verified_profiles": [],
-        "experimental_features": [],
         "interop_surfaces": [],
-        "development_mode": false
+        "development_mode": false,
+        "supported_operation_bundles": [
+          "ak.operation_bundle.principal_server.describe.v1",
+          "ak.operation_bundle.principal_server.http_core.v1"
+        ],
+        "transport_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://alice.example.net",
+            "extension_profile_required": null
+          }
+        ]
       }
     },
     {
@@ -1750,12 +1769,12 @@
         "requested_scope": {
           "actions": [
             "ak.event.read",
-            "ak.self.events.stream.subscribe"
+            "ak.self.events.stream.subscribe.v1"
           ],
           "resources": [
             {
               "kind": "operation",
-              "operation": "ak.self.events.stream.subscribe"
+              "operation": "ak.self.events.stream.subscribe.v1"
             }
           ]
         }
@@ -1814,12 +1833,12 @@
         "slug": "ambiguous-service-scope",
         "requested_scope": {
           "actions": [
-            "ak.self.events.stream.subscribe"
+            "ak.self.events.stream.subscribe.v1"
           ],
           "resources": [
             {
               "kind": "operation",
-              "operation": "ak.self.events.stream.subscribe",
+              "operation": "ak.self.events.stream.subscribe.v1",
               "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
             }
           ]
@@ -2879,7 +2898,7 @@
         ],
         "confidentiality_class": "e2ee_required",
         "transport_rail_ids": [
-          "ak.self.events.command.submit"
+          "ak.self.events.command.submit.v1"
         ],
         "recovery_profile_ref": null,
         "federation_profile_ref": null,
@@ -3887,7 +3906,15 @@
         "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
         "received_at": "2026-08-24T08:14:00.000Z",
         "ingress_frontier": [],
-        "proofs": [{"kind":"detached_jws","verification_method":"did:webvh:z6mkfixture:ingress.example#key-1","payload_digest":"sha256:1717171717171717171717171717171717171717171717171717171717171717","created_at":"2026-08-24T08:14:00.000Z","jws":"a..b"}]
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:ingress.example#key-1",
+            "payload_digest": "sha256:1717171717171717171717171717171717171717171717171717171717171717",
+            "created_at": "2026-08-24T08:14:00.000Z",
+            "jws": "a..b"
+          }
+        ]
       }
     },
     {
@@ -3900,8 +3927,18 @@
         "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
         "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
         "received_at": "2026-08-24T08:14:00.000Z",
-        "ingress_frontier": ["ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"],
-        "proofs": [{"kind":"detached_jws","verification_method":"did:webvh:z6mkfixture:ingress.example#key-1","payload_digest":"sha256:1717171717171717171717171717171717171717171717171717171717171717","created_at":"2026-08-24T08:14:00.000Z","jws":"a..b"}],
+        "ingress_frontier": [
+          "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        ],
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:ingress.example#key-1",
+            "payload_digest": "sha256:1717171717171717171717171717171717171717171717171717171717171717",
+            "created_at": "2026-08-24T08:14:00.000Z",
+            "jws": "a..b"
+          }
+        ],
         "issuer": "ak:did_core:webvh:z6mkfixture:ingress.example",
         "signature": "legacy-single-signature"
       }
@@ -3912,13 +3949,28 @@
       "expect_valid": false,
       "first_expected_error": "contains:'response_id' is a required property",
       "instance": {
-        "effective_scope": {"kind": "realm", "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"},
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
+        },
         "source_actor_id": "ak:did_core:key:z6MkfixtureService",
         "source_sender_domain": "history.example",
         "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
         "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
         "expires_at": "2026-08-28T00:00:00.000Z",
-        "content": {"kind": "ak.history_key.response_manifest", "chunks": [{"chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000002", "chunk_index": 0, "covered_epoch_range": {"from_epoch": 0, "to_epoch": 0}}]}
+        "content": {
+          "kind": "ak.history_key.response_manifest",
+          "chunks": [
+            {
+              "chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000002",
+              "chunk_index": 0,
+              "covered_epoch_range": {
+                "from_epoch": 0,
+                "to_epoch": 0
+              }
+            }
+          ]
+        }
       }
     },
     {
@@ -3928,13 +3980,28 @@
       "first_expected_error": "contains:Additional properties are not allowed ('unexpected' was unexpected)",
       "instance": {
         "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000001",
-        "effective_scope": {"kind": "realm", "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"},
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
+        },
         "source_actor_id": "ak:did_core:key:z6MkfixtureService",
         "source_sender_domain": "history.example",
         "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
         "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
         "expires_at": "2026-08-28T00:00:00.000Z",
-        "content": {"kind": "ak.history_key.response_manifest", "chunks": [{"chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000002", "chunk_index": 0, "covered_epoch_range": {"from_epoch": 0, "to_epoch": 0}}]},
+        "content": {
+          "kind": "ak.history_key.response_manifest",
+          "chunks": [
+            {
+              "chunk_response_id": "ak:history_response:019c0000-0000-7000-8000-000000000002",
+              "chunk_index": 0,
+              "covered_epoch_range": {
+                "from_epoch": 0,
+                "to_epoch": 0
+              }
+            }
+          ]
+        },
         "unexpected": true
       }
     },
@@ -3945,13 +4012,18 @@
       "first_expected_error": "contains:is not valid under any of the given schemas",
       "instance": {
         "response_id": "ak:history_response:019c0000-0000-7000-8000-000000000001",
-        "effective_scope": {"kind": "realm", "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"},
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e"
+        },
         "source_actor_id": "ak:did_core:key:z6MkfixtureService",
         "source_sender_domain": "history.example",
         "request_digest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
         "request_receipt_digest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
         "expires_at": "2026-08-28T00:00:00.000Z",
-        "content": {"kind": "ak.history_key.not_a_response"}
+        "content": {
+          "kind": "ak.history_key.not_a_response"
+        }
       }
     }
   ]

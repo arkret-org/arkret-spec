@@ -35,7 +35,7 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 
 ### 1.1 Stream frame 序列约束的机读锚点（normative）
 
-`ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 的 NDJSON 多帧序列由 registered vector `ak.vector.sync.stream_frame_sequence.v1` 机读固化（fixture `sync-fixture.json#stream_frame_sequence`；执行入口以 fixture `runner` 元数据为准）。两类 stream 的输出和客户端 reconnect 状态机都 MUST 通过同一组完整 trace 断言；逐帧 JSON Schema validation 不能替代序列测试：
+`ak.self.account.stream.subscribe.v1` 与 `ak.self.events.stream.subscribe.v1` 的 NDJSON 多帧序列由 registered vector `ak.vector.sync.stream_frame_sequence.v1` 机读固化（fixture `sync-fixture.json#stream_frame_sequence`；执行入口以 fixture `runner` 元数据为准）。两类 stream 的输出和客户端 reconnect 状态机都 MUST 通过同一组完整 trace 断言；逐帧 JSON Schema validation 不能替代序列测试：
 
 - 必须固化并执行的 frame 序列约束（散文真相源见 client-sync.md，本节集中列举其 testable 形式）：
   1. `catchup=true` 时，`catchup_complete` 之前 MUST 至少出现一个 `delta` frame（baseline / catch-up delta）；`catchup=false` 时 MUST NOT 出现 `catchup_complete`。
@@ -77,48 +77,48 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 
 | Operation | 语义 |
 | --- | --- |
-| `ak.server.read.describe` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
-| `ak.root.identity.read.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
-| `ak.root.identity.log.read.list` | 获取 DID key log。 |
-| `ak.root.identity.command.submit_did_operation` | 提交 DID 更新操作。 |
-| `ak.self.events.command.submit` | 提交 signed Event Envelope。 |
-| `ak.self.events.resource.get` | 按 ID 读取单个 Event。 |
-| `ak.self.events.read.resolve` | 批量读取 Event。 |
-| `ak.self.events.read.scan` | 按 actor / Realm / cursor 双向查询 Event。 |
-| `ak.self.events.stream.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
-| `ak.self.events.read.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
-| `ak.peer.events.command.submit` | federation peer 推送 signed Event Envelope 批次。 |
-| `ak.peer.events.read.resolve` | federation peer 按 event id / digest 补洞解析 Event。 |
-| `ak.peer.events.read.scan` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
-| `ak.peer.events.read.frontier` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
-| `ak.peer.contacts.command.submit` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
-| `ak.self.contact.command.scope_update` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
-| `ak.self.agent.participation.resource.replace` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |
-| `ak.peer.snapshot.read.manifest_head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
-| `ak.self.account.read.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
-| `ak.self.account.command.update_profile` | closed `{profile_event}` 提交 holder-signed `ak.profile.create` 或 `ak.profile.update`；Event 的 `(actor_id, principal_server_id)` 必须逐字等于 authenticated session 的 exact account authority pair，`realm_id` 必须等于该 pair 的本地唯一 PCR lineage，服务端只走 ordinary admission。create ID 由 Event 派生；Event preconditions 为空，update 并发只使用可选 signed `payload.expected_state_digest`，patch 仍只允许 display/avatar/profile_fields；exact replay 不重复 account-aggregate delta。 |
-| `ak.self.account.stream.subscribe` | 客户端账号视角聚合同步入口；HTTP binding 使用 `AccountSubscribeFrame` NDJSON account-aggregate frame stream。 |
-| `ak.gate.account.exchange.create_handoff` | OIDC code 换 DPoP-bound account handoff，并返回 binding / identity-creation lease 状态；不是 session grant。 |
-| `ak.gate.account.command.issue_identity_binding_challenge` | 为当前 handoff lease 保留完整 DID operation，并签发服务端持久化的一次性 root-control challenge。 |
-| `ak.gate.account.command.register` | 注册 / account binding；account-first 分支内部发布客户端签名的 DID inception 并按 account/principal/operation digest 幂等绑定；不接受裸 `handle` 或 root secret。 |
-| `ak.gate.account.command.revoke_session` | 撤销 session grant；不撤销 device authorization。 |
-| `ak.find.directory.read.search_realms` / `ak.find.directory.read.search_organizations` / `ak.find.directory.read.search_actors` / `ak.find.directory.read.search_users` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
-| `ak.find.directory.read.resolve_realm` / `ak.find.directory.read.resolve_organization` / `ak.find.directory.read.resolve_handle` / `ak.find.directory.read.resolve_agent_selector` / `ak.find.directory.read.list_handles_for_subject` | 精确解析 Realm / Organization / handle / controller-scoped agent selector，以及列出已知 subject 的当前可见 handle claims。 |
-| `ak.find.directory.command.announce` / `ak.find.directory.command.withdraw` / `ak.find.directory.push.command.register` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
-| `ak.self.blob.upload.create` | 上传 blob。 |
-| `ak.self.blob.resource.get` | 获取 blob 或下载授权。 |
-| `ak.edge.push.command.register_device` | 注册推送设备和推送网关。 |
-| `ak.edge.push.command.notify` | 投递脱敏唤醒。 |
-| `ak.self.authz.read.check` | 检查 capability / policy 是否允许动作。 |
-| `ak.self.policy.read.check` | 调用 Policy Server 获取签名决策。 |
-| `ak.self.moderation.command.report` | 提交 direct-holder signed `ak.self.moderation.report` DataEvent；服务端只做 exact validate-and-forward，不代签或重建举报。 |
-| `ak.edge.applet.command.transaction` | 向 Applet 推送事件批次。 |
-| `ak.edge.applet.read.describe` | 查询 Applet profile、namespace 与限制。 |
-| `ak.self.device_messages.command.send` | 将 to-device message 批次放入目标设备短期队列；HTTP binding 是 `POST /_arkret/self/device_messages`，因其语义是 send/fanout command，而不是 URI 资源替换。 |
-| `ak.self.keys.upload.create` / `ak.self.keys.read.lookup` / `ak.self.keys.command.claim` | E2EE 设备密钥发布、查询与领取。 |
-| `ak.self.keys.backups.resource.replace` / `ak.self.keys.backups.read.list` / `ak.self.keys.backups.command.unlock` / `ak.self.keys.backups.resource.delete` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
+| `ak.server.read.describe.v1` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
+| `ak.root.identity.read.resolve.v1` | 解析 DID，返回 DID document 与 normalized principal view。 |
+| `ak.root.identity.log.read.list.v1` | 获取 DID key log。 |
+| `ak.root.identity.command.submit_did_operation.v1` | 提交 DID 更新操作。 |
+| `ak.self.events.command.submit.v1` | 提交 signed Event Envelope。 |
+| `ak.self.events.resource.get.v1` | 按 ID 读取单个 Event。 |
+| `ak.self.events.read.resolve.v1` | 批量读取 Event。 |
+| `ak.self.events.read.scan.v1` | 按 actor / Realm / cursor 双向查询 Event。 |
+| `ak.self.events.stream.subscribe.v1` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
+| `ak.self.events.read.frontier.v1` | 获取 actor 或 Realm 的可见 Event frontier。 |
+| `ak.peer.events.command.submit.v1` | federation peer 推送 signed Event Envelope 批次。 |
+| `ak.peer.events.read.resolve.v1` | federation peer 按 event id / digest 补洞解析 Event。 |
+| `ak.peer.events.read.scan.v1` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
+| `ak.peer.events.read.frontier.v1` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
+| `ak.peer.contacts.command.submit.v1` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
+| `ak.self.contact.command.scope_update.v1` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
+| `ak.self.agent.participation.resource.replace.v1` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |
+| `ak.peer.snapshot.read.manifest_head.v1` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
+| `ak.self.account.read.viewer.v1` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
+| `ak.self.account.command.update_profile.v1` | closed `{profile_event}` 提交 holder-signed `ak.profile.create` 或 `ak.profile.update`；Event 的 `(actor_id, principal_server_id)` 必须逐字等于 authenticated session 的 exact account authority pair，`realm_id` 必须等于该 pair 的本地唯一 PCR lineage，服务端只走 ordinary admission。create ID 由 Event 派生；Event preconditions 为空，update 并发只使用可选 signed `payload.expected_state_digest`，patch 仍只允许 display/avatar/profile_fields；exact replay 不重复 account-aggregate delta。 |
+| `ak.self.account.stream.subscribe.v1` | 客户端账号视角聚合同步入口；HTTP binding 使用 `AccountSubscribeFrame` NDJSON account-aggregate frame stream。 |
+| `ak.gate.account.exchange.create_handoff.v1` | OIDC code 换 DPoP-bound account handoff，并返回 binding / identity-creation lease 状态；不是 session grant。 |
+| `ak.gate.account.command.issue_identity_binding_challenge.v1` | 为当前 handoff lease 保留完整 DID operation，并签发服务端持久化的一次性 root-control challenge。 |
+| `ak.gate.account.command.register.v1` | 注册 / account binding；account-first 分支内部发布客户端签名的 DID inception 并按 account/principal/operation digest 幂等绑定；不接受裸 `handle` 或 root secret。 |
+| `ak.gate.account.command.revoke_session.v1` | 撤销 session grant；不撤销 device authorization。 |
+| `ak.find.directory.read.search_realms.v1` / `ak.find.directory.read.search_organizations.v1` / `ak.find.directory.read.search_actors.v1` / `ak.find.directory.read.search_users.v1` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
+| `ak.find.directory.read.resolve_realm.v1` / `ak.find.directory.read.resolve_organization.v1` / `ak.find.directory.read.resolve_handle.v1` / `ak.find.directory.read.resolve_agent_selector.v1` / `ak.find.directory.read.list_handles_for_subject.v1` | 精确解析 Realm / Organization / handle / controller-scoped agent selector，以及列出已知 subject 的当前可见 handle claims。 |
+| `ak.find.directory.command.announce.v1` / `ak.find.directory.command.withdraw.v1` / `ak.find.directory.push.command.register.v1` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
+| `ak.self.blob.upload.create.v1` | 上传 blob。 |
+| `ak.self.blob.resource.get.v1` | 获取 blob 或下载授权。 |
+| `ak.edge.push.command.register_device.v1` | 注册推送设备和推送网关。 |
+| `ak.edge.push.command.notify.v1` | 投递脱敏唤醒。 |
+| `ak.self.authz.read.check.v1` | 检查 capability / policy 是否允许动作。 |
+| `ak.self.policy.read.check.v1` | 调用 Policy Server 获取签名决策。 |
+| `ak.self.moderation.command.report.v1` | 提交 direct-holder signed `ak.self.moderation.report` DataEvent；服务端只做 exact validate-and-forward，不代签或重建举报。 |
+| `ak.edge.applet.command.transaction.v1` | 向 Applet 推送事件批次。 |
+| `ak.edge.applet.read.describe.v1` | 查询 Applet profile、namespace 与限制。 |
+| `ak.self.device_messages.command.send.v1` | 将 to-device message 批次放入目标设备短期队列；HTTP binding 是 `POST /_arkret/self/device_messages`，因其语义是 send/fanout command，而不是 URI 资源替换。 |
+| `ak.self.keys.upload.create.v1` / `ak.self.keys.read.lookup.v1` / `ak.self.keys.command.claim.v1` | E2EE 设备密钥发布、查询与领取。 |
+| `ak.self.keys.backups.resource.replace.v1` / `ak.self.keys.backups.read.list.v1` / `ak.self.keys.backups.command.unlock.v1` / `ak.self.keys.backups.resource.delete.v1` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
 
-> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_arkret/peer/*` HTTP trust surface 和 `ak.peer.*` operation_id。`/_arkret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_arkret/peer/events`（`ak.peer.events.command.submit`）是唯一的 federation Event 接收轨，DataEvent / Control Move（含 Move / Anchor）统一走该 sealed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md`](./federation.md) §4.0）。详见 [`federation.md`](./federation.md) §4。
+> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_arkret/peer/*` HTTP trust surface 和 `ak.peer.*` operation_id。`/_arkret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_arkret/peer/events`（`ak.peer.events.command.submit.v1`）是唯一的 federation Event 接收轨，DataEvent / Control Move（含 Move / Anchor）统一走该 sealed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md`](./federation.md) §4.0）。详见 [`federation.md`](./federation.md) §4。
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 
@@ -151,7 +151,7 @@ extension profile slot，不具有可互操作的 wire format、operation mappin
 - canonical `operation_id` → transport-specific 调用形态的映射；
 - envelope / frame schema、签名绑定、idempotency key 与 cursor 处理；
 - 错误码到 transport native status 的映射；
-- 服务发现如何在 `supported_bindings` 中声明该 binding 与其能力。
+- 服务发现如何在 `transport_bindings` 中声明该 binding 与其能力。
 
 未声明对应 binding profile 的实现 MUST NOT 接受非 HTTP/JSON 流量，也不得要求对端支持。
 v1.0 conformance suite 不测试任何非 HTTP binding；gRPC / WS / WebTransport / MQ / libp2p 等
@@ -159,10 +159,12 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 
 ### 6.1 Per-operation HTTP 伴生 binding（normative）
 
-与上述 service-wide 替代 transport 不同，**per-operation HTTP 伴生 binding** 指仍运行在 HTTPS 之上、只覆盖单个 canonical `operation_id` 的替代 HTTP 交互形态（例如 `ak.self.blob.upload.create` 的 tus 可续传上传 binding，见 [`../crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)）。这类 binding：
+与上述 service-wide 替代 transport 不同，**per-operation HTTP 伴生 binding** 指仍运行在 HTTPS 之上、只覆盖单个 canonical `operation_id` 的替代 HTTP 交互形态（例如 `ak.self.blob.upload.create.v1` 的 tus 可续传上传 binding，见 [`../crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)）。这类 binding：
 
 - MUST 由 core 规范文档直接 normative 化（含 operation 映射、认证/capability 复用、错误语义与 discovery 声明），不要求独立 `ak.profile.binding.<transport>.v1` profile；
-- MUST 以对应 `ak.feature.*` id 在 `describe.supported_features` 声明，并在 `supported_bindings` 条目中通过 `operations` 限定其覆盖的 operation 集合，`extension_profile_required` 为 `null`；
+- MUST 以对应 exact `ak.feature.*.v1` id 在 `describe.supported_features` 声明，并通过已登记
+  `supported_operation_bundles[]` 展开其覆盖的 operation pair；`transport_bindings` 条目只声明 endpoint 与 transport
+  参数，不复制成员清单，`extension_profile_required` 为 `null`；
 - MUST NOT 改变所覆盖 operation 的语义结果（响应对象、receipt、内容寻址等与 canonical HTTP/JSON binding 一致）；
 - 不改变本节对 service-wide 非 HTTP transport 的 binding profile 要求。
 
@@ -179,21 +181,24 @@ transport MUST 各自通过 binding profile 单独 normative 化。
     "method_history_head": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "version_id": "3"
   },
-  "supported_bindings": [
+  "transport_bindings": [
     {
       "kind": "http_json",
       "base_url": "https://server.example",
-      "operations": ["ak.self.account.read.viewer", "ak.self.account.command.update_profile", "ak.self.account.stream.subscribe", "ak.self.snapshot.read.manifest_head"],
       "extension_profile_required": null
     }
+  ],
+  "supported_operation_bundles": [
+    "ak.operation_bundle.principal_server.describe.v1",
+    "ak.operation_bundle.principal_server.http_core.v1"
   ]
 }
 ```
 
-`supported_bindings[]` 必须通过
+`transport_bindings[]` 必须通过
 [`transport-binding.schema.json`](../../artifacts/schemas/transport-binding.schema.json)
-验证。当前注册 kind 为 `http_json`、`tus` 与 `websocket`；未知 kind 不是 Arkret v1 binding，
-客户端必须忽略。WebSocket 条目必须声明 `ak.profile.binding.websocket.v1` 及该 profile
+验证。当前注册 kind 为 `http_json`、`tus` 与 `websocket`；未知 kind 不能覆盖任何 bundle pair，
+若它是公告能力所需的唯一 carrier，客户端必须 fail closed。WebSocket 条目必须声明 `ak.profile.binding.websocket.v1` 及该 profile
 要求的 subprotocol、认证和 limit 字段。
 
 其它 binding（gRPC / SSE / WebTransport / MQ / libp2p）需先发布对应 binding profile 和
@@ -201,9 +206,9 @@ machine registry/schema，才可出现在此处；v1 core 仅要求 `http_json`�
 必须精确钉定所用 revision、stream/datagram 对 canonical operation 与 stream-frame 的映射、
 Origin 校验、session authentication 与 reconnect/cursor 语义，不得仅因底层运行在 HTTP/3
 就当作 `http_json`。§6.1 的 per-operation HTTP 伴生 binding（如 `kind="tus"`）以
-`extension_profile_required: null` + 对应 `ak.feature.*` 声明出现，不需要 binding profile id。
+`extension_profile_required: null` + 对应 exact feature 与 operation bundle 声明出现，不需要 binding profile id。
 
-客户端 MUST 根据 `supported_bindings` 选择 transport，不得假设所有服务都有 REST path。
+客户端 MUST 根据 `transport_bindings` 选择 transport，不得假设所有服务都有 REST path。
 
 ## 8. Normative Wording
 

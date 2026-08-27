@@ -19,13 +19,13 @@ HTTP/JSON、NDJSON binding。
 
 第一版只覆盖：
 
-- `ak.self.account.stream.subscribe`
-- `ak.self.events.stream.subscribe`
-- `ak.self.signal.stream.subscribe`
+- `ak.self.account.stream.subscribe.v1`
+- `ak.self.events.stream.subscribe.v1`
+- `ak.self.signal.stream.subscribe.v1`
 
 它不覆盖 Event submit、Signal send、Blob、媒体、federation peer 或其它 command/resource/query
 operation。普通写操作继续使用 canonical HTTPS binding。LiveKit/SFU 等媒体 WebSocket 不属于
-本 profile，不得放进 `ServiceDescribe.supported_bindings` 的 Arkret `websocket` 条目。
+本 profile，不得放进 `ServiceDescribe.transport_bindings` 的 Arkret `websocket` 条目。
 
 一个 authenticated Principal Server session **SHOULD** 只建立一个 Arkret WebSocket；上述
 operation 作为逻辑 channel 在该物理连接内多路复用。operation 的授权、cursor、filter、
@@ -40,9 +40,9 @@ dedupe、catch-up 与完成语义保持独立，不因共享连接而合并。
   "kind": "websocket",
   "base_url": "wss://server.example/_arkret/ws",
   "operations": [
-    "ak.self.account.stream.subscribe",
-    "ak.self.events.stream.subscribe",
-    "ak.self.signal.stream.subscribe"
+    "ak.self.account.stream.subscribe.v1",
+    "ak.self.events.stream.subscribe.v1",
+    "ak.self.signal.stream.subscribe.v1"
   ],
   "extension_profile_required": "ak.profile.binding.websocket.v1",
   "subprotocol": "arkret.v1",
@@ -211,7 +211,7 @@ frame，不依赖 WebSocket reason string 传递完整诊断。
 {
   "kind": "open",
   "channel_id": "account-1",
-  "operation_id": "ak.self.account.stream.subscribe",
+  "operation_id": "ak.self.account.stream.subscribe.v1",
   "parameters": {
     "after": "ak:cursor:opaque",
     "catchup": true
@@ -230,6 +230,13 @@ frame，不依赖 WebSocket reason string 传递完整诊断。
 `X-Arkret-Wait-For`。任何别名、未知参数或超限 selector 在 frame schema 阶段拒绝。服务端
 重新执行 session、device、scope、Realm selector 与 capability authorization，不能因为连接
 已认证而跳过 operation authorization。
+
+`open.operation_id` 是 WebSocket 的强制 operation selector：缺失时 channel-scoped
+`error.code` MUST 为 `operation_selector_required`；值未注册、不是服务端已公告的 exact
+版本，或与该 channel 的 frame/parameter family 不匹配时 MUST 为
+`unsupported_operation_version`。这两项检查 MUST 先于 `parameters` 解码和业务授权；服务端
+不得从参数 shape、无版本别名或相邻版本推导。连接级 challenge/welcome 不选择业务
+operation，不适用该字段。
 
 成功后返回 `opened`，其中 `operation_id` 必须与 pending `open` 精确相同。重复 id 返回
 channel-scoped `error(code="conflict")`；该 id 仍永久占用。超过 `max_channels` 返回
@@ -255,9 +262,9 @@ limit 内一致执行。
 
 | operation | payload |
 | --- | --- |
-| `ak.self.account.stream.subscribe` | `AccountSubscribeFrame` |
-| `ak.self.events.stream.subscribe` | canonical `EventsSubscribeFrame` |
-| `ak.self.signal.stream.subscribe` | `SignalStreamFrame` 中 `kind=signal` |
+| `ak.self.account.stream.subscribe.v1` | `AccountSubscribeFrame` |
+| `ak.self.events.stream.subscribe.v1` | canonical `EventsSubscribeFrame` |
+| `ak.self.signal.stream.subscribe.v1` | `SignalStreamFrame` 中 `kind=signal` |
 
 `data.payload` 只接受 account `delta`、events `event` 或 Signal `signal`；`control` 的
 `frame_scope="channel"` 只承载对应 operation 已定义的 heartbeat/drain/dropped/resync/unauthorized/
@@ -364,7 +371,7 @@ fallback；没有该 profile时不得在Arkret discovery中广告WebTransport。
 上述发现、认证、多路复用隔离、backpressure、reconnect/downgrade与HTTP fallback由
 `ak.vector.binding.websocket.v1`固定。实现只有运行
 `websocket-binding-fixture.json`并通过全部正负向case后，才可在
-`ServiceDescribe.supported_bindings`广告本profile；未知/不完整descriptor永远回退mandatory
+`ServiceDescribe.transport_bindings`广告本profile；未知/不完整descriptor永远回退mandatory
 HTTP/JSON与bounded NDJSON。
 
 fixture 的 runner suite 固定为 `ak.suite.binding.websocket.v1`，必须执行而不是只加载 JSON：

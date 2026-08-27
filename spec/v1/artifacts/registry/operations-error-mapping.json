@@ -1,26 +1,26 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-26.2",
+  "version": "2026-08-27.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-26T14:10:00+08:00",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
-    "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection.",
+    "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
     "operation_specific": "operation_specific[] lists the error codes that are semantically tied to this operation's domain logic (event ingest, key claim, blob upload, push gateway, directory ingest, ...). An entry may name either a top-level code from error-code-registry.json `codes` or a sub-code from its `reason_codes` section (carried under a top-level code such as failed_precondition or schema_violation). Consumers discriminate by first matching the entry against the registry's top-level `codes` set; an entry not found there is a reason_code and matches the error reply's `reason_code` field rather than its top-level `code`. Receivers SHOULD recognize and surface these codes specifically.",
     "endpoint_aliases": "Each operation entry lists its canonical HTTP method+path alias for human navigation; alternative bindings (gRPC, MQ) inherit the same error code set.",
     "operation_coverage": "Every operation_id in artifacts/registry/operation-registry.json MUST appear exactly once in operations[]. An empty operation_specific[] means the operation has no domain-specific reply shape beyond the universal failure surface."
   },
   "operations": [
     {
-      "operation_id": "ak.edge.applet.actor.read.resolve",
+      "operation_id": "ak.edge.applet.actor.read.resolve.v1",
       "http_alias": "GET /_arkret/edge/applet/actors/{actor_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.edge.applet.managed_actor.command.author",
+      "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
       "http_alias": "POST /_arkret/edge/applet/managed-actors/author",
       "operation_specific": [
         "applet_registration_epoch_evidence_deactivated",
@@ -31,7 +31,7 @@
       "description": "The Applet service verifies the target Principal Server signature and exact immutable bindings before signing the fixed managed-actor Event bundle. A successful exact request is durably replayable; changed bytes conflict and an uncommitted expired request is terminally rejected."
     },
     {
-      "operation_id": "ak.edge.applet.command.transaction",
+      "operation_id": "ak.edge.applet.command.transaction.v1",
       "http_alias": "POST /_arkret/edge/applet/transactions",
       "operation_specific": [
         "http_signature_required",
@@ -44,43 +44,43 @@
       "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or receiver-derived delivery_authentication_record_digest, when the source Applet service has no active effective install, or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1."
     },
     {
-      "operation_id": "ak.edge.applet.read.describe",
+      "operation_id": "ak.edge.applet.read.describe.v1",
       "http_alias": "GET /_arkret/edge/applet/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.edge.applet.read.ping",
+      "operation_id": "ak.edge.applet.read.ping.v1",
       "http_alias": "GET /_arkret/edge/applet/ping",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.edge.applet.read.protocol_metadata",
+      "operation_id": "ak.edge.applet.read.protocol_metadata.v1",
       "http_alias": "GET /_arkret/edge/applet/protocols/{protocol}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.edge.applet.realm.read.resolve",
+      "operation_id": "ak.edge.applet.realm.read.resolve.v1",
       "http_alias": "GET /_arkret/edge/applet/realms/{realm_id_or_alias}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.edge.applet.third_party_locations.read.list",
+      "operation_id": "ak.edge.applet.third_party_locations.read.list.v1",
       "http_alias": "GET /_arkret/edge/applet/third_party/locations",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.edge.applet.third_party_users.read.list",
+      "operation_id": "ak.edge.applet.third_party_users.read.list.v1",
       "http_alias": "GET /_arkret/edge/applet/third_party/users",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.edge.push.command.notify",
+      "operation_id": "ak.edge.push.command.notify.v1",
       "http_alias": "POST /_arkret/edge/push/notify",
       "operation_specific": [
         "push_gateway_unreachable",
@@ -94,7 +94,7 @@
       "description": "These codes reach the caller in two places that MUST agree: as a top-level failure envelope, and as the per-device reason_code inside push_notify_outcome.outcomes[]. rate_limited also appears in that enum but stays out of this list because it is universal (see rules.universal_codes). schema_violation is likewise universal at the request/response validation layer, but intentionally is not a per-device outcome reason: malformed input or a non-conserving response invalidates the whole exchange rather than one device route."
     },
     {
-      "operation_id": "ak.edge.push.command.register_device",
+      "operation_id": "ak.edge.push.command.register_device.v1",
       "http_alias": "POST /_arkret/edge/push/register-device",
       "operation_specific": [
         "push_gateway_unreachable",
@@ -102,14 +102,14 @@
       ]
     },
     {
-      "operation_id": "ak.edge.push.command.unregister_device",
+      "operation_id": "ak.edge.push.command.unregister_device.v1",
       "http_alias": "POST /_arkret/edge/push/unregister-device",
       "operation_specific": [
         "push_token_unknown"
       ]
     },
     {
-      "operation_id": "ak.find.directory.command.announce",
+      "operation_id": "ak.find.directory.command.announce.v1",
       "http_alias": "POST /_arkret/find/directory/announce",
       "operation_specific": [
         "directory_unauthorized",
@@ -124,7 +124,7 @@
       ]
     },
     {
-      "operation_id": "ak.find.directory.command.takedown_appeal",
+      "operation_id": "ak.find.directory.command.takedown_appeal.v1",
       "http_alias": "POST /_arkret/find/directory/takedown/appeal",
       "operation_specific": [
         "not_found",
@@ -137,7 +137,7 @@
       "description": "Resource-side appeal against an operator takedown (discovery-directory.md §8.7). not_found covers an unknown takedown_id; directory_unauthorized / governance_key_invalid / directory_governance_proof_signature_invalid / signature_stale cover an appellant whose governance key or authorized-advocate signature does not validate against the resource the takedown targets; takedown_in_force is returned while the takedown remains effective and the appeal has not been overturned. The Directory returns a signed decision receipt on success."
     },
     {
-      "operation_id": "ak.find.directory.command.withdraw",
+      "operation_id": "ak.find.directory.command.withdraw.v1",
       "http_alias": "POST /_arkret/find/directory/withdraw",
       "operation_specific": [
         "directory_unauthorized",
@@ -146,25 +146,25 @@
       ]
     },
     {
-      "operation_id": "ak.find.directory.push.command.register",
+      "operation_id": "ak.find.directory.push.command.register.v1",
       "http_alias": "POST /_arkret/find/directory/push/register",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.find.directory.read.describe",
+      "operation_id": "ak.find.directory.read.describe.v1",
       "http_alias": "GET /_arkret/find/directory/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.find.directory.read.list_handles_for_subject",
+      "operation_id": "ak.find.directory.read.list_handles_for_subject.v1",
       "http_alias": "POST /_arkret/find/directory/list-handles-for-subject",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.find.directory.read.private_contact_discovery",
+      "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
       "http_alias": "POST /_arkret/find/directory/private-contact-discovery",
       "operation_specific": [
         "psi_quota_exhausted",
@@ -175,7 +175,7 @@
       "description": "psi_quota_exhausted (429) is first-blind PSI window quota denial; psi_batch_unavailable (410) merges unknown/wrong-device/expired match state; duplicate_conflict (409) rejects reuse of a device-scoped batch_id with different canonical blind or match bytes; policy_denied (403) is only for requester/batch-level Class B policy. These failures use the phase's exact padded body bucket and advertised delay distribution. Per-target conditions MUST NOT surface as error codes and remain unmatched bits in the fixed-cardinality hit_bitmap. See zh/discovery/discovery-directory.md §6.4."
     },
     {
-      "operation_id": "ak.find.directory.read.resolve_agent_selector",
+      "operation_id": "ak.find.directory.read.resolve_agent_selector.v1",
       "http_alias": "POST /_arkret/find/directory/resolve-agent-selector",
       "operation_specific": [
         "not_found",
@@ -184,7 +184,7 @@
       "description": "Exact native personal agent selector resolution: Directory resolves controller_handle to a controller DID and verifies the visible ak.schema.agent_selector_claim.v1 (controller_subject, agent_slug) -> subject binding, proof, and accountability grant. Failure, unauthorized, not-visible, revoked / expired / ambiguous, missing controller, or hidden agent all collapse into a single not_found surface indistinguishable from nonexistence (zh/discovery/discovery-directory.md §9); the op never returns selector candidates."
     },
     {
-      "operation_id": "ak.find.directory.read.resolve_handle",
+      "operation_id": "ak.find.directory.read.resolve_handle.v1",
       "http_alias": "POST /_arkret/find/directory/resolve-handle",
       "operation_specific": [
         "not_found",
@@ -192,52 +192,52 @@
       ]
     },
     {
-      "operation_id": "ak.find.directory.read.resolve_organization",
+      "operation_id": "ak.find.directory.read.resolve_organization.v1",
       "http_alias": "POST /_arkret/find/directory/resolve-organization",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.find.directory.read.resolve_realm",
+      "operation_id": "ak.find.directory.read.resolve_realm.v1",
       "http_alias": "POST /_arkret/find/directory/resolve-realm",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ak.find.directory.read.resolve_target",
+      "operation_id": "ak.find.directory.read.resolve_target.v1",
       "http_alias": "POST /_arkret/find/directory/resolve-target",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ak.find.directory.read.search_actors",
+      "operation_id": "ak.find.directory.read.search_actors.v1",
       "http_alias": "POST /_arkret/find/directory/search-actors",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.find.directory.read.search_organizations",
+      "operation_id": "ak.find.directory.read.search_organizations.v1",
       "http_alias": "POST /_arkret/find/directory/search-organizations",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.find.directory.read.search_realms",
+      "operation_id": "ak.find.directory.read.search_realms.v1",
       "http_alias": "POST /_arkret/find/directory/search-realms",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "ak.find.directory.read.search_users",
+      "operation_id": "ak.find.directory.read.search_users.v1",
       "http_alias": "POST /_arkret/find/directory/search-users",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.gate.account.command.abandon_identity_creation",
+      "operation_id": "ak.gate.account.command.abandon_identity_creation.v1",
       "http_alias": "POST /_arkret/gate/account/identity-abandonments",
       "operation_specific": [
         "proof_invalid",
@@ -251,13 +251,13 @@
       "description": "Consumes the abandonment challenge and performs the abandonment in one transaction. proof_invalid covers handoff/DPoP holder mismatch and a handoff replayed from the challenge-issuing call; failed_precondition covers an unknown challenge, a challenge bound to another account, holder, lease or principal, and a confirmation that pins a different principal_id or did_version_id; the two identity_creation_challenge_* codes keep expiry and prior consumption distinct, while an exact replay of the same request_id returns the recorded outcome instead of an error; identity_creation_already_accepted is the stable terminal for a PCR accepted after the challenge was issued and never abandons anything."
     },
     {
-      "operation_id": "ak.gate.account.command.introspect_session_grant",
+      "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
       "http_alias": "POST /_arkret/gate/account/session-grants/introspect",
       "operation_specific": [],
       "description": "Server-to-server session-grant introspection is read-only and reports issuer-ledger state in a typed 200 outcome. It carries no reusable device-revocation receipt; the origin Principal Server gates each protected self request against its own durable device state in the local request transaction."
     },
     {
-      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation",
+      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
       "http_alias": "POST /_arkret/gate/account/controller-gate-attestations",
       "operation_specific": [
         "duplicate_conflict"
@@ -265,7 +265,7 @@
       "description": "Authenticated S2S issuance. Unknown principal, missing current service binding, wrong source service and unauthorized caller use the universal non-enumerating not_found surface; duplicate_conflict covers request_id reuse with a different canonical intent."
     },
     {
-      "operation_id": "ak.gate.account.command.issue_did_binding_challenge",
+      "operation_id": "ak.gate.account.command.issue_did_binding_challenge.v1",
       "http_alias": "POST /_arkret/gate/account/did-binding-challenges",
       "operation_specific": [
         "proof_invalid",
@@ -277,7 +277,7 @@
       "description": "Resolves an already-published DID and issues a durable single-use control challenge. proof_invalid covers handoff/DPoP holder mismatch; failed_precondition covers rate limiting and DID state that cannot be resolved at the required freshness tier; duplicate_conflict covers the same request_id with different canonical intent; did_not_found and unsupported_did_method cover resolution outcomes that MUST fail closed rather than fall back to caller-supplied history."
     },
     {
-      "operation_id": "ak.gate.account.command.issue_identity_abandonment_challenge",
+      "operation_id": "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
       "http_alias": "POST /_arkret/gate/account/identity-abandonment-challenges",
       "operation_specific": [
         "proof_invalid",
@@ -289,7 +289,7 @@
       "description": "Issues the durable single-use challenge that makes abandoning a provisional identity explicit. proof_invalid covers handoff/DPoP holder mismatch; failed_precondition covers a principal_id or did_version_id that is not the holder-authenticated reserved_identity_creation checkpoint; identity_creation_lease_fenced covers a stale or non-holder lease/fence; duplicate_conflict covers the same request_id with different canonical intent; identity_creation_already_accepted covers a PCR that is already accepted, for which no abandonment challenge may be issued."
     },
     {
-      "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
+      "operation_id": "ak.gate.account.command.issue_identity_binding_challenge.v1",
       "http_alias": "POST /_arkret/gate/account/identity-binding-challenges",
       "operation_specific": [
         "proof_invalid",
@@ -299,7 +299,7 @@
       "description": "Reserves the complete DID inception operation and issues a durable single-use challenge. proof_invalid covers handoff/DPoP holder mismatch; failed_precondition covers stale or non-holder lease/fence and an operation that does not derive the claimed principal; duplicate_conflict covers request_id reuse or an attempt to replace an existing reserved operation with different bytes."
     },
     {
-      "operation_id": "ak.gate.account.command.issue_recovery_completion_grant",
+      "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",
       "http_alias": "POST /_arkret/gate/account/recovery-session-grants/issue",
       "operation_specific": [
         "duplicate_conflict",
@@ -313,7 +313,7 @@
       "description": "Consumes the Bound AccountHandoff only after the transaction, terminal receipt and coordinator attestation match the current accepted replacement-device projection, then obtains a fresh exact-intent origin-PS revocation-gate allow before creating one DPoP-bound Standard grant. device_revocation_pending and device_revoked create no grant or issuer-ledger outcome. No temporary recovery grant exists."
     },
     {
-      "operation_id": "ak.gate.account.command.issue_session_grant",
+      "operation_id": "ak.gate.account.command.issue_session_grant.v1",
       "http_alias": "POST /_arkret/gate/account/session-grants",
       "operation_specific": [
         "audience_unknown",
@@ -340,19 +340,19 @@
       "description": "Account Authority issuer-ledger session grant issuance. `principal_unknown` is returned when the required principal_id has no verified account binding; the authority must not derive or mint a DID as a fallback. Exact replay returns the byte-identical recorded live outcome after current holder/DPoP/target/digest revalidation; conflicting canonical intent is duplicate_conflict. A recorded expired outcome returns session_grant_replay_expired; revoked/superseded returns session_grant_replay_terminal; an evicted replay record returns session_grant_replay_indeterminate. None may issue a replacement under the same request identity. Proof-kind-specific validation failures remain proof_invalid or the registered Agent lifecycle/authority codes."
     },
     {
-      "operation_id": "ak.gate.account.command.logout",
+      "operation_id": "ak.gate.account.command.logout.v1",
       "http_alias": "POST /_arkret/gate/account/logout",
       "operation_specific": [],
       "description": "Account Authority ordinary hard logout (account-lifecycle §4.1): the only client-visible logout entry. It validates the current ak.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain, and completes or durably schedules Principal-side local account/device session cleanup plus to-device/push removal. Does not create an AccountStatusRecord, emit ak.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
     },
     {
-      "operation_id": "ak.gate.account.command.logout_auth_session",
+      "operation_id": "ak.gate.account.command.logout_auth_session.v1",
       "http_alias": "POST /_arkret/gate/account/auth-sessions/logout",
       "operation_specific": [],
-      "description": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): a validated client-visible account /logout is represented by service-to-service authentication, and the Auth Server logs out the Auth-side browser/auth session owning the supplied grant so the rotation chain cannot be resumed. Idempotent: re-presenting an already-logged-out, revoked, unknown, or pruned auth session/grant succeeds with the chain treated as terminated. Ordinary clients MUST NOT call this operation; they retry ak.gate.account.command.logout."
+      "description": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): a validated client-visible account /logout is represented by service-to-service authentication, and the Auth Server logs out the Auth-side browser/auth session owning the supplied grant so the rotation chain cannot be resumed. Idempotent: re-presenting an already-logged-out, revoked, unknown, or pruned auth session/grant succeeds with the chain treated as terminated. Ordinary clients MUST NOT call this operation; they retry ak.gate.account.command.logout.v1."
     },
     {
-      "operation_id": "ak.gate.account.command.pair_agent_key",
+      "operation_id": "ak.gate.account.command.pair_agent_key.v1",
       "http_alias": "POST /_arkret/gate/account/agent-key-pair",
       "operation_specific": [
         "verification_method_principal_mismatch",
@@ -366,13 +366,13 @@
       "description": "Native personal agent runtime key pairing. Admission verifies current controller/Agent authority, the pairing handle, requested-scope disclosure, proof-of-possession and accepted control frontier; backup availability is neither an input nor a gate. Pairing into an already-deactivated agent principal is terminal. Runtime replacement uses one controller-signed ak.agent.key.authorize with an exact supersedes[] set to atomically replace every prior active authorization dot and record reason=superseded_by_repairing; the service does not synthesize ak.agent.key.revoke Events."
     },
     {
-      "operation_id": "ak.gate.account.command.pair_device",
+      "operation_id": "ak.gate.account.command.pair_device.v1",
       "http_alias": "POST /_arkret/gate/account/device-pair",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.gate.account.command.refresh_session_grant",
+      "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
       "http_alias": "POST /_arkret/gate/account/session-grants/refresh",
       "operation_specific": [
         "grant_already_consumed",
@@ -391,7 +391,7 @@
       "description": "DPoP-bound issuer-ledger rotation keyed by predecessor_grant_id plus refresh_request_digest. Exact replay returns the recorded successor after current proof revalidation; a conflicting request is duplicate_conflict. One transaction creates the successor and supersedes the predecessor. A recorded successor that is expired or terminal returns the corresponding session_grant_replay_* code and never causes a second successor. The audience remains locked; logged-out or invalid holder/fresh-proof paths retain their existing errors."
     },
     {
-      "operation_id": "ak.gate.account.command.register",
+      "operation_id": "ak.gate.account.command.register.v1",
       "http_alias": "POST /_arkret/gate/account/register",
       "operation_specific": [
         "identity_creation_challenge_expired",
@@ -412,7 +412,7 @@
       "description": "Account registration validates the frozen DID operation, root control transcript, exact PCR genesis unit and InitialSessionGrantRequest; relays the unit to the Principal Server; verifies the pcr_genesis_unit receipt; commits the one-account/one-principal binding; then obtains a fresh exact-intent origin-PS revocation-gate allow before issuing the first Standard grant from the durable issuer ledger. device_revocation_pending and device_revoked create no grant or issuer-ledger outcome."
     },
     {
-      "operation_id": "ak.gate.account.command.request_erasure",
+      "operation_id": "ak.gate.account.command.request_erasure.v1",
       "http_alias": "POST /_arkret/gate/account/erasure-requests",
       "operation_specific": [
         "reauthentication_required",
@@ -422,7 +422,7 @@
       "description": "Self-initiated account erasure entry (zh/identity/account-lifecycle.md section 8.1). reauthentication_required rejects a session that does not satisfy the deployment's fresh high-risk action authentication policy. failed_precondition with reason_code erasure_request_already_pending rejects a distinct request_id while a live intent whose erasure_pending AccountStatusRecord is unsigned already exists. duplicate_conflict rejects the same request_id replayed with different canonical bytes; exact replay returns the recorded acceptance outcome. Once the record is signed, session grants are already revoked and later calls fail at authentication with account_erased from the universal surface."
     },
     {
-      "operation_id": "ak.gate.account.command.revoke_session",
+      "operation_id": "ak.gate.account.command.revoke_session.v1",
       "http_alias": "POST /_arkret/gate/account/session-grants/revoke",
       "operation_specific": [
         "session_grant_not_found",
@@ -434,7 +434,7 @@
       "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or create an AccountStatusRecord. The issuer durably records the exact mutation outcome; exact request replay returns that outcome, while the same request identity with different canonical intent returns duplicate_conflict. If replay retention no longer proves whether the mutation committed, session_grant_replay_indeterminate fails closed with zero new state changes."
     },
     {
-      "operation_id": "ak.gate.account.exchange.create_handoff",
+      "operation_id": "ak.gate.account.exchange.create_handoff.v1",
       "http_alias": "POST /_arkret/gate/account/authentication-handoffs",
       "operation_specific": [
         "proof_invalid",
@@ -443,13 +443,13 @@
       "description": "OIDC code exchange for a DPoP-bound account_handoff_grant. proof_invalid covers issuer/discovery/state/nonce/redirect_uri/PKCE/body-holder/DPoP binding failures; duplicate_conflict covers reuse of request_id with different canonical request bytes. A live lease owned by another holder is a typed identity_creation_busy outcome, not an error reply."
     },
     {
-      "operation_id": "ak.gate.account.read.onboarding",
+      "operation_id": "ak.gate.account.read.onboarding.v1",
       "http_alias": "GET /_arkret/gate/account/onboarding",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. The live DPoP-bound handoff selects the account and holder; the response is a read-only projection of durable lease or binding state."
     },
     {
-      "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request",
+      "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request.v1",
       "http_alias": "POST /_arkret/open/agent-pairing/runtime-key-requests",
       "operation_specific": [
         "agent_runtime_request_conflict"
@@ -457,73 +457,73 @@
       "description": "A same-binding retry is idempotent and retains the approval_request_id and notification id. A different stable ak.agent.runtime_key_binding.v1 digest on the same open pairing_request_id returns HTTP 409 agent_runtime_request_conflict and MUST NOT replace the pending request."
     },
     {
-      "operation_id": "ak.open.agent_pairing.read.resolve",
+      "operation_id": "ak.open.agent_pairing.read.resolve.v1",
       "http_alias": "POST /_arkret/open/agent-pairing/resolve",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.agent_pairing.read.runtime_key_request_status",
+      "operation_id": "ak.open.agent_pairing.read.runtime_key_request_status.v1",
       "http_alias": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.device_pairing.command.stage",
+      "operation_id": "ak.open.device_pairing.command.stage.v1",
       "http_alias": "POST /_arkret/open/device-pairing/requests",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. Each call mints a fresh account-less pending record; stage, resolve and status MUST be rate limited."
     },
     {
-      "operation_id": "ak.open.device_pairing.read.resolve",
+      "operation_id": "ak.open.device_pairing.read.resolve.v1",
       "http_alias": "POST /_arkret/open/device-pairing/resolve",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. Unknown id, pairing_code mismatch, expiry, or a non-pending record MUST all return an indistinguishable not_found."
     },
     {
-      "operation_id": "ak.open.device_pairing.read.status",
+      "operation_id": "ak.open.device_pairing.read.status.v1",
       "http_alias": "POST /_arkret/open/device-pairing/requests/status",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. A record miss and a pairing_code mismatch MUST be indistinguishable (both not_found)."
     },
     {
-      "operation_id": "ak.open.identity.read.resolution",
+      "operation_id": "ak.open.identity.read.resolution.v1",
       "http_alias": "GET /_arkret/open/principals/{principal_id}/resolution",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. An unknown or non-public principal returns not_found; the response itself is evidence and never an authorization decision."
     },
     {
-      "operation_id": "ak.open.invite_locator.read.resolve",
+      "operation_id": "ak.open.invite_locator.read.resolve.v1",
       "http_alias": "POST /_arkret/open/invite-locators/resolve",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.mimi.command.notify",
+      "operation_id": "ak.open.mimi.command.notify.v1",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/notify",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.mimi.command.proxy_download",
+      "operation_id": "ak.open.mimi.command.proxy_download.v1",
       "http_alias": "POST /_arkret/open/mimi/proxy-download",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.mimi.command.report_abuse",
+      "operation_id": "ak.open.mimi.command.report_abuse.v1",
       "http_alias": "POST /_arkret/open/mimi/report-abuse",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.mimi.command.request_consent",
+      "operation_id": "ak.open.mimi.command.request_consent.v1",
       "http_alias": "POST /_arkret/open/mimi/consent/request",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.mimi.command.submit_message",
+      "operation_id": "ak.open.mimi.command.submit_message.v1",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/messages",
       "operation_specific": [
         "mimi_e2ee_boundary_unmarked"
@@ -531,7 +531,7 @@
       "description": "Rejects an E2EE MIMI plaintext projection without transcript_binding or an explicit e2ee_downgrade marker with HTTP 400 mimi_e2ee_boundary_unmarked."
     },
     {
-      "operation_id": "ak.open.mimi.command.update_consent",
+      "operation_id": "ak.open.mimi.command.update_consent.v1",
       "http_alias": "POST /_arkret/open/mimi/consent/update",
       "operation_specific": [
         "not_found"
@@ -539,7 +539,7 @@
       "description": "Unknown, expired, source-mismatched and holder-invisible private correlations deliberately share the same not_found shape."
     },
     {
-      "operation_id": "ak.open.mimi.command.update_room",
+      "operation_id": "ak.open.mimi.command.update_room.v1",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/update",
       "operation_specific": [
         "mimi_room_binding_event_invalid"
@@ -547,37 +547,37 @@
       "description": "Missing, unexpected, kind-inconsistent and binding-mismatched room_binding_event inputs share one pre-admission failure envelope; the exact reason is audit-only."
     },
     {
-      "operation_id": "ak.open.mimi.exchange.request_key_material",
+      "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
       "http_alias": "POST /_arkret/open/mimi/key-material",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.mimi.read.group_info",
+      "operation_id": "ak.open.mimi.read.group_info.v1",
       "http_alias": "GET /_arkret/open/mimi/strands/{strand_id}/group-info",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.mimi.read.identifiers",
+      "operation_id": "ak.open.mimi.read.identifiers.v1",
       "http_alias": "POST /_arkret/open/mimi/identifiers/query",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.mimi.read.provider_directory",
+      "operation_id": "ak.open.mimi.read.provider_directory.v1",
       "http_alias": "GET /_arkret/open/mimi/provider-directory",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.open.service.read.resolution",
+      "operation_id": "ak.open.service.read.resolution.v1",
       "http_alias": "GET /_arkret/open/services/{service_id}/resolution",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. Unknown service identities return not_found; callers independently validate every returned signed record."
     },
     {
-      "operation_id": "ak.peer.account_status.command.submit",
+      "operation_id": "ak.peer.account_status.command.submit.v1",
       "http_alias": "POST /_arkret/peer/account-status",
       "operation_specific": [
         "duplicate_conflict",
@@ -592,7 +592,7 @@
       "description": "Exact Account Authority issuer-record replication. signature_invalid and unauthorized remain universal authentication failures. Ledger rejections use failed_precondition plus a closed reason_code: account_status_record_stale for lower sequence, account_status_record_fork for same-sequence different-record or next-sequence predecessor mismatch, account_status_binding_rollback for a lower binding_version, account_status_transition_invalid for an illegal lifecycle transition, and erasure_pending_is_terminal for a successor after the terminal state. Same Idempotency-Key with another canonical body alone is duplicate_conflict. peer_stale retains its federation-frontier quarantine meaning and is not a lower account-status sequence."
     },
     {
-      "operation_id": "ak.peer.account_status.read.resolve",
+      "operation_id": "ak.peer.account_status.read.resolve.v1",
       "http_alias": "POST /_arkret/peer/account-status/resolve",
       "operation_specific": [
         "not_found",
@@ -601,7 +601,7 @@
       "description": "Unknown account, unrelated service and unauthorized caller share not_found before ledger disclosure; peer_stale covers an unavailable authoritative observation."
     },
     {
-      "operation_id": "ak.peer.contacts.command.submit",
+      "operation_id": "ak.peer.contacts.command.submit.v1",
       "http_alias": "POST /_arkret/peer/contacts",
       "operation_specific": [
         "failed_precondition",
@@ -611,7 +611,7 @@
       ]
     },
     {
-      "operation_id": "ak.peer.device_revocations.command.check",
+      "operation_id": "ak.peer.device_revocations.command.check.v1",
       "http_alias": "POST /_arkret/peer/device-revocations/check",
       "operation_specific": [
         "failed_precondition",
@@ -620,7 +620,7 @@
       "description": "Authenticated exact-intent origin-PS linearization. Unauthorized callers fail before private lookup. A validated request returns one signed typed 200 decision receipt, including pending/revoked/mismatch; conflicting intent identity is duplicate_conflict. The blocked business operation, not this gate query, emits device_revocation_pending/device_revoked."
     },
     {
-      "operation_id": "ak.peer.erasure_receipt.command.submit",
+      "operation_id": "ak.peer.erasure_receipt.command.submit.v1",
       "http_alias": "POST /_arkret/peer/erasure-receipts",
       "operation_specific": [
         "duplicate_conflict",
@@ -633,7 +633,7 @@
       "description": "Receipt package admission validates service/issuer authority, proofs, digest and retained-stub binding before acknowledgement or local deletion. Same idempotency key with another canonical body is duplicate_conflict."
     },
     {
-      "operation_id": "ak.peer.erasure_receipt.resource.get",
+      "operation_id": "ak.peer.erasure_receipt.resource.get.v1",
       "http_alias": "GET /_arkret/peer/erasure-receipts/{receipt_id}",
       "operation_specific": [
         "not_found",
@@ -642,7 +642,7 @@
       "description": "Unknown, unauthorized and hidden receipt identifiers are deliberately indistinguishable as not_found."
     },
     {
-      "operation_id": "ak.peer.events.command.submit",
+      "operation_id": "ak.peer.events.command.submit.v1",
       "http_alias": "POST /_arkret/peer/events",
       "operation_specific": [
         "dependency_missing",
@@ -661,20 +661,20 @@
       "description": "Federated Event submission uses only registered Event kinds. Direct Conversations have one scope-derived MLS group and ordinary same-group Commit repair; no dedicated repair carrier or candidate-fanout error exists."
     },
     {
-      "operation_id": "ak.peer.events.read.describe",
+      "operation_id": "ak.peer.events.read.describe.v1",
       "http_alias": "QUERY /_arkret/peer/events/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.peer.events.read.frontier",
+      "operation_id": "ak.peer.events.read.frontier.v1",
       "http_alias": "QUERY /_arkret/peer/events/frontier",
       "operation_specific": [
         "frontier_unavailable"
       ]
     },
     {
-      "operation_id": "ak.peer.events.read.resolve",
+      "operation_id": "ak.peer.events.read.resolve.v1",
       "http_alias": "QUERY /_arkret/peer/events/resolve",
       "operation_specific": [
         "limit_exceeded"
@@ -682,7 +682,7 @@
       "description": "Exact missing and undisclosable selectors are represented in the successful typed missing sets, not as not_found. limit_exceeded is returned when complete selector accounting cannot fit the negotiated response budget."
     },
     {
-      "operation_id": "ak.peer.events.read.scan",
+      "operation_id": "ak.peer.events.read.scan.v1",
       "http_alias": "QUERY /_arkret/peer/events",
       "operation_specific": [
         "cursor_invalid",
@@ -690,7 +690,7 @@
       ]
     },
     {
-      "operation_id": "ak.peer.history_key_requests.command.replicate",
+      "operation_id": "ak.peer.history_key_requests.command.replicate.v1",
       "http_alias": "POST /_arkret/peer/history-key-requests/replicate",
       "operation_specific": [
         "dependency_missing",
@@ -699,7 +699,7 @@
       ]
     },
     {
-      "operation_id": "ak.peer.history_key_responses.command.relay",
+      "operation_id": "ak.peer.history_key_responses.command.relay.v1",
       "http_alias": "POST /_arkret/peer/history-key-responses/relay",
       "operation_specific": [
         "dependency_missing",
@@ -714,7 +714,7 @@
       ]
     },
     {
-      "operation_id": "ak.peer.invites.command.submit",
+      "operation_id": "ak.peer.invites.command.submit.v1",
       "http_alias": "POST /_arkret/peer/invites",
       "operation_specific": [
         "failed_precondition",
@@ -726,7 +726,7 @@
       ]
     },
     {
-      "operation_id": "ak.peer.keys.keypackages.command.claim",
+      "operation_id": "ak.peer.keys.keypackages.command.claim.v1",
       "http_alias": "POST /_arkret/peer/keys/keypackages/claim",
       "operation_specific": [
         "claim_failed",
@@ -736,7 +736,7 @@
       "description": "The destination KeyPackage authority exposes all target-, device-, inventory-, consent-, capability-, policy-, freshness-, and abuse-related business failures as claim_failed. duplicate_conflict covers claim_request_id reuse with another digest; failed_precondition is limited to a non-secret protocol-state violation that cannot reveal target inventory."
     },
     {
-      "operation_id": "ak.peer.keys.keypackages.read.claim",
+      "operation_id": "ak.peer.keys.keypackages.read.claim.v1",
       "http_alias": "POST /_arkret/peer/keys/keypackages/claims/query",
       "operation_specific": [
         "claim_failed",
@@ -745,7 +745,7 @@
       "description": "Read-only uncertain-outcome recovery. claim_failed is the opaque stored terminal failure; duplicate_conflict covers a known claim_request_id queried with a different request digest without returning target details."
     },
     {
-      "operation_id": "ak.peer.mls.read.group_state_material",
+      "operation_id": "ak.peer.mls.read.group_state_material.v1",
       "http_alias": "POST /_arkret/peer/mls/group-state-material",
       "operation_specific": [
         "dependency_missing",
@@ -757,7 +757,7 @@
       "description": "dependency_missing covers an accepted genesis whose referenced object bytes are not currently available; digest_mismatch and state_mismatch reject ref/raw-byte or RFC 9420 GroupInfo/tree inconsistency; the operation never returns partial material."
     },
     {
-      "operation_id": "ak.peer.organization_recovery_archives.command.replicate",
+      "operation_id": "ak.peer.organization_recovery_archives.command.replicate.v1",
       "http_alias": "POST /_arkret/peer/organization-recovery-archives/replicate",
       "operation_specific": [
         "dependency_missing",
@@ -771,7 +771,7 @@
       ]
     },
     {
-      "operation_id": "ak.peer.principal_genesis.command.submit",
+      "operation_id": "ak.peer.principal_genesis.command.submit.v1",
       "http_alias": "POST /_arkret/peer/principal-genesis",
       "operation_specific": [
         "pcr_genesis_conflict",
@@ -784,14 +784,14 @@
       "description": "Atomically accepts the exact root-committed PCR genesis pair. Transport service authentication is not content authority; any proof, commitment, create-once or fence failure performs zero writes."
     },
     {
-      "operation_id": "ak.peer.seals.read.frontier",
+      "operation_id": "ak.peer.seals.read.frontier.v1",
       "http_alias": "QUERY /_arkret/peer/seals/frontier",
       "operation_specific": [
         "frontier_unavailable"
       ]
     },
     {
-      "operation_id": "ak.peer.seals.read.mls_governance_proof",
+      "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
       "http_alias": "POST /_arkret/peer/seals/mls-governance-proof",
       "operation_specific": [
         "not_found",
@@ -804,20 +804,20 @@
       ]
     },
     {
-      "operation_id": "ak.peer.seals.read.governance_dependencies",
+      "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
       "http_alias": "POST /_arkret/peer/seals/governance-dependencies",
       "operation_specific": ["not_found", "limit_exceeded", "frontier_unavailable", "state_mismatch", "signature_invalid"],
       "description": "Unknown, unauthorized, outside-cut and missing selectors are same-shape. Any complete-response bounds failure returns no partial items or cursor."
     },
     {
-      "operation_id": "ak.peer.seals.read.resolve",
+      "operation_id": "ak.peer.seals.read.resolve.v1",
       "http_alias": "QUERY /_arkret/peer/seals/resolve",
       "operation_specific": [
         "limit_exceeded"
       ]
     },
     {
-      "operation_id": "ak.peer.service_resolution.command.publish",
+      "operation_id": "ak.peer.service_resolution.command.publish.v1",
       "http_alias": "POST /_arkret/peer/service-resolution/publish",
       "operation_specific": [
         "duplicate_conflict",
@@ -831,25 +831,25 @@
       "description": "Accepts one exact target-signed route artifact into a durable service-local mirror ledger. Authorization/invisibility failures remain minimally disclosing; same durable key with different bytes is duplicate_conflict and performs zero overwrite."
     },
     {
-      "operation_id": "ak.peer.service_resolution.read.resolve",
+      "operation_id": "ak.peer.service_resolution.read.resolve.v1",
       "http_alias": "QUERY /_arkret/peer/service-resolution/resolve",
       "operation_specific": [],
       "description": "Returns only bounded continuous target-signed material to an already authorized Realm peer. Pre-gate failures use the same minimally disclosing capability_denied response; after the gate, unknown, invisible, not-held, cancelled, expired, gap and fork conditions use the same not_found response. Detailed route reasons are private audit state only and never appear as operation-specific wire codes. Universal rate and size limits remain available."
     },
     {
-      "operation_id": "ak.peer.signal.command.relay",
+      "operation_id": "ak.peer.signal.command.relay.v1",
       "http_alias": "POST /_arkret/peer/signal",
       "operation_specific": [],
       "description": "Optional encrypted-only single-hop Signal peer relay. Only outer peer authentication, trust-domain/destination-endpoint checks, cross-Realm batches and malformed/oversized requests use the universal minimally disclosing failure surface. Per-item unknown Realm/scope/sender, producer-proof, current member delivery-binding, TTL, action-gate, visibility, duplication and recipient failures are silently dropped behind the opaque accepted=true request outcome."
     },
     {
-      "operation_id": "ak.peer.snapshot.read.manifest_head",
+      "operation_id": "ak.peer.snapshot.read.manifest_head.v1",
       "http_alias": "GET /_arkret/peer/snapshot/head",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.root.identity.command.submit_did_operation",
+      "operation_id": "ak.root.identity.command.submit_did_operation.v1",
       "http_alias": "POST /_arkret/root/identity/submit-did-operation",
       "operation_specific": [
         "unsupported_did_method",
@@ -858,7 +858,7 @@
       ]
     },
     {
-      "operation_id": "ak.root.identity.document.resource.get",
+      "operation_id": "ak.root.identity.document.resource.get.v1",
       "http_alias": "GET /_arkret/root/identity/document",
       "operation_specific": [
         "unsupported_did_method",
@@ -867,7 +867,7 @@
       ]
     },
     {
-      "operation_id": "ak.root.identity.log.read.list",
+      "operation_id": "ak.root.identity.log.read.list.v1",
       "http_alias": "GET /_arkret/root/identity/log",
       "operation_specific": [
         "unsupported_did_method",
@@ -875,7 +875,7 @@
       ]
     },
     {
-      "operation_id": "ak.root.identity.organization_registration.command.ensure",
+      "operation_id": "ak.root.identity.organization_registration.command.ensure.v1",
       "http_alias": "POST /_arkret/root/identity/organization-registrations:ensure",
       "operation_specific": [
         "organization_registration_challenge_invalid",
@@ -888,7 +888,7 @@
       "description": "Establishes the local binding after verifying a method-native control or governance-quorum proof against a consumed challenge and a pinned resolved version. Every failure mode is a distinct registered code so a caller can tell a stale challenge from a bad proof from an insufficient quorum without parsing prose."
     },
     {
-      "operation_id": "ak.root.identity.organization_registration.command.prepare",
+      "operation_id": "ak.root.identity.organization_registration.command.prepare.v1",
       "http_alias": "POST /_arkret/root/identity/organization-registrations:prepare",
       "operation_specific": [
         "did_not_found",
@@ -897,7 +897,7 @@
       "description": "Issues a single-use control challenge for a resolvable external Organization DID. An unresolvable DID fails closed rather than yielding a challenge no proof could ever satisfy."
     },
     {
-      "operation_id": "ak.root.identity.organization_registration.command.refresh",
+      "operation_id": "ak.root.identity.organization_registration.command.refresh.v1",
       "http_alias": "POST /_arkret/root/identity/organization-registrations:refresh",
       "operation_specific": [
         "organization_registration_challenge_invalid",
@@ -909,7 +909,7 @@
       "description": "Re-proves control at a newer resolved version. A revoked binding is terminal and MUST NOT be revived by refresh; re-establishing the relationship requires a fresh ensure."
     },
     {
-      "operation_id": "ak.root.identity.organization_registration.command.revoke",
+      "operation_id": "ak.root.identity.organization_registration.command.revoke.v1",
       "http_alias": "POST /_arkret/root/identity/organization-registrations:revoke",
       "operation_specific": [
         "did_not_found"
@@ -917,7 +917,7 @@
       "description": "Withdraws the local binding only. Revoking an already-revoked binding is idempotent and returns the existing terminal receipt rather than an error."
     },
     {
-      "operation_id": "ak.root.identity.organization_registration.resource.get",
+      "operation_id": "ak.root.identity.organization_registration.resource.get.v1",
       "http_alias": "GET /_arkret/root/identity/organization-registrations",
       "operation_specific": [
         "did_not_found"
@@ -925,7 +925,7 @@
       "description": "Callers without authority over a binding receive the same did_not_found answer as for an organization that was never registered, so the read surface cannot be used to enumerate a deployment's organization relationships."
     },
     {
-      "operation_id": "ak.root.identity.read.resolve",
+      "operation_id": "ak.root.identity.read.resolve.v1",
       "http_alias": "POST /_arkret/root/identity/resolve",
       "operation_specific": [
         "unsupported_did_method",
@@ -934,13 +934,13 @@
       ]
     },
     {
-      "operation_id": "ak.root.identity.receipts.read.list",
+      "operation_id": "ak.root.identity.receipts.read.list.v1",
       "http_alias": "GET /_arkret/root/identity/receipts",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.root.identity.recovery_policy.command.publish",
+      "operation_id": "ak.root.identity.recovery_policy.command.publish.v1",
       "http_alias": "POST /_arkret/root/identity/recovery-policy",
       "operation_specific": [
         "failed_precondition",
@@ -955,20 +955,20 @@
       "description": "Publishing or rotating a recovery policy requires authenticated principal isolation, valid Event/lease and the closed policy signature transcript/authority, a known proof-kind enum, and strictly monotonic version/supersedes linkage. frontier_unavailable is the retry-safe response while the submitted Event is valid but its covering control Seal/SealBasis has not materialized."
     },
     {
-      "operation_id": "ak.root.identity.recovery_policy.resource.get",
+      "operation_id": "ak.root.identity.recovery_policy.resource.get.v1",
       "http_alias": "GET /_arkret/root/identity/recovery-policy",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. A missing accepted policy is a successful response with active_policy=null."
     },
     {
-      "operation_id": "ak.root.identity.recovery_session.command.create",
+      "operation_id": "ak.root.identity.recovery_session.command.create.v1",
       "http_alias": "POST /_arkret/root/identity/recovery-sessions",
       "operation_specific": [
         "recovery_policy_mismatch"
       ]
     },
     {
-      "operation_id": "ak.root.identity.recovery_session.command.submit_proof",
+      "operation_id": "ak.root.identity.recovery_session.command.submit_proof.v1",
       "http_alias": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
       "operation_specific": [
         "failed_precondition",
@@ -978,20 +978,20 @@
       ]
     },
     {
-      "operation_id": "ak.root.identity.recovery_session.resource.get",
+      "operation_id": "ak.root.identity.recovery_session.resource.get.v1",
       "http_alias": "GET /_arkret/root/identity/recovery-sessions/{recovery_session_id}",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ak.root.identity.registry.read.describe",
+      "operation_id": "ak.root.identity.registry.read.describe.v1",
       "http_alias": "GET /_arkret/root/identity/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.root.identity.service_registration.command.ensure",
+      "operation_id": "ak.root.identity.service_registration.command.ensure.v1",
       "http_alias": "POST /_arkret/root/identity/service-registrations:ensure",
       "operation_specific": [
         "service_identity_provider_unavailable",
@@ -1001,7 +1001,7 @@
       "description": "The Provider verifies a client-signed WebVH inception and returns the stable mapping for the canonical registration key. Conflicting control roots or hosted-document declarations fail closed."
     },
     {
-      "operation_id": "ak.root.identity.service_registration.resource.get",
+      "operation_id": "ak.root.identity.service_registration.resource.get.v1",
       "http_alias": "GET /_arkret/root/identity/service-registrations",
       "operation_specific": [
         "service_identity_provider_unavailable",
@@ -1009,14 +1009,14 @@
       ]
     },
     {
-      "operation_id": "ak.self.account.command.revoke_cursor",
+      "operation_id": "ak.self.account.command.revoke_cursor.v1",
       "http_alias": "POST /_arkret/self/account/cursor/revoke",
       "operation_specific": [
         "cursor_revoked"
       ]
     },
     {
-      "operation_id": "ak.self.account.command.update_profile",
+      "operation_id": "ak.self.account.command.update_profile.v1",
       "http_alias": "POST /_arkret/self/account/profile",
       "operation_specific": [
         "avatar_blob_ref_invalid",
@@ -1028,13 +1028,13 @@
       "description": "Profile self-service accepts exactly one holder-signed ak.profile.create or ak.profile.update EventInitialSubmission. failed_precondition covers create against an existing Profile, update without an accepted Profile, target/PCR/session authority mismatch, expected_state_digest mismatch, and deterministic profile reducer guards. frontier_unavailable is retry-safe while the valid Control Move lacks accepted Seal coverage. Replaying the same Event identity with different bytes returns duplicate_conflict; exact replay after coverage returns the stored outcome without another aggregate delta. Update patch paths remain limited to display_name, avatar_blob_ref, and profile_fields.<key>; avatar_url is rejected."
     },
     {
-      "operation_id": "ak.self.account.read.describe",
+      "operation_id": "ak.self.account.read.describe.v1",
       "http_alias": "GET /_arkret/self/account/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.account.read.viewer",
+      "operation_id": "ak.self.account.read.viewer.v1",
       "http_alias": "GET /_arkret/self/account/viewer",
       "operation_specific": [
         "source_refs_unverifiable"
@@ -1042,7 +1042,7 @@
       "description": "Holder-bound account self-read. If signed handle-claim evidence or profile/device source refs cannot be verified, the service MUST fail or omit the unverifiable evidence according to disclosure policy; it MUST NOT return an unsigned bare handle as authoritative identity."
     },
     {
-      "operation_id": "ak.self.account.stream.subscribe",
+      "operation_id": "ak.self.account.stream.subscribe.v1",
       "http_alias": "GET /_arkret/self/account/subscribe",
       "operation_specific": [
         "cursor_invalid",
@@ -1052,13 +1052,13 @@
       ]
     },
     {
-      "operation_id": "ak.self.account_data.read.list",
+      "operation_id": "ak.self.account_data.read.list.v1",
       "http_alias": "GET /_arkret/self/account_data",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.account_data.resource.delete",
+      "operation_id": "ak.self.account_data.resource.delete.v1",
       "http_alias": "DELETE /_arkret/self/account_data/{account_data_key}",
       "operation_specific": [
         "cas_conflict"
@@ -1066,7 +1066,7 @@
       "description": "cas_conflict when expected_revision does not equal the accepted per-key revision; the tombstone is not stored and error.details use account_data_cas_conflict_details."
     },
     {
-      "operation_id": "ak.self.account_data.resource.get",
+      "operation_id": "ak.self.account_data.resource.get.v1",
       "http_alias": "GET /_arkret/self/account_data/{account_data_key}",
       "operation_specific": [
         "not_found"
@@ -1074,7 +1074,7 @@
       "description": "not_found carries account_data_cas_conflict_details so a caller reading an unset or tombstoned key still learns current_revision for its next compare-and-set write."
     },
     {
-      "operation_id": "ak.self.account_data.resource.replace",
+      "operation_id": "ak.self.account_data.resource.replace.v1",
       "http_alias": "PUT /_arkret/self/account_data/{account_data_key}",
       "operation_specific": [
         "cas_conflict"
@@ -1082,13 +1082,13 @@
       "description": "cas_conflict when expected_revision does not equal the accepted per-key revision; error.details use account_data_cas_conflict_details so the client can merge and re-issue exactly one write."
     },
     {
-      "operation_id": "ak.self.actor_profile.read.resolve",
+      "operation_id": "ak.self.actor_profile.read.resolve.v1",
       "http_alias": "POST /_arkret/self/actor-profiles/query",
       "operation_specific": [],
       "description": "No operation-specific error codes. Per-actor outcomes are carried in the response failures array with the single value profile_unavailable; unknown actor, missing profile, non-member actor and unauthorized caller are indistinguishable. A caller that is not an effective joined member of realm_id receives not_found for the whole request."
     },
     {
-      "operation_id": "ak.self.agent.command.abandon_provisioning",
+      "operation_id": "ak.self.agent.command.abandon_provisioning.v1",
       "http_alias": "POST /_arkret/self/agent-provisioning-abandonments",
       "operation_specific": [
         "failed_precondition",
@@ -1100,7 +1100,7 @@
       "description": "Consumes the abandonment challenge and releases the slug and realm-id claims in one transaction. failed_precondition covers an unknown challenge, a challenge bound to another controller, agent, allocation or realm id, credentials replayed from the challenge-issuing call, and a confirmation that pins different values; duplicate_conflict covers the same request_id with different canonical intent; the two agent_provisioning_challenge_* codes keep expiry and prior consumption distinct, while an exact replay of the same request_id returns the recorded outcome instead of an error; agent_pcr_genesis_already_accepted is the stable terminal for a genesis accepted after the challenge was issued and never abandons anything."
     },
     {
-      "operation_id": "ak.self.agent.command.deactivate",
+      "operation_id": "ak.self.agent.command.deactivate.v1",
       "http_alias": "POST /_arkret/self/agents/{agent_id}/deactivate",
       "operation_specific": [
         "agent_deactivated",
@@ -1110,7 +1110,7 @@
       "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal Agent. Missing or invalid proof on the sole controller-authored lifecycle Event returns controller_signed_event_required. Once that Event is accepted, the terminal parent lifecycle gate immediately makes every child authorization ineffective; client-supplied key/grant revoke bundles are schema-invalid and asynchronous cleanup failure cannot roll back deactivation."
     },
     {
-      "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+      "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
       "http_alias": "POST /_arkret/self/agent-provisioning-abandonment-challenges",
       "operation_specific": [
         "failed_precondition",
@@ -1120,7 +1120,7 @@
       "description": "Issues the durable single-use challenge that makes abandoning an accepted-but-never-genesised Agent provisioning explicit. failed_precondition covers an agent_id, principal_control_realm_id or allocation_handle that is not the authenticated controller's accepted provisioning; duplicate_conflict covers the same request_id with different canonical intent; agent_pcr_genesis_already_accepted covers a managed Agent PCR genesis that is already accepted, for which no abandonment challenge may be issued."
     },
     {
-      "operation_id": "ak.self.agent.command.pause",
+      "operation_id": "ak.self.agent.command.pause.v1",
       "http_alias": "POST /_arkret/self/agents/{agent_id}/pause",
       "operation_specific": [
         "agent_paused",
@@ -1131,7 +1131,7 @@
       "description": "agent_paused is returned for idempotent re-pause; agent_deactivated is terminal. A lifecycle Event without its required controller proof returns controller_signed_event_required."
     },
     {
-      "operation_id": "ak.self.agent.command.provision",
+      "operation_id": "ak.self.agent.command.provision.v1",
       "http_alias": "POST /_arkret/self/agents",
       "operation_specific": [
         "failed_precondition",
@@ -1142,7 +1142,7 @@
       "description": "Provision a native personal Agent principal. The controller first publishes a PCR-independent managed Agent DID inception. prepare verifies its caller-supplied full_id and returns the exact accepted initial_resolution plus an allocation without generating a DID/private key or choosing a PCR id. commit accepts exactly one controller-signed ak.agent.provision Event that forward-declares the realm id derived from the locally frozen genesis create, atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance advances to awaiting_did_binding; only the controller-signed continuous DID entry 1 with the exact create-locked binding advances to complete and exposes pairing/list/get. requested_scope is a ceiling, not a grant; the service never generates Agent DID/PCR/MLS private state."
     },
     {
-      "operation_id": "ak.self.agent.command.renew_pairing",
+      "operation_id": "ak.self.agent.command.renew_pairing.v1",
       "http_alias": "POST /_arkret/self/agents/{agent_id}/renew-pairing",
       "operation_specific": [
         "failed_precondition",
@@ -1153,7 +1153,7 @@
       "description": "Re-open bootstrap pairing or replace an Agent runtime. A renewed pairing MUST issue a fresh single-use `pairing_request_id` + `pairing_code` and MUST leave every previously issued handle permanently unresolvable. An Agent without an active accepted runtime-key authorization uses bootstrap; an Agent holding an active authorized key (lifecycle `active` or `paused`) uses replacement, whose single controller-signed authorize Event atomically supersedes prior authorization dots while preserving lifecycle intent. Generic views expose pairing_mode/open-handle fields and readiness blockers, never runtime_state. `deactivated` returns `agent_deactivated`. Neither branch creates, revokes, or re-issues Realm grants; handle expiry has no side effects beyond clearing open-handle fields and recomputing readiness."
     },
     {
-      "operation_id": "ak.self.agent.command.resume",
+      "operation_id": "ak.self.agent.command.resume.v1",
       "http_alias": "POST /_arkret/self/agents/{agent_id}/resume",
       "operation_specific": [
         "agent_deactivated",
@@ -1164,7 +1164,7 @@
       "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar desired membership is re-derived after admission and is not a request precondition. A lifecycle Event without its required controller proof returns controller_signed_event_required."
     },
     {
-      "operation_id": "ak.self.agent.grant.command.attach",
+      "operation_id": "ak.self.agent.grant.command.attach.v1",
       "http_alias": "POST /_arkret/self/agents/{agent_id}/grants",
       "operation_specific": [
         "agent_paused",
@@ -1176,7 +1176,7 @@
       "description": "Accepts a complete controller-authored ak.capability.grant EventInitialSubmission for the agent. The Event envelope proof is the sole durable issuer signature; the CapabilityGrantBody has no inner proof, and the service cannot synthesize or sign the Event. capability_denied surfaces controller-side delegation refusal; agent_paused / agent_deactivated guard the lifecycle gate. An action/resource outside the immutable provision ceiling, or removal/relaxation of a mandatory provision constraint, returns failed_precondition with reason=`agent_grant_exceeds_requested_scope`."
     },
     {
-      "operation_id": "ak.self.agent.grant.resource.delete",
+      "operation_id": "ak.self.agent.grant.resource.delete.v1",
       "http_alias": "DELETE /_arkret/self/agents/{agent_id}/grants/{grant_id}",
       "operation_specific": [
         "not_found",
@@ -1185,13 +1185,13 @@
       "description": "not_found is returned for nonexistent grant_id and for grants not attached to this agent (uniform failure surface)."
     },
     {
-      "operation_id": "ak.self.agent.participation.resource.get",
+      "operation_id": "ak.self.agent.participation.resource.get.v1",
       "http_alias": "GET /_arkret/self/agents/{agent_id}/participation",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.agent.participation.resource.replace",
+      "operation_id": "ak.self.agent.participation.resource.replace.v1",
       "http_alias": "PUT /_arkret/self/agents/{agent_id}/participation",
       "operation_specific": [
         "cas_conflict"
@@ -1199,22 +1199,22 @@
       "description": "expected_version must equal the Account Authority's current version for the exact agent/scope slot. First write uses zero; a mismatch returns cas_conflict and performs no write."
     },
     {
-      "operation_id": "ak.self.agent.read.list",
+      "operation_id": "ak.self.agent.read.list.v1",
       "http_alias": "GET /_arkret/self/agents",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "ak.self.agent.resource.get",
+      "operation_id": "ak.self.agent.resource.get.v1",
       "http_alias": "GET /_arkret/self/agents/{agent_id}",
       "operation_specific": [
         "not_found"
       ],
-      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches ak.self.events.resource.get pattern)."
+      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches ak.self.events.resource.get.v1 pattern)."
     },
     {
-      "operation_id": "ak.self.agent.sidecar.command.ensure",
+      "operation_id": "ak.self.agent.sidecar.command.ensure.v1",
       "http_alias": "POST /_arkret/self/agent-sidecars:ensure",
       "operation_specific": [
         "sidecar_create_denied",
@@ -1225,13 +1225,13 @@
       "description": "Idempotent ensure: the protocol identity key is `(realm_id, controller_id)` for the Agent Sidecar; `(sidecar_id, normalized_source_context_ref)` deduplicates context mappings without creating another protocol object. `agent_id` is not part of either key. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic existence-privacy precondition."
     },
     {
-      "operation_id": "ak.self.agent.sidecar.read.list",
+      "operation_id": "ak.self.agent.sidecar.read.list.v1",
       "http_alias": "GET /_arkret/self/agent-sidecars",
       "operation_specific": [],
       "description": "Returns only authenticated-controller-owned Sidecars; another controller's objects do not appear as locked stubs or distinguishable omissions."
     },
     {
-      "operation_id": "ak.self.agent.sidecar.resource.get",
+      "operation_id": "ak.self.agent.sidecar.resource.get.v1",
       "http_alias": "GET /_arkret/self/agent-sidecars/{sidecar_id}",
       "operation_specific": [
         "not_found"
@@ -1239,7 +1239,7 @@
       "description": "Nonexistent, foreign-controller, and unauthorized Sidecar identifiers return the same not_found envelope and timing bucket."
     },
     {
-      "operation_id": "ak.self.agent_signer_evidence.read.resolve",
+      "operation_id": "ak.self.agent_signer_evidence.read.resolve.v1",
       "http_alias": "POST /_arkret/self/agent-signer-evidence/query",
       "operation_specific": [
         "agent_signer_evidence_missing",
@@ -1249,7 +1249,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.applet.command.install",
+      "operation_id": "ak.self.applet.command.install.v1",
       "http_alias": "POST /_arkret/self/applets/install",
       "operation_specific": [
         "applet_registration_epoch_evidence_deactivated",
@@ -1260,7 +1260,7 @@
       "description": "Applet install commit recomputes the InstallPlan, binds approval to plan_digest, persists fan-out idempotency state, and emits registration/grant/profile/membership facts."
     },
     {
-      "operation_id": "ak.self.applet.command.revoke",
+      "operation_id": "ak.self.applet.command.revoke.v1",
       "http_alias": "POST /_arkret/self/applets/{applet_id}/revoke",
       "operation_specific": [
         "duplicate_conflict",
@@ -1271,7 +1271,7 @@
       "description": "Applet revoke validates caller-signed revoke/member submissions against a fresh plan, then resumes a durable event/external/local saga; the first accepted revoke fences future writes."
     },
     {
-      "operation_id": "ak.self.applet.ghost.command.preview",
+      "operation_id": "ak.self.applet.ghost.command.preview.v1",
       "http_alias": "POST /_arkret/self/applets/{applet_id}/ghosts/provision/preview",
       "operation_specific": [
         "applet_registration_epoch_evidence_deactivated",
@@ -1280,7 +1280,7 @@
       "description": "The active Applet service supplies only the requested Realm, exact external tuple and optional display name. The Principal Server derives all current installation coordinates and fails closed if the pinned registration epoch is deactivated or the Realm is outside current authorization."
     },
     {
-      "operation_id": "ak.self.applet.ghost.command.provision",
+      "operation_id": "ak.self.applet.ghost.command.provision.v1",
       "http_alias": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
       "operation_specific": [
         "applet_namespace_mismatch",
@@ -1289,7 +1289,7 @@
       "description": "Ghost Actor provisioning atomically accepts (or idempotently re-confirms) the caller-signed fixed four-Event unit: ak.applet.managed_actor.provision, the applet_managed_control PCR ak.realm.create genesis, ak.identity.accountability_grant, and ak.profile.create. The unit freezes the exact actor PrincipalAuthorityKey, registration/grant authority, initial resolution, PCR lineage, accountability, and external principal tuple. The server never signs for the Applet service or Ghost. It fails closed on invalid proofs/frontiers, a caller service DID that does not match the active applet registration, a realm outside effective scope (applet_registration_unauthorized), or a ghost_actor_id outside the registered actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
     },
     {
-      "operation_id": "ak.self.applet.install.command.preview",
+      "operation_id": "ak.self.applet.install.command.preview.v1",
       "http_alias": "POST /_arkret/self/applets/install/preview",
       "operation_specific": [
         "applet_registration_epoch_evidence_deactivated",
@@ -1298,7 +1298,7 @@
       "description": "Applet install preview validates controller proof, package schema, DID/key binding, namespace conflicts, requested capability actions, and Realm/Circle policy before returning an InstallPlan."
     },
     {
-      "operation_id": "ak.self.applet.revoke.command.preview",
+      "operation_id": "ak.self.applet.revoke.command.preview.v1",
       "http_alias": "POST /_arkret/self/applets/{applet_id}/revoke/preview",
       "operation_specific": [
         "applet_registration_unauthorized",
@@ -1308,7 +1308,7 @@
       "description": "Applet revoke preview recomputes the exact current active-grant, managed-membership, widget-token, and delegated-session plan without side effects."
     },
     {
-      "operation_id": "ak.self.authorization_leases.command.issue",
+      "operation_id": "ak.self.authorization_leases.command.issue.v1",
       "http_alias": "POST /_arkret/self/authorization-leases",
       "operation_specific": [
         "duplicate_conflict",
@@ -1319,26 +1319,26 @@
       "description": "Publication lease issuance performs the same read-only Event admission as submit. It can reject stale or unknown bases and conflicting idempotency replays, but it never commits an Event."
     },
     {
-      "operation_id": "ak.self.authz.grants.read.effective",
+      "operation_id": "ak.self.authz.grants.read.effective.v1",
       "http_alias": "GET /_arkret/self/authz/effective-grants",
       "operation_specific": [],
       "description": "Missing or malformed realm_id, subject or subject_principal_server_id uses universal param_invalid; unknown or unauthorized exact authority pairs remain non-enumerable."
     },
     {
-      "operation_id": "ak.self.authz.invites.read.list",
+      "operation_id": "ak.self.authz.invites.read.list.v1",
       "http_alias": "GET /_arkret/self/authz/invites",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.authz.read.check",
+      "operation_id": "ak.self.authz.read.check.v1",
       "http_alias": "POST /_arkret/self/authz/check",
       "operation_specific": [
         "policy_unavailable"
       ]
     },
     {
-      "operation_id": "ak.self.blob.command.presign",
+      "operation_id": "ak.self.blob.command.presign.v1",
       "http_alias": "POST /_arkret/self/blob/presign",
       "operation_specific": [
         "not_found",
@@ -1355,7 +1355,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.blob.resource.get",
+      "operation_id": "ak.self.blob.resource.get.v1",
       "http_alias": "GET /_arkret/self/blob/get",
       "operation_specific": [
         "not_found",
@@ -1364,7 +1364,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.blob.resource.head",
+      "operation_id": "ak.self.blob.resource.head.v1",
       "http_alias": "HEAD /_arkret/self/blob/get",
       "operation_specific": [
         "not_found",
@@ -1373,7 +1373,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.blob.upload.create",
+      "operation_id": "ak.self.blob.upload.create.v1",
       "http_alias": "POST /_arkret/self/blob/upload",
       "operation_specific": [
         "blob_quota_exceeded",
@@ -1382,7 +1382,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.call.media.exchange.issue_token",
+      "operation_id": "ak.self.call.media.exchange.issue_token.v1",
       "http_alias": "POST /_arkret/self/rtc/token",
       "operation_specific": [
         "focus_mismatch",
@@ -1395,19 +1395,19 @@
       "description": "Media service token exchange (zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS media security-frontier freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[]."
     },
     {
-      "operation_id": "ak.self.circle.command.archive",
+      "operation_id": "ak.self.circle.command.archive.v1",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/archive",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.circle.command.create",
+      "operation_id": "ak.self.circle.command.create.v1",
       "http_alias": "POST /_arkret/self/circles",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.circle.command.restore",
+      "operation_id": "ak.self.circle.command.restore.v1",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/restore",
       "operation_specific": [
         "failed_precondition"
@@ -1415,73 +1415,73 @@
       "description": "Restores an archived Circle. failed_precondition (carrying a reason in the *_not_archived family) when the target Circle is not in an archived state, or is in a terminal (tombstoned/deleted) state from which restore is illegal. See zh/models/circle.md §9."
     },
     {
-      "operation_id": "ak.self.circle.command.rotate_scope",
+      "operation_id": "ak.self.circle.command.rotate_scope.v1",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.circle.command.tombstone",
+      "operation_id": "ak.self.circle.command.tombstone.v1",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/tombstone",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.circle.member.command.add",
+      "operation_id": "ak.self.circle.member.command.add.v1",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/members",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.circle.member.resource.delete",
+      "operation_id": "ak.self.circle.member.resource.delete.v1",
       "http_alias": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.circle.read.list",
+      "operation_id": "ak.self.circle.read.list.v1",
       "http_alias": "GET /_arkret/self/circles",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.circle.resource.get",
+      "operation_id": "ak.self.circle.resource.get.v1",
       "http_alias": "GET /_arkret/self/circles/{circle_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.consent.command.grant",
+      "operation_id": "ak.self.consent.command.grant.v1",
       "http_alias": "POST /_arkret/self/consent/cells/{holder_principal_id}/grant",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.consent.command.request",
+      "operation_id": "ak.self.consent.command.request.v1",
       "http_alias": "POST /_arkret/self/consent/request",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.consent.command.revoke",
+      "operation_id": "ak.self.consent.command.revoke.v1",
       "http_alias": "POST /_arkret/self/consent/cells/{holder_principal_id}/revoke",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.consent.read.list",
+      "operation_id": "ak.self.consent.read.list.v1",
       "http_alias": "GET /_arkret/self/consent/cells",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.consent.resource.get",
+      "operation_id": "ak.self.consent.resource.get.v1",
       "http_alias": "GET /_arkret/self/consent/cells/{holder_principal_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.contact.command.checkpoint",
+      "operation_id": "ak.self.contact.command.checkpoint.v1",
       "http_alias": "POST /_arkret/self/contacts/continuity-checkpoint",
       "operation_specific": [
         "not_found",
@@ -1492,7 +1492,7 @@
       "description": "The service chooses one deterministic compactable prefix; stale or forked history fails closed and exact replay converges on the same checkpoint."
     },
     {
-      "operation_id": "ak.self.contact.command.reject",
+      "operation_id": "ak.self.contact.command.reject.v1",
       "http_alias": "POST /_arkret/self/contacts/reject",
       "operation_specific": [
         "not_found",
@@ -1503,7 +1503,7 @@
       "description": "Only the request target may sign the proposal-terminal rejection. Glare, late reverse requests, slot conflicts and consumed refs fail closed; no Private Consent is written."
     },
     {
-      "operation_id": "ak.self.contact.command.request",
+      "operation_id": "ak.self.contact.command.request.v1",
       "http_alias": "POST /_arkret/self/contacts/request",
       "operation_specific": [
         "failed_precondition",
@@ -1517,7 +1517,7 @@
       "description": "Two-phase holder-local Contact request acceptance stores one signed fact and its source receipt. Target resolution and delivery occur later through the receipted peer carrier, so an unresolved target does not reject prepare. It writes no Private Consent and conflicts on byte drift, slot reuse or an already-consumed request ref; frontier_unavailable is retry-safe while the holder PCR actor or accepted Seal frontier is unavailable."
     },
     {
-      "operation_id": "ak.self.contact.command.respond",
+      "operation_id": "ak.self.contact.command.respond.v1",
       "http_alias": "POST /_arkret/self/contacts/respond",
       "operation_specific": [
         "not_found",
@@ -1528,7 +1528,7 @@
       "description": "Only the request target may sign a normal acceptance. Glare, late reverse requests, slot conflicts and consumed refs fail closed; rejection uses the separate reject operation."
     },
     {
-      "operation_id": "ak.self.contact.command.scope_update",
+      "operation_id": "ak.self.contact.command.scope_update.v1",
       "http_alias": "POST /_arkret/self/contacts/scope-update",
       "operation_specific": [
         "contact_lineage_conflict",
@@ -1537,7 +1537,7 @@
       "description": "Issuer-local version/predecessor conflicts quarantine; stale current proof cannot authorize an update or subsequent Contact-based create/send."
     },
     {
-      "operation_id": "ak.self.contact.command.tombstone",
+      "operation_id": "ak.self.contact.command.tombstone.v1",
       "http_alias": "POST /_arkret/self/contacts/tombstone",
       "operation_specific": [
         "failed_precondition",
@@ -1547,7 +1547,7 @@
       "description": "A holder-signed tombstone ends one issuer-local Contact generation and cannot be replayed as a scope replacement or Private Consent revocation."
     },
     {
-      "operation_id": "ak.self.contact.read.list",
+      "operation_id": "ak.self.contact.read.list.v1",
       "http_alias": "GET /_arkret/self/contacts",
       "operation_specific": [
         "cursor_invalid",
@@ -1556,7 +1556,7 @@
       "description": "Holder Contact projection from the two holder-signed directional Contact lineages; Consent is never an authority source."
     },
     {
-      "operation_id": "ak.self.control_proposal_acks.command.issue",
+      "operation_id": "ak.self.control_proposal_acks.command.issue.v1",
       "http_alias": "POST /_arkret/self/control-proposal-acks",
       "operation_specific": [
         "duplicate_conflict",
@@ -1568,7 +1568,7 @@
       "description": "A current Control authority issues one immutable authority Ack after independently validating the proposal and authority basis."
     },
     {
-      "operation_id": "ak.self.control_proposal_decisions.command.submit",
+      "operation_id": "ak.self.control_proposal_decisions.command.submit.v1",
       "http_alias": "POST /_arkret/self/control-proposal-decisions",
       "operation_specific": [
         "duplicate_conflict",
@@ -1578,7 +1578,7 @@
       "description": "The receiver validates the signed decision against the immutable durable proposal/Ack/deadline chain. Conflicting terminal decisions or post-Seal decisions fail closed; exact replay is a typed duplicate success."
     },
     {
-      "operation_id": "ak.self.control_proposal_decisions.read.get",
+      "operation_id": "ak.self.control_proposal_decisions.read.get.v1",
       "http_alias": "POST /_arkret/self/control-proposal-decisions/query",
       "operation_specific": [
         "not_found"
@@ -1586,13 +1586,13 @@
       "description": "Authenticated non-enumerating observation of one durable proposal/Ack/decision/Seal state."
     },
     {
-      "operation_id": "ak.self.device_messages.command.ack",
+      "operation_id": "ak.self.device_messages.command.ack.v1",
       "http_alias": "POST /_arkret/self/device_messages/ack",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. Unknown / expired / cross-bound ack tokens map to param_invalid (reason invalid_ack_token) and MUST NOT delete any queued message."
     },
     {
-      "operation_id": "ak.self.device_messages.command.send",
+      "operation_id": "ak.self.device_messages.command.send.v1",
       "http_alias": "POST /_arkret/self/device_messages",
       "operation_specific": [
         "duplicate_conflict",
@@ -1602,13 +1602,13 @@
       "description": "Reusing the same sender-scoped DeviceMessageEnvelope.device_message_id with different canonical target content returns duplicate_conflict (reason device_message_id_conflict) and enqueues neither variant."
     },
     {
-      "operation_id": "ak.self.device_messages.read.list",
+      "operation_id": "ak.self.device_messages.read.list.v1",
       "http_alias": "GET /_arkret/self/device_messages",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.direct_conversation.read.resolve",
+      "operation_id": "ak.self.direct_conversation.read.resolve.v1",
       "http_alias": "POST /_arkret/self/direct-conversations/resolve",
       "operation_specific": [
         "failed_precondition",
@@ -1617,7 +1617,7 @@
       "description": "Idempotent resolver for a pair's one stable conversation. Existing conversations return found or suspended without a KeyPackage lookup. All undisclosable no-binding, peer and directional Contact failures collapse to direct_conversation_unavailable; Consent is not queried. Typed success states are found, creation_required, suspended and temporarily_unavailable."
     },
     {
-      "operation_id": "ak.self.events.command.submit",
+      "operation_id": "ak.self.events.command.submit.v1",
       "http_alias": "POST /_arkret/self/events",
       "operation_specific": [
         "duplicate_conflict",
@@ -1635,7 +1635,7 @@
       "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these registered codes. Direct Conversations have one scope-derived MLS group and do not submit group-generation activation candidates."
     },
     {
-      "operation_id": "ak.self.events.read.delivery_status",
+      "operation_id": "ak.self.events.read.delivery_status.v1",
       "http_alias": "QUERY /_arkret/self/events/delivery-status",
       "operation_specific": [
         "not_found"
@@ -1643,20 +1643,20 @@
       "description": "Unknown and caller-invisible Events share the same not_found response. Target service identifiers are omitted unless the caller can currently read a contributing member delivery-binding."
     },
     {
-      "operation_id": "ak.self.events.read.describe",
+      "operation_id": "ak.self.events.read.describe.v1",
       "http_alias": "QUERY /_arkret/self/events/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.events.read.frontier",
+      "operation_id": "ak.self.events.read.frontier.v1",
       "http_alias": "QUERY /_arkret/self/events/frontier",
       "operation_specific": [
         "frontier_unavailable"
       ]
     },
     {
-      "operation_id": "ak.self.events.read.resolve",
+      "operation_id": "ak.self.events.read.resolve.v1",
       "http_alias": "QUERY /_arkret/self/events/resolve",
       "operation_specific": [
         "not_found",
@@ -1664,7 +1664,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.events.read.scan",
+      "operation_id": "ak.self.events.read.scan.v1",
       "http_alias": "QUERY /_arkret/self/events",
       "operation_specific": [
         "cursor_invalid",
@@ -1672,7 +1672,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.events.resource.get",
+      "operation_id": "ak.self.events.resource.get.v1",
       "http_alias": "GET /_arkret/self/events/{event_id}",
       "operation_specific": [
         "not_found"
@@ -1680,7 +1680,7 @@
       "description": "not_found is returned both for nonexistent events and for events hidden by visibility (uniform failure surface)."
     },
     {
-      "operation_id": "ak.self.events.stream.subscribe",
+      "operation_id": "ak.self.events.stream.subscribe.v1",
       "http_alias": "GET /_arkret/self/events/subscribe",
       "operation_specific": [
         "cursor_invalid",
@@ -1690,7 +1690,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.history_key_requests.command.create",
+      "operation_id": "ak.self.history_key_requests.command.create.v1",
       "http_alias": "POST /_arkret/self/history-key-requests",
       "operation_specific": [
         "dependency_missing",
@@ -1704,14 +1704,14 @@
       ]
     },
     {
-      "operation_id": "ak.self.history_key_requests.read.list",
+      "operation_id": "ak.self.history_key_requests.read.list.v1",
       "http_alias": "POST /_arkret/self/history-key-requests/read",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ak.self.history_key_responses.command.ack",
+      "operation_id": "ak.self.history_key_responses.command.ack.v1",
       "http_alias": "POST /_arkret/self/history-key-responses/ack",
       "operation_specific": [
         "not_found",
@@ -1719,7 +1719,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.history_key_responses.command.send",
+      "operation_id": "ak.self.history_key_responses.command.send.v1",
       "http_alias": "POST /_arkret/self/history-key-responses",
       "operation_specific": [
         "dependency_missing",
@@ -1734,14 +1734,14 @@
       ]
     },
     {
-      "operation_id": "ak.self.history_key_responses.read.list",
+      "operation_id": "ak.self.history_key_responses.read.list.v1",
       "http_alias": "POST /_arkret/self/history-key-responses/read",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ak.self.identity.read.resolution_audit",
+      "operation_id": "ak.self.identity.read.resolution_audit.v1",
       "http_alias": "POST /_arkret/self/identity/resolution-audit/query",
       "operation_specific": [
         "param_invalid"
@@ -1749,7 +1749,7 @@
       "description": "param_invalid covers history_depth outside the closed range 0..256, after_resolution_event_ref supplied with history_depth 0, and reason resolution_history_ancestor_unknown when the cursor is not in this account's current resolution lineage. Unknown account, wrong authority pair and unauthorized caller share not_found so the surface cannot be used to enumerate accounts."
     },
     {
-      "operation_id": "ak.self.invite_locator.command.issue",
+      "operation_id": "ak.self.invite_locator.command.issue.v1",
       "http_alias": "POST /_arkret/self/invite-locators",
       "operation_specific": [
         "failed_precondition",
@@ -1758,7 +1758,7 @@
       "description": "Issue fails closed when the authenticated principal reaches the active-locator limit or the requested TTL violates deployment policy."
     },
     {
-      "operation_id": "ak.self.invite_locator.command.revoke",
+      "operation_id": "ak.self.invite_locator.command.revoke.v1",
       "http_alias": "POST /_arkret/self/invite-locators/revoke",
       "operation_specific": [
         "not_found"
@@ -1766,7 +1766,7 @@
       "description": "Repeated revocation by the same principal is idempotent; unknown, consumed, or cross-principal locator ids return not_found."
     },
     {
-      "operation_id": "ak.self.invite_locator.command.rotate",
+      "operation_id": "ak.self.invite_locator.command.rotate.v1",
       "http_alias": "POST /_arkret/self/invite-locators/rotate",
       "operation_specific": [
         "not_found"
@@ -1774,19 +1774,19 @@
       "description": "Unknown, consumed, revoked, or cross-principal locator ids are not enumerable and return not_found."
     },
     {
-      "operation_id": "ak.self.invite_receive_policy.resource.get",
+      "operation_id": "ak.self.invite_receive_policy.resource.get.v1",
       "http_alias": "GET /_arkret/self/invite-receive-policy",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.invite_receive_policy.resource.replace",
+      "operation_id": "ak.self.invite_receive_policy.resource.replace.v1",
       "http_alias": "PUT /_arkret/self/invite-receive-policy",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.invites.command.dispatch",
+      "operation_id": "ak.self.invites.command.dispatch.v1",
       "http_alias": "POST /_arkret/self/invites/dispatch",
       "operation_specific": [
         "failed_precondition",
@@ -1794,7 +1794,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.keys.backup_series.command.erase",
+      "operation_id": "ak.self.keys.backup_series.command.erase.v1",
       "http_alias": "POST /_arkret/self/keys/backup-series/erase",
       "operation_specific": [
         "duplicate_conflict",
@@ -1805,14 +1805,14 @@
       "description": "SecurityRotation old-series erasure rejects plan mismatch, missing authoritative pointers and conflicting replay; partial storage progress is a typed success outcome."
     },
     {
-      "operation_id": "ak.self.keys.backups.command.issue_delete_challenge",
+      "operation_id": "ak.self.keys.backups.command.issue_delete_challenge.v1",
       "http_alias": "POST /_arkret/self/keys/backups/{backup_id}/delete-challenge",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ak.self.keys.backups.command.unlock",
+      "operation_id": "ak.self.keys.backups.command.unlock.v1",
       "http_alias": "POST /_arkret/self/keys/backups/{backup_id}/unlock",
       "operation_specific": [
         "not_found",
@@ -1823,14 +1823,14 @@
       ]
     },
     {
-      "operation_id": "ak.self.keys.backups.read.list",
+      "operation_id": "ak.self.keys.backups.read.list.v1",
       "http_alias": "GET /_arkret/self/keys/backups",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "ak.self.keys.backups.resource.delete",
+      "operation_id": "ak.self.keys.backups.resource.delete.v1",
       "http_alias": "DELETE /_arkret/self/keys/backups/{backup_id}",
       "operation_specific": [
         "not_found",
@@ -1840,7 +1840,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.keys.backups.resource.replace",
+      "operation_id": "ak.self.keys.backups.resource.replace.v1",
       "http_alias": "PUT /_arkret/self/keys/backups/{backup_id}",
       "operation_specific": [
         "key_backup_wire_schema_required",
@@ -1850,7 +1850,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.keys.command.claim",
+      "operation_id": "ak.self.keys.command.claim.v1",
       "http_alias": "POST /_arkret/self/keys/claim",
       "operation_specific": [
         "one_time_keys_exhausted",
@@ -1858,7 +1858,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.keys.keypackages.command.claim",
+      "operation_id": "ak.self.keys.keypackages.command.claim.v1",
       "http_alias": "POST /_arkret/self/keys/keypackages/claim",
       "operation_specific": [
         "claim_failed"
@@ -1866,7 +1866,7 @@
       "description": "The authenticated requester may target another principal, so target absence, visibility, inventory, policy, capability, freshness and target-scoped abuse failures use the same target_private_claim disclosure policy and collapse to claim_failed."
     },
     {
-      "operation_id": "ak.self.keys.keypackages.command.consume",
+      "operation_id": "ak.self.keys.keypackages.command.consume.v1",
       "http_alias": "POST /_arkret/self/keys/keypackages/consume",
       "operation_specific": [
         "keypackage_already_consumed",
@@ -1874,7 +1874,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.keys.keypackages.command.revoke",
+      "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
       "http_alias": "POST /_arkret/self/keys/keypackages/revoke",
       "operation_specific": [
         "keypackage_already_consumed",
@@ -1882,19 +1882,19 @@
       ]
     },
     {
-      "operation_id": "ak.self.keys.keypackages.upload.create",
+      "operation_id": "ak.self.keys.keypackages.upload.create.v1",
       "http_alias": "POST /_arkret/self/keys/keypackages/upload",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.keys.read.lookup",
+      "operation_id": "ak.self.keys.read.lookup.v1",
       "http_alias": "POST /_arkret/self/keys/query",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.keys.upload.create",
+      "operation_id": "ak.self.keys.upload.create.v1",
       "http_alias": "POST /_arkret/self/keys/upload",
       "operation_specific": [
         "device_unknown",
@@ -1902,7 +1902,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.media.read.ice_config",
+      "operation_id": "ak.self.media.read.ice_config.v1",
       "http_alias": "POST /_arkret/self/rtc/ice-config",
       "operation_specific": [
         "ice_config_denied",
@@ -1911,7 +1911,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.moderation.command.report",
+      "operation_id": "ak.self.moderation.command.report.v1",
       "http_alias": "POST /_arkret/self/moderation/report",
       "operation_specific": [
         "not_found",
@@ -1921,7 +1921,7 @@
       "description": "not_found is the single anti-oracle result for an absent target, a target not visible to the reporter, or any declared Realm/effective-scope mismatch. evidence_recipient_mismatch rejects a canonical evidence package whose recipient_public_key_ref and encrypted_to differ or whose key is not authorized for the exact target scope. Exact replay of one accepted report Event returns the stored submitted outcome; reuse of the same Event identity with different canonical bytes returns duplicate_conflict and appends neither a report log entry nor a queue item."
     },
     {
-      "operation_id": "ak.self.moderation.read.franking_seal_observation",
+      "operation_id": "ak.self.moderation.read.franking_seal_observation.v1",
       "http_alias": "POST /_arkret/self/moderation/franking/seal-observation",
       "operation_specific": [
         "not_found"
@@ -1929,19 +1929,19 @@
       "description": "not_found is the single anti-oracle result when either Event is absent, not visible to the caller, not in the requested Realm, or when the proof Event does not bind the requested target Event."
     },
     {
-      "operation_id": "ak.self.morph.read.list",
+      "operation_id": "ak.self.morph.read.list.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/morphs",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.morph.resource.get",
+      "operation_id": "ak.self.morph.resource.get.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}",
       "operation_specific": [],
       "description": "Optional extension read surface for a single document Morph projection; it is a derived read model, not a canonical truth source, and carries no domain-specific reply shape beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.organization_recovery_archives.read.list",
+      "operation_id": "ak.self.organization_recovery_archives.read.list.v1",
       "http_alias": "POST /_arkret/self/organization-recovery-archives/read",
       "operation_specific": [
         "history_traversal_anchor_unreachable",
@@ -1952,7 +1952,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.policy.read.check",
+      "operation_id": "ak.self.policy.read.check.v1",
       "http_alias": "POST /_arkret/self/policy/check",
       "operation_specific": [
         "policy_unavailable",
@@ -1960,19 +1960,19 @@
       ]
     },
     {
-      "operation_id": "ak.self.read_cursor.command.advance",
+      "operation_id": "ak.self.read_cursor.command.advance.v1",
       "http_alias": "POST /_arkret/self/read-cursors",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.read_cursor.read.list",
+      "operation_id": "ak.self.read_cursor.read.list.v1",
       "http_alias": "GET /_arkret/self/read-cursors",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm.command.archive",
+      "operation_id": "ak.self.realm.command.archive.v1",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/archive",
       "operation_specific": [
         "failed_precondition"
@@ -1980,7 +1980,7 @@
       "description": "Archives a Realm. failed_precondition (carrying a reason in the realm-state family) when the Realm is already archived or in a terminal (frozen/tombstoned) state from which archive is not a legal transition. See zh/models/realm-and-space.md §2."
     },
     {
-      "operation_id": "ak.self.realm.command.destroy",
+      "operation_id": "ak.self.realm.command.destroy.v1",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/destroy",
       "operation_specific": [
         "failed_precondition"
@@ -1988,7 +1988,7 @@
       "description": "Destroys a Realm's residual storage after tombstone (irreversible). failed_precondition when the Realm has not first reached the tombstoned precursor state, or when a legal hold blocks erasure. See zh/models/realm-and-space.md §2 and zh/identity/account-lifecycle.md §8."
     },
     {
-      "operation_id": "ak.self.realm.command.freeze",
+      "operation_id": "ak.self.realm.command.freeze.v1",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/freeze",
       "operation_specific": [
         "failed_precondition"
@@ -1996,7 +1996,7 @@
       "description": "Freezes a Realm (suspends writes while preserving state). failed_precondition when the Realm is already frozen or in a terminal (tombstoned) state. See zh/models/realm-and-space.md §2."
     },
     {
-      "operation_id": "ak.self.realm.command.tombstone",
+      "operation_id": "ak.self.realm.command.tombstone.v1",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/tombstone",
       "operation_specific": [
         "failed_precondition"
@@ -2004,7 +2004,7 @@
       "description": "Tombstones a Realm (irreversible terminal state). failed_precondition when the Realm is already in a terminal state, or when an open legal hold / erasure obligation blocks the transition. See zh/models/realm-and-space.md §2 and zh/identity/account-lifecycle.md §8."
     },
     {
-      "operation_id": "ak.self.realm.join_application.audit.read.list",
+      "operation_id": "ak.self.realm.join_application.audit.read.list.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
       "operation_specific": [
         "not_found"
@@ -2012,7 +2012,7 @@
       "description": "Unknown and unauthorized application audit refs are both returned as not_found; the response never includes another application's body."
     },
     {
-      "operation_id": "ak.self.realm.join_application.command.cancel",
+      "operation_id": "ak.self.realm.join_application.command.cancel.v1",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel",
       "operation_specific": [
         "proof_invalid",
@@ -2022,7 +2022,7 @@
       "description": "proof_invalid covers signer/session/applicant mismatch; failed_precondition covers a terminal, consumed or otherwise non-cancellable application."
     },
     {
-      "operation_id": "ak.self.realm.join_application.command.review",
+      "operation_id": "ak.self.realm.join_application.command.review.v1",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews",
       "operation_specific": [
         "proof_invalid",
@@ -2034,7 +2034,7 @@
       "description": "Review receipt signatures and exact revision binding fail as proof_invalid/failed_precondition; expired applications use ttl_expired; a stale reviewer/device capability binding uses reviewer_capability_revoked."
     },
     {
-      "operation_id": "ak.self.realm.join_application.command.submit",
+      "operation_id": "ak.self.realm.join_application.command.submit.v1",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/join-applications",
       "operation_specific": [
         "proof_invalid",
@@ -2045,13 +2045,13 @@
       "description": "proof_invalid covers a bad applicant receipt digest/signature or signer/session mismatch; duplicate_conflict binds Idempotency-Key to the first canonical request; failed_precondition covers absent/stale knock, cooldown, max-open or policy mismatch; gate_check_failed is the intentionally non-enumerating external gate failure."
     },
     {
-      "operation_id": "ak.self.realm.join_application.read.list",
+      "operation_id": "ak.self.realm.join_application.read.list.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/join-applications",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface; unauthorized bodies are redacted rather than leaked through distinguishable errors."
     },
     {
-      "operation_id": "ak.self.realm.join_application.resource.get",
+      "operation_id": "ak.self.realm.join_application.resource.get.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}",
       "operation_specific": [
         "not_found"
@@ -2059,13 +2059,13 @@
       "description": "Unknown and unauthorized application refs are both returned as not_found to avoid applicant/reviewer enumeration."
     },
     {
-      "operation_id": "ak.self.realm.moderation_policy.read.effective",
+      "operation_id": "ak.self.realm.moderation_policy.read.effective.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/moderation-policy/effective",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm.moderation_policy.resource.replace",
+      "operation_id": "ak.self.realm.moderation_policy.resource.replace.v1",
       "http_alias": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
       "operation_specific": [
         "requires_organization_approval",
@@ -2076,67 +2076,67 @@
       "description": "A policy override that relaxes an action forbidden by inherited organization policy returns top-level failed_precondition with reason_code=requires_organization_approval unless the document embeds a valid organization approval. A false signed head_eq returns failed_precondition, a Bottom moderation-policy cell returns failed_bottom, and replaying the same Event identity with different bytes returns duplicate_conflict."
     },
     {
-      "operation_id": "ak.self.realm.read.export",
+      "operation_id": "ak.self.realm.read.export.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/export",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm.resource.get",
+      "operation_id": "ak.self.realm.resource.get.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm_link.command.create",
+      "operation_id": "ak.self.realm_link.command.create.v1",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/links",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm_link.read.effective_policy",
+      "operation_id": "ak.self.realm_link.read.effective_policy.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/effective-policy",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm_link.read.list",
+      "operation_id": "ak.self.realm_link.read.list.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/links",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm_link.resource.delete",
+      "operation_id": "ak.self.realm_link.resource.delete.v1",
       "http_alias": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm_organization.read.list",
+      "operation_id": "ak.self.realm_organization.read.list.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/organizations",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. Read is gated by Realm read authorization (capability_denied, universal)."
     },
     {
-      "operation_id": "ak.self.realm_policy_server.resource.delete",
+      "operation_id": "ak.self.realm_policy_server.resource.delete.v1",
       "http_alias": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm_policy_server.resource.get",
+      "operation_id": "ak.self.realm_policy_server.resource.get.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/policy-server",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm_policy_server.resource.replace",
+      "operation_id": "ak.self.realm_policy_server.resource.replace.v1",
       "http_alias": "PUT /_arkret/self/realms/{realm_id}/policy-server",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.seals.command.submit",
+      "operation_id": "ak.self.seals.command.submit.v1",
       "http_alias": "POST /_arkret/self/seals",
       "operation_specific": [
         "device_generation_fenced",
@@ -2148,14 +2148,14 @@
       "description": "Client-signed Seal submission. The receiver recomputes coverage, completeness and state roots; verifies signer authority against the predecessor notary cell; rejects stale generation, partial bootstrap coverage or frontier races; and holds future-skewed Seals for retry instead of permanently rejecting them."
     },
     {
-      "operation_id": "ak.self.seals.read.frontier",
+      "operation_id": "ak.self.seals.read.frontier.v1",
       "http_alias": "QUERY /_arkret/self/seals/frontier",
       "operation_specific": [
         "frontier_unavailable"
       ]
     },
     {
-      "operation_id": "ak.self.seals.read.mls_governance_proof",
+      "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
       "http_alias": "POST /_arkret/self/seals/mls-governance-proof",
       "operation_specific": [
         "not_found",
@@ -2169,13 +2169,13 @@
       "description": "not_found preserves Realm/scope visibility; mls_governance_anchor_unreachable means the exact proof_target_basis does not dominate the exact proof_base_basis, while byte-identical base and target antichains are a valid zero-transition query; mls_governance_proof_bounds_exceeded means the complete frontier response exceeds the v1 canonical-byte bound and forbids partial output; frontier_unavailable covers missing accepted Seal/Event/witness material that prevents the dominance or frontier decision; state_mismatch covers inconsistent covered/control materialization; signature_invalid covers unverifiable Seal/Event/witness commitments; unsupported_profile rejects unsupported binding or reducer profiles."
     },
     {
-      "operation_id": "ak.self.seals.read.governance_dependencies",
+      "operation_id": "ak.self.seals.read.governance_dependencies.v1",
       "http_alias": "POST /_arkret/self/seals/governance-dependencies",
       "operation_specific": ["not_found", "limit_exceeded", "frontier_unavailable", "state_mismatch", "signature_invalid"],
       "description": "Unknown, unauthorized, outside-cut and missing selectors are same-shape. Any complete-response bounds failure returns no partial items or cursor."
     },
     {
-      "operation_id": "ak.self.seals.read.resolve",
+      "operation_id": "ak.self.seals.read.resolve.v1",
       "http_alias": "QUERY /_arkret/self/seals/resolve",
       "operation_specific": [
         "not_found",
@@ -2183,7 +2183,7 @@
       ]
     },
     {
-      "operation_id": "ak.self.security_transaction.command.continue",
+      "operation_id": "ak.self.security_transaction.command.continue.v1",
       "http_alias": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
       "operation_specific": [
         "not_found",
@@ -2194,7 +2194,7 @@
       "description": "Continues only the resource's stored next action and rejects request-digest, action, reserved-ref, or terminal-state drift."
     },
     {
-      "operation_id": "ak.self.security_transaction.command.create",
+      "operation_id": "ak.self.security_transaction.command.create.v1",
       "http_alias": "POST /_arkret/self/security-transactions",
       "operation_specific": [
         "duplicate_conflict",
@@ -2203,14 +2203,14 @@
       "description": "Creates and durably reserves one closed recovery or security-rotation transaction before any irreversible side effect."
     },
     {
-      "operation_id": "ak.self.security_transaction.resource.get",
+      "operation_id": "ak.self.security_transaction.resource.get.v1",
       "http_alias": "GET /_arkret/self/security-transactions/{transaction_id}",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ak.self.signal.command.send",
+      "operation_id": "ak.self.signal.command.send.v1",
       "http_alias": "POST /_arkret/self/signal",
       "operation_specific": [
         "signal_class_denied",
@@ -2220,14 +2220,14 @@
       ]
     },
     {
-      "operation_id": "ak.self.signal.stream.subscribe",
+      "operation_id": "ak.self.signal.stream.subscribe.v1",
       "http_alias": "GET /_arkret/self/signal/subscribe",
       "operation_specific": [
         "signal_rail_unavailable"
       ]
     },
     {
-      "operation_id": "ak.self.snapshot.read.manifest_head",
+      "operation_id": "ak.self.snapshot.read.manifest_head.v1",
       "http_alias": "GET /_arkret/self/snapshot/head",
       "operation_specific": [
         "snapshot_unavailable",
@@ -2235,25 +2235,25 @@
       ]
     },
     {
-      "operation_id": "ak.self.space.read.list",
+      "operation_id": "ak.self.space.read.list.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/spaces",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.strand.read.list",
+      "operation_id": "ak.self.strand.read.list.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/strands",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.views.collection_projection.command.materialize",
+      "operation_id": "ak.self.views.collection_projection.command.materialize.v1",
       "http_alias": "POST /_arkret/self/views/{view_id}/projection",
       "operation_specific": [],
       "description": "Optional extension read surface that materializes a View{kind=collection} projection bound to the returned frontier; it is a derived read model, not a canonical truth source, and carries no domain-specific reply shape beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.server.read.describe",
+      "operation_id": "ak.server.read.describe.v1",
       "http_alias": "GET /_arkret/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."

@@ -238,8 +238,8 @@
     "vector_id": "ak.vector.sync.stream_frame_sequence.v1",
     "runner": "cotest::conformance::sync::run_stream_frame_sequence_vector",
     "operations": [
-      "ak.self.account.stream.subscribe",
-      "ak.self.events.stream.subscribe"
+      "ak.self.account.stream.subscribe.v1",
+      "ak.self.events.stream.subscribe.v1"
     ],
     "cases": [
       {
@@ -412,7 +412,7 @@
       "code": "cursor_expired",
       "http_status": 410,
       "recovery": {
-        "call": "ak.self.snapshot.read.manifest_head",
+        "call": "ak.self.snapshot.read.manifest_head.v1",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       }
     }
@@ -430,26 +430,26 @@
       "allowed_recovery": [
         {
           "branch": "initial_sync",
-          "call": "ak.self.account.stream.subscribe",
+          "call": "ak.self.account.stream.subscribe.v1",
           "after_present": false,
           "catchup": true
         },
         {
           "branch": "snapshot_bootstrap",
-          "call": "ak.self.snapshot.read.manifest_head",
+          "call": "ak.self.snapshot.read.manifest_head.v1",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         }
       ],
       "forbidden_recovery": [
         {
           "branch": "reuse_failed_cursor",
-          "call": "ak.self.events.read.scan",
+          "call": "ak.self.events.read.scan.v1",
           "after": "ak:cursor:eyJleHBpcmVzX2F0IjoiMjAyNi0wMS0wMVQwMDowMDowMC4wMDBaIiwiaCI6IlpYaHdhWEpsWkMxemRISmxZVzB0YUdGdVpHeGwiLCJpc3N1ZWRfYXQiOiIyMDI1LTEyLTMxVDIzOjU5OjU5LjAwMFoiLCJwdXJwb3NlIjoic3RyZWFtIiwidiI6IjEifQ",
           "reject_reason": "failed cursor reused as after="
         },
         {
           "branch": "frontier_as_cursor",
-          "call": "ak.self.events.read.scan",
+          "call": "ak.self.events.read.scan.v1",
           "after": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
           "reject_reason": "param_invalid: snapshot frontier event_id is not a cursor"
         }
@@ -473,7 +473,7 @@
     "expected": {
       "verify_signature": true,
       "verify_event_set_commitment": true,
-      "backfill_call": "ak.self.events.read.scan",
+      "backfill_call": "ak.self.events.read.scan.v1",
       "backfill_direction": "from_head_toward_older",
       "backfill_after_present": false,
       "backfill_stop_frontier": [

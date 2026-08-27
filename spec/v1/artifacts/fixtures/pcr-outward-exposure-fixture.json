@@ -18,7 +18,7 @@
   "cases": [
     {
       "name": "public_resolution_returns_attested_projection_only",
-      "operation_id": "ak.open.identity.read.resolution",
+      "operation_id": "ak.open.identity.read.resolution.v1",
       "expected_required_fields": [
         "principal_id",
         "principal_server_id",
@@ -37,7 +37,7 @@
     },
     {
       "name": "actor_profile_shared_realm_success",
-      "operation_id": "ak.self.actor_profile.read.resolve",
+      "operation_id": "ak.self.actor_profile.read.resolve.v1",
       "preconditions": [
         "caller_is_effective_joined_member",
         "target_is_effective_joined_member",

@@ -25,9 +25,9 @@
     "operation_id": {
       "type": "string",
       "enum": [
-        "ak.self.account.stream.subscribe",
-        "ak.self.events.stream.subscribe",
-        "ak.self.signal.stream.subscribe"
+        "ak.self.account.stream.subscribe.v1",
+        "ak.self.events.stream.subscribe.v1",
+        "ak.self.signal.stream.subscribe.v1"
       ]
     },
     "timestamp": {
@@ -292,7 +292,7 @@
           "$ref": "#/$defs/channel_id"
         },
         "operation_id": {
-          "const": "ak.self.account.stream.subscribe"
+          "const": "ak.self.account.stream.subscribe.v1"
         },
         "parameters": {
           "$ref": "#/$defs/account_open_parameters"
@@ -316,7 +316,7 @@
           "$ref": "#/$defs/channel_id"
         },
         "operation_id": {
-          "const": "ak.self.events.stream.subscribe"
+          "const": "ak.self.events.stream.subscribe.v1"
         },
         "parameters": {
           "$ref": "#/$defs/events_open_parameters"
@@ -340,7 +340,7 @@
           "$ref": "#/$defs/channel_id"
         },
         "operation_id": {
-          "const": "ak.self.signal.stream.subscribe"
+          "const": "ak.self.signal.stream.subscribe.v1"
         },
         "parameters": {
           "$ref": "#/$defs/signal_open_parameters"

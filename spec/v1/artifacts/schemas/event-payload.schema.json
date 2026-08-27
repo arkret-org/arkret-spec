@@ -3455,7 +3455,7 @@
         },
         "introduction_evidence_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Required digest of the exact private introduction_evidence carried by the request branch of ak.peer.contacts.command.submit. Raw evidence is not written into the contact fact log."
+          "description": "Required digest of the exact private introduction_evidence carried by the request branch of ak.peer.contacts.command.submit.v1. Raw evidence is not written into the contact fact log."
         },
         "previous_terminal_contact_round_id": {
           "$ref": "#/$defs/digest",

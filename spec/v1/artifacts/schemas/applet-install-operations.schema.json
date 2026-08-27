@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-install-operations.schema.json",
   "title": "Arkret Applet Install Operation DTOs",
-  "description": "Closed request/response DTOs for ak.self.applet.install.command.preview, ak.self.applet.command.install, and ak.self.applet.command.revoke. The InstallPlan body itself is defined in applet-install-plan.schema.json.",
+  "description": "Closed request/response DTOs for ak.self.applet.install.command.preview.v1, ak.self.applet.command.install.v1, and ak.self.applet.command.revoke.v1. The InstallPlan body itself is defined in applet-install-plan.schema.json.",
   "oneOf": [
     {
       "$ref": "#/$defs/applet_install_preview_request_body"
@@ -378,7 +378,7 @@
         },
         "proof": {
           "$ref": "../schemas/account-operations.schema.json#/$defs/account_lifecycle_proof",
-          "description": "Required when revoke_mode includes delegated session revocation in production. The proof signs the canonical ak.gate.account.command.revoke_session transcript reconstructed from the active applet install selector."
+          "description": "Required when revoke_mode includes delegated session revocation in production. The proof signs the canonical ak.gate.account.command.revoke_session.v1 transcript reconstructed from the active applet install selector."
         }
       },
       "additionalProperties": false

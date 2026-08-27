@@ -23,11 +23,11 @@ see_also:
 
 实现声明 `ak.profile.file_transfer.v1` 时，MUST 支持：
 
-- 用 `ak.self.blob.upload.create` / `ak.self.blob.resource.get` / `ak.self.blob.resource.head` 承载文件密文字节。
+- 用 `ak.self.blob.upload.create.v1` / `ak.self.blob.resource.get.v1` / `ak.self.blob.resource.head.v1` 承载文件密文字节。
 - 用 `ak.account_data.set` 写入 `ak.file_transfer.v1:<transfer_key>` 加密 account-data 记录。
-- 用 `ak.self.events.command.submit` 承载 `ak.account_data.set` 的实际写入路径。
-- 用 `ak.self.account.stream.subscribe` 把 account-data 更新同步到 holder 的其它授权设备。
-- 用 `ak.self.device_messages.command.send` / `ak.self.device_messages.read.list` 承载 device-bound key delivery（见 §4.2）。
+- 用 `ak.self.events.command.submit.v1` 承载 `ak.account_data.set` 的实际写入路径。
+- 用 `ak.self.account.stream.subscribe.v1` 把 account-data 更新同步到 holder 的其它授权设备。
+- 用 `ak.self.device_messages.command.send.v1` / `ak.self.device_messages.read.list.v1` 承载 device-bound key delivery（见 §4.2）。
 
 文件传输记录 MUST NOT 写入共享 Realm history。用户之后若选择把该文件发送到某个聊天、Strand 或共享对象，客户端 MUST 重新执行目标 Event.kind 的授权检查，并生成新的共享 Event；不得把 file-transfer account-data key、file-transfer 密文 value、私有 `content_key` 或本地传输历史复制到 shared payload。
 
@@ -108,15 +108,15 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 状态更新（例如 `downloaded`、`dismissed`、`deleted`）写回同一个 `ak.file_transfer.v1:<transfer_key>`。v1 对该 key 固定采用 `cas_register` 合并语义，registry row 只登记 `deletion_mode=value_tombstone`，不再复制 merge-strategy 常量：所有写入 MUST 走 [`account-data.md` §5](./account-data.md) 的 compare-and-set 循环，服务端只做 `expected_revision` 比较，下述状态规则 MUST 由客户端在解密明文上执行。
 
-三个非 terminal 状态 `available`、`downloaded`、`dismissed` 之间允许双向迁移：重新下载可写 `downloaded`，从 UI 收起可写 `dismissed`，重新发送到同一授权设备集合前可写回 `available`；它们之间的冲突按 `(actor, transfer_key)` 做 last-writer-wins，比较源为 `updated_hlc`。`deleted` 是该 `transfer_key` 的不可逆 terminal tombstone，且 MUST 作为 value 永久保留在同一 key（而不是通过 `ak.self.account_data.resource.delete` 物理删除），使任何长期离线设备重连后仍能观察删除事实：任一副本一旦观察到 `status="deleted"`，同一 `transfer_key` 后续或并发的非 deleted 状态 MUST NOT 复活该 transfer；需要重新发送时必须生成新的 `transfer_id` 与新的 `transfer_key`。多个 deleted tombstone 之间 MAY 用较新的 `updated_hlc` 更新保留元数据。
+三个非 terminal 状态 `available`、`downloaded`、`dismissed` 之间允许双向迁移：重新下载可写 `downloaded`，从 UI 收起可写 `dismissed`，重新发送到同一授权设备集合前可写回 `available`；它们之间的冲突按 `(actor, transfer_key)` 做 last-writer-wins，比较源为 `updated_hlc`。`deleted` 是该 `transfer_key` 的不可逆 terminal tombstone，且 MUST 作为 value 永久保留在同一 key（而不是通过 `ak.self.account_data.resource.delete.v1` 物理删除），使任何长期离线设备重连后仍能观察删除事实：任一副本一旦观察到 `status="deleted"`，同一 `transfer_key` 后续或并发的非 deleted 状态 MUST NOT 复活该 transfer；需要重新发送时必须生成新的 `transfer_id` 与新的 `transfer_key`。多个 deleted tombstone 之间 MAY 用较新的 `updated_hlc` 更新保留元数据。
 
 CAS 冲突（`cas_conflict`）时客户端 MUST 重新解密 `current_entry`、按上述规则合并后以新的 `expected_revision` 重写一次；离线设备的旧字节级 retry 因此必然失败，不会把已被覆盖的状态整体写回。如果设备本地时钟或 HLC 来源不可信，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与 file-transfer 合并。
 
-客户端断线恢复 MUST 使用 `ak.self.account.stream.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta；不得用 `ak.self.events.read.scan` 代替，因为 file-transfer account-data 和 to-device key messages 不属于裸 Realm Event 查询面。
+客户端断线恢复 MUST 使用 `ak.self.account.stream.subscribe.v1?after=<cursor>&catchup=true` 重放账号聚合 delta；不得用 `ak.self.events.read.scan.v1` 代替，因为 file-transfer account-data 和 to-device key messages 不属于裸 Realm Event 查询面。
 
 ## 6. 下载与访问控制
 
-File-transfer Blob 下载 MUST 使用 authenticated download (`ak.self.blob.resource.get`)。请求 `purpose` SHOULD 使用 `file_transfer`。私有或加密 file-transfer Blob MUST NOT 使用 `ak.self.blob.command.presign`；presign 是可转发 bearer URL，不满足 private/E2EE 文件传输的审计与泄露边界。
+File-transfer Blob 下载 MUST 使用 authenticated download (`ak.self.blob.resource.get.v1`)。请求 `purpose` SHOULD 使用 `file_transfer`。私有或加密 file-transfer Blob MUST NOT 使用 `ak.self.blob.command.presign.v1`；presign 是可转发 bearer URL，不满足 private/E2EE 文件传输的审计与泄露边界。
 
 Blob 服务对不可见或已删除 Blob SHOULD 返回与不存在一致的 `not_found`，不得通过 HEAD / Range probe 泄露文件名、MIME、精确大小或存在性。客户端下载后 MUST 重新计算 digest，并在解密成功前不得把原始文件名或预览暴露给非 holder 授权的服务。
 

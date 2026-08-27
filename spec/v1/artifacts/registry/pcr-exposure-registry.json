@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-25.1",
+  "version": "2026-08-27.1",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -115,7 +115,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.peer.contacts.command.submit",
+          "operation_id": "ak.peer.contacts.command.submit.v1",
           "direction": "request",
           "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
           "json_pointers": [
@@ -131,7 +131,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.peer.contacts.command.submit",
+          "operation_id": "ak.peer.contacts.command.submit.v1",
           "direction": "request",
           "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
           "json_pointers": [
@@ -147,7 +147,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.peer.contacts.command.submit",
+          "operation_id": "ak.peer.contacts.command.submit.v1",
           "direction": "request",
           "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
           "json_pointers": [
@@ -158,7 +158,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.self.events.read.resolve",
+          "operation_id": "ak.self.events.read.resolve.v1",
           "direction": "response",
           "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
           "json_pointers": [
@@ -176,7 +176,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.peer.contacts.command.submit",
+          "operation_id": "ak.peer.contacts.command.submit.v1",
           "direction": "request",
           "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
           "json_pointers": [
@@ -192,7 +192,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.peer.contacts.command.submit",
+          "operation_id": "ak.peer.contacts.command.submit.v1",
           "direction": "request",
           "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
           "json_pointers": [
@@ -208,7 +208,7 @@
         {
           "carrier": "derived_field",
           "surface": "operation",
-          "operation_id": "ak.self.keys.read.lookup",
+          "operation_id": "ak.self.keys.read.lookup.v1",
           "direction": "response",
           "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
           "json_pointers": [
@@ -225,7 +225,7 @@
         {
           "carrier": "derived_field",
           "surface": "operation",
-          "operation_id": "ak.self.keys.read.lookup",
+          "operation_id": "ak.self.keys.read.lookup.v1",
           "direction": "response",
           "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
           "json_pointers": [
@@ -242,7 +242,7 @@
         {
           "carrier": "derived_field",
           "surface": "operation",
-          "operation_id": "ak.self.keys.read.lookup",
+          "operation_id": "ak.self.keys.read.lookup.v1",
           "direction": "response",
           "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
           "json_pointers": [
@@ -259,7 +259,7 @@
         {
           "carrier": "derived_field",
           "surface": "operation",
-          "operation_id": "ak.self.keys.read.lookup",
+          "operation_id": "ak.self.keys.read.lookup.v1",
           "direction": "response",
           "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
           "json_pointers": [
@@ -284,7 +284,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.self.identity.read.resolution_audit",
+          "operation_id": "ak.self.identity.read.resolution_audit.v1",
           "direction": "response",
           "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
           "json_pointers": [
@@ -318,7 +318,7 @@
         {
           "carrier": "derived_field",
           "surface": "operation",
-          "operation_id": "ak.peer.keys.keypackages.command.claim",
+          "operation_id": "ak.peer.keys.keypackages.command.claim.v1",
           "direction": "response",
           "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
           "json_pointers": [
@@ -347,7 +347,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.self.actor_profile.read.resolve",
+          "operation_id": "ak.self.actor_profile.read.resolve.v1",
           "direction": "response",
           "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
           "json_pointers": [
@@ -365,7 +365,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.self.actor_profile.read.resolve",
+          "operation_id": "ak.self.actor_profile.read.resolve.v1",
           "direction": "response",
           "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
           "json_pointers": [
@@ -383,7 +383,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.self.identity.read.resolution_audit",
+          "operation_id": "ak.self.identity.read.resolution_audit.v1",
           "direction": "response",
           "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
           "json_pointers": [
@@ -395,7 +395,7 @@
         {
           "carrier": "receipt",
           "surface": "operation",
-          "operation_id": "ak.self.identity.read.resolution_audit",
+          "operation_id": "ak.self.identity.read.resolution_audit.v1",
           "direction": "response",
           "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
           "json_pointers": [
@@ -407,7 +407,7 @@
         {
           "carrier": "derived_field",
           "surface": "operation",
-          "operation_id": "ak.self.identity.read.resolution_audit",
+          "operation_id": "ak.self.identity.read.resolution_audit.v1",
           "direction": "response",
           "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
           "json_pointers": [
@@ -419,7 +419,7 @@
         {
           "carrier": "seal",
           "surface": "operation",
-          "operation_id": "ak.self.identity.read.resolution_audit",
+          "operation_id": "ak.self.identity.read.resolution_audit.v1",
           "direction": "response",
           "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
           "json_pointers": [
@@ -431,7 +431,7 @@
         {
           "carrier": "exact_event",
           "surface": "operation",
-          "operation_id": "ak.peer.principal_genesis.command.submit",
+          "operation_id": "ak.peer.principal_genesis.command.submit.v1",
           "direction": "request",
           "schema_ref": "schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request",
           "json_pointers": [
@@ -442,7 +442,7 @@
         {
           "carrier": "derived_field",
           "surface": "operation",
-          "operation_id": "ak.peer.principal_genesis.command.submit",
+          "operation_id": "ak.peer.principal_genesis.command.submit.v1",
           "direction": "request",
           "schema_ref": "schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request",
           "json_pointers": [

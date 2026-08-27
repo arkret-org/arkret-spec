@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10168,
+    "total_properties": 10156,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2795,
+      "optional": 2792,
       "optional_defaulted": 68,
-      "required": 6958,
+      "required": 6950,
       "required_nullable": 138,
-      "tristate": 209
+      "tristate": 208
     },
-    "tristate_occurrences": 209,
-    "tristate_audit_targets": 150,
+    "tristate_occurrences": 208,
+    "tristate_audit_targets": 149,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 141,
+      "absent_null_equivalent": 140,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -198,11 +198,10 @@
     "security-transaction.schema.json/$defs/security_rotation_progress_contract/allOf/0/then/properties/accepted_steps",
     "security-transaction.schema.json/$defs/security_rotation_progress_contract/allOf/1/then/properties/accepted_steps",
     "security-transaction.schema.json/allOf/1/then/properties/terminal_result",
-    "service-describe.schema.json/allOf/0/then/properties/verified_profiles",
-    "service-describe.schema.json/allOf/1/then/properties/discovery_profiles",
-    "service-describe.schema.json/allOf/2/then/properties/limits",
-    "service-describe.schema.json/allOf/3/then/properties/supported_profiles",
-    "service-describe.schema.json/allOf/5/then/properties/auth_metadata",
+    "service-describe.schema.json/allOf/1/then/properties/supported_operation_bundles",
+    "service-describe.schema.json/allOf/3/then/properties/supported_features",
+    "service-describe.schema.json/allOf/4/then/properties/verified_profiles",
+    "service-describe.schema.json/allOf/7/then/properties/auth_metadata",
     "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/else/properties/agent_transitions",
     "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/then/properties/agent_transitions",
     "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeOutcome/allOf/0/then/properties/agent_transition_event_ids",
@@ -1377,7 +1376,7 @@
       "shape": "#",
       "instance_path": "/auth_metadata",
       "occurrences": [
-        "/allOf/5/then/properties/auth_metadata"
+        "/allOf/7/then/properties/auth_metadata"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1385,9 +1384,9 @@
     {
       "schema_file": "service-describe.schema.json",
       "shape": "#",
-      "instance_path": "/discovery_profiles",
+      "instance_path": "/supported_features",
       "occurrences": [
-        "/allOf/1/then/properties/discovery_profiles"
+        "/allOf/3/then/properties/supported_features"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1395,19 +1394,9 @@
     {
       "schema_file": "service-describe.schema.json",
       "shape": "#",
-      "instance_path": "/limits",
+      "instance_path": "/supported_operation_bundles",
       "occurrences": [
-        "/allOf/2/then/properties/limits"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "service-describe.schema.json",
-      "shape": "#",
-      "instance_path": "/supported_profiles",
-      "occurrences": [
-        "/allOf/3/then/properties/supported_profiles"
+        "/allOf/1/then/properties/supported_operation_bundles"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1417,7 +1406,7 @@
       "shape": "#",
       "instance_path": "/verified_profiles",
       "occurrences": [
-        "/allOf/0/then/properties/verified_profiles"
+        "/allOf/4/then/properties/verified_profiles"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -12033,21 +12022,12 @@
         "/$defs/auth_method/properties/openid_configuration": "optional",
         "/$defs/auth_method/properties/provider": "optional",
         "/$defs/auth_method/properties/scopes": "optional",
-        "/$defs/operation_binding/properties/binding_kind": "required",
-        "/$defs/operation_binding/properties/error_schema_ref": "optional",
-        "/$defs/operation_binding/properties/operation_id": "required",
-        "/$defs/operation_binding/properties/preference": "required",
-        "/$defs/operation_binding/properties/request_schema_ref": "optional",
-        "/$defs/operation_binding/properties/response_schema_ref": "optional",
-        "/$defs/operation_binding/properties/success_shape_kind": "required",
         "/$defs/transport_binding_http_json/properties/base_url": "required",
         "/$defs/transport_binding_http_json/properties/extension_profile_required": "required_nullable",
         "/$defs/transport_binding_http_json/properties/kind": "required",
-        "/$defs/transport_binding_http_json/properties/operations": "required",
         "/$defs/transport_binding_tus/properties/base_url": "required",
         "/$defs/transport_binding_tus/properties/extension_profile_required": "required_nullable",
         "/$defs/transport_binding_tus/properties/kind": "required",
-        "/$defs/transport_binding_tus/properties/operations": "required",
         "/$defs/transport_binding_tus/properties/tus_extensions": "required",
         "/$defs/transport_binding_tus/properties/tus_version": "required",
         "/$defs/transport_binding_websocket/properties/authentication": "required",
@@ -12056,26 +12036,22 @@
         "/$defs/transport_binding_websocket/properties/kind": "required",
         "/$defs/transport_binding_websocket/properties/max_channels": "required",
         "/$defs/transport_binding_websocket/properties/max_frame_bytes": "required",
-        "/$defs/transport_binding_websocket/properties/operations": "required",
         "/$defs/transport_binding_websocket/properties/subprotocol": "required",
-        "/allOf/0/if/properties/development_mode": "required",
-        "/allOf/0/then/properties/verified_profiles": "tristate",
-        "/allOf/1/if/properties/operation_bindings": "required_nullable",
-        "/allOf/1/if/properties/operation_bindings/contains/properties/operation_id": "required",
-        "/allOf/1/then/properties/discovery_profiles": "tristate",
-        "/allOf/2/if/properties/operation_bindings": "required_nullable",
-        "/allOf/2/if/properties/operation_bindings/contains/properties/operation_id": "required",
-        "/allOf/2/then/properties/limits": "tristate",
-        "/allOf/3/if/properties/service_kind": "required",
-        "/allOf/3/then/properties/supported_profiles": "tristate",
-        "/allOf/4/if/properties/service_kind": "required",
-        "/allOf/4/then/properties/privacy_derivation": "required_nullable",
+        "/allOf/0/if/properties/supported_operation_bundles": "required_nullable",
+        "/allOf/1/then/properties/supported_operation_bundles": "tristate",
+        "/allOf/2/if/properties/supported_features": "required_nullable",
+        "/allOf/3/then/properties/supported_features": "tristate",
+        "/allOf/4/if/properties/development_mode": "required",
+        "/allOf/4/then/properties/verified_profiles": "tristate",
         "/allOf/5/if/properties/service_kind": "required",
-        "/allOf/5/then/properties/auth_metadata": "tristate",
-        "/allOf/6/if/anyOf/0/properties/claimed_profiles": "required_nullable",
-        "/allOf/6/if/anyOf/0/properties/claimed_profiles/contains/properties/profile_id": "required",
-        "/allOf/6/if/anyOf/1/properties/verified_profiles": "required_nullable",
-        "/allOf/6/if/anyOf/1/properties/verified_profiles/contains/properties/profile_id": "required",
+        "/allOf/6/if/properties/service_kind": "required",
+        "/allOf/6/then/properties/privacy_derivation": "required_nullable",
+        "/allOf/7/if/properties/service_kind": "required",
+        "/allOf/7/then/properties/auth_metadata": "tristate",
+        "/allOf/8/if/anyOf/0/properties/claimed_profiles": "required_nullable",
+        "/allOf/8/if/anyOf/0/properties/claimed_profiles/contains/properties/profile_id": "required",
+        "/allOf/8/if/anyOf/1/properties/verified_profiles": "required_nullable",
+        "/allOf/8/if/anyOf/1/properties/verified_profiles/contains/properties/profile_id": "required",
         "/properties/accept_policy_kind": "optional",
         "/properties/accept_policy_ref": "optional",
         "/properties/accepted_did_methods": "optional",
@@ -12092,7 +12068,6 @@
         "/properties/claimed_profiles/items/properties/profile_id": "required",
         "/properties/default_ttl_seconds": "optional",
         "/properties/development_mode": "required",
-        "/properties/discovery_profiles": "optional",
         "/properties/egress_network_policy": "optional",
         "/properties/egress_network_policy/properties/allowed_cidrs": "optional",
         "/properties/egress_network_policy/properties/allowed_private_exceptions": "optional",
@@ -12109,19 +12084,20 @@
         "/properties/egress_network_policy/properties/protected_purposes": "required",
         "/properties/egress_network_policy/properties/redirect_recheck": "required",
         "/properties/egress_network_policy/properties/version": "required",
-        "/properties/experimental_features": "required",
-        "/properties/implemented_features": "required",
         "/properties/ingest_modes": "optional",
         "/properties/interop_surfaces": "required",
         "/properties/interop_surfaces/items/properties/kind": "required",
         "/properties/interop_surfaces/items/properties/name": "required",
         "/properties/interop_surfaces/items/properties/notes": "optional",
         "/properties/interop_surfaces/items/properties/since": "optional",
+        "/properties/invite_addressing": "optional",
+        "/properties/invite_addressing/properties/explicit_address_max_behavior": "required",
+        "/properties/invite_addressing/properties/handle_claim_max_behavior": "required",
+        "/properties/invite_addressing/properties/supported_introduction_kinds": "required",
         "/properties/limits": "required",
         "/properties/limits/properties/mls_governance_proof": "optional",
         "/properties/limits/properties/mls_governance_proof/properties/max_exact_response_bytes": "required",
         "/properties/max_ttl_seconds": "optional",
-        "/properties/operation_bindings": "required",
         "/properties/plaintext_visibility": "required",
         "/properties/plaintext_visibility/properties/blob_purposes": "optional",
         "/properties/plaintext_visibility/properties/data_classes": "optional",
@@ -12187,11 +12163,12 @@
         "/properties/service_id": "required",
         "/properties/service_kind": "required",
         "/properties/service_resolution": "required",
-        "/properties/supported_bindings": "required",
         "/properties/supported_features": "required",
+        "/properties/supported_operation_bundles": "required",
         "/properties/supported_profiles": "required",
         "/properties/supported_reducer_profiles": "optional",
         "/properties/takedown_contact": "optional",
+        "/properties/transport_bindings": "required",
         "/properties/trust_domain": "required",
         "/properties/verified_profiles": "required",
         "/properties/verified_profiles/items/properties/artifact_digest": "required",
@@ -12212,8 +12189,8 @@
         "/properties/accepted_resource_kinds",
         "/properties/calendar_tzdb_versions",
         "/properties/default_ttl_seconds",
-        "/properties/discovery_profiles",
         "/properties/ingest_modes",
+        "/properties/invite_addressing",
         "/properties/max_ttl_seconds",
         "/properties/privacy_derivation",
         "/properties/private_contact_discovery",

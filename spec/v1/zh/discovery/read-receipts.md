@@ -318,7 +318,7 @@ state=unread, cursor=<cursor>, limit=<int>
 
 跨设备已读同步流程：
 
-1. 设备本地读到某个 read_scope 的位置后，author 并签名完整 actor-private `ak.read_cursor.advance`，通过 `ak.self.read_cursor.command.advance` 的 `advance_event: EventInitialSubmission` 原样提交；服务端不得从旧 DTO 重建或代签。
+1. 设备本地读到某个 read_scope 的位置后，author 并签名完整 actor-private `ak.read_cursor.advance`，通过 `ak.self.read_cursor.command.advance.v1` 的 `advance_event: EventInitialSubmission` 原样提交；服务端不得从旧 DTO 重建或代签。
 2. Principal Server / Principal Server sync surface 只向同一 principal 的授权设备返回该 read cursor，可通过 `account_data` 或 `receipts` stream 增量同步。
 3. 每个设备按 §6.5 规则合并同一 read_scope 的 marker，重新派生本地 notification state、unread count 和 push suppression state。
 4. 派生 notification 的 `state=read/unread` 不得作为共享 Realm 事实写回；需要公开已读回执时，必须使用 Realm policy 允许的 `ak.receipt.read` ephemeral / receipt stream，并与 private read cursor 分开授权。

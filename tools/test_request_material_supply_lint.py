@@ -75,7 +75,7 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
         errors = self._run(json_mutations={REGISTRY_PATH: mutate})
         self.assertTrue(
             any(
-                "ak.root.identity.command.submit_did_operation" in error
+                "ak.root.identity.command.submit_did_operation.v1" in error
                 and "operation" in error
                 for error in errors
             ),
@@ -95,7 +95,7 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
         errors = self._run(json_mutations={AGENT_OPERATIONS_PATH: mutate})
         self.assertTrue(
             any(
-                "ak.self.agent.participation.resource.replace" in e
+                "ak.self.agent.participation.resource.replace.v1" in e
                 and "expected_version" in e
                 for e in errors
             ),
@@ -131,7 +131,7 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
         errors = self._run(json_mutations={INVITE_DELIVERY_PATH: mutate})
         self.assertTrue(
             any(
-                "ak.self.invites.command.dispatch" in error
+                "ak.self.invites.command.dispatch.v1" in error
                 and "introduction_evidence" in error
                 for error in errors
             ),
@@ -147,7 +147,7 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
                     "exemption_id": "ak.exemption.request_material_supply.stale_row_probe.v1",
                     "status": "active",
                     "kind": "request_input",
-                    "operation_id": "ak.self.contact.command.respond",
+                    "operation_id": "ak.self.contact.command.respond.v1",
                     "json_path_prefix": "nonexistent_field",
                     "disposition": "external_form",
                     "rationale": "Probe row that matches no failing demand and must be reported stale.",

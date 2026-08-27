@@ -254,7 +254,7 @@
       "requests": [
         {
           "id": "physical_delete",
-          "surface": "ak.self.account_data.resource.delete",
+          "surface": "ak.self.account_data.resource.delete.v1",
           "operation": "delete",
           "expected_revision": 4
         },

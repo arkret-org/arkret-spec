@@ -168,7 +168,7 @@ Arkret 的 client 不只包括 GUI 应用，也包括：
 
 ### 2.8 Principal Server 部署形态
 
-Arkret 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署 MUST NOT 改变各角色的安全边界：每个 `ServiceDescribe` 只描述一个逻辑角色；共享 public binding 的多个角色必须通过 `GET /_arkret/describe?service_kind=<registered-id>` 分别返回 role-scoped describe，使 service DID、`service_kind`、capability、Realm policy、plaintext visibility、`operation_bindings` 和 endpoint 契约仍可逐角色验证。
+Arkret 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署 MUST NOT 改变各角色的安全边界：每个 `ServiceDescribe` 只描述一个逻辑角色；共享 public binding 的多个角色必须通过 `GET /_arkret/describe?service_kind=<registered-id>` 分别返回 role-scoped describe，使 service DID、`service_kind`、capability、Realm policy、plaintext visibility、`supported_operation_bundles` 和 endpoint 契约仍可逐角色验证。
 
 面向用户和运维文档时，也应直接使用 **Principal Server**。不同部署层级的差异由 deployment profile、内置或拆分的服务角色、委托来源、公共基础设施依赖、合规和明文边界要求表达。
 
@@ -203,7 +203,7 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 - Auth Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
 - 客户端和服务器必须按本地 trust policy 选择 resolver，MUST NOT 因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
 
-某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /_arkret/describe`、`operation_bindings`、conformance profile 和 Realm policy 共同声明。
+某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /_arkret/describe`、`supported_operation_bundles`、conformance profile 和 Realm policy 共同声明。
 
 ## 3. 架构平面（Architectural Planes）
 

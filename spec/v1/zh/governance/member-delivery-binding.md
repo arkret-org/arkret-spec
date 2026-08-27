@@ -28,7 +28,7 @@ see_also:
 2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `ak.component.realm.delivery_binding_policy.v1`（§4）的 `allowed_binding_sources` 集合内。
 3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`unroutable_membership_allowed=true`）。
 4. `delivery_binding.recipient_service_id` MUST 是稳定 service `did_core_id`。服务准入 MUST 满足：该 `did_core_id` 出现在 Realm policy 的 `allowed_recipient_services` 集合内，或该 policy 显式声明哨兵 `["*"]`（unrestricted），或该 `did_core_id` 被 `required_endorsers` 中至少一个治理 `did_core_id` 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。`required_endorsers` 非空时，该背书要求独立生效：即使命中 allowlist 或 `["*"]` 哨兵，`service_acceptance_ref` 仍 MUST 被其中至少一个治理主体背书。**`allowed_recipient_services` 为空集 `[]` 时 = 拒绝（fail-closed，见 §4 字段表）**：既未命中 allowlist、又未声明 `["*"]` 哨兵、又无 `required_endorsers` 背书时，reducer MUST 拒绝该 routable join（`delivery_binding_policy_mismatch`），不得把空集解释为"不限"放行。
-5. `delivery_binding.service_resolution` MUST 携带 inline `ServiceResolutionRecord`，或携带 `{current_record_url, pinned_record_digest?}`。`current_record_url` 指向 `ak.open.service.read.resolution`（`GET /_arkret/open/services/{service_id}/resolution`）；可选 digest 只钉住首次看到的那一版完整 `{record,proof}`，后续新版本必须独立验签。物化前 MUST 验证 record 签名和 `issued_at <= refresh_after < expires_at`、method-native history、`record.service_id == recipient_service_id`、`project(record.full_id) == recipient_service_id`、`record.service_kind == recipient_service_kind`、canonical `base_url` endpoint 绑定与 route-binding digest。引用未取得、被 pinned 的初始版 digest 不匹配或记录已过期时不得将该 binding 物化为 routable。
+5. `delivery_binding.service_resolution` MUST 携带 inline `ServiceResolutionRecord`，或携带 `{current_record_url, pinned_record_digest?}`。`current_record_url` 指向 `ak.open.service.read.resolution.v1`（`GET /_arkret/open/services/{service_id}/resolution`）；可选 digest 只钉住首次看到的那一版完整 `{record,proof}`，后续新版本必须独立验签。物化前 MUST 验证 record 签名和 `issued_at <= refresh_after < expires_at`、method-native history、`record.service_id == recipient_service_id`、`project(record.full_id) == recipient_service_id`、`record.service_kind == recipient_service_kind`、canonical `base_url` endpoint 绑定与 route-binding digest。引用未取得、被 pinned 的初始版 digest 不匹配或记录已过期时不得将该 binding 物化为 routable。
 6. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
 7. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "keypackages"]`。
 
@@ -77,7 +77,7 @@ MUST 同时携带 `delivery_binding`；reducer 在同一 Control Move 内验证�
 
 1. 以 `subject_id` / `payload.actor_id` 作为成员主语；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
 2. 对基础路径，验证 `invite_address.subject_id`、`invite_address.recipient_service_id`、`principal_locator` proof、`introduction_evidence_digest` 和 Realm Join Policy；`invite_address.recipient_service_id` 只能作为 join-time `delivery_binding` 的候选输入，仍需按本文件 §2 和 §4 物化。
-3. 对可选 handle 辅助路径，先按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`，再仅在 Directory / Organization 明确支持时调用 `ak.find.directory.read.resolve_handle(intent="member_add" | "invite")`。不支持、无权或解析失败时，客户端 MUST 回到基础路径，要求提供 locator 或显式 address；不得本地合成 remote `recipient_service_id`。
+3. 对可选 handle 辅助路径，先按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`，再仅在 Directory / Organization 明确支持时调用 `ak.find.directory.read.resolve_handle.v1(intent="member_add" | "invite")`。不支持、无权或解析失败时，客户端 MUST 回到基础路径，要求提供 locator 或显式 address；不得本地合成 remote `recipient_service_id`。
 4. 若可选解析结果携带 `MemberDeliveryBindingCandidate` 或 `member_delivery_binding`，验证其 handle claim / presentation 绑定 `handle`、`subject_id`、`member_delivery_binding.recipient_service_id`、`service_resolution`、issuer、`issued_at`、`expires_at`、撤销状态与 `audience`。claim `audience` MUST 等于目标 `realm_id` 或邀请方 service `did_core_id` 之一；不一致 MUST 视作未授权 claim。
 5. 将有效 delivery evidence 物化为 `payload.delivery_binding` 时，按 Realm `ak.realm.delivery_binding_policy` 选择 `binding_source`：
    - 多个来源同时可用时，reducer MUST 按固定优先级选择唯一 binding：`explicit` > `organization_policy` > `invite` > `join_policy` > `realm_policy` > `did_document_default`。
@@ -170,7 +170,7 @@ TTL route cache 与 durable anti-rollback floor 必须分离。sender MUST 为�
 1. 使用未过期且不低于 durable floor 的本地 verified route；
 2. 从 binding 保存的 `current_record_url` 获取并验证正式 current record；
 3. 若已 durable 保存与 floor basis 匹配、未取消且未过期的 `ServiceRouteHandoverNotice`，按其时间窗向 candidate 读取正式连续 successor；
-4. 向 requester 与 target 都可见的 Realm peer/mirror 调用 `ak.peer.service_resolution.read.resolve`，只接受从 durable floor 连续的 target-signed record/notice；
+4. 向 requester 与 target 都可见的 Realm peer/mirror 调用 `ak.peer.service_resolution.read.resolve.v1`，只接受从 durable floor 连续的 target-signed record/notice；
 5. MAY 查询部署显式配置、且执行同等 requester/target 授权、反枚举与 target-proof 验证的外部 mirror；不得把任意公开 `did_core_id -> URL` 服务当 fallback；
 6. 全部失败则保持 quarantine，并要求重新分享 signed locator/carrier 或执行显式带外修复。
 

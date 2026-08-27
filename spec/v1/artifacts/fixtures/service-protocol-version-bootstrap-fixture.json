@@ -13,6 +13,7 @@
       "name": "describe_supported",
       "carrier": "service_describe",
       "protocol_version": "1.0",
+      "arkret_operation": "ak.server.read.describe.v1",
       "expected": {
         "outcome": "continue_typed_validation",
         "route_cache_writes": 1,
@@ -23,6 +24,7 @@
       "name": "applet_ping_supported",
       "carrier": "applet_ping",
       "protocol_version": "1.0",
+      "arkret_operation": "ak.edge.applet.read.ping.v1",
       "expected": {
         "outcome": "continue_typed_validation",
         "route_cache_writes": 0,
@@ -30,19 +32,49 @@
       }
     },
     {
+      "name": "describe_operation_selector_missing",
+      "carrier": "service_describe",
+      "protocol_version": "1.0",
+      "expected": {
+        "outcome": "operation_selector_required",
+        "route_cache_writes": 0,
+        "business_requests": 0,
+        "body_parse_attempts": 0
+      }
+    },
+    {
+      "name": "describe_operation_selector_unknown_version",
+      "carrier": "service_describe",
+      "protocol_version": "1.0",
+      "arkret_operation": "ak.server.read.describe.v9",
+      "expected": {
+        "outcome": "unsupported_operation_version",
+        "route_cache_writes": 0,
+        "business_requests": 0,
+        "body_parse_attempts": 0
+      }
+    },
+    {
+      "name": "describe_operation_selector_route_family_mismatch",
+      "carrier": "service_describe",
+      "protocol_version": "1.0",
+      "arkret_operation": "ak.edge.applet.read.ping.v1",
+      "expected": {
+        "outcome": "unsupported_operation_version",
+        "route_cache_writes": 0,
+        "business_requests": 0,
+        "body_parse_attempts": 0
+      }
+    },
+    {
       "name": "describe_unsupported",
       "carrier": "service_describe",
       "protocol_version": "2.0",
       "poison_fields": {
-        "operation_bindings": [
-          {
-            "operation_id": "ak.self.events.command.submit",
-            "binding_kind": "http_json",
-            "preference": 100,
-            "success_shape_kind": "typed_response"
-          }
-        ],
-        "http_json_base_url": "https://must-not-cache.invalid"
+        "http_json_base_url": "https://must-not-cache.invalid",
+        "supported_operation_bundles": [
+          "ak.operation_bundle.principal_server.http_core.v1"
+        ]
       },
       "expected": {
         "outcome": "unsupported_protocol_version",

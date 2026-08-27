@@ -267,17 +267,17 @@ MIMI facade 至少定义以下 canonical operation：
 
 | operation_id | HTTP binding | 语义 |
 | --- | --- | --- |
-| `ak.open.mimi.read.provider_directory` | `GET /_arkret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
-| `ak.open.mimi.exchange.request_key_material` | `POST /_arkret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Arkret KeyPackage claim lifecycle。 |
-| `ak.open.mimi.command.update_room` | `POST /_arkret/open/mimi/strands/{strand_id}/update` | 提交或转发 room state / MLS update。 |
-| `ak.open.mimi.command.notify` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
-| `ak.open.mimi.command.submit_message` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
-| `ak.open.mimi.read.group_info` | `GET /_arkret/open/mimi/strands/{strand_id}/group-info` | 获取 MLS groupInfo / room projection。 |
-| `ak.open.mimi.command.request_consent` | `POST /_arkret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
-| `ak.open.mimi.command.update_consent` | `POST /_arkret/open/mimi/consent/update` | 提交调用方已签名的 `ak.consent.grant` / `ak.consent.revoke` Event。 |
-| `ak.open.mimi.read.identifiers` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
-| `ak.open.mimi.command.report_abuse` | `POST /_arkret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
-| `ak.open.mimi.command.proxy_download` | `POST /_arkret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
+| `ak.open.mimi.read.provider_directory.v1` | `GET /_arkret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
+| `ak.open.mimi.exchange.request_key_material.v1` | `POST /_arkret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Arkret KeyPackage claim lifecycle。 |
+| `ak.open.mimi.command.update_room.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/update` | 提交或转发 room state / MLS update。 |
+| `ak.open.mimi.command.notify.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
+| `ak.open.mimi.command.submit_message.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
+| `ak.open.mimi.read.group_info.v1` | `GET /_arkret/open/mimi/strands/{strand_id}/group-info` | 获取 MLS groupInfo / room projection。 |
+| `ak.open.mimi.command.request_consent.v1` | `POST /_arkret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
+| `ak.open.mimi.command.update_consent.v1` | `POST /_arkret/open/mimi/consent/update` | 提交调用方已签名的 `ak.consent.grant` / `ak.consent.revoke` Event。 |
+| `ak.open.mimi.read.identifiers.v1` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
+| `ak.open.mimi.command.report_abuse.v1` | `POST /_arkret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
+| `ak.open.mimi.command.proxy_download.v1` | `POST /_arkret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
 
 `update_room` 以请求中的语义判别器 `update.kind` 选择封闭效果分支；`update.kind` MUST 与
 decoded opaque payload 内的 `kind` 逐字相同，二者不一致必须在读取 room/binding 私有状态前
@@ -340,7 +340,7 @@ Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致
 
 ## 6. Key Material
 
-`ak.open.mimi.exchange.request_key_material` MUST 使用 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 的 KeyPackage claim API。请求必须包含：
+`ak.open.mimi.exchange.request_key_material.v1` MUST 使用 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 的 KeyPackage claim API。请求必须包含：
 
 - target MIMI identifier 或 DID / pairwise DID。
 - intended MIMI room URI 和 Arkret `realm_id`。
@@ -352,7 +352,7 @@ Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致
 
 ## 7. Message Submission
 
-`ak.open.mimi.command.submit_message` 接收 MIMI encrypted application message 后，facade MUST：
+`ak.open.mimi.command.submit_message.v1` 接收 MIMI encrypted application message 后，facade MUST：
 
 1. 验证 provider signature、room binding、destination、body digest 和重放窗口。同时 MUST 校验本 binding 的 `local_provider_role ∈ { hub, follower }`;`local_provider_role=observer` 的 binding 不得代表本地参与方提交 writes(见 §4),facade MUST 拒绝该 submit_message,reason=`mimi_observer_write_forbidden`。
 2. 验证 MLS epoch 与 `ak.mimi.room_binding.mls_group_id` 匹配。
@@ -487,7 +487,7 @@ MIMI identifier MUST NOT 被直接作为 Arkret actor。映射规则：
 - connection identifier 仅用于 discovery / consent，不进入 Realm history，除非 holder 明确作为 handle / claim 披露。
 - display name 只用于 UI，不参与授权。
 
-`ak.open.mimi.read.identifiers` SHOULD 调用 `ak.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6 的 PSI-only 边界），facade 实现 MUST NOT 复活它。`ak.open.mimi.command.request_consent` / `ak.open.mimi.command.update_consent` MUST 映射为 Arkret 的 holder-private consent state（`ak.consent.grant` / `ak.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
+`ak.open.mimi.read.identifiers.v1` SHOULD 调用 `ak.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6 的 PSI-only 边界），facade 实现 MUST NOT 复活它。`ak.open.mimi.command.request_consent.v1` / `ak.open.mimi.command.update_consent.v1` MUST 映射为 Arkret 的 holder-private consent state（`ak.consent.grant` / `ak.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
 
 `request_consent` 返回 `consent_id` 前 MUST 持久保存仅服务本地可见的 correlation：`(consent_id, requester_id, target, purpose, strand_id?, authenticated source service/session class, created_at, expires_at?)`。该记录不是 Event、cell、授权或可对外查询的 pending consent state。`update_consent` 必须在验证 transport 与 actor proof 后，将 actor、来源、Event 解析得到的 holder/peer/scope 与该 correlation 逐字对账；`target.kind != did` 只有在目标侧 claim/identifier binding 已解析到同一 holder 时才可继续，否则 fail closed。未知、过期、属于其它来源/holder 或调用方不可见的 correlation，以及 revoke/deny 找不到匹配 active observed dots，统一返回相同的 `not_found` 失败形态与披露等级，不得说明记录是否存在、目标是谁或 holder 是否已有 consent cell。
 
@@ -495,7 +495,7 @@ MIMI identifier MUST NOT 被直接作为 Arkret actor。映射规则：
 
 ## 11. Abuse Report And Proxy Download
 
-`ak.open.mimi.command.report_abuse` MUST 映射到一条 `ak.self.moderation.report` **Event**，由 facade 以自己的 service DID 作者身份提交到普通 Event admission（`service_attested` variant，见下方「归属与 admission 的分离」）。它 **MUST NOT** 走 `ak.self.moderation.command.report` operation：该 self endpoint 只接受 reporter 本人设备直接签名，并显式禁止 MIMI facade provenance（[`../governance/content-moderation.md` §3.1](../governance/content-moderation.md)），按它走必被拒。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
+`ak.open.mimi.command.report_abuse.v1` MUST 映射到一条 `ak.self.moderation.report` **Event**，由 facade 以自己的 service DID 作者身份提交到普通 Event admission（`service_attested` variant，见下方「归属与 admission 的分离」）。它 **MUST NOT** 走 `ak.self.moderation.command.report.v1` operation：该 self endpoint 只接受 reporter 本人设备直接签名，并显式禁止 MIMI facade provenance（[`../governance/content-moderation.md` §3.1](../governance/content-moderation.md)），按它走必被拒。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
 
 入站 MIMI report 的 `reporter` MUST 按 [§10 Identifiers And Consent](#10-identifiers-and-consent) 的 consent / holder-claim 规则解析到 Arkret principal,facade MUST NOT 仅凭来源 provider 的断言把 report 归因到既有 principal(防止以他人名义举报)。映射前 facade 还 MUST 校验该 reporter 对 `target_ref` 在对应 Realm / scope 内可见(对齐 [`../governance/content-moderation.md` §3.1/§3.3](../governance/content-moderation.md)),并把 [`../governance/content-moderation.md` §3.1.1](../governance/content-moderation.md) 的 per-reporter 限速至少按 (映射后 reporter principal DID, 来源 provider service DID) 双维度施加；不满足按 pairwise / pending 处理或拒绝。
 
@@ -512,7 +512,7 @@ MUST NOT 以该 principal 作为 envelope `actor_id` 代签 report。`ak.self.mo
   actor service 确实为 `payload.realm_id` 运营 MIMI facade。归属（attribution）由
   `payload.reporter` 承载，作者（authorship）由 envelope actor 承载，两者不得混同。
 
-`ak.open.mimi.command.proxy_download` MUST 遵守 `ak.realm.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
+`ak.open.mimi.command.proxy_download.v1` MUST 遵守 `ak.realm.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
 
 **被代理 URL 的出站网络目标策略（normative，SSRF 防护）**：`proxy_download` 是 facade 代外部资产做 server-side fetch 的高危面。facade 在抓取被代理资产 URL（含 redirect / Alt-Svc 后实际目标）前 MUST 执行 [`../sync/api-conventions.md` §11.2](../sync/api-conventions.md) 出站网络目标策略；命中云 metadata / 内网 / 回环等禁止地址类别时 MUST 拒绝代理，不得向内部地址发起请求。被代理 URL 来自对端 provider，恶意 / 被攻陷 provider 可借此诱导 facade SSRF，故该校验 MUST 不可绕过。
 

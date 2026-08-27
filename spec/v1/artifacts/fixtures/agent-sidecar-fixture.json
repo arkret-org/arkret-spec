@@ -89,7 +89,7 @@
       "vector_id": "ak.vector.sidecar.ensure_idempotent.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_ensure_idempotent_vector",
       "assertions": [
-        "ensure operation id remains ak.self.agent.sidecar.command.ensure",
+        "ensure operation id remains ak.self.agent.sidecar.command.ensure.v1",
         "ensure capability action matches the operation id",
         "prepare returns a closed new or existing branch with Event-derived sidecar id, source context, Event IDs and canonical unsigned draft bytes",
         "the controller may append proofs but any unsigned-byte, payload, Event ID, source context, or refs.after mutation conflicts with zero writes",

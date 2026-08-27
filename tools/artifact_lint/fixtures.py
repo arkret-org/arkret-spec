@@ -584,7 +584,7 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
             row
             for row in rows
             if isinstance(row, dict)
-            and row.get("operation_id") == "ak.self.applet.command.revoke"
+            and row.get("operation_id") == "ak.self.applet.command.revoke.v1"
         ),
         {},
     )
@@ -1776,10 +1776,10 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
         and isinstance(row.get("request_schema_ref"), str)
     }
     expected_operations = {
-        "upload_batch_required_fields": "ak.self.keys.keypackages.upload.create",
-        "consume_single_claim": "ak.self.keys.keypackages.command.consume",
+        "upload_batch_required_fields": "ak.self.keys.keypackages.upload.create.v1",
+        "consume_single_claim": "ak.self.keys.keypackages.command.consume.v1",
         "consume_receipt_single_source_coordinates": None,
-        "revoke_with_reason": "ak.self.keys.keypackages.command.revoke",
+        "revoke_with_reason": "ak.self.keys.keypackages.command.revoke.v1",
     }
     actual_names = {
         case.get("name") for case in cases if isinstance(case, dict) and isinstance(case.get("name"), str)
@@ -2000,10 +2000,10 @@ def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> 
             for mutation in mutations:
                 if (
                     not isinstance(mutation, dict)
-                    or mutation.get("op") != "add"
+                    or mutation.get("op") not in {"add", "replace", "remove"}
                     or not isinstance(mutation.get("path"), str)
                 ):
-                    lint.fail(path, f"{label}.mutations only supports explicit add operations")
+                    lint.fail(path, f"{label}.mutations supports explicit add/replace/remove operations")
                     instance = None
                     break
                 tokens = [
@@ -2021,7 +2021,16 @@ def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> 
                     lint.fail(path, f"{label}.mutation path does not resolve")
                     instance = None
                     break
-                target[tokens[-1]] = mutation.get("value")
+                leaf = tokens[-1]
+                operation = mutation["op"]
+                if operation in {"replace", "remove"} and leaf not in target:
+                    lint.fail(path, f"{label}.mutation target does not exist")
+                    instance = None
+                    break
+                if operation == "remove":
+                    del target[leaf]
+                else:
+                    target[leaf] = mutation.get("value")
         expect_valid = case.get("expect_valid", True)
         if not isinstance(schema_ref, str) or not schema_ref:
             lint.fail(path, f"{label}.schema_ref must be a non-empty string")
@@ -2053,6 +2062,23 @@ def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> 
             expect_valid,
             first_expected_error,
         )
+
+    if path.name == "schema-validation-fixture.json":
+        base = named_instances.get("service_describe_valid")
+        extended = named_instances.get("service_describe_x_metadata_ignored_valid")
+        if not isinstance(base, dict) or not isinstance(extended, dict):
+            lint.fail(path, "ServiceDescribe x_* metamorphic fixture pair is missing")
+        else:
+            stripped = {
+                key: value
+                for key, value in extended.items()
+                if not key.startswith("x_")
+            }
+            if stripped != base:
+                lint.fail(
+                    path,
+                    "removing every top-level x_* field must reproduce the same valid ServiceDescribe",
+                )
 
 
 
@@ -3278,7 +3304,12 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
         if isinstance(profiles, dict)
         else {}
     )
-    if "ak.self.seals.read.mls_governance_proof" not in requirement.get("required_endpoints", []):
+    required_operations = {
+        row.get("operation_id")
+        for row in requirement.get("operation_requirements", [])
+        if isinstance(row, dict)
+    }
+    if "ak.self.seals.read.mls_governance_proof.v1" not in required_operations:
         lint.fail(profile_path, "MLS governance profile must require the typed Seal frontier endpoint")
     if path.name not in requirement.get("required_fixtures", []):
         lint.fail(profile_path, "MLS governance profile must require the frontier fixture")
@@ -4012,7 +4043,7 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
         partial["operations"] = [
             operation
             for operation in partial.get("operations", [])
-            if operation != "ak.self.signal.stream.subscribe"
+            if operation != "ak.self.signal.stream.subscribe.v1"
         ]
         check_json_instance_against_schema(
             lint,
@@ -4532,7 +4563,7 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
         lint.fail(path, "data_on_unopened_channel must fail at connection_state")
     operation_case = by_name.get("payload_does_not_match_channel_operation") or {}
     if (
-        operation_case.get("channel_operation") != "ak.self.signal.stream.subscribe"
+        operation_case.get("channel_operation") != "ak.self.signal.stream.subscribe.v1"
         or operation_case.get("rejection_stage") != "channel_operation_schema"
         or operation_case.get("connection_remains_open") is not True
     ):

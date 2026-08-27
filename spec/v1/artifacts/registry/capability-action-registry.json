@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.2",
+  "version": "2026-08-27.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T00:42:00+08:00",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -566,7 +566,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.self.keys.backup_series.command.erase",
+      "action": "ak.self.keys.backup_series.command.erase.v1",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1759,7 +1759,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.self.account.read.describe",
+      "action": "ak.self.account.read.describe.v1",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1768,7 +1768,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.account.stream.subscribe",
+      "action": "ak.self.account.stream.subscribe.v1",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1777,7 +1777,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.agent.command.abandon_provisioning",
+      "action": "ak.self.agent.command.abandon_provisioning.v1",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1787,7 +1787,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.agent.command.deactivate",
+      "action": "ak.self.agent.command.deactivate.v1",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1798,7 +1798,7 @@
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+      "action": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1808,7 +1808,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.agent.command.pause",
+      "action": "ak.self.agent.command.pause.v1",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1819,7 +1819,7 @@
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ak.self.agent.command.provision",
+      "action": "ak.self.agent.command.provision.v1",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1831,7 +1831,7 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ak.self.agent.command.renew_pairing",
+      "action": "ak.self.agent.command.renew_pairing.v1",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1841,7 +1841,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.agent.command.resume",
+      "action": "ak.self.agent.command.resume.v1",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1852,7 +1852,7 @@
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ak.self.agent.grant.command.attach",
+      "action": "ak.self.agent.grant.command.attach.v1",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1864,7 +1864,7 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ak.self.agent.grant.resource.delete",
+      "action": "ak.self.agent.grant.resource.delete.v1",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1876,7 +1876,7 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ak.self.agent.participation.resource.replace",
+      "action": "ak.self.agent.participation.resource.replace.v1",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1889,7 +1889,7 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ak.self.agent.sidecar.command.ensure",
+      "action": "ak.self.agent.sidecar.command.ensure.v1",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1918,7 +1918,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.self.blob.command.presign",
+      "action": "ak.self.blob.command.presign.v1",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [
@@ -1930,7 +1930,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.blob.resource.get",
+      "action": "ak.self.blob.resource.get.v1",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1939,7 +1939,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.blob.resource.head",
+      "action": "ak.self.blob.resource.head.v1",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1948,7 +1948,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.blob.upload.create",
+      "action": "ak.self.blob.upload.create.v1",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [
@@ -1959,7 +1959,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.events.read.scan",
+      "action": "ak.self.events.read.scan.v1",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1968,7 +1968,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.events.stream.subscribe",
+      "action": "ak.self.events.stream.subscribe.v1",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1977,7 +1977,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.snapshot.read.manifest_head",
+      "action": "ak.self.snapshot.read.manifest_head.v1",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],

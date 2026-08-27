@@ -35,7 +35,7 @@
           }
         ]
       },
-      "operation": "ak.self.events.command.submit",
+      "operation": "ak.self.events.command.submit.v1",
       "input": {
         "event_kind": "ak.member.state",
         "payload": {
@@ -89,7 +89,7 @@
           "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }
       },
-      "operation": "ak.self.events.command.submit",
+      "operation": "ak.self.events.command.submit.v1",
       "input": {
         "event_kind": "ak.member.state",
         "payload": {
@@ -133,7 +133,7 @@
           "unroutable_membership_allowed": true
         }
       },
-      "operation": "ak.self.events.command.submit",
+      "operation": "ak.self.events.command.submit.v1",
       "input": {
         "event_kind": "ak.member.state",
         "payload": {
@@ -205,7 +205,7 @@
           ]
         }
       },
-      "operation": "ak.self.events.command.submit",
+      "operation": "ak.self.events.command.submit.v1",
       "input": {
         "event_kind": "ak.member.state",
         "payload": {

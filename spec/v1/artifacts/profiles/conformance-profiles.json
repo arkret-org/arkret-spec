@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-27.2",
-  "generated_at": "2026-08-27T05:12:00+08:00",
+  "version": "2026-08-27.3",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -731,9 +731,6 @@
   ],
   "vector_group_requirements": {
     "ak.vector_group.capability.v1": {
-      "required_endpoints": [
-        "ak.self.authz.read.check"
-      ],
       "required_event_kinds": [
         "ak.capability.grant",
         "ak.capability.revoke",
@@ -756,10 +753,16 @@
           "vector_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.authz.read.check.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.crypto_signature.v1": {
-      "required_endpoints": [],
       "required_event_kinds": [
         "ak.invite.third_party",
         "ak.invite.claim",
@@ -779,10 +782,10 @@
           "ed25519_detached_jws"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": []
     },
     "ak.vector_group.encoding.v1": {
-      "required_endpoints": [],
       "required_event_kinds": [
         "ak.message.create"
       ],
@@ -806,13 +809,10 @@
           "cursor"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": []
     },
     "ak.vector_group.event_envelope_negative.v1": {
-      "required_endpoints": [
-        "ak.self.control_proposal_acks.command.issue",
-        "ak.self.events.command.submit"
-      ],
       "required_event_kinds": [
         "ak.message.create",
         "ak.read_cursor.advance"
@@ -842,12 +842,21 @@
           "negative_vector_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.control_proposal_acks.command.issue.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.discovery.v1": {
-      "required_endpoints": [
-        "ak.server.read.describe"
-      ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -864,14 +873,20 @@
       "feature_discovery": {
         "required": [
           "supported_profiles",
-          "operation_bindings",
+          "supported_operation_bundles",
           "surface_tier_rules"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.event_kind_lattice_dispatch.v1": {
-      "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -890,12 +905,10 @@
           "event_kind_lattice_dispatch_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": []
     },
     "ak.vector_group.event_kind_payload_coverage.v1": {
-      "required_endpoints": [
-        "ak.self.events.command.submit"
-      ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -917,10 +930,16 @@
           "event_kind_payload_coverage_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.operation_registry_coverage.v1": {
-      "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -939,10 +958,10 @@
           "operation_registry_coverage_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": []
     },
     "ak.vector_group.error_code_registry_coverage.v1": {
-      "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -961,13 +980,10 @@
           "error_code_registry_coverage_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": []
     },
     "ak.vector_group.federation.v1": {
-      "required_endpoints": [
-        "ak.peer.events.command.submit",
-        "ak.peer.events.read.resolve"
-      ],
       "required_event_kinds": [
         "ak.realm.create",
         "ak.member.state"
@@ -987,16 +1003,21 @@
           "federation_vector_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.peer.events.read.resolve.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.privacy_security.v1": {
-      "required_endpoints": [
-        "ak.find.directory.read.resolve_realm",
-        "ak.find.directory.read.private_contact_discovery",
-        "ak.self.events.command.submit",
-        "ak.self.blob.resource.head",
-        "ak.edge.push.command.notify"
-      ],
       "required_event_kinds": [
         "ak.message.create"
       ],
@@ -1020,13 +1041,36 @@
           "privacy_vector_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.find.directory.read.resolve_realm.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.blob.resource.head.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.edge.push.command.notify.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.reaction.v1": {
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan"
-      ],
       "required_event_kinds": [
         "ak.message.create",
         "ak.message.redact",
@@ -1050,13 +1094,21 @@
           "reaction_or_set_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.redaction.v1": {
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan"
-      ],
       "required_event_kinds": [
         "ak.message.create",
         "ak.message.redact",
@@ -1077,14 +1129,21 @@
           "redaction_vector_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.sync.v1": {
-      "required_endpoints": [
-        "ak.self.account.stream.subscribe",
-        "ak.self.events.read.scan",
-        "ak.self.snapshot.read.manifest_head"
-      ],
       "required_event_kinds": [
         "ak.message.create",
         "ak.member.state"
@@ -1106,14 +1165,26 @@
           "stream_frame_sequence_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.mimi_interop.v1": {
-      "required_endpoints": [
-        "ak.open.mimi.read.provider_directory",
-        "ak.open.mimi.command.update_room",
-        "ak.open.mimi.command.submit_message"
-      ],
       "required_event_kinds": [
         "ak.mimi.room_binding",
         "ak.mls.keypackage"
@@ -1131,12 +1202,26 @@
           "mimi_vector_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.open.mimi.read.provider_directory.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.open.mimi.command.update_room.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.open.mimi.command.submit_message.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.cba_lattice.v1": {
-      "required_endpoints": [
-        "ak.self.events.command.submit"
-      ],
       "required_event_kinds": [
         "ak.member.state",
         "ak.strand.move",
@@ -1159,15 +1244,16 @@
           "cba_lattice_vector_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     },
     "ak.vector_group.security_transaction.v1": {
-      "required_endpoints": [
-        "ak.self.security_transaction.command.create",
-        "ak.self.security_transaction.resource.get",
-        "ak.self.security_transaction.command.continue",
-        "ak.self.keys.backup_series.command.erase"
-      ],
       "required_event_kinds": [
         "ak.device.authorize",
         "ak.device.reanchor",
@@ -1197,28 +1283,110 @@
           "security_transaction_fault_injection_runner"
         ],
         "unsupported_optional": "not applicable"
-      }
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.security_transaction.command.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.security_transaction.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.security_transaction.command.continue.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.backup_series.command.erase.v1",
+          "binding_kind": "http_json"
+        }
+      ]
     }
   },
   "profile_requirements": {
     "ak.profile.direct_conversation_realm.v1": {
       "role": "admin",
       "description": "Fail-closed Realm role profile for one stable two-principal Direct Conversation. The role is identified only by schema_refs containing this profile together with fields.collaboration_role=direct_conversation.",
-      "required_endpoints": [
-        "ak.self.direct_conversation.read.resolve",
-        "ak.self.contact.command.request",
-        "ak.self.contact.command.checkpoint",
-        "ak.self.contact.command.respond",
-        "ak.self.contact.command.reject",
-        "ak.self.contact.command.scope_update",
-        "ak.self.contact.command.tombstone",
-        "ak.self.events.command.submit",
-        "ak.peer.contacts.command.submit",
-        "ak.peer.keys.keypackages.command.claim",
-        "ak.peer.keys.keypackages.read.claim",
-        "ak.peer.events.command.submit",
-        "ak.peer.events.read.scan",
-        "ak.peer.events.read.resolve"
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.direct_conversation.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.contact.command.request.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.contact.command.checkpoint.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.contact.command.respond.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.contact.command.reject.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.contact.command.scope_update.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.contact.command.tombstone.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.contacts.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.keys.keypackages.command.claim.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.keys.keypackages.read.claim.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.resolve.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "wire_contract_refs": [
         "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
@@ -1320,7 +1488,7 @@
         "Exactly the two stable subject DIDs in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
         "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
-        "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit. realm_id and main_strand_id are retyped from the first and third Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
+        "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit.v1. realm_id and main_strand_id are retyped from the first and third Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
         "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the stored receipt without advancing accepted_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit.",
         "Cross-Principal-Server founding MUST NOT depend on the peer service: the founder creates the Realm and its one scope-derived MLS group and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage.",
         "The unit's Genesis Seal MUST cover all four Events, every required founding write of an ordinary Realm create, and the create-locked baseline projection of join_rule=closed, content_scheme=mls_exporter_aead_v1 and both e2ee_required floors together with the initial current history_access=since_join facet. Sealing any strict prefix and appending either membership Event or the Strand afterwards MUST be rejected, and a same-batch facet Event that repeats or overrides a baseline value MUST be rejected.",
@@ -1411,15 +1579,51 @@
     "ak.profile.principal_control_realm.v1": {
       "role": "admin",
       "description": "Realm profile for a principal-scoped durable control stream. PCR genesis is one create-once atomic unit: identity-root-signed ak.realm.create plus founding-device-signed ak.device.authorize. After genesis, identity resolution, device state and recovery policy live in the PCR; the DID is only the identity-root key log and re-anchor fence.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan",
-        "ak.self.events.resource.get",
-        "ak.self.keys.keypackages.upload.create",
-        "ak.self.keys.keypackages.command.claim",
-        "ak.self.keys.keypackages.command.consume",
-        "ak.self.keys.keypackages.command.revoke",
-        "ak.peer.principal_genesis.command.submit"
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.upload.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.command.claim.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.command.consume.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.principal_genesis.command.submit.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1561,7 +1765,7 @@
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
         "fields.purpose MUST be principal_control for human/organization PCRs or managed_agent_control for managed Agent PCRs; schema_refs MUST contain ak.profile.principal_control_realm.v1 in both cases.",
-        "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing ordinary Event, lease, reducer, allowlist, or Seal processing is non-conformant.",
+        "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish.v1 with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing ordinary Event, lease, reducer, allowlist, or Seal processing is non-conformant.",
         "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
         "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",
         "history_access MUST equal since_join. A standard-MLS PCR has no deliverable history secret; a new same-principal endpoint starts at its own initial Add/Welcome admission, while durable device-list and normalized principal views provide the control baseline without restoring foreign active MLS state.",
@@ -1574,15 +1778,51 @@
       ]
     },
     "ak.profile.core_event_store.v1": {
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.events.read.describe",
-        "ak.self.events.command.submit",
-        "ak.self.events.resource.get",
-        "ak.self.events.read.resolve",
-        "ak.self.events.read.scan",
-        "ak.self.events.read.frontier",
-        "ak.self.seals.read.frontier"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.frontier.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.seals.read.frontier.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1624,7 +1864,7 @@
       "feature_discovery": {
         "required": [
           "supported_profiles",
-          "operation_bindings",
+          "supported_operation_bundles",
           "supported_event_schemas",
           "limits"
         ],
@@ -1632,12 +1872,24 @@
       }
     },
     "ak.profile.chat_mvp.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.core_event_store.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.account.stream.subscribe",
-        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1722,11 +1974,19 @@
       }
     },
     "ak.profile.kanban_mvp.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.core_event_store.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1767,13 +2027,29 @@
       }
     },
     "ak.profile.minimal_client.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.core_event_store.v1"
-      ],
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.events.resource.get",
-        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1827,18 +2103,50 @@
       }
     },
     "ak.profile.full_client.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.blob.upload.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.blob.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.authz.read.check.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.chat_mvp.v1",
         "ak.profile.kanban_mvp.v1"
-      ],
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.events.command.submit",
-        "ak.self.account.stream.subscribe",
-        "ak.self.events.stream.subscribe",
-        "ak.self.blob.upload.create",
-        "ak.self.blob.resource.get",
-        "ak.self.authz.read.check"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1879,22 +2187,70 @@
       }
     },
     "ak.profile.e2ee_client.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.upload.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.read.lookup.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.command.claim.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.keypackages.upload.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.keypackages.command.claim.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.keypackages.command.consume.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.backups.resource.replace.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.backups.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.backups.command.unlock.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.keys.backups.resource.delete.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.full_client.v1",
         "ak.profile.mls_governance_binding.full.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.keys.upload.create",
-        "ak.self.keys.read.lookup",
-        "ak.self.keys.command.claim",
-        "ak.self.keys.keypackages.upload.create",
-        "ak.self.keys.keypackages.command.claim",
-        "ak.self.keys.keypackages.command.consume",
-        "ak.self.keys.keypackages.command.revoke",
-        "ak.self.keys.backups.resource.replace",
-        "ak.self.keys.backups.read.list",
-        "ak.self.keys.backups.command.unlock",
-        "ak.self.keys.backups.resource.delete"
       ],
       "required_event_kinds": [
         "ak.device.authorize",
@@ -1935,9 +2291,21 @@
     },
     "ak.profile.agent_signer_evidence.v1": {
       "description": "Portable ordinary-Realm Native Agent signer authorization evidence. Producers publish one Agent authority snapshot with key and Agent-lifecycle witnesses, one privacy-minimal Account Authority controller gate, and a structural XOR between exact-request current observation and destination-signed historical Event admission receipt. Consumers independently verify all three orthogonal gates, reject cross-request replay, preserve accepted Event validity across later terminal transitions, and cross-bind encrypted Events to the historical MLS leaf.",
-      "required_endpoints": [
-        "ak.gate.account.command.issue_controller_gate_attestation",
-        "ak.self.agent_signer_evidence.read.resolve"
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.agent_signer_evidence.read.resolve.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.agent.key.authorize",
@@ -1972,6 +2340,12 @@
       "profile_set": "extension_profile_implementation"
     },
     "ak.profile.e2ee_relaxed.v1": {
+      "description": "Operation-local MLS binding interpreter for policy-derived relaxed E2EE. effective mls_send_pause=advisory selects this binding_profile; strict policy selects mls_governance_binding.full. This is not a Realm schema_refs or active-profile carrier.",
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [],
       "depends_on": [
         "ak.profile.e2ee_client.v1"
       ],
@@ -1979,11 +2353,9 @@
         "ak.profile.mls_governance_binding.full.v1"
       ],
       "spec_ref": "spec/v1/zh/crypto-media/encryption-and-audit.md#242-cxprofilee2ee_relaxedv1降级-profile",
-      "description": "Operation-local MLS binding interpreter for policy-derived relaxed E2EE. effective mls_send_pause=advisory selects this binding_profile; strict policy selects mls_governance_binding.full. This is not a Realm schema_refs or active-profile carrier.",
       "applies_to_roles": [
         "e2ee_space"
       ],
-      "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -2051,13 +2423,29 @@
       "profile_set": "extension_profile_implementation"
     },
     "ak.profile.enterprise_client.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.find.directory.read.resolve_organization.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.find.directory.read.search_organizations.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.authz.grants.read.effective.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.full_client.v1"
-      ],
-      "required_endpoints": [
-        "ak.find.directory.read.resolve_organization",
-        "ak.find.directory.read.search_organizations",
-        "ak.self.authz.grants.read.effective"
       ],
       "required_event_kinds": [
         "ak.organization.discovery",
@@ -2088,21 +2476,69 @@
       }
     },
     "ak.profile.directory_service.v1": {
-      "inherits": [],
       "description": "Arkret v1 Directory Service profile. Directory Services index resource-signed discovery state, expose blinded search/resolve endpoints, and support at least one §8 ingest mode without becoming a source of truth.",
-      "required_endpoints": [
-        "ak.find.directory.read.describe",
-        "ak.find.directory.read.search_realms",
-        "ak.find.directory.read.resolve_realm",
-        "ak.find.directory.read.search_organizations",
-        "ak.find.directory.read.resolve_organization",
-        "ak.find.directory.read.search_actors",
-        "ak.find.directory.read.search_users",
-        "ak.find.directory.read.resolve_handle",
-        "ak.find.directory.read.resolve_agent_selector",
-        "ak.find.directory.command.announce",
-        "ak.find.directory.command.withdraw"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.read.search_realms.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.read.resolve_realm.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.read.search_organizations.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.read.resolve_organization.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.read.search_actors.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.read.search_users.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.read.resolve_handle.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.read.resolve_agent_selector.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.command.announce.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.command.withdraw.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [
         "ak.realm.discovery",
         "ak.organization.discovery",
@@ -2133,7 +2569,6 @@
         "required": [
           "service_id",
           "resource_kinds",
-          "discovery_profiles",
           "ingest_modes",
           "accept_policy_kind",
           "accepted_resource_kinds",
@@ -2144,10 +2579,14 @@
       }
     },
     "ak.profile.principal_server_events_api.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [],
       "inherits": [
         "ak.profile.core_event_store.v1"
       ],
-      "required_endpoints": [],
       "required_event_kinds": [
         "ak.realm.create",
         "ak.member.state"
@@ -2180,24 +2619,76 @@
       }
     },
     "ak.profile.principal_server.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.open.identity.read.resolution.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.account.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.authz.read.check.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.account_status.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.device_revocations.command.check.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.control_proposal_decisions.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.control_proposal_decisions.read.get.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.principal_server_events_api.v1",
         "ak.profile.chat_mvp.v1",
         "ak.profile.kanban_mvp.v1"
-      ],
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.open.identity.read.resolution",
-        "ak.self.account.read.describe",
-        "ak.self.account.stream.subscribe",
-        "ak.self.events.stream.subscribe",
-        "ak.self.events.read.scan",
-        "ak.self.snapshot.read.manifest_head",
-        "ak.self.authz.read.check",
-        "ak.peer.account_status.command.submit",
-        "ak.peer.device_revocations.command.check",
-        "ak.self.control_proposal_decisions.command.submit",
-        "ak.self.control_proposal_decisions.read.get"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -2245,7 +2736,7 @@
       ],
       "feature_discovery": {
         "required": [
-          "operation_bindings",
+          "supported_operation_bundles",
           "supported_profiles",
           "plaintext_visibility_classes",
           "invite_claim_reducer_state_machine"
@@ -2263,14 +2754,34 @@
       }
     },
     "ak.profile.federation_minimal.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.frontier.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.core_event_store.v1"
-      ],
-      "required_endpoints": [
-        "ak.peer.events.command.submit",
-        "ak.peer.events.read.scan",
-        "ak.peer.events.read.resolve",
-        "ak.peer.events.read.frontier"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -2294,7 +2805,7 @@
         {
           "requirement": "service DID authentication and destination binding validation",
           "coverage": [
-            "required_endpoints",
+            "operation_requirements",
             "federation-fixture.json"
           ]
         },
@@ -2316,8 +2827,8 @@
         {
           "requirement": "dependency missing pull/backfill recovery",
           "coverage": [
-            "ak.peer.events.read.scan",
-            "ak.peer.events.read.resolve",
+            "ak.peer.events.read.scan.v1",
+            "ak.peer.events.read.resolve.v1",
             "sync-fixture.json"
           ]
         },
@@ -2342,8 +2853,8 @@
       "feature_discovery": {
         "required": [
           "service_id",
-          "supported_bindings",
-          "operation_bindings",
+          "transport_bindings",
+          "supported_operation_bundles",
           "supported_profiles"
         ],
         "unsupported_optional": "reject unsupported profile before accepting events"
@@ -2365,12 +2876,24 @@
     "ak.profile.service_resolution_mirror.v1": {
       "role": "server",
       "description": "Optional Realm-scoped route-availability profile. It implements target-signed planned handover publication and authorized peer mirror resolution without becoming service identity or route authority.",
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.service_resolution.command.publish.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.service_resolution.read.resolve.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.federation_minimal.v1"
-      ],
-      "required_endpoints": [
-        "ak.peer.service_resolution.command.publish",
-        "ak.peer.service_resolution.read.resolve"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2381,10 +2904,12 @@
         "service-route-handover-mirror-fixture.json"
       ],
       "optional_extensions": [],
+      "required_features": [
+        "ak.feature.realm_service_resolution_mirror.v1",
+        "ak.feature.service_route_handover.v1"
+      ],
       "feature_discovery": {
         "required": [
-          "ak.feature.service_route_handover.v1",
-          "ak.feature.realm_service_resolution_mirror.v1",
           "durable_service_resolution_last_seen_floor",
           "route_cache_ttl_separate_from_rollback_floor"
         ],
@@ -2400,10 +2925,26 @@
     "ak.profile.signal_message_stream.v1": {
       "role": "client",
       "description": "Optional client payload profile for authenticated transient Message generation previews carried inside the encrypted Signal Extension.",
-      "required_endpoints": [
-        "ak.self.signal.command.send",
-        "ak.self.signal.stream.subscribe",
-        "ak.self.events.command.submit"
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.signal.command.send.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.signal.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.message.create"
@@ -2439,11 +2980,31 @@
     "ak.profile.signal_peer_relay.v1": {
       "role": "server",
       "description": "Optional symmetric Principal Server profile for the encrypted Signal Extension single-hop peer relay. It does not imply durable Event federation and does not advertise any product signal kind.",
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.signal.command.send",
-        "ak.self.signal.stream.subscribe",
-        "ak.peer.signal.command.relay"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.signal.command.send.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.signal.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.signal.command.relay.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2459,7 +3020,7 @@
         {
           "requirement": "single-hop peer authentication, current member delivery binding and unchanged producer envelope",
           "coverage": [
-            "ak.peer.signal.command.relay",
+            "ak.peer.signal.command.relay.v1",
             "signal-federation-fixture.json"
           ]
         },
@@ -2473,7 +3034,7 @@
         {
           "requirement": "bounded batch/body/signature window and drop-unconfirmed retry behavior",
           "coverage": [
-            "ak.peer.signal.command.relay",
+            "ak.peer.signal.command.relay.v1",
             "signal-federation-fixture.json"
           ]
         }
@@ -2481,11 +3042,11 @@
       "feature_discovery": {
         "required": [
           "service_id",
-          "supported_bindings",
-          "operation_bindings",
+          "transport_bindings",
+          "supported_operation_bundles",
           "supported_profiles"
         ],
-        "unsupported_optional": "omit ak.profile.signal_peer_relay.v1 and ak.peer.signal.command.relay; local Signal and durable federation remain independently usable"
+        "unsupported_optional": "omit ak.profile.signal_peer_relay.v1 and ak.peer.signal.command.relay.v1; local Signal and durable federation remain independently usable"
       },
       "additional_requirements": {
         "encrypted_only_must": "Every relayed item MUST be ak.schema.signal_envelope.v1; plaintext or unencrypted ephemeral inputs fail closed with signal_plaintext_forbidden.",
@@ -2496,12 +3057,20 @@
       }
     },
     "ak.profile.federation.high_assurance.v1": {
+      "description": "High-assurance / sovereign / regulated / multi-writer federation profile. Adds mandatory proactive frontier exchange with fail-state semantics on top of the ak.profile.federation_minimal.v1 baseline. See zh/sync/federation.md §4.5.3 and zh/sync/sovereign-deployment.md §11.1.",
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.read.frontier.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.federation_minimal.v1"
-      ],
-      "description": "High-assurance / sovereign / regulated / multi-writer federation profile. Adds mandatory proactive frontier exchange with fail-state semantics on top of the ak.profile.federation_minimal.v1 baseline. See zh/sync/federation.md §4.5.3 and zh/sync/sovereign-deployment.md §11.1.",
-      "required_endpoints": [
-        "ak.peer.events.read.frontier"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2529,13 +3098,41 @@
       }
     },
     "ak.profile.identity_registry.v1": {
-      "required_endpoints": [
-        "ak.root.identity.registry.read.describe",
-        "ak.root.identity.read.resolve",
-        "ak.root.identity.document.resource.get",
-        "ak.root.identity.log.read.list",
-        "ak.root.identity.receipts.read.list",
-        "ak.root.identity.command.submit_did_operation"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.registry.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.document.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.log.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.receipts.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.command.submit_did_operation.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.identity.resolution.update",
@@ -2571,16 +3168,44 @@
       }
     },
     "ak.profile.auth_server.v1": {
-      "inherits": [],
-      "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ak.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ak.self.policy.read.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ak.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.gate.account.command.issue_session_grant",
-        "ak.gate.account.command.refresh_session_grant",
-        "ak.gate.account.command.revoke_session",
-        "ak.gate.account.command.introspect_session_grant",
-        "ak.peer.account_status.read.resolve"
+      "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ak.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ak.self.policy.read.check.v1` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ak.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.gate.account.command.issue_session_grant.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.gate.account.command.revoke_session.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.account_status.read.resolve.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event"
@@ -2596,13 +3221,13 @@
         "session-grant-issuance-fixture.json"
       ],
       "optional_extensions": [
-        "ak.gate.account.command.issue_session_grant",
-        "ak.gate.account.exchange.create_handoff",
-        "ak.gate.account.command.issue_identity_binding_challenge",
-        "ak.gate.account.command.issue_identity_abandonment_challenge",
-        "ak.gate.account.command.abandon_identity_creation",
-        "ak.gate.account.command.register",
-        "ak.self.policy.read.check",
+        "ak.gate.account.command.issue_session_grant.v1",
+        "ak.gate.account.exchange.create_handoff.v1",
+        "ak.gate.account.command.issue_identity_binding_challenge.v1",
+        "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
+        "ak.gate.account.command.abandon_identity_creation.v1",
+        "ak.gate.account.command.register.v1",
+        "ak.self.policy.read.check.v1",
         "session_grant_introspection",
         "session_grant_revocation",
         "oidc",
@@ -2620,7 +3245,7 @@
           "auth_metadata.account_authority",
           "auth_metadata.methods",
           "auth_metadata.did_binding_methods",
-          "supported_bindings",
+          "transport_bindings",
           "auth_metadata"
         ],
         "unsupported_optional": "omit optional operation or return unsupported_feature"
@@ -2635,14 +3260,26 @@
         "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `interop_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",
-        "account_status_publication_must": "An Auth Server acting as Account Authority MUST atomically commit its account row, immutable AccountStatusRecord, audit and outbox; genesis is status_seq=1 active and every successor is a current-head CAS. It signs the closed record itself, exposes bounded ak.peer.account_status.read.resolve for authorized replica recovery, and publishes exact record bytes through ak.peer.account_status.command.submit. It MUST NOT author a Realm Event, query PCR frontiers, depend on a holder Seal or maintain a second status truth.",
+        "account_status_publication_must": "An Auth Server acting as Account Authority MUST atomically commit its account row, immutable AccountStatusRecord, audit and outbox; genesis is status_seq=1 active and every successor is a current-head CAS. It signs the closed record itself, exposes bounded ak.peer.account_status.read.resolve.v1 for authorized replica recovery, and publishes exact record bytes through ak.peer.account_status.command.submit.v1. It MUST NOT author a Realm Event, query PCR frontiers, depend on a holder Seal or maintain a second status truth.",
         "provisional_identity_abandonment_must": "An Auth Server that offers provisional-identity abandonment MUST expose it as the two-step issue_identity_abandonment_challenge + abandon_identity_creation pair and MUST NOT reach the same effect from login, session resume, lease expiry, fence takeover or garbage collection. Both operations are authorized by the account handoff grant alone, because a never-accepted PCR leaves the holder without a principal and therefore without any principal-bound ak.session.grant; the confirmation MUST present a fresh handoff and MUST NOT reuse the grant that obtained the challenge. The challenge is single-use, at most 300 seconds, held in shared durable state, and pins account_subject, holder cnf.jkt, the abandoned principal_id and did_version_id, the identity-creation lease id and fence, and the closed consequence disclosure; expiry and prior consumption remain distinct terminal states. Consuming the challenge, recording the orphan-anchor tombstone / audit reservation, suppressing the reserved_identity_creation checkpoint on every holder-readable surface and releasing the lease MUST commit in one transaction with zero writes on any failure, and replaying the same request_id MUST return the same terminal outcome without a second tombstone. A PCR accepted between issuance and confirmation MUST fail with identity_creation_already_accepted and MUST NOT abandon anything. Re-authentication strength, risk checks, cooldown length, orphan-anchor discovery annotation, handle and namespace release and retention are deployment governance and are not conformance criteria."
       }
     },
     "ak.profile.public_network_identity.v1": {
-      "required_endpoints": [
-        "ak.root.identity.read.resolve",
-        "ak.root.identity.document.resource.get"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.document.resource.get.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2667,10 +3304,26 @@
       }
     },
     "ak.profile.organization_high_assurance_identity.v1": {
-      "required_endpoints": [
-        "ak.root.identity.read.resolve",
-        "ak.root.identity.document.resource.get",
-        "ak.root.identity.log.read.list"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.document.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.log.read.list.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2703,10 +3356,26 @@
     },
     "ak.profile.key_transparency.v1": {
       "description": "Append-only key-transparency profile for principal DID history, PCR device authorization roots, active device-key-set digests and KeyPackage publication digests. Claims require independently verifiable log heads, inclusion proofs, consistency proofs and at least two distinct witness signatures.",
-      "required_endpoints": [
-        "ak.root.identity.read.resolve",
-        "ak.root.identity.log.read.list",
-        "ak.root.identity.receipts.read.list"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.log.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.receipts.read.list.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2740,10 +3409,26 @@
       }
     },
     "ak.profile.blob_node.v1": {
-      "required_endpoints": [
-        "ak.self.blob.upload.create",
-        "ak.self.blob.resource.get",
-        "ak.self.blob.resource.head"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.blob.upload.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.blob.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.blob.resource.head.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.realm.asset_privacy_policy",
@@ -2773,16 +3458,32 @@
     "ak.profile.push_gateway.v1": {
       "role": "gateway",
       "description": "Push gateway base profile. Provides the device registration / notify operation surface. All implementations claiming this profile MUST also implement ak.profile.push_gateway.blind_wakeup.v1 (default interop privacy baseline) — see zh/discovery/push-notifications.md §2.2 / §5.1. Visible-payload variants are opt-in only via ak.profile.push_gateway.visible_notification.v1.",
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.push.command.register_device.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.push.command.unregister_device.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.push.command.notify.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "depends_on": [
         "ak.profile.push_gateway.blind_wakeup.v1"
       ],
       "required_profiles": [
         "ak.profile.push_gateway.blind_wakeup.v1"
-      ],
-      "required_endpoints": [
-        "ak.edge.push.command.register_device",
-        "ak.edge.push.command.unregister_device",
-        "ak.edge.push.command.notify"
       ],
       "required_event_kinds": [
         "ak.device.authorize",
@@ -2810,8 +3511,16 @@
     "ak.profile.push_gateway.blind_wakeup.v1": {
       "role": "gateway",
       "description": "Default push gateway privacy baseline. Every implementation claiming ak.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Strand id / name, Message id, event id, device verification-method DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_id, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5.6.",
-      "required_endpoints": [
-        "ak.edge.push.command.notify"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.push.command.notify.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2840,6 +3549,17 @@
     "ak.profile.push_gateway.visible_notification.v1": {
       "role": "gateway",
       "description": "Opt-in push gateway profile for deployments that require visible notification fields (e.g. titles, sender labels) in provider payloads. Claiming this profile is permitted ONLY when (1) Realm policy explicitly lists the gateway in plaintext_visible_services AND declares visible_notification allowance, (2) per-device opt-in is recorded in ak.device authorization state, and (3) the client UI clearly surfaces that visible-notification mode is active. Even when claimed, payloads MUST stay minimised: no message body, no DID URL, no cross-Realm stable correlation key, no IP / geolocation, no free-form text outside the profile-declared field set. See zh/discovery/push-notifications.md §5.1.",
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.push.command.notify.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "depends_on": [
         "ak.profile.push_gateway.v1"
       ],
@@ -2849,9 +3569,6 @@
       ],
       "inherits": [
         "ak.profile.push_gateway.v1"
-      ],
-      "required_endpoints": [
-        "ak.edge.push.command.notify"
       ],
       "required_event_kinds": [
         "ak.device.authorize"
@@ -2884,6 +3601,17 @@
     "ak.profile.push_gateway.matrix_passthrough.v1": {
       "role": "interop",
       "description": "Interop compatibility profile for Matrix push gateway passthrough. Implementations claiming this profile MAY accept Matrix-shaped push gateway payloads as an external interop bridge to Matrix push gateways but MUST NOT mix this profile with ak.profile.push_gateway.blind_wakeup.v1 on the same notify path: the Matrix push gateway shape carries identifying fields incompatible with the default Arkret privacy baseline. Bridges MUST partition traffic so that any peer or device negotiated under ak.profile.push_gateway.blind_wakeup.v1 (i.e. the default v1 baseline) NEVER receives a matrix_passthrough payload. See zh/discovery/push-notifications.md §5.1 and zh/conformance/conformance-profiles.md §11.",
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.push.command.notify.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "depends_on": [
         "ak.profile.matrix_compat.v1"
       ],
@@ -2891,9 +3619,6 @@
         "ak.profile.matrix_compat.v1"
       ],
       "inherits": [],
-      "required_endpoints": [
-        "ak.edge.push.command.notify"
-      ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -2922,10 +3647,26 @@
       }
     },
     "ak.profile.applet_service.v1": {
-      "required_endpoints": [
-        "ak.edge.applet.read.describe",
-        "ak.edge.applet.read.ping",
-        "ak.edge.applet.command.transaction"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.applet.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.applet.read.ping.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.applet.command.transaction.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.applet.registration"
@@ -2957,7 +3698,7 @@
         "unsupported_optional": "return unsupported_feature"
       },
       "additional_requirements": {
-        "transaction_push_per_delivery_signature_must": "ak.edge.applet.command.transaction MUST require a per-delivery RFC 9421 HTTP Message Signature in both node->Applet and app/bridge->arkret inbound directions; pure bearer-only transaction push MUST be rejected with http_signature_required.",
+        "transaction_push_per_delivery_signature_must": "ak.edge.applet.command.transaction.v1 MUST require a per-delivery RFC 9421 HTTP Message Signature in both node->Applet and app/bridge->arkret inbound directions; pure bearer-only transaction push MUST be rejected with http_signature_required.",
         "transaction_push_covered_components_must": "Signature-Input covered components MUST include @method, @target-uri, @authority, content-digest, source-service-id, destination-service-id and idempotency-key; created/expires MUST satisfy the federation.md section 3.2 replay window.",
         "transaction_push_delivery_authentication_record_must": "Receivers MUST derive and persist the closed delivery_authentication_record from verified inputs, including operation/direction, source/destination, signature label, verification method/key digest/algorithm, registration epoch, idempotency key, content digest, ordered covered components, created and expires. They MUST recompute delivery_authentication_record_digest with domain ak.applet.delivery-authentication-record.v1; neither value is caller supplied.",
         "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-ID, Destination-Service-ID and Idempotency-Key; the cached record MUST bind canonical body digest, delivery_authentication_record and its receiver-recomputed digest. A replay with a different body digest or authentication-record digest MUST fail closed.",
@@ -2966,14 +3707,34 @@
       }
     },
     "ak.profile.applet_bridge.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.applet.actor.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.applet.realm.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.applet.read.protocol_metadata.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.applet.ghost.command.provision.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.applet_service.v1"
-      ],
-      "required_endpoints": [
-        "ak.edge.applet.actor.read.resolve",
-        "ak.edge.applet.realm.read.resolve",
-        "ak.edge.applet.read.protocol_metadata",
-        "ak.self.applet.ghost.command.provision"
       ],
       "required_event_kinds": [
         "ak.applet.bridge_error"
@@ -3024,10 +3785,14 @@
       }
     },
     "ak.profile.applet_delegated.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [],
       "inherits": [
         "ak.profile.applet_service.v1"
       ],
-      "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -3049,10 +3814,14 @@
       }
     },
     "ak.profile.applet_e2ee_join.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [],
       "inherits": [
         "ak.profile.applet_service.v1"
       ],
-      "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -3073,10 +3842,14 @@
       }
     },
     "ak.profile.applet_widget.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [],
       "inherits": [
         "ak.profile.applet_service.v1"
       ],
-      "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -3098,17 +3871,61 @@
       }
     },
     "ak.profile.agent_runtime.v1": {
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.events.stream.subscribe",
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan",
-        "ak.self.events.read.frontier",
-        "ak.self.seals.read.frontier",
-        "ak.self.authz.read.check",
-        "ak.self.keys.keypackages.upload.create",
-        "ak.self.keys.keypackages.command.consume",
-        "ak.self.keys.keypackages.command.revoke"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.frontier.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.seals.read.frontier.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.authz.read.check.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.upload.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.command.consume.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3136,20 +3953,64 @@
       }
     },
     "ak.profile.personal_agent_provisioning.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.agent.command.provision.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.agent.command.abandon_provisioning.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.agent.command.renew_pairing.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.gate.account.command.pair_agent_key.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.backups.resource.replace.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.backups.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.backups.command.unlock.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.agent_runtime.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.agent.command.provision",
-        "ak.self.agent.command.issue_provisioning_abandonment_challenge",
-        "ak.self.agent.command.abandon_provisioning",
-        "ak.self.agent.command.renew_pairing",
-        "ak.gate.account.command.pair_agent_key",
-        "ak.self.keys.backups.resource.replace",
-        "ak.self.keys.backups.read.list",
-        "ak.self.keys.backups.command.unlock",
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.profile.create",
@@ -3184,12 +4045,14 @@
         "agent-vectors-fixture.json"
       ],
       "optional_extensions": [],
+      "required_features": [
+        "ak.feature.agent_runtime_approval_notifications.v1"
+      ],
       "feature_discovery": {
         "required": [
           "pending_runtime_key_status",
           "pairing_request",
           "agent_slug_selector",
-          "ak.feature.agent_runtime_approval_notifications.v1",
           "runtime_key_binding_conflict_cas",
           "agent_requested_scope_global_ceiling",
           "agent_requested_scope_did_commitment",
@@ -3202,12 +4065,20 @@
       }
     },
     "ak.profile.agent_auth.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.gate.account.command.issue_session_grant.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.agent_runtime.v1",
         "ak.profile.auth_server.v1"
-      ],
-      "required_endpoints": [
-        "ak.gate.account.command.issue_session_grant"
       ],
       "required_event_kinds": [
         "ak.agent.key.authorize",
@@ -3233,11 +4104,19 @@
       }
     },
     "ak.profile.agent_delegation_policy.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.authz.read.check.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.agent_runtime.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.authz.read.check"
       ],
       "required_event_kinds": [
         "ak.capability.grant",
@@ -3267,15 +4146,39 @@
       }
     },
     "ak.profile.agent_sidecar.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.agent.sidecar.command.ensure.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.agent.sidecar.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.agent.sidecar.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.personal_agent_provisioning.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.agent.sidecar.command.ensure",
-        "ak.self.agent.sidecar.resource.get",
-        "ak.self.agent.sidecar.read.list",
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.sidecar.create",
@@ -3334,12 +4237,24 @@
       }
     },
     "ak.profile.agent_participation_policy.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.agent.participation.resource.replace.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.agent.participation.resource.get.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.personal_agent_provisioning.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.agent.participation.resource.replace",
-        "ak.self.agent.participation.resource.get"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3367,12 +4282,24 @@
       }
     },
     "ak.profile.direct_conversation_repair.v1": {
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.direct_conversation.read.resolve.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.direct_conversation_realm.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.direct_conversation.read.resolve"
       ],
       "required_event_kinds": [
         "ak.member.state",
@@ -3410,11 +4337,31 @@
       }
     },
     "ak.profile.membership_join_compensation.v1": {
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.peer.events.command.submit",
-        "ak.self.keys.keypackages.command.revoke",
-        "ak.self.keys.keypackages.command.consume"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.command.consume.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.member.state",
@@ -3455,13 +4402,41 @@
       }
     },
     "ak.profile.mimi_interop.v1": {
-      "required_endpoints": [
-        "ak.open.mimi.read.provider_directory",
-        "ak.open.mimi.command.request_consent",
-        "ak.open.mimi.command.update_consent",
-        "ak.open.mimi.command.update_room",
-        "ak.open.mimi.command.submit_message",
-        "ak.open.mimi.read.group_info"
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.open.mimi.read.provider_directory.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.open.mimi.command.request_consent.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.open.mimi.command.update_consent.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.open.mimi.command.update_room.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.open.mimi.command.submit_message.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.open.mimi.read.group_info.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.mimi.room_binding",
@@ -3509,14 +4484,30 @@
       }
     },
     "ak.profile.sovereign_deployment.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.authz.read.check.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.principal_server.v1",
         "ak.profile.identity_registry.v1"
-      ],
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.root.identity.read.resolve",
-        "ak.self.authz.read.check"
       ],
       "required_event_kinds": [
         "ak.sovereign.did_policy",
@@ -3561,14 +4552,30 @@
       }
     },
     "ak.profile.sovereign_enclave.v1": {
+      "description": "Controlled-collaboration enclave variant of the sovereign deployment profile. The enclave runs alongside (or downstream of) a sovereign main node and hosts external collaborators inside `ak.realm.deployment_profile=enclave` Realms. When this profile is claimed the implementation MUST: (a) disable outbound federation; (b) disable public discovery and public DID resolution; (c) restrict its resolver to DID methods in the configured `allowed_did_methods` allow-list; (d) log every outbound HTTP call under the `sovereign_boundary_audit` target. See `zh/sync/sovereign-deployment.md` §2–§6.",
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.authz.read.check.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.sovereign_deployment.v1"
-      ],
-      "description": "Controlled-collaboration enclave variant of the sovereign deployment profile. The enclave runs alongside (or downstream of) a sovereign main node and hosts external collaborators inside `ak.realm.deployment_profile=enclave` Realms. When this profile is claimed the implementation MUST: (a) disable outbound federation; (b) disable public discovery and public DID resolution; (c) restrict its resolver to DID methods in the configured `allowed_did_methods` allow-list; (d) log every outbound HTTP call under the `sovereign_boundary_audit` target. See `zh/sync/sovereign-deployment.md` §2–§6.",
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.root.identity.read.resolve",
-        "ak.self.authz.read.check"
       ],
       "required_event_kinds": [
         "ak.sovereign.did_policy",
@@ -3596,10 +4603,26 @@
       }
     },
     "ak.profile.franking.v1": {
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.account.stream.subscribe",
-        "ak.self.moderation.read.franking_seal_observation"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.moderation.read.franking_seal_observation.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.moderation.franking_proof",
@@ -3627,10 +4650,26 @@
       }
     },
     "ak.profile.webrtc_media.v1": {
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.signal.command.send",
-        "ak.self.signal.stream.subscribe"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.signal.command.send.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.signal.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.call.state"
@@ -3661,14 +4700,22 @@
     "ak.profile.media_service_binding.v1": {
       "role": "server",
       "description": "Transport-agnostic media backend binding framework. Requires ak.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label ak.rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / arkret_native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.call.media.exchange.issue_token.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "depends_on": [
         "ak.profile.webrtc_media.v1"
       ],
       "required_profiles": [
         "ak.profile.webrtc_media.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.call.media.exchange.issue_token"
       ],
       "required_event_kinds": [
         "ak.realm.media_service",
@@ -3710,14 +4757,22 @@
     "ak.profile.media_service_binding.livekit.v1": {
       "role": "server",
       "description": "LiveKit backend binding sub-profile. Maps Arkret token_exchange to LiveKit JWT claims, SFrame-based E2EE via inject_frame_key, capability mapping to video.canPublishSources, and Egress-based recording through Arkret blob pipeline. Declaring this sub-profile requires declaring ak.profile.media_service_binding.v1. Optional in v1 cycle; not part of v1 mandatory conformance set. See zh/crypto-media/bindings/livekit.md.",
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.call.media.exchange.issue_token.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "depends_on": [
         "ak.profile.media_service_binding.v1"
       ],
       "required_profiles": [
         "ak.profile.media_service_binding.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.call.media.exchange.issue_token"
       ],
       "required_event_kinds": [
         "ak.realm.media_service",
@@ -3749,14 +4804,22 @@
     "ak.profile.media_service_binding.arkret_native.v1": {
       "role": "server",
       "description": "Arkret-native SFU reference binding sub-profile. Provides a backend-SDK-free reference implementation of the Arkret-native SFU wire format for protocol self-consistency and conformance testing. Reference / conformance binding only: it MUST NOT be claimed as a production media backend, and production deployments MUST use a production-grade media_service_binding sub-profile such as ak.profile.media_service_binding.livekit.v1. Declaring this sub-profile requires declaring ak.profile.media_service_binding.v1. See zh/crypto-media/bindings/arkret-native.md.",
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.call.media.exchange.issue_token.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "depends_on": [
         "ak.profile.media_service_binding.v1"
       ],
       "required_profiles": [
         "ak.profile.media_service_binding.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.call.media.exchange.issue_token"
       ],
       "required_event_kinds": [
         "ak.realm.media_service",
@@ -3778,12 +4841,24 @@
       }
     },
     "ak.profile.sovereign_client.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.root.identity.read.resolve.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.full_client.v1"
-      ],
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.root.identity.read.resolve"
       ],
       "required_event_kinds": [
         "ak.sovereign.did_policy",
@@ -3811,12 +4886,20 @@
       }
     },
     "ak.profile.ephemeral_pairwise_principal.v1": {
+      "description": "Closed identity profile for an unlinkable, short-lived Realm-local pairwise actor principal. It is the only v1 principal profile that admits did:key, and only inside a Realm that has already declared ak.profile.mls.minimal_metadata_realm.v1. A fresh key MUST be generated per Realm and MUST NOT be reused across Realms. Authority comes exclusively from one accepted MLS group state whose active LeafNode credential identity equals the Event pairwise actor_id, while the Event proof verification-method base is a did:key full_id that projects to that actor_id and its public key equals the LeafNode signature_key. It creates no account, PCR, device-directory entry, Contact, capability, recovery state or cross-Realm identity, and cannot be enabled by deployment-local resolver policy alone.",
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.e2ee_client.v1"
-      ],
-      "description": "Closed identity profile for an unlinkable, short-lived Realm-local pairwise actor principal. It is the only v1 principal profile that admits did:key, and only inside a Realm that has already declared ak.profile.mls.minimal_metadata_realm.v1. A fresh key MUST be generated per Realm and MUST NOT be reused across Realms. Authority comes exclusively from one accepted MLS group state whose active LeafNode credential identity equals the Event pairwise actor_id, while the Event proof verification-method base is a did:key full_id that projects to that actor_id and its public key equals the LeafNode signature_key. It creates no account, PCR, device-directory entry, Contact, capability, recovery state or cross-Realm identity, and cannot be enabled by deployment-local resolver policy alone.",
-      "required_endpoints": [
-        "ak.self.events.command.submit"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3850,13 +4933,29 @@
       }
     },
     "ak.profile.personal_node.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.principal_server_events_api.v1"
-      ],
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.events.command.submit",
-        "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -3906,15 +5005,31 @@
       }
     },
     "ak.profile.small_team.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.principal_server.v1",
         "ak.profile.chat_mvp.v1",
         "ak.profile.kanban_mvp.v1"
-      ],
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.events.command.submit",
-        "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -3967,13 +5082,25 @@
       }
     },
     "ak.profile.organization.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.find.directory.read.resolve_organization.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.authz.grants.read.effective.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.principal_server.v1",
         "ak.profile.identity_registry.v1"
-      ],
-      "required_endpoints": [
-        "ak.find.directory.read.resolve_organization",
-        "ak.self.authz.grants.read.effective"
       ],
       "required_event_kinds": [
         "ak.organization.discovery",
@@ -4018,14 +5145,26 @@
       }
     },
     "ak.profile.high_security_organization.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.organization.v1",
         "ak.profile.e2ee_client.v1",
         "ak.profile.mls_governance_binding.full.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.snapshot.read.manifest_head",
-        "ak.self.keys.keypackages.command.revoke"
       ],
       "required_event_kinds": [
         "ak.device.revoke",
@@ -4090,13 +5229,25 @@
       }
     },
     "ak.profile.isolated_sovereign_network.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.root.identity.read.resolve.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.sovereign_deployment.v1",
         "ak.profile.high_security_organization.v1"
-      ],
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.root.identity.read.resolve"
       ],
       "required_event_kinds": [
         "ak.sovereign.did_policy",
@@ -4129,15 +5280,39 @@
       }
     },
     "ak.profile.mls_governance_binding.full.v1": {
-      "inherits": [],
       "description": "MLS Security Frontier Binding (full): required for E2EE Realms. Each MLS genesis/Commit transcript binds one security_frontier_digest deterministically rederived from accepted key-access state: membership; only keys referenced by current/pending leaves; MLS membership; and encryption/history policy that changes key access. Ordinary Event seal_ref admission is independent. Capability, metadata, moderation, routing and consent-only changes do not block messages unless their accepted effect actually changes an MLS leaf.",
-      "required_endpoints": [
-        "ak.self.keys.keypackages.command.claim",
-        "ak.self.keys.keypackages.command.consume",
-        "ak.self.events.read.scan",
-        "ak.self.seals.read.mls_governance_proof",
-        "ak.peer.mls.read.group_state_material"
+      "enforcement_phases": [
+        "build",
+        "conformance"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.command.claim.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.keypackages.command.consume.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.mls.read.group_state_material.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [
         "ak.mls.commit"
       ],
@@ -4197,13 +5372,25 @@
       ]
     },
     "ak.profile.mls.minimal_metadata_realm.v1": {
+      "description": "Hardening profile for E2EE Realms that route by Realm-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.e2ee_client.v1"
-      ],
-      "description": "Hardening profile for E2EE Realms that route by Realm-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.mls.commit",
@@ -4237,10 +5424,26 @@
     "ak.profile.traffic_metadata_hardened.v1": {
       "role": "admin",
       "description": "Service/deployment hardening profile for high-privacy traffic metadata. A declaring service exposes support through ServiceDescribe.claimed_profiles and applies the profile to deployment-configured routes; federation fanout timing, batch size, Welcome size, push wakeups, and retry cadence MUST satisfy the declared observable bounds. Arkret v1 defines no Realm activation carrier for this profile.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.events.stream.subscribe",
-        "ak.edge.push.command.notify"
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.push.command.notify.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.message.create",
@@ -4335,12 +5538,24 @@
       }
     },
     "ak.profile.attested_audit.e2ee.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.e2ee_client.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
         "ak.audit.applet_binding.create",
@@ -4379,12 +5594,24 @@
       }
     },
     "ak.profile.disclosed_audit.e2ee.v1": {
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.e2ee_client.v1"
-      ],
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
         "ak.audit.applet_binding.create",
@@ -4421,12 +5648,24 @@
       }
     },
     "ak.profile.notary.single_signer.v1": {
-      "inherits": [],
       "description": "Notary profile using one did_core actor and that actor's current authorized verification method to issue Seals.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.snapshot.read.manifest_head"
+      "enforcement_phases": [
+        "build",
+        "conformance"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -4446,12 +5685,24 @@
       }
     },
     "ak.profile.notary.threshold.v1": {
-      "inherits": [],
       "description": "Notary profile using k-of-n threshold signatures to issue Seals.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.snapshot.read.manifest_head"
+      "enforcement_phases": [
+        "build",
+        "conformance"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -4471,12 +5722,24 @@
       }
     },
     "ak.profile.notary.open_set.v1": {
-      "inherits": [],
       "description": "Notary profile allowing multiple leaf Seals and deterministic Seal view joins.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.snapshot.read.manifest_head"
+      "enforcement_phases": [
+        "build",
+        "conformance"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -4496,12 +5759,24 @@
       }
     },
     "ak.profile.notary.mixed_recovery.v1": {
-      "inherits": [],
       "description": "Notary profile with primary notary and fallback recovery notary.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.snapshot.read.manifest_head"
+      "enforcement_phases": [
+        "build",
+        "conformance"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.snapshot.read.manifest_head.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -4521,17 +5796,49 @@
       }
     },
     "ak.profile.matrix_compat.v1": {
-      "inherits": [],
-      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, and SAS verification message strand. Arkret device authorization remains PCR-native and is outside this compatibility profile. Account-aggregate sync is NOT covered: Arkret v1 chose a streaming push form (ak.self.account.stream.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ak.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
-      "required_endpoints": [
-        "ak.self.device_messages.command.send",
-        "ak.self.device_messages.read.list",
-        "ak.self.device_messages.command.ack",
-        "ak.self.keys.upload.create",
-        "ak.self.keys.read.lookup",
-        "ak.self.keys.command.claim",
-        "ak.edge.push.command.notify"
+      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, and SAS verification message strand. Arkret device authorization remains PCR-native and is outside this compatibility profile. Account-aggregate sync is NOT covered: Arkret v1 chose a streaming push form (ak.self.account.stream.subscribe.v1 / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ak.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.device_messages.command.send.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.device_messages.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.device_messages.command.ack.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.upload.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.read.lookup.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.command.claim.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.push.command.notify.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -4554,17 +5861,45 @@
       }
     },
     "ak.profile.candidate.join_policy.v1": {
+      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `ak.realm.join.review`. These bare names remain forbidden as v1 wire Event.kind values. Claiming this profile commits the implementation to the complete profile-private HTTP receipt carrier in governance/join-policy.md §7.1.1; partial intake/review/read surfaces are non-conformant. Receivers that do not implement this profile MUST treat `ak.realm.join.review` as unknown and omit the profile claim.",
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.realm.join_application.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.realm.join_application.command.review.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.realm.join_application.command.cancel.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.realm.join_application.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.realm.join_application.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.realm.join_application.audit.read.list.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [],
       "status": "candidate",
-      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `ak.realm.join.review`. These bare names remain forbidden as v1 wire Event.kind values. Claiming this profile commits the implementation to the complete profile-private HTTP receipt carrier in governance/join-policy.md §7.1.1; partial intake/review/read surfaces are non-conformant. Receivers that do not implement this profile MUST treat `ak.realm.join.review` as unknown and omit the profile claim.",
-      "required_endpoints": [
-        "ak.self.realm.join_application.command.submit",
-        "ak.self.realm.join_application.command.review",
-        "ak.self.realm.join_application.command.cancel",
-        "ak.self.realm.join_application.read.list",
-        "ak.self.realm.join_application.resource.get",
-        "ak.self.realm.join_application.audit.read.list"
-      ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -4588,14 +5923,30 @@
       "profile_set": "candidate"
     },
     "ak.profile.binding.websocket.v1": {
+      "description": "Optional multiplexed WebSocket binding for the three registered self subscribe operations. It preserves each operation's independent authorization, frame schema, cursor and recovery semantics and never replaces the mandatory HTTP/JSON binding.",
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "websocket"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "binding_kind": "websocket"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.signal.stream.subscribe.v1",
+          "binding_kind": "websocket"
+        }
+      ],
       "inherits": [],
       "status": "candidate",
-      "description": "Optional multiplexed WebSocket binding for the three registered self subscribe operations. It preserves each operation's independent authorization, frame schema, cursor and recovery semantics and never replaces the mandatory HTTP/JSON binding.",
-      "required_endpoints": [
-        "ak.self.account.stream.subscribe",
-        "ak.self.events.stream.subscribe",
-        "ak.self.signal.stream.subscribe"
-      ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -4639,21 +5990,41 @@
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "supported_bindings"
+          "transport_bindings"
         ],
         "unsupported_optional": "omit the websocket binding and use canonical HTTP/JSON"
       },
       "profile_set": "candidate"
     },
     "ak.profile.key_backup.memory_hard.v1": {
-      "inherits": [],
       "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, deterministic AEAD nonce recomputation, series-chain freshness (series_id / series_seq / supersedes / supersedes_digest), and server-side rate limiting / fresh device proof on backup access.",
-      "required_endpoints": [
-        "ak.self.keys.backups.resource.replace",
-        "ak.self.keys.backups.read.list",
-        "ak.self.keys.backups.command.unlock",
-        "ak.self.keys.backups.resource.delete"
+      "enforcement_phases": [
+        "build",
+        "conformance"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.backups.resource.replace.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.backups.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.backups.command.unlock.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.keys.backups.resource.delete.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -4685,12 +6056,24 @@
       }
     },
     "ak.profile.circle_seal_cadence.fixed_5m.v1": {
-      "inherits": [],
       "description": "Named cadence profile for confidential Circle sub-seal commitments. Implementations claiming this profile MUST emit ak.circle.seal_commit on a fixed time cadence (5 minutes, max jitter 30 seconds), MUST include empty-batch commitments, and MUST NOT use event-count or activity-triggered public commitments. Mobile energy saving may batch private sub-seal upload, but MUST NOT relax the public Realm seal cadence.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.events.stream.subscribe"
+      "enforcement_phases": [
+        "build",
+        "conformance"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [
         "ak.circle.seal_commit"
       ],
@@ -4732,12 +6115,24 @@
     },
     "ak.profile.circle_conformance.v1": {
       "role": "interop",
-      "inherits": [],
       "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor content payload (`scope_circle_id` where that object schema defines it), the signed Event `scope_ref`, and the materialized object's `effective_scope`; it also pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Strand / Message / Morph / Relation / Space objects.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan"
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
       ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ],
+      "inherits": [],
       "required_event_kinds": [
         "ak.circle.create",
         "ak.circle.update",
@@ -4792,10 +6187,26 @@
     },
     "ak.profile.personal_productivity.v1": {
       "description": "Client profile for principal-private reminders, scheduled send, snooze, and saved items backed by encrypted account data.",
-      "required_endpoints": [
-        "ak.self.account.stream.subscribe",
-        "ak.self.events.read.scan",
-        "ak.self.events.command.submit"
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.account_data.set",
@@ -4823,8 +6234,16 @@
     },
     "ak.profile.draft_sync.v1": {
       "description": "Client profile for encrypted cross-device draft account data. Writes go through the account-data compare-and-set contract (zh/models/account-data.md section 5); the per-draft-slot LWW rule runs client-side on decrypted plaintext inside that retry loop.",
-      "required_endpoints": [
-        "ak.self.account.stream.subscribe"
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.account_data.set"
@@ -4847,15 +6266,51 @@
     },
     "ak.profile.file_transfer.v1": {
       "description": "Client profile for principal-private cross-device file transfer backed by encrypted account data, authenticated Blob storage, and to-device key delivery for device-bound transfers.",
-      "required_endpoints": [
-        "ak.self.account.stream.subscribe",
-        "ak.self.events.command.submit",
-        "ak.self.blob.upload.create",
-        "ak.self.blob.resource.head",
-        "ak.self.blob.resource.get",
-        "ak.self.device_messages.command.send",
-        "ak.self.device_messages.read.list",
-        "ak.self.device_messages.command.ack"
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.blob.upload.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.blob.resource.head.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.blob.resource.get.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.device_messages.command.send.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.device_messages.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.device_messages.command.ack.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.account_data.set"
@@ -4881,9 +6336,21 @@
     },
     "ak.profile.calendar_event.v1": {
       "description": "Client profile for authoring calendar-event Strands, expanding recurrence, and converging RSVP. Schedule-change notification dispatch is a separate server profile.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan"
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.strand.create",
@@ -4914,9 +6381,21 @@
     },
     "ak.profile.calendar_notification_dispatch.v1": {
       "description": "Principal Server profile for deriving notification_kind=schedule from calendar schedule changes, including the blind-wakeup path for encrypted schedules. Provider delivery stays governed by the Push Gateway profiles.",
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.events.read.scan"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.strand.update"
@@ -4944,9 +6423,21 @@
     },
     "ak.profile.pinned_items.v1": {
       "description": "Shared pin profile for Strand/Realm/Circle/Space projection homes using ak.pin.* events.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan"
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.pin.add",
@@ -4973,10 +6464,26 @@
     },
     "ak.profile.search.client_index.v1": {
       "description": "Client-side encrypted search index hosting profile; service stores encrypted manifest and shards but returns no hits.",
-      "required_endpoints": [
-        "ak.self.account.stream.subscribe",
-        "ak.self.blob.upload.create",
-        "ak.self.blob.resource.get"
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.account.stream.subscribe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.blob.upload.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.blob.resource.get.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.account_data.set"
@@ -4999,9 +6506,21 @@
     },
     "ak.profile.search.blind_index.v1": {
       "description": "Server-assisted blind-index search profile with HMAC tokens, scope/epoch binding, and fail-closed stale posting behavior.",
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.events.read.scan"
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
       ],
       "required_event_kinds": [
         "ak.realm.search_policy"
@@ -5027,12 +6546,24 @@
     },
     "ak.profile.search.forward_private.v1": {
       "description": "Opt-in forward-private search profile layered on ak.profile.search.blind_index.v1. Service describe and Realm search policy expose leakage_class=forward_private, token rotation cadence, and revocation behavior; stale postings fail closed.",
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.server.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.read.scan.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "inherits": [
         "ak.profile.search.blind_index.v1"
-      ],
-      "required_endpoints": [
-        "ak.server.read.describe",
-        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.realm.search_policy"
@@ -5059,7 +6590,11 @@
     },
     "ak.profile.constraint.approval_workflow.v1": {
       "description": "Constraint extension gate for approval workflows.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5076,7 +6611,11 @@
     },
     "ak.profile.constraint.claim_based.v1": {
       "description": "Constraint extension gate for claim-based authorization.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5093,7 +6632,11 @@
     },
     "ak.profile.constraint.encryption_requirement.v1": {
       "description": "Constraint extension gate for encryption requirements.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5110,7 +6653,11 @@
     },
     "ak.profile.constraint.resource_limit.v1": {
       "description": "Constraint extension gate for resource limits.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5127,7 +6674,11 @@
     },
     "ak.profile.constraint.visibility_control.v1": {
       "description": "Constraint extension gate for visibility controls.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5144,7 +6695,11 @@
     },
     "ak.profile.encoding.cbor.v1": {
       "description": "Reserved canonical CBOR encoding transition gate.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5161,7 +6716,11 @@
     },
     "ak.profile.encoding.multihash.v1": {
       "description": "Optional multihash reading-format interoperability gate.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5178,7 +6737,11 @@
     },
     "ak.profile.federation.rbsr.negentropy.v1": {
       "description": "Candidate range-based set reconciliation federation gate.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "conformance",
+        "startup_claim_guard"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5195,7 +6758,11 @@
     },
     "ak.profile.hash.blake3.v1": {
       "description": "Active BLAKE3 digest-suite interoperability gate.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5212,7 +6779,11 @@
     },
     "ak.profile.hash_transition.v1": {
       "description": "Digest-suite Transition Seal interoperability gate.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5229,7 +6800,11 @@
     },
     "ak.profile.kem.hybrid_xwing.v1": {
       "description": "Reserved X-Wing hybrid KEM gate.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5246,7 +6821,11 @@
     },
     "ak.profile.ucan_interop.v1": {
       "description": "Candidate UCAN interoperability gate.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5263,7 +6842,11 @@
     },
     "ak.profile.signature.ecdsa_p256.v1": {
       "description": "Optional ES256 detached-JWS interoperability suite.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5280,7 +6863,11 @@
     },
     "ak.profile.signature.pqc.v1": {
       "description": "Profile-gated ML-DSA-65 detached-signature interoperability suite.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5297,7 +6884,11 @@
     },
     "ak.profile.crdt.text.v1": {
       "description": "Reserved interoperability slot for operation-based collaborative plain/rich text. It is not active v1 wire until the algorithm, operation encoding, E2EE carriage and convergence vectors are pinned by a registry release.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5310,7 +6901,11 @@
     },
     "ak.profile.mls_ciphersuite.chacha20poly1305.v1": {
       "description": "Reserved RFC 9420 ciphersuite 0x0003 interoperability gate for software-friendly ChaCha20-Poly1305 MLS groups.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5323,7 +6918,11 @@
     },
     "ak.profile.mls_ciphersuite.pq_auth.v1": {
       "description": "Reserved MLS WG PQ/T hybrid KEM plus ML-DSA-44 authentication ciphersuite gate.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "conformance",
+        "peer_eligibility"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -5336,7 +6935,11 @@
     },
     "ak.profile.hpke.p256.v1": {
       "description": "Profile-gated DHKEM(P-256, HKDF-SHA256) / AES-256-GCM HPKE interoperability suite.",
-      "required_endpoints": [],
+      "enforcement_phases": [
+        "build",
+        "conformance"
+      ],
+      "operation_requirements": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],

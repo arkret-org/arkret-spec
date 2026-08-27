@@ -64,7 +64,7 @@ class AppletInstallEpochEvidenceCarrierLintTest(unittest.TestCase):
 
     def test_basis_evidence_mirror_fails(self) -> None:
         def mutate(schema):
-            schema["$defs"]["authoring_request_basis"]["properties"][
+            schema["$defs"]["install_authoring_request_basis"]["properties"][
                 "registration_epoch_evidence"
             ] = {"type": "object"}
 

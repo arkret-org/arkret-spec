@@ -758,7 +758,7 @@
     },
     "AuthzCheckOutcome": {
       "type": "object",
-      "description": "ak.self.authz.read.check diagnostic/preflight decision. See zh/authz/capabilities.md §18. This shape may include freshness and obligation hints, but any obligation that affects reducer admission or external state MUST be re-issued and signed through PolicyCheckOutcome.",
+      "description": "ak.self.authz.read.check.v1 diagnostic/preflight decision. See zh/authz/capabilities.md §18. This shape may include freshness and obligation hints, but any obligation that affects reducer admission or external state MUST be re-issued and signed through PolicyCheckOutcome.",
       "required": [
         "decision"
       ],
@@ -850,7 +850,7 @@
     },
     "AuthzCheckRequestBody": {
       "type": "object",
-      "description": "ak.self.authz.read.check input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ak.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ak.self.policy.read.check.\n",
+      "description": "ak.self.authz.read.check.v1 input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ak.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ak.self.policy.read.check.v1.\n",
       "required": [
         "actor_id",
         "action"
@@ -1414,7 +1414,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 1024,
-          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Covers this page plus all previously delivered messages for the authenticated device. Queue deletion happens only through ak.self.device_messages.command.ack with this token, never through the after= read cursor (client-sync.md §10.1)."
+          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Covers this page plus all previously delivered messages for the authenticated device. Queue deletion happens only through ak.self.device_messages.command.ack.v1 with this token, never through the after= read cursor (client-sync.md §10.1)."
         },
         "next_cursor": {
           "type": "string",
@@ -1667,7 +1667,7 @@
     },
     "DirectConversationFoundingFederationSubmission": {
       "type": "object",
-      "description": "Direct Conversation founding exception branch of ak.peer.events.command.submit (zh/sync/federation.md section 4.0.4). The Realm does not yet exist at the receiver, so no ordinary federation_peer authority and no Realm-scoped service_binding_ref can be computed; destination binding comes from the section 3 service DID and trust-domain headers plus the source acceptance receipt. This is a registered atomic unit: a missing bounded dependency returns top-level HTTP 409 dependency_missing with zero writes and never a per-item partial.",
+      "description": "Direct Conversation founding exception branch of ak.peer.events.command.submit.v1 (zh/sync/federation.md section 4.0.4). The Realm does not yet exist at the receiver, so no ordinary federation_peer authority and no Realm-scoped service_binding_ref can be computed; destination binding comes from the section 3 service DID and trust-domain headers plus the source acceptance receipt. This is a registered atomic unit: a missing bounded dependency returns top-level HTTP 409 dependency_missing with zero writes and never a per-item partial.",
       "required": [
         "unit_kind",
         "events",
@@ -2104,7 +2104,7 @@
     },
     "SealSubmitOutcome": {
       "type": "object",
-      "description": "Result of ak.self.seals.command.submit after full Seal and active-device verification. A Seal is not an Event and never uses EventInitialSubmission.",
+      "description": "Result of ak.self.seals.command.submit.v1 after full Seal and active-device verification. A Seal is not an Event and never uses EventInitialSubmission.",
       "required": [
         "seal_id",
         "accepted_event_digests",
@@ -2143,13 +2143,13 @@
               "actor_kind"
             ]
           },
-          "description": "Actor-supplied ak.self.events.command.submit input envelope. It reuses the base Event shape, including the required producer-signed scope_ref, and forbids the sole reducer-stamped Event field actor_kind. Object payload schemas independently forbid actor-supplied effective_scope where that name is reserved for a read-only materialized object projection."
+          "description": "Actor-supplied ak.self.events.command.submit.v1 input envelope. It reuses the base Event shape, including the required producer-signed scope_ref, and forbids the sole reducer-stamped Event field actor_kind. Object payload schemas independently forbid actor-supplied effective_scope where that name is reserved for a read-only materialized object projection."
         }
       ]
     },
     "EventView": {
       "type": "object",
-      "description": "Result of ak.self.events.resource.get — a single complete Event Envelope, RedactedEventView, or ReferenceLockedEventStub with optional visibility / receipt hints. Redacted / locked variants are projection-only evidence and MUST NOT be used as reducer input.",
+      "description": "Result of ak.self.events.resource.get.v1 — a single complete Event Envelope, RedactedEventView, or ReferenceLockedEventStub with optional visibility / receipt hints. Redacted / locked variants are projection-only evidence and MUST NOT be used as reducer input.",
       "required": [
         "event"
       ],
@@ -2253,7 +2253,7 @@
     },
     "EventsDescribeRequestBody": {
       "type": "object",
-      "description": "QUERY content for ak.self.events.read.describe.",
+      "description": "QUERY content for ak.self.events.read.describe.v1.",
       "properties": {
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -2266,7 +2266,7 @@
     },
     "EventsFrontierState": {
       "type": "object",
-      "description": "Account-client ak.self.events.read.frontier response for actor/data Event causal frontiers only. Realm Seal discovery is exclusively ak.self.seals.read.frontier.",
+      "description": "Account-client ak.self.events.read.frontier.v1 response for actor/data Event causal frontiers only. Realm Seal discovery is exclusively ak.self.seals.read.frontier.v1.",
       "required": [
         "frontier"
       ],
@@ -2279,7 +2279,7 @@
     },
     "EventsFrontierFederationPeerState": {
       "type": "object",
-      "description": "Federation peer ak.peer.events.read.frontier response. Requires S2S signed trust-domain headers.",
+      "description": "Federation peer ak.peer.events.read.frontier.v1 response. Requires S2S signed trust-domain headers.",
       "required": [
         "realm_id",
         "heads",
@@ -2338,7 +2338,7 @@
     },
     "EventsFrontierRequestBody": {
       "type": "object",
-      "description": "QUERY content for ak.self.events.read.frontier. actor_id is mandatory because this surface exposes only actor/data Event causal frontiers; use ak.self.seals.read.frontier for a Realm Seal frontier.",
+      "description": "QUERY content for ak.self.events.read.frontier.v1. actor_id is mandatory because this surface exposes only actor/data Event causal frontiers; use ak.self.seals.read.frontier.v1 for a Realm Seal frontier.",
       "required": [
         "actor_id"
       ],
@@ -2494,7 +2494,7 @@
     },
     "EventsQueryOutcome": {
       "type": "object",
-      "description": "Result of ak.self.events.read.scan. Ordering follows the \"近邻先返回\" rule unless `order` was explicitly set on the request; see service-http-binding.md §3.3.3.",
+      "description": "Result of ak.self.events.read.scan.v1. Ordering follows the \"近邻先返回\" rule unless `order` was explicitly set on the request; see service-http-binding.md §3.3.3.",
       "required": [
         "events",
         "has_more"
@@ -2568,7 +2568,7 @@
     },
     "EventsQueryPostRequestBody": {
       "type": "object",
-      "description": "QUERY content for ak.self.events.read.scan and ak.peer.events.read.scan.",
+      "description": "QUERY content for ak.self.events.read.scan.v1 and ak.peer.events.read.scan.v1.",
       "additionalProperties": false,
       "anyOf": [
         {
@@ -2628,7 +2628,7 @@
         "include_completeness": {
           "type": "boolean",
           "default": false,
-          "description": "Request range-completeness attestation references covering the returned page (service-http-binding.md §3.3.6). Only effective when the service advertises events_query_range_completeness in supported_features; services that do not advertise it MUST ignore this parameter."
+          "description": "Request range-completeness attestation references covering the returned page (service-http-binding.md §3.3.6). Only effective when the service advertises ak.feature.events_query_range_completeness.v1 in supported_features; services that do not advertise it MUST ignore this parameter."
         }
       }
     },
@@ -2637,7 +2637,7 @@
       "x-arkret-pcr-outward-event-kinds": [
         "ak.contact.requested"
       ],
-      "description": "ak.self.events.read.resolve result. events[] and missing[] plus optional unauthorized[] form a partition. This surface returns Event bytes only. Control-Move effectiveness is established separately from the complete current Seal frontier/resolve closure; no covering or first-activation Seal is attached. DataEvents carry their accepted seal_ref, never enter Seal.delta and never require a covering Seal.",
+      "description": "ak.self.events.read.resolve.v1 result. events[] and missing[] plus optional unauthorized[] form a partition. This surface returns Event bytes only. Control-Move effectiveness is established separately from the complete current Seal frontier/resolve closure; no covering or first-activation Seal is attached. DataEvents carry their accepted seal_ref, never enter Seal.delta and never require a covering Seal.",
       "required": [
         "events",
         "missing"
@@ -2668,7 +2668,7 @@
     },
     "EventsResolveRequestBody": {
       "type": "object",
-      "description": "ak.self.events.read.resolve request body. At least one of event_ids or event_digests must be non-empty. Standalone Seal selectors and Control-Move effectiveness checks belong only to the Seal frontier/resolve surfaces; this operation never attaches activation Seals.",
+      "description": "ak.self.events.read.resolve.v1 request body. At least one of event_ids or event_digests must be non-empty. Standalone Seal selectors and Control-Move effectiveness checks belong only to the Seal frontier/resolve surfaces; this operation never attaches activation Seals.",
       "properties": {
         "event_ids": {
           "type": "array",
@@ -2982,7 +2982,7 @@
     },
     "EventsSubmitBatchRequestBody": {
       "type": "object",
-      "description": "Batch ak.self.events.command.submit request used by account clients.",
+      "description": "Batch ak.self.events.command.submit.v1 request used by account clients.",
       "required": [
         "events"
       ],
@@ -3000,7 +3000,7 @@
     },
     "EventsSubmitFederationBatchRequestBody": {
       "type": "object",
-      "description": "Ordinary Realm-scoped federation service-to-service ak.peer.events.command.submit request body. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar.",
+      "description": "Ordinary Realm-scoped federation service-to-service ak.peer.events.command.submit.v1 request body. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar.",
       "required": [
         "service_binding_ref",
         "events"
@@ -3031,7 +3031,7 @@
       "additionalProperties": false
     },
     "EventsSubmitFederationRequestBody": {
-      "description": "Closed request union for ak.peer.events.command.submit. The ordinary branch carries a Realm-scoped federation transaction; the direct_conversation_founding branch carries the Direct Conversation founding exception and is discriminated by unit_kind, which the ordinary branch forbids through additionalProperties:false.",
+      "description": "Closed request union for ak.peer.events.command.submit.v1. The ordinary branch carries a Realm-scoped federation transaction; the direct_conversation_founding branch carries the Direct Conversation founding exception and is discriminated by unit_kind, which the ordinary branch forbids through additionalProperties:false.",
       "oneOf": [
         {
           "$ref": "#/$defs/EventsSubmitFederationBatchRequestBody"
@@ -3345,7 +3345,7 @@
       "additionalProperties": false
     },
     "EventsSubmitRequestBody": {
-      "description": "Closed request union for ak.self.events.command.submit. The single and batch branches carry ordinary Events; the direct_conversation_founding branch is the only carrier for the Direct Conversation founding unit and is discriminated by unit_kind, which the other two branches forbid through additionalProperties:false.",
+      "description": "Closed request union for ak.self.events.command.submit.v1. The single and batch branches carry ordinary Events; the direct_conversation_founding branch is the only carrier for the Direct Conversation founding unit and is discriminated by unit_kind, which the other two branches forbid through additionalProperties:false.",
       "oneOf": [
         {
           "$ref": "#/$defs/EventInitialSubmission"
@@ -3362,7 +3362,7 @@
       ]
     },
     "SelfEventsSubmitOutcome": {
-      "description": "Closed response union for ak.self.events.command.submit. Ordinary submissions return EventsSubmitOutcome; the direct_conversation_founding request branch returns DirectConversationFoundingAcceptanceOutcome, which carries the source-signed founding acceptance receipt.",
+      "description": "Closed response union for ak.self.events.command.submit.v1. Ordinary submissions return EventsSubmitOutcome; the direct_conversation_founding request branch returns DirectConversationFoundingAcceptanceOutcome, which carries the source-signed founding acceptance receipt.",
       "oneOf": [
         {
           "$ref": "#/$defs/EventsSubmitOutcome"
@@ -3374,7 +3374,7 @@
     },
     "FederationServiceBindingRef": {
       "type": "object",
-      "description": "Request-level service binding snapshot carried by federation\nservice-to-service ak.peer.events.command.submit calls. This is metadata for the\nreceiver to verify the sender's delivery decision; client writes omit it.\n",
+      "description": "Request-level service binding snapshot carried by federation\nservice-to-service ak.peer.events.command.submit.v1 calls. This is metadata for the\nreceiver to verify the sender's delivery decision; client writes omit it.\n",
       "required": [
         "realm_id",
         "realm_policy_digest",
@@ -3436,7 +3436,7 @@
     },
     "IdentityDocumentView": {
       "type": "object",
-      "description": "Result of ak.root.identity.document.resource.get — current DID Document plus normalized view hints.",
+      "description": "Result of ak.root.identity.document.resource.get.v1 — current DID Document plus normalized view hints.",
       "required": [
         "did_document"
       ],
@@ -3461,7 +3461,7 @@
     },
     "IdentityLogListOutcome": {
       "type": "object",
-      "description": "Result of ak.root.identity.log.read.list. Entries are returned in the DID method's own native log form: for did:webvh each entry is a verbatim did.jsonl log entry with its native versionId, entryHash chain and Data Integrity proof. Arkret defines no parallel entry envelope, sequence numbering, hash chain or proof transcript over DID logs — the method already provides all of them, and a second signed representation of the same history could disagree with the first. Methods without a native history (did:web) MUST report that rather than being wrapped in a shape that implies one.",
+      "description": "Result of ak.root.identity.log.read.list.v1. Entries are returned in the DID method's own native log form: for did:webvh each entry is a verbatim did.jsonl log entry with its native versionId, entryHash chain and Data Integrity proof. Arkret defines no parallel entry envelope, sequence numbering, hash chain or proof transcript over DID logs — the method already provides all of them, and a second signed representation of the same history could disagree with the first. Methods without a native history (did:web) MUST report that rather than being wrapped in a shape that implies one.",
       "required": [
         "did",
         "method",
@@ -3499,7 +3499,7 @@
     },
     "IdentityReceiptListOutcome": {
       "type": "object",
-      "description": "Result of ak.root.identity.receipts.read.list. receipts[] is a tagged union over two distinct object families discriminated by their schema constant: ak.schema.identity_receipt.v1 records a role inside a DID registry consensus group (writer / witness / replica) and binds seq + head_event_digest, while ak.schema.did_webvh_witness_receipt.v1 records a did:webvh method witness observed at a specific versionId. The two say different things with the same English word, so the discriminator is mandatory and a verifier MUST branch on it rather than infer intent from which optional fields happen to be present.",
+      "description": "Result of ak.root.identity.receipts.read.list.v1. receipts[] is a tagged union over two distinct object families discriminated by their schema constant: ak.schema.identity_receipt.v1 records a role inside a DID registry consensus group (writer / witness / replica) and binds seq + head_event_digest, while ak.schema.did_webvh_witness_receipt.v1 records a did:webvh method witness observed at a specific versionId. The two say different things with the same English word, so the discriminator is mandatory and a verifier MUST branch on it rather than infer intent from which optional fields happen to be present.",
       "required": [
         "receipts"
       ],
@@ -4237,7 +4237,7 @@
     },
     "PeerEventsDescribeRequestBody": {
       "type": "object",
-      "description": "Canonical QUERY content for ak.peer.events.read.describe.",
+      "description": "Canonical QUERY content for ak.peer.events.read.describe.v1.",
       "properties": {
         "realm_id": {
           "$ref": "#/$defs/RealmId"
@@ -4247,7 +4247,7 @@
     },
     "PeerEventsFrontierRequestBody": {
       "type": "object",
-      "description": "Canonical QUERY content for ak.peer.events.read.frontier.",
+      "description": "Canonical QUERY content for ak.peer.events.read.frontier.v1.",
       "required": [
         "realm_id"
       ],
@@ -4296,7 +4296,7 @@
     },
     "PeerEventsResolveRequestBody": {
       "type": "object",
-      "description": "Read-only federation Event dependency resolution request. At least one of event_ids or event_digests must be non-empty. Standalone Seal selectors belong only to ak.peer.seals.read.resolve. All selectors are scoped to exactly one Realm and canonical-bytewise sorted/duplicate-free.",
+      "description": "Read-only federation Event dependency resolution request. At least one of event_ids or event_digests must be non-empty. Standalone Seal selectors belong only to ak.peer.seals.read.resolve.v1. All selectors are scoped to exactly one Realm and canonical-bytewise sorted/duplicate-free.",
       "required": [
         "realm_id"
       ],
@@ -4335,7 +4335,7 @@
         },
         "history_traversal_access": {
           "$ref": "./history-key.schema.json#/$defs/peer_history_traversal_access",
-          "description": "Optional narrow direct-traversal access. event_ids/event_digests may select only Control Moves or registered apply_seal dependencies in the exact retained target-to-base cut; Seal refs remain on ak.peer.seals.read.resolve. The authenticated peer and retained request/archive-replica basis are checked before lookup."
+          "description": "Optional narrow direct-traversal access. event_ids/event_digests may select only Control Moves or registered apply_seal dependencies in the exact retained target-to-base cut; Seal refs remain on ak.peer.seals.read.resolve.v1. The authenticated peer and retained request/archive-replica basis are checked before lookup."
         }
       },
       "anyOf": [
@@ -4354,7 +4354,7 @@
     },
     "PolicyCheckOutcome": {
       "type": "object",
-      "description": "Result of ak.self.policy.read.check — signed decision bound to authorization, policy, and membership frontier hashes.",
+      "description": "Result of ak.self.policy.read.check.v1 — signed decision bound to authorization, policy, and membership frontier hashes.",
       "required": [
         "request_id",
         "bound_to",
@@ -4477,7 +4477,7 @@
     },
     "PolicyCheckRequestBody": {
       "type": "object",
-      "description": "ak.self.policy.read.check input bound to a Realm authorization context.",
+      "description": "ak.self.policy.read.check.v1 input bound to a Realm authorization context.",
       "required": [
         "request_id",
         "realm_id",
@@ -5567,7 +5567,7 @@
     },
     "SessionGrantDeviceBinding": {
       "type": "object",
-      "description": "Authorization state committed into a standard device grant. An Account Authority MUST populate it verbatim from the allow receipt of ak.peer.device_revocations.command.check, which is the only source of the origin-derived authorization Event and generation; it MUST NOT be taken from client input, a local cache or a private lookup. Principal Servers compare it with the current active device generation on admission.",
+      "description": "Authorization state committed into a standard device grant. An Account Authority MUST populate it verbatim from the allow receipt of ak.peer.device_revocations.command.check.v1, which is the only source of the origin-derived authorization Event and generation; it MUST NOT be taken from client input, a local cache or a private lookup. Principal Servers compare it with the current active device generation on admission.",
       "required": [
         "device_id",
         "authorization_event_id",
@@ -6481,7 +6481,7 @@
     },
     "SignalSubmitOutcome": {
       "type": "object",
-      "description": "Result of ak.self.signal.command.send. accepted=true means the service admitted the encrypted envelope into the short-lived signal rail. No Event ID, actor_seq, Seal coverage, or durable receipt is minted.",
+      "description": "Result of ak.self.signal.command.send.v1. accepted=true means the service admitted the encrypted envelope into the short-lived signal rail. No Event ID, actor_seq, Seal coverage, or durable receipt is minted.",
       "required": [
         "accepted",
         "realm_id",
@@ -6677,7 +6677,7 @@
     },
     "SnapshotBootstrap": {
       "type": "object",
-      "description": "Optional ak.self.events.read.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
+      "description": "Optional ak.self.events.read.scan.v1 acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
       "required": [
         "snapshot_ref",
         "state_digest",

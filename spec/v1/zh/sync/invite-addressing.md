@@ -23,7 +23,7 @@ Realm invite 的基础寻址模型是：
 invite_delivery = invite_address + introduction_evidence
 ```
 
-base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle(intent="invite" | "member_add")` 才能投递。Handle 是人类可读入口，不是邀请投递授权；实现不得把猜到的 `<localpart>:<domain>` 字符串自动升级成可投递邀请。用户 MAY 显式发布 handle 并允许 verified handle 作为 first-contact / invite 入口，但接收方仍必须把解析结果归约为 `subject_id`、可验证 handle claim 与 `invite_receive_policy` 判定。
+base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle.v1(intent="invite" | "member_add")` 才能投递。Handle 是人类可读入口，不是邀请投递授权；实现不得把猜到的 `<localpart>:<domain>` 字符串自动升级成可投递邀请。用户 MAY 显式发布 handle 并允许 verified handle 作为 first-contact / invite 入口，但接收方仍必须把解析结果归约为 `subject_id`、可验证 handle claim 与 `invite_receive_policy` 判定。
 
 邀请目标的规范输入是显式 `invite_address`：
 
@@ -81,9 +81,9 @@ locator 只能由 subject 当前 Principal Server 的认证 self surface 管理�
 
 | operation | HTTP binding | 语义 |
 | --- | --- | --- |
-| `ak.self.invite_locator.command.issue` | `POST /_arkret/self/invite-locators` | 为 session actor 发行新 locator。body 可含 `ttl_seconds`（默认 900，范围 60..3600）、`one_time_use`（默认 false）与可选 `display_hint`。`subject_id`、`recipient_service_id` 与当前 `service_resolution` 均由服务端从认证 session、本机 service identity 和已验证 route record 推导，MUST NOT 由客户端提交。 |
-| `ak.self.invite_locator.command.rotate` | `POST /_arkret/self/invite-locators/rotate` | 在同一 durable transaction 中撤销 `locator_id` 指向的旧 locator 并返回全新 locator/token。旧 locator 不存在、已撤销、已消费或不属于 session actor 时 MUST 返回 `not_found`，不得替调用方泄露归属或状态。 |
-| `ak.self.invite_locator.command.revoke` | `POST /_arkret/self/invite-locators/revoke` | 撤销属于 session actor 的 locator；对同一已撤销 locator 的重复请求是 idempotent success。不存在、不属于 actor 或已消费的 locator 返回 `not_found`。 |
+| `ak.self.invite_locator.command.issue.v1` | `POST /_arkret/self/invite-locators` | 为 session actor 发行新 locator。body 可含 `ttl_seconds`（默认 900，范围 60..3600）、`one_time_use`（默认 false）与可选 `display_hint`。`subject_id`、`recipient_service_id` 与当前 `service_resolution` 均由服务端从认证 session、本机 service identity 和已验证 route record 推导，MUST NOT 由客户端提交。 |
+| `ak.self.invite_locator.command.rotate.v1` | `POST /_arkret/self/invite-locators/rotate` | 在同一 durable transaction 中撤销 `locator_id` 指向的旧 locator 并返回全新 locator/token。旧 locator 不存在、已撤销、已消费或不属于 session actor 时 MUST 返回 `not_found`，不得替调用方泄露归属或状态。 |
+| `ak.self.invite_locator.command.revoke.v1` | `POST /_arkret/self/invite-locators/revoke` | 撤销属于 session actor 的 locator；对同一已撤销 locator 的重复请求是 idempotent success。不存在、不属于 actor 或已消费的 locator 返回 `not_found`。 |
 
 issue / rotate 的成功响应是 `principal-locator.schema.json#/$defs/invite_locator_issue_outcome`，其中 `locator_token` 是以 CSPRNG 生成、至少含 192 bit 熵且只返回一次的 bearer secret；响应 MUST 携带 `Cache-Control: private, no-store`，服务端 MUST NOT 持久化 raw token，任何中间层也不得缓存响应体。revoke 成功响应是 `#/$defs/invite_locator_revoke_outcome`；同一 principal 对已撤销 locator 的重试 MUST 返回首次撤销记录的原始 `revoked_at`，不得用重试时刻改写它。这些 self operation 使用普通 session + PoP 写认证；locator 归属绑定 principal account，而不是某个 device/session，因此同一 principal 的其它有效 session MAY 轮换或撤销它。
 
@@ -309,7 +309,7 @@ Rules:
 
 ```text
 POST /_arkret/self/invites/dispatch
-operation_id = ak.self.invites.command.dispatch
+operation_id = ak.self.invites.command.dispatch.v1
 ```
 
 请求 body 使用 `ak.schema.invite_delivery_request.v1#/$defs/self_invite_dispatch_request`，只携
@@ -334,7 +334,7 @@ trust header、伪造 peer session 或自签 S2S 认证材料来走 peer 路径�
 
 ```text
 POST /_arkret/peer/invites
-operation_id = ak.peer.invites.command.submit
+operation_id = ak.peer.invites.command.submit.v1
 ```
 
 request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Server MUST：
@@ -357,25 +357,25 @@ notify 分支的 holder-private 投递承载是 account-data 私有 cell，key �
 - 该 cell 是 [`../models/account-data.md` §5](../models/account-data.md) 的 server-versioned CAS whole-value register：每次写入携带 `expected_revision`，冲突时写入方 MUST 重读当前值、按本节规则重新合并后重试，重试 MUST 有界（至多 3 次）；重试耗尽 MUST 放弃本次投递写入并以内部冲突失败，MUST NOT 以 stale revision 强行覆盖。
 - 每次写入 MUST 先清除 `expires_at <= now` 的过期 entry，再按 `invite_id` 去重（同一 `invite_id` 的重复投递替换旧 entry，不重复占位），随后 append 新 entry；结果超过 200 条上限时 MUST 从 `received_at` 最旧的 entry 开始逐出，直至不超过 200 条。
 - entry 的 `expires_at` MUST 取自 invite Event payload 的 `expires_at`；payload 未携带时服务端 MUST 以该 Event 的 `created_at` 加 7 天兜底。`expires_at <= now` 的 entry 是 stale 的：客户端 MUST NOT 用它执行 accept，并 MUST 在读取时按 `expires_at` 过滤。
-- 写入被 CAS 接受后，服务端 MUST 以 `ak.account_data.update` actor-private device update 把已接受的 revision 与完整 value fanout 到 holder 的全部 active devices。该 envelope 使用 `DeviceMessageSender::Service { sender_service_id }` 分支：`sender_principal_id == recipient_principal_id == holder`，`sender_service_id` 等于当前接收 Principal Server 的 service identity；不伪造 origin device，不走 holder device revocation gate，也不排除任一 active holder device。fanout 只是实时加速路径；离线或错过 fanout 的设备 MUST 能直接经 `ak.self.account_data.read.list` 或 `ak.self.account_data.resource.get` 回读该 CAS cell 补取（account-data 天然是可回读的 register），两条路径读到的 revision/value 必须一致。CAS 冲突或其它未接受写入不得 fanout。
+- 写入被 CAS 接受后，服务端 MUST 以 `ak.account_data.update` actor-private device update 把已接受的 revision 与完整 value fanout 到 holder 的全部 active devices。该 envelope 使用 `DeviceMessageSender::Service { sender_service_id }` 分支：`sender_principal_id == recipient_principal_id == holder`，`sender_service_id` 等于当前接收 Principal Server 的 service identity；不伪造 origin device，不走 holder device revocation gate，也不排除任一 active holder device。fanout 只是实时加速路径；离线或错过 fanout 的设备 MUST 能直接经 `ak.self.account_data.read.list.v1` 或 `ak.self.account_data.resource.get.v1` 回读该 CAS cell 补取（account-data 天然是可回读的 register），两条路径读到的 revision/value 必须一致。CAS 冲突或其它未接受写入不得 fanout。
 - private delivery material（含 `invite_token`）MUST NOT 物化到 Invite 对象或任何 Realm state（[`../models/governance-objects.md` §5.3](../models/governance-objects.md)）；该 cell 是 directed invite token 送达被邀请方设备的唯一规范私有承载。
 
 ## 8. Describe Capabilities
 
-支持 invite addressing 的 Principal Server SHOULD 在 `ServiceDescribe.operation_bindings` 中声明对应 operation 的精确 carrier/schema 行：
+支持 invite addressing 的 Principal Server MUST 广告能展开出下列精确 `http_json` pair 的 registered operation bundle：
 
-- `ak.self.invite_locator.command.issue`
-- `ak.self.invite_locator.command.rotate`
-- `ak.self.invite_locator.command.revoke`
-- `ak.self.invites.command.dispatch`
-- `ak.open.invite_locator.read.resolve`
-- `ak.peer.invites.command.submit`
+- `ak.self.invite_locator.command.issue.v1`
+- `ak.self.invite_locator.command.rotate.v1`
+- `ak.self.invite_locator.command.revoke.v1`
+- `ak.self.invites.command.dispatch.v1`
+- `ak.open.invite_locator.read.resolve.v1`
+- `ak.peer.invites.command.submit.v1`
 
-它 MAY 在 `x_invite_addressing` 扩展字段中给出粗粒度能力：
+它同时 MUST 在 `supported_features[]` 声明 `ak.feature.invite_addressing.v1`，并在 registered `invite_addressing` 字段给出可协商能力：
 
 ```json
 {
-  "x_invite_addressing": {
+  "invite_addressing": {
     "supported_introduction_kinds": [
       "locator_ref",
       "consent_grant",
@@ -384,9 +384,8 @@ notify 分支的 holder-private 投递承载是 account-data 私有 cell，key �
       "same_principal_server",
       "explicit_address"
     ],
-    "recommended_introduction_kind": "locator_ref",
-    "handle_claim_default_behavior": "quarantine",
-    "explicit_address_default_behavior": "quarantine"
+    "handle_claim_max_behavior": "quarantine",
+    "explicit_address_max_behavior": "drop"
   },
   "receive_policy_constraints": {
     "policy_version": "2026-06-21",
@@ -404,7 +403,7 @@ notify 分支的 holder-private 投递承载是 account-data 私有 cell，key �
 }
 ```
 
-Directory 服务若支持 handle lookup，也 MAY 在 `ServiceDescribe` 或 `ak.find.directory.read.describe` 的扩展字段中声明：
+Directory 服务若支持 handle lookup，也 MAY 在 `ServiceDescribe` 或 `ak.find.directory.read.describe.v1` 的扩展字段中声明：
 
 ```json
 {
@@ -419,8 +418,8 @@ base clients MUST NOT require `resolve_handle(intent="invite" | "member_add")` t
 
 ## 9. Handle 与 Mention 边界
 
-`ak.find.directory.read.resolve_handle(intent="contact_request" | "invite" | "member_add")` 是可选 Directory 能力，不是 base first-contact / invite / member-add 的安全关键路径。Directory 即使返回 `member_delivery_binding` 或旧式 `MemberDeliveryBindingCandidate`，也只能作为可验证 builder evidence 或 `handle_claim` introduction evidence；reducer 仍 MUST 按 Join Policy 与 [`member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化。
+`ak.find.directory.read.resolve_handle.v1(intent="contact_request" | "invite" | "member_add")` 是可选 Directory 能力，不是 base first-contact / invite / member-add 的安全关键路径。Directory 即使返回 `member_delivery_binding` 或旧式 `MemberDeliveryBindingCandidate`，也只能作为可验证 builder evidence 或 `handle_claim` introduction evidence；reducer 仍 MUST 按 Join Policy 与 [`member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化。
 
 Realm 内 mention 不依赖公网 handle resolve。客户端在用户输入 `@alice:acme.example` 时 MUST 先从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 中解析到 `subject_id`。发送 Message 前必须持久化 DID-sealed mention reference；handle 字符串只能作为 audit / search metadata。
 
-已知 `subject_id` 需要显示当前 handle 时，客户端 MAY 使用 roster 内联 `handle_claims[]` 或 `ak.find.directory.read.list_handles_for_subject`。这条 subject -> current handles 路径不得反向用来发现未知主体、发起 invite delivery 或构造 membership grant；只有 holder/issuer 已发布 verified handle claim，且 subject policy 与部署约束允许 `handle_claim` evidence 时，客户端才可把 handle 解析结果作为 first-contact / invite 的 introduction evidence。
+已知 `subject_id` 需要显示当前 handle 时，客户端 MAY 使用 roster 内联 `handle_claims[]` 或 `ak.find.directory.read.list_handles_for_subject.v1`。这条 subject -> current handles 路径不得反向用来发现未知主体、发起 invite delivery 或构造 membership grant；只有 holder/issuer 已发布 verified handle claim，且 subject policy 与部署约束允许 `handle_claim` evidence 时，客户端才可把 handle 解析结果作为 first-contact / invite 的 introduction evidence。

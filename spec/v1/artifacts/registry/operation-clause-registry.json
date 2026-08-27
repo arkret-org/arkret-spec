@@ -1,8 +1,8 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-08-27.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-27T09:00:00+08:00",
-  "description": "Canonical selector-based normative-clause coverage registry for service operations. A profile conformance claim computes its inherited required_endpoints closure and MUST satisfy every active clause whose selector matches each operation. This registry complements operation-registry shape; it does not create a second operation namespace.",
+  "generated_at": "2026-08-27T14:00:00+08:00",
+  "description": "Canonical selector-based normative-clause coverage registry for service operations. A profile conformance claim computes its inherited operation_requirements closure and MUST satisfy every active clause whose selector matches each operation. This registry complements operation-registry shape; it does not create a second operation namespace.",
   "certification_rule": {
     "profile_operation_source": "profiles/conformance-profiles.json#profile_requirements",
     "operation_shape_source": "registry/operation-registry.json#operations",
@@ -13,22 +13,22 @@
   "selector_definitions": {
     "partial_outcome_operations": {
       "operation_ids": [
-        "ak.self.events.command.submit",
-        "ak.peer.events.command.submit"
+        "ak.self.events.command.submit.v1",
+        "ak.peer.events.command.submit.v1"
       ]
     },
     "privacy_sensitive_operations": {
       "operation_ids": [
-        "ak.self.agent.sidecar.command.ensure",
-        "ak.self.agent.sidecar.resource.get",
-        "ak.find.directory.read.resolve_agent_selector",
-        "ak.self.invite_locator.command.rotate",
-        "ak.peer.account_status.read.resolve",
-        "ak.peer.events.read.resolve",
-        "ak.peer.mls.read.group_state_material",
-        "ak.open.agent_pairing.read.runtime_key_request_status",
-        "ak.open.device_pairing.read.resolve",
-        "ak.open.device_pairing.read.status"
+        "ak.self.agent.sidecar.command.ensure.v1",
+        "ak.self.agent.sidecar.resource.get.v1",
+        "ak.find.directory.read.resolve_agent_selector.v1",
+        "ak.self.invite_locator.command.rotate.v1",
+        "ak.peer.account_status.read.resolve.v1",
+        "ak.peer.events.read.resolve.v1",
+        "ak.peer.mls.read.group_state_material.v1",
+        "ak.open.agent_pairing.read.runtime_key_request_status.v1",
+        "ak.open.device_pairing.read.resolve.v1",
+        "ak.open.device_pairing.read.status.v1"
       ]
     }
   },

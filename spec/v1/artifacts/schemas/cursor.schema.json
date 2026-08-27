@@ -40,7 +40,7 @@
         "stream",
         "barrier"
       ],
-      "description": "Cursor purpose. 'stream' = continuation cursor for incremental sync / list pagination. Used as 'after' on /account/subscribe, 'before' / 'after' in the JSON content of ak.self.events.read.scan and ak.peer.events.read.scan (including its service-to-service federation binding QUERY /_arkret/peer/events), and as response 'prev_cursor' (older direction) / 'next_cursor' (newer direction). prev_cursor / next_cursor carry absolute directional meaning regardless of how the request was issued — see api-conventions.md §7.0. 'barrier' = read-your-writes / wait-for-event cursor (use in X-Arkret-Wait-For header to block until local frontier covers target.event_id). The handle binding (resolved server-side) carries positions for 'stream' or target for 'barrier'; the wire body does not."
+      "description": "Cursor purpose. 'stream' = continuation cursor for incremental sync / list pagination. Used as 'after' on /account/subscribe, 'before' / 'after' in the JSON content of ak.self.events.read.scan.v1 and ak.peer.events.read.scan.v1 (including its service-to-service federation binding QUERY /_arkret/peer/events), and as response 'prev_cursor' (older direction) / 'next_cursor' (newer direction). prev_cursor / next_cursor carry absolute directional meaning regardless of how the request was issued — see api-conventions.md §7.0. 'barrier' = read-your-writes / wait-for-event cursor (use in X-Arkret-Wait-For header to block until local frontier covers target.event_id). The handle binding (resolved server-side) carries positions for 'stream' or target for 'barrier'; the wire body does not."
     },
     "issued_at": {
       "$ref": "#/$defs/timestamp",

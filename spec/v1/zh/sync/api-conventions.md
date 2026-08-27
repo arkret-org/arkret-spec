@@ -81,7 +81,7 @@ Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，�
 标准 `operation_id` 是跨 transport 的语义操作名，不是 HTTP method 的派生名。Operation ID MUST 使用可变长度前缀加固定末两段：
 
 ```text
-ak.<surface>.<domain-or-subject...>.<kind>.<action>
+ak.<surface>.<domain-or-subject...>.<kind>.<action>.v1
 ```
 
 `<kind>` MUST 取下表固定集合。`<action>` 是该 kind 内的业务动作，MUST 描述协议效果，不得为表达 transport binding 而采用只描述传输、不描述协议效果的纯 HTTP method 名称 `post` / `put` / `patch`。`get` / `delete` 作为 `resource` kind 下的 canonical action，描述的是读取 / 删除这一**协议效果**（其 HTTP method 由 `kind` 钉死，见下表），不在此限。
@@ -101,9 +101,23 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>
 - `command.publish` 表示发布调用方签名的 policy / identity state / 权威文档，由服务端按签名、版本和 `supersedes` 链验证后接受；除非目标 URI 本身就是可完整替换的 slot，否则 MUST 使用 `POST`。
 - `command.send` / `command.notify` 表示投递、入队或 fanout；即使有幂等键，也不是 `resource.replace`。
 - `command.ack` 表示对已投递数据做显式确认；天然幂等，但不得被 cursor 推进隐式替代。
-HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan` 为例，其 HTTP binding 唯一为 `QUERY /_arkret/self/events`，OpenAPI 3.2 的 `query:` Operation Object 持有唯一 `operationId`。实现不得为同一 operation 暴露未登记的 GET / POST 别名；gRPC / MQ 同样只暴露 registry 中的 canonical operation。
+HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan.v1` 为例，其 HTTP binding 唯一为 `QUERY /_arkret/self/events`，OpenAPI 3.2 的 `query:` Operation Object 持有唯一 `operationId`。实现不得为同一 operation 暴露未登记的 GET / POST 别名；gRPC / MQ 同样只暴露 registry 中的 canonical operation。
 
-### 2.4.1 写操作的 durable Event authorship 闭包（normative）
+### 2.4.1 HTTP operation selector（normative）
+
+每个 canonical HTTP 请求（包括 `GET /_arkret/describe`）都 MUST 携带请求头
+`Arkret-Operation`，其值 MUST 是 operation registry 中完整、带版本的 exact
+`operation_id`。接收方 MUST 在读取或解析 body 之前完成以下检查：
+
+1. 缺失 header 返回 HTTP 400 / `operation_selector_required`；
+2. operation id 未注册、服务未支持该 exact 版本，或该 id 不属于当前 method/path route family，返回 HTTP 422 / `unsupported_operation_version`；
+3. 不得按 URL、body schema、字段相似度、无版本别名或其他版本回退来猜测 operation。
+
+成功响应 MUST 以 `Arkret-Operation` response header 原样回显本次选择的 exact id。
+需要 RFC 9421 HTTP Message Signature 的请求与响应，签名基串 MUST 覆盖该 header；
+选择器因此也是授权、幂等和审计 transcript 的一部分，而不是路由提示。
+
+### 2.4.2 写操作的 durable Event authorship 闭包（normative）
 
 每个带 `idempotency_mechanism` 的写 operation 都 MUST 在 canonical
 `contract-registry.json` 的 operation 行声明一个 `durable_effect`，且只可使用：
@@ -134,7 +148,7 @@ HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan` �
 - `kind` 只描述本 operation 在当前 Arkret 服务内**是否/如何 author durable Event**；
   `cross_service_effects` 描述同一 operation **越过本地事务边界后可能已经提交的外部持久副作用**。
   两者正交：`kind:"none"` 的 operation 同样可以有外部 durable effect
-  （例：`ak.peer.account_status.command.submit` 不 author Event，但 `erasure_pending` 分支要求
+  （例：`ak.peer.account_status.command.submit.v1` 不 author Event，但 `erasure_pending` 分支要求
   接收端先落 durable 物理擦除意图才能 ack）。因此 MUST NOT 把这对成员绑死在 `event_log` 上。
 
 本字段不描述、也不声称闭合服务内部的数据库表、事务拆分、outbox/queue 结构、single-use claim
@@ -154,7 +168,7 @@ ledger、缓存或补偿实现。上述内部实现只有在其可观察的 retr
 - 这对成员 MUST 放在实际发生副作用的 leaf effect 上（含 `effect_branches[].effect`），
   顶层 `branched` object MUST NOT 携带它们——否则一个分支的不可逆性会被错误推广到全部请求。
 
-**`viewer` action（术语定义）**：`ak.self.account.read.viewer` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
+**`viewer` action（术语定义）**：`ak.self.account.read.viewer.v1` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
 
 ### 2.5 HTTP method 语义
 
@@ -166,7 +180,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - `DELETE`：删除一个已知 URI 表示的资源、binding 或 slot；重复删除必须有定义良好的幂等结果。
 - `PATCH`：仅在规范显式定义 patch document 语义、冲突检测和幂等边界时使用；否则 partial update 使用 `POST` command 或 `PUT` slot replacement。
 
-因此，`ak.self.device_messages.command.send` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_arkret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ak.self.device_messages.command.ack` 触发。相反，`ak.self.keys.backups.resource.replace`、`ak.self.realm_policy_server.resource.replace`、`ak.self.account_data.resource.replace` 和 `ak.self.agent.participation.resource.replace` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
+因此，`ak.self.device_messages.command.send.v1` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_arkret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ak.self.device_messages.command.ack.v1` 触发。相反，`ak.self.keys.backups.resource.replace.v1`、`ak.self.realm_policy_server.resource.replace.v1`、`ak.self.account_data.resource.replace.v1` 和 `ak.self.agent.participation.resource.replace.v1` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
 
 ## 3. 认证
 
@@ -193,13 +207,13 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 - 带有 `access_token`、`session_credential`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
 - 拒绝时 SHOULD 返回 `unauthenticated` 或 `param_invalid`，并且不得把 query 中的敏感值写入普通访问日志。
-- `ak.self.blob.command.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
+- `ak.self.blob.command.presign.v1` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
 - 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
 - online principal locator 的 `#token=` fragment 同样只是客户端 handoff。`locator_token` MUST 通过 `POST /_arkret/open/invite-locators/resolve` JSON body 提交；不得出现在 URL path 或 query string。详见 [`invite-addressing.md`](./invite-addressing.md)。
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。Principal Server 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
+认证与授权服务器可以分离。Principal Server 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session.v1`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
 
 ```json
 {
@@ -282,7 +296,7 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 
 - **DPoP 签名**:DPoP proof JWT MUST 用该 grant 的 grant-binding(DPoP)key 签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Principal Server 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
 - **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。`htu` 比对遵循 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) §4.3,先剥离 query 与 fragment，再逐字比较经规范化的 scheme + authority + path。**外部 URI 重建**:`htu` 的 authority 是客户端看到的 gate origin。直连部署 MUST 使用请求自身的 scheme 与 authority；反向代理部署 MUST 使用静态配置的 public origin，或仅接受由受信最后一跳代理写入、并在入口清洗所有客户端同名 header 后得到的 `Forwarded` / `X-Forwarded-Host` / `X-Forwarded-Proto`。实现不得信任任意首跳转发值，也不得退化为 path-only 比对；无法可靠重建完整外部 URI 时 MUST 以 `unauthenticated` 拒绝 DPoP 出示。
-- **grant active**:grant MUST 经 session-grant 内省判定 issuer ledger 当前为 active(`ak.gate.account.command.introspect_session_grant`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。本地 session/cache 只是有 freshness 上限的投影，MUST NOT 覆盖 issuer 返回的 revoked/superseded/expired 或成为第二真相源。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Principal Server MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
+- **grant active**:grant MUST 经 session-grant 内省判定 issuer ledger 当前为 active(`ak.gate.account.command.introspect_session_grant.v1`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。本地 session/cache 只是有 freshness 上限的投影，MUST NOT 覆盖 issuer 返回的 revoked/superseded/expired 或成为第二真相源。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Principal Server MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
 - **grant class/binding**：JWT 与内省必须使用
   `service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims` 的 typed
   `credential_class`，Arkret v1 固定为 `standard` 并必须携带 `holder_binding`。恢复完成入口在核验 replacement
@@ -399,7 +413,7 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 - 未声明或未实现的路径 MUST 返回 HTTP `404` 与错误码 `unrecognized_endpoint`。
 - 已知路径但 HTTP method 不受支持时 MUST 返回 HTTP `405` 与错误码 `method_not_allowed`，并 SHOULD 设置 `Allow` header。
 - 这两类请求 MUST 在路由层终止，不得进入业务逻辑、写入队列、触发昂贵解析或产生可观察副作用。
-- 客户端和联邦对端 MUST 使用 `describe.operation_bindings` 的精确 carrier/schema 交集、OpenAPI 文档和 feature discovery 判断 endpoint 是否可用，不得根据非标准 404 body 做能力推断。
+- 客户端和联邦对端 MUST 使用 `describe.supported_operation_bundles` 的精确 carrier/schema 交集、OpenAPI 文档和 feature discovery 判断 endpoint 是否可用，不得根据非标准 404 body 做能力推断。
 
 ## 6. 幂等
 
@@ -418,7 +432,7 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 - 相同幂等键 + 相同 canonical request body MUST 返回与首次请求语义等价的结果。
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
 - 服务端 SHOULD 记录 request identity 与完整 canonical request hash；联邦与服务间写入 MUST 将完整 hash 纳入签名 transcript 或 transaction replay cache。
-- `object_id` 与 `protocol_sequence` 通常是资源/协议状态 identity，不是请求级幂等键。逐字节相同的合法重放按 registry 的 `retry_safe` 承诺返回原 outcome 或等价 no-op；同一对象或序列上的不同 canonical body 通常是普通后继写，受 CAS、frontier、版本或状态机规则约束。**Event identity 例外**：`ak.self.events.command.submit` 与 `ak.peer.events.command.submit` 虽登记为 `protocol_sequence`，但 `event_id` 是 immutable content identity；同一 `event_id` 对应不同 digest-preimage canonical Event bytes MUST 按 operations-sync §12 / federation §4.3 整组 quarantine，并返回登记的 `witness_disagreement` reason，不得当作后继写。仅 excluded envelope 字段不同不属于该分支。
+- `object_id` 与 `protocol_sequence` 通常是资源/协议状态 identity，不是请求级幂等键。逐字节相同的合法重放按 registry 的 `retry_safe` 承诺返回原 outcome 或等价 no-op；同一对象或序列上的不同 canonical body 通常是普通后继写，受 CAS、frontier、版本或状态机规则约束。**Event identity 例外**：`ak.self.events.command.submit.v1` 与 `ak.peer.events.command.submit.v1` 虽登记为 `protocol_sequence`，但 `event_id` 是 immutable content identity；同一 `event_id` 对应不同 digest-preimage canonical Event bytes MUST 按 operations-sync §12 / federation §4.3 整组 quarantine，并返回登记的 `witness_disagreement` reason，不得当作后继写。仅 excluded envelope 字段不同不属于该分支。
 - `idempotency_mechanism="none"` 与 `retry_safe=false` 同时出现时，该 operation MUST 在 binding 文档中给出超时后的 outcome 查询、一次性材料重新签发或人工确认路径；客户端 MUST NOT 把传输失败解释为“服务端未执行”并盲目重放。`none/true` 只表示重复执行纯计算等价，不产生需要去重的 write outcome。
 
 上述恢复路径的机读真相源是 operation registry 同行 `uncertain_outcome`：`query_operation` 必须引用 outcome/read operation；`reissue_material` 必须引用重新签发入口并要求 fresh request identity；`revoke_then_reissue` 必须分别引用幂等 revoke 与 fresh-material issue operation，并要求 fresh request identity，客户端只有在 revoke 已达可确认终态后才可 issue；`manual_confirmation` 明确进入 uncertain 人工确认；`drop_unconfirmed` 仅允许不持久化、可安全丢弃的 ephemeral/fanout signal。`none/false` 缺该字段、引用未知 operation、或任何重新签发策略未要求 fresh identity 时，artifact lint MUST 失败。
@@ -438,7 +452,7 @@ Applet transaction push 的幂等记录（[`applet-integration.md` §7.3](../ext
 - **安全全量重试同 identity**：仅当 registry 声明 `retry_safe=true` 时，语义上同一请求的全量重试才允许自动执行。若 `idempotency_mechanism != "none"`，重试 MUST 复用同一稳定 request identity（`Idempotency-Key` / `event_id` / `request_id` / object id / canonical hash / protocol sequence），且 canonical form 的 request body MUST 逐字节相同；若为纯计算 `none/true`，请求体仍 MUST 逐字节相同，但不虚构 idempotency key。
 - **不安全 operation 禁止自动重放**：`retry_safe=false` 时，客户端 MUST NOT 自动全量重试；必须先执行该 operation 的 outcome 查询或恢复流程。若没有机器可调用的恢复路径，调用方只能把结果标为 uncertain 并请求人工确认，不能生成新的 key 盲目再发。
 - **改内容必换 request key**：采用请求级 identity 的请求修改内容后重交 MUST 换新幂等键，MUST NOT 以旧幂等键携带新 canonical body 重交（服务端按上文规则返回 `duplicate_conflict`）。`object_id` / `protocol_sequence` 不适用本条。
-- **federation submit 收到响应后是新求值**：`ak.peer.events.command.submit` 的调用方只有在完全未收到响应、首次结果不确定时，才把逐字节相同的 transport retry 视为上文“安全全量重试”并复用原 `Idempotency-Key`。一旦收到任何 submit 响应，该 key 即终结；按 `accepted[] ∪ duplicate[]` 求差重组的 partial retry、依赖补齐后的同 body 重求值以及原子 `dependency_missing` 后的重交都 MUST 使用新的 `Idempotency-Key`（或省略），见 [`federation.md` §4.1](./federation.md)。接收方仍可按 [`federation.md` §8.5](./federation.md) 对旧 key + 相同 canonical hash 返回旧幂等 outcome，但调用方不得把该 cache hit 当作依赖补齐后的新求值。
+- **federation submit 收到响应后是新求值**：`ak.peer.events.command.submit.v1` 的调用方只有在完全未收到响应、首次结果不确定时，才把逐字节相同的 transport retry 视为上文“安全全量重试”并复用原 `Idempotency-Key`。一旦收到任何 submit 响应，该 key 即终结；按 `accepted[] ∪ duplicate[]` 求差重组的 partial retry、依赖补齐后的同 body 重求值以及原子 `dependency_missing` 后的重交都 MUST 使用新的 `Idempotency-Key`（或省略），见 [`federation.md` §4.1](./federation.md)。接收方仍可按 [`federation.md` §8.5](./federation.md) 对旧 key + 相同 canonical hash 返回旧幂等 outcome，但调用方不得把该 cache hit 当作依赖补齐后的新求值。
 
 ## 7. Cursor（统一不透明 token）
 
@@ -450,21 +464,21 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
-| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见本文 §7.0 与 [`client-sync.md` §2](./client-sync.md)）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ak.self.events.read.scan` 与 federation peer `ak.peer.events.read.scan`（canonical `QUERY` JSON content 中的 `before` / `after`）的请求 cursor 与响应 `prev_cursor` / `next_cursor`——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
+| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见本文 §7.0 与 [`client-sync.md` §2](./client-sync.md)）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ak.self.events.read.scan.v1` 与 federation peer `ak.peer.events.read.scan.v1`（canonical `QUERY` JSON content 中的 `before` / `after`）的请求 cursor 与响应 `prev_cursor` / `next_cursor`——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
 | `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Arkret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
-任何返回 cursor 对的响应（`ak.self.events.read.scan`、列表分页等）使用统一的**绝对方向**约定；`/_arkret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
+任何返回 cursor 对的响应（`ak.self.events.read.scan.v1`、列表分页等）使用统一的**绝对方向**约定；`/_arkret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
 
 | 响应字段 | 含义 | 回传给下一次请求 |
 | --- | --- | --- |
-| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ak.self.events.read.scan` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
-| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ak.self.events.read.scan` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
+| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ak.self.events.read.scan.v1` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
+| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ak.self.events.read.scan.v1` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
-HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ak.self.events.read.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在本文 §8 定义的 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header 或等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `param_invalid`。
+HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ak.self.events.read.scan.v1` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在本文 §8 定义的 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header 或等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `param_invalid`。
 
 规则：
 
@@ -472,8 +486,8 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - 任何接受 cursor 的接口 MUST 在 wire/schema 层先拒绝不满足注册 cursor 类型与词法约束的值并返回 `schema_violation`；对通过该层但令牌结构、完整性或请求绑定无效的 cursor 返回 `param_invalid`，对已过期 cursor 返回 `cursor_expired`。
 - 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `param_invalid`。
 - TTL 硬上限：barrier cursor 与 stream cursor 的 `expires_at - issued_at` 硬上限的**唯一 canonical 数值定义点**见 [`encoding.md` §8.3 规则 9](../conformance/encoding.md)；本节不重复字面毫秒数值。
-- 声明 `cursor_revoke_high_assurance` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
-- 声明 `events_query_range_completeness` feature 的服务必须实现 [`service-http-binding.md` §3.3.5](./service-http-binding.md)：`ak.self.events.read.scan` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ak.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
+- 声明 `ak.feature.cursor_revoke_high_assurance.v1` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
+- 声明 `ak.feature.events_query_range_completeness.v1` feature 的服务必须实现 [`service-http-binding.md` §3.3.5](./service-http-binding.md)：`ak.self.events.read.scan.v1` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ak.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
 
 ### 7.1 列表分页（normative）
 
@@ -491,14 +505,14 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - 优先使用资源复数名（`realms[]` / `strands[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
 - 没有自然资源复数名时使用语义名：全文/混合实体搜索命中使用 `matches[]`，原始查询行使用 `rows[]`，private contact discovery 仍使用 `matches[]`；
 - **MUST NOT** 使用 `results[]` 作为返回字段名，避免与 Rust `Result` 语义和 SDK 类型命名冲突；
-- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ak.self.device_messages.read.list` 与 `ak.self.account.stream.subscribe`）。
+- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ak.self.device_messages.read.list.v1` 与 `ak.self.account.stream.subscribe.v1`）。
 
 **`next_cursor` / `has_more`** (normative)：
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。
 - `has_more: boolean` MUST 出现：客户端 MUST 仅按 `has_more` 决定是否继续翻页；不得仅靠 `next_cursor` 是否存在做判断（实现可能在末尾仍返回 `next_cursor` 用作 long-poll resume token）。
 
 本小节的三字段合同同样适用于双向 Event range scan，但 `has_more` 在那里只表达**更旧方向**：
-`ak.self.events.read.scan` / `ak.peer.events.read.scan` 的 `has_more` 回答"沿 `before=<prev_cursor>`
+`ak.self.events.read.scan.v1` / `ak.peer.events.read.scan.v1` 的 `has_more` 回答"沿 `before=<prev_cursor>`
 是否还有更旧 Event"。更新方向没有对应布尔，因为 `next_cursor` 永远有效（朝未来推进），
 "暂时没有更新事件"不是分页终点。字段集以 `EventsQueryOutcome`
 （[`service-operation-dtos.schema.json`](../../artifacts/schemas/service-operation-dtos.schema.json)）为准；
@@ -506,7 +520,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 
 **`prev_cursor`**（可选, 双向分页）：仅当接口支持向"更旧"方向翻页时返回。详见 §7.0；不支持双向翻页的接口 MUST NOT 返回 `prev_cursor`。
 
-**Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；所有 v1 接口（包括 `ak.self.device_messages.read.list`）MUST 使用这两个方向名，不得引入 `from=` / `start_at=` 等同义别名。
+**Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；所有 v1 接口（包括 `ak.self.device_messages.read.list.v1`）MUST 使用这两个方向名，不得引入 `from=` / `start_at=` 等同义别名。
 
 服务端 MAY 对 `limit` 设置上限。超过上限时 SHOULD 使用最大允许值或返回 `param_invalid`。
 
@@ -615,7 +629,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 **path 不含版本段。** 所有 HTTP path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/arkret/v1`）。契约版本的唯一真相源是 `contract-registry.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ak.schema.*.v1`）和 event kind 版本后缀承载。
 
-版本与能力发现走 **`*.describe` 协商**：调用方 MUST 先精确比较 `describe.protocol_version`；与本地支持的 `"1.0"` 不等时 MUST 以 `unsupported_protocol_version` fail closed，不得解释或缓存其它声明。版本匹配后，调用方再用 `describe.operation_bindings` 的精确 carrier/schema 交集与 `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。当前尚未发布，破坏性修订直接更新 current-v1 canonical event kind、schema、profile、fixture 与 `forbidden-wire-fields`，不保留 rename alias、迁移表或双读路径。如确需在传输层标注协议版本，用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。选择支持该请求 header 或等价 media-type 参数的 binding，对不支持的形状合法版本 MUST 返回 `unsupported_protocol_version`，不得猜测或回退。
+版本与能力发现走 **`*.describe` 协商**：调用方 MUST 先精确比较 `describe.protocol_version`；与本地支持的 `"1.0"` 不等时 MUST 以 `unsupported_protocol_version` fail closed，不得解释或缓存其它声明。版本匹配后，调用方再用 `describe.supported_operation_bundles` 的精确 carrier/schema 交集与 `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。当前尚未发布，破坏性修订直接更新 current-v1 canonical event kind、schema、profile、fixture 与 `forbidden-wire-fields`，不保留 rename alias、迁移表或双读路径。如确需在传输层标注协议版本，用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。选择支持该请求 header 或等价 media-type 参数的 binding，对不支持的形状合法版本 MUST 返回 `unsupported_protocol_version`，不得猜测或回退。
 
 每个服务 SHOULD 暴露 describe endpoint，返回：
 

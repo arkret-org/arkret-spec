@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/transport-binding.schema.json",
   "title": "TransportBinding",
-  "description": "Standalone entry point for the closed ServiceDescribe supported_bindings union.",
+  "description": "Standalone entry point for the closed ServiceDescribe transport_bindings union. Operation coverage is supplied only by registered operation bundles.",
   "$ref": "./service-describe.schema.json#/$defs/transport_binding",
   "$defs": {
     "http_json": {

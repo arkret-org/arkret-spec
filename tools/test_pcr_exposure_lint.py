@@ -76,7 +76,7 @@ class PcrExposureLintTest(unittest.TestCase):
         for row in registry["event_kinds"]:
             for exposure in row["exposures"]:
                 if exposure.get("surface") == "operation":
-                    exposure["operation_id"] = "ak.self.events.read.definitely_not_registered"
+                    exposure["operation_id"] = "ak.self.events.read.definitely_not_registered.v1"
                     break
             else:
                 continue

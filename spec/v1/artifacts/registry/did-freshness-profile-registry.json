@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-15.1",
+  "version": "2026-08-27.1",
   "source_of_truth": true,
   "description": "Canonical registry of the did-usage-and-verification.md section 5.4 freshness profile ids a DID authority call site may reference. Registration fixes the id and its risk_tier; the numeric windows are declared per deployment and enter profile_policy of the section 5.3 resolver policy snapshot, so no network-wide minute count is implied.",
   "registry_rules": [
@@ -120,89 +120,89 @@
   "call_sites": [
     {
       "site_kind": "operation",
-      "site_id": "ak.find.directory.command.announce",
+      "site_id": "ak.find.directory.command.announce.v1",
       "evidence_class": "ongoing_governance",
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
       "purpose": "Verify the announce governance proof of the announcing service or organization, and resolve the principal server endpoint inside the same first-ingest admission."
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.find.directory.command.takedown_appeal",
+      "site_id": "ak.find.directory.command.takedown_appeal.v1",
       "evidence_class": "ongoing_governance",
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
       "purpose": "Verify the appellant governance signature on a takedown appeal packet before the Directory issues a decision receipt."
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.find.directory.command.withdraw",
+      "site_id": "ak.find.directory.command.withdraw.v1",
       "evidence_class": "ongoing_governance",
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
       "purpose": "Verify the withdraw governance signature of the service or organization that owns the directory entry."
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.gate.account.command.issue_controller_gate_attestation",
+      "site_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
       "evidence_class": "ongoing_governance",
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.gate.account.command.issue_identity_binding_challenge",
+      "site_id": "ak.gate.account.command.issue_identity_binding_challenge.v1",
       "evidence_class": "registration_control",
       "freshness_profile_id": "ak.did_freshness.registration_current.v1"
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.gate.account.command.issue_did_binding_challenge",
+      "site_id": "ak.gate.account.command.issue_did_binding_challenge.v1",
       "evidence_class": "registration_control",
       "freshness_profile_id": "ak.did_freshness.registration_current.v1"
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.root.identity.command.submit_did_operation",
+      "site_id": "ak.root.identity.command.submit_did_operation.v1",
       "evidence_class": "method_successor",
       "freshness_profile_id": "ak.did_freshness.method_successor.v1"
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.root.identity.organization_registration.command.ensure",
+      "site_id": "ak.root.identity.organization_registration.command.ensure.v1",
       "evidence_class": "ongoing_governance",
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.root.identity.organization_registration.command.prepare",
+      "site_id": "ak.root.identity.organization_registration.command.prepare.v1",
       "evidence_class": "ongoing_governance",
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.root.identity.organization_registration.command.refresh",
+      "site_id": "ak.root.identity.organization_registration.command.refresh.v1",
       "evidence_class": "ongoing_governance",
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.root.identity.organization_registration.command.revoke",
+      "site_id": "ak.root.identity.organization_registration.command.revoke.v1",
       "evidence_class": "ongoing_governance",
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.root.identity.read.resolve",
+      "site_id": "ak.root.identity.read.resolve.v1",
       "evidence_class": "current_external_claim",
       "freshness_profile_id": "ak.did_freshness.current_external_claim.v1"
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.root.identity.recovery_session.command.submit_proof",
+      "site_id": "ak.root.identity.recovery_session.command.submit_proof.v1",
       "evidence_class": "optional_did_root_recovery",
       "freshness_profile_id": "ak.did_freshness.optional_did_root_recovery.v1",
       "when": "proof_kind == did_root and the accepted PCR recovery policy explicitly enables the factor"
     },
     {
       "site_kind": "operation",
-      "site_id": "ak.root.identity.service_registration.command.ensure",
+      "site_id": "ak.root.identity.service_registration.command.ensure.v1",
       "evidence_class": "ongoing_governance",
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
     },

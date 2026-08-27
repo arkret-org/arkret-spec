@@ -160,7 +160,7 @@ server-visible selector；精确 signal kind 和 product target 始终位于 cip
 实现只有声明 `ak.profile.signal_peer_relay.v1` 时才能广告：
 
 ```text
-operation: ak.peer.signal.command.relay
+operation: ak.peer.signal.command.relay.v1
 POST /_arkret/peer/signal
 request:  ak.schema.signal_relay.v1
 response: ak.schema.signal_relay.v1#/$defs/signal_relay_outcome
@@ -279,7 +279,7 @@ wire profile。
 能力发现只使用：
 
 - `supported_profiles` 包含 `ak.profile.signal_peer_relay.v1`；
-- `operation_bindings` 包含 `ak.peer.signal.command.relay` 的精确 carrier/schema 行；
+- `supported_operation_bundles` 包含 `ak.peer.signal.command.relay.v1` 的精确 carrier/schema 行；
 - operation registry 的固定 count/body/retry contract。
 
 不得广告 `supported_signal_kinds` 或 per-member relay support；精确 payload kind 位于 ciphertext。

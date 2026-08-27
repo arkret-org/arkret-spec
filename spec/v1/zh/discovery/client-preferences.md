@@ -35,7 +35,7 @@ Account Data 的存储、namespace key、`derive_account_data_key`、value encry
 
 account data 默认是 holder-private 加密数据，Principal Server sync surface 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。presence / typing 的精确 kind、target 与 visibility policy 不交给服务端读取；发送端按 [`profiles-presence.md` §3.4](./profiles-presence.md) 选择可安全加密的 scope。服务端仅可读取其它明确声明、确有服务端执行需要的最小 policy projection（例如单独授权的 blocklist data class）。"account data 加密"与"服务端执行 policy"之间的边界必须显式协商：
 
-- 服务端 MUST 在 `ak.server.read.describe`（`ServiceDescribe`）中声明它能否读取每个最小 policy projection（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。`presence_visibility` 不得声明为服务端可读；未声明的其它 data class 视为不能读取。
+- 服务端 MUST 在 `ak.server.read.describe.v1`（`ServiceDescribe`）中声明它能否读取每个最小 policy projection（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。`presence_visibility` 不得声明为服务端可读；未声明的其它 data class 视为不能读取。
 - Presence / typing 的 policy gate **固定在发送客户端**：客户端只向符合本端 membership、contact 与 visibility 判断的整个加密 scope 发送；无法安全选择 scope 时 MUST 抑制发送。Principal Server sync surface 只按外层已签名 `scope_ref` 做成员级 fanout，不读取或推断 `ak.presence.visibility`，也不得因无法读取该 key 而把整个 opaque Signal rail 判为不可转发。
 - 单独声明且 holder 明确授权的其它最小 projection（例如 blocklist data class）可由服务端执行；其过滤结果 MUST NOT 让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 离线"（§3.5）。
 
@@ -198,7 +198,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 #### 3.5.1 收取与过滤边界（normative）
 
 - **共享 Realm 消息**：必须先按正常 federation / sync 路径收取、验签、准入、存储并推进 canonical Event / Seal 状态，因为同一 Event 对其他成员、引用链和 state root 仍然有效；随后才在 holder-private projection 应用 `block` / `hide`。不得在网络层丢弃该 Operation，也不得从共享 history、Seal coverage 或其它成员视图删除它。被过滤内容不生成 holder notification、mention attention、自动 read receipt，且不得触发 typing / presence 等可让发送方推断 block 命中的差异信号。
-- **现有 Direct Conversation**：个人 blocklist 自身只是私有过滤器，不撤销 membership、Contact authority 或 participant authority。若产品的“拉黑用户”承诺阻止后续 DM 写入，客户端 MUST 把 blocklist 更新与 `ak.self.contact.command.tombstone{block_peer=true}` 作为同一持久化 saga 执行并重试至闭合；Contact tombstone使稳定 conversation 投影为 `suspended` 并禁止新 application message，Consent revoke不得作为替代或附加门槛。只写 blocklist 时，对端仍可能成功提交 shared DM Event，本端必须同步后私下过滤。
+- **现有 Direct Conversation**：个人 blocklist 自身只是私有过滤器，不撤销 membership、Contact authority 或 participant authority。若产品的“拉黑用户”承诺阻止后续 DM 写入，客户端 MUST 把 blocklist 更新与 `ak.self.contact.command.tombstone.v1{block_peer=true}` 作为同一持久化 saga 执行并重试至闭合；Contact tombstone使稳定 conversation 投影为 `suspended` 并禁止新 application message，Consent revoke不得作为替代或附加门槛。只写 blocklist 时，对端仍可能成功提交 shared DM Event，本端必须同步后私下过滤。
 - **新的 holder-private 请求**：contact request、首次 DM invite、call invite 或 applet-mediated request 在受托服务有权读取 blocklist 时可于 holder surface 前 drop；否则服务必须以不可区分形态转发加密材料，由客户端本地过滤。两种模式都不得向发送方返回 `blocked_by_user`，也不得产生可区分的错误、时延或 delivery receipt。
 - **解除屏蔽**：下一 revision 移除 entry 后，未来 projection 立即停止过滤。此前已经正常收取并按 retention 保留的共享 Realm / DM 历史会重新出现在 holder view；若产品希望解除后仍不显示旧内容，必须另存 holder-private hide/tombstone 或执行已有 erasure 流程，不能把 blocklist removal 偷换成历史删除。Block 期间被 Contact tombstone真正拒绝、从未 accepted 的新请求或消息不会因解除屏蔽而补写。
 - **离线与多设备**：设备只能依据其已同步到的最高 accepted blocklist revision 过滤。尚未取得新 revision 的设备必须把 blocklist freshness 视为 unknown，禁止发送 read receipt / presence 等可能泄漏差异的信号，待 actor-private account-data catch-up 后重算 holder projection。
@@ -207,11 +207,11 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 ### 3.6 联系人备注 (Contact Remarks)
 
-用户可以为 `ak.self.contact.read.list` 中 `peer.kind="human"` 且状态为 `accepted` 的联系人保存只对自己可见的全局备注名（wire 字段 `petname`）、笔记和私有标签。逻辑记录由 `(holder principal_id, peer.principal_id)` 唯一确定；同一 holder 对同一联系人至多存在一条 live value，并在所有 Realm 共用。用户不得设置 per-Realm 联系人备注名，也不得创建 `ak.contacts.realm_actor.*`、`ak.contacts.actor.<principal_key>.<realm_id>` 或等价分叉载体。
+用户可以为 `ak.self.contact.read.list.v1` 中 `peer.kind="human"` 且状态为 `accepted` 的联系人保存只对自己可见的全局备注名（wire 字段 `petname`）、笔记和私有标签。逻辑记录由 `(holder principal_id, peer.principal_id)` 唯一确定；同一 holder 对同一联系人至多存在一条 live value，并在所有 Realm 共用。用户不得设置 per-Realm 联系人备注名，也不得创建 `ak.contacts.realm_actor.*`、`ak.contacts.actor.<principal_key>.<realm_id>` 或等价分叉载体。
 
 该数据是 principal-private 的渲染覆盖层，**不**修改对方公开 profile，**不**写入 Realm history、mention、sender attribution 或任何协议主体字段。`peer.principal_id` 是 human Contact 的用户 `did_core_id`；`peer_service_id` 只是托管对端的 Principal Server service DID，不是联系人身份键。Realm `actor_id`、Realm-scoped pairwise DID、MemberIdentity row、`realm_id`、handle、display name 与 `ak.profile.realm_override` 均不得成为联系人备注的逻辑键。
 
-`ak.contacts.*` account-data key 只表达 holder-private 备注、标签、置顶、别名和本地排序。它不通知对方，不证明对方接受，也不打开 `direct_message` / `invite` / `call` / `presence` gate。联系人关系状态与 Contact-based action gate MUST 只从 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 `ak.contact.*` directional fact log 投影；Consent不得参与。客户端 MAY 把本地备注与 `ak.self.contact.read.list` 结果合并展示，但不得把 account-data note 当作 accepted contact。
+`ak.contacts.*` account-data key 只表达 holder-private 备注、标签、置顶、别名和本地排序。它不通知对方，不证明对方接受，也不打开 `direct_message` / `invite` / `call` / `presence` gate。联系人关系状态与 Contact-based action gate MUST 只从 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 `ak.contact.*` directional fact log 投影；Consent不得参与。客户端 MAY 把本地备注与 `ak.self.contact.read.list.v1` 结果合并展示，但不得把 account-data note 当作 accepted contact。
 
 **Key:** `ak.contacts.actor.<principal_key>`，其中：
 
@@ -248,7 +248,7 @@ storage_key = "ak.contacts.actor." || principal_key
 | --- | --- | --- | --- |
 | `version` | `int` | yes | schema 版本，当前为 `1`。 |
 | `subject.kind` | `const("human")` | yes | 与 Contact human branch 对齐；Organization、设备、service 或 Realm actor 不得复用该记录。 |
-| `subject.principal_id` | `did_core_id` | yes | `ak.self.contact.read.list` human row 的 `peer.principal_id`；解密后 MUST 用它重算 `<principal_key>` 并精确匹配当前 storage key。 |
+| `subject.principal_id` | `did_core_id` | yes | `ak.self.contact.read.list.v1` human row 的 `peer.principal_id`；解密后 MUST 用它重算 `<principal_key>` 并精确匹配当前 storage key。 |
 | `petname` | `string` | no | holder 为该稳定联系人主体保存的全局备注名，最大 128 个 Unicode code point；UI 中文称“备注名”。按 `arkret_single_line_display_text` 验证，跨所有 Realm 生效。 |
 | `note` | `string` | no | 自由文本笔记，最大 4096 字符。 |
 | `tags` | `string[]` | no | 私有分组标签，命名规则同 §3.1 Realm tags（`ak.*` 保留给本规范，`<vendor>.*` 用于客户端扩展）。 |
@@ -272,7 +272,7 @@ storage_key = "ak.contacts.actor." || principal_key
 - Contact accept 生效后，客户端 SHOULD 仅在该 key 从未存在时，以当时可验证的全局 `actor_profile.display_name` 同时初始化 `petname` 与 `global_display_name_at_save`，并保存 verified handle（若有）。不得以 Realm override、handle、DID、MemberIdentity display 或 OIDC `name` 代替全局 profile。已有记录的 `petname`、note、tags、pin、`saved_at` 与快照必须保留；并发初始化必须按 account-data whole-value CAS 做 read/decrypt → domain merge → encrypt/write，且保持幂等。
 - 备注初始化或同步失败 MUST NOT 回滚、拒绝或伪装成 Contact accept 失败；客户端 SHOULD 持久重试并可显示“备注尚未跨设备同步”。手工输入备注和备注写入成功都不得成为 request / respond / glare accepted 的协议前置，也不得成为 typing / presence 等可被对端观察的差异信号。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `petname` 与 `note`。服务端仍可能观察不透明 key 的数量、大小与更新时间；实现不得声称消除了这些流量 metadata。
-- 删除联系人备注 MUST 使用 `ak.self.account_data.resource.delete` 写入 [`../models/account-data.md` §5.3](../models/account-data.md) 定义的有版本 physical-delete tombstone，不依赖客户端本地清理，也不得用无法通过本节字段验证的空对象冒充删除。
+- 删除联系人备注 MUST 使用 `ak.self.account_data.resource.delete.v1` 写入 [`../models/account-data.md` §5.3](../models/account-data.md) 定义的有版本 physical-delete tombstone，不依赖客户端本地清理，也不得用无法通过本节字段验证的空对象冒充删除。
 
 不透明 key transcript、raw principal / Realm / service DID 负例与解密后 slot-binding 校验由 `ak.vector.account_data.contact_petname_binding.v1` 闭合；成对名称碰撞由 `ak.vector.encoding.confusable_check.v1` 闭合。
 
@@ -327,7 +327,7 @@ storage_key = "ak.contacts.actor." || principal_key
 - 当 Realm 公开 `title` 与 `verified_title_at_save` 不一致，或 `owning_organizations` 与 `verified_owning_organizations_at_save` 不一致时，客户端 SHOULD 在该 Realm 渲染处显示 title changed / organization changed 标记，并提示用户复核备注；该机制与 §3.6 `verified_handle_at_save` 对称。
 - 当用户已加入的多个 Realm 的公开 `title` 字符串经 `arkret_display_confusable_v1` 判为碰撞时，UI MUST 优先按 `local_name` 区分；缺少 `local_name` 时 MUST 退化到 `owning_organizations` / source Realm / `ak:realm:` 短摘要等附加上下文，不得在仅显示 `title` 的情况下让用户做破坏性或不可逆操作。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
-- 删除 Realm 备注 MUST 使用 `ak.self.account_data.resource.delete` 写入 [`../models/account-data.md` §5.3](../models/account-data.md) 定义的有版本 physical-delete tombstone（与 §3.6 联系人备注同一机制），不依赖客户端本地清理，也不得用空对象冒充删除——空对象会被 `ak.self.account_data.resource.replace` 的 closed schema 当作普通值写入，删不掉任何东西。用户离开或被踢出 Realm MAY 触发自动 tombstone（客户端策略，规范不强制）。
+- 删除 Realm 备注 MUST 使用 `ak.self.account_data.resource.delete.v1` 写入 [`../models/account-data.md` §5.3](../models/account-data.md) 定义的有版本 physical-delete tombstone（与 §3.6 联系人备注同一机制），不依赖客户端本地清理，也不得用空对象冒充删除——空对象会被 `ak.self.account_data.resource.replace.v1` 的 closed schema 当作普通值写入，删不掉任何东西。用户离开或被踢出 Realm MAY 触发自动 tombstone（客户端策略，规范不强制）。
 - `ak.contacts.realm.<realm_id>` 与 §3.1 `ak.tags.realm.<realm_id>` 并存：前者负责命名与笔记，后者负责分组与 `order` 排序；客户端 SHOULD 在本地 projection 中按 `realm_id` join 二者，规范上互不替代。
 
 ### 3.8 已读回执偏好 (Read Receipt Preferences)

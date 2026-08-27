@@ -107,7 +107,7 @@
         "destination_service_id": "did:webvh:z6mkfixtureserverbetaexample:server-beta.example",
         "method": "POST",
         "target_uri": "https://server-beta.example/_arkret/peer/events",
-        "operation_id": "ak.peer.events.command.submit",
+        "operation_id": "ak.peer.events.command.submit.v1",
         "content_type": "application/json",
         "content_encoding": null,
         "content_digest_placement": "header",

@@ -14,7 +14,7 @@
         {
           "name": "accepted_original_push",
           "input": {
-            "operation_id": "ak.peer.events.command.submit",
+            "operation_id": "ak.peer.events.command.submit.v1",
             "headers": {
               "Source-Service-ID": "did:webvh:z6mkfixturealphaexample:alpha.example",
               "Destination-Service-ID": "did:webvh:z6mkfixturebetaexample:beta.example",
@@ -35,7 +35,7 @@
             "given_state": {
               "vector_id": "ak.vector.federation.idempotency_after_key_revoke.v1",
               "preconditions": {
-                "operation_id": "ak.peer.events.command.submit",
+                "operation_id": "ak.peer.events.command.submit.v1",
                 "headers": {
                   "Source-Service-ID": "did:webvh:z6mkfixturealphaexample:alpha.example",
                   "Destination-Service-ID": "did:webvh:z6mkfixturebetaexample:beta.example",
@@ -47,12 +47,12 @@
                 "origin_key_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
-            "operation": "ak.peer.events.command.submit",
+            "operation": "ak.peer.events.command.submit.v1",
             "transcript": {
               "step": "accepted_original_push",
               "canonicalization": "fixture_json_v1",
               "input": {
-                "operation_id": "ak.peer.events.command.submit",
+                "operation_id": "ak.peer.events.command.submit.v1",
                 "headers": {
                   "Source-Service-ID": "did:webvh:z6mkfixturealphaexample:alpha.example",
                   "Destination-Service-ID": "did:webvh:z6mkfixturebetaexample:beta.example",

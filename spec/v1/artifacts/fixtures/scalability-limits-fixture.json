@@ -402,7 +402,7 @@
       "input": {
         "generator": {
           "kind": "operation_batch_matrix",
-          "operation_id": "ak.self.events.command.submit",
+          "operation_id": "ak.self.events.command.submit.v1",
           "cases": [
             {
               "count": 1000,
@@ -703,7 +703,7 @@
       "input": {
         "generator": {
           "kind": "operation_batch_items",
-          "operation_id": "ak.self.events.command.submit",
+          "operation_id": "ak.self.events.command.submit.v1",
           "count": 1001
         }
       },
@@ -916,7 +916,7 @@
       "input": {
         "generator": {
           "kind": "mls_governance_proof_limit_matrix",
-          "operation_id": "ak.self.seals.read.mls_governance_proof",
+          "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
           "schema_ref": "schemas/mls-governance-proof-bundle.schema.json",
           "dimensions": [
             {

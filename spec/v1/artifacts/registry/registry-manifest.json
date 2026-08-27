@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.1",
+  "version": "2026-08-27.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-26T14:10:00+08:00",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
@@ -252,6 +252,24 @@
       "description": "Generated registry view for service operation IDs across HTTP, gRPC, and message-queue surfaces."
     },
     {
+      "name": "operation_contract_closure_lock",
+      "file": "registry/operation-contract-closure-lock.json",
+      "kind": "operation_contract_closure_lock",
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-registry.json",
+      "description": "Append-only SHA-256 locks for each exact versioned operation contract and recursive schema/error closure."
+    },
+    {
+      "name": "operation_bundle_closure_lock",
+      "file": "registry/operation-bundle-closure-lock.json",
+      "kind": "operation_bundle_closure_lock",
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-registry.json",
+      "description": "Append-only SHA-256 locks for registered role-local operation bundle memberships."
+    },
+    {
       "name": "binding_kinds",
       "file": "registry/binding-kind-registry.json",
       "kind": "binding_kind_registry",
@@ -260,6 +278,16 @@
       "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for closed ServiceDescribe transport binding kinds and extension profile requirements."
+    },
+    {
+      "name": "features",
+      "file": "registry/feature-registry.json",
+      "kind": "feature_registry",
+      "value_set_evolution": "open",
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-registry.json",
+      "description": "Generated registry view for exact supported_features identifiers and their operation, profile, limit, guarantee, and conflict prerequisites."
     },
     {
       "name": "authority_sources",

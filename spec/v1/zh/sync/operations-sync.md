@@ -80,8 +80,8 @@ encrypted-only `SignalEnvelope`；key verification、secret 与 Realm key 请求
 
 | `wire_scope` | 允许 schema | 允许提交路径 |
 | --- | --- | --- |
-| `durable_event` | `ak.schema.event.v1` | `ak.self.events.command.submit`、`ak.peer.events.command.submit` |
-| `actor_private_event` | `ak.schema.event.v1`，但不得携带 CBA reducer 字段 | `ak.self.events.command.submit` 的 actor 私有路径 |
+| `durable_event` | `ak.schema.event.v1` | `ak.self.events.command.submit.v1`、`ak.peer.events.command.submit.v1` |
+| `actor_private_event` | `ak.schema.event.v1`，但不得携带 CBA reducer 字段 | `ak.self.events.command.submit.v1` 的 actor 私有路径 |
 
 Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_scope` 值。`wire_scope`
 只分类 signed Event Envelope。
@@ -187,8 +187,8 @@ flowchart TB
 
 ## 5. 批量提交与 partial accept
 
-`ak.self.events.command.submit` 接收单个 `EventInitialSubmission` 或
-`{events: EventInitialSubmission[]}`；`ak.peer.events.command.submit` 接收
+`ak.self.events.command.submit.v1` 接收单个 `EventInitialSubmission` 或
+`{events: EventInitialSubmission[]}`；`ak.peer.events.command.submit.v1` 接收
 `EventFederationSubmission[]`。两种封装中的 `event` 都是同一个完整签名 Event Envelope；
 lease、receipt 与 proof bundle 是独立发布证据，不进入 Event digest。批处理的最小原子单元是
 单个 Event 及其发布证据；一个 Event 的失败不得回滚同批已接受 Event。
@@ -368,7 +368,7 @@ Snapshot 后续恢复流程：
 
 ## 11. 首次加入 Realm
 
-**加入提交目标（normative）**：跨域加入时客户端唯一提交目标是自己的 Principal Server。后者完成本地 admission 后，才可使用 `ak.find.directory.read.resolve_realm` / `ak.find.directory.read.resolve_target` / signed invite metadata 中由 signed invite 或当前 joined-member delivery binding 裁剪的 `join_candidates[]` 作为 federation forwarding hints（见 [`federation.md` §5.0](./federation.md)）。客户端不得直投 candidate；所有重试 MUST 绑定同一 canonical `realm_id`。
+**加入提交目标（normative）**：跨域加入时客户端唯一提交目标是自己的 Principal Server。后者完成本地 admission 后，才可使用 `ak.find.directory.read.resolve_realm.v1` / `ak.find.directory.read.resolve_target.v1` / signed invite metadata 中由 signed invite 或当前 joined-member delivery binding 裁剪的 `join_candidates[]` 作为 federation forwarding hints（见 [`federation.md` §5.0](./federation.md)）。客户端不得直投 candidate；所有重试 MUST 绑定同一 canonical `realm_id`。
 
 推荐流程：
 

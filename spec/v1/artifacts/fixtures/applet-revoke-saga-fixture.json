@@ -9,8 +9,8 @@
   "covers_vectors": [
     "ak.vector.applet.revoke_saga.v1"
   ],
-  "operation_id": "ak.self.applet.command.revoke",
-  "preview_operation_id": "ak.self.applet.revoke.command.preview",
+  "operation_id": "ak.self.applet.command.revoke.v1",
+  "preview_operation_id": "ak.self.applet.revoke.command.preview.v1",
   "plan": {
     "revoke_plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "steps": [

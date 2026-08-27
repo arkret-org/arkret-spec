@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/signal-stream-frame.schema.json",
   "title": "SignalStreamFrame",
-  "description": "One frame emitted by ak.self.signal.stream.subscribe. Signal data is encrypted-only and ephemeral. Control frames never create a cursor, replay position, delivery receipt, or durable acceptance.",
+  "description": "One frame emitted by ak.self.signal.stream.subscribe.v1. Signal data is encrypted-only and ephemeral. Control frames never create a cursor, replay position, delivery receipt, or durable acceptance.",
   "oneOf": [
     {
       "$ref": "#/$defs/signal"

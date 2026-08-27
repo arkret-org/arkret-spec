@@ -307,7 +307,7 @@
           "resources": [
             {
               "kind": "operation",
-              "operation": "ak.self.events.read.scan"
+              "operation": "ak.self.events.read.scan.v1"
             }
           ]
         },
@@ -347,12 +347,12 @@
         "requested_scope": {
           "actions": [
             "ak.event.read",
-            "ak.self.events.stream.subscribe"
+            "ak.self.events.stream.subscribe.v1"
           ],
           "resources": [
             {
               "kind": "operation",
-              "operation": "ak.self.events.stream.subscribe"
+              "operation": "ak.self.events.stream.subscribe.v1"
             }
           ]
         },
@@ -365,7 +365,7 @@
         "requested_scope_digest": "sha256:774ff4cc2f724fc735e6dba7f5b6031f180fac5fd77299df736e087ece69c133"
       },
       "assertions": [
-        "agent provision operation id remains ak.self.agent.command.provision",
+        "agent provision operation id remains ak.self.agent.command.provision.v1",
         "agent provision capability action matches the operation id",
         "provision fails without a controller recovery policy before creating any Agent DID, PCR, or grant side effect",
         "controller publishes PCR-independent DID entry 0; prepare validates an exact accepted controller_principal_server_id, verifies full_id and returns exact initial_resolution plus allocation without generating DID/private keys or durable Agent/PCR/accountability/selector/pairing/grant side effects, and MUST NOT allocate principal_control_realm_id",
@@ -539,7 +539,7 @@
         "abandoned": false,
         "challenge_consumed": false,
         "tombstone_count": 0,
-        "remediation_operation": "ak.self.agent.command.deactivate"
+        "remediation_operation": "ak.self.agent.command.deactivate.v1"
       }
     },
     {
@@ -564,12 +564,12 @@
         "requested_scope": {
           "actions": [
             "ak.event.read",
-            "ak.self.events.stream.subscribe"
+            "ak.self.events.stream.subscribe.v1"
           ],
           "resources": [
             {
               "kind": "operation",
-              "operation": "ak.self.events.stream.subscribe"
+              "operation": "ak.self.events.stream.subscribe.v1"
             }
           ]
         },
@@ -609,7 +609,7 @@
       "vector_id": "ak.vector.agent.pairing_expiry.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_pairing_expiry_vector",
       "assertions": [
-        "agent key-pair operation id remains ak.gate.account.command.pair_agent_key",
+        "agent key-pair operation id remains ak.gate.account.command.pair_agent_key.v1",
         "expired pairing requests fail with pairing_request_expired",
         "DID mismatch, invalid proof, expired pairing, and deactivated agent errors are all pinned"
       ]
@@ -660,7 +660,7 @@
       "canonical_possession_transcript_json": "{\"audience\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"challenge\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"context\":\"ak.agent_runtime_key_possession_proof.v1\",\"created_at\":\"2026-07-17T13:45:07.734Z\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"agent_runtime_key_possession\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"runtime_key_binding_digest\":\"sha256:d9bfa43d517f962dd5fa8e1a8873dce0de410bffec06b553ea03dd01e330460f\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
       "expected_possession_transcript_digest": "sha256:694b26b7615ddca6aa74550604bc595fdf221b03dd9b17427e3f253ad28711d2",
       "expected_proof_of_possession_digest": "sha256:6692332ce24096fb2c761cdfb76617fd8029df3fe6ab29fa2a144d6dcbf3686e",
-      "canonical_pairing_request_binding_json": "{\"agent_id\":\"ak:did_core:webvh:z6mkagent\",\"audience\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"controller_id\":\"ak:did_core:webvh:z6mkcontroller\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"ak.agent.key_pairing_request_binding.v1\",\"operation_id\":\"ak.gate.account.command.pair_agent_key\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"proof_of_possession_digest\":\"sha256:6692332ce24096fb2c761cdfb76617fd8029df3fe6ab29fa2a144d6dcbf3686e\",\"runtime_key_binding_digest\":\"sha256:d9bfa43d517f962dd5fa8e1a8873dce0de410bffec06b553ea03dd01e330460f\"}",
+      "canonical_pairing_request_binding_json": "{\"agent_id\":\"ak:did_core:webvh:z6mkagent\",\"audience\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"controller_id\":\"ak:did_core:webvh:z6mkcontroller\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"ak.agent.key_pairing_request_binding.v1\",\"operation_id\":\"ak.gate.account.command.pair_agent_key.v1\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"proof_of_possession_digest\":\"sha256:6692332ce24096fb2c761cdfb76617fd8029df3fe6ab29fa2a144d6dcbf3686e\",\"runtime_key_binding_digest\":\"sha256:d9bfa43d517f962dd5fa8e1a8873dce0de410bffec06b553ea03dd01e330460f\"}",
       "expected_pairing_request_binding_digest": "sha256:3a2b725ec80c4ec47fb1aed666ce87ad13cdb5abd680927f3b2787eb7ceb6a02",
       "assertions": [
         "same stable binding retry retains approval_request_id and notification id and emits action upsert",
@@ -768,7 +768,7 @@
       "vector_id": "ak.vector.agent.session_grant.replay.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_session_grant_replay_vector",
       "assertions": [
-        "session grant issue operation id remains ak.gate.account.command.issue_session_grant",
+        "session grant issue operation id remains ak.gate.account.command.issue_session_grant.v1",
         "agent_key_proof challenge replay, audience mismatch, and bad signature fail closed",
         "agent session branch rejects invalid proofs, DID mismatch, paused agents, and deactivated agents",
         "accountability grant absence is pinned as accountability_grant_missing"
@@ -779,7 +779,7 @@
       "vector_id": "ak.vector.agent_auth.human_approval_required.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_human_approval_required_vector",
       "request": {
-        "operation_id": "ak.gate.account.command.issue_session_grant",
+        "operation_id": "ak.gate.account.command.issue_session_grant.v1",
         "proof_kind": "agent_key_proof",
         "risk_tier": "high",
         "requested_scope_requires_controller_approval": true

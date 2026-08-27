@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.2",
+  "version": "2026-08-27.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-26T14:10:00+08:00",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -598,7 +598,7 @@
     {
       "context": "ak.key_backup_delete_proof.v1",
       "object_family": "key_backup_delete_authority",
-      "consumer_operation": "ak.self.keys.backups.resource.delete",
+      "consumer_operation": "ak.self.keys.backups.resource.delete.v1",
       "binding_fields": [
         "payload_digest",
         "operation",
@@ -1701,7 +1701,7 @@
       ]
     },
     {
-      "domain": "ak.peer.events.command.submit.service_binding.v1",
+      "domain": "ak.peer.events.command.submit.v1.service_binding.v1",
       "object_family": "peer_event_submit_service_binding",
       "primitive": "canonical_json_sha256",
       "binding_fields": [

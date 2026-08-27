@@ -771,13 +771,13 @@ def check_agent_runtime_scope_registry(lint: Lint, known: dict[str, set[str]]) -
     interactive = set((capability_sets.get("interactive_chat") or {}).get("mandatory_operations") or [])
     e2ee = set((capability_sets.get("e2ee") or {}).get("mandatory_operations") or [])
     expected_interactive = {
-        "ak.self.events.stream.subscribe",
-        "ak.self.events.read.scan",
-        "ak.self.events.read.frontier",
-        "ak.self.seals.read.frontier",
-        "ak.self.events.command.submit",
+        "ak.self.events.stream.subscribe.v1",
+        "ak.self.events.read.scan.v1",
+        "ak.self.events.read.frontier.v1",
+        "ak.self.seals.read.frontier.v1",
+        "ak.self.events.command.submit.v1",
     }
-    expected_e2ee = {"ak.self.keys.keypackages.upload.create"}
+    expected_e2ee = {"ak.self.keys.keypackages.upload.create.v1"}
     if interactive != expected_interactive:
         lint.fail(path, f"interactive_chat mandatory operations drift: {sorted(interactive)}")
     if e2ee != expected_e2ee:
@@ -789,13 +789,21 @@ def check_agent_runtime_scope_registry(lint: Lint, known: dict[str, set[str]]) -
     profiles_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
     profiles = load_json(lint, profiles_path) or {}
     requirements = profiles.get("profile_requirements") or {}
-    core_endpoints = set((requirements.get("ak.profile.core_event_store.v1") or {}).get("required_endpoints") or [])
-    if "ak.self.seals.read.frontier" not in core_endpoints:
+    core_endpoints = {
+        row.get("operation_id")
+        for row in (requirements.get("ak.profile.core_event_store.v1") or {}).get("operation_requirements", [])
+        if isinstance(row, dict)
+    }
+    if "ak.self.seals.read.frontier.v1" not in core_endpoints:
         lint.fail(profiles_path, "core_event_store must require the Seal frontier operation")
-    child_endpoints = (requirements.get("ak.profile.principal_server_events_api.v1") or {}).get("required_endpoints")
+    child_endpoints = (requirements.get("ak.profile.principal_server_events_api.v1") or {}).get("operation_requirements")
     if child_endpoints != []:
         lint.fail(profiles_path, "principal_server_events_api must inherit the parent endpoint set without duplicating it")
-    runtime_endpoints = set((requirements.get("ak.profile.agent_runtime.v1") or {}).get("required_endpoints") or [])
+    runtime_endpoints = {
+        row.get("operation_id")
+        for row in (requirements.get("ak.profile.agent_runtime.v1") or {}).get("operation_requirements", [])
+        if isinstance(row, dict)
+    }
     required_runtime = interactive | expected_e2ee
     if not required_runtime <= runtime_endpoints:
         lint.fail(profiles_path, f"agent_runtime missing mandatory operations: {sorted(required_runtime - runtime_endpoints)}")
@@ -832,6 +840,12 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         for fixture in (ARTIFACTS / "fixtures").glob("*.json")
     }
     vector_registry = load_json(lint, ARTIFACTS / "registry" / "vector-registry.json")
+    feature_registry = load_json(lint, ARTIFACTS / "registry" / "feature-registry.json")
+    registered_features = {
+        row.get("feature_id")
+        for row in (feature_registry or {}).get("features", [])
+        if isinstance(row, dict) and isinstance(row.get("feature_id"), str)
+    }
     event_payload_schema_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
     event_payload_schema = load_json(lint, event_payload_schema_path)
     applet_registration_payload = (
@@ -845,7 +859,8 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         if isinstance(row, dict) and isinstance(row.get("vector_id"), str)
     }
     required_keys = {
-        "required_endpoints",
+        "enforcement_phases",
+        "operation_requirements",
         "required_event_kinds",
         "rejected_event_kinds",
         "required_schemas",
@@ -869,9 +884,56 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
             if inherited not in known["profiles"]:
                 lint.fail(path, f"{profile_id} inherits unknown profile: {inherited}")
 
-        for operation_id in requirement.get("required_endpoints", []):
+        phases = requirement.get("enforcement_phases")
+        allowed_phases = {
+            "build",
+            "conformance",
+            "startup_claim_guard",
+            "peer_eligibility",
+            "runtime_negotiation",
+            "runtime_admission",
+        }
+        if not isinstance(phases, list) or not phases or len(phases) != len(set(phases)):
+            lint.fail(path, f"{profile_id} enforcement_phases must be a non-empty unique array")
+            phases = []
+        for phase in phases:
+            if phase not in allowed_phases:
+                lint.fail(path, f"{profile_id} has unknown enforcement phase: {phase!r}")
+        if {"runtime_negotiation", "runtime_admission"}.intersection(phases):
+            for field in ("wire_selector_refs", "normative_effect_refs"):
+                refs = requirement.get(field)
+                if not isinstance(refs, list) or not refs or not all(
+                    isinstance(ref, str) and ref for ref in refs
+                ):
+                    lint.fail(path, f"{profile_id} runtime enforcement requires non-empty {field}")
+
+        operation_requirements = requirement.get("operation_requirements")
+        if not isinstance(operation_requirements, list):
+            lint.fail(path, f"{profile_id} operation_requirements must be an array")
+            operation_requirements = []
+        seen_operation_requirements: set[tuple[str, str, str]] = set()
+        for index, operation_requirement in enumerate(operation_requirements):
+            label = f"{profile_id}.operation_requirements[{index}]"
+            if not isinstance(operation_requirement, dict) or set(operation_requirement) != {
+                "direction",
+                "operation_id",
+                "binding_kind",
+            }:
+                lint.fail(path, f"{label} must use the closed direction/operation_id/binding_kind shape")
+                continue
+            direction = operation_requirement.get("direction")
+            operation_id = operation_requirement.get("operation_id")
+            binding_kind = operation_requirement.get("binding_kind")
+            if direction not in {"provide", "consume"}:
+                lint.fail(path, f"{label}.direction must be provide or consume")
             if operation_id not in known["operation_ids"]:
-                lint.fail(path, f"{profile_id} requires unknown operation_id: {operation_id}")
+                lint.fail(path, f"{label} requires unknown operation_id: {operation_id}")
+            if binding_kind not in {"http_json", "websocket", "tus"}:
+                lint.fail(path, f"{label} has unknown binding_kind: {binding_kind}")
+            identity = (str(direction), str(operation_id), str(binding_kind))
+            if identity in seen_operation_requirements:
+                lint.fail(path, f"{label} duplicates {identity}")
+            seen_operation_requirements.add(identity)
 
         for event_kind in requirement.get("required_event_kinds", []):
             if isinstance(event_kind, str) and event_kind.startswith("wire_scope:"):
@@ -891,6 +953,18 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         for schema_id in requirement.get("required_schemas", []):
             if schema_id not in known["schema_ids"]:
                 lint.fail(path, f"{profile_id} requires unknown schema: {schema_id}")
+
+        required_features = requirement.get("required_features", [])
+        if (
+            not isinstance(required_features, list)
+            or any(not isinstance(item, str) for item in required_features)
+            or len(required_features) != len(set(required_features))
+        ):
+            lint.fail(path, f"{profile_id} required_features must be a unique array")
+        else:
+            for feature_id in required_features:
+                if feature_id not in registered_features:
+                    lint.fail(path, f"{profile_id} requires unregistered feature: {feature_id!r}")
 
         for constraint_kind in requirement.get("required_constraint_kinds", []):
             if constraint_kind not in known["constraint_types"]:
@@ -996,8 +1070,15 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         if not isinstance(feature_discovery, dict):
             lint.fail(path, f"{profile_id} feature_discovery must be an object")
         else:
-            if not isinstance(feature_discovery.get("required"), list):
+            assertions = feature_discovery.get("required")
+            if not isinstance(assertions, list):
                 lint.fail(path, f"{profile_id} feature_discovery.required must be a list")
+            elif any(isinstance(item, str) and item.startswith("ak.feature.") for item in assertions):
+                lint.fail(
+                    path,
+                    f"{profile_id} feature_discovery.required must contain conformance assertion names, "
+                    "not feature IDs; use top-level required_features",
+                )
             if not isinstance(feature_discovery.get("unsupported_optional"), str):
                 lint.fail(path, f"{profile_id} feature_discovery.unsupported_optional must be a string")
 
@@ -1217,8 +1298,8 @@ def check_operation_clause_registry(lint: Lint) -> None:
         if not isinstance(operation_id, str):
             continue
         segments = operation_id.split(".")
-        op_kind = segments[-2] if len(segments) >= 2 else ""
-        op_action = segments[-1] if segments else ""
+        op_kind = segments[-3] if len(segments) >= 3 else ""
+        op_action = segments[-2] if len(segments) >= 2 else ""
         is_write = op_kind in {"command", "upload", "exchange"} or (
             op_kind == "resource" and op_action in {"replace", "delete"}
         )
@@ -1264,7 +1345,7 @@ def check_vector_group_requirements(lint: Lint, known: dict[str, set[str]]) -> N
 
     fixture_files = {fixture.name for fixture in (ARTIFACTS / "fixtures").glob("*.json")}
     required_keys = {
-        "required_endpoints",
+        "operation_requirements",
         "required_event_kinds",
         "rejected_event_kinds",
         "required_schemas",
@@ -1282,9 +1363,21 @@ def check_vector_group_requirements(lint: Lint, known: dict[str, set[str]]) -> N
         for missing_key in sorted(required_keys - set(requirement.keys())):
             lint.fail(path, f"{gid} missing {missing_key}")
 
-        for operation_id in requirement.get("required_endpoints", []):
-            if operation_id not in known["operation_ids"]:
-                lint.fail(path, f"{gid} requires unknown operation_id: {operation_id}")
+        for index, operation_requirement in enumerate(requirement.get("operation_requirements", [])):
+            label = f"{gid}.operation_requirements[{index}]"
+            if not isinstance(operation_requirement, dict) or set(operation_requirement) != {
+                "direction",
+                "operation_id",
+                "binding_kind",
+            }:
+                lint.fail(path, f"{label} must use the closed operation requirement shape")
+                continue
+            if operation_requirement.get("direction") != "consume":
+                lint.fail(path, f"{label}.direction must be consume for a vector runner")
+            if operation_requirement.get("operation_id") not in known["operation_ids"]:
+                lint.fail(path, f"{label} requires unknown operation_id")
+            if operation_requirement.get("binding_kind") != "http_json":
+                lint.fail(path, f"{label}.binding_kind must be http_json")
 
         for event_kind in requirement.get("required_event_kinds", []):
             if isinstance(event_kind, str) and event_kind.startswith("wire_scope:"):
@@ -2197,7 +2290,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     # Mis-routed dispatch detector: each (kind, payload_class) pair must either
     # appear in KIND_PAYLOAD_RENAME_EXEMPTIONS verbatim, or embed the kind's
     # last dot-segment as a case-insensitive substring of the class name.
-    # Catches typo / copy-paste errors like `ak.self.agent.command.pause → agent_resume_payload`.
+    # Catches typo / copy-paste errors like `ak.self.agent.command.pause.v1 → agent_resume_payload`.
     seen_pairs: set[tuple[str, str]] = set()
     for kind, class_name in collect_payload_dispatch_pairs(data):
         if (kind, class_name) in seen_pairs:

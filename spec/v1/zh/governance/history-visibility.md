@@ -162,7 +162,7 @@ history_secret[N] = MLS-Exporter(
 远端 epoch promotion 或“首个成功候选”语义。AEAD 成功只建立 exact Event attribution，不能把 candidate
 升级为该 epoch 的唯一真相，也不能淘汰其它 candidate。
 
-`ak.self.seals.read.mls_governance_proof` 的无状态 query 只保留近端 `group_security_frontier`：它投影 frontier registry 登记的
+`ak.self.seals.read.mls_governance_proof.v1` 的无状态 query 只保留近端 `group_security_frontier`：它投影 frontier registry 登记的
 cell singleton/prefix ranges，并为每个 range 携连续 leaf indices、左右 boundary inclusion/nonmembership 或 state-edge witness；空 range
 也必须有相邻边界证明，不能把省略当 Bottom。query 的 Seal 坐标都是 canonical `seal_basis.leaves[]` antichain：`proof_target_basis`
 必须支配 `proof_base_basis`，即每个 base leaf 仍是 target leaf 或是某 target leaf 的 ancestor；open_set 不得缩成单一 head。
@@ -277,7 +277,7 @@ receipt、sealed capability context 与 response stream 都冻结该 service DID
 fail closed 并由 requester 创建新 request；已经 accepted 的小型 `HistoryKeyResponseSendReceipt`
 仍由旧 idempotency ledger 保留并 byte-identical retry 到 expiry；recipient response stream 的完整 record 则在有效 high-water ack
 事务中 GC。v1 不迁移 response stream/idempotency ledger。Release service 通过
-`ak.peer.history_key_requests.command.replicate` 把 byte-identical request+receipt 私有 fanout 到 closed destinations：current member
+`ak.peer.history_key_requests.command.replicate.v1` 把 byte-identical request+receipt 私有 fanout 到 closed destinations：current member
 delivery-binding services，或其 archive tuple 与 requested ranges 相交的 exact RRK holder service。Destination authorization/TTL/idempotency
 受 S2S proof 覆盖；destination 只在本地 scope-private
 request 投影，不生成 Event 或 DeviceMessage。Create 事务必须先 durable 写入 initial target set 与 fanout outbox；重启从 outbox 重放，
@@ -286,7 +286,7 @@ create accepted 后的崩溃永久漏掉远端 source。
 
 Source 仍调用自己 local PS 的 self send；local PS 先验 source current account/device、Agent、minimal membership 或 RRK holder
 authority，再签 `SourceRelayAttestation`，绑定 source-record digest、request/receipt、source current authority locator 和冻结的
-destination release service，经 `ak.peer.history_key_responses.command.relay` 私有投递。Destination 必须证明 relay service 等于
+destination release service，经 `ak.peer.history_key_responses.command.relay.v1` 私有投递。Destination 必须证明 relay service 等于
 source 当前 delivery/authority binding，随后才执行 recipient/current scope T1 并签最终 attestation。该双服务 cut 不声称全局原子；
 v1 依赖诚实 service、短 TTL 和 exact durable retry，恶意/延迟 peer 不在密码学保证内。Local source service 第一次验证 self send
 时即以 `(response_id,source_record_digest)` 原子保存 byte-identical relay envelope/outbox；`relayed_at` 与 proof 不得在 retry 或重启时
@@ -515,7 +515,7 @@ mls_group_id + epoch + mls_transition_digest + recovery_key_tuple + registered H
 container EventId。Rotation 只影响后续 transition，旧 archive 按历史 key id 可读，不自动
 backfill/revoke。Custody 复制、HSM、Shamir 或 threshold 不上 Realm/Circle wire。
 
-跨服务 holder 可达性只用私有 `ak.peer.organization_recovery_archives.command.replicate`：source scope service 将 exact
+跨服务 holder 可达性只用私有 `ak.peer.organization_recovery_archives.command.replicate.v1`：source scope service 将 exact
 archive、container Event ref、archive-lifetime `HistoryGovernanceTraversalRetention` 复制到 tuple 冻结的
 `holder_service_id`。Archive tuple 保留声明 key provenance 的 `accepted_key_evidence_ref` EventId 与 holder acceptance 已 pin 的 prior
 `holder_trusted_basis` 完整 Seal antichain；没有 singular activation Seal selector。每个 ArchiveListItem 的 traversal intent 只有一个 singleton
@@ -536,7 +536,7 @@ HPKE、换 base/current/target 或改 intent；失败/receipt 丢失只重放原
 
 对选择 `organization_recovery_key` durability 的 scope，source 在删除本地 epoch history secret 前 **MUST**
 同时完成以下 durable gate：holder 已首次接受 replica 或 exact duplicate 已返回首次 accepted receipt；随后通过
-`ak.self.organization_recovery_archives.read.list` barrier 逐字重读同一 archive、container Event ref 与
+`ak.self.organization_recovery_archives.read.list.v1` barrier 逐字重读同一 archive、container Event ref 与
 `HistoryGovernanceTraversalRetention`；本地 coverage ledger 已在一个原子事务中提交 exact
 `(effective_scope,mls_group_id,epoch,container_event_ref,archive_tuple_digest)`、durable holder acceptance 与 exact
 reread。任一条件缺失或重读 bytes 不一致时，本地 GC **MUST** 以 `failed_precondition` 拒绝；全部完成后 GC 只删除本地
@@ -551,7 +551,7 @@ organization_recovery_archive))`；outer EventId、Event proof 与 archive 本�
 `governance_binding.content_scheme` 与 conditional `durability_policy` 机械决定 archive 必填/禁止，producer 不得漏 archive 后继续。
 
 RRK holder 唯一读取面是 recipient-bound、按 canonical bytes 分页的
-`ak.self.organization_recovery_archives.read.list`。Query 必须给 exact effective scope、`recovery_key_id`、
+`ak.self.organization_recovery_archives.read.list.v1`。Query 必须给 exact effective scope、`recovery_key_id`、
 `key_agreement_ref`、`accepted_key_evidence_ref`、`holder_trusted_basis` 与可选单一 epoch range；每行直接返回匹配 archive、container Event ref、
 archive-lifetime traversal retention。holder 从 target 反向取得完整 Seal cut 并拓扑重放；
 不存在 `ArchiveId` 或第二个 archive-get surface。服务只返回历史 tuple 中

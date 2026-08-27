@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-23.2",
+  "version": "2026-08-27.1",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-08-23T15:30:00+08:00",
+  "generated_at": "2026-08-27T14:00:00+08:00",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/artifact_lint#check_profile_dependency_graph",
   "description": "Generated DAG view of profile inheritance / dependency / mutual-exclusion edges. Derived from profile_requirements[<profile_id>].{inherits, depends_on, mutually_exclusive_with} in conformance-profiles.json. Consumed by zh/conformance/conformance-profiles.md §2.1 visualization tooling. Profiles whose only relationship is to be claimable on their own (no inherits / depends_on / mutually_exclusive_with) MAY be omitted from the edges[] list; they still appear in nodes[].",
   "edge_kinds": {
-    "inherits": "A profile that inherits another transitively re-declares its required_endpoints / required_event_kinds / required_schemas / required_capability_actions. Inheritance edges are transitive and form a DAG (no cycles).",
+    "inherits": "A profile that inherits another transitively re-declares its operation_requirements / required_event_kinds / required_schemas / required_capability_actions. Inheritance edges are transitive and form a DAG (no cycles).",
     "depends_on": "A profile that depends_on another MUST be claimed alongside that target profile; absence of the target MUST cause the claimant to be treated as unsupported.",
     "mutually_exclusive_with": "Profiles linked by this edge MUST NOT be claimed together; reducer / discovery MUST reject the combination (typically with reason_code conflicting_*_profiles)."
   },

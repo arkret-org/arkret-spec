@@ -130,7 +130,7 @@
     },
     "device_pairing_target_attestation": {
       "type": "object",
-      "description": "Closed possession attestation the target device produces for the accepted_device pairing path, and the only authority for its hpke_key and algorithms: neither the staged record nor the bootstrap carries them, so the approving device reads them here after the signature verifies and copies them byte-for-byte into the ak.device.authorize payload. Signing input is UTF8(\"ak.device_authorize_accepted_device_possession_proof.v1\\n\") || canonical_json({algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key, hpke_key, pairing_challenge_transcript_digest}); see crypto-media/device-lifecycle.md section 5.2.2. The object is closed over target-owned material plus this pairing challenge, so the target can build it before it knows which sibling will approve and what principal_id, authorized_by, not_before, expires_at or scopes that sibling will choose; those values are carried by the approving device Event proof instead. It travels only over the out-of-band channel (QR fragment or to-device message) and MUST NOT be posted back through the unauthenticated stage or resolve surface. It is never a wire field of ak.gate.account.command.pair_device: every member is already recomputable there from the request payload and the Account Authority own challenge transcript.",
+      "description": "Closed possession attestation the target device produces for the accepted_device pairing path, and the only authority for its hpke_key and algorithms: neither the staged record nor the bootstrap carries them, so the approving device reads them here after the signature verifies and copies them byte-for-byte into the ak.device.authorize payload. Signing input is UTF8(\"ak.device_authorize_accepted_device_possession_proof.v1\\n\") || canonical_json({algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key, hpke_key, pairing_challenge_transcript_digest}); see crypto-media/device-lifecycle.md section 5.2.2. The object is closed over target-owned material plus this pairing challenge, so the target can build it before it knows which sibling will approve and what principal_id, authorized_by, not_before, expires_at or scopes that sibling will choose; those values are carried by the approving device Event proof instead. It travels only over the out-of-band channel (QR fragment or to-device message) and MUST NOT be posted back through the unauthenticated stage or resolve surface. It is never a wire field of ak.gate.account.command.pair_device.v1: every member is already recomputable there from the request payload and the Account Authority own challenge transcript.",
       "required": [
         "device_id",
         "device_public_key",
@@ -197,7 +197,7 @@
     },
     "device_pairing_state": {
       "type": "string",
-      "description": "Lifecycle state of a staged device-pairing short-link record. A staged record starts pending_authorization, flips to authorized once an authenticated device completes ak.gate.account.command.pair_device, and reports expired once its bounded TTL has elapsed.",
+      "description": "Lifecycle state of a staged device-pairing short-link record. A staged record starts pending_authorization, flips to authorized once an authenticated device completes ak.gate.account.command.pair_device.v1, and reports expired once its bounded TTL has elapsed.",
       "enum": [
         "pending_authorization",
         "authorized",
@@ -271,7 +271,7 @@
     },
     "device_pairing_bootstrap": {
       "type": "object",
-      "description": "Pairing material handed to an already-authorized device after resolving a device-pairing short link. It carries the server-minted challenge material so the authorized device can recompute the ak.device-pairing.challenge.v1 transcript and verify the proof it received out of band from the new device. It does NOT carry the proof itself, nor the device_pairing_target_attestation, nor the hpke_key and algorithms that attestation signs: the staging surface is unauthenticated and never sees any of them, and mirroring signed values here would only create a second, non-authoritative copy. This is not a session grant, capability grant or long-term secret; the authorized device still drives ak.gate.account.command.pair_device to complete authorization.",
+      "description": "Pairing material handed to an already-authorized device after resolving a device-pairing short link. It carries the server-minted challenge material so the authorized device can recompute the ak.device-pairing.challenge.v1 transcript and verify the proof it received out of band from the new device. It does NOT carry the proof itself, nor the device_pairing_target_attestation, nor the hpke_key and algorithms that attestation signs: the staging surface is unauthenticated and never sees any of them, and mirroring signed values here would only create a second, non-authoritative copy. This is not a session grant, capability grant or long-term secret; the authorized device still drives ak.gate.account.command.pair_device.v1 to complete authorization.",
       "required": [
         "arkret_base_url",
         "device_pairing_request_id",

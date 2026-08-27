@@ -318,13 +318,13 @@
         },
         {
           "id": "resource_replace_missing_revision",
-          "surface": "ak.self.account_data.resource.replace",
+          "surface": "ak.self.account_data.resource.replace.v1",
           "operation": "replace",
           "content": "ciphertext:value"
         },
         {
           "id": "resource_delete_missing_revision",
-          "surface": "ak.self.account_data.resource.delete",
+          "surface": "ak.self.account_data.resource.delete.v1",
           "operation": "delete"
         }
       ],

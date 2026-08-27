@@ -555,7 +555,7 @@
         "timing difference across the equivalence class is at most 50ms",
         "the response never carries disclosed_outcome=quarantined; that value is not in the enum",
         "high trust introduction evidence does not widen disclosure, because the leak is consent state and not existence",
-        "invite delivery, contact delivery and ak.self.consent.command.request expose no observable that distinguishes quarantine from rejection"
+        "invite delivery, contact delivery and ak.self.consent.command.request.v1 expose no observable that distinguishes quarantine from rejection"
       ]
     },
     {

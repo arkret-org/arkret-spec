@@ -169,7 +169,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
   - 接收端在解密 advisory 模式下旧 epoch 消息时 MUST 检查 receive_at vs membership_change_at 时间窗，超过部署声明 `relaxed_window_max_ms` 时拒绝解密结果进入 verified timeline
   - **`relaxed_window_max_ms` 默认值 = 30,000 ms（30 秒），硬上限 = 300,000 ms（5 分钟）**：两者语义不同，不得混淆。**默认值**是部署未在 `ak.realm.policy_bundle` 显式声明 `relaxed_window_max_ms` 时 reducer / 接收端 MUST 采用的值，固定为 30,000 ms（与 §2.4.2 profile 行为表"被踢者继续解密窗口默认 30s"及 `max_mls_commit_delay_ms` 默认 30,000 ms 对齐，使"踢出后被踢者继续可读窗口"与"正常 commit roundtrip 上限"在默认配置下同量级）。**硬上限**是部署即使显式声明也不得超过的天花板 300,000 ms：部署不得通过 `ak.realm.policy_bundle` 把 `relaxed_window_max_ms` 写为大于硬上限的值；reducer MUST 用 `relaxed_window_exceeds_ceiling` 拒绝。接收端 MUST 独立 enforce 硬上限——不得静默 clamp 到 300000，否则部署声明的窗口与 receiver 接受的窗口会跨实现分裂。部署 MAY 在 `(0, 300000]` 区间内显式覆盖默认 30000；缺省即 30000。Negative vector `ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1` 同时覆盖 policy write 超限与 receiver 接受超限 decrypt 两条路径。
   - **合规 profile 互斥**：声明 `ak.profile.attested_audit.e2ee.v1` / `ak.profile.disclosed_audit.e2ee.v1` 或存在 active Audit Applet Binding 的部署 MUST NOT 同时启用 `ak.profile.e2ee_relaxed.v1`；reducer MUST 用 `e2ee_relaxed_disallowed_in_compliance_profile` 拒绝。合规 / 监管 profile 的核心承诺是"踢出即时密码学生效"，relaxed 窗口与之矛盾。
-  - **Federation guard**：`ak.profile.e2ee_relaxed.v1` MUST NOT 与 `federation_policy="open"` 或 `"quarantine"` 同时启用；reducer MUST 用 `e2ee_relaxed_federation_policy_unsupported` 拒绝。`federation_policy="restricted"` 只允许在 Realm policy 同时声明 `relaxed_fanout_deadline_ms <= relaxed_window_max_ms`、`max_federation_delivery_delay_ms <= relaxed_window_max_ms` 且 federation peers 在 `ak.server.read.describe.limits` 中公开不超过该 deadline 的 fanout SLA 时启用；否则 MUST fail closed。`federation_policy="closed"` 不需要额外 federation guard。describe SLA 校验仅是准入门槛（声明时校验 peer 公开的 fanout deadline 是否满足约束），实际 enforcement 仍由接收端 `relaxed_window_max_ms` 时间窗兜底（运行时校验 receive_at vs membership_change_at，超窗即拒绝 decrypt 进入 verified timeline）；二者缺一不可，不得理解为"声明合规即放行"。
+  - **Federation guard**：`ak.profile.e2ee_relaxed.v1` MUST NOT 与 `federation_policy="open"` 或 `"quarantine"` 同时启用；reducer MUST 用 `e2ee_relaxed_federation_policy_unsupported` 拒绝。`federation_policy="restricted"` 只允许在 Realm policy 同时声明 `relaxed_fanout_deadline_ms <= relaxed_window_max_ms`、`max_federation_delivery_delay_ms <= relaxed_window_max_ms` 且 federation peers 在 `ak.server.read.describe.v1.limits` 中公开不超过该 deadline 的 fanout SLA 时启用；否则 MUST fail closed。`federation_policy="closed"` 不需要额外 federation guard。describe SLA 校验仅是准入门槛（声明时校验 peer 公开的 fanout deadline 是否满足约束），实际 enforcement 仍由接收端 `relaxed_window_max_ms` 时间窗兜底（运行时校验 receive_at vs membership_change_at，超窗即拒绝 decrypt 进入 verified timeline）；二者缺一不可，不得理解为"声明合规即放行"。
 
   **降级声明义务（normative）**：effective `mls_send_pause="advisory"` **当且仅当** `effective_e2ee_relaxed=true`；它由 active `ak.realm.policy_bundle` 唯一承载，不写入 Realm `schema_refs`，也不读取 generic profile list。服务端 ServiceDescribe 仍须声明实现支持 `ak.feature.e2ee_relaxed.v1`；该 Realm 后续每个 MLS `governance_binding.binding_profile` 必须等于 policy 派生结果：relaxed 时为 `ak.profile.e2ee_relaxed.v1`，否则为 `ak.profile.mls_governance_binding.full.v1`。active Audit Applet Binding 与 advisory policy 互斥。sync metadata、snapshot、backup/export 与 interop mapping receipt 必须保留派生的 `e2ee_relaxed` 与窗口。任一等式、Audit Binding 或 ServiceDescribe 支持面不一致均 fail closed；不得从私有配置、UI 标签或 genesis profile 猜测。
 
@@ -212,7 +212,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
   - 在该 Realm 的对话 UI 上展示 banner-level 警示(不可被用户永久 dismiss,可临时折叠)
   - 在用户邀请新成员时弹窗提示"该 Realm 使用降级 E2EE",让用户知情决策
   - 在 sync metadata 中标记该 Realm 为 `e2ee_relaxed=true`,导出 / 备份 / 跨设备时保留该标记
-- 服务端 `ak.server.read.describe.supported_features` **MUST** 列出 `ak.feature.e2ee_relaxed.v1` 才能接受该 profile 的 Realm 写入
+- 服务端 `ak.server.read.describe.v1.supported_features` **MUST** 列出 `ak.feature.e2ee_relaxed.v1` 才能接受该 profile 的 Realm 写入
 
 **禁止扩展**:本 profile 不允许进一步降级到"不验证 `security_frontier_digest`" / "允许跨 epoch 解密无窗口限制"。降级到此为止；更宽松场景应当退回到**非 E2EE** Realm(`encryption_profile="none"`)而不是继续放宽 E2EE 承诺。
 
@@ -296,7 +296,7 @@ basis 信任从哪来因此是全部安全性所在，本节封闭定义，适�
 
 **服务端的报告不产生信任。** 客户端 MUST NOT 仅因下列任一原因把某个 Seal 写入本地 trust store：
 
-- 它出现在 `ak.self.seals.read.frontier` 的 `RealmSealFrontierView` 或任何 Seal frontier 查询结果里；
+- 它出现在 `ak.self.seals.read.frontier.v1` 的 `RealmSealFrontierView` 或任何 Seal frontier 查询结果里；
 - 它是 proof response 重复的 `proof_base_basis` 或 `proof_target_basis` leaf；
 - 它在 `mls_governance_anchor_unreachable` 等错误的 detail 里被建议为替代 basis。
 
@@ -333,8 +333,8 @@ key backup 恢复的设备，都只需要知道 `realm_id`（PCR 则是 principa
 就提供这一项。因此 `ak.mls.welcome`、key backup 与设备配对包 **MUST NOT** 为携带 trusted basis 而新增
 字段：那会制造第二个信任源，且都弱于 T1/T2 的自证。
 
-取回 `C` 走 `ak.self.events.read.resolve`；候选 `S` 从 `ak.self.seals.read.frontier` 返回的完整候选
-antichain 出发，经 `ak.self.seals.read.resolve` 按 `predecessor_refs[]` 反向遍历到 predecessor-free Seal。
+取回 `C` 走 `ak.self.events.read.resolve.v1`；候选 `S` 从 `ak.self.seals.read.frontier.v1` 返回的完整候选
+antichain 出发，经 `ak.self.seals.read.resolve.v1` 按 `predecessor_refs[]` 反向遍历到 predecessor-free Seal。
 客户端必须在有界 batch 中逐字验证 resolved Seal ID 与 predecessor edge，不得让服务直接返回一个未连接的
 “covering/first activation Seal”。这些响应同样不产生信任——它们只是候选来源，判定仍在 T1/T2。
 
@@ -466,7 +466,7 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 
 **可选协商（normative）**：last-resort 是可选能力，复用 server describe `supported_features`（§2.4.2 同款 `ak.feature.*` 机制）与 Realm profile 的既有协商面，不引入新协商通道：
 
-- 提供 last-resort 回退的服务端 MUST 在 `ak.server.read.describe.supported_features` 中声明 `ak.feature.mls_last_resort_keypackage.v1`；未声明该 feature 的服务端 MUST 继续 fail-closed（池空 claim 失败），claim 响应 MUST NOT 返回 `last_resort=true` 的包。
+- 提供 last-resort 回退的服务端 MUST 在 `ak.server.read.describe.v1.supported_features` 中声明 `ak.feature.mls_last_resort_keypackage.v1`；未声明该 feature 的服务端 MUST 继续 fail-closed（池空 claim 失败），claim 响应 MUST NOT 返回 `last_resort=true` 的包。
 - device 发布 last-resort 包前 SHOULD 校验目标服务端声明了该 feature；requester 收到 `last_resort=true` claim 记录时，若其本地 profile 不接受 last-resort 路径（例如高保证 Realm 要求严格单次性），MUST NOT 用该包发 Welcome，并 SHOULD 视为池空（按默认 fail-closed 处理）。
 - 是否在某 Realm 允许 last-resort join 由 Realm policy / profile 决定：要求严格前向保密的 Realm MAY 通过 profile 禁止 last-resort join；`ak.profile.high_security_organization.v1` / `ak.profile.sovereign_deployment.v1` MUST 禁止。此时即便服务端支持该 feature，该 Realm 的邀请 MUST 走单次包或 fail closed。
 - 这是加性 feature：不声明 feature、不发布 last-resort 包的部署，其 claim / consume / Welcome 行为保持默认 fail-closed 路径不变。
@@ -718,7 +718,7 @@ GroupInfo bytes 与 `ratchet_tree` extension bytes 放入可由承载该 Realm �
 object ref、解析后的 leaf DTO 或本地路径都不合规。
 
 需要读取 epoch-0 public tree 的 federation peer 或显式部署的独立公开 MLS group tracker MUST 使用注册操作
-`ak.peer.mls.read.group_state_material`（`POST /_arkret/peer/mls/group-state-material`）或逐字段等价的同进程
+`ak.peer.mls.read.group_state_material.v1`（`POST /_arkret/peer/mls/group-state-material`）或逐字段等价的同进程
 typed binding。request 必须逐字携带 accepted genesis 的 Realm/scope/group/epoch/Event id 和两组 ref/digest；
 响应必须回显同一 binding，并以未填充 base64url 返回两份原始 bytes。provider 在响应前 MUST：
 

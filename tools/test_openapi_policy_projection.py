@@ -21,9 +21,9 @@ class OpenApiPolicyProjectionTests(unittest.TestCase):
                     "applies_to_operation_id_prefix": "ak.self.",
                     "protected_operation_default": "rfc9421_session_public_key_required",
                     "unauthenticated_public_projection_operations": [
-                        "ak.self.events.read.describe",
-                        "ak.self.account.read.describe",
-                        "ak.self.example.read.describe",
+                        "ak.self.events.read.describe.v1",
+                        "ak.self.account.read.describe.v1",
+                        "ak.self.example.read.describe.v1",
                     ],
                     "new_operation_rule": "Unknown operations fail closed.",
                 }
@@ -34,7 +34,7 @@ x-arkret-high-security-session-authentication-policy:
   appliesToOperationIdPrefix: ak.self.
   protectedOperationDefault: rfc9421_session_public_key_required
   unauthenticatedPublicProjectionOperations:
-  - ak.self.events.read.describe
+  - ak.self.events.read.describe.v1
   newOperationsFailClosed: true
 info:
   title: Arkret Service API
@@ -44,7 +44,7 @@ info:
             path.write_text(stale, encoding="utf-8")
             with patch.object(artifact_pipeline, "OPENAPI_PATH", path):
                 projected = artifact_pipeline.projected_openapi_text(catalog)
-        self.assertIn("  - ak.self.example.read.describe\n", projected)
+        self.assertIn("  - ak.self.example.read.describe.v1\n", projected)
         self.assertEqual(projected.count("x-arkret-high-security-session-authentication-policy:"), 1)
         self.assertTrue(projected.endswith("info:\n  title: Arkret Service API\n"))
 

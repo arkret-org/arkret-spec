@@ -69,8 +69,8 @@ Arkret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TS
   "supported_vid_schemes": ["did", "urn"],
   "supported_modes": ["direct", "routed", "nested"],
   "supported_payloads": [
-    "ak.self.events.command.submit",
-    "ak.self.events.read.scan",
+    "ak.self.events.command.submit.v1",
+    "ak.self.events.read.scan.v1",
     "ak.identity.presentation_request",
     "ak.identity.presentation_response"
   ],
@@ -98,14 +98,14 @@ DID Document 或 normalized principal view 中出现 `ak.service.tsp` 只是一�
 
 **Operation id**（取自 `operation-registry.json`）：
 
-- 跨 `trust_domain` 的 `ak.self.events.command.submit`
-- `ak.root.identity.command.submit_did_operation`
-- `ak.gate.account.command.issue_session_grant`
-- `ak.gate.account.command.refresh_session_grant`
-- `ak.gate.account.command.revoke_session`
-- `ak.gate.account.command.introspect_session_grant`
+- 跨 `trust_domain` 的 `ak.self.events.command.submit.v1`
+- `ak.root.identity.command.submit_did_operation.v1`
+- `ak.gate.account.command.issue_session_grant.v1`
+- `ak.gate.account.command.refresh_session_grant.v1`
+- `ak.gate.account.command.revoke_session.v1`
+- `ak.gate.account.command.introspect_session_grant.v1`
 
-**Durable Event kind carried inside `ak.self.events.command.submit`**：
+**Durable Event kind carried inside `ak.self.events.command.submit.v1`**：
 
 - `ak.device.authorize`
 - `ak.device.revoke`
@@ -130,7 +130,7 @@ Arkret operation 可作为 TSP application payload：
 
 ```json
 {
-  "operation": "ak.self.events.command.submit",
+  "operation": "ak.self.events.command.submit.v1",
   "content_type": "application/arkret+json",
   "realm_id": "ak:realm:...",
   "payload_digest": "sha256:...",

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/moderation-report.schema.json",
   "title": "Arkret Moderation Report Operation",
-  "description": "Closed signed-request DTO for ak.self.moderation.command.report. Canonical evidence and franking-proof objects live in moderation-evidence.schema.json so Event payload validation does not depend back on an operation request schema.",
+  "description": "Closed signed-request DTO for ak.self.moderation.command.report.v1. Canonical evidence and franking-proof objects live in moderation-evidence.schema.json so Event payload validation does not depend back on an operation request schema.",
   "$ref": "#/$defs/moderation_report_request_body",
   "$defs": {
     "moderation_report_event_submission": {

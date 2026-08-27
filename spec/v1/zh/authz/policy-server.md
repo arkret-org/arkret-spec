@@ -89,11 +89,11 @@ projection cache。
 
 Self-management operation 的映射固定如下：
 
-- `ak.self.realm_policy_server.resource.replace`（`PUT
+- `ak.self.realm_policy_server.resource.replace.v1`（`PUT
   /_arkret/self/realms/{realm_id}/policy-server`）在 `ak.policy.manage` admission 通过后，
   MUST 接受 `policy_server_event` 包装的、由已认证调用者签名的完整
   `ak.realm.policy_server` EventInitialSubmission；其 Event payload 即 durable declaration；
-- `ak.self.realm_policy_server.resource.delete`（`DELETE` 同一路径）在同一 capability admission
+- `ak.self.realm_policy_server.resource.delete.v1`（`DELETE` 同一路径）在同一 capability admission
   通过后，MUST 接受同一 `policy_server_event` 包装，且其中调用者签名 Event 的 payload
   必须精确为 `{"tombstone":true}`；
 - direct cell 从未写入时，replace 写入初始 declaration，不要求 CAS precondition；direct cell

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/events-subscribe-frame.schema.json",
   "title": "EventsSubscribeFrame",
-  "description": "Closed frame union emitted by ak.self.events.stream.subscribe over NDJSON or as the payload of an Arkret WebSocket channel frame.",
+  "description": "Closed frame union emitted by ak.self.events.stream.subscribe.v1 over NDJSON or as the payload of an Arkret WebSocket channel frame.",
   "type": "object",
   "required": [
     "kind"

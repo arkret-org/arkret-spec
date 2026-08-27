@@ -500,10 +500,11 @@ def check_service_describe_alignment(lint: Lint) -> None:
     if not isinstance(openapi, dict) or not isinstance(service_schema, dict):
         return
 
+    components = openapi.get("components", {}).get("schemas", {})
     component = (
-        openapi.get("components", {})
-        .get("schemas", {})
-        .get("ServiceDescribe")
+        resolve_openapi_component_schema(lint, openapi_path, components, "ServiceDescribe")
+        if isinstance(components, dict)
+        else None
     )
     if not isinstance(component, dict):
         lint.fail(openapi_path, "components.schemas.ServiceDescribe missing")
@@ -522,7 +523,6 @@ def check_service_describe_alignment(lint: Lint) -> None:
         lint.fail(openapi_path, "components.schemas.ServiceDescribe.properties.trust_domain missing")
     directory_fields = {
         "resource_kinds",
-        "discovery_profiles",
         "restricted_query_proof",
         "ingest_modes",
         "accept_policy_kind",
@@ -687,10 +687,10 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         )
 
     expected = {
-        "ak.root.identity.command.submit_did_operation": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
-        "ak.gate.account.command.issue_session_grant": ("SessionGrantRequestBody", "SessionGrantOutcome"),
-        "ak.find.directory.command.announce": ("DirectoryAnnounceRequestBody", "DirectoryAnnounceOutcome"),
-        "ak.find.directory.command.withdraw": ("DirectoryWithdrawRequestBody", "DirectoryWithdrawOutcome"),
+        "ak.root.identity.command.submit_did_operation.v1": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
+        "ak.gate.account.command.issue_session_grant.v1": ("SessionGrantRequestBody", "SessionGrantOutcome"),
+        "ak.find.directory.command.announce.v1": ("DirectoryAnnounceRequestBody", "DirectoryAnnounceOutcome"),
+        "ak.find.directory.command.withdraw.v1": ("DirectoryWithdrawRequestBody", "DirectoryWithdrawOutcome"),
     }
     expected_response_only = {}
     dedicated_schema_refs = {
@@ -754,9 +754,9 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         lint.fail(openapi_path, "AgentSessionGrantRequest.proof.required must include audience")
 
     projection_components = {
-        "ak.self.space.read.list": "ProjectionSpaceList",
-        "ak.self.strand.read.list": "ProjectionStrandList",
-        "ak.self.morph.read.list": "ProjectionMorphList",
+        "ak.self.space.read.list.v1": "ProjectionSpaceList",
+        "ak.self.strand.read.list.v1": "ProjectionStrandList",
+        "ak.self.morph.read.list.v1": "ProjectionMorphList",
     }
     for operation_id, component_name in projection_components.items():
         operation = find_operation(operation_id)
@@ -828,29 +828,29 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         if not isinstance(schema, dict) or schema.get("$ref") != ref:
             lint.fail(openapi_path, f"{operation_id}.{name} parameter must reference {ref}")
 
-    expect_any_of("ak.self.events.stream.subscribe", [["realms"], ["actors"]])
-    expect_array_param("ak.self.events.stream.subscribe", "realms", "#/components/schemas/RealmId")
+    expect_any_of("ak.self.events.stream.subscribe.v1", [["realms"], ["actors"]])
+    expect_array_param("ak.self.events.stream.subscribe.v1", "realms", "#/components/schemas/RealmId")
     expect_array_param(
-        "ak.self.events.stream.subscribe",
+        "ak.self.events.stream.subscribe.v1",
         "actors",
         "../schemas/common-ids.schema.json#/$defs/did_core_id",
     )
-    expect_param_ref("ak.self.events.stream.subscribe", "after", "#/components/schemas/Cursor")
-    expect_param_ref("ak.self.events.resource.get", "event_id", "#/components/schemas/EventId")
-    expect_param_ref("ak.self.snapshot.read.manifest_head", "realm_id", "#/components/schemas/RealmId")
+    expect_param_ref("ak.self.events.stream.subscribe.v1", "after", "#/components/schemas/Cursor")
+    expect_param_ref("ak.self.events.resource.get.v1", "event_id", "#/components/schemas/EventId")
+    expect_param_ref("ak.self.snapshot.read.manifest_head.v1", "realm_id", "#/components/schemas/RealmId")
 
-    query_body = op("ak.self.events.read.scan")
+    query_body = op("ak.self.events.read.scan.v1")
     if query_body is not None:
         schema = resolve_openapi_schema_node(lint, openapi_path, openapi.get("components", {}).get("schemas", {}), openapi_request_schema(query_body))
         if not isinstance(schema, dict):
-            lint.fail(openapi_path, "ak.self.events.read.scan requestBody schema missing")
+            lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody schema missing")
         else:
             expected_any_of = [{"required": ["realms"]}, {"required": ["actors"]}]
             if schema.get("anyOf") != expected_any_of:
-                lint.fail(openapi_path, "ak.self.events.read.scan requestBody must require realms or actors")
+                lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody must require realms or actors")
             properties = schema.get("properties")
             if not isinstance(properties, dict):
-                lint.fail(openapi_path, "ak.self.events.read.scan requestBody properties missing")
+                lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody properties missing")
             else:
                 for name, ref in (
                     ("realms", "#/components/schemas/RealmId"),
@@ -858,19 +858,19 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
                 ):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict):
-                        lint.fail(openapi_path, f"ak.self.events.read.scan.{name} property missing")
+                        lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name} property missing")
                         continue
                     if property_schema.get("type") != "array" or property_schema.get("minItems") != 1:
-                        lint.fail(openapi_path, f"ak.self.events.read.scan.{name} must be a non-empty array")
+                        lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name} must be a non-empty array")
                     items = property_schema.get("items")
                     if not isinstance(items, dict) or not (
                         items.get("$ref") == ref or schema_ref_targets(items, ref.rsplit("/", 1)[-1])
                     ):
-                        lint.fail(openapi_path, f"ak.self.events.read.scan.{name}.items must reference {ref}")
+                        lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name}.items must reference {ref}")
                 for name in ("before", "after"):
                     property_schema = properties.get(name)
                     if not schema_ref_targets(property_schema, "Cursor"):
-                        lint.fail(openapi_path, f"ak.self.events.read.scan.{name} must reference Cursor")
+                        lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name} must reference Cursor")
 
 
 
@@ -882,36 +882,36 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         return
     operations = openapi_operations_by_id(openapi)
     public_metadata_operations = {
-        "ak.server.read.describe",
-        "ak.self.events.read.describe",
-        "ak.peer.events.read.describe",
-        "ak.open.mimi.read.provider_directory",
-        "ak.root.identity.registry.read.describe",
-        "ak.self.account.read.describe",
-        "ak.open.identity.read.resolution",
-        "ak.open.service.read.resolution",
-        "ak.find.directory.read.describe",
-        "ak.edge.applet.read.describe",
-        "ak.edge.applet.read.protocol_metadata",
+        "ak.server.read.describe.v1",
+        "ak.self.events.read.describe.v1",
+        "ak.peer.events.read.describe.v1",
+        "ak.open.mimi.read.provider_directory.v1",
+        "ak.root.identity.registry.read.describe.v1",
+        "ak.self.account.read.describe.v1",
+        "ak.open.identity.read.resolution.v1",
+        "ak.open.service.read.resolution.v1",
+        "ak.find.directory.read.describe.v1",
+        "ak.edge.applet.read.describe.v1",
+        "ak.edge.applet.read.protocol_metadata.v1",
     }
     proof_in_body_operations = {
-        "ak.gate.account.command.register",
-        "ak.gate.account.command.issue_session_grant",
-        "ak.open.invite_locator.read.resolve",
-        "ak.open.agent_pairing.read.resolve",
-        "ak.open.agent_pairing.command.submit_runtime_key_request",
-        "ak.open.agent_pairing.read.runtime_key_request_status",
-        "ak.open.device_pairing.command.stage",
-        "ak.open.device_pairing.read.resolve",
-        "ak.open.device_pairing.read.status",
-        "ak.edge.applet.managed_actor.command.author",
+        "ak.gate.account.command.register.v1",
+        "ak.gate.account.command.issue_session_grant.v1",
+        "ak.open.invite_locator.read.resolve.v1",
+        "ak.open.agent_pairing.read.resolve.v1",
+        "ak.open.agent_pairing.command.submit_runtime_key_request.v1",
+        "ak.open.agent_pairing.read.runtime_key_request_status.v1",
+        "ak.open.device_pairing.command.stage.v1",
+        "ak.open.device_pairing.read.resolve.v1",
+        "ak.open.device_pairing.read.status.v1",
+        "ak.edge.applet.managed_actor.command.author.v1",
     }
     recovery_session_grant_operations = {
-        "ak.root.identity.recovery_policy.command.publish",
-        "ak.root.identity.recovery_policy.resource.get",
-        "ak.root.identity.recovery_session.command.create",
-        "ak.root.identity.recovery_session.resource.get",
-        "ak.root.identity.recovery_session.command.submit_proof",
+        "ak.root.identity.recovery_policy.command.publish.v1",
+        "ak.root.identity.recovery_policy.resource.get.v1",
+        "ak.root.identity.recovery_session.command.create.v1",
+        "ak.root.identity.recovery_session.resource.get.v1",
+        "ak.root.identity.recovery_session.command.submit_proof.v1",
     }
     session_grant_requirement = {"sessionGrantAuth": [], "dpopProof": []}
 
@@ -1266,61 +1266,6 @@ def check_operation_binding_metadata(lint: Lint) -> None:
     allowed_success_shapes = set((operation_registry.get("success_shape_kind_definitions") or {}).keys())
     if not allowed_success_shapes:
         lint.fail(operation_path, "operation registry missing success_shape_kind_definitions")
-
-    service_describe_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
-    service_describe = load_json(lint, service_describe_path)
-    if isinstance(service_describe, dict):
-        operation_binding = (service_describe.get("$defs") or {}).get("operation_binding")
-        if not isinstance(operation_binding, dict):
-            lint.fail(service_describe_path, "$defs.operation_binding missing")
-        else:
-            expected_required = {
-                "operation_id",
-                "binding_kind",
-                "preference",
-                "success_shape_kind",
-            }
-            if set(operation_binding.get("required") or []) != expected_required:
-                lint.fail(
-                    service_describe_path,
-                    "$defs.operation_binding required fields must be the exact current-v1 identity/preference set",
-                )
-            if operation_binding.get("additionalProperties") is not False:
-                lint.fail(service_describe_path, "$defs.operation_binding must be closed")
-            binding_properties = operation_binding.get("properties") or {}
-            used_success_shapes = {
-                row.get("success_shape_kind")
-                for row in operation_registry.get("operations", [])
-                if isinstance(row, dict) and isinstance(row.get("success_shape_kind"), str)
-            }
-            schema_success_shapes = set(
-                ((binding_properties.get("success_shape_kind") or {}).get("enum") or [])
-            )
-            if schema_success_shapes != used_success_shapes:
-                lint.fail(
-                    service_describe_path,
-                    "operation_binding.success_shape_kind must exactly cover operation-registry values: "
-                    f"schema-only={sorted(schema_success_shapes - used_success_shapes)}, "
-                    f"registry-only={sorted(used_success_shapes - schema_success_shapes)}",
-                )
-            binding_registry = load_json(
-                lint, ARTIFACTS / "registry" / "binding-kind-registry.json"
-            )
-            advertised_binding_kinds = {
-                row.get("kind")
-                for row in (binding_registry or {}).get("entries", [])
-                if isinstance(row, dict) and row.get("status") in {"active", "candidate"}
-            }
-            schema_binding_kinds = set(
-                ((binding_properties.get("binding_kind") or {}).get("enum") or [])
-            )
-            if schema_binding_kinds != advertised_binding_kinds:
-                lint.fail(
-                    service_describe_path,
-                    "operation_binding.binding_kind must exactly cover advertised binding kinds: "
-                    f"schema-only={sorted(schema_binding_kinds - advertised_binding_kinds)}, "
-                    f"registry-only={sorted(advertised_binding_kinds - schema_binding_kinds)}",
-                )
 
     surface_class_by_operation: dict[str, str] = {}
     for group in operation_registry.get("surface_groups", []) if isinstance(operation_registry.get("surface_groups"), list) else []:

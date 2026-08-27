@@ -426,7 +426,7 @@
     },
     "blob_presign_scope": {
       "type": "object",
-      "description": "Scope limiter for ak.self.blob.command.presign grants: allowed purposes plus optional blob/realm restrictions.",
+      "description": "Scope limiter for ak.self.blob.command.presign.v1 grants: allowed purposes plus optional blob/realm restrictions.",
       "properties": {
         "allowed_purposes": {
           "type": "array",

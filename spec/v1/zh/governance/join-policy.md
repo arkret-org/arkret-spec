@@ -359,19 +359,19 @@ stage 1 是公开 Control Move，stage 2 是 profile-private receipt，二者不
 
 | operation id | HTTP binding | caller / 可见性 | 用途 |
 | --- | --- | --- | --- |
-| `ak.self.realm.join_application.command.submit` | `POST /_arkret/self/realms/{realm_id}/join-applications` | applicant | 提交或修订 applicant-signed application receipt 与独立 private body。`Idempotency-Key` 必填。 |
-| `ak.self.realm.join_application.command.review` | `POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews` | 当前持有 `review_capability` 的 reviewer | 提交 reviewer-signed review receipt。`Idempotency-Key` 必填。 |
-| `ak.self.realm.join_application.command.cancel` | `POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel` | 原 applicant | 提交 applicant-signed cancel receipt。`Idempotency-Key` 必填。 |
-| `ak.self.realm.join_application.read.list` | `GET /_arkret/self/realms/{realm_id}/join-applications` | Realm member / applicant；正文仍按下文授权裁剪 | 分页列出最小化 metadata；reviewer 与对应 applicant 可见 private body，其他 Realm member 只见 `{application_pending:true}`。 |
-| `ak.self.realm.join_application.resource.get` | `GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}` | reviewer 或对应 applicant | 读取一条申请；每次成功读取 private body MUST 产生 `ak.audit.accessed`。 |
-| `ak.self.realm.join_application.audit.read.list` | `GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit` | reviewer、对应 applicant 或持有 Realm audit capability 的主体 | 读取 submit/read/review/cancel/invite-consume 审计轨迹；不得返回其它申请正文。 |
+| `ak.self.realm.join_application.command.submit.v1` | `POST /_arkret/self/realms/{realm_id}/join-applications` | applicant | 提交或修订 applicant-signed application receipt 与独立 private body。`Idempotency-Key` 必填。 |
+| `ak.self.realm.join_application.command.review.v1` | `POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews` | 当前持有 `review_capability` 的 reviewer | 提交 reviewer-signed review receipt。`Idempotency-Key` 必填。 |
+| `ak.self.realm.join_application.command.cancel.v1` | `POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel` | 原 applicant | 提交 applicant-signed cancel receipt。`Idempotency-Key` 必填。 |
+| `ak.self.realm.join_application.read.list.v1` | `GET /_arkret/self/realms/{realm_id}/join-applications` | Realm member / applicant；正文仍按下文授权裁剪 | 分页列出最小化 metadata；reviewer 与对应 applicant 可见 private body，其他 Realm member 只见 `{application_pending:true}`。 |
+| `ak.self.realm.join_application.resource.get.v1` | `GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}` | reviewer 或对应 applicant | 读取一条申请；每次成功读取 private body MUST 产生 `ak.audit.accessed`。 |
+| `ak.self.realm.join_application.audit.read.list.v1` | `GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit` | reviewer、对应 applicant 或持有 Realm audit capability 的主体 | 读取 submit/read/review/cancel/invite-consume 审计轨迹；不得返回其它申请正文。 |
 
 所有 `{realm_id}` / `{application_ref}` path 参数 MUST 与 body receipt 内对应字段逐字一致。`application_ref` 是 `application_receipt_digest`（`sha256:<lowercase hex>`），path 中按普通 URL segment percent-encode。write operation 的 `Idempotency-Key` 与完整 canonical request digest 绑定：相同 key + 相同 body 返回原结果；相同 key + 不同 body MUST `duplicate_conflict`，不得覆盖首个 receipt / private body。
 
-这组 operation 只在部署的 `ak.server.read.describe` 与 `ak.self.account.read.describe` 同时声明：
+这组 operation 只在部署的 `ak.server.read.describe.v1` 与 `ak.self.account.read.describe.v1` 同时声明：
 
 - `supported_profiles` 含 `ak.profile.candidate.join_policy.v1`；
-- `operation_bindings` 含上表全部 operation 的精确 carrier/schema 行；
+- `supported_operation_bundles` 含上表全部 operation 的精确 carrier/schema 行；
 - feature set 含 `candidate_join_policy_reviewer` 与 `candidate_member_application_intake`；
 - `profile_bindings["ak.profile.candidate.join_policy.v1"].carrier` 恰为 `"profile_private_http_receipt_v1"`。
 
@@ -548,7 +548,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 ## 11. Policy Server 运行时挑战
 
-Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ak.member.state{join}` Control Move 以及 `member.application` signed receipt / private record 调用 `ak.self.policy.read.check` operation（默认 HTTP binding 为 `POST /_arkret/self/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
+Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ak.member.state{join}` Control Move 以及 `member.application` signed receipt / private record 调用 `ak.self.policy.read.check.v1` operation（默认 HTTP binding 为 `POST /_arkret/self/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
 
 ```json
 {
@@ -574,9 +574,9 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
 
 applicant 完成挑战后，重新提交 join / application Control Move，在 `gate_proofs[]` 中追加 `{gate_id: "runtime:<challenge_id>", challenge_proof: {...}}`。`challenge_proof.challenge_id` 是 runtime challenge 的唯一匹配键；verifier MUST 仅按该键选择 challenge proof。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 `challenge_id` proof 的重提。
 
-`bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Control Move。重提 Control Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `ak.self.policy.read.check` 并获取新的 challenge。
+`bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Control Move。重提 Control Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `ak.self.policy.read.check.v1` 并获取新的 challenge。
 
-**`max_proof_age` 过期后的重发流程（normative）**：applicant 拿到 challenge obligation 后未在 `max_proof_age` 内完成、或提交了一个 issued 时刻已超 `max_proof_age` 的 `challenge_proof` 时，reducer / Policy Server MUST 以 `failed_precondition` + `reason_code="challenge_expired"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）拒绝该重提，MUST NOT 把过期 proof 当作满足 obligation。被拒后 applicant MUST 重新提交原始 join / application Control Move 走一次 `ak.self.policy.read.check`，由 Policy Server 签发**新的** `challenge_id`（旧 `challenge_id` 不得复用满足新一轮 obligation）；applicant 对新 challenge 完成后按上文在 `gate_proofs[]` 追加对应新 `challenge_id` 的 proof。reducer MUST NOT 自动续期或自动重发 challenge——challenge 的签发权属 Policy Server，过期即作废、由 applicant 重新发起请求获取。
+**`max_proof_age` 过期后的重发流程（normative）**：applicant 拿到 challenge obligation 后未在 `max_proof_age` 内完成、或提交了一个 issued 时刻已超 `max_proof_age` 的 `challenge_proof` 时，reducer / Policy Server MUST 以 `failed_precondition` + `reason_code="challenge_expired"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）拒绝该重提，MUST NOT 把过期 proof 当作满足 obligation。被拒后 applicant MUST 重新提交原始 join / application Control Move 走一次 `ak.self.policy.read.check.v1`，由 Policy Server 签发**新的** `challenge_id`（旧 `challenge_id` 不得复用满足新一轮 obligation）；applicant 对新 challenge 完成后按上文在 `gate_proofs[]` 追加对应新 `challenge_id` 的 proof。reducer MUST NOT 自动续期或自动重发 challenge——challenge 的签发权属 Policy Server，过期即作废、由 applicant 重新发起请求获取。
 
 `obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `ak.message.create`）若使用 `challenge` 必须遵循同一 envelope。
 

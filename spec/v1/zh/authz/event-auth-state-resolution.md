@@ -241,7 +241,7 @@ ControlMove {
 Control Move 规则：
 
 1. `seal_basis.leaves[]` 进入 canonical Event bytes，并由 `event_digest` / `proofs[]` 覆盖。producer 不复制 `control_event_set_root` 或 `state_root`。
-2. `leaves[]` MUST 只引用 accepted Seal，按 unsigned-byte order 严格排序、去重。单 leaf basis 是轻 producer 的默认形态。account client 从 `ak.self.seals.read.frontier` 取得完整 current Seal antichain；该来源不可用时 MUST fail closed。
+2. `leaves[]` MUST 只引用 accepted Seal，按 unsigned-byte order 严格排序、去重。单 leaf basis 是轻 producer 的默认形态。account client 从 `ak.self.seals.read.frontier.v1` 取得完整 current Seal antichain；该来源不可用时 MUST fail closed。
 3. 多 leaf basis 只有已验证每个 Seal signature、predecessor closure、control covered set 与 joined state 的 producer MAY 签；轻客户端 MUST NOT 签自己无法验证的 multi-leaf union。旁路 proof bundle只补依赖，不进入 Event digest。
 4. reducer contract 的派生写 MUST 只引用 control plane cell。若需同时写 data cell，必须拆成后续 DataEvent。
 5. `preconditions[]` 与全部派生写是原子集合；任一 precondition 不成立，整个 Control Move 失败。
@@ -542,7 +542,7 @@ defer_count=0, authority_set_ref, authority_acks[]
 
 机读合同为
 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。
-`ak.self.events.command.submit` / `ak.peer.events.command.submit` 对 accepted 或 byte-identical
+`ak.self.events.command.submit.v1` / `ak.peer.events.command.submit.v1` 对 accepted 或 byte-identical
 duplicate Control Move MUST 在 `EventsSubmitOutcome.control_proposal_acks[]` 返回已持久化的
 原 Ack；authority-authored self-principal PCR Move 必须省略该数组项，DataEvent 也不得进入该数组。
 重复提交不得重签或延长任何 deadline。
@@ -560,7 +560,7 @@ MUST 以 `schema_violation` 拒绝。若 `max_proposal_defers > 0`，两者 MUST
 **外部 authority Ack set（normative）**：当接收 Event 的 Principal Server 不持有当前
 notary authority，或单个 signer 不能满足 threshold/mixed quorum 时，它不得用服务密钥代签。
 proposal author 必须对每个真实 authority 使用
-`ak.self.control_proposal_acks.command.issue` 的 typed request；本地 Agent/device signer
+`ak.self.control_proposal_acks.command.issue.v1` 的 typed request；本地 Agent/device signer
 使用完全相同的 request、canonical digest 与 outcome transcript，只省略 HTTP hop。每个
 authority 独立验证最终签名 Event、AuthorizationLease、genesis/basis 当前 notary policy、
 Realm、`proposal_digest`、signer membership 与 deadlines，随后签发一次
@@ -629,7 +629,7 @@ verification_method,created_at})`；proof不得跨 Ack set、decision kind 或 d
 控制面 finality。该义务不得命名为“接受 SLA”，也不得声称 deadline 本身提供 finality。
 receiver 本地收到 Event、Ack、decision 或 Seal 的时间 MUST NOT 进入规范计算。
 
-签名 decision 的标准提交面是 `ak.self.control_proposal_decisions.command.submit`，标准观察面是 `ak.self.control_proposal_decisions.read.get`；机读 request/outcome 位于 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。submit receiver MUST 先从 durable store 读取 accepted proposal 与首次 canonical Ack，重算 `proposal_ack_digest`，再验证 exact Realm/proposal/authority set/deadline/defer chain/quorum 并原子写 decision；caller 不能随请求创建或替换 Ack。read 只投影 canonical Ack、verified decision chain 与 covering Seal，不能生成 decision 或清 pending。对 `ak.device.revoke`，`signed_reject` 通过 proposal Event 与 reducer-derived `ak.schema.device_revocation_state.v1` record 传递性绑定 exact device/generation；只清该 proposal，其他同目标 pending record仍保持 gate。decision/Seal 对同一 proposal 使用 terminal CAS：先 accepted 的合法 terminal 结果获胜，另一结果 fail closed；byte-identical replay 返回首次结果。
+签名 decision 的标准提交面是 `ak.self.control_proposal_decisions.command.submit.v1`，标准观察面是 `ak.self.control_proposal_decisions.read.get.v1`；机读 request/outcome 位于 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。submit receiver MUST 先从 durable store 读取 accepted proposal 与首次 canonical Ack，重算 `proposal_ack_digest`，再验证 exact Realm/proposal/authority set/deadline/defer chain/quorum 并原子写 decision；caller 不能随请求创建或替换 Ack。read 只投影 canonical Ack、verified decision chain 与 covering Seal，不能生成 decision 或清 pending。对 `ak.device.revoke`，`signed_reject` 通过 proposal Event 与 reducer-derived `ak.schema.device_revocation_state.v1` record 传递性绑定 exact device/generation；只清该 proposal，其他同目标 pending record仍保持 gate。decision/Seal 对同一 proposal 使用 terminal CAS：先 accepted 的合法 terminal 结果获胜，另一结果 fail closed；byte-identical replay 返回首次结果。
 
 **逾期是治理健康 fault，不改变密码学接受结果（normative）**：在当前
 `decision_due_at` 前没有上述三者，或到达 `absolute_due_at` / defer 上限后仍未 include /
@@ -649,7 +649,7 @@ authority 给出有界、可验证的决议，并为失约提供 health/fault/re
 上述 Ack、两次 defer 上界、绝对期限与迟到 Seal 规则由 conformance vector
 `ak.vector.cba.proposal_bounded_decision.v1` 固定。
 
-`ak.self.seals.read.frontier` 与 `ak.peer.seals.read.frontier` 的 Realm current Seal discovery MUST 返回同一 closed
+`ak.self.seals.read.frontier.v1` 与 `ak.peer.seals.read.frontier.v1` 的 Realm current Seal discovery MUST 返回同一 closed
 `RealmSealFrontierView`：`seal_basis.leaves[]` 是 canonical bytewise sorted、duplicate-free 的完整 non-quarantined accepted
 Seal leaf antichain；`single_signer`/`threshold` authority 下恰一项，`open_set` 下不得只返回任意一项。该 View 还携
 `observation_coordinate={service_id,sequence,observed_at}`；“current”只表示该 service 在该 coordinate 的 verified durable

@@ -99,7 +99,7 @@
         "on_timeout": "fail_closed"
       },
       "delete": {
-        "operation_id": "ak.self.realm_policy_server.resource.delete",
+        "operation_id": "ak.self.realm_policy_server.resource.delete.v1",
         "required_capability": "ak.policy.manage",
         "event_kind": "ak.realm.policy_server",
         "payload": {

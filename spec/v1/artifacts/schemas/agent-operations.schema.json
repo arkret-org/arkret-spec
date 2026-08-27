@@ -813,7 +813,7 @@
     },
     "agent_human_approval_error_details": {
       "type": "object",
-      "description": "Closed RFC 9457 extension set returned by ak.gate.account.command.issue_session_grant when an agent_key_proof request needs out-of-band controller approval. The enclosing Problem type MUST be https://arkret.org/problems/claim_required. The agent runtime MUST NOT be given CAPTCHA, OTP, browser-login, or other interactive human challenge material.",
+      "description": "Closed RFC 9457 extension set returned by ak.gate.account.command.issue_session_grant.v1 when an agent_key_proof request needs out-of-band controller approval. The enclosing Problem type MUST be https://arkret.org/problems/claim_required. The agent runtime MUST NOT be given CAPTCHA, OTP, browser-login, or other interactive human challenge material.",
       "required": [
         "reason_code",
         "approval_request_id"
@@ -2002,7 +2002,7 @@
             }
           },
           "additionalProperties": false,
-          "description": "Verbatim prepare input for the next ak.self.agent.participation.resource.replace of this entry; member names match the replace request byte-for-byte per the service-http-binding.md 2.2.2 echo-container discipline. A first-ever selection has no entry row and uses expected_version 0."
+          "description": "Verbatim prepare input for the next ak.self.agent.participation.resource.replace.v1 of this entry; member names match the replace request byte-for-byte per the service-http-binding.md 2.2.2 echo-container discipline. A first-ever selection has no entry row and uses expected_version 0."
         }
       },
       "additionalProperties": false
