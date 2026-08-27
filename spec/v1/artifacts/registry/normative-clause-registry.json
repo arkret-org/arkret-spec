@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.5",
+  "version": "2026-08-27.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-08-27T09:18:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -396,7 +396,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/governance/member-delivery-binding.md#5-路由不可降级normative",
-      "section_digest": "sha256:7934233a53de08981f2066121a305c0a92ab5279c3573be0f4cdb90243f5abe9",
+      "section_digest": "sha256:a31aff42d9a4b15323fdfbeccb7b7e1def87c8e794edcaff9dd2d076091aef8e",
       "requirement": "Member delivery binding never silently downgrades: a stale binding frontier, an expired handover grace window or an unresolvable binding MUST fail closed instead of routing to the previous service.",
       "testability_grade": "vector",
       "evidence_refs": [

@@ -400,6 +400,8 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 `directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version`、`supported_profiles`、`operation_bindings`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)（`ak.schema.service_describe.v1`）：
 
+完整 role-scoped `ServiceDescribe` 的 canonical response body MUST 不超过 1 MiB（1,048,576 bytes），且 MUST 省略 `Content-Encoding`、禁止 redirect。该上限覆盖完整 `operation_bindings[]` 与 `supported_bindings[]` 闭包；实现不得沿用只适用于旧精简 describe 的 64 KiB 本地限制。超过上限的服务 MUST 收窄其 role surface 或拆分为独立 role-scoped endpoint，不得静默截断 binding rows。
+
 `service_id` MUST 是该逻辑角色的 `did_core_id`，`service_resolution` MUST 投影当前 `full_id` 与 method history position。这个投影只用于将已选定 endpoint 与首跳 `ServiceResolutionRecord` 交叉确认，不能让 describe 变成 resolver，也不能单独创建 service 授权。
 
 当 `service_kind=directory_service` 时，`ak.find.directory.read.describe` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-akfinddirectoryreaddescribe-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_kinds[]`、`discovery_profiles[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。

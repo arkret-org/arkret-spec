@@ -176,7 +176,7 @@ TTL route cache 与 durable anti-rollback floor 必须分离。sender MUST 为�
 
 每一条恢复路径最终都必须取得 target service 自签的正式 `ServiceResolutionRecord`、验证其 chain/freshness/method history，并完成 describe 二跳反向确认后才能恢复业务投递。notice、mirror ack、mirror 自身身份、HTTP redirect、candidate 可达或多个 mirror 一致均不能替代该验证。相同 sequence 异 digest、chain gap、wrong core/kind 或 describe mismatch 必须进入 route-fork quarantine。上述顺序只恢复**同一** `recipient_service_id` 的 route state；任何返回不同 service core 的 notice、record 或 mirror response 都必须拒绝，并按 §6 提交新的 delivery binding / rebind Control Move。
 
-抓取 `current_record_url` MUST 使用 [`../sync/service-surface.md` §2.6](../sync/service-surface.md) 的 SSRF 防护、DNS 前后地址分类、无 redirect / 无 `Content-Encoding`、64 KiB 响应上限与 5 秒总 deadline。TLS 成功、URL 可达或 HTTP 200 均不替代 record 验签。
+抓取 `current_record_url` MUST 使用 [`../sync/service-surface.md` §2.6](../sync/service-surface.md) 的 SSRF 防护、DNS 前后地址分类、无 redirect / 无 `Content-Encoding`、1 MiB（1,048,576 bytes）完整 `AuthenticatedServiceResolution` canonical 响应上限与 5 秒总 deadline。该上限包含 method-history evidence 与 normalized DID Document，不得沿用 64 KiB 的旧 record-only 上限。TLS 成功、URL 可达或 HTTP 200 均不替代 record 验签。
 
 **权威划分（normative）**：路由不可降级原则与同-core route recovery（本节）、rebind 接受集合全分类与 `handover_grace_seconds`（§6）的**语义**权威是本文；[`sync/service-surface.md`](../sync/service-surface.md) §2.6 定义 current record、future route notice 与 durable floor；[`sync/federation.md`](../sync/federation.md) §4.1 定义 member rebind 的联邦 wire，§6.4 定义 route publish/resolve wire。route notice 的 `grace_until` 是同一 service core 的旧入口可用窗口，与 §6 更换 service core 的 `handover_grace_seconds` 不得混用。
 
