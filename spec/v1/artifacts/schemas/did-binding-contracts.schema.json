@@ -5,6 +5,9 @@
   "description": "Canonical shapes behind identity/did-usage-and-verification.md section 5: the retained evidence receipt whose digest is the binding's evidence_digest, the resolver policy snapshot whose digest is the binding's policy_digest, the mechanically extracted evidence dependency record used for selective invalidation, the limited-trust pin record, and the freshness profile row every authority call site references. These objects are trust-domain-local: the contracts guarantee recomputability and change-sensitivity, not cross-deployment digest equality.",
   "anyOf": [
     {
+      "$ref": "#/$defs/normalized_did_document"
+    },
+    {
       "$ref": "#/$defs/evidence_receipt"
     },
     {
@@ -33,6 +36,203 @@
       "type": "string",
       "pattern": "^[a-z0-9]+$",
       "description": "Canonical lowercase DID method token (W3C DID 1.0 method-name), e.g. key, web, webvh."
+    },
+    "normalized_did_document_metadata": {
+      "type": "object",
+      "description": "Closed Arkret metadata projection. primary_handle is a holder preference pointer only; it never creates a handle claim or authorization.",
+      "properties": {
+        "primary_handle": {
+          "$ref": "./string-profiles.schema.json#/$defs/canonical_handle"
+        }
+      },
+      "additionalProperties": false
+    },
+    "normalized_did_document_extension": {
+      "type": "object",
+      "description": "One lossless extension property from the verified DID Document. Rows are sorted by name in unsigned UTF-8 byte order and duplicate names are rejected. A name that collides with a registered known member is invalid rather than shadowing that member.",
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "normalized_did_verification_method": {
+      "type": "object",
+      "description": "Canonical Arkret projection of one DID verification method. public_key_material is the lossless canonical JSON object containing the registered method-specific public-key members; extensions retains every other member. Rows are sorted by verification_method and duplicate or conflicting verification methods are rejected before projection.",
+      "required": [
+        "verification_method",
+        "controller_did",
+        "verification_method_suite",
+        "public_key_material",
+        "extensions"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "controller_did": {
+          "$ref": "#/$defs/did"
+        },
+        "verification_method_suite": {
+          "type": "string",
+          "minLength": 1
+        },
+        "public_key_material": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "extensions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/normalized_did_document_extension"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "normalized_did_service": {
+      "type": "object",
+      "description": "Canonical Arkret projection of one DID service entry. service_uri preserves the W3C service id as a generic URI (not an Arkret stable object id); service_protocol_names is the sorted, duplicate-free projection of the W3C type set; service_endpoint retains its complete canonical JSON value. Arkret-defined names and endpoint shapes are closed by did-document-contract-registry.json.",
+      "required": [
+        "service_uri",
+        "service_protocol_names",
+        "service_endpoint",
+        "extensions"
+      ],
+      "properties": {
+        "service_uri": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "service_protocol_names": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "service_endpoint": {},
+        "extensions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/normalized_did_document_extension"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "normalized_did_document": {
+      "type": "object",
+      "description": "The sole canonical normalized DID Document projection used by document_digest. It retains every v1-normative member, including also_known_as and metadata.primary_handle, and losslessly retains unknown extensions. contexts preserves source order because JSON-LD context order can affect interpretation; every other set-like array is sorted in unsigned UTF-8 order with duplicates rejected. Duplicate/conflicting source properties, ids, relationship entries, services, metadata keys, or extension names fail before digesting. document_digest is exactly sha256:lowercase_hex(SHA-256(RFC8785_JCS(this object))); raw resolver bytes use raw_document_digest and no third DID-document digest name exists.",
+      "required": [
+        "did",
+        "contexts",
+        "controller_dids",
+        "also_known_as",
+        "verification_methods",
+        "authentication",
+        "assertion_methods",
+        "key_agreements",
+        "capability_invocations",
+        "capability_delegations",
+        "services",
+        "metadata",
+        "extensions"
+      ],
+      "properties": {
+        "did": {
+          "$ref": "#/$defs/did"
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "controller_dids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/did"
+          }
+        },
+        "also_known_as": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "verification_methods": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/normalized_did_verification_method"
+          }
+        },
+        "authentication": {
+          "$ref": "#/$defs/normalized_did_relationship"
+        },
+        "assertion_methods": {
+          "$ref": "#/$defs/normalized_did_relationship"
+        },
+        "key_agreements": {
+          "$ref": "#/$defs/normalized_did_relationship"
+        },
+        "capability_invocations": {
+          "$ref": "#/$defs/normalized_did_relationship"
+        },
+        "capability_delegations": {
+          "$ref": "#/$defs/normalized_did_relationship"
+        },
+        "services": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/normalized_did_service"
+          }
+        },
+        "metadata": {
+          "$ref": "#/$defs/normalized_did_document_metadata"
+        },
+        "extensions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/normalized_did_document_extension"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "normalized_did_relationship": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/did_url"
+      },
+      "description": "Sorted duplicate-free verification-method DID URLs. Every entry must identify a method present in verification_methods; embedded W3C methods are first hoisted into verification_methods and then referenced here."
     },
     "evidence_receipt": {
       "type": "object",

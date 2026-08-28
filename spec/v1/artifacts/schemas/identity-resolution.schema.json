@@ -42,8 +42,8 @@
           "$ref": "#/$defs/method_history_evidence"
         },
         "normalized_did_document": {
-          "type": "object",
-          "description": "Exact normalized DID Document whose canonical digest equals method_history_evidence.evidence.document_digest. Its id equals service_resolution_record.record.did and the record proof names an authorized assertionMethod in this document."
+          "$ref": "./did-binding-contracts.schema.json#/$defs/normalized_did_document",
+          "description": "Exact registered normalized DID Document projection whose canonical digest equals method_history_evidence.evidence.document_digest. Its did equals service_resolution_record.record.did and the record proof names an authorized assertion method in this document."
         }
       },
       "additionalProperties": false

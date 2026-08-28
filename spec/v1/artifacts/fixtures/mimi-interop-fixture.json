@@ -13,6 +13,7 @@
     "ak.vector.mimi.keypackage_claim_lifecycle.v1",
     "ak.vector.mimi.content_roundtrip.v1",
     "ak.vector.mimi.identifier_query_privacy.v1",
+    "ak.vector.mimi.identifier_query_source_signature.v1",
     "ak.vector.mimi.consent_isolation.v1",
     "ak.vector.mimi.proxy_download_policy.v1",
     "ak.vector.mimi.provider_directory_signature.v1",
@@ -222,6 +223,40 @@
         "privacy_mode": "private_contact_discovery"
       },
       "expected": "returns_psi_match_bits_and_invite_handoff_without_exposing_contact_graph"
+    },
+    {
+      "vector_id": "ak.vector.mimi.identifier_query_source_signature.v1",
+      "name": "identifier_query_requires_per_request_source_signature",
+      "operation_id": "ak.open.mimi.read.identifiers.v1",
+      "cases": [
+        {
+          "name": "unsigned_query_rejected_before_psi",
+          "headers": {
+            "Authorization": "Bearer deployment-token-only"
+          },
+          "expected_http_status": 401,
+          "expected_error_code": "http_signature_required",
+          "psi_evaluated": false
+        },
+        {
+          "name": "invalid_source_signature_rejected_before_psi",
+          "headers": {
+            "Signature-Input": "sig1=(\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"source-service-id\" \"destination-service-id\" \"provider-id\");created=1787932800;expires=1787933100;keyid=\"did:web:source.example#provider\";alg=\"ed25519\"",
+            "Signature": "sig1=:aW52YWxpZA==:"
+          },
+          "expected_http_status": 401,
+          "expected_error_code": "http_signature_invalid",
+          "psi_evaluated": false
+        },
+        {
+          "name": "group_info_and_directory_do_not_inherit_profile",
+          "operation_ids": [
+            "ak.open.mimi.read.group_info.v1",
+            "ak.open.mimi.read.provider_directory.v1"
+          ],
+          "expected": "no_http_signature_required_error_from_this_profile"
+        }
+      ]
     },
     {
       "vector_id": "ak.vector.mimi.consent_isolation.v1",

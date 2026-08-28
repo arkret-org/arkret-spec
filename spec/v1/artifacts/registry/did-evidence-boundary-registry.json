@@ -1,0 +1,97 @@
+{
+  "version": "2026-08-29.1",
+  "source_of_truth": false,
+  "generated_at": "2026-08-29T00:00:00+08:00",
+  "generated_from": "registry/contract-registry.json",
+  "generated_by": "tools/artifact_pipeline.py",
+  "registry_rules": [
+    "A stable DidCoreId alone never starts DID resolution and no adapter may expose core_to_did expansion",
+    "registration, genesis, resolution records and method evidence carry a required validated Did; method proof keys carry DidUrl",
+    "ordinary canonical identity objects and references carry only DidCoreId and MUST NOT add optional did caches",
+    "Every authority verifier obtains Did or DidUrl from exactly one registered carrier, validates it, projects it with the active adapter and byte-compares the result with expected_core_path",
+    "A route-dependent resolver call also requires the registered route evidence; host/path is never guessed from a stable core"
+  ],
+  "boundaries": [
+    {
+      "boundary_id": "human_or_organization_pcr_genesis",
+      "responsibility": "registration_genesis",
+      "schema_ref": "schemas/event-envelope.schema.json",
+      "did_path": "payload.object.initial_resolution.did",
+      "did_requirement": "required",
+      "expected_core_path": "actor_id",
+      "route_evidence": "registration_control_evidence"
+    },
+    {
+      "boundary_id": "managed_agent_pcr_genesis",
+      "responsibility": "registration_genesis",
+      "schema_ref": "schemas/event-envelope.schema.json",
+      "did_path": "payload.object.initial_resolution.did",
+      "did_requirement": "required",
+      "expected_core_path": "actor_id",
+      "route_evidence": "accepted_agent_provision_and_initial_resolution"
+    },
+    {
+      "boundary_id": "applet_ghost_pcr_genesis",
+      "responsibility": "registration_genesis",
+      "schema_ref": "schemas/event-envelope.schema.json",
+      "did_path": "payload.object.initial_resolution.did",
+      "did_requirement": "required",
+      "expected_core_path": "actor_id",
+      "route_evidence": "accepted_applet_managed_actor_provision"
+    },
+    {
+      "boundary_id": "principal_resolution_record",
+      "responsibility": "resolution_record",
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
+      "did_path": "did",
+      "did_requirement": "required",
+      "expected_core_path": "enclosing principal_id",
+      "route_evidence": "known_principal_server_account_pair"
+    },
+    {
+      "boundary_id": "service_resolution_record",
+      "responsibility": "resolution_record",
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record_core",
+      "did_path": "did",
+      "did_requirement": "required",
+      "expected_core_path": "service_id",
+      "route_evidence": "bootstrap current_record_url or already verified same-core route"
+    },
+    {
+      "boundary_id": "did_method_evidence",
+      "responsibility": "method_evidence",
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/authenticated_service_resolution",
+      "did_path": "service_resolution_record.record.did",
+      "did_requirement": "required",
+      "expected_core_path": "enclosing principal_id or service_id",
+      "route_evidence": "carrier-specific resolver input"
+    },
+    {
+      "boundary_id": "ephemeral_pairwise_mls_credential",
+      "responsibility": "method_evidence",
+      "schema_ref": "schemas/identity-link.schema.json",
+      "did_path": "response_signing_verification_method",
+      "did_requirement": "required_did_url",
+      "expected_core_path": "pairwise_actor_id",
+      "route_evidence": "exact accepted MLS LeafNode credential identity"
+    },
+    {
+      "boundary_id": "third_party_proof",
+      "responsibility": "method_evidence",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/proof",
+      "did_path": "verification_method",
+      "did_requirement": "required_did_url",
+      "expected_core_path": "the proof family's registered issuer, controller or subject core field",
+      "route_evidence": "accepted-at proof evidence or the call site's registered resolution carrier"
+    },
+    {
+      "boundary_id": "ordinary_identity_reference",
+      "responsibility": "ordinary_reference",
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/did_core_id",
+      "did_path": null,
+      "did_requirement": "forbidden",
+      "expected_core_path": "the Arkret-owned id or *_id field",
+      "route_evidence": "none; an isolated core is not resolvable"
+    }
+  ]
+}

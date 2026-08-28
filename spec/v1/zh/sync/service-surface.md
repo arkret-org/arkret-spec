@@ -361,7 +361,7 @@ to-device request、foreign active MLS state 或公开 Event。其它客户端�
 
 服务类型命名规则：
 
-- DID Document `service.type` 使用协议注册名，例如 `ArkretPrincipalServer`、`ArkretDirectory`。
+- service identity bootstrap 的 DID Document entry 唯一使用 `type="ArkretService"`，并以必填 `serviceKind` 取 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `valid_in` 含 `service_registration_key` 的值。`ArkretPrincipalServer` / `ArkretDirectory` 不是 alias，必须拒绝。Organization 与 managed-Agent 的 specialized DID service type 仅使用 [`did-document-contract-registry.json`](../../artifacts/registry/did-document-contract-registry.json) 登记的独立 endpoint shape，不得替代 service bootstrap。
 - describe 响应的 `service_kind` 使用 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_kind`。Realm join candidate 的 `service_kind` 仅允许 `principal_server`，其路由来源只允许 signed invite 或当前 joined-member delivery binding（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
 - conformance profile 使用 `ak.profile.*` 标识，例如 `ak.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_kind 与 conformance profile 混用。

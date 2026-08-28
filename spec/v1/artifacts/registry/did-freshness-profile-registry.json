@@ -4,7 +4,7 @@
   "description": "Canonical registry of the did-usage-and-verification.md section 5.4 freshness profile ids a DID authority call site may reference. Registration fixes the id and its risk_tier; the numeric windows are declared per deployment and enter profile_policy of the section 5.3 resolver policy snapshot, so no network-wide minute count is implied.",
   "registry_rules": [
     "freshness_profile_id values MUST be unique and MUST match ^ak\\.did_freshness\\.[a-z0-9_]+\\.v[0-9]+$",
-    "Every DID authority call site MUST reference exactly one registered freshness_profile_id; natural-language tier guessing is forbidden",
+    "Every current-DID authority call site MUST reference exactly one registered freshness_profile_id; accepted_at_history verifier actions carry freshness_profile_id=null and are pinned to their registered historical position; natural-language tier guessing is forbidden",
     "An unknown id, an unregistered action or a non-matching did_method_selector MUST be treated as the high tier with synchronous_refresh_or_fail_closed; there is no path that defaults to accepting any cached binding",
     "risk_tier is fixed by registration. A deployment declares only the numeric windows, which MUST satisfy the tier constraints in did-usage-and-verification.md section 5.4",
     "Adding a profile is a backward-compatible minor; changing an existing profile's risk_tier requires a new id",
@@ -211,6 +211,20 @@
       "site_id": "ak.identity.resolution.update",
       "evidence_class": "method_successor",
       "freshness_profile_id": "ak.did_freshness.method_successor.v1"
+    },
+    {
+      "site_kind": "verifier_action",
+      "site_id": "ak.verifier.handle.public_reverse_binding.v1",
+      "evidence_class": "current_external_claim",
+      "freshness_profile_id": "ak.did_freshness.current_external_claim.v1",
+      "purpose": "Verify that the current normalized holder DID Document also_known_as contains the canonical public handle before an Authority-layer trust decision."
+    },
+    {
+      "site_kind": "verifier_action",
+      "site_id": "ak.verifier.handle.primary_selection_at_as_of.v1",
+      "evidence_class": "accepted_at_history",
+      "freshness_profile_id": null,
+      "purpose": "Resolve the exact accepted-at historical DID Document version and read normalized metadata.primary_handle for deterministic primary-handle selection."
     }
   ]
 }

@@ -8,7 +8,7 @@ updated: 2026-08-11
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
 
-`ak.vector.identity.principal_server_admission.v1` 覆盖 account authority pair 终身唯一性（包括 deactivation 后同一 Principal Server replacement account 拒绝、另一 Principal Server 完整 onboarding 允许）、Event 顶层 `principal_server_id`、producer proof 精确绑定、origin-only admission、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `principal-server-admission-fixture.json` 的全部 semantic cases；任何以 PCR identifier 比较外部 principal equality、deactivation 后释放同 pair uniqueness、接收服务重签或独立 signer-evidence sidecar 都不合格。
+`ak.vector.identity.principal_server_admission.v1` 覆盖 account authority pair 终身单 account / 单 PCR genesis 唯一性：deactivation 后同一 Principal Server replacement account 仍拒绝；deployment policy 可拒绝 reactivation，policy allow 也必须在 completed PCR recovery closure 后只恢复原 account/PCR 并绑定更高 device generation；另一 Principal Server 完整 onboarding 是独立选择而非强制恢复路径。该向量还覆盖 Event 顶层 `principal_server_id`、producer proof 精确绑定、origin-only admission、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `principal-server-admission-fixture.json` 的全部 semantic cases；任何以 PCR identifier 比较外部 principal equality、deactivation 后释放同 pair uniqueness、用 account auth/admin 绕过 PCR recovery、复活旧 generation 资源、接收服务重签或独立 signer-evidence sidecar 都不合格。
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
 2. CBA · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
@@ -3078,7 +3078,7 @@ Input — `ak.member.state{membership="join"}` Control Move payload：
 
 `vector_id`: `ak.vector.membership.delivery_binding.did_document_default.v1`
 
-Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `did_document_default_allowed=true`，其余字段未限制；Alice DID Document service `ArkretPrincipalServer` 指向 `did:webvh:z6mkfixture:personal.alice.example`，canonical hash `sha256:abc...`。
+Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `did_document_default_allowed=true`，其余字段未限制；Alice DID Document service `type="ArkretService", serviceKind="principal_server"` 指向 `did:webvh:z6mkfixture:personal.alice.example`，canonical hash `sha256:abc...`。
 
 客户端构造 join Control Move 时 MUST 先解析 DID Document 并物化进 binding：
 
@@ -6614,7 +6614,7 @@ Runner MUST 覆盖：
 
 ## Account status issuer ledger
 
-`ak.vector.account_status.issuer_ledger.v1` MUST 覆盖：account binding 与 `status_seq=1,active` record、account row、audit、outbox 原子提交，PCR 尚无 Seal 也成功；record id 与 proof 对同一 closed unsigned core 做 JCS/SHA-256 闭合，proof controller 必须是 Account Authority；successor 严格执行 `seq=current+1` 与 exact predecessor CAS，exact replay byte-identical、同 request identity 异 intent 零写入冲突；receiver 区分 accepted/duplicate/stale/gap/fork，且分类基线只有 durable replica head——在连续 replica 上重投一条低于 head 且与本地仍保留的同 `status_seq` 历史行逐字节相同的 record，MUST 得到 `failed_precondition` + `account_status_record_stale`（`retryable=false`、零写入），MUST NOT 降级为 `duplicate`；gap 返回 exact required seq 并通过 bounded resolve 取得连续原始 records；holder offline/revoked/hostile 时 Account Authority 仍可 final `locked/suspended/deactivated/erasure_pending`；receipted fanout 保留原 record bytes，receipt 精确绑定 record，超窗 flag 不回写 record；不存在 Event、Seal、CBA、frontier 或 `pending_seal` 路径。
+`ak.vector.account_status.issuer_ledger.v1` MUST 覆盖：account binding 与 `status_seq=1,active` record、account row、audit、outbox 原子提交，PCR 尚无 Seal 也成功；record id 与 proof 对同一 closed unsigned core 做 JCS/SHA-256 闭合，proof controller 必须是 Account Authority；successor 严格执行 `seq=current+1` 与 exact predecessor CAS，exact replay byte-identical、同 request identity 异 intent 零写入冲突；receiver 区分 accepted/duplicate/stale/gap/fork，且分类基线只有 durable replica head——在连续 replica 上重投一条低于 head 且与本地仍保留的同 `status_seq` 历史行逐字节相同的 record，MUST 得到 `failed_precondition` + `account_status_record_stale`（`retryable=false`、零写入），MUST NOT 降级为 `duplicate`；gap 返回 exact required seq 并通过 bounded resolve 取得连续原始 records；holder offline/revoked/hostile 时 Account Authority 仍可 final `locked/suspended/deactivated/erasure_pending`；receiver 接受 exact、连续且验签有效的 `deactivated → active` successor，authoring conformance 则必须证明它只来自 deployment-policy allow + completed PCR recovery closure，并与原 account row、audit、outbox、exact新 generation grant 原子提交；普通 admin/login/refresh、policy deny 或缺 recovery closure 均 `account_deactivated` 且零权威写入；`erasure_pending` 的任何 successor 继续以 `erasure_pending_is_terminal` 拒绝；receipted fanout 保留原 record bytes，receipt 精确绑定 record，超窗 flag 不回写 record；不存在 Event、Seal、CBA、frontier 或 `pending_seal` 路径。
 
 ## Personal blocklist revision and delivery semantics
 

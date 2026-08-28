@@ -8,6 +8,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from blake3 import blake3
+
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "spec" / "v1" / "artifacts" / "fixtures"
@@ -20,6 +22,10 @@ def jcs(value: object) -> str:
 
 def sha256(value: bytes) -> str:
     return "sha256:" + hashlib.sha256(value).hexdigest()
+
+
+def blake3_digest(value: bytes) -> str:
+    return "blake3:" + blake3(value).hexdigest()
 
 
 def digest_raw(digest: str) -> bytes:
@@ -126,12 +132,12 @@ def main() -> None:
         "cell": "ak:cell:ak.component.realm.digest_suite.v1:null",
         "state": {"value": "blake3"},
     })
-    genesis_control_root = "blake3:06c9f20a2e38d552584b749185d167ab2fa4780910c4f3c49f4d37c45542c240"
+    genesis_control_root = blake3_digest(control_leaf_preimage(create_digest))
     genesis_completeness_preimage = completeness_leaf_preimage([(
         create["actor_id"], create["actor_seq"], create_digest,
     )])
-    genesis_completeness_root = "blake3:c1882e41f9f17e43511ddc30720ff041b34f769dcb0893f27b6d26a8d9874308"
-    genesis_state_root = "blake3:bbcf9676f0894e3da0ac2b34357c7a10b52aa5135f3a8dcd60d4c98164b855e9"
+    genesis_completeness_root = blake3_digest(genesis_completeness_preimage)
+    genesis_state_root = blake3_digest(b"\x00" + genesis_state_leaf.encode())
     genesis_body = {
         "realm_id": create_realm_id,
         "predecessor_refs": [],
@@ -145,7 +151,7 @@ def main() -> None:
         "hlc": "0198943a5000-0000-aabbccdd",
     }
     genesis_body_bytes = jcs(genesis_body)
-    genesis_seal_digest = "blake3:3a5eb39db178a988c55368d74e3d76fa1308cdf31e9592ea1953b1982e4bb9e0"
+    genesis_seal_digest = blake3_digest(genesis_body_bytes.encode())
 
     realm_id = source["cases"][1]["derived_realm_id"]
     base_seal_id = "ak:seal:sha256:" + "3" * 64
@@ -194,11 +200,14 @@ def main() -> None:
         "cell": "ak:cell:ak.component.realm.digest_suite.v1:null",
         "state": {"value": "blake3"},
     })
-    previous_root = "sha256:304a60bb3ad041f99dded9e91f85563f98d3b595ed77b0d7465eb723ff7bae8a"
-    next_root = "blake3:bbcf9676f0894e3da0ac2b34357c7a10b52aa5135f3a8dcd60d4c98164b855e9"
+    previous_root = sha256(b"\x00" + previous_leaf.encode())
+    next_root = blake3_digest(b"\x00" + next_leaf.encode())
     covered = sorted([transition_digest, source["cases"][1]["event_digest"]])
     transition_control_leaf_preimages = [control_leaf_preimage(digest) for digest in covered]
-    control_root = "blake3:d95514e207ef8f9e47de0d235aa31086c5c4f7dc5bc6149c8ba625886e6236d6"
+    transition_control_leaf_digests = [
+        blake3(preimage).digest() for preimage in transition_control_leaf_preimages
+    ]
+    control_root = blake3_digest(b"\x01" + b"".join(transition_control_leaf_digests))
     transition_completeness_preimage = completeness_leaf_preimage([
         (
             base_event["actor_id"],
@@ -207,7 +216,7 @@ def main() -> None:
         ),
         (transition["actor_id"], transition["actor_seq"], transition_digest),
     ])
-    completeness_root = "blake3:327c621d5b5a3f52a2634432b367ca33cd424533a19301cf44d344de9e7b7133"
+    completeness_root = blake3_digest(transition_completeness_preimage)
     transition_body = {
         "realm_id": realm_id,
         "predecessor_refs": [base_seal_id],
@@ -224,7 +233,7 @@ def main() -> None:
         "hlc": "019899606c00-0000-aabbccdd",
     }
     transition_body_bytes = jcs(transition_body)
-    transition_seal_digest = "blake3:b3d6f37fb29f55bd34a76e6aa0d73c3b59d9f184c5038514581232a42031f0a0"
+    transition_seal_digest = blake3_digest(transition_body_bytes.encode())
     successor = {
         "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 2,
@@ -238,7 +247,7 @@ def main() -> None:
         "seal_basis": {"leaves": ["ak:seal:" + transition_seal_digest]},
     }
     successor_bytes = jcs(successor)
-    successor_digest = "blake3:d2012b6d35ae6fa08827dabe7dff4ee219f248160b10df0db107566df9e7a050"
+    successor_digest = blake3_digest(successor_bytes.encode())
 
     fixture = {
         "generated_by": "tools/generate_hash_transition_fixture.py",

@@ -32,13 +32,48 @@
       ]
     },
     {
+      "name": "deactivated_pair_policy_denies_reactivation",
+      "given": "the original account is deactivated and the deployment account-governance policy denies reactivation",
+      "action": "request recovery completion for that same account and PCR",
+      "expected": "reject",
+      "reason_code": "account_deactivated",
+      "invariants": [
+        "no account status, PCR, session or device authority write occurs",
+        "pair uniqueness and the original account binding remain reserved"
+      ]
+    },
+    {
+      "name": "account_auth_cannot_reactivate_without_pcr_recovery",
+      "given": "the original account is deactivated and fresh account authentication or admin approval succeeds but no completed PCR recovery closure exists",
+      "action": "request active status or a Standard grant",
+      "expected": "reject",
+      "reason_code": "account_deactivated",
+      "invariants": [
+        "account authentication and admin policy do not authorize a PCR replacement device",
+        "current DID control is insufficient unless the accepted PCR recovery policy enabled that factor"
+      ]
+    },
+    {
+      "name": "completed_recovery_reactivates_original_account",
+      "given": "the original account is deactivated, deployment policy allows reactivation, and the same PCR has a verified completed recovery receipt and completion attestation for a higher current device generation",
+      "action": "complete recovery grant issuance",
+      "expected": "reactivate_original_account_and_issue_new_generation_grant",
+      "invariants": [
+        "the original account_id, authority pair and PCR lineage are unchanged",
+        "the Account Authority appends exactly one deactivated-to-active successor",
+        "the Standard grant binds the exact replacement device authorization Event and new generation",
+        "old sessions, devices, KeyPackages, delegations, push routes and pending deliveries remain terminal"
+      ]
+    },
+    {
       "name": "deactivated_principal_may_onboard_at_another_principal_server",
       "given": "an account is deactivated on Principal Server A",
       "action": "create a service account for the same principal_id on Principal Server B",
       "expected": "accept_after_full_onboarding",
       "invariants": [
         "the new account has a distinct principal_server_id and account_id",
-        "the old account, session, device and KeyPackage resources remain terminal"
+        "the old account, session, device and KeyPackage resources remain terminal",
+        "onboarding at another Principal Server is an independent holder choice, not a mandatory deactivation recovery path"
       ]
     },
     {

@@ -4969,6 +4969,69 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
         for row in mappings.get("operations", [])
         if isinstance(row, dict) and isinstance(row.get("operation_specific"), list)
     }
+    mimi_signature_codes = {
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid",
+    }
+    expected_mimi_signature_operations = {
+        "ak.open.mimi.command.notify.v1",
+        "ak.open.mimi.command.proxy_download.v1",
+        "ak.open.mimi.command.report_abuse.v1",
+        "ak.open.mimi.command.request_consent.v1",
+        "ak.open.mimi.command.submit_message.v1",
+        "ak.open.mimi.command.update_consent.v1",
+        "ak.open.mimi.command.update_room.v1",
+        "ak.open.mimi.exchange.request_key_material.v1",
+        "ak.open.mimi.read.identifiers.v1",
+    }
+    actual_mimi_signature_operations = {
+        operation_id
+        for operation_id, codes in mapped_codes.items()
+        if isinstance(operation_id, str)
+        and operation_id.startswith("ak.open.mimi.")
+        and mimi_signature_codes.issubset(codes)
+    }
+    if actual_mimi_signature_operations != expected_mimi_signature_operations:
+        lint.fail(
+            ARTIFACTS / "registry" / "operations-error-mapping.json",
+            "MIMI RFC 9421 operation closure mismatch: "
+            f"missing={sorted(expected_mimi_signature_operations - actual_mimi_signature_operations)!r}, "
+            f"stale={sorted(actual_mimi_signature_operations - expected_mimi_signature_operations)!r}",
+        )
+    for unsigned_read in (
+        "ak.open.mimi.read.group_info.v1",
+        "ak.open.mimi.read.provider_directory.v1",
+    ):
+        if mapped_codes.get(unsigned_read, set()) & mimi_signature_codes:
+            lint.fail(
+                ARTIFACTS / "registry" / "operations-error-mapping.json",
+                f"{unsigned_read} must remain outside the per-request source-signature profile",
+            )
+    mimi_fixture_path = ARTIFACTS / "fixtures" / "mimi-interop-fixture.json"
+    mimi_fixture = load_json(lint, mimi_fixture_path) or {}
+    mimi_cases = mimi_fixture.get("cases", []) if isinstance(mimi_fixture, dict) else []
+    signature_vector = next(
+        (
+            row for row in mimi_cases
+            if isinstance(row, dict)
+            and row.get("vector_id") == "ak.vector.mimi.identifier_query_source_signature.v1"
+        ),
+        None,
+    )
+    if not isinstance(signature_vector, dict):
+        lint.fail(mimi_fixture_path, "missing identifier-query source-signature negative vector")
+    else:
+        negative_codes = {
+            case.get("expected_error_code")
+            for case in signature_vector.get("cases", [])
+            if isinstance(case, dict) and case.get("psi_evaluated") is False
+        }
+        if not {"http_signature_required", "http_signature_invalid"}.issubset(negative_codes):
+            lint.fail(
+                mimi_fixture_path,
+                "identifier-query vector must reject missing and invalid signatures before PSI evaluation",
+            )
     forbidden_claim_details = {
         "one_time_keys_exhausted",
         "principal_unknown",

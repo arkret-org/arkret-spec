@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-authority.schema.json",
   "title": "Arkret Recovery Completion Carriers",
-  "description": "Closed recovery completion attestation and Standard-grant issuance carriers. Device recovery is authorized by the accepted PCR recovery policy; an optional DID-root proof is only one explicitly enabled factor.",
+  "description": "Closed recovery completion attestation and Standard-grant issuance carriers. Device recovery is authorized by the accepted PCR recovery policy; an optional DID-root proof is only one explicitly enabled factor. When deployment policy permits reactivation, the same completed closure is the only operation that may atomically author a deactivated-to-active successor for the original account before issuing its new-generation Standard grant.",
   "$defs": {
     "canonical_public_material": {
       "type": "object",
@@ -48,6 +48,7 @@
     },
     "issue_recovery_completion_grant_outcome": {
       "type": "object",
+      "description": "Exact durable outcome for one completed recovery transaction. If the original account was deactivated, successful issuance also means the Account Authority atomically restored that same account and authored its deactivated-to-active successor; no replacement account or second PCR is created.",
       "required": [
         "transaction_id",
         "session_grant_outcome",
@@ -68,6 +69,7 @@
     },
     "issue_recovery_completion_grant_request": {
       "type": "object",
+      "description": "Closed request proving completed PCR recovery and the exact current replacement device generation. Ordinary account authentication, admin approval, or current DID control without an enabled PCR recovery factor cannot satisfy this request or reactivate a deactivated account.",
       "required": [
         "transaction_id",
         "transaction_request_digest",

@@ -405,7 +405,7 @@ PCR id；PCR service binding 必须是 create accepted 后的连续 DID update�
 
 1. **controller 创建并发布 PCR-independent inception**。controller client 先生成 Agent `did:webvh` root、
    预轮换 binding update key 与其下一代 key，并在任何网络副作用前可恢复地持久化至少后两者。entry 0 只含
-   `ArkretPrincipalServer` 与唯一 `ArkretManagedPrincipalController` delegation，MUST NOT 含
+   `type="ArkretService", serviceKind="principal_server"` 与唯一 `ArkretManagedPrincipalController` delegation，MUST NOT 含
    `ArkretPrincipalControlRealm`。controller 签名并提交 exact entry 0；Principal Server 不生成、不持有、
    不代签 Agent DID 私钥。只有 entry 0 已 accepted 才进入下一步。
 2. **prepare 钉死 accepted inception 与 controller account pair**。controller 以该 `did` 和当前 `controller_principal_server_id` 调用 `phase=prepare`；服务端将它与 session principal 组成的 pair 逐字匹配 authenticated session 的 `(principal_id, principal_server_id)`，并只从该 pair 的本地唯一 PCR lineage 取得后续材料。随后服务端

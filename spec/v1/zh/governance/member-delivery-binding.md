@@ -156,7 +156,7 @@ Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员�
 
 - MUST 解析当前 effective `delivery_binding.recipient_id` 作为唯一投递目标。
 - MUST 把该字段当作 `did_core_id`，并只能通过 binding 携带的 inline record / `current_record_url` 及其后刷新的 verified `ServiceResolutionRecord` 映射到 `did` / `base_url`。`GET /_arkret/describe` 是到达 URL 后的二跳确认，不是首跳 resolver。
-- MUST NOT 退路到该 actor 的 DID Document `ArkretPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_id` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（重试策略：quarantine + 指数退避，见 [`sync/federation.md`](../sync/federation.md) §4.1）；只有本节固定的同-core route recovery 序列耗尽后，才向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
+- MUST NOT 退路到该 actor 的 DID Document `type="ArkretService", serviceKind="principal_server"` entry，即便 DID Document 当前可解析、`recipient_id` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（重试策略：quarantine + 指数退避，见 [`sync/federation.md`](../sync/federation.md) §4.1）；只有本节固定的同-core route recovery 序列耗尽后，才向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
 - MUST NOT 把"recipient_id 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_event_ref` 显式建立。
 
 `delivery_binding.expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并以已登记的 `delivery_binding_stale` 回执，提示该成员客户端通过 §6 rebind 流程提交新 binding。route notice / mirror 只能恢复仍有效 binding 所指向的同一 service core，不能延长 binding 有效期；这里**未提供授权 fallback path**——这是设计约束。

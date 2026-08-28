@@ -155,6 +155,24 @@
       "description": "Generated registry view for did validation, did_core_id projection and method-native resolution evidence rules."
     },
     {
+      "name": "did_document_contracts",
+      "file": "registry/did-document-contract-registry.json",
+      "kind": "did_document_contract_registry",
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-registry.json",
+      "description": "Generated closed registry for normalized DID Document projection, digest ownership, Arkret-consumed members and Arkret service entry shapes."
+    },
+    {
+      "name": "did_evidence_boundaries",
+      "file": "registry/did-evidence-boundary-registry.json",
+      "kind": "did_evidence_boundary_registry",
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-registry.json",
+      "description": "Generated closed registry mapping identity creation and authority verification responsibilities to required DID, DID URL and resolution-evidence carriers."
+    },
+    {
       "name": "authority_set_policies",
       "file": "registry/authority-set-policy-registry.json",
       "kind": "authority_set_policy_registry",

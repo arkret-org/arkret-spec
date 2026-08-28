@@ -292,7 +292,22 @@ decoded kind 不一致或 Event 绑定不一致，MUST 对外合并为同一个
 不得依赖 room 是否存在、是否已有 binding 或目标 Realm 私有状态。普通 Event admission 的标准失败码
 在 pre-admission 通过后按其已登记合同返回。非 binding update MUST omit `room_binding_event`。
 
-所有写入型 endpoint MUST 使用 HTTP Message Signatures 或等价 service proof，并绑定：
+逐次 RFC 9421 来源签名的适用面由 operation id 封闭，不由 HTTP method 或 `read` / `command` 名称推导。
+下列 operation **MUST** 使用 HTTP Message Signatures；其它 MIMI operation 不继承该要求：
+
+- `ak.open.mimi.command.notify.v1`
+- `ak.open.mimi.command.proxy_download.v1`
+- `ak.open.mimi.command.report_abuse.v1`
+- `ak.open.mimi.command.request_consent.v1`
+- `ak.open.mimi.command.submit_message.v1`
+- `ak.open.mimi.command.update_consent.v1`
+- `ak.open.mimi.command.update_room.v1`
+- `ak.open.mimi.exchange.request_key_material.v1`
+- `ak.open.mimi.read.identifiers.v1`
+
+其中 identifiers PSI query 虽分类为 read，仍承载反枚举边界，必须逐次认证 provider 来源。
+`ak.open.mimi.read.group_info.v1` 与 `ak.open.mimi.read.provider_directory.v1` 明确不要求本 profile，
+也不得返回本 profile 的三个错误码。要求签名的请求绑定：
 
 - source service DID
 - destination service DID
@@ -302,7 +317,7 @@ decoded kind 不一致或 Event 绑定不一致，MUST 对外合并为同一个
 - created / expires
 - body digest
 
-HTTP Message Signature profile（适用于 provider-to-provider 写入）：
+HTTP Message Signature profile（仅适用于上述逐条登记的 provider-to-provider operation）：
 
 - 请求 MUST 携带 `Signature`、`Signature-Input`、`Content-Digest`、`Source-Service-ID`、`Destination-Service-ID` 和 `Provider-ID`；room-scoped endpoint 还 MUST 携带 `MIMI-Room-URI`。
 - sender MUST 按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 把 `canonical_json(request_body)` 的结果逐字节作为 exact HTTP message content，且不得应用 `Content-Encoding`；`Content-Digest` MUST 是 RFC 9530 `sha-256=:base64(SHA-256(exact_http_content_bytes)):`。receiver MUST 先校验 exact content bytes 的 `Content-Digest`，再严格解析并确认 wire 本身就是 canonical JSON，并从这些 bytes 内部计算 Arkret request digest；MUST NOT parse arbitrary JSON 后仅对 canonicalized value 求 digest。
@@ -319,7 +334,8 @@ HTTP Message Signature profile（适用于 provider-to-provider 写入）：
 
 这三个 code 已在 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 登记，并在
 [`operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 中逐条挂在要求本
-signature profile 的 MIMI 写入 operation 上；未挂载该 profile 的 read operation 不得返回它们。
+signature profile 的 MIMI operation 上；`read.identifiers` 必须挂载，`read.group_info` 与
+`read.provider_directory` 必须不挂载。operation id 与 error mapping 的双向闭包是机器判据。
 
 Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret DataEvent、Control Move 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
 

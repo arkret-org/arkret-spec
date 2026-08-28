@@ -3624,6 +3624,12 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     freshness_doc = load_json(lint, freshness_path)
     freshness_profiles = freshness_doc.get("profiles", []) if isinstance(freshness_doc, dict) else []
     call_sites = freshness_doc.get("call_sites", []) if isinstance(freshness_doc, dict) else []
+    evidence_classes = freshness_doc.get("evidence_classes", []) if isinstance(freshness_doc, dict) else []
+    current_evidence_classes = {
+        row.get("evidence_class")
+        for row in evidence_classes
+        if isinstance(row, dict) and row.get("requires_current_did") is True
+    }
     profile_ids = {
         row.get("freshness_profile_id")
         for row in freshness_profiles
@@ -3641,8 +3647,15 @@ def check_did_and_device_constraints(lint: Lint) -> None:
         if key in declared_sites:
             lint.fail(freshness_path, f"duplicate DID authority call site {key!r}")
         declared_sites[key] = {name: value for name, value in row.items() if name not in {"site_kind", "site_id"}}
-        if row.get("freshness_profile_id") not in profile_ids:
-            lint.fail(freshness_path, f"{key!r} references an unknown freshness_profile_id")
+        freshness_profile_id = row.get("freshness_profile_id")
+        if row.get("evidence_class") in current_evidence_classes:
+            if freshness_profile_id not in profile_ids:
+                lint.fail(freshness_path, f"{key!r} references an unknown freshness_profile_id")
+        elif freshness_profile_id is not None:
+            lint.fail(
+                freshness_path,
+                f"{key!r} is historical/non-current evidence and must use freshness_profile_id=null",
+            )
 
     contract_path = ARTIFACTS / "registry" / "contract-registry.json"
     contract = load_json(lint, contract_path)
@@ -3662,6 +3675,18 @@ def check_did_and_device_constraints(lint: Lint) -> None:
                 lint.fail(contract_path, f"invalid did_authority registration on {kind} {site_id!r}")
                 continue
             actual_sites[(kind, site_id)] = authority
+    verifier_actions = contract.get("did_authority_verifier_actions", []) if isinstance(contract, dict) else []
+    for index, row in enumerate(verifier_actions if isinstance(verifier_actions, list) else []):
+        if not isinstance(row, dict):
+            lint.fail(contract_path, f"did_authority_verifier_actions[{index}] must be an object")
+            continue
+        site_id = row.get("site_id")
+        if row.get("site_kind") != "verifier_action" or not isinstance(site_id, str) or not site_id:
+            lint.fail(contract_path, f"invalid verifier_action registration at index {index}")
+            continue
+        actual_sites[("verifier_action", site_id)] = {
+            name: value for name, value in row.items() if name not in {"site_kind", "site_id"}
+        }
     if set(actual_sites) != set(declared_sites):
         lint.fail(
             freshness_path,
@@ -3672,6 +3697,81 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     for key in sorted(set(actual_sites) & set(declared_sites)):
         if actual_sites[key] != declared_sites[key]:
             lint.fail(freshness_path, f"{key!r} does not byte-match its operation/event did_authority object")
+
+    evidence_boundary_path = ARTIFACTS / "registry" / "did-evidence-boundary-registry.json"
+    evidence_boundary_doc = load_json(lint, evidence_boundary_path)
+    boundaries = evidence_boundary_doc.get("boundaries", []) if isinstance(evidence_boundary_doc, dict) else []
+    expected_boundary_ids = {
+        "human_or_organization_pcr_genesis",
+        "managed_agent_pcr_genesis",
+        "applet_ghost_pcr_genesis",
+        "principal_resolution_record",
+        "service_resolution_record",
+        "did_method_evidence",
+        "ephemeral_pairwise_mls_credential",
+        "third_party_proof",
+        "ordinary_identity_reference",
+    }
+    boundary_ids: set[str] = set()
+    for index, row in enumerate(boundaries if isinstance(boundaries, list) else []):
+        if not isinstance(row, dict):
+            lint.fail(evidence_boundary_path, f"boundaries[{index}] must be an object")
+            continue
+        boundary_id = row.get("boundary_id")
+        if not isinstance(boundary_id, str) or not boundary_id:
+            lint.fail(evidence_boundary_path, f"boundaries[{index}].boundary_id must be non-empty")
+            continue
+        if boundary_id in boundary_ids:
+            lint.fail(evidence_boundary_path, f"duplicate boundary_id {boundary_id}")
+        boundary_ids.add(boundary_id)
+        requirement = row.get("did_requirement")
+        if requirement not in {"required", "required_did_url", "forbidden"}:
+            lint.fail(evidence_boundary_path, f"{boundary_id} has invalid did_requirement {requirement!r}")
+        did_path = row.get("did_path")
+        if requirement == "forbidden" and did_path is not None:
+            lint.fail(evidence_boundary_path, f"{boundary_id} forbids did but declares did_path")
+        if requirement != "forbidden" and not isinstance(did_path, str):
+            lint.fail(evidence_boundary_path, f"{boundary_id} requires a non-empty did_path")
+        schema_ref = row.get("schema_ref")
+        if not isinstance(schema_ref, str) or not schema_ref:
+            lint.fail(evidence_boundary_path, f"{boundary_id} must declare schema_ref")
+        elif not (ARTIFACTS / schema_ref.partition("#")[0]).exists():
+            lint.fail(evidence_boundary_path, f"{boundary_id} references missing schema {schema_ref}")
+    if boundary_ids != expected_boundary_ids:
+        lint.fail(
+            evidence_boundary_path,
+            "DID evidence-boundary closure mismatch: "
+            f"missing={sorted(expected_boundary_ids - boundary_ids)!r}, "
+            f"stale={sorted(boundary_ids - expected_boundary_ids)!r}",
+        )
+    if "core_to_did" in canonical_json(adapter_registry) or '"expand"' in canonical_json(adapter_registry):
+        lint.fail(adapter_registry_path, "DID adapters must not expose core_to_did/expand")
+
+    document_contract_path = ARTIFACTS / "registry" / "did-document-contract-registry.json"
+    document_contract = load_json(lint, document_contract_path)
+    normalized_ref = document_contract.get("normalized_document_schema_ref") if isinstance(document_contract, dict) else None
+    if normalized_ref != "schemas/did-binding-contracts.schema.json#/$defs/normalized_did_document":
+        lint.fail(document_contract_path, "normalized_document_schema_ref must have one canonical owner")
+    registered_types = {
+        row.get("type")
+        for row in document_contract.get("arkret_service_types", [])
+        if isinstance(row, dict)
+    } if isinstance(document_contract, dict) else set()
+    expected_types = {
+        "ArkretService",
+        "ArkretGovernanceService",
+        "ArkretRealmHistoryRecoveryKey",
+        "ArkretManagedPrincipalController",
+        "ArkretPrincipalControlRealm",
+    }
+    if registered_types != expected_types:
+        lint.fail(
+            document_contract_path,
+            f"Arkret DID service type closure mismatch: expected {sorted(expected_types)!r}, got {sorted(registered_types)!r}",
+        )
+    for forbidden_type in ("ArkretPrincipalServer", "ArkretDirectory"):
+        if forbidden_type in registered_types:
+            lint.fail(document_contract_path, f"legacy service type {forbidden_type} must not be registered")
 
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):

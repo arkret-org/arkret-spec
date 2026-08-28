@@ -17,7 +17,7 @@
     },
     "subject_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "Stable principal did_core_id whose private invite receive policy this object configures. A long-lived principal MUST originate from did:webvh; only ak.profile.ephemeral_pairwise_principal.v1 admits a did:key principal. did:web is never a principal method."
+      "description": "Stable principal did_core_id whose private invite receive policy this object configures. A human anchor may originate from the registered did:webvh, did:web or did:key adapter; the separate ak.profile.ephemeral_pairwise_principal.v1 did:key role remains Realm-local and has no account/PCR/device directory."
     },
     "holder_allowed_introduction_kinds": {
       "type": "array",

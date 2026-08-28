@@ -167,7 +167,10 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 `metadata.primary_handle` 是 holder 偏好指针，不是 handle 声明通道。Verifier MUST 先从 signed `ak.schema.handle_claim.v1` 构造 `claim_set_snapshot`；若 DID Document 中的 `metadata.primary_handle` 不在该 snapshot 的 verified candidates 中，MUST 忽略该值。该字段不得创建新 claim、绕过 issuer / audience / trust 过滤，也不得覆盖 §3.2.2 对 profile / identity event 的 handle 声明禁令。
 
-**审计材料**（informative）：实现 SHOULD 在选择结果旁附带 `did_document_snapshot_digest = "sha256:" || hex(sha256(JCS(DID Document at as_of)))` 与 `resolution_as_of`，供下游复算时验证 `holder_primary_handle_at_as_of` 来自正确的 DID Document version。该 digest 是审计校验材料，不是算法输入。
+**审计材料**（informative）：实现 SHOULD 在选择结果旁附带 §5.1 唯一算法所得的 `document_digest`
+与 `resolution_as_of`，供下游复算时验证 `holder_primary_handle_at_as_of` 来自正确的 normalized DID
+Document historical version。该 digest 是审计校验材料，不是算法输入；不得另造第三个
+DID-document digest 字段。
 
 **实现 MAY 进一步内联**：把 `holder_primary_handle_at_as_of` 在 `claim_set_snapshot` 构造阶段就物化为每个 claim 上的派生 `holder_flagged: boolean`(`c.holder_flagged := (c.handle == holder_primary_handle_at_as_of)`)；之后算法只读 `c.holder_flagged`，不再需要单独的 `holder_primary_handle_at_as_of` 输入。这种实现 MUST 保证物化产生的 boolean 在同 as_of 同 DID Document version 下是确定的(即等价 transform)。
 
@@ -732,6 +735,14 @@ DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的�
 - 接受 invite、加入 official Realm、接纳 self-issued handle、跨组织 federation 信任决策；
 - 任何把双向验证结果记入 audit trail 的动作。
 
+这些 current reverse-binding 动作统一登记为 verifier action
+`ak.verifier.handle.public_reverse_binding.v1`，使用 `current_external_claim` 与
+`ak.did_freshness.current_external_claim.v1`；§3.2.1 的 historical primary selection 则登记为
+`ak.verifier.handle.primary_selection_at_as_of.v1`，使用 `accepted_at_history` 且
+`freshness_profile_id=null`。两行由
+[`did-freshness-profile-registry.json`](../../artifacts/registry/did-freshness-profile-registry.json)
+双向关闭；其它 handle action 不得自行调用 authority resolver。
+
 **Pre-verification & Cache（hint 层，SHOULD first-party；MAY use bounded cache）**：Directory / Principal Server / 其它中间方 MAY 代行一次验证并把结果（含 DID Document digest / version、`alsoKnownAs` proof、`verified_at` / `expires_at`）写进 directory entry 或 handle claim 作为 hint。下列展示类动作适用此层：
 
 - 客户端展示 "verified handle ✓" 徽章、mention autocomplete、联系人卡片上的 verified 状态。
@@ -764,7 +775,7 @@ Handle 解析结果是带时间边界的绑定，不是永久身份事实。
 - verified handle cache MUST 绑定 `handle`（canonical `user:domain` 形态）、`subject_id` / issuer 的 `did_core_id`、已接受的 DID resolution binding、DID Document version / digest、alsoKnownAs proof、issuer proof、verified_at、expires_at 和 resolver policy。claim 同时携带 `handle` 与 `handle_aliases[]` 时，缓存键 MUST 取 `handle`；`acct:` alias 只作为附加索引，但仍指向同一 cache entry。
 - alias lookup 命中缓存时，verifier MUST 跳转到 canonical `handle` 的 freshness re-check 路径：重新检查 TTL、issuer revocation、DID Document digest / version、alsoKnownAs proof 与 resolver policy。实现不得把 `handle_aliases[]` 中的 `acct:` 或其它互通别名当作独立 cache key 直接返回 verified claim，也不得为 alias 单独延长 freshness window。
 - handle cache 若含 `member_delivery_binding`，还 MUST 绑定 `member_delivery_binding.recipient_id`、claim digest、audience / scope、`service_acceptance_ref` / `policy_event_ref`（如有）；缓存结果不得跨 Realm 或跨组织上下文复用，除非 claim 明确授权。
-- DNS / HTTPS 解析结果的 TTL **MUST NOT** 超过以下各项中的最小值：底层 DNS TTL、HTTPS response cache headers、签名绑定 `expires_at`、DID Document cache TTL 和本地 resolver policy 上限。未提供 TTL 时，verified cache **SHOULD NOT** 超过 24 小时；高风险授权或组织背书 SHOULD 使用更短 TTL 或实时 status check。
+- DNS / HTTPS 解析结果的 TTL **MUST NOT** 超过以下各项中的最小值：底层 DNS TTL、HTTPS response cache headers、签名绑定 `expires_at`、DID Document cache TTL，以及部署对 `ak.did_freshness.current_external_claim.v1` 申报的 `fresh_for_seconds` / `hard_expiry_seconds`。任一来源未给 TTL 时也只能使用该 profile 的部署申报值，不存在独立的 24 小时默认值或 stale grace；到达 profile 边界后 Authority 动作同步刷新或 fail closed。展示 hint 可更早降级，但不得延长 Authority freshness。
 - 当 DID Document 移除对应 `alsoKnownAs`、issuer claim 被 revoke / expired、well-known 绑定变更、DNSSEC validation 失败、handle 被解析到不同 DID、或 resolver policy 更新时，缓存 MUST 失效或降级为 unverified。
 
 #### 6.1.2 撤销与失效信号

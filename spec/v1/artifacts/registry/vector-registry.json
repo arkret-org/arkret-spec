@@ -4232,6 +4232,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.mimi.identifier_query_source_signature.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_profiles": [
+        "ak.profile.mimi_interop.v1"
+      ],
+      "description": "Every identifiers PSI query carries a per-request RFC 9421 provider-source signature. Missing or invalid signatures fail before PSI evaluation; group-info and provider-directory reads do not inherit this profile.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+        "spec/v1/zh/extensions/mimi-interop.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.mimi.keypackage_claim_lifecycle.v1",
       "status": "active",
       "domain": "mimi",

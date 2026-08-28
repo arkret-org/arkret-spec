@@ -1,0 +1,120 @@
+{
+  "version": "2026-08-29.1",
+  "source_of_truth": false,
+  "generated_at": "2026-08-29T00:00:00+08:00",
+  "generated_from": "registry/contract-registry.json",
+  "generated_by": "tools/artifact_pipeline.py",
+  "registry_rules": [
+    "normalized_document_schema_ref is the sole owner of the document_digest preimage; raw resolver bytes use raw_document_digest and no third DID-document digest name is permitted",
+    "Every W3C DID Document member normatively consumed by Arkret MUST appear in known_members and MUST survive projection into normalized_document_schema_ref",
+    "Unknown extension members are retained losslessly in sorted extension rows; duplicate or conflicting properties, ids, relationship entries, metadata keys or extension names fail closed before digesting",
+    "ArkretService plus serviceKind is the only service-identity bootstrap shape. ArkretPrincipalServer and ArkretDirectory are not registered aliases and MUST be rejected as Arkret service types",
+    "Specialized organization and managed-Agent service types remain distinct from service bootstrap and use only their registered endpoint shapes"
+  ],
+  "normalized_document_schema_ref": "schemas/did-binding-contracts.schema.json#/$defs/normalized_did_document",
+  "document_digest_owner": {
+    "field": "document_digest",
+    "algorithm": "sha256:lowercase_hex(SHA-256(RFC8785_JCS(normalized_document)))",
+    "raw_bytes_field": "raw_document_digest",
+    "forbidden_synonyms": [
+      "did_document_snapshot_digest"
+    ]
+  },
+  "known_members": [
+    {
+      "source_member": "alsoKnownAs",
+      "projection_member": "also_known_as",
+      "subjects": [
+        "human",
+        "organization",
+        "managed_agent",
+        "service"
+      ],
+      "normative_consumer": "public_handle_reverse_binding",
+      "reverse_binding": true,
+      "owner": "zh/identity/identity-handles.md"
+    },
+    {
+      "source_member": "metadata.primary_handle",
+      "projection_member": "metadata.primary_handle",
+      "subjects": [
+        "human",
+        "organization",
+        "managed_agent"
+      ],
+      "normative_consumer": "primary_handle_selection",
+      "reverse_binding": true,
+      "owner": "zh/identity/identity-handles.md"
+    },
+    {
+      "source_member": "service",
+      "projection_member": "services",
+      "subjects": [
+        "human",
+        "organization",
+        "managed_agent",
+        "service"
+      ],
+      "normative_consumer": "registered_arkret_service_entries",
+      "reverse_binding": true,
+      "owner": "registry/did-document-contract-registry.json"
+    }
+  ],
+  "arkret_service_types": [
+    {
+      "type": "ArkretService",
+      "subjects": [
+        "service",
+        "managed_agent"
+      ],
+      "service_endpoint_shape": "absolute_http_or_https_url",
+      "required_extension_members": [
+        "serviceKind"
+      ],
+      "service_kind_source": "registry/service-kind-registry.json valid_in=service_registration_key",
+      "reverse_binding": true,
+      "owner": "schemas/service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint"
+    },
+    {
+      "type": "ArkretGovernanceService",
+      "subjects": [
+        "organization"
+      ],
+      "service_endpoint_shape": "absolute_https_url",
+      "required_extension_members": [],
+      "reverse_binding": true,
+      "owner": "zh/identity/identity-did.md#8"
+    },
+    {
+      "type": "ArkretRealmHistoryRecoveryKey",
+      "subjects": [
+        "human",
+        "organization"
+      ],
+      "service_endpoint_shape": "closed_object:{verificationMethod:did_url,kem:hpke,domain:mls_history}",
+      "required_extension_members": [],
+      "reverse_binding": true,
+      "owner": "zh/identity/identity-did.md#8.3"
+    },
+    {
+      "type": "ArkretManagedPrincipalController",
+      "subjects": [
+        "managed_agent"
+      ],
+      "service_endpoint_shape": "closed_object:{controller_did:did,authorization_ref:did_url,purposes:string[]}",
+      "required_extension_members": [],
+      "reverse_binding": true,
+      "owner": "zh/identity/key-management.md#4.1"
+    },
+    {
+      "type": "ArkretPrincipalControlRealm",
+      "subjects": [
+        "managed_agent"
+      ],
+      "service_endpoint_shape": "closed_object:{realm_id,controller_did,authorization_ref,requested_scope_digest}",
+      "required_extension_members": [],
+      "reverse_binding": true,
+      "owner": "zh/identity/key-management.md#4.1"
+    }
+  ]
+}

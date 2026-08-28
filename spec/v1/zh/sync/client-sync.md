@@ -46,7 +46,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
    - 邀请方处于多 Principal Server 登录上下文且没有可推断的默认值（fall back to `explicit`，要求用户选择）；
    - Realm policy 强制 `binding_source ∈ {explicit}` 且邀请方未在该上下文登录（提示用户切换上下文或退出邀请）；
    - 用户主动进入"高级 / 投递设置"面板查看 / 修改。
-2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_id` 不属于该 actor DID Document 默认 `ArkretPrincipalServer` 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
+2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_id` 不属于该 actor DID Document 默认 `type="ArkretService", serviceKind="principal_server"` entry 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
 3. **邀请 strand 智能默认**。客户端 SHOULD 按当前邀请方上下文自动提议 binding：
    - 默认使用 [`invite-addressing.md`](./invite-addressing.md) 的 online principal locator 或显式 `subject_id + recipient_id` 输入；locator/ref 成功后 UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
    - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，只有在 Directory / Organization 明确支持可选 handle invite/member_add profile 且调用方具备披露授权时，才 MAY 调用 `ak.find.directory.read.resolve_handle.v1(intent="member_add" | "invite")` 获取可验证 candidate；失败时 MUST 回到 locator/address 模式，不得本地合成 remote service DID；

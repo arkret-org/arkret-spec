@@ -52,6 +52,7 @@ tools/
 | 脚本 | 产出 |
 | --- | --- |
 | `tools/regenerate_crypto_signature_fixture.py` | `spec/v1/artifacts/fixtures/crypto-signature-fixture.json` 的 canonical bytes、digest 与真实 Ed25519 / ES256 / ML-DSA-65 签名，并同步 `websocket-binding-fixture.json` 内嵌的 event frame。需要 `cryptography` 与支持 ML-DSA-65 的 `openssl`（3.5+）。 |
+| `tools/generate_hash_transition_fixture.py` | `spec/v1/artifacts/fixtures/hash-transition-fixture.json` 的 SHA-256/BLAKE3 Event、state、control、completeness 与 Seal digest。需要 Python `blake3` 包。 |
 
 其余 `generate_*` / `regenerate_*` 脚本在其产出 fixture 的 `generated_by` 字段中自行登记。
 

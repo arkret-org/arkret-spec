@@ -587,8 +587,12 @@
     {
       "operation_id": "ak.open.mimi.read.identifiers.v1",
       "http_alias": "POST /_arkret/open/mimi/identifiers/query",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid"
+      ],
+      "description": "The PSI identifier query requires a per-request RFC 9421 provider-source signature despite being classified as read: unsigned, invalid and stale-window requests fail before PSI evaluation so an unauthenticated caller cannot probe the anti-enumeration surface. group_info and provider_directory remain outside this profile."
     },
     {
       "operation_id": "ak.open.mimi.read.provider_directory.v1",

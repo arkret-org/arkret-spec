@@ -96,6 +96,15 @@ record，但普通 service 引用不得内联 DID；human principal 只在注册
 业务对象只使用稳定 `DidCoreId`。每个 `DidCoreId` 创建时必须来自已登记 adapter 对有效 `Did` 的唯一投影；
 从未具有 DID 的主体必须使用其它已登记 ID 类型。
 
+上述职责边界的机器真相源是
+[`did-evidence-boundary-registry.json`](../../artifacts/registry/did-evidence-boundary-registry.json)。每个
+authority verifier 必须从登记的 registration/genesis、resolution record、method evidence 或 proof
+carrier 取得 required `did` / `verification_method`，经 active adapter 验证并投影后与 expected core
+逐字比较。孤立 `did_core_id` 没有 route evidence，**不得**触发 resolver；adapter 不登记 `expand` 或
+`core_to_did`，即使 `did:web` / `did:key` 的字符串看似可逆也不得绕过 carrier 猜测 DID。Identity
+resolution 需要已知 `(principal_id, principal_server_id)` account pair；service resolution 需要 bootstrap
+携带的 `current_record_url` 或已验证的 same-core route。未登记的 route source 一律 fail closed。
+
 ### 2.4 TSP VID 不是 DID alias
 
 `tsp_vids[]` 的元素使用
@@ -134,6 +143,7 @@ DID freshness 是正交维度；高风险只要求其**实际授权根**新鲜�
 | --- | --- | --- | --- |
 | `registration_control` | human principal 注册、把已发布 DID 首次绑定到新建 PCR | 注册时 current `did` control proof、adapter 投影、bootstrap trust、method head/version、control-key digest、PCR genesis receipt | 注册 challenge 窗口内同步验证；accepted 后冻结为历史证据。 |
 | `accepted_at_history` | 首次重放 PCR genesis、历史 device/Agent/service authorization 或历史 receipt，且本地没有其 pinned evidence | 证据所钉 accepted-at position 的 DID/core 投影、key、method evidence 与 receipt/Seal lineage | 以被钉时点为准；不得要求 current head 或 current controller。 |
+| `pcr_authority` | 已登记 carrier 直接验证 PCR accepted authority，而不读取 current DID | PCR genesis / Seal / accepted authorization lineage 与其 pinned signer evidence | 以 carrier 固定的 accepted frontier 为准；不创建 current-DID refresh。 |
 | `current_external_claim` | 当前外部身份 badge/claim、当前 DID delegation/controller 声明 | 最新 method state、current controller/delegation、deactivation 与调用点 policy | 调用点登记的 current profile。失败只使该 claim stale/unavailable。 |
 | `method_successor` | `ak.identity.resolution.update`、webvh relocation、DID rotation/deactivation publication | 从 PCR accepted resolution head 到候选 head 的 method-native successor、same-core projection、current PCR author 与 CAS | 同步刷新或 fail closed；PCR author 与 method successor 缺一不可。 |
 | `optional_did_root_recovery` | 账号的 accepted recovery policy 明确启用了 DID-root factor，且该 factor 正在被使用 | policy opt-in、current DID root/history、pre-rotation、recovery session、PCR generation CAS | 同步刷新或 fail closed；未启用时 current root proof 必须拒绝。 |
@@ -150,8 +160,9 @@ recovery policy、capability、MLS、account 或 service authority；DID host �
 为该步携带并验证相应 accepted-at DID evidence。
 
 除上述触发条件外，业务代码 MUST NOT 自行增加“保险起见再 resolve 一次”的路径。真实调用点
-必须在 operation/action registry 中携带 `did_authority`，逐字声明 `evidence_class`、`purpose` 与
-`freshness_profile_id`；没有该字段的 operation/action MUST NOT 调用 authority resolver。
+必须在 operation/event/verifier-action registry 中携带 `did_authority`，逐字声明 `evidence_class`、
+`purpose` 与 current call 所需的 `freshness_profile_id`；historical verifier action 固定为
+`freshness_profile_id=null`。没有登记的 operation/event/verifier action MUST NOT 调用 authority resolver。
 
 ## 5. 验证结果、缓存与失效
 
@@ -190,12 +201,16 @@ closed。
 `document_digest` 摘要的是 resolver **已验证并返回的 normalized DID Document projection**，
 不是 resolver 原始响应 bytes：
 
-- projection MUST 保留所有会影响 key authorization、controller、service routing 或 method
-  policy 的原始属性（含 `@context` 之外的 method extension property），不得只摘要
-  convenience key index；normalized projection 的 schema、已知字段、extension 保留规则与
-  重复 / 冲突属性拒绝规则由 DID resolution 合同统一登记；
+- projection 的唯一 schema 是
+  [`did-binding-contracts.schema.json#/$defs/normalized_did_document`](../../artifacts/schemas/did-binding-contracts.schema.json)：
+  它保留所有影响 key authorization、controller、service routing、method policy **或被 v1 normative
+  消费**的成员，显式包含 `alsoKnownAs -> also_known_as` 与 `metadata.primary_handle`；未知 extension
+  逐 name 无损保留，`contexts` 保留源顺序，其它 set-like 数组按 unsigned UTF-8 排序；重复 / 冲突
+  property、id、relationship、metadata 或 extension name 在摘要前 fail closed；
 - 计算固定为 `"sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(normalized_document)))`；
-- raw 响应若需取证，使用**不同名**的 `raw_document_digest`，两者 MUST NOT 互换或混用。
+- raw 响应若需取证，使用**不同名**的 `raw_document_digest`，两者 MUST NOT 互换或混用；禁止另造
+  第三个 DID-document digest 字段。digest owner 与 Arkret DID Document member/service type 闭集见
+  [`did-document-contract-registry.json`](../../artifacts/registry/did-document-contract-registry.json)。
 
 ### 5.2 `evidence_digest`：canonical evidence receipt 经 resolver 通道产生
 

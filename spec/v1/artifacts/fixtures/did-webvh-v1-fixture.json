@@ -43,6 +43,88 @@
       }
     },
     {
+      "name": "reject_relocation_when_predecessor_portable_absent",
+      "input": {
+        "accepted_predecessor": {
+          "did": "did:webvh:z6mkfixture:old.example",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "z6mkfixture"
+          }
+        },
+        "candidate_successor": {
+          "did": "did:webvh:z6mkfixture:new.example",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "z6mkfixture",
+            "portable": true
+          }
+        },
+        "method_native_chain_valid": true
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "did_method_successor_invalid",
+        "reason": "portable_was_not_enabled_by_predecessor"
+      }
+    },
+    {
+      "name": "reject_relocation_when_predecessor_portable_false",
+      "input": {
+        "accepted_predecessor": {
+          "did": "did:webvh:z6mkfixture:old.example",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "z6mkfixture",
+            "portable": false
+          }
+        },
+        "candidate_successor": {
+          "did": "did:webvh:z6mkfixture:new.example",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "z6mkfixture"
+          }
+        },
+        "method_native_chain_valid": true
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "did_method_successor_invalid"
+      }
+    },
+    {
+      "name": "accept_relocation_when_predecessor_portable_true",
+      "input": {
+        "accepted_predecessor": {
+          "did": "did:webvh:z6mkfixture:old.example",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "z6mkfixture",
+            "portable": true,
+            "watchers": [
+              "https://watcher.example/did-log"
+            ]
+          }
+        },
+        "candidate_successor": {
+          "did": "did:webvh:z6mkfixture:new.example",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "z6mkfixture",
+            "portable": true,
+            "watchers": []
+          }
+        },
+        "method_native_chain_valid": true
+      },
+      "expected": {
+        "decision": "accept",
+        "projected_core": "ak:did_core:webvh:z6mkfixture",
+        "watchers_authorization_effect": "none"
+      }
+    },
+    {
       "name": "reject_missing_method_version",
       "input": {
         "parameters": {

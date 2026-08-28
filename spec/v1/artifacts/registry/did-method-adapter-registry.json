@@ -10,6 +10,7 @@
     "Every adapter validates method-native control, deactivation, currentness and history evidence according to its trust profile before returning a verified projection. Unknown methods and unknown adapter versions fail closed.",
     "A new did is an update of an existing principal or service only when the same active adapter projects it to the identical did_core_id. A method or core change creates a new identity and cannot inherit authorization through a continuity assertion.",
     "DID URLs are constructed and compared from the verified did under the adapter's DID URL rules. A did_core_id is never used as a DID URL base.",
+    "No adapter exposes expand or core_to_did. Even when a method-specific suffix appears reversible, an isolated did_core_id cannot create resolution authority; the required did or did_url arrives through did-evidence-boundary-registry.json.",
     "A did is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
     "For a generic Event proof, the verifier extracts the canonical bare did base from proof.verification_method, validates the active adapter and key at the cited accepted-at method history, projects that did, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. registration_anchor and pcr_recovery are the only registered special admissions and never convert current DID control into generic human PCR authority.",
     "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors."
@@ -34,7 +35,8 @@
       "scope_kind": "realm_genesis",
       "allowed_purposes": [
         "principal_control",
-        "managed_agent_control"
+        "managed_agent_control",
+        "applet_managed_control"
       ],
       "principal_rule": "event.actor_id == project(payload.object.initial_resolution.did)",
       "realm_rule": "derive_identity_control_realm(event) == evidence.principal_control_realm_id",
@@ -79,7 +81,7 @@
       "checks": [
         "principal_genesis_event.kind == ak.realm.create and principal_genesis_event is resolution head 0",
         "principal_genesis_event.actor_id == principal_id",
-        "principal_genesis_event.payload.object.purpose is principal_control or managed_agent_control",
+        "principal_genesis_event.payload.object.purpose is principal_control, managed_agent_control or applet_managed_control",
         "project(principal_genesis_event.payload.object.initial_resolution.did) == principal_id",
         "derive_identity_control_realm(principal_genesis_event) == principal_control_realm_id",
         "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",
@@ -122,6 +124,19 @@
         "watchers",
         "portable"
       ],
+      "parameter_consumption": {
+        "portable": {
+          "wire_type": "boolean",
+          "default_when_absent": false,
+          "relocation_rule": "A successor whose canonical host-and-path differs from the accepted predecessor is valid only when the predecessor's effective portable value is true and every method-native successor check succeeds. Missing or false rejects relocation; setting portable=true only in the relocating successor cannot authorize that same relocation.",
+          "failure": "did_method_successor_invalid"
+        },
+        "watchers": {
+          "wire_type": "method_native_value",
+          "v1_consumption": "accepted_but_not_consumed",
+          "rule": "The adapter validates and retains watchers as method-native canonical data, but v1 never uses it for authorization, admission, controller selection, witness quorum, freshness, routing or policy. Unknown shape still fails under the method parser; presence, absence or contents cannot grant authority."
+        }
+      },
       "unknown_parameter_failure": "param_invalid",
       "governance_parameter_registered": false,
       "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of the verified current did:webvh log entry>",
