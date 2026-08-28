@@ -131,12 +131,12 @@
     },
     "ingress_receipt": {
       "type": "object",
-      "description": "Closed six-field multi-proof evidence that a policy-qualified ingress received one exact Event under the exact companion AuthorizationLease before expiry. Lease identity, basis, full DID and authority-set policy are verified from that companion object rather than copied into this receipt. It proves timely ingress only, never reducer acceptance or finality.",
+      "description": "Closed six-field multi-proof evidence that a policy-qualified ingress received one exact Event under the exact companion AuthorizationLease before expiry. Lease identity, basis, DID and authority-set policy are verified from that companion object rather than copied into this receipt. It proves timely ingress only, never reducer acceptance or finality.",
       "x-arkret-proof-context": "ak.ingress_receipt_proof.v1",
       "required": [
         "receipt_id",
         "event_digest",
-        "qualified_ingress_id",
+        "qualified_ingress_did",
         "received_at",
         "ingress_frontier",
         "proofs"
@@ -149,9 +149,9 @@
         "event_digest": {
           "$ref": "#/$defs/digest"
         },
-        "qualified_ingress_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id",
-          "description": "Version-qualified full DID of the ingress service at receipt issuance; its stable service id is projected when the receipt is verified with the exact companion lease."
+        "qualified_ingress_did": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "Version-qualified DID of the ingress service at receipt issuance; its stable service id is projected when the receipt is verified with the exact companion lease."
         },
         "received_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

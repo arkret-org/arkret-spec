@@ -12,11 +12,11 @@
   "required": [
     "schema",
     "receipt_id",
-    "did",
+    "subject_did",
     "version_id",
     "witness_did",
     "witness_verification_method",
-    "controlling_organization",
+    "controlling_organization_did",
     "observed_at",
     "issuer_service_id",
     "expires_at",
@@ -32,8 +32,8 @@
       "type": "string",
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/webvh_full_id",
+    "subject_did": {
+      "$ref": "./common-ids.schema.json#/$defs/webvh_did",
       "description": "Subject DID. Restricted to did:webvh because the object binds method-native did:webvh state; other methods need their own receipt family rather than a widened pattern here."
     },
     "version_id": {
@@ -48,7 +48,7 @@
       "description": "Optional digest of the log head the issuer held when observing. Present it when the issuer can commit to the whole log state; it lets a consumer detect a split view that a per-version binding alone would not reveal."
     },
     "witness_did": {
-      "$ref": "./common-ids.schema.json#/$defs/did_key_full_id",
+      "$ref": "./common-ids.schema.json#/$defs/did_key_did",
       "description": "The attesting witness, which MUST be one of the parameters.witness.witnesses[].id values in force at version_id. did:webvh 1.0 constrains witness identifiers to did:key, so a receipt naming any other form is describing something that is not a method witness."
     },
     "witness_verification_method": {
@@ -56,8 +56,8 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
       "description": "The specific verification method inside witness_did whose signature appears in did-witness.json for version_id."
     },
-    "controlling_organization": {
-      "$ref": "./common-ids.schema.json#/$defs/did_full_id",
+    "controlling_organization_did": {
+      "$ref": "./common-ids.schema.json#/$defs/did",
       "description": "The organization that controls this witness, as resolved by the issuer. Arkret deployment policy counts distinct controlling organizations, not distinct witness keys; without this field an operator running several witness keys would satisfy a two-distinct-organization requirement by itself. A verifier that cannot independently verify this binding MUST fail closed on high-risk paths rather than count the witness."
     },
     "observed_at": {

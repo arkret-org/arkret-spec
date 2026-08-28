@@ -105,7 +105,7 @@
           "owner_kind": "cell_family",
           "owner": "ak.component.identity.resolution.v1",
           "schema_enforced": true,
-          "description": "Read-only current principal full_id projection derived from the PCR identity resolution cell. The cell is the sole write authority, and the projection is not an authorization root."
+          "description": "Read-only current principal did projection derived from the PCR identity resolution cell. The cell is the sole write authority, and the projection is not an authorization root."
         }
       ]
     },

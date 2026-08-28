@@ -1217,10 +1217,10 @@
           "record": {
             "service_id": "ak:did_core:key:z6MkfixtureService",
             "service_kind": "principal_server",
-            "full_id": "did:key:z6MkfixtureService",
+            "did": "did:key:z6MkfixtureService",
             "method_history_head": "did-key-head-fixture",
             "version_id": "did-key-v1",
-            "resolution_event_ref": "did-key-full-id-sha256:3131313131313131313131313131313131313131313131313131313131313131",
+            "resolution_event_ref": "did-key-did-sha256:3131313131313131313131313131313131313131313131313131313131313131",
             "record_sequence": 0,
             "previous_record_digest": null,
             "current_record_url": "https://service.example/_arkret/open/services/service/resolution",
@@ -1312,10 +1312,10 @@
                 "record": {
                   "service_id": "ak:did_core:key:z6MkfixtureService",
                   "service_kind": "principal_server",
-                  "full_id": "did:key:z6MkfixtureService",
+                  "did": "did:key:z6MkfixtureService",
                   "method_history_head": "did-key-head-fixture",
                   "version_id": "did-key-v1",
-                  "resolution_event_ref": "did-key-full-id-sha256:3131313131313131313131313131313131313131313131313131313131313131",
+                  "resolution_event_ref": "did-key-did-sha256:3131313131313131313131313131313131313131313131313131313131313131",
                   "record_sequence": 0,
                   "previous_record_digest": null,
                   "current_record_url": "https://service.example/_arkret/open/services/service/resolution",
@@ -1806,7 +1806,7 @@
       "target": "successor"
     },
     "signing_inputs": {
-      "actor_full_id": "did:web:replay-kat.example",
+      "actor_did": "did:web:replay-kat.example",
       "actor_id": "ak:did_core:web:replay-kat.example",
       "verification_method": "did:web:replay-kat.example#notary-key-1",
       "historical_seed_b64u": "ERERERERERERERERERERERERERERERERERERERERERE",

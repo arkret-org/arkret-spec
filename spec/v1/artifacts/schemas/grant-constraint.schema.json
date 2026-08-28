@@ -503,7 +503,7 @@
     },
     "executed_by": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "authority_control(constraint_subkind=applet_authority) binding to the concrete Applet service, bot, or provisioned ghost actor did_core_id that may execute the grant. Its proof verification_method remains a full DID URL and MUST project to this value through the registered method adapter."
+      "description": "authority_control(constraint_subkind=applet_authority) binding to the concrete Applet service, bot, or provisioned ghost actor did_core_id that may execute the grant. Its proof verification_method remains a DID URL and MUST project to this value through the registered method adapter."
     },
     "registration_epoch": {
       "type": "string",
@@ -661,7 +661,7 @@
           "subject_matches_actor": {
             "type": "boolean",
             "default": true,
-            "description": "If true, the credential subject did_core_id MUST match the actor did_core_id after each proof's full DID is independently validated and projected through its registered method adapter."
+            "description": "If true, the credential subject did_core_id MUST match the actor did_core_id after each proof's DID is independently validated and projected through its registered method adapter."
           },
           "value_constraints": {
             "type": "object",

@@ -524,7 +524,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 | `discovery_event` | `SignedEvent` | required | 已接受的 `ak.{kind}.discovery` Event 原件，逐字节等于真相源（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。资源类别由五个封闭 Event kind 唯一派生；资源主键按 event-kind registry 的 cell subject 派生：Realm 取 envelope `realm_id`，Organization 取 `payload.organization_principal_id`，Actor / Applet / Handle 取 `payload.resource_id`。投递原签名 Event 与 `/_arkret/peer/contacts` 投递原签名 `ak.contact.*` Event 同形。effective discovery state 是闭合 wrapper 的 `payload.value`，不得把 payload wrapper 当作扁平 state。 |
 | `source_refs` | `id[]` | required | 真相源 event frontier，至少包含产生当前 effective discovery state 的 state Event；Realm 还 MUST 包含 effective `ak.realm.policy_bundle` Event。Directory 将此已验证、有序去重的 frontier 做 JCS + SHA-256，所得 digest 是结果的 `policy_revision`，请求不得另行回声该值。 |
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
-| `principal_server_service_id` | `did_core_id` | required | 当前资源真相源所在 Principal Server 的稳定 service `did_core_id`；Directory 必须通过 verified ServiceResolutionRecord 映射当前 `full_id` / URL 后 pull 验证，不得把该值交给 DID resolver。 |
+| `principal_server_service_id` | `did_core_id` | required | 当前资源真相源所在 Principal Server 的稳定 service `did_core_id`；Directory 必须通过 verified ServiceResolutionRecord 映射当前 `did` / URL 后 pull 验证，不得把该值交给 DID resolver。 |
 | `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
 | `supersedes_announce_id` | `ak:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
 

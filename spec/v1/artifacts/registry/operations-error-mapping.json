@@ -296,7 +296,7 @@
         "failed_precondition",
         "duplicate_conflict"
       ],
-      "description": "Reserves the complete DID inception operation and issues a durable single-use challenge. proof_invalid covers handoff/DPoP holder mismatch; failed_precondition covers stale or non-holder lease/fence and an operation that does not derive the claimed principal; duplicate_conflict covers request_id reuse or an attempt to replace an existing reserved operation with different bytes."
+      "description": "Reserves the DID inception operation and issues a durable single-use challenge. proof_invalid covers handoff/DPoP holder mismatch; failed_precondition covers stale or non-holder lease/fence and an operation that does not derive the claimed principal; duplicate_conflict covers request_id reuse or an attempt to replace an existing reserved operation with different bytes."
     },
     {
       "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",
@@ -1165,7 +1165,7 @@
         "agent_requested_scope_commitment_invalid",
         "agent_provision_scope_migration_required"
       ],
-      "description": "Provision a native personal Agent principal. The controller first publishes a PCR-independent managed Agent DID inception. prepare verifies its caller-supplied full_id and returns the exact accepted initial_resolution plus an allocation without generating a DID/private key or choosing a PCR id. commit accepts exactly one controller-signed ak.agent.provision Event that forward-declares the realm id derived from the locally frozen genesis create, atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance advances to awaiting_did_binding; only the controller-signed continuous DID entry 1 with the exact create-locked binding advances to complete and exposes pairing/list/get. requested_scope is a ceiling, not a grant; the service never generates Agent DID/PCR/MLS private state."
+      "description": "Provision a native personal Agent principal. The controller first publishes a PCR-independent managed Agent DID inception. prepare verifies its caller-supplied did and returns the exact accepted initial_resolution plus an allocation without generating a DID/private key or choosing a PCR id. commit accepts exactly one controller-signed ak.agent.provision Event that forward-declares the realm id derived from the locally frozen genesis create, atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance advances to awaiting_did_binding; only the controller-signed continuous DID entry 1 with the exact create-locked binding advances to complete and exposes pairing/list/get. requested_scope is a ceiling, not a grant; the service never generates Agent DID/PCR/MLS private state."
     },
     {
       "operation_id": "ak.self.agent.command.renew_pairing.v1",

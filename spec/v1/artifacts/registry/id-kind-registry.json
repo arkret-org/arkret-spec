@@ -283,7 +283,7 @@
       "payload_pattern": "[a-z0-9]+:[^\\s/?#]+",
       "status": "active",
       "storage_recommendation": "Store the complete canonical value for equality and indexing; generic consumers MUST NOT split or normalize the adapter-defined core segment.",
-      "description": "Stable DID-derived principal, actor or service identity core. It is not a DID, is not directly resolvable, and MUST be projected only by a registered DID method adapter from a canonical bare full_id. Registered as a special form rather than an id_form because its identity authority is the external DID method, not an Arkret producer or Event digest."
+      "description": "Stable DID-derived principal, actor or service identity core. It is not a DID, is not directly resolvable, and MUST be projected only by a registered DID method adapter from a canonical bare did. Registered as a special form rather than an id_form because its identity authority is the external DID method, not an Arkret producer or Event digest."
     },
     {
       "kind": "trust_domain",

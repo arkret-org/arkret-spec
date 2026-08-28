@@ -32,10 +32,10 @@
                   "properties": {
                     "record": {
                       "properties": {
-                        "full_id": {
+                        "did": {
                           "oneOf": [
-                            {"$ref": "./common-ids.schema.json#/$defs/did_key_full_id"},
-                            {"$ref": "./common-ids.schema.json#/$defs/webvh_full_id"}
+                            {"$ref": "./common-ids.schema.json#/$defs/did_key_did"},
+                            {"$ref": "./common-ids.schema.json#/$defs/webvh_did"}
                           ]
                         }
                       }

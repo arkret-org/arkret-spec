@@ -39,7 +39,7 @@
     },
     "issuer": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Stable did_core_id of the handle authority. Bare hostnames are discovery inputs, never proof issuers; proof verification resolves a full DID URL separately and requires its registered adapter projection to equal this issuer."
+      "description": "Stable did_core_id of the handle authority. Bare hostnames are discovery inputs, never proof issuers; proof verification resolves a DID URL separately and requires its registered adapter projection to equal this issuer."
     },
     "issuer_service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",

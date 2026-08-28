@@ -452,7 +452,7 @@
       "applies_to_fixtures": [
         "applet-managed-actor-fixture.json"
       ],
-      "description": "Applet-managed Bot/Ghost creation uses an exact PrincipalAuthorityKey, independently verified method evidence, immutable provision/PCR anchors, fixed atomic units, full-id namespace matching, ordinary PCR rotation and a generic registration/grant/revoke write fence.",
+      "description": "Applet-managed Bot/Ghost creation uses an exact PrincipalAuthorityKey, independently verified method evidence, immutable provision/PCR anchors, fixed atomic units, DID namespace matching, ordinary PCR rotation and a generic registration/grant/revoke write fence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
       ]
@@ -3160,19 +3160,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.history_key.closed_response_delivery.v1",
-      "status": "active",
-      "domain": "history_key",
-      "applies_to_fixtures": [
-        "history-key-recovery-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ],
-      "description": "Closed private request, manifest-first continuous-range chunk, relay, honest release-service attestation, exact duplicate, list/ack/expiry and quota matrix."
-    },
-    {
       "vector_id": "ak.vector.history_key.client_convergence.v1",
       "status": "active",
       "domain": "history_key",
@@ -3184,6 +3171,19 @@
         "spec/v1/zh/conformance/conformance-vectors.md"
       ],
       "description": "Crash-safe automatic requester/source convergence for exporter all-history: durable single-flight create, empty-page non-ack polling, exact outbox retry, later-material follow-up manifests, closed terminal diagnostics, since-join/current-authorization negative cases, and the closed send/relay rejection disposition that splits exact retry from permanently_rejected manifest replacement and request-terminal stop."
+    },
+    {
+      "vector_id": "ak.vector.history_key.closed_response_delivery.v1",
+      "status": "active",
+      "domain": "history_key",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ],
+      "description": "Closed private request, manifest-first continuous-range chunk, relay, honest release-service attestation, exact duplicate, list/ack/expiry and quota matrix."
     },
     {
       "vector_id": "ak.vector.history_key.exporter_prejoin_t0_t1.v1",
@@ -3367,7 +3367,7 @@
       "applies_to_fixtures": [
         "pcr-genesis-fixture.json"
       ],
-      "description": "Before the first DID registry / method-native publication request the Account Authority MUST, in one atomic step, validate the live identity-creation lease, matching fence, holder, reservation and challenge, and freeze principal_id, full_id and the complete canonical DID operation bytes with their digest; holder-originated commands without a matching live lease/fence fail closed with zero writes before any registry I/O, and after the freeze any first submission, retry, crash recovery, response-loss reconciliation or fence takeover only queries or exact-replays the frozen operation, so a registry spy observes at most one canonical DID operation per reservation and a single stable accepted_at.",
+      "description": "Before the first DID registry / method-native publication request the Account Authority MUST, in one atomic step, validate the live identity-creation lease, matching fence, holder, reservation and challenge, and freeze principal_id, did and the complete canonical DID operation bytes with their digest; holder-originated commands without a matching live lease/fence fail closed with zero writes before any registry I/O, and after the freeze any first submission, retry, crash recovery, response-loss reconciliation or fence takeover only queries or exact-replays the frozen operation, so a registry spy observes at most one canonical DID operation per reservation and a single stable accepted_at.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",

@@ -164,7 +164,7 @@ authority、reanchor、recovery 或普通 Control Move 不得使用第二条例�
 **authority-authored self-principal PCR Move**：human PCR genesis 已由 accepted Seal 建立后，若
 Control Move 同时满足 `realm_id=principal_control_realm_id(actor_id)`、current notary profile 为
 `single_signer(actor_id)`、唯一 producer proof method 精确为该 principal 当前 active accepted device 的 canonical DID URL（该 URL
-由 principal 当前 `full_id` 构成且 fragment 等于 `device_id`，不得把 `principal_id` 直接拼接 fragment），并通过 generation/fence、current Seal basis 与完整 Event signature 校验，
+由 principal 当前 `did` 构成且 fragment 等于 `device_id`，不得把 `principal_id` 直接拼接 fragment），并通过 generation/fence、current Seal basis 与完整 Event signature 校验，
 则该 device 就是 proposal authority 且已经 author exact Move；这不是需要另一个 authority 签收的
 proposal。此类 Move **MUST** 省略独立 Control Proposal Ack，admitting service 仍须原子持久化
 canonical Event 与无 Ack 的 pending Control row，并只在同一 current device（或随后合法替代 authority）

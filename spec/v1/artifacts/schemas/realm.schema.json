@@ -345,12 +345,12 @@
       "type": "object",
       "description": "Realm policy component for range-completeness and seal-transparency witness admission. If absent, receivers MUST NOT accept a seal-transparency auditor attestation as verified v1 evidence, and federation_witness_attested range completeness has no admissible witness set.",
       "required": [
-        "range_completeness_witnesses",
+        "range_completeness_witness_ids",
         "witnessed_min_attestations",
         "witness_independence"
       ],
       "properties": {
-        "range_completeness_witnesses": {
+        "range_completeness_witness_ids": {
           "type": "array",
           "minItems": 1,
           "maxItems": 64,

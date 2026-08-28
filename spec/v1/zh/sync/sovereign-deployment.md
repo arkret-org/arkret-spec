@@ -181,8 +181,8 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 规则：
 
-- `trust_roots[]` 是稳定 `did_core_id` allowlist，不是 resolver locator、bare DID 或 verification-method DID URL。对候选 bare `full_id` 做准入时，verifier MUST 先按已登记 method adapter 计算 `project(full_id)`，再与 root 逐字节比较；`did:webvh` root 因此只保留 SCID，MUST NOT 拼接 hosting domain/path。
-- 命中 `trust_roots[]` 只回答“这个稳定身份是否可作为信任根”，不提供公钥或解析地址，也不证明控制权。密码学验证仍 MUST 消费候选 `full_id` / verification-method DID URL 以及受批准 resolver、witness/watcher、离线 bundle或已接受 binding 提供的 method evidence，并验证 `project(full_id) == matched trust_root`。调用点若只有 `did_core_id`、没有可验证的 `full_id` / key binding / method evidence，MUST fail closed，不得从 Core ID 反向拼造 DID。
+- `trust_roots[]` 是稳定 `did_core_id` allowlist，不是 resolver locator、bare DID 或 verification-method DID URL。对候选 bare `did` 做准入时，verifier MUST 先按已登记 method adapter 计算 `project(did)`，再与 root 逐字节比较；`did:webvh` root 因此只保留 SCID，MUST NOT 拼接 hosting domain/path。
+- 命中 `trust_roots[]` 只回答“这个稳定身份是否可作为信任根”，不提供公钥或解析地址，也不证明控制权。密码学验证仍 MUST 消费候选 `did` / verification-method DID URL 以及受批准 resolver、witness/watcher、离线 bundle或已接受 binding 提供的 method evidence，并验证 `project(did) == matched trust_root`。调用点若只有 `did_core_id`、没有可验证的 `did` / key binding / method evidence，MUST fail closed，不得从 Core ID 反向拼造 DID。
 - 除非 policy 明确允许该 method 与 trust root，否则客户端 MUST NOT 通过公共 resolver 端点解析内部主体。
 - 内部 DID Document 与 method 历史 MUST 从受批准的 resolver / witness / watcher / 离线 bundle 获取。
 - 仅当 policy 允许且权限链已验证时，MAY 为外部协作方接受公共 DID 方法。
@@ -247,7 +247,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 }
 ```
 
-Sovereign 部署默认采用 **`notary.kind=single_signer`**：每个 Realm create 冻结一个 did_core actor、完整 DID URL verification method、exact key bytes/digest 与 JOSE 算法；后续 Seal 始终按 predecessor-state frozen descriptor 验签，不依赖 current DID 解析。Principal Server 可托管 actor，但 service DID 本身不是 notary wire identity（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。DataEvent 仍按签名、`seal_ref`、capability 与 Lattice/CRDT 本地接受；membership、policy、capability、notary、lifecycle、MLS epoch 等 Control Move 必须被该 notary 的 Seal 覆盖后才 `sealed`。组织间共享 Realm 可以使用 `notary.kind=threshold|mixed`；notary 变更是 Control Move，由旧控制面 basis 授权并由后续 Seal finality，fallback recovery 由 Realm create 固定。需要开放联邦协作时，create event 显式声明 `federation_policy="open"` 与 `notary.kind="open_set"`。
+Sovereign 部署默认采用 **`notary.kind=single_signer`**：每个 Realm create 冻结一个 did_core actor、DID URL verification method、exact key bytes/digest 与 JOSE 算法；后续 Seal 始终按 predecessor-state frozen descriptor 验签，不依赖 current DID 解析。Principal Server 可托管 actor，但 service DID 本身不是 notary wire identity（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。DataEvent 仍按签名、`seal_ref`、capability 与 Lattice/CRDT 本地接受；membership、policy、capability、notary、lifecycle、MLS epoch 等 Control Move 必须被该 notary 的 Seal 覆盖后才 `sealed`。组织间共享 Realm 可以使用 `notary.kind=threshold|mixed`；notary 变更是 Control Move，由旧控制面 basis 授权并由后续 Seal finality，fallback recovery 由 Realm create 固定。需要开放联邦协作时，create event 显式声明 `federation_policy="open"` 与 `notary.kind="open_set"`。
 
 推荐 policy：
 
@@ -402,6 +402,6 @@ sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `ak
 - 连续 3 次 probe 失败（**仅限可用性类**；fork evidence 一类的证据按 [`federation.md` §4.5](./federation.md) 首次出现即 quarantine，不受该计数约束） MUST 触发 `peer_stale` 标记；该状态下 MUST 拒绝以该 peer 的 push payload 推进本地 frontier，MUST 通过 alarm 通道暴露，MAY 拒绝向该 peer fanout 新 Event；
 - fork resolution 成功后 MUST 解除 `peer_stale` 标记。
 
-这里的 `federation_policy=closed` 只限制网络可达性与 peer allowlist，不把多个 witness 自动视为同一控制主体。high-assurance range completeness 若声明 `witness_independence=distinct_controlling_organization`，仍必须由至少 `witnessed_min_attestations` 个组织控制相互独立、且已在 `Realm.audit_policy.range_completeness_witnesses[]` allowlist 中的 witness 签署；它们可以位于同一封闭网络、联盟成员域或经批准的单向 evidence gateway。只有一个 controlling organization 的完全单组织部署无法满足该档独立性：它 MUST 把 completeness 保持为 unverified / degraded，或选择与实际保障一致的较低声明；不得把同组织内两个 service DID、两个 HSM key 或两个机房伪装成组织独立 witness。封闭部署因此是可满足的，但满足性来自组织控制独立，而非公网 federation。
+这里的 `federation_policy=closed` 只限制网络可达性与 peer allowlist，不把多个 witness 自动视为同一控制主体。high-assurance range completeness 若声明 `witness_independence=distinct_controlling_organization`，仍必须由至少 `witnessed_min_attestations` 个组织控制相互独立、且已在 `Realm.audit_policy.range_completeness_witness_ids[]` allowlist 中的 witness 签署；它们可以位于同一封闭网络、联盟成员域或经批准的单向 evidence gateway。只有一个 controlling organization 的完全单组织部署无法满足该档独立性：它 MUST 把 completeness 保持为 unverified / degraded，或选择与实际保障一致的较低声明；不得把同组织内两个 service DID、两个 HSM key 或两个机房伪装成组织独立 witness。封闭部署因此是可满足的，但满足性来自组织控制独立，而非公网 federation。
 
 理由：sovereign 部署的威胁模型默认包含"独立 Principal Server 在同一 Realm 共同写入"，单纯依赖 seal 签名、duplicate_conflict、witness receipt 只能证明"看到的有效"，无法证明"对方没藏分支"——high-assurance frontier 主动交换 + fail-state 是 silent fork 抗性的最后一道防线。

@@ -21,8 +21,8 @@
     }
   ],
   "$defs": {
-    "did_full_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+    "did": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
     },
     "digest": {
       "type": "string",
@@ -90,14 +90,14 @@
             "type": "object",
             "required": [
               "witness_did",
-              "controlling_organization"
+              "controlling_organization_did"
             ],
             "properties": {
               "witness_did": {
-                "$ref": "#/$defs/did_full_id"
+                "$ref": "#/$defs/did"
               },
-              "controlling_organization": {
-                "$ref": "#/$defs/did_full_id"
+              "controlling_organization_did": {
+                "$ref": "#/$defs/did"
               }
             },
             "additionalProperties": false
@@ -186,7 +186,7 @@
       "description": "Structured dependency record mechanically extracted from the evidence receipt (did-usage-and-verification.md section 5.6). It answers 'which bindings depend on witness X / log head H' — a mapping a digest cannot provide because digests are one-way. Proofless methods produce the empty record.",
       "required": [
         "witness_dids",
-        "witness_controlling_organizations",
+        "witness_controlling_organization_dids",
         "history_heads"
       ],
       "properties": {
@@ -194,15 +194,15 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/did_full_id"
+            "$ref": "#/$defs/did"
           },
           "description": "Sorted, deduplicated; empty for proofless methods."
         },
-        "witness_controlling_organizations": {
+        "witness_controlling_organization_dids": {
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/did_full_id"
+            "$ref": "#/$defs/did"
           },
           "description": "Sorted, deduplicated; empty for proofless methods."
         },

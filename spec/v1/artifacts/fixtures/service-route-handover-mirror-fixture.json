@@ -208,7 +208,7 @@
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkTarget",
         "service_kind": "principal_server",
-        "full_id": "did:webvh:z6mkTarget:target-new.example",
+        "did": "did:webvh:z6mkTarget:target-new.example",
         "method_history_head": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "version_id": "8",
         "record_sequence": 8,
@@ -315,7 +315,7 @@
         "candidate_record": {
           "service_id": "ak:did_core:webvh:z6mkTarget",
           "service_kind": "principal_server",
-          "full_id": "did:webvh:z6mkTarget:target-new.example",
+          "did": "did:webvh:z6mkTarget:target-new.example",
           "method_history_head": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "version_id": "8",
           "resolution_event_ref": "did-webvh-entry-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",

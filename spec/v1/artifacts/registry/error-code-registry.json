@@ -56,7 +56,7 @@
       "scope": "both",
       "description": "The proposed current resolution is not a valid method-native same-core successor. A valid PCR author proof alone cannot advance it.",
       "type_uri": "https://arkret.org/problems/did_method_successor_invalid",
-      "title": "Did method successor invalid"
+      "title": "DID method successor invalid"
     },
     {
       "code": "agent_signer_evidence_missing",
@@ -256,7 +256,7 @@
       "scope": "both",
       "description": "An explicitly selected DID-root authentication factor or sensitive account-control transition requires its operation-specific fresh DID proof. Soft logout does not use this code as a refresh challenge: it requires full reauthentication to a fresh AccountHandoff or an explicit account-control action.",
       "type_uri": "https://arkret.org/problems/did_proof_required",
-      "title": "Did proof required"
+      "title": "DID proof required"
     },
     {
       "code": "signature_invalid",
@@ -780,7 +780,7 @@
       "scope": "both",
       "description": "A DID cannot be resolved or validated under the active resolver policy.",
       "type_uri": "https://arkret.org/problems/did_unknown",
-      "title": "Did unknown"
+      "title": "DID unknown"
     },
     {
       "code": "quota_exceeded",
@@ -980,7 +980,7 @@
       "scope": "endpoint",
       "description": "A DID operation attempted to create or register a DID that already exists under the registry's uniqueness rules.",
       "type_uri": "https://arkret.org/problems/did_already_exists",
-      "title": "Did already exists"
+      "title": "DID already exists"
     },
     {
       "code": "did_not_found",
@@ -988,7 +988,7 @@
       "scope": "endpoint",
       "description": "The requested DID cannot be found under the active identity registry and anti-enumeration policy.",
       "type_uri": "https://arkret.org/problems/did_not_found",
-      "title": "Did not found"
+      "title": "DID not found"
     },
     {
       "code": "did_revoked",
@@ -996,7 +996,7 @@
       "scope": "endpoint",
       "description": "The requested DID exists in historical registry state but has been deactivated, revoked, or superseded.",
       "type_uri": "https://arkret.org/problems/did_revoked",
-      "title": "Did revoked"
+      "title": "DID revoked"
     },
     {
       "code": "frontier_unavailable",

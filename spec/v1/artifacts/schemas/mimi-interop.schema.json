@@ -172,7 +172,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Detached JWS by a verification method whose bare controller full_id validates under the registered method adapter and projects exactly to service_id (did_core_id), over the canonical unsigned projection (extensions/mimi-interop.md section 3.1). The projection's first member is the registered object-family context ak.mimi_provider_directory_proof.v1 (proof-context-registry.json); a signature made under any other context MUST be rejected even when it verifies cryptographically. Direct full-DID/core-id string comparison is forbidden. payload_digest is the projection digest; the proof object itself never enters the projection. A digest or dev placeholder is not a signature."
+          "description": "Detached JWS by a verification method whose bare controller did validates under the registered method adapter and projects exactly to service_id (did_core_id), over the canonical unsigned projection (extensions/mimi-interop.md section 3.1). The projection's first member is the registered object-family context ak.mimi_provider_directory_proof.v1 (proof-context-registry.json); a signature made under any other context MUST be rejected even when it verifies cryptographically. Direct DID/core-id string comparison is forbidden. payload_digest is the projection digest; the proof object itself never enters the projection. A digest or dev placeholder is not a signature."
         }
       },
       "additionalProperties": true

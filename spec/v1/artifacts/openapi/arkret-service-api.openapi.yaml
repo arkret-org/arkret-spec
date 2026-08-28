@@ -7750,8 +7750,8 @@ paths:
         A caller performing a sensitive operation MUST obtain a fresh response,
         verify the exact (principal_id, principal_server_id) account authority,
         verify the attestation proof under the current principal_server_id method
-        history, resolve the returned full_id with the registered method adapter,
-        and confirm project(full_id) equals principal_id. Callers are not required
+        history, resolve the returned did with the registered method adapter,
+        and confirm project(did) equals principal_id. Callers are not required
         to persist another principal's resolution binding.
       parameters:
       - name: Arkret-Operation
@@ -8940,7 +8940,7 @@ paths:
             request_body_field: false
             directions:
               node_to_applet: Source-Service-ID current service DID verification method; Destination-Service-ID MUST equal the Applet registration service_id.
-              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; its canonical bare full_id MUST be validated by the registered method adapter and project to both Source-Service-ID and the active effective install service_id. Direct full-DID/core-id comparison and did_core_id fragment concatenation are forbidden.
+              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; its canonical bare did MUST be validated by the registered method adapter and project to both Source-Service-ID and the active effective install service_id. Direct DID/core-id comparison and did_core_id fragment concatenation are forbidden.
           covered_components:
           - '@method'
           - '@target-uri'
@@ -11565,7 +11565,7 @@ paths:
         schema:
           type: string
           const: ak.self.agent.command.provision.v1
-      description: Managed personal Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare requires the authenticated controller account's controller_principal_server_id, validates the pair against the current session, then verifies caller-supplied full_id and returns its exact accepted initial_resolution, controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
+      description: Managed personal Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare requires the authenticated controller account's controller_principal_server_id, validates the pair against the current session, then verifies caller-supplied did and returns its exact accepted initial_resolution, controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
       security:
       - sessionGrantAuth: []
         dpopProof: []

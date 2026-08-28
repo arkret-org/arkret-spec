@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/identity-resolution.schema.json",
   "title": "Arkret Identity Resolution",
-  "description": "Canonical did_core_id/full_id resolution state, owner-published evidence and service-route bootstrap contracts. A full_id is a standard bare DID and a did_core_id is the stable Arkret business identity projected by a registered DID method adapter.",
+  "description": "Canonical did_core_id/did resolution state, owner-published evidence and service-route bootstrap contracts. A did is a standard bare DID and a did_core_id is the stable Arkret business identity projected by a registered DID method adapter.",
   "oneOf": [
     {
       "$ref": "#/$defs/public_principal_resolution"
@@ -43,7 +43,7 @@
         },
         "normalized_did_document": {
           "type": "object",
-          "description": "Exact normalized DID Document whose canonical digest equals method_history_evidence.evidence.document_digest. Its id equals service_resolution_record.record.full_id and the record proof names an authorized assertionMethod in this document."
+          "description": "Exact normalized DID Document whose canonical digest equals method_history_evidence.evidence.document_digest. Its id equals service_resolution_record.record.did and the record proof names an authorized assertionMethod in this document."
         }
       },
       "additionalProperties": false
@@ -175,7 +175,7 @@
         },
         "evidence": {
           "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt",
-          "description": "Closed canonical local-expansion evidence receipt. method MUST be key and method_proofs MUST be empty; the public evidence evaluator recomputes document_digest and the synthetic boundary directly from full_id."
+          "description": "Closed canonical local-expansion evidence receipt. method MUST be key and method_proofs MUST be empty; the public evidence evaluator recomputes document_digest and the synthetic boundary directly from did."
         }
       },
       "additionalProperties": false
@@ -196,15 +196,15 @@
     },
     "resolution_commitment": {
       "type": "object",
-      "description": "Owner-committed current full_id and method-native history position. For a deterministic method, method_history_head and version_id use the adapter-defined deterministic canonical values; they are never omitted.",
+      "description": "Owner-committed current did and method-native history position. For a deterministic method, method_history_head and version_id use the adapter-defined deterministic canonical values; they are never omitted.",
       "required": [
-        "full_id",
+        "did",
         "method_history_head",
         "version_id"
       ],
       "properties": {
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "method_history_head": {
           "type": "string",
@@ -223,15 +223,15 @@
     "resolution_projection": {
       "type": "object",
       "required": [
-        "full_id",
+        "did",
         "method_history_head",
         "version_id",
         "resolution_event_ref",
         "updated_at"
       ],
       "properties": {
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "method_history_head": {
           "type": "string",
@@ -255,7 +255,7 @@
     },
     "principal_resolution_update_payload": {
       "type": "object",
-      "description": "Payload for ak.identity.resolution.update in the actor's Principal Control Realm. Admission projects full_id to the envelope actor_id and performs a strict CAS against the signed resolution_projection head_eq precondition before accepting a method-valid successor.",
+      "description": "Payload for ak.identity.resolution.update in the actor's Principal Control Realm. Admission projects did to the envelope actor_id and performs a strict CAS against the signed resolution_projection head_eq precondition before accepting a method-valid successor.",
       "required": [
         "next"
       ],
@@ -410,7 +410,7 @@
     },
     "public_principal_resolution": {
       "type": "object",
-      "description": "Complete public resolution response for one account selected by (principal_id, principal_server_id). It is the only unauthenticated resolution surface and it MUST NOT carry principal_control_realm_id, PCR genesis Event, genesis receipt, resolution Events or accepted Seal; those are account-internal audit material served only by the authorized audit operation. A consumer verifies the service route for principal_server_id, then the attestation proof, then project(full_id)=principal_id and the bounded method history; a set of bare unproven fields is not a valid response.",
+      "description": "Complete public resolution response for one account selected by (principal_id, principal_server_id). It is the only unauthenticated resolution surface and it MUST NOT carry principal_control_realm_id, PCR genesis Event, genesis receipt, resolution Events or accepted Seal; those are account-internal audit material served only by the authorized audit operation. A consumer verifies the service route for principal_server_id, then the attestation proof, then project(did)=principal_id and the bounded method history; a set of bare unproven fields is not a valid response.",
       "required": [
         "principal_id",
         "principal_server_id",
@@ -572,11 +572,11 @@
     },
     "service_resolution_record_core": {
       "type": "object",
-      "description": "Signed first-hop service route material. It lets a consumer map a stable service did_core_id to a candidate full_id; it is not an endpoint authorization by itself.",
+      "description": "Signed first-hop service route material. It lets a consumer map a stable service did_core_id to a candidate did; it is not an endpoint authorization by itself.",
       "required": [
         "service_id",
         "service_kind",
-        "full_id",
+        "did",
         "method_history_head",
         "version_id",
         "resolution_event_ref",
@@ -598,8 +598,8 @@
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
           "description": "Registered ServiceDescribe role selected at this route. The describe request MUST use this value when the base URL hosts multiple roles."
         },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "method_history_head": {
           "type": "string",
@@ -614,9 +614,9 @@
         },
         "resolution_event_ref": {
           "type": "string",
-          "pattern": "^(did-webvh-entry-sha256|did-web-document-sha256|did-key-full-id-sha256):[0-9a-f]{64}$",
+          "pattern": "^(did-webvh-entry-sha256|did-web-document-sha256|did-key-did-sha256):[0-9a-f]{64}$",
           "maxLength": 96,
-          "description": "Adapter-canonical service control-state reference. It MUST equal the active adapter row's service_resolution_event_ref_rule for this full_id and method_history_head: did:webvh maps to did-webvh-entry-sha256, did:web maps to did-web-document-sha256, and did:key maps to did-key-full-id-sha256."
+          "description": "Adapter-canonical service control-state reference. It MUST equal the active adapter row's service_resolution_event_ref_rule for this did and method_history_head: did:webvh maps to did-webvh-entry-sha256, did:web maps to did-web-document-sha256, and did:key maps to did-key-did-sha256."
         },
         "record_sequence": {
           "type": "integer",
@@ -669,7 +669,7 @@
     },
     "service_resolution_record": {
       "type": "object",
-      "description": "Portable signed ServiceResolutionRecord. Its record digest is sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of this complete object including proof>. Separately, payload_digest is sha256 over RFC 8785 JCS of record. The detached proof signs canonical_json({context:'ak.service_resolution_record_proof.v1', payload_digest, service_id, service_kind, full_id, method_history_head, version_id, resolution_event_ref, record_sequence, previous_record_digest, current_record_url, base_url, describe_digest, issued_at, refresh_after, expires_at, verification_method, created_at, domain?, audience?}) under a service control key accepted at method_history_head; proof.created_at MUST equal record.issued_at. The verifier also enforces project(full_id)=service_id, the adapter-canonical history/version/event-ref mapping, record_sequence=0 iff previous_record_digest=null, exact plus-one same-core succession, and the timestamp ordering declared by the record fields.",
+      "description": "Portable signed ServiceResolutionRecord. Its record digest is sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of this complete object including proof>. Separately, payload_digest is sha256 over RFC 8785 JCS of record. The detached proof signs canonical_json({context:'ak.service_resolution_record_proof.v1', payload_digest, service_id, service_kind, did, method_history_head, version_id, resolution_event_ref, record_sequence, previous_record_digest, current_record_url, base_url, describe_digest, issued_at, refresh_after, expires_at, verification_method, created_at, domain?, audience?}) under a service control key accepted at method_history_head; proof.created_at MUST equal record.issued_at. The verifier also enforces project(did)=service_id, the adapter-canonical history/version/event-ref mapping, record_sequence=0 iff previous_record_digest=null, exact plus-one same-core succession, and the timestamp ordering declared by the record fields.",
       "required": [
         "record",
         "proof"
@@ -1231,7 +1231,7 @@
       "required": [
         "service_id",
         "service_kind",
-        "full_id",
+        "did",
         "method_history_head",
         "version_id",
         "record_sequence",
@@ -1253,8 +1253,8 @@
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "method_history_head": {
           "type": "string",

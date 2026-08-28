@@ -258,7 +258,7 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 
 `root` 的 leaf 集 MUST 恰好是 `realm_id` 下位于 `(from_frontier, to_frontier]` 且 actor seq 落入对应 `actor_seq_ranges[]` 的全部 reducer-input Event。每个 leaf 的 `leaf_data` 为下列 closed object 的 canonical JSON UTF-8 bytes：
 
-`proofs[]` 使用 `payload_digest`，不得复用 Event Envelope 的 `event_digest` proof。`payload_digest = sha256(RFC8785_JCS(payload_without_proofs))`；detached JWS MUST 签下列 canonical binding object：`{context:"ak.range_completeness_attestation_proof.v1", payload_digest, issuer, scope, verification_method, created_at, domain?, audience?}`。其中 `scope` 是 closed object `{"realm_id": payload.realm_id, "event_range": payload.event_range}`，不得用页码、查询 URL 或局部响应集合替代。`verification_method` 的 bare full DID 必须投影为 `issuer`，且该 method 必须在 `observed_at` 对应的 issuer method state 中有效。任何 verifier 若未按上述对象族 context 和完整 `scope` 验证 payload proof，必须 fail closed。
+`proofs[]` 使用 `payload_digest`，不得复用 Event Envelope 的 `event_digest` proof。`payload_digest = sha256(RFC8785_JCS(payload_without_proofs))`；detached JWS MUST 签下列 canonical binding object：`{context:"ak.range_completeness_attestation_proof.v1", payload_digest, issuer, scope, verification_method, created_at, domain?, audience?}`。其中 `scope` 是 closed object `{"realm_id": payload.realm_id, "event_range": payload.event_range}`，不得用页码、查询 URL 或局部响应集合替代。`verification_method` 的 bare DID 必须投影为 `issuer`，且该 method 必须在 `observed_at` 对应的 issuer method state 中有效。任何 verifier 若未按上述对象族 context 和完整 `scope` 验证 payload proof，必须 fail closed。
 
 ```json
 {
@@ -279,8 +279,8 @@ verifier MUST 在完成每项签名、method controller 与 policy 授权校验�
 
 `federation_witness_attested` 表示独立 witness quorum 已对同一 `(realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count)` 签署一致见证。verifier MUST 校验：
 
-1. `witnesses[].issuer`、`verification_method`、`controlling_organization` 在 quorum 内 pairwise distinct 到 policy 要求的最小独立性；
-2. 每个 witness 均在 Realm policy `audit.range_completeness_witnesses[]` 或等价 profile-declared witness 集合内；
+1. `witnesses[].witness_id`、`verification_method`、`controlling_organization_id` 在 quorum 内 pairwise distinct 到 policy 要求的最小独立性；
+2. 每个 witness 均在 Realm policy `audit.range_completeness_witness_ids[]` 或等价 profile-declared witness 集合内；
 3. witness proof 覆盖同一 canonical payload digest；
 4. quorum 中的 witness 必须签署**同一完整 canonical payload**，即 `(realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count)` 全部逐字节一致。若它们被要求见证该同一完整 scope 却给出不同 `root`、`count` 或 `actor_seq_ranges[]`，verifier MUST 标记 `witness_disagreement`，quarantine 该 attestation / range，并 fail closed，不得把任一方结果展示为完整。反之，`actor_seq_ranges[]` 或 frontier 边界不同的独立 attestation 是不同 scope 的证明，不能仅因 root 不同互判 `witness_disagreement`；consumer 只能分别在各自 scope 内验证，若需要组成 quorum，必须先请求 witness 对同一完整 payload 重新签署。
 

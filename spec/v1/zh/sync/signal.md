@@ -125,7 +125,7 @@ conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖�
 
 1. 设备在 current directory 为 active、授权晚于 `seal_ref`：设备授权检查通过；
 2. 设备在 `seal_ref` 时曾 active、当前已 revoked / fenced / conflicted：拒绝；
-3. fragment 看似为 device id，但 `verification_method` 的 bare full DID 经 adapter 投影不等于
+3. fragment 看似为 device id，但 `verification_method` 的 bare DID 经 adapter 投影不等于
    `sender_actor_id`，或 fragment 不等于 `sender_device_id`：拒绝；
 4. current directory key 或 Tier-2 / service-attested 信任锚缺失：拒绝；
 5. 设备 current active 但 sender 在 Realm `seal_ref` 下无 scope 发送资格或缺

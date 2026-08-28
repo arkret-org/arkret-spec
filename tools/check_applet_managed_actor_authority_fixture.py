@@ -16,14 +16,14 @@ ENTRYPOINT = "ak.suite.applet.managed_actor_authority.v1"
 # executable expectation makes the suite fail instead of silently skipping it.
 EXPECTED: dict[str, tuple[str, Any]] = {
     "bot_exact_pair_and_initial_resolution": ("expect", "accepted"),
-    "ghost_namespace_matches_verified_full_id": ("expect", "accepted"),
+    "ghost_namespace_matches_verified_did": ("expect", "accepted"),
     "ghost_external_tuple_is_single_closed_carrier": ("expect", "accepted"),
     "ghost_external_tuple_rejects_legacy_or_extra_mirrors": ("expect", "schema_violation"),
     "ghost_provision_requires_registration_service_signature": ("expect", "http_signature_required_or_invalid"),
     "remote_principal_server_claim": ("expect", "applet_managed_actor_provision_invalid"),
     "actor_reuses_service_or_controller": ("expect", "applet_managed_actor_provision_invalid"),
     "bot_does_not_equal_registration_bot": ("expect", "applet_managed_actor_provision_invalid"),
-    "ghost_core_used_for_full_did_namespace": ("expect", "applet_namespace_mismatch"),
+    "ghost_core_used_for_did_namespace": ("expect", "applet_namespace_mismatch"),
     "invalid_method_history_or_witness": ("expect", "identity_method_evidence_invalid"),
     "non_webvh_method_evidence_is_not_a_managed_authority": ("expect", "schema_violation"),
     "pcr_genesis_cross_binding_mismatch": ("expect", "applet_managed_pcr_genesis_invalid"),

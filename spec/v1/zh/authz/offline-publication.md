@@ -115,7 +115,7 @@ PCR-policy device recovery 不需要另一个账号服务签 replacement authori
 IngressReceipt {
   receipt_id,
   event_digest,
-  qualified_ingress_id,
+  qualified_ingress_did,
   received_at,
   ingress_frontier,
   proofs
@@ -127,8 +127,8 @@ IngressReceipt {
 authority_set_ref, verification_method, created_at, domain?, audience?})`；proof `created_at` 必须逐字
 等于 `received_at`。`authority_set_ref` 不在 receipt body；它必须逐字取自同一 submission 携带的 exact companion
 `AuthorizationLease.authority_set_ref`，并由 proof-context transcript 作为 body 外 binding source 固定。
-`qualified_ingress_id` 是签收时 ingress service 的 version-qualified full DID；每个 proof 的 verification method
-必须由该 full DID 控制，stable service id 在验证时由它投影，不再作为 receipt 镜像字段。`proofs[]` 必须按
+`qualified_ingress_did` 是签收时 ingress service 的 version-qualified DID；每个 proof 的 verification method
+必须由该 DID 控制，stable service id 在验证时由它投影，不再作为 receipt 镜像字段。`proofs[]` 必须按
 verification method 严格排序、不得重复，并满足 companion lease 所绑定 authority-set policy 中选定规则的
 issuer 集合与 threshold；单 proof 只在 threshold 为 1 时成立。
 
@@ -184,7 +184,7 @@ ingress 直接验证 Event proof、scope 与当前 CBA basis；携带 lease 时�
 `EventsSubmitOutcome.ingress_receipts[]` 返回。相同 Event canonical bytes 的幂等重试必须返回
 原 receipt 与首次签发时的 exact companion lease，不得用新的 `received_at` 重签，从而延长已经固定的撤销窗口。
 receipt/lease 的机械配对条件恰为：同一 submission 只有这一份 companion lease、receipt `event_digest` 等于该
-submission Event canonical content digest、`project(receipt.qualified_ingress_id)` 成功且 proof method 由该 full DID
+submission Event canonical content digest、`project(receipt.qualified_ingress_did)` 成功且 proof method 由该 DID
 控制，并且 receipt proof binding 的 body 外 `authority_set_ref` 等于 lease 同名字段。相同 Event bytes 若改携另一份 lease，MUST
 `duplicate_conflict`，不得返回旧 receipt、静默重新配对或重签。
 

@@ -4,13 +4,13 @@
   "title": "Arkret Applet Registration Epoch Evidence",
   "type": "object",
   "required": [
-    "full_id",
+    "did",
     "did_document_digest",
     "method_version_evidence",
     "accepted_signing_keys"
   ],
   "properties": {
-    "full_id": { "$ref": "./common-ids.schema.json#/$defs/did_full_id" },
+    "did": { "$ref": "./common-ids.schema.json#/$defs/did" },
     "did_document_digest": { "$ref": "./account-operations.schema.json#/$defs/sha256_digest" },
     "method_version_evidence": {
       "$ref": "./applet-registration-epoch-transcript.schema.json#/$defs/did_method_version"
@@ -29,7 +29,7 @@
       "oneOf": [
         {
           "properties": {
-            "full_id": { "$ref": "./common-ids.schema.json#/$defs/webvh_full_id" },
+            "did": { "$ref": "./common-ids.schema.json#/$defs/webvh_did" },
             "method_version_evidence": {
               "properties": { "method": { "const": "did:webvh" } }
             }
@@ -37,7 +37,7 @@
         },
         {
           "properties": {
-            "full_id": { "type": "string", "pattern": "^did:web:[^\\s/?#]+$", "maxLength": 2048 },
+            "did": { "type": "string", "pattern": "^did:web:[^\\s/?#]+$", "maxLength": 2048 },
             "method_version_evidence": {
               "properties": { "method": { "const": "did:web" } }
             }
@@ -45,7 +45,7 @@
         },
         {
           "properties": {
-            "full_id": { "type": "string", "pattern": "^did:key:[^\\s/?#]+$", "maxLength": 2048 },
+            "did": { "type": "string", "pattern": "^did:key:[^\\s/?#]+$", "maxLength": 2048 },
             "method_version_evidence": {
               "properties": { "method": { "const": "did:key" } }
             }

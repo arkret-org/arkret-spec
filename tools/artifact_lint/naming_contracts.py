@@ -82,7 +82,7 @@ IDENTIFIER_NAME_SUFFIXES = ("_id", "_ids")
 # namespace. Every other category MUST stay lexically disjoint from it, which is
 # the half of 2.1 the typed-ID prefix closure cannot see: that closure only asks
 # whether an `ak:<kind>:` it finds is registered.
-TYPED_ID_NAMESPACE_OWNER_CATEGORIES = frozenset({"typed_object_id", "responsibility_did"})
+TYPED_ID_NAMESPACE_OWNER_CATEGORIES = frozenset({"typed_object_id", "responsibility_identity_material"})
 
 
 # --------------------------------------------------------------------------
@@ -654,14 +654,14 @@ def derive_category(
             if typed:
                 slug = typed.group(1)
                 if slug == "did_core":
-                    categories.add("responsibility_did")
+                    categories.add("responsibility_identity_material")
                     continue
                 if slug in id_kinds:
                     categories.add("typed_object_id")
                     continue
                 return None
             if _DID_PREFIX_RE.match(value):
-                categories.add("responsibility_did")
+                categories.add("responsibility_identity_material")
                 continue
             if _AK_SYMBOL_PREFIX_RE.match(value):
                 categories.add("registry_catalog_symbol")

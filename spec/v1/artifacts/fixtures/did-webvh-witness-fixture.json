@@ -357,12 +357,10 @@
       "instance": {
         "schema": "ak.schema.did_webvh_witness_receipt.v1",
         "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-        "did": "did:webvh:z6mkfixturesubjectexample:subject.example",
         "version_id": "2-zFixtureVersionTwo",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "witness_did": "did:key:z6MkfixtureWitnessA",
         "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
-        "controlling_organization": "did:web:org-a.example",
         "observed_at": "2026-05-01T00:00:00.000Z",
         "source": "https://subject.example/.well-known/did-witness.json",
         "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
@@ -374,7 +372,9 @@
           "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "created_at": "2026-05-01T00:00:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
-        }
+        },
+        "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example",
+        "controlling_organization_did": "did:web:org-a.example"
       }
     },
     {
@@ -386,7 +386,6 @@
       "instance": {
         "schema": "ak.schema.identity_receipt.v1",
         "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
-        "did": "did:webvh:z6mkfixturesubjectexample:subject.example",
         "seq": 2,
         "head_event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "registry_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
@@ -398,7 +397,8 @@
           "payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "created_at": "2026-05-01T00:00:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
-        }
+        },
+        "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example"
       }
     },
     {
@@ -412,11 +412,9 @@
       "instance": {
         "schema": "ak.schema.did_webvh_witness_receipt.v1",
         "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-        "did": "did:webvh:z6mkfixturesubjectexample:subject.example",
         "version_id": "2-zFixtureVersionTwo",
         "witness_did": "did:key:z6MkfixtureWitnessA",
         "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
-        "controlling_organization": "did:web:org-a.example",
         "observed_at": "2026-05-01T00:00:00.000Z",
         "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "created_at": "2026-05-01T00:00:00.000Z",
@@ -426,21 +424,22 @@
           "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "created_at": "2026-05-01T00:00:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
-        }
+        },
+        "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example",
+        "controlling_organization_did": "did:web:org-a.example"
       }
     },
     {
-      "name": "witness_receipt_without_controlling_organization_is_invalid",
+      "name": "witness_receipt_without_controlling_organization_did_is_invalid",
       "schema_ref": "schemas/did-webvh-witness-receipt.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$: 'controlling_organization' is a required property",
+      "first_expected_error": "$: 'controlling_organization_did' is a required property",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "notes": "Distinct-organization policy counts organizations, not keys. A receipt that cannot name the controlling organization cannot be counted toward that requirement, so the field is required rather than optional.",
       "instance": {
         "schema": "ak.schema.did_webvh_witness_receipt.v1",
         "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-        "did": "did:webvh:z6mkfixturesubjectexample:subject.example",
         "version_id": "2-zFixtureVersionTwo",
         "witness_did": "did:key:z6MkfixtureWitnessA",
         "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
@@ -454,7 +453,8 @@
           "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "created_at": "2026-05-01T00:00:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
-        }
+        },
+        "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example"
       }
     },
     {
@@ -468,11 +468,9 @@
       "instance": {
         "schema": "ak.schema.did_webvh_witness_receipt.v1",
         "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-        "did": "did:webvh:z6mkfixturesubjectexample:subject.example",
         "version_id": "2-zFixtureVersionTwo",
         "witness_did": "did:web:witness-a.example",
         "witness_verification_method": "did:web:witness-a.example#key-1",
-        "controlling_organization": "did:web:org-a.example",
         "observed_at": "2026-05-01T00:00:00.000Z",
         "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "expires_at": "2026-05-02T00:00:00.000Z",
@@ -483,7 +481,9 @@
           "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "created_at": "2026-05-01T00:00:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
-        }
+        },
+        "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example",
+        "controlling_organization_did": "did:web:org-a.example"
       }
     },
     {
@@ -497,11 +497,9 @@
       "instance": {
         "schema": "ak.schema.did_webvh_witness_receipt.v1",
         "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-        "did": "did:webvh:z6mkfixturesubjectexample:subject.example",
         "version_id": "2-zFixtureVersionTwo",
         "witness_did": "did:key:z6MkfixtureWitnessA",
         "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
-        "controlling_organization": "did:web:org-a.example",
         "observed_at": "2026-05-01T00:00:00.000Z",
         "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "expires_at": "2026-05-02T00:00:00.000Z",
@@ -513,7 +511,9 @@
           "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "created_at": "2026-05-01T00:00:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
-        }
+        },
+        "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example",
+        "controlling_organization_did": "did:web:org-a.example"
       }
     },
     {
@@ -527,11 +527,9 @@
           {
             "schema": "ak.schema.did_webvh_witness_receipt.v1",
             "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-            "did": "did:webvh:z6mkfixturesubjectexample:subject.example",
             "version_id": "2-zFixtureVersionTwo",
             "witness_did": "did:key:z6MkfixtureWitnessA",
             "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
-            "controlling_organization": "did:web:org-a.example",
             "observed_at": "2026-05-01T00:00:00.000Z",
             "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
             "expires_at": "2026-05-02T00:00:00.000Z",
@@ -542,12 +540,13 @@
               "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "created_at": "2026-05-01T00:00:00.000Z",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
-            }
+            },
+            "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example",
+            "controlling_organization_did": "did:web:org-a.example"
           },
           {
             "schema": "ak.schema.identity_receipt.v1",
             "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
-            "did": "did:webvh:z6mkfixturesubjectexample:subject.example",
             "seq": 2,
             "head_event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
             "registry_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
@@ -559,7 +558,8 @@
               "payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
               "created_at": "2026-05-01T00:00:00.000Z",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
-            }
+            },
+            "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example"
           }
         ],
         "threshold_met": false

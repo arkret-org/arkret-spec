@@ -371,7 +371,7 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
         {
           "target": {
             "kind": "actor",
-            "did": "did:webvh:zGMfBAbnRTYqW4943CVr9Dcii:spammer.example.com"
+            "actor_id": "ak:did_core:webvh:zGMfBAbnRTYqW4943CVr9Dcii"
           },
           "action": "deny_join",
           "reason_code": "spam",
@@ -425,13 +425,13 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
 
 | kind | 标识字段 | 语义 |
 | --- | --- | --- |
-| `actor` | `did` | 单个 Actor / Principal。 |
-| `device` | `device_id` 或 `did` | 单个设备身份。 |
-| `service_id` | `did_core_id` | 单个 Principal Server、Principal Server sync surface、Federation peer 或其他 service 的稳定业务身份。 |
+| `actor` | `actor_id` | 单个 Actor / Principal 的稳定业务身份。 |
+| `device` | `device_id` | 单个设备身份。 |
+| `service` | `service_id` | 单个 Principal Server、Principal Server sync surface、Federation peer 或其他 service 的稳定业务身份。 |
 | `domain` | `domain`，可选 `match_subdomains` | 规范化 DNS A-label domain；只按 label 边界匹配。 |
 | `trust_domain` | `trust_domain` | 部署级 trust domain。 |
-| `organization` | `did` | Organization DID 或其签发的治理链。 |
-| `claim_selector` | `claim_kind` / `issuer` | 由声明、VC 或组织关系选择一组主体。 |
+| `organization` | `organization_id` | Organization 的稳定业务身份或其签发的治理链。 |
+| `claim_selector` | `claim_kind` / `issuer_id` | 由声明、VC 或组织关系选择一组主体。 |
 | `media_digest` | `digest` | 媒体或 blob 内容 digest。 |
 | `content_label` | `label` | 分类器或审核标签。 |
 
@@ -572,8 +572,8 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
       "targets": [
         {
           "target": {
-            "kind": "service_id",
-            "did_core_id": "ak:did_core:webvh:z5GPnjxXzWM85J3Kw6iMV4Tj2"
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z5GPnjxXzWM85J3Kw6iMV4Tj2"
           },
           "action": "deny_federation",
           "reason_code": "abuse_network"
@@ -642,7 +642,7 @@ bytes，只会多出一条可漂移的第二真相源。
         {
           "target": {
             "kind": "organization",
-            "did": "did:webvh:z6zPnbtvkN7vxa9zUyCgGyX52:known-abuse.example"
+            "organization_id": "ak:did_core:webvh:z6zPnbtvkN7vxa9zUyCgGyX52"
           },
           "action": "deny_federation",
           "reason_code": "abuse_network"
@@ -651,7 +651,7 @@ bytes，只会多出一条可漂移的第二真相源。
           "target": {
             "kind": "claim_selector",
             "claim_kind": "organization_membership",
-            "issuer": "ak:did_core:webvh:zCJLLNnZDTQJWQp7tztodmPUc"
+            "issuer_id": "ak:did_core:webvh:zCJLLNnZDTQJWQp7tztodmPUc"
           },
           "action": "deny_restricted_join"
         }

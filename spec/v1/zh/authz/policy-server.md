@@ -199,7 +199,7 @@ Content-Type: application/json
 | `bound_to.actor_id` | `did_core_id` | required | 等于 request `actor_id`。 |
 | `bound_to.action` | `string` | required | 等于 request `action`。 |
 | `bound_to.request_canonical_digest` | `sha256:<hash>` | required | 等于 request `request_canonical_digest`。 |
-| `bound_to.policy_server_id` | `did_core_id` | required | 签发该 decision 的 Policy Server 稳定身份；declaration 的 service binding 必须指向同一 core，且 `signature.kid` 的 bare full DID 经 adapter 投影后必须与其一致。 |
+| `bound_to.policy_server_id` | `did_core_id` | required | 签发该 decision 的 Policy Server 稳定身份；declaration 的 service binding 必须指向同一 core，且 `signature.kid` 的 bare DID 经 adapter 投影后必须与其一致。 |
 | `decision` | `enum(allow,soft_deny,hard_deny,quarantine,require_review)` | required | 策略决策。 |
 | `reason_code` | `string` | required | 稳定原因码。 |
 | `freshness_state` | `enum(fresh,stale,unknown)` | required | 本 decision 使用的 revocation / authorization frontier 新鲜度；重试与缓存裁决必须消费该值。 |

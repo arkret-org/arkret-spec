@@ -834,7 +834,7 @@
           }
         },
         {
-          "name": "proof_full_id_projects_to_other_actor",
+          "name": "proof_did_projects_to_other_actor",
           "mutation": "verification_method_base_projection_mismatch",
           "expected": {
             "result": "reject",

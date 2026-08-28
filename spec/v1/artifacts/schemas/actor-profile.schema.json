@@ -72,7 +72,7 @@
     },
     "resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/resolution_projection",
-      "description": "Read-only current principal full_id projection derived from the PCR identity resolution cell. It is not writable through Actor Profile create/update patches and is not an authorization root."
+      "description": "Read-only current principal did projection derived from the PCR identity resolution cell. It is not writable through Actor Profile create/update patches and is not an authorization root."
     },
     "profile_fields": {
       "type": "object",

@@ -143,19 +143,19 @@
           "items": {
             "type": "object",
             "required": [
-              "issuer",
+              "witness_id",
               "verification_method",
-              "controlling_organization"
+              "controlling_organization_id"
             ],
             "properties": {
-              "issuer": {
+              "witness_id": {
                 "$ref": "#/$defs/did_core_id"
               },
               "verification_method": {
                 "$ref": "./common-ids.schema.json#/$defs/did_url",
                 "description": "DID URL of the key the witness used to sign. For a derived federation_witness_attested class, every verification_method MUST be pairwise distinct."
               },
-              "controlling_organization": {
+              "controlling_organization_id": {
                 "$ref": "#/$defs/did_core_id"
               },
               "attested_at": {

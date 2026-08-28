@@ -171,7 +171,7 @@ VALUE_TABLE: dict[str, Any] = {
     "expires_at": "2026-08-16T00:05:00.000Z",
     "extension_id": "ak.extension.calendar.v1",
     "frontier": ["ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"],
-    "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
+    "did": "did:webvh:z6mkfixtureacmeexample:acme.example",
     "genesis_unit_kinds": ["ak.realm.create", "ak.device.authorize"],
     "grace_until": "2026-08-11T03:00:00.000Z",
     "handle": "acme",
@@ -491,7 +491,7 @@ def build_case(
             {
                 "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
                 "event_digest": "sha256:" + "14" * 32,
-                "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
+                "qualified_ingress_did": "did:webvh:z6mkfixture:ingress.example",
                 "received_at": "2026-05-02T00:00:00.000Z",
                 "ingress_frontier": [
                     "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"

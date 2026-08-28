@@ -163,7 +163,7 @@ token 要求：
 3. `locator_ref_digest` 绑定私有 locator ref material；raw token 不得写入 Realm durable event。
 4. `proof.payload_digest` MUST 覆盖 `canonical_json(principal_locator_without_proofs)`。
 5. `proofs[]` MUST 至少包含 `recipient_service_acceptance`；高安全 / audited / enterprise 部署 SHOULD 同时要求 `subject_locator_authorization`。
-6. verifier MUST 验证 `service_resolution` 得到当前 signed `ServiceResolutionRecord`，确认 `record.service_id == recipient_service_id`、`project(record.full_id) == recipient_service_id`、freshness 与 endpoint binding；若缺少 `subject_locator_authorization`，还 MUST 通过 account binding 或 service delegation 证明该 service `did_core_id` 有权代表 `subject_id` 发布 locator。
+6. verifier MUST 验证 `service_resolution` 得到当前 signed `ServiceResolutionRecord`，确认 `record.service_id == recipient_service_id`、`project(record.did) == recipient_service_id`、freshness 与 endpoint binding；若缺少 `subject_locator_authorization`，还 MUST 通过 account binding 或 service delegation 证明该 service `did_core_id` 有权代表 `subject_id` 发布 locator。
 
 `principal_locator` 不是 membership grant、不是 invite accept proof、不是 `member_delivery_binding`。它只证明“可以把这次邀请投递给这个 Principal Server 处理”。
 
@@ -341,7 +341,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Se
 
 1. 验证 service-to-service authentication，绑定 Source/Destination service `did_core_id`、trust domain、Content-Digest 与 idempotency key；接收方从已验证的 exact canonical body bytes 内部计算 request digest。
 2. 验证 `Destination-Service-ID == invite_address.recipient_service_id`。
-3. 验证 `invite_address.service_resolution`，要求 signed record 的 `service_id` 等于 `recipient_service_id`、adapter 投影 `project(full_id)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
+3. 验证 `invite_address.service_resolution`，要求 signed record 的 `service_id` 等于 `recipient_service_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
 4. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
 5. 验证 `invite_event.payload.invitee == invite_address.subject_id`。
 6. 验证 `invite_event.payload.invite_delivery_target.recipient_service_id == invite_address.recipient_service_id`，且两处 `service_resolution` 逐字节相等。

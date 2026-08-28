@@ -396,7 +396,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/governance/member-delivery-binding.md#5-路由不可降级normative",
-      "section_digest": "sha256:c44a594b30351f6884d55ee187dd40f9ada3b74e8e0c3ba052090b88b690bdbb",
+      "section_digest": "sha256:d022da8dbb142745873fc7ad520b2648ed983908a6a0bc3346c7fca1f24b3644",
       "requirement": "Member delivery binding never silently downgrades: a stale binding frontier, an expired handover grace window or an unresolvable binding MUST fail closed instead of routing to the previous service.",
       "testability_grade": "vector",
       "evidence_refs": [

@@ -69,27 +69,27 @@
       "type": "string",
       "pattern": "^ak:did_core:[a-z0-9]+:[^\\s/?#]+$",
       "maxLength": 512,
-      "description": "Canonical stable DID-derived identity core. The lowercase DID method name follows ak:did_core:, and the remaining method-adapter-defined core is opaque to generic consumers. The did:web v1 adapter uses the complete canonical method-specific-id, never a digest or truncated host. Principal, actor and service identity equality is byte-for-byte equality of the complete did_core_id. A did_core_id is not a DID and cannot be resolved without a full_id or ServiceResolutionRecord."
+      "description": "Canonical stable DID-derived identity core. The lowercase DID method name follows ak:did_core:, and the remaining method-adapter-defined core is opaque to generic consumers. The did:web v1 adapter uses the complete canonical method-specific-id, never a digest or truncated host. Principal, actor and service identity equality is byte-for-byte equality of the complete did_core_id. A did_core_id is not a DID and cannot be resolved without a did or ServiceResolutionRecord."
     },
-    "did_full_id": {
+    "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s/?#]+$",
       "maxLength": 2048,
       "description": "Canonical bare DID used for registration, DID method resolution and owner-published current resolution. It contains no path, query or fragment and MUST project through the registered method adapter to exactly one did_core_id."
     },
-    "webvh_full_id": {
+    "webvh_did": {
       "type": "string",
       "pattern": "^did:webvh:[^\\s:/?#]+:[^\\s/?#]+$",
       "maxLength": 2048,
       "description": "Canonical bare did:webvh identifier used at method-native registration, document and evidence boundaries. Role admission is enforced separately."
     },
-    "human_principal_full_id": {
+    "human_principal_did": {
       "type": "string",
       "pattern": "^(?:did:webvh:[^\\s#?]+|did:web:[^\\s#?]+|did:key:z[1-9A-HJ-NP-Za-km-z]+)$",
       "maxLength": 2048,
       "description": "Canonical bare DID for a v1 human principal anchor. The method set is derived from role_requirements.human_principal_anchor; capability checks for relocation, DID-root recovery and ongoing governance are separate."
     },
-    "managed_agent_full_id": {
+    "managed_agent_did": {
       "type": "string",
       "pattern": "^did:webvh:[^\\s:/?#]+:[^\\s/?#]+$",
       "maxLength": 2048,
@@ -100,17 +100,69 @@
       "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Stable canonical Applet installation identity. Applet service authority is carried separately by service_id."
     },
-    "applet_managed_actor_full_id": {
+    "applet_managed_actor_did": {
       "type": "string",
       "pattern": "^did:webvh:[^\\s:/?#]+:[^\\s/?#]+$",
       "maxLength": 2048,
       "description": "Canonical bare did:webvh identity of an Applet-managed Bot or Ghost. Its inception is committed by the immutable Applet-managed actor provision Event and the cross-bound applet_managed_control PCR genesis."
     },
-    "did_key_full_id": {
+    "did_key_did": {
       "type": "string",
       "pattern": "^did:key:z[A-Za-z0-9]+$",
       "maxLength": 2048,
-      "description": "Canonical bare did:key identifier used at method-native key and witness evidence boundaries. This is a registered method-specific DidFullId subtype, not a business ActorId and not a DID URL."
+      "description": "Canonical bare did:key identifier used at method-native key and witness evidence boundaries. This is a registered method-specific Did subtype, not a business ActorId and not a DID URL."
+    },
+    "tsp_vid": {
+      "description": "Closed Trust Spanning Protocol Verifiable Identifier. The explicit kind is required because a VID is not necessarily a DID and generic consumers must never guess its identifier system from string prefixes.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "did" },
+            "value": { "$ref": "#/$defs/did" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "keri_aid" },
+            "value": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{44,128}$",
+              "maxLength": 128
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "urn" },
+            "value": {
+              "type": "string",
+              "pattern": "^urn:[a-z0-9][a-z0-9-]{0,31}:[^\\s?#]+$",
+              "maxLength": 2048
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "x509" },
+            "value": {
+              "type": "string",
+              "pattern": "^urn:x509:sha256:[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "did_url": {
       "type": "string",

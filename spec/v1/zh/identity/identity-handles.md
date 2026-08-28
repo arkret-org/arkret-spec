@@ -1043,7 +1043,12 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
       "audience": {
         "represented_organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
         "verifier_service_ids": ["ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n"],
-        "tsp_vids": ["did:webs:google.example:verifier"]
+        "tsp_vids": [
+          {
+            "kind": "did",
+            "value": "did:webs:google.example:verifier"
+          }
+        ]
       },
       "allowed_claims": [
         {

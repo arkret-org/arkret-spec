@@ -99,7 +99,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.self.account.command.update_profile.v1` | closed `{profile_event}` 提交 holder-signed `ak.profile.create` 或 `ak.profile.update`；Event 的 `(actor_id, principal_server_id)` 必须逐字等于 authenticated session 的 exact account authority pair，`realm_id` 必须等于该 pair 的本地唯一 PCR lineage，服务端只走 ordinary admission。create ID 由 Event 派生；Event preconditions 为空，update 并发只使用可选 signed `payload.expected_state_digest`，patch 仍只允许 display/avatar/profile_fields；exact replay 不重复 account-aggregate delta。 |
 | `ak.self.account.stream.subscribe.v1` | 客户端账号视角聚合同步入口；HTTP binding 使用 `AccountSubscribeFrame` NDJSON account-aggregate frame stream。 |
 | `ak.gate.account.exchange.create_handoff.v1` | OIDC code 换 DPoP-bound account handoff，并返回 binding / identity-creation lease 状态；不是 session grant。 |
-| `ak.gate.account.command.issue_identity_binding_challenge.v1` | 为当前 handoff lease 保留完整 DID operation，并签发服务端持久化的一次性 root-control challenge。 |
+| `ak.gate.account.command.issue_identity_binding_challenge.v1` | 为当前 handoff lease 保留DID operation，并签发服务端持久化的一次性 root-control challenge。 |
 | `ak.gate.account.command.register.v1` | 注册 / account binding；account-first 分支内部发布客户端签名的 DID inception 并按 account/principal/operation digest 幂等绑定；不接受裸 `handle` 或 root secret。 |
 | `ak.gate.account.command.revoke_session.v1` | 撤销 session grant；不撤销 device authorization。 |
 | `ak.find.directory.read.search_realms.v1` / `ak.find.directory.read.search_organizations.v1` / `ak.find.directory.read.search_actors.v1` / `ak.find.directory.read.search_users.v1` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
@@ -177,7 +177,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
   "service_kind": "principal_server",
   "service_id": "ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD",
   "service_resolution": {
-    "full_id": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
+    "did": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
     "method_history_head": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "version_id": "3"
   },

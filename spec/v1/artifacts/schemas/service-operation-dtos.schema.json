@@ -1620,7 +1620,7 @@
           ]
         },
         "did": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
@@ -1656,7 +1656,7 @@
       ],
       "properties": {
         "did": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "did_method": {
           "type": "string",
@@ -3594,7 +3594,7 @@
       ],
       "properties": {
         "did": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "method": {
           "type": "string",
@@ -3643,7 +3643,7 @@
         },
         "threshold_met": {
           "type": "boolean",
-          "description": "True when the returned receipt set satisfies the effective witness threshold for the requested head. The effective threshold is the strictest intersection of the method-native parameters.witness.threshold and the deployment / Realm policy minimum (identity-did.md §3.4.2), and distinctness is counted over controlling_organization where policy requires distinct organizations. Omitted when the registry cannot evaluate threshold policy for this query; an omitted value MUST NOT be read as true. A true value is an Arkret-layer convenience and MUST NOT replace verifying the standard did-witness.json proofs."
+          "description": "True when the returned receipt set satisfies the effective witness threshold for the requested head. The effective threshold is the strictest intersection of the method-native parameters.witness.threshold and the deployment / Realm policy minimum (identity-did.md §3.4.2), and distinctness is counted over controlling_organization_did where policy requires distinct organizations. Omitted when the registry cannot evaluate threshold policy for this query; an omitted value MUST NOT be read as true. A true value is an Arkret-layer convenience and MUST NOT replace verifying the standard did-witness.json proofs."
         }
       },
       "additionalProperties": false
@@ -3715,7 +3715,7 @@
       ],
       "properties": {
         "did": {
-          "type": "string"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "requested_evidence_kinds": {
           "type": "array",
@@ -3914,7 +3914,7 @@
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/did_core_id"
           },
-          "description": "Stable core_ids selected as moderation routing destinations. MUST be omitted for an ordinary reporter and MAY be serialized only when the caller independently holds moderation/governance capability for the report's exact scope. Endpoint discovery and full-DID verification remain separate resolution steps."
+          "description": "Stable core_ids selected as moderation routing destinations. MUST be omitted for an ordinary reporter and MAY be serialized only when the caller independently holds moderation/governance capability for the report's exact scope. Endpoint discovery and DID verification remain separate resolution steps."
         }
       },
       "additionalProperties": false
@@ -3947,7 +3947,7 @@
           "items": {
             "$ref": "./event-envelope.schema.json#/$defs/proof"
           },
-          "description": "Detached proofs over canonical_json({context:'ak.organization_registration_control_proof.v1', challenge_id, organization_id, full_id, local_admin_subject, version_id, log_head_digest, verification_method, created_at}). The verifier independently validates the published full_id and requires project(full_id)=organization_id before checking the full DID URL verification_method. Binding the challenge, stable core, full DID, beneficiary admin and exact version together prevents replay across deployments, resolutions or beneficiaries."
+          "description": "Detached proofs over canonical_json({context:'ak.organization_registration_control_proof.v1', challenge_id, organization_id, did, local_admin_subject, version_id, log_head_digest, verification_method, created_at}). The verifier independently validates the published did and requires project(did)=organization_id before checking the DID URL verification_method. Binding the challenge, stable core, DID, beneficiary admin and exact version together prevents replay across deployments, resolutions or beneficiaries."
         }
       },
       "allOf": [
@@ -3984,7 +3984,7 @@
       "required": [
         "challenge_id",
         "organization_id",
-        "full_id",
+        "did",
         "purpose",
         "nonce",
         "audience",
@@ -4003,8 +4003,8 @@
         "organization_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id",
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
           "description": "Current published bare DID for the external organization. The registry MUST independently validate it and require the registered method adapter to project it to organization_id before issuing the challenge."
         },
         "purpose": {
@@ -4017,7 +4017,7 @@
         },
         "audience": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Stable service did_core_id of the issuing registry. A proof bound to one registry MUST NOT be accepted by another; the proof verification method remains a full DID URL projected to this value by the registered method adapter."
+          "description": "Stable service did_core_id of the issuing registry. A proof bound to one registry MUST NOT be accepted by another; the proof verification method remains a DID URL projected to this value by the registered method adapter."
         },
         "origin": {
           "type": "string",
@@ -4054,7 +4054,7 @@
       "description": "Request a single-use control challenge for an external Organization DID. Two phases are mandatory: the registry issues the challenge and remembers it, then the caller proves control against it. Folding this into ensure would let the caller supply its own challenge, at which point neither freshness nor single use can be established by the receiver.",
       "required": [
         "organization_id",
-        "full_id",
+        "did",
         "local_admin_subject",
         "requested_scopes"
       ],
@@ -4063,9 +4063,9 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable did_core_id of the external Organization to be registered. Resolvability alone confers nothing; this request only opens a proof window."
         },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id",
-          "description": "Current published bare DID submitted for first registration. The registry MUST independently resolve and validate it and require project(full_id)=organization_id."
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "Current published bare DID submitted for first registration. The registry MUST independently resolve and validate it and require project(did)=organization_id."
         },
         "local_admin_subject": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -4084,10 +4084,10 @@
     "OrganizationRegistrationEnsureRequestBody": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Register an external Organization identity with this deployment by submitting both its stable organization_id core and current published full_id. Idempotent on organization_id: replaying the same registration returns the existing binding with created=false. This operation registers a reference and a local administrative binding; it does not host the DID's method history, does not make this deployment its controller, and does not create Realm state.",
+      "description": "Register an external Organization identity with this deployment by submitting both its stable organization_id core and current published did. Idempotent on organization_id: replaying the same registration returns the existing binding with created=false. This operation registers a reference and a local administrative binding; it does not host the DID's method history, does not make this deployment its controller, and does not create Realm state.",
       "required": [
         "organization_id",
-        "full_id",
+        "did",
         "challenge_id",
         "version_id",
         "log_head_digest",
@@ -4099,9 +4099,9 @@
         "organization_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id",
-          "description": "Current published bare DID whose method history and control proof are pinned by this request. MUST equal the full_id bound into the referenced challenge and project to organization_id."
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "Current published bare DID whose method history and control proof are pinned by this request. MUST equal the did bound into the referenced challenge and project to organization_id."
         },
         "challenge_id": {
           "type": "string",
@@ -4148,7 +4148,7 @@
           "properties": {
             "subject": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-              "description": "Stable organization did_core_id the handle is claimed for. MUST equal organization_id; the attestation proof's full DID URL is independently projected to its issuer did_core_id."
+              "description": "Stable organization did_core_id the handle is claimed for. MUST equal organization_id; the attestation proof's DID URL is independently projected to its issuer did_core_id."
             },
             "handle": {
               "type": "string",
@@ -4179,7 +4179,7 @@
     "OrganizationRegistrationOutcome": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Result of every organization registration command and of the read surface. Identity, full DID, generation and version are read from the signed registration_receipt. created is true exactly on a call that opened a new generation.",
+      "description": "Result of every organization registration command and of the read surface. Identity, DID, generation and version are read from the signed registration_receipt. created is true exactly on a call that opened a new generation.",
       "required": [
         "registration_receipt",
         "created"
@@ -4201,7 +4201,7 @@
       "required": [
         "registration_receipt_id",
         "organization_id",
-        "full_id",
+        "did",
         "registration_generation",
         "version_id",
         "log_head_digest",
@@ -4224,14 +4224,14 @@
         "organization_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id",
-          "description": "Published bare DID whose pinned version and control proof were accepted for this receipt. Consumers MUST independently validate it and require project(full_id)=organization_id."
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "Published bare DID whose pinned version and control proof were accepted for this receipt. Consumers MUST independently validate it and require project(did)=organization_id."
         },
         "registration_generation": {
           "type": "integer",
           "minimum": 1,
-          "description": "Monotonic generation of the binding for this stable organization did_core_id, starting at 1. A same-core full_id refresh does not create a different organization identity; terminal registration states remain per generation."
+          "description": "Monotonic generation of the binding for this stable organization did_core_id, starting at 1. A same-core did refresh does not create a different organization identity; terminal registration states remain per generation."
         },
         "version_id": {
           "type": "string",
@@ -4287,7 +4287,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization_registration_receipt_proof.v1', payload_digest, issuer_service_id, registration_receipt_id, organization_id, full_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers validate the registered organization's full_id and project it to organization_id, then independently obtain the issuer service's verified resolution, require its full_id to project to issuer_service_id, and verify verification_method as a signing-time assertionMethod."
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization_registration_receipt_proof.v1', payload_digest, issuer_service_id, registration_receipt_id, organization_id, did, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers validate the registered organization's did and project it to organization_id, then independently obtain the issuer service's verified resolution, require its did to project to issuer_service_id, and verify verification_method as a signing-time assertionMethod."
         }
       }
     },
@@ -4297,7 +4297,7 @@
       "description": "Re-prove control at a newer resolved version and re-issue the receipt. Scopes are not re-negotiated here; a scope change is a new ensure. Refresh exists because a binding pinned to one version stops proving current control the moment the organization rotates its controller.",
       "required": [
         "organization_id",
-        "full_id",
+        "did",
         "challenge_id",
         "version_id",
         "log_head_digest",
@@ -4307,8 +4307,8 @@
         "organization_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id",
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
           "description": "Current published bare DID at the refreshed version. MUST project to organization_id before the refreshed proof is accepted."
         },
         "challenge_id": {
@@ -5283,7 +5283,7 @@
           }
         },
         "id": {
-          "$ref": "./common-ids.schema.json#/$defs/webvh_full_id"
+          "$ref": "./common-ids.schema.json#/$defs/webvh_did"
         },
         "alsoKnownAs": {
           "type": "array",
@@ -5385,7 +5385,7 @@
           "const": "Multikey"
         },
         "controller": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "publicKeyMultibase": {
           "type": "string",
@@ -5399,7 +5399,7 @@
       "required": [
         "service_kind",
         "public_base",
-        "full_id",
+        "did",
         "inception_operation",
         "idempotency_key"
       ],
@@ -5410,8 +5410,8 @@
         "public_base": {
           "$ref": "#/$defs/ServiceRegistrationKey/properties/public_base"
         },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id",
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
           "description": "Complete service DID. It MUST equal inception_operation.state.id and the adapter projection MUST equal the resulting service_id."
         },
         "inception_operation": {
@@ -5479,13 +5479,13 @@
     },
     "ServiceRegistrationReceipt": {
       "type": "object",
-      "description": "Provider-signed stable service-registration receipt. registration_receipt_id is ak:service_registration_receipt:<lowercase hex SHA-256(canonical_json(receipt claims))>. service_id is the projected did_core_id and full_id is the verified complete DID. proof is a detached JWS over the ak.service_registration_receipt_proof.v1 binding object; consumers verify the provider through its own full resolution evidence.",
+      "description": "Provider-signed stable service-registration receipt. registration_receipt_id is ak:service_registration_receipt:<lowercase hex SHA-256(canonical_json(receipt claims))>. service_id is the projected did_core_id and did is the verified DID. proof is a detached JWS over the ak.service_registration_receipt_proof.v1 binding object; consumers verify the provider through its own resolution evidence.",
       "additionalProperties": false,
       "required": [
         "registration_receipt_id",
         "registration_key",
         "service_id",
-        "full_id",
+        "did",
         "version_id",
         "log_head_digest",
         "control_key_digest",
@@ -5504,8 +5504,8 @@
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "version_id": {
           "type": "string",
@@ -5529,7 +5529,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.service_registration_receipt_proof.v1', payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers resolve the provider full_id, require project(full_id)=provider_service_id, and verify verification_method as a signing-time assertionMethod of that full_id."
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.service_registration_receipt_proof.v1', payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers resolve the provider did, require project(did)=provider_service_id, and verify verification_method as a signing-time assertionMethod of that did."
         }
       }
     },
@@ -6254,7 +6254,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the accepted device key; its fragment MUST identify device_id and its bare full_id MUST project to principal_id."
+          "description": "DID URL of the accepted device key; its fragment MUST identify device_id and its bare did MUST project to principal_id."
         },
         "signature": {
           "type": "string",
@@ -6581,7 +6581,7 @@
             },
             "verification_method": {
               "type": "string",
-              "description": "`ak.profile.agent_auth.v1` overlay. Full DID URL of the runtime signing key. REQUIRED when `proof_kind=\"agent_key_proof\"`; the verifier MUST parse and adapter-validate its canonical bare full_id component, require project(full_id)=principal_id, and then validate the referenced key at the accepted method-history position. A did_core_id MUST NOT be used as a DID URL prefix or concatenated with a fragment. Projection mismatch returns `verification_method_principal_mismatch`. MUST be omitted for human proof kinds.",
+              "description": "`ak.profile.agent_auth.v1` overlay. DID URL of the runtime signing key. REQUIRED when `proof_kind=\"agent_key_proof\"`; the verifier MUST parse and adapter-validate its canonical bare did component, require project(did)=principal_id, and then validate the referenced key at the accepted method-history position. A did_core_id MUST NOT be used as a DID URL prefix or concatenated with a fragment. Projection mismatch returns `verification_method_principal_mismatch`. MUST be omitted for human proof kinds.",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
             },
             "signature": {

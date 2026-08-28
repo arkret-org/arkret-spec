@@ -101,11 +101,11 @@ forbidden: https://app.arkret.example/invite/<invite_token>                     
 
 ## 4. 认领流程 (Claiming)
 
-当 Bob 收到邮件并点击链接，他在客户端完成注册，持有完整 `full_id = did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`，其稳定业务身份为 `did_core_id = ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z`。接下来他需要认领这个邀请。
+当 Bob 收到邮件并点击链接，他在客户端完成注册，持有完整 `did = did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`，其稳定业务身份为 `did_core_id = ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z`。接下来他需要认领这个邀请。
 
 ### 4.1 出示 Token 与绑定
 
-Bob 的客户端将 `invite_token`、自己的 `did_core_id`、用于独立验证的 `full_id`、设备证明和 intended Realm 提交给 Alice 的身份验证服务。
+Bob 的客户端将 `invite_token`、自己的 `did_core_id`、用于独立验证的 `did`、设备证明和 intended Realm 提交给 Alice 的身份验证服务。
 身份验证服务验证 token、过期时间、claim 次数和 Realm 绑定无误后，原子消费该 token，并使用之前预留的**临时私钥 (对应 3.1 节的 `verification_public_key`)** 签署一个**绑定证明 (Binding Proof)**，声明：
 “持有该 Token 的人现在对应的稳定业务身份是 `ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z`”。
 

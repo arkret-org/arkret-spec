@@ -154,7 +154,7 @@
         "schema": "ak.schema.realm_genesis.v1",
         "purpose": "managed_agent_control",
         "initial_resolution": {
-          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "did": "did:webvh:z6mkfixtureagentexample:agent.example",
           "method_history_head": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "version_id": "1"
         },
@@ -296,7 +296,7 @@
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
         "service_resolution": {
-          "full_id": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
+          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1"
         },
@@ -433,7 +433,7 @@
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkfixturedirectoryexamplenet",
         "service_resolution": {
-          "full_id": "did:webvh:z6mkfixturedirectoryexamplenet:directory.example.net",
+          "did": "did:webvh:z6mkfixturedirectoryexamplenet:directory.example.net",
           "method_history_head": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "version_id": "1"
         },
@@ -529,7 +529,7 @@
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
         "service_resolution": {
-          "full_id": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
+          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1"
         },
@@ -586,7 +586,7 @@
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
         "service_resolution": {
-          "full_id": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
+          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1"
         },
@@ -1103,7 +1103,7 @@
             "schema": "ak.schema.realm_genesis.v1",
             "purpose": "principal_control",
             "initial_resolution": {
-              "full_id": "did:webvh:z6mkfixture:alice.example",
+              "did": "did:webvh:z6mkfixture:alice.example",
               "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "version_id": "1"
             },
@@ -1182,7 +1182,7 @@
             "schema": "ak.schema.realm_genesis.v1",
             "purpose": "managed_agent_control",
             "initial_resolution": {
-              "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+              "did": "did:webvh:z6mkfixtureagentexample:agent.example",
               "method_history_head": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
               "version_id": "1"
             },
@@ -1250,7 +1250,7 @@
             "schema": "ak.schema.realm_genesis.v1",
             "purpose": "principal_control",
             "initial_resolution": {
-              "full_id": "did:webvh:z6mkfixture:alice.example",
+              "did": "did:webvh:z6mkfixture:alice.example",
               "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "version_id": "1"
             },
@@ -1761,7 +1761,7 @@
       "expect_valid": true,
       "instance": {
         "phase": "prepare",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "controller_principal_server_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000101",
         "idempotency_key": "agent-provision-prepare-001",
@@ -1787,7 +1787,7 @@
       "first_expected_error": "$: 'requested_scope' is a required property",
       "instance": {
         "phase": "prepare",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "controller_principal_server_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000102",
         "idempotency_key": "agent-provision-prepare-002",
@@ -1800,7 +1800,7 @@
       "expect_valid": true,
       "instance": {
         "phase": "prepare",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "controller_principal_server_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000103",
         "idempotency_key": "agent-provision-prepare-003",
@@ -1826,7 +1826,7 @@
       "first_expected_error": "contains:should not be valid under",
       "instance": {
         "phase": "prepare",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "controller_principal_server_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000104",
         "idempotency_key": "agent-provision-prepare-004",
@@ -1855,7 +1855,7 @@
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000105",
         "idempotency_key": "agent-provision-commit-001",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "allocation_handle": "agent-allocation-001",
         "slug": "summary",
@@ -1874,9 +1874,9 @@
       "instance": {
         "status": "awaiting_controller_event",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "initial_resolution": {
-          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "did": "did:webvh:z6mkfixtureagentexample:agent.example",
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1-Qmfixture"
         },
@@ -1893,9 +1893,9 @@
       "instance": {
         "status": "complete",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "initial_resolution": {
-          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "did": "did:webvh:z6mkfixtureagentexample:agent.example",
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1-Qmfixture"
         },
@@ -1914,9 +1914,9 @@
       "instance": {
         "status": "complete",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "initial_resolution": {
-          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "did": "did:webvh:z6mkfixtureagentexample:agent.example",
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1-Qmfixture"
         },
@@ -1938,9 +1938,9 @@
       "instance": {
         "status": "awaiting_pcr_genesis",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "initial_resolution": {
-          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "did": "did:webvh:z6mkfixtureagentexample:agent.example",
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1-Qmfixture"
         },
@@ -1958,9 +1958,9 @@
       "instance": {
         "status": "awaiting_pcr_genesis",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "initial_resolution": {
-          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "did": "did:webvh:z6mkfixtureagentexample:agent.example",
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1-Qmfixture"
         },
@@ -1980,9 +1980,9 @@
       "instance": {
         "status": "awaiting_pcr_genesis",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
-        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did": "did:webvh:z6mkfixtureagentexample:agent.example",
         "initial_resolution": {
-          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "did": "did:webvh:z6mkfixtureagentexample:agent.example",
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1-Qmfixture"
         },
@@ -3871,7 +3871,7 @@
       "instance": {
         "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
         "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
-        "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
+        "qualified_ingress_did": "did:webvh:z6mkfixture:ingress.example",
         "received_at": "2026-08-24T08:14:00.000Z",
         "ingress_frontier": [
           "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -3903,7 +3903,7 @@
       "instance": {
         "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
         "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
-        "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
+        "qualified_ingress_did": "did:webvh:z6mkfixture:ingress.example",
         "received_at": "2026-08-24T08:14:00.000Z",
         "ingress_frontier": [],
         "proofs": [
@@ -3925,7 +3925,7 @@
       "instance": {
         "receipt_id": "ak:receipt:019c0000-0000-7000-8000-000000000014",
         "event_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
-        "qualified_ingress_id": "did:webvh:z6mkfixture:ingress.example",
+        "qualified_ingress_did": "did:webvh:z6mkfixture:ingress.example",
         "received_at": "2026-08-24T08:14:00.000Z",
         "ingress_frontier": [
           "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"

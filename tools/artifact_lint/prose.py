@@ -1524,7 +1524,7 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
     encoding_text = encoding.read_text(encoding="utf-8")
     if "`txn`" in encoding_text:
         lint.fail(encoding, "typed ID kind prose must use `transaction`, not `txn`")
-    if "principal_id`、`device_id` MUST 是完整 typed ID 或完整 DID URI" in encoding_text:
+    if "principal_id`、`device_id` MUST 是完整 typed ID 或DID URI" in encoding_text:
         lint.fail(encoding, "principal_id/device_id subject rule must distinguish DID from device typed ID")
 
     registry_text = id_registry.read_text(encoding="utf-8")

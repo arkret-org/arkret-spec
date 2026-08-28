@@ -4802,7 +4802,7 @@
               "type": "array",
               "uniqueItems": true,
               "items": {
-                "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+                "$ref": "./common-ids.schema.json#/$defs/tsp_vid"
               }
             }
           },
@@ -4834,7 +4834,7 @@
       "type": "object",
       "required": [
         "claim_kind",
-        "issuer",
+        "issuer_id",
         "subject_id",
         "disclosure",
         "fields"
@@ -4843,8 +4843,8 @@
         "claim_kind": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "issuer": {
-          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "subject_id": {
           "$ref": "#/$defs/did_core_id"
@@ -8823,18 +8823,30 @@
           "type": "object",
           "required": [
             "kind",
-            "did"
+            "actor_id"
           ],
           "properties": {
             "kind": {
-              "enum": [
-                "actor",
-                "device",
-                "organization"
-              ]
+              "const": "actor"
             },
-            "did": {
-              "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "organization_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "organization"
+            },
+            "organization_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             }
           },
           "additionalProperties": false
@@ -8860,13 +8872,13 @@
           "type": "object",
           "required": [
             "kind",
-            "did_core_id"
+            "service_id"
           ],
           "properties": {
             "kind": {
-              "const": "service_id"
+              "const": "service"
             },
-            "did_core_id": {
+            "service_id": {
               "$ref": "#/$defs/did_core_id"
             }
           },
@@ -8913,7 +8925,7 @@
           "required": [
             "kind",
             "claim_kind",
-            "issuer"
+            "issuer_id"
           ],
           "properties": {
             "kind": {
@@ -8922,7 +8934,7 @@
             "claim_kind": {
               "$ref": "#/$defs/non_empty_string"
             },
-            "issuer": {
+            "issuer_id": {
               "$ref": "#/$defs/did_core_id"
             }
           },
@@ -10291,7 +10303,7 @@
           "properties": {
             "controller_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-              "description": "Stable did_core_id of the successor principal that becomes the root controller. Its control proof verification_method remains a full DID URL and MUST project to this value through the registered method adapter."
+              "description": "Stable did_core_id of the successor principal that becomes the root controller. Its control proof verification_method remains a DID URL and MUST project to this value through the registered method adapter."
             }
           },
           "additionalProperties": false,
@@ -11197,7 +11209,7 @@
             },
             "trust_roots": {
               "type": "array",
-              "description": "Stable did_core_id allowlist. A root is compared against project(candidate full_id); it is not itself resolvable and does not carry a verification method or endpoint. Verification still requires approved full_id/key binding/method evidence and fails closed when that evidence is unavailable.",
+              "description": "Stable did_core_id allowlist. A root is compared against project(candidate did); it is not itself resolvable and does not carry a verification method or endpoint. Verification still requires approved did/key binding/method evidence and fails closed when that evidence is unavailable.",
               "minItems": 1,
               "uniqueItems": true,
               "items": {

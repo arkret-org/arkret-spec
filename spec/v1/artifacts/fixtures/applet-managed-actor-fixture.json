@@ -34,8 +34,8 @@
       "expect": "accepted"
     },
     {
-      "name": "ghost_namespace_matches_verified_full_id",
-      "namespace_input": "initial_resolution.full_id",
+      "name": "ghost_namespace_matches_verified_did",
+      "namespace_input": "initial_resolution.did",
       "expect": "accepted"
     },
     {
@@ -74,7 +74,7 @@
       "expect": "applet_managed_actor_provision_invalid"
     },
     {
-      "name": "ghost_core_used_for_full_did_namespace",
+      "name": "ghost_core_used_for_did_namespace",
       "mutation": "namespace_input = actor_id",
       "expect": "applet_namespace_mismatch"
     },

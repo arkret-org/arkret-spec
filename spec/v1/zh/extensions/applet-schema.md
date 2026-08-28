@@ -107,7 +107,7 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | `package_id` | yes | typed id 或 DID URL；仅用于 package 分发。 |
 | `applet_id` | yes | 唯一合法形态为 `ak:applet:<uuidv7>`；旧的 service DID 代用形态已删除。 |
 | `service_id` | yes | Applet runtime 的稳定 service `did_core_id`。 |
-| `controller_id` | yes | 对 package 负责的 controller `did_core_id`；package proof VM 的 bare `full_id` 必须经 adapter 投影到该值。 |
+| `controller_id` | yes | 对 package 负责的 controller `did_core_id`；package proof VM 的 bare `did` 必须经 adapter 投影到该值。 |
 | `base_url` | yes | Applet API base URL。 |
 | `bot_actor_id` | yes | 可见 bot actor 的稳定 `did_core_id`；不得含 `#fragment`。 |
 | `claimed_profiles` | yes | v1 Applet profile id 数组；MUST 至少包含 `ak.profile.applet_service.v1`。 |
@@ -115,7 +115,7 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | `namespaces` | yes | `actors` / `realms` / `handles` 对象形态 namespace。 |
 | `requested_scopes` | yes | capability action 请求列表；只用于审批 UI。 |
 | `endpoint_policy` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
-| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是某个 Applet service `full_id` 下的 DID URL，该 `full_id` 经已登记 adapter 投影后 MUST 等于 `service_id`（`did_core_id`），并作为 app/bridge→arkret inbound transaction push 的投递验签 key。 |
+| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是某个 Applet service `did` 下的 DID URL，该 `did` 经已登记 adapter 投影后 MUST 等于 `service_id`（`did_core_id`），并作为 app/bridge→arkret inbound transaction push 的投递验签 key。 |
 | `receive_events` | yes | 派生 registration 的接收事件声明。 |
 | `receive_signals` | yes | 派生 registration 的 encrypted Signal Extension 接收声明。 |
 | `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
@@ -146,7 +146,7 @@ Package -> registration 派生映射:
 | `rate_limited` | `rate_limited` | 原样复制；不得省略。 |
 | `requested_scopes` | `requested_scopes` | 原样复制；仍只是请求声明。 |
 | `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
-| `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` 的 bare controller `full_id` 经已登记 adapter 投影后 MUST 等于 `service_id`，并绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
+| `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` 的 bare controller `did` 经已登记 adapter 投影后 MUST 等于 `service_id`，并绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
 | `manifest` | `claimed_profiles` + `limits` + policies + optional widget declaration + install evidence | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段；安装 authoring 时加入唯一 `registration_epoch_evidence`，并由管理员 Event proof 覆盖；widget snapshot MUST 保持 `ak.schema.applet_widget_declaration.v1` 的闭合形态。 |
 | `proof` | `proof` | accepted package 的 controller detached proof 逐字副本；`payload_digest` 只覆盖 canonical package，formal registration Event 使用独立 Event proofs。 |
 | `created_at` | `created_at` | 原样复制。 |
@@ -265,11 +265,11 @@ Idempotency-Key: <opaque-string>
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
 | `Idempotency-Key` | header | `string` | required | 发送方生成的幂等 / nonce 键，长度 1..128；接收方 MUST 以 `(operation_id, direction, applet_id, Source-Service-ID, Destination-Service-ID, Idempotency-Key)` 定位幂等记录，并绑定 canonical body digest 与 `delivery_authentication_record`；重复键但 body digest 或投递认证记录不同 MUST fail closed。 |
-| `Source-Service-ID` | header | `did_core_id` | required | 推送来源 service `did_core_id`；MUST 等于 body `source_service_id`，并进入 HTTP Message Signature transcript。来源 VM 的 bare `full_id` 必须经 adapter 投影到该值。 |
+| `Source-Service-ID` | header | `did_core_id` | required | 推送来源 service `did_core_id`；MUST 等于 body `source_service_id`，并进入 HTTP Message Signature transcript。来源 VM 的 bare `did` 必须经 adapter 投影到该值。 |
 | `Destination-Service-ID` | header | `did_core_id` | required | 接收方 service `did_core_id`；MUST 等于实际接收服务 identity，并进入 HTTP Message Signature transcript。 |
 | `Content-Digest` | header | `sha-256=:...:` | required | 按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 覆盖 exact canonical HTTP content bytes；接收方 MUST 在 JSON 业务解析与验签前对 exact bytes 重算，拒绝 `sha256=:` alias、非 canonical JSON wire 与 parse-then-canonicalize verification。 |
 | `Signature-Input` | header | `string` | required | RFC 9421 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，并带 `created` / `expires`。 |
-| `Signature` | header | `string` | required | 来源 service 已验证 `full_id` / VM 的逐次 HTTP Message Signature；纯 bearer 不满足 transaction push 认证。 |
+| `Signature` | header | `string` | required | 来源 service 已验证 `did` / VM 的逐次 HTTP Message Signature；纯 bearer 不满足 transaction push 认证。 |
 | `applet_id` | body | `applet_id` | required | 精确选择 active install；必须与来源 service、当前 registration epoch/key 唯一交叉绑定，不得按同 service 任取首条安装。 |
 | `source_service_id` | body | `did_core_id` | required | 推送来源 service 的稳定 `did_core_id`。 |
 | `events` | body | `EventEnvelope[]` | conditional | 推送给 Applet 的非空 signed Event 数组；每项必须满足 `event-envelope.schema.json`。与 `signals[]` 至少出现一个。 |

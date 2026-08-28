@@ -166,7 +166,7 @@
       "allowed": "resign_fresh_device_transcript_within_permitted_fields",
       "rejected": [
         "principal_id",
-        "full_id",
+        "did",
         "operation_digest",
         "canonical_bytes"
       ],

@@ -22,7 +22,7 @@
       "schemas/account-operations.schema.json#/$defs/account_registration_rate_limit_policy",
       "schemas/account-operations.schema.json#/$defs/account_registration_verification_policy",
       "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
-      "schemas/agent-operations.schema.json#/$defs/did_full_id",
+      "schemas/agent-operations.schema.json#/$defs/did",
       "schemas/circle-operations.schema.json#/$defs/event_id",
       "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
       "schemas/contact-operations.schema.json#/$defs/non_empty_string",

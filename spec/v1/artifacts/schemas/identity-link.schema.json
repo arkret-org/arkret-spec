@@ -34,7 +34,7 @@
     },
     "pairwise_actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Realm-scoped pairwise actor did_core_id used byte-for-byte in Event.actor_id and the MLS BasicCredential identity. Its Event proof verificationMethod controller is a did:key full_id whose registered adapter projection MUST equal this value."
+      "description": "Realm-scoped pairwise actor did_core_id used byte-for-byte in Event.actor_id and the MLS BasicCredential identity. Its Event proof verificationMethod controller is a did:key did whose registered adapter projection MUST equal this value."
     },
     "principal_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",

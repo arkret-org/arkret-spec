@@ -100,8 +100,8 @@ did:webvh:z6MkGhostU123:slack-bridge.example
 `#fragment` 只用于 DID URL 形式的 verification method（例如 `did:webvh:z6MkGhostU123:slack-bridge.example#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。稳定 `actor_id` 使用其 adapter projection `ak:did_core:webvh:z6MkGhostU123`；每个 Ghost 必须有自己的 validated SCID，不能复用 Applet service SCID 后仅靠 host/path 区分。
 
 Ghost 使用与 Bot 相同的 managed-actor provision + PCR genesis authority 模型，但 role 固定为 `ghost`，
-provision 还必须逐字绑定 external tuple。namespace 对经 method evidence 验证的 `initial_resolution.full_id`
-匹配，不能对 `did_core_id` 匹配完整 DID pattern。Profile/accountability Event 不能替代 identity binding，
+provision 还必须逐字绑定 external tuple。namespace 对经 method evidence 验证的 `initial_resolution.did`
+匹配，不能对 `did_core_id` 匹配DID pattern。Profile/accountability Event 不能替代 identity binding，
 服务端也不得从 external tuple、namespace 或 Applet service DID 生成 Ghost DID。
 
 Ghost Actor MUST 带有 `accountable_principal_ids`，且本节 provisioning aggregate 创建的初始 Profile MUST 只包含提交并签署同请求 `accountability_grant_event` 的外部 service DID。Applet controller 与 Ghost 的生命周期关系由 active Applet registration / install 记录表达，不得在缺少 controller 自己签发的 active `ak.identity.accountability_grant` 时把 controller DID 复制进该数组；后续若要增加 controller，必须先独立提交该 controller 的 grant，再按普通 Profile update 规则更新。外部网络来源（protocol / network id / user id）记录在 `profile_fields.external_ref`。问责字段以 actor-profile schema 的 `accountable_principal_ids` 为唯一权威形态（见 [`applet-schema.md`](./applet-schema.md) 与 §9）；`accountability` 嵌套对象不是合法 wire 形态。
@@ -209,8 +209,8 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 ### 4.1 Registration 规则
 
 - `applet_id` MUST 稳定。
-- `service_id` MUST 是稳定 service `did_core_id`；注册时提供的 `full_id` 必须经 adapter 投影到它，当前 endpoint 通过 verified ServiceResolutionRecord 取得。
-- `controller_id` MUST 是 controller `did_core_id`；复制到 registration 的 package proof VM 的 bare `full_id` 必须经 adapter 投影到它并通过签名验证。
+- `service_id` MUST 是稳定 service `did_core_id`；注册时提供的 `did` 必须经 adapter 投影到它，当前 endpoint 通过 verified ServiceResolutionRecord 取得。
+- `controller_id` MUST 是 controller `did_core_id`；复制到 registration 的 package proof VM 的 bare `did` 必须经 adapter 投影到它并通过签名验证。
 - `bot_actor_id` 是独立 Bot principal；安装单元的 managed-actor provision payload MUST 逐字等于 registration 的该字段，并携完整 authority pair、initial resolution 与 method history evidence。一个 registration 只能接受这一个 Bot authority pair，且 Bot 不得等于 service/controller/Ghost。
 - `claimed_profiles` MUST 从已验证 package 原样复制到 durable registration，至少包含
   `ak.profile.applet_service.v1`；profile-bound authority 只读取 accepted Event，不得读取
@@ -554,7 +554,7 @@ Arkret Principal Server sync surface / Events API 向 Applet 推送事件批次�
 transaction push 是 service↔service 调用，**两个方向**都 MUST 携带**逐次投递**的 RFC 9421 HTTP Message Signature（per-delivery source signature），接收方 MUST 在处理任何 event / 副作用前先验签；纯 `Authorization: Bearer`（无 `Signature`）的 transaction push MUST 被拒绝。两方向不可只靠 bearer，也不可只在首次握手时验签一次：
 
 - **node → Applet**（§7.3 上文，Arkret 节点向 Applet 推送）：Applet 端 MUST 按 `Source-Service-ID` 的 accepted service key binding 取得当前有效 verification method，并逐次验证 HTTP Message Signature；逐次验签不等于逐次在线解析 DID。新 service / key、binding invalidation 或显式 freshness 失效时才进入 DID authority resolution。`Destination-Service-ID` MUST 等于接收 Applet registration 的 `service_id`。Applet registration 的 `webhook_auth` 在该方向声明 transaction endpoint 要求 `http_message_signature` 与可接受算法；`webhook_auth.key_ref` MUST NOT 被解释成任意 Arkret 节点的来源 key。
-- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-ID`（service `did_core_id`）找到 §4b 接受的 active install 与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`；接收方从该 DID URL 取得 bare controller `full_id`，用已登记 adapter 验证并要求 `project(full_id) == registration.service_id == Source-Service-ID`，不得把 full DID 与 core header 直接比较，并逐次验签。缺签名、签名无效、投影不一致、`webhook_auth.key_ref` 未被该 Applet service 当前状态授权或无 active install 时 MUST fail closed。
+- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-ID`（service `did_core_id`）找到 §4b 接受的 active install 与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`；接收方从该 DID URL 取得 bare controller `did`，用已登记 adapter 验证并要求 `project(did) == registration.service_id == Source-Service-ID`，不得把 DID 与 core header 直接比较，并逐次验签。缺签名、签名无效、投影不一致、`webhook_auth.key_ref` 未被该 Applet service 当前状态授权或无 active install 时 MUST fail closed。
 
 **覆盖 header 集（MUST，与 [`../sync/federation.md` §3.2](../sync/federation.md) service-to-service 签名对称）**：签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header：
 
@@ -822,7 +822,7 @@ Idempotency-Key: <opaque-string>
 规则：
 
 - 调用方 MUST 使用 active Applet registration service DID 的 RFC 9421 `service_signature`；签名逐字覆盖 method、target URI、authority、Content-Digest、Source/Destination-Service-ID 与 Idempotency-Key，并使用 registration epoch 内的 current verification method。HTTP 来源签名不替代四条 Event 各自的 proof。服务端 MUST 校验 active exact install、caller、registration、grant、Realm 与 `external_ref={protocol,instance_id,external_id}` 唯一tuple。`actor_principal_server_id` MUST 逐字等于本次接收/持久化操作的 Principal Server；v1 不支持伪装 remote hosting 的单阶段写入。
-- provision payload role MUST 为 `ghost`，authority pair 未被使用，`initial_resolution.full_id` 的 adapter projection MUST 等于 `ghost_actor_id`，且该 full id（不是 core id）命中 actor namespace。Applet-managed principal 是长期可轮换的高风险 authority；v1 的 `method_history_evidence` MUST 为完整 `webvh_log`，服务端 MUST 独立验证 inception/current hash chain、SCID、controller proof、适用 witness threshold、freshness 与本地 trust policy。did:web snapshot 和 did:key expansion 均不得用于该字段；service attestation 不能代替 WebVH evidence。
+- provision payload role MUST 为 `ghost`，authority pair 未被使用，`initial_resolution.did` 的 adapter projection MUST 等于 `ghost_actor_id`，且该 DID（不是 core id）命中 actor namespace。Applet-managed principal 是长期可轮换的高风险 authority；v1 的 `method_history_evidence` MUST 为完整 `webvh_log`，服务端 MUST 独立验证 inception/current hash chain、SCID、controller proof、适用 witness threshold、freshness 与本地 trust policy。did:web snapshot 和 did:key expansion 均不得用于该字段；service attestation 不能代替 WebVH evidence。
 - PCR genesis MUST 由 Ghost authority pair 建立 purpose=`applet_managed_control` 的新 Realm，critical ref 恰好指向同单元 provision Event，且 `initial_resolution`、Applet、grant、service 与 provision 逐字交叉绑定。durable Ghost record 保存 immutable provision/genesis anchors，不保存 current source ref。
 - **Caller-signed proof contract（normative）**：Principal Server MUST NOT 构造、重建或以自身 notary key 代签任一 Event / payload proof。四条 Event 均由请求携带并按各自 authority 验证；accountability/profile 的 issuer、subject、registration-epoch key、`[service_id]`、external ref 与 critical accountability ref 约束保持不变。
 - 创建单元四条 Event 的 `authorization_ref` MUST 逐字相同：provision 以它授权 `ak.applet.ghost.provision`；PCR genesis、accountability 与 Profile 只在这个 exact atomic aggregate 内以同一 ref 交叉绑定创建 authority/accountability 投影。该 ref MUST 指向 active exact install 为 `service_id` 签发、覆盖目标 Realm 的 `ak.applet.ghost.provision` grant；accountability grant 只记录责任关系，**不是**后续 Ghost Event 的授权。后续 Ghost 署名 Event 必须另按其具体 kind/resource 校验 Event 自带的 active capability grant（见 §8、§11）。

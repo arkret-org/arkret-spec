@@ -48,9 +48,9 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
 
 ## 3. 节点间认证
 
-### 3.1 基于 core/full DID 的服务器身份与路由
+### 3.1 基于 core/DID 的服务器身份与路由
 
-每个 Principal Server / Events API 节点 MUST 拥有一对由注册 method adapter 绑定的身份：业务合同和 `Source-Service-ID` / `Destination-Service-ID` 使用稳定 `did_core_id`；首次注册、control key 与 method history 验证使用完整 bare `full_id`。默认 method 为 `did:webvh`；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，并 MUST 声明无历史信任强度，见 [`../identity/identity-did.md` §3](../identity/identity-did.md)。首次注册 MUST 提交 `full_id`，注册方独立解析并验证其 DID Document，再确认 `project(full_id) == service_id`。
+每个 Principal Server / Events API 节点 MUST 拥有一对由注册 method adapter 绑定的身份：业务合同和 `Source-Service-ID` / `Destination-Service-ID` 使用稳定 `did_core_id`；首次注册、control key 与 method history 验证使用完整 bare `did`。默认 method 为 `did:webvh`；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，并 MUST 声明无历史信任强度，见 [`../identity/identity-did.md` §3](../identity/identity-did.md)。首次注册 MUST 提交 `did`，注册方独立解析并验证其 DID Document，再确认 `project(did) == service_id`。
 
 DID Document 仍负责 control key / delegation 证明，但不再充当从 `service_id` 到 HTTP URL 的通用首跳。高频路由使用由 service control identity 签名、可独立验证的 current `ServiceResolutionRecord`：
 
@@ -59,7 +59,7 @@ DID Document 仍负责 control key / delegation 证明，但不再充当从 `ser
   "record": {
     "service_id": "ak:did_core:webvh:zCXaWSDv1afiBoxDX5sVBU5an",
     "service_kind": "principal_server",
-    "full_id": "did:webvh:zCXaWSDv1afiBoxDX5sVBU5an:server.acme.example.com",
+    "did": "did:webvh:zCXaWSDv1afiBoxDX5sVBU5an:server.acme.example.com",
     "method_history_head": "QmHistoryHead...",
     "version_id": "1-QmHistoryHead...",
     "resolution_event_ref": "did:webvh-entry:1-QmHistoryHead...",
@@ -80,7 +80,7 @@ DID Document 仍负责 control key / delegation 证明，但不再充当从 `ser
 }
 ```
 
-完整 record 字段和摘要规则见 [`service-surface.md` §3](./service-surface.md)。发送方从已授权的 member/service binding 取得 inline record 或 current-record URL，独立验证 `full_id`、method history、record proof、freshness 与 core 投影后才使用 `base_url`；随后从该 URL 调用 `/_arkret/describe`，并校验稳定 route-binding projection 的 `describe_digest`。不得只凭域名、URL 或 describe 自声明接受请求。
+完整 record 字段和摘要规则见 [`service-surface.md` §3](./service-surface.md)。发送方从已授权的 member/service binding 取得 inline record 或 current-record URL，独立验证 `did`、method history、record proof、freshness 与 core 投影后才使用 `base_url`；随后从该 URL 调用 `/_arkret/describe`，并校验稳定 route-binding projection 的 `describe_digest`。不得只凭域名、URL 或 describe 自声明接受请求。
 
 ### 3.2 请求签名
 
@@ -140,7 +140,7 @@ Arkret 不要求全局信任列表。每个节点维护自己的**联邦许可�
 
 - `deny` MUST 先于 `allow` 评估；被 deny 命中的 peer 即使同时命中 allow 也必须拒绝。
 - `domain` 规则只匹配规范化 DNS A-label 的完整 label 边界；`*.example.com` 可以匹配 `a.example.com`，不得匹配 `example.com` 或 `badexample.com`。实现 MUST NOT 只做字符串后缀匹配。
-- service `did_core_id` 规则优先于 domain 规则；当 current `ServiceResolutionRecord.base_url` host 与 `full_id` method domain 不一致时，接收方 MUST 同时校验 record proof、endpoint digest 和 domain/trust-domain policy。
+- service `did_core_id` 规则优先于 domain 规则；当 current `ServiceResolutionRecord.base_url` host 与 `did` method domain 不一致时，接收方 MUST 同时校验 record proof、endpoint digest 和 domain/trust-domain policy。
 - 入站被本地 peer policy 拒绝的 service-to-service 请求 MUST 先验证 HTTP Message Signature 能解析到 `Source-Service-ID`、`verification_method` 与 `trust_domain`，再 fail closed；验证失败按认证失败处理，验证成功但命中 peer policy 拒绝时 SHOULD 返回 `policy_denied` 或 `capability_denied`，并避免泄露 Realm 是否存在。
 - 出站被本地 peer policy 拒绝的 peer MUST 从 fanout、frontier probe、backfill、push、to-device、key-package 和 media/snapshot fetch 目标集中移除。该状态是 policy-suppressed，不是临时网络失败；发送方不得无限重试，直到 policy version 改变或 operator 解除规则。
 - 若 operator 执行整机级 defederation，入站和出站规则 MUST 同时生效：既拒收该 peer 的联邦写入 / backfill / probe，也不得向该 peer 投递新事件、推送或补发历史。
@@ -587,16 +587,16 @@ Realm 不声明独立 Principal Server sync surface、mirror 或 endpoint 列表
 
 ### 6.2 Actor Event Source 与 member route 发现
 
-Profile 的 current principal resolution projection 只公开 `did_core_id -> full_id/method head`，它不是 server URL。非 Realm actor event source 若存在，MUST 由其公开 Profile 或选择性 resolution evidence 携带的、独立授权的 service binding 给出；Realm-scoped 投递则只认 member delivery binding。两者用途严格分开：
+Profile 的 current principal resolution projection 只公开 `did_core_id -> did/method head`，它不是 server URL。非 Realm actor event source 若存在，MUST 由其公开 Profile 或选择性 resolution evidence 携带的、独立授权的 service binding 给出；Realm-scoped 投递则只认 member delivery binding。两者用途严格分开：
 
 | 用途 | 解析路径 |
 | --- | --- |
 | 拉取 actor 的 per-actor event chain（非 Realm 上下文） | `Profile / identity evidence -> authorized service binding -> ServiceResolutionRecord -> base_url` |
 | Bootstrap 一个 actor 刚发现时的服务发现 hint | 同上；hint 不授权，必须独立验证 binding 与 record |
 | join 时物化进 `delivery_binding` 的来源 | `join candidate / invite evidence -> signed service resolution carrier`；join 之后仍走 member binding |
-| 已加入 Realm 的成员的 events / account aggregate / to_device / push / keypackages 投递 | **MUST** 走 [`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md) 的 member binding 路径；**MUST NOT** 从 actor `full_id` 猜测或回退 URL |
+| 已加入 Realm 的成员的 events / account aggregate / to_device / push / keypackages 投递 | **MUST** 走 [`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md) 的 member binding 路径；**MUST NOT** 从 actor `did` 猜测或回退 URL |
 
-任何把 DID Document service entry 或 `full_id` method domain 当作 "Realm 投递 fallback" 的实现都违反 §4.1。一旦 binding 被 join Control Move sealed 并写入 control cell，后续投递只使用该 binding 中的 service `did_core_id` 与 resolution carrier；同-core record refresh 不需要 rebind，core 变更则必须显式 rebind。
+任何把 DID Document service entry 或 `did` method domain 当作 "Realm 投递 fallback" 的实现都违反 §4.1。一旦 binding 被 join Control Move sealed 并写入 control cell，后续投递只使用该 binding 中的 service `did_core_id` 与 resolution carrier；同-core record refresh 不需要 rebind，core 变更则必须显式 rebind。
 
 ### 6.3 域名级 bootstrap 与 current record 缓存
 
@@ -606,7 +606,7 @@ Profile 的 current principal resolution projection 只公开 `did_core_id -> fu
 GET https://<domain>/.well-known/arkret/server
 ```
 
-该响应只用于找到候选 `ServiceResolutionRecord` 或 current-record URL，不直接授权联邦请求。接收方仍 MUST 独立校验 record 的 `full_id` method history、`project(full_id) == service_id`、record proof/freshness、describe digest、TLS 名称、HTTP Message Signature、Realm policy / service delegation 和 `destination` 绑定一致。
+该响应只用于找到候选 `ServiceResolutionRecord` 或 current-record URL，不直接授权联邦请求。接收方仍 MUST 独立校验 record 的 `did` method history、`project(did) == service_id`、record proof/freshness、describe digest、TLS 名称、HTTP Message Signature、Realm policy / service delegation 和 `destination` 绑定一致。
 
 缓存规则：
 
@@ -616,7 +616,7 @@ GET https://<domain>/.well-known/arkret/server
 - 失败缓存必须短 TTL 或指数退避，避免一次临时故障长期破坏跨域同步。
 - service delegation 被撤销、method key/history 更新、record proof/key miss、binding rebind 或 Realm policy 变更时，本地缓存必须按版本 / digest 失效并重新取得 current record。
 
-每份正缓存必须保留 `full_id`、`method_history_head`、`verified_at`、`refresh_after`、target-signed record `expires_at` 与本地 `cache_expires_at`；`cache_expires_at` MUST `<= expires_at`，任一到期都使 cache miss。只保存本地 TTL、把 signed expiry 覆盖为本地值或因本地续期延长 record 都不合规。
+每份正缓存必须保留 `did`、`method_history_head`、`verified_at`、`refresh_after`、target-signed record `expires_at` 与本地 `cache_expires_at`；`cache_expires_at` MUST `<= expires_at`，任一到期都使 cache miss。只保存本地 TTL、把 signed expiry 覆盖为本地值或因本地续期延长 record 都不合规。
 
 上述可丢 TTL cache 不得兼任 anti-rollback 状态。每个实际投递或联邦关系中的 remote service 都必须按 [`service-surface.md` §2.6](./service-surface.md) durable 保存 last-seen record sequence/digest；重启后收到旧但尚未过期的 record 时仍必须拒绝。
 

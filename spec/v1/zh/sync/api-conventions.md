@@ -658,7 +658,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 服务 owner 签名的 current `ServiceResolutionRecord` 是 service `did_core_id` 到候选 `base_url` 的首跳材料；它仍不是业务授权根。域名级 bootstrap MAY 通过 `/.well-known/arkret/server` 或等价 signed metadata 暴露 current-record URL，但接收方仍 MUST 校验：
 
 - HTTPS/TLS 名称与返回的 endpoint 一致；
-- record `full_id` 的 DID method history/control proof、`project(full_id)==service_id`、record proof/freshness、describe 第二跳和 HTTP Message Signature 绑定一致；
+- record `did` 的 DID method history/control proof、`project(did)==service_id`、record proof/freshness、describe 第二跳和 HTTP Message Signature 绑定一致；
 - Realm policy 或 actor / organization service delegation 允许该服务角色；
 - record/describe digest 与 sequence 未被本地策略标记为撤销、fork 或过期。
 

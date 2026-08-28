@@ -78,11 +78,11 @@
               "witnesses": [
                 {
                   "witness_did": "did:web:witness-a.example",
-                  "controlling_organization": "did:web:witness-org-a.example"
+                  "controlling_organization_did": "did:web:witness-org-a.example"
                 },
                 {
                   "witness_did": "did:web:witness-b.example",
-                  "controlling_organization": "did:web:witness-org-b.example"
+                  "controlling_organization_did": "did:web:witness-org-b.example"
                 }
               ],
               "witness_proofs_digest": "sha256:16464f3b1cc438f0a3640cf498358f787adebc965cabfaab512c3b01e5d6448d"
@@ -91,12 +91,12 @@
         }
       },
       "expected": {
-        "evidence_digest": "sha256:5cc077563fdc83d3331ad2ecdc8f0d619937745c1c398e586818041ddebc480e"
+        "evidence_digest": "sha256:5044941d3b86c3127d187265e824c9514013358d36113073a0deec32b9722423"
       },
       "assertions": [
         "witnesses MUST be sorted by witness_did in UTF-8 byte order and duplicates rejected; resolver response order is not a canonical order",
         "changing any witness row or the witness_proofs_digest MUST change evidence_digest",
-        "the extracted evidence_dependencies record for this receipt is {witness_dids:[did:web:witness-a.example, did:web:witness-b.example], witness_controlling_organizations:[did:web:witness-org-a.example, did:web:witness-org-b.example], history_heads:[1-QmZfixtureEntryHash11111111111111111111111]}"
+        "the extracted evidence_dependencies record for this receipt is {witness_dids:[did:web:witness-a.example, did:web:witness-b.example], witness_controlling_organization_dids:[did:web:witness-org-a.example, did:web:witness-org-b.example], history_heads:[1-QmZfixtureEntryHash11111111111111111111111]}"
       ]
     },
     {

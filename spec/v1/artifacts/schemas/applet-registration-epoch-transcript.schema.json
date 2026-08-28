@@ -46,8 +46,8 @@
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "did_full_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+    "did": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
     },
     "did_url": {
       "$ref": "./account-operations.schema.json#/$defs/did_url"
@@ -133,13 +133,13 @@
     "service_did_document": {
       "type": "object",
       "required": [
-        "full_id",
+        "did",
         "document_digest",
         "method_version"
       ],
       "properties": {
-        "full_id": {
-          "$ref": "#/$defs/did_full_id",
+        "did": {
+          "$ref": "#/$defs/did",
           "description": "Complete service DID whose adapter projection MUST equal derived_registration.service_id."
         },
         "document_digest": {

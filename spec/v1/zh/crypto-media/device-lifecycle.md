@@ -339,7 +339,7 @@ genesis / recovery 时候选设备自己 author 整个封闭 unit，因此签名
 
 因此跨 request（`device_pairing_request_id` / `transaction_id` + nonce）、跨 Account Authority（`gate_audience`）、跨过期窗口（`expires_at`）与换 key（`new_device_pubkey_digest`）的重放全部被阻断，强度与 §2.1.2 的 challenge proof 完全相同；一个为别的配对铸出的 attestation 在本次配对里永远验不过。
 
-从该对象移出的 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` / `recovery_session_id` 改由**批准设备的 Event proof** 承担：`accepted_device` authorize 的 `proof.verification_method` MUST 使用该授权 Event accepted-at 的 `full_id` 与 method evidence，而不是 current DID resolution；verifier MUST 取其 bare `full_id`，经已登记 method adapter 验证并要求 `project(full_id) == principal_id`，同时要求 fragment 逐字等于 `signing_device_id`，且 `signing_device_id` 必须是 payload.`authorized_by`（§5.3）。实现不得把 `principal_id` core 与 device fragment 直接拼成 DID URL。该 proof 覆盖完整 canonical Event bytes；两个签名合起来覆盖的字段集合不小于 `registration_anchor` / `pcr_recovery` 单签名覆盖的集合。目标设备对 `principal_id` 的确认由 §5.4.1 的装配前强制校验承担。
+从该对象移出的 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` / `recovery_session_id` 改由**批准设备的 Event proof** 承担：`accepted_device` authorize 的 `proof.verification_method` MUST 使用该授权 Event accepted-at 的 `did` 与 method evidence，而不是 current DID resolution；verifier MUST 取其 bare `did`，经已登记 method adapter 验证并要求 `project(did) == principal_id`，同时要求 fragment 逐字等于 `signing_device_id`，且 `signing_device_id` 必须是 payload.`authorized_by`（§5.3）。实现不得把 `principal_id` core 与 device fragment 直接拼成 DID URL。该 proof 覆盖完整 canonical Event bytes；两个签名合起来覆盖的字段集合不小于 `registration_anchor` / `pcr_recovery` 单签名覆盖的集合。目标设备对 `principal_id` 的确认由 §5.4.1 的装配前强制校验承担。
 
 **wire 形态与载体（normative）**：该 attestation 的 wire 形态是 [`device-pairing.schema.json`](../../artifacts/schemas/device-pairing.schema.json) 的 `device_pairing_target_attestation`（上述七个成员加 `device_signature`）。它与 `challenge_proof` 一样**只走带外通道**——路径 A 的二维码 fragment、路径 B 的 to-device 消息——并且 **MUST NOT 经免认证 stage / resolve 面回传给 server**：暂存面是匿名的，让它持有该 attestation 既无必要也扩大攻击面（§2.1.1 第 2 条的既有隐私边界）。
 
@@ -349,7 +349,7 @@ genesis / recovery 时候选设备自己 author 整个封闭 unit，因此签名
 
 ### 5.3 Event proof key resolution（normative）
 
-所有普通设备 Event 的 `proof.verification_method` MUST 是基于该 principal 已验证、且满足操作 freshness / event-time 要求的 `full_id` 的 DID URL。receiver MUST 取 DID URL 的 bare `full_id`，用已登记 method adapter 验证并要求 `project(full_id) == principal_id`（稳定 `did_core_id`），再要求 fragment 逐字等于完整 `signing_device_id`（`ak:device:<uuid>`）；不得把 fragment 拼到 `principal_id`，也不得把任何 core-plus-fragment 字符串当成 verification method。设备没有独立 DID，因此不得使用 candidate `did:key` 作为该字段。对 `authorization_binding_kind="accepted_device"` 的 authorize，`signing_device_id` 必须是 payload.`authorized_by`，不能是待授权 target device；因此 payload.`authorized_by` 在该分支下必然是设备 id，不是任何 principal DID。
+所有普通设备 Event 的 `proof.verification_method` MUST 是基于该 principal 已验证、且满足操作 freshness / event-time 要求的 `did` 的 DID URL。receiver MUST 取 DID URL 的 bare `did`，用已登记 method adapter 验证并要求 `project(did) == principal_id`（稳定 `did_core_id`），再要求 fragment 逐字等于完整 `signing_device_id`（`ak:device:<uuid>`）；不得把 fragment 拼到 `principal_id`，也不得把任何 core-plus-fragment 字符串当成 verification method。设备没有独立 DID，因此不得使用 candidate `did:key` 作为该字段。对 `authorization_binding_kind="accepted_device"` 的 authorize，`signing_device_id` 必须是 payload.`authorized_by`，不能是待授权 target device；因此 payload.`authorized_by` 在该分支下必然是设备 id，不是任何 principal DID。
 
 该 Event proof 同时是 `accepted_device` 分支下 `principal_id`、`authorized_by`、`not_before`、`expires_at`、`scopes` 的**唯一签名承载**（§5.2.2）：它覆盖完整 canonical Event bytes，而签名方正是选定这些值的批准设备。验签方 MUST 用它校验这些字段，MUST NOT 期望目标设备的 `device_signature` 覆盖它们。
 
@@ -370,7 +370,7 @@ genesis / recovery 时候选设备自己 author 整个封闭 unit，因此签名
 1. Event `payload.device_signature` 与自己产出的 attestation `device_signature` **逐字节相同**；
 2. `payload.device_public_key`、`payload.hpke_key`、`payload.algorithms` 与自己 attestation 中的对应值**逐字一致**（含 `algorithms` 的排序与去重结果）；
 3. `payload.device_id` 等于自己的 `device_id`；
-4. `payload.authorization_binding_kind` 为 `accepted_device`；`proof.verification_method` MUST 是该 principal 已验证 `full_id` 下的 DID URL，取其 bare `full_id` 经已登记 method adapter 验证后 MUST 满足 `project(full_id) == payload.principal_id`（稳定 `did_core_id`），且 fragment 逐字等于 `payload.authorized_by`；不得从 principal core 与 device fragment 拼接 verification method；
+4. `payload.authorization_binding_kind` 为 `accepted_device`；`proof.verification_method` MUST 是该 principal 已验证 `did` 下的 DID URL，取其 bare `did` 经已登记 method adapter 验证后 MUST 满足 `project(did) == payload.principal_id`（稳定 `did_core_id`），且 fragment 逐字等于 `payload.authorized_by`；不得从 principal core 与 device fragment 拼接 verification method；
 5. `payload.principal_id` 与用户预期的账号一致——该值 MUST 在装配前显式呈现给用户确认，不得默默采纳服务端给出的任何 principal。
 
 任一项不符，目标设备 MUST fail closed：MUST NOT 使用该身份、MUST NOT 安装或请求该 principal 的任何密钥材料、MUST NOT 发布 KeyPackage，并 MUST 向用户告警（提示该配对已被篡改或指向了非预期账号）。这条校验同样阻断“批准方把 attestation 用到另一个 principal 下”的场景：攻击者可以铸出一条对自己 principal 有效的 Event，但目标设备在装配前就会因第 5 项拒绝。
@@ -719,7 +719,7 @@ receiver MUST 验证：
 
 任一条不成立时 MUST NOT 把该 row 用于 E2EE / Signal 验签或 KeyPackage claim。反枚举失败形态不变：requester 与目标 principal 之间没有当前有效授权关系时，MUST 省略该 `(principal_id, device_id)` 记录或写入非枚举性 `failures`；revoked、fenced 或 conflicted 的设备同样按此处理，MUST NOT 降级成一条缺字段的 row。
 
-普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `full_id` 的 DID URL；receiver 取 bare `full_id` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
+普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `did` 的 DID URL；receiver 取 bare `did` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
 
 #### 8.3 客户端独立验证（normative）
 

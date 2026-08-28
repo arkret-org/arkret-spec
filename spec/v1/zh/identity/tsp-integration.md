@@ -55,6 +55,20 @@ TSP 的 VID 可映射到 Arkret：
 | TSP Intermediary | Principal Server sync surface、privacy router、store-and-forward 服务 |
 | TSP Message | 承载 Arkret operation 或控制 payload 的已签名 / 加密 transport envelope |
 
+Arkret wire 中的 `TspVid` 不是 `Did` 的 alias，也不是让实现自行解析前缀的裸字符串。它使用
+[`common-ids.schema.json#/$defs/tsp_vid`](../../artifacts/schemas/common-ids.schema.json) 定义的 closed
+`{kind,value}` union：
+
+| `kind` | `value` terminal |
+| --- | --- |
+| `did` | canonical `Did`，`^did:[a-z0-9]+:[^\s/?#]+$` |
+| `keri_aid` | qb64 `^[A-Za-z0-9_-]{44,128}$` |
+| `urn` | `^urn:[a-z0-9][a-z0-9-]{0,31}:[^\s?#]+$`，不含 r/q/f components |
+| `x509` | `^urn:x509:sha256:[0-9a-f]{64}$` |
+
+每一分支都只允许 `kind` 与 `value` 两个 required member；未知 kind、额外字段与宽松字符串必须拒绝。
+`did:x509` 属于 `kind=did`；`kind=x509` 专指证书 SHA-256 fingerprint URN。
+
 Arkret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TSP。
 
 ## 4. TSP Binding Discovery

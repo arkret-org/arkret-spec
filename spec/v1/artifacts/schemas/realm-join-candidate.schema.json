@@ -30,7 +30,7 @@
     },
     "service_resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-      "description": "First-hop signed ServiceResolutionRecord material for service_id, inline or through current_record_url. Callers MUST validate the record proof, method-native history, project(full_id)=service_id, freshness, canonical base_url and route-binding projection before transport, then use GET /_arkret/describe only as second-hop capability/metadata confirmation."
+      "description": "First-hop signed ServiceResolutionRecord material for service_id, inline or through current_record_url. Callers MUST validate the record proof, method-native history, project(did)=service_id, freshness, canonical base_url and route-binding projection before transport, then use GET /_arkret/describe only as second-hop capability/metadata confirmation."
     },
     "service_kind": {
       "type": "string",

@@ -40,7 +40,7 @@
     },
     "initial_resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment",
-      "description": "Root-committed initial full_id and DID method history position for a Principal Control Realm or managed Agent control Realm. The admitting service MUST verify that project(full_id) equals the genesis actor_id before accepting the closed genesis unit."
+      "description": "Root-committed initial did and DID method history position for a Principal Control Realm or managed Agent control Realm. The admitting service MUST verify that project(did) equals the genesis actor_id before accepting the closed genesis unit."
     },
     "trust_domain": {
       "$ref": "./realm.schema.json#/$defs/trust_domain"
@@ -134,8 +134,8 @@
         "properties": {
           "initial_resolution": {
             "properties": {
-              "full_id": {
-                "$ref": "./common-ids.schema.json#/$defs/human_principal_full_id"
+              "did": {
+                "$ref": "./common-ids.schema.json#/$defs/human_principal_did"
               }
             }
           }
@@ -158,8 +158,8 @@
         "properties": {
           "initial_resolution": {
             "properties": {
-              "full_id": {
-                "$ref": "./common-ids.schema.json#/$defs/managed_agent_full_id"
+              "did": {
+                "$ref": "./common-ids.schema.json#/$defs/managed_agent_did"
               }
             }
           }
@@ -182,8 +182,8 @@
         "properties": {
           "initial_resolution": {
             "properties": {
-              "full_id": {
-                "$ref": "./common-ids.schema.json#/$defs/applet_managed_actor_full_id"
+              "did": {
+                "$ref": "./common-ids.schema.json#/$defs/applet_managed_actor_did"
               }
             }
           }

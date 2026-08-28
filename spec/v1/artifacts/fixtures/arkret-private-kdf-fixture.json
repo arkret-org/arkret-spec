@@ -63,7 +63,7 @@
         "content_expand_with_label_info_hex": "0010154d4c5320312e3020616b2e636f6e74656e742d76314040616b3a6469645f636f72653a6b65793a7a364d6b764d5733746a75765736507159695838644c524e775a57794768786533626952446a41345a5069426146614a",
         "content_key_hex": "b24575e661dad2670ae25d57a826c55c"
       },
-      "note": "The context is the UTF-8 bytes of canonical Event.actor_id = ak:did_core:key:<canonical-multibase-id>. The exact active LeafNode BasicCredential identity MUST be byte-identical. The producer proof verification_method is a full did:key DID URL whose adapter projection equals this actor id; full DID URL bytes never enter this KDF context."
+      "note": "The context is the UTF-8 bytes of canonical Event.actor_id = ak:did_core:key:<canonical-multibase-id>. The exact active LeafNode BasicCredential identity MUST be byte-identical. The producer proof verification_method is a did:key DID URL whose adapter projection equals this actor id; DID URL bytes never enter this KDF context."
     },
     {
       "name": "mls_exporter_aead_seal_open_transcript",

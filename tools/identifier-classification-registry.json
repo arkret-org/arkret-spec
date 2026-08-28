@@ -16,7 +16,7 @@
     "non_identifier",
     "opaque_correlation",
     "registry_catalog_symbol",
-    "responsibility_did",
+    "responsibility_identity_material",
     "transport_idempotency_key",
     "typed_object_id",
     "unregistered_object_identifier"
@@ -26,9 +26,9 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "registry_catalog_symbol": 19,
-    "responsibility_did": 535,
-    "typed_object_id": 896
+    "responsibility_identity_material": 507,
+    "typed_object_id": 896,
+    "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -69,7 +69,7 @@
     {
       "name": "agent_id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "responsibility_did",
+      "category": "responsibility_identity_material",
       "occurrences": 1,
       "example_path": "agent-operations.schema.json#/$defs/agent_participation_outcome/properties/agent_id",
       "reason": "Carries a responsibility-subject DID core but the schema still declares a loose terminal type; convergence is to pin did_core_id."
@@ -621,7 +621,7 @@
     {
       "name": "organization_id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "responsibility_did",
+      "category": "responsibility_identity_material",
       "occurrences": 1,
       "example_path": "event-payload.schema.json#/$defs/organization_moderation_policy_state_payload/properties/organization_id",
       "reason": "Carries a responsibility-subject DID core but the schema still declares a loose terminal type; convergence is to pin did_core_id."

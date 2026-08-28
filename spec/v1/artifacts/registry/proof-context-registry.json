@@ -81,7 +81,7 @@
         "request_canonical_digest",
         "account_subject",
         "principal_id",
-        "full_id",
+        "did",
         "did_version_id",
         "log_head_digest",
         "control_key_digest",
@@ -348,7 +348,7 @@
       "binding_fields": [
         "payload_digest",
         "issuer_service_id",
-        "did",
+        "subject_did",
         "version_id",
         "witness_did",
         "verification_method",
@@ -529,7 +529,7 @@
       "binding_fields": [
         "payload_digest",
         "registry_service_id",
-        "did",
+        "subject_did",
         "verification_method",
         "created_at",
         "domain?",
@@ -908,7 +908,7 @@
       "object_family": "registration_did_evidence_control",
       "binding_fields": [
         "principal_id",
-        "full_id",
+        "did",
         "adapter_version",
         "method_history_head",
         "version_id",
@@ -961,7 +961,7 @@
         "payload_digest",
         "service_id",
         "service_kind",
-        "full_id",
+        "did",
         "method_history_head",
         "version_id",
         "resolution_event_ref",
@@ -1519,7 +1519,7 @@
       "primitive": "detached_signature",
       "binding_fields": [
         "actor_id",
-        "full_id",
+        "did",
         "evidence_digest",
         "audience"
       ]

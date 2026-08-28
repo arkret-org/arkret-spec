@@ -624,22 +624,22 @@
         "predicates": [],
         "functions": [
           "schemas.py:check_stable_identity_fields_use_core_id",
-          "schemas.py:check_did_full_id_allowlist"
+          "schemas.py:check_did_boundary_allowlist"
         ],
         "registries": [
-          "tools/did-full-id-allowlist.json",
+          "tools/did-boundary-allowlist.json",
           "spec/v1/artifacts/registry/id-kind-registry.json"
         ]
       },
       "entry_points": [
         "stable_identity_core_ids",
-        "did_full_id_allowlist"
+        "did_boundary_allowlist"
       ],
       "tests": [
         "tools/test_lint_artifacts_runtime.py"
       ],
       "coverage_level": "partial",
-      "residual_gap": "Wire schemas are closed against the registered forms and every full-DID field is allowlisted per path. The storage and configuration boundaries the clause also governs (database columns, environment variables) are outside this repository and are not checked here."
+      "residual_gap": "Wire schemas are closed against the registered forms and every DID field is allowlisted per path. The storage and configuration boundaries the clause also governs (database columns, environment variables) are outside this repository and are not checked here."
     },
     {
       "rule_id": "NC-IDENTIFIER-001",

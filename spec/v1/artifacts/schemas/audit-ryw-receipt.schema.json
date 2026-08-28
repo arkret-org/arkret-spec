@@ -54,7 +54,7 @@
     },
     "realm_operator_organization": {
       "$ref": "#/$defs/did_core_id",
-      "description": "DID of the Realm operator's ultimate controlling organization at this receipt frontier. Verifiers MUST derive and verify it from the Realm service/operator DID control chain; it is not a self-attested label. For federation_witness_attested, every witness controlling_organization MUST be distinct from this value and from any organization under the same ultimate controller."
+      "description": "Stable ID of the Realm operator's ultimate controlling organization at this receipt frontier. Verifiers MUST derive and verify it from the Realm service/operator DID control chain; it is not a self-attested label. For federation_witness_attested, every witness controlling_organization_id MUST be distinct from this value and from any organization under the same ultimate controller."
     },
     "audit_actor_id": {
       "$ref": "#/$defs/did_core_id"
@@ -112,22 +112,22 @@
           "items": {
             "type": "object",
             "required": [
-              "issuer",
+              "witness_id",
               "verification_method",
-              "controlling_organization"
+              "controlling_organization_id"
             ],
             "properties": {
-              "issuer": {
+              "witness_id": {
                 "$ref": "#/$defs/did_core_id",
-                "description": "Service DID of the witness that produced this receipt."
+                "description": "Stable service ID of the witness that produced this receipt."
               },
               "verification_method": {
                 "$ref": "./common-ids.schema.json#/$defs/did_url",
                 "description": "DID URL of the key the witness used to sign (e.g. did:web:...#key-1). Federation-grade verification requires this value to be distinct from every other witness verification_method."
               },
-              "controlling_organization": {
+              "controlling_organization_id": {
                 "$ref": "#/$defs/did_core_id",
-                "description": "DID of the organization that controls the witness. This value is not self-attested: verifiers MUST resolve issuer DID Document and confirm its controller / service ownership chain matches controlling_organization. Federation-grade verification requires all witnesses' controlling_organization values to be pairwise distinct and not equal to the audit actor's controlling organization or realm_operator_organization, including common ultimate controllers."
+                "description": "Stable ID of the organization that controls the witness. This value is not self-attested: verifiers MUST resolve the DID projected from witness_id and confirm its controller / service ownership chain projects to controlling_organization_id. Federation-grade verification requires all witnesses' controlling_organization_id values to be pairwise distinct and not equal to the audit actor's controlling organization or realm_operator_organization, including common ultimate controllers."
               },
               "attested_at": {
                 "$ref": "#/$defs/timestamp",

@@ -16,7 +16,7 @@
       "properties": {
         "witness_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Stable did_core_id of the witness. The proof verification_method stays a full DID URL whose bare controller full_id is validated and projected to this value by the registered method adapter; direct full-DID/core-id string comparison is forbidden. Quorum counting is per witness_id, so several keys of one witness count once."
+          "description": "Stable did_core_id of the witness. The proof verification_method stays a DID URL whose bare controller did is validated and projected to this value by the registered method adapter; direct DID/core-id string comparison is forbidden. Quorum counting is per witness_id, so several keys of one witness count once."
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
@@ -247,7 +247,7 @@
     },
     "created_by": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Stable did_core_id of the snapshot issuer (server / Realm notary / federation witness). The signature transcript binds this business identity; its full DID URL verification_method is independently validated and projected to this value by the registered method adapter."
+      "description": "Stable did_core_id of the snapshot issuer (server / Realm notary / federation witness). The signature transcript binds this business identity; its DID URL verification_method is independently validated and projected to this value by the registered method adapter."
     },
     "created_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",

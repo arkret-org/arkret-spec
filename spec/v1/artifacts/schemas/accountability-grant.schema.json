@@ -19,7 +19,7 @@
     },
     "issuer": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Stable principal did_core_id accepting accountability for subject. Verifiers MUST take the proof verification-method DID URL's bare controller full_id, validate it with the registered method adapter, and require project(full_id) to equal issuer; direct full-DID/core-id string comparison is forbidden."
+      "description": "Stable principal did_core_id accepting accountability for subject. Verifiers MUST take the proof verification-method DID URL's bare controller did, validate it with the registered method adapter, and require project(did) to equal issuer; direct DID/core-id string comparison is forbidden."
     },
     "subject": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",

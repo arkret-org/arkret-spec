@@ -130,7 +130,7 @@
           }
         ]
       },
-      "description": "Directory requester proof leaf. Reuses the generic non-Event detached-JWS wire shape while closing the audience, domain, and purpose choices for the directory read surface: audience MUST be the target Directory service_id returned by ak.find.directory.read.describe.v1, in single-valued did_core_id form (the full did:<method>:<msi> form and array audiences are invalid for this object family), and domain / proof_purpose MUST be absent. Canonical binding, signer authority, and freshness rules are defined in discovery-directory.md section 9.0.1.",
+      "description": "Directory requester proof leaf. Reuses the generic non-Event detached-JWS wire shape while closing the audience, domain, and purpose choices for the directory read surface: audience MUST be the target Directory service_id returned by ak.find.directory.read.describe.v1, in single-valued did_core_id form (the did:<method>:<msi> form and array audiences are invalid for this object family), and domain / proof_purpose MUST be absent. Canonical binding, signer authority, and freshness rules are defined in discovery-directory.md section 9.0.1.",
       "$comment": "Every request family that carries requester proofs declares its own proofs array inline so that each object family owns a distinct detached-proof node with its own registered context (discovery-directory.md section 9.0.1); a single shared proofs alias would put unrelated operations under one domain separation. The audience narrowing lives on this shared leaf so that all five directory request families are gated by one mechanical constraint."
     },
     "directory_presented_claim": {

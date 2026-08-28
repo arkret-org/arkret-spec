@@ -327,7 +327,7 @@ managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/pr
 
 特殊 ID/ref 形式（与 [`id-kind-registry.json` `special_forms[]`](../../artifacts/registry/id-kind-registry.json) 一一对应）：
 
-- `ak:did_core:<method>:<core>` 是 DID method adapter 产出的稳定 `did_core_id`，不是 Arkret 私有 DID method，也不是可直接交给 DID resolver 的完整 DID。`<method>` 与 `<core>` 必须按 registry / adapter 校验；编码层不得截断、拆分后重新拼接或从中推导 endpoint。
+- `ak:did_core:<method>:<core>` 是 DID method adapter 产出的稳定 `did_core_id`，不是 Arkret 私有 DID method，也不是可直接交给 DID resolver 的DID。`<method>` 与 `<core>` 必须按 registry / adapter 校验；编码层不得截断、拆分后重新拼接或从中推导 endpoint。
 - `ak:cursor:<base64url>` 是 opaque token，不是 typed UUID object ID。
 - `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
 - `ak:seal:<digest-suite>:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。`<digest-suite>` 与 `ak:blob:<digest-suite>:<digest>` 取同一值空间：MUST 是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 active 行，且 MUST 等于该 Realm 声明的 `digest_algorithm`；Seal id 是 critical field，前缀不属于 active 行时 MUST 以 `unsupported_digest_algorithm` fail closed（[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）。
@@ -380,7 +380,7 @@ managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/pr
 
 ### 4.4 Field Naming: `_id` / `_ref` / `_did`（normative）
 
-Identifier 字段命名、`did_core_id` / `full_id` 边界与 DID URL adapter 规则的唯一规范来源是
+Identifier 字段命名、`did_core_id` / `did` 边界与 DID URL adapter 规则的唯一规范来源是
 [`common-fields.md` §2.1 / §4.1](../models/common-fields.md#21-identifier-字段命名约定normative)。
 本节不复述后缀分类表或 adapter 规则；字段后缀表达 wire value category，不表达授权、同步、retention 或 E2EE 级联语义。
 
@@ -944,7 +944,7 @@ rank_between(left, right):
 
 ### 9.5.2 标准复合 Subject
 
-`principal_id` MUST 是 §4 定义的稳定 `did_core_id`（`ak:did_core:<method>:<core>`），并以该完整、不透明字符串参与 composite subject；实现不得把对应 `full_id`、DID URL 或从 `did_core_id` 截断出的片段代入 subject。`device_id` MUST 是完整 `id:device` typed ID（`ak:device:<uuidv7>`）。
+`principal_id` MUST 是 §4 定义的稳定 `did_core_id`（`ak:did_core:<method>:<core>`），并以该完整、不透明字符串参与 composite subject；实现不得把对应 `did`、DID URL 或从 `did_core_id` 截断出的片段代入 subject。`device_id` MUST 是完整 `id:device` typed ID（`ak:device:<uuidv7>`）。
 
 `ak.component.calendar.rsvp.v1` 的三元组固定 arity 3；`envelope.actor_id` 是 accountable responder，delegated execution 下不得改用 `executed_by`。实例级 RSVP 的 `payload.occurrence` 是 [`calendar-event.md` §8](../models/calendar-event.md) 的 canonical string——all-day 为 `YYYY-MM-DD`，timed 为整秒 `YYYY-MM-DDTHH:mm:ss[Zone]`，其中 Zone 是已签名的 canonical IANA Zone name。v1 的 timed local anchor 与 occurrence key 都收窄到整秒，因此不存在两个不同 subsecond occurrence 折叠到同一 key 的情况；实现 MUST NOT 接受带小数秒、offset 或 `Z` 的 occurrence，也 MUST NOT 在 receiver 侧把非 canonical 值改写后再派生 subject——cell 地址来自**已签名的原值**，非 canonical 输入 MUST 以 `rsvp_occurrence_not_canonical` 拒绝。series 级 RSVP 的 digest preimage 固定保留 JSON null，例如 `["ak:strand:<44-char-suite-tagged-full-digest-token>",null,"did:..."]`。实现 MUST NOT 把 null 改写成字符串 `"null"`、空串或 `"series"` sentinel。payload 中即使出现同名 `actor_id` 也不得遮蔽 `envelope.actor_id`。`payload.entry` 是该 cell 的 lattice value（见 [`calendar-event.md` §8.3](../models/calendar-event.md)），不参与 subject 派生。
 

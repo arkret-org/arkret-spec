@@ -44,7 +44,7 @@ from .schemas import (
     check_device_reanchor_payload_receipt_binding,
     check_derived_signature_projection_closure,
     check_did_and_device_constraints,
-    check_did_full_id_allowlist,
+    check_did_boundary_allowlist,
     check_event_reference_inventory,
     check_event_id_digest_mirror_removals,
     check_event_schema_coverage,
@@ -354,7 +354,7 @@ def main(argv: list[str] | None = None) -> int:
             ("circle_lifecycle", lambda: check_circle_lifecycle_basis_vector(lint)),
             ("did_device", lambda: check_did_and_device_constraints(lint)),
             ("trust_domain_constraints", lambda: check_trust_domain_constraints(lint)),
-            ("did_full_id_allowlist", lambda: check_did_full_id_allowlist(lint)),
+            ("did_boundary_allowlist", lambda: check_did_boundary_allowlist(lint)),
             (
                 "stable_identity_core_ids",
                 lambda: check_stable_identity_fields_use_core_id(lint),

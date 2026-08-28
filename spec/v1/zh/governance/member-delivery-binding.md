@@ -18,7 +18,7 @@ see_also:
 
 ## 1. 成员投递绑定
 
-`ak.member.state{membership="join"}` 表达的是某个 principal `did_core_id` 在该 Realm 中成为成员；它**不等价于**"按该 principal 当前 `full_id` 的全局 home Principal Server 投递"。Realm-scoped events / account aggregate / to-device / push / key-package 的实际投递目标由该成员的 **effective delivery binding** 决定。本文是 v1 normative。
+`ak.member.state{membership="join"}` 表达的是某个 principal `did_core_id` 在该 Realm 中成为成员；它**不等价于**"按该 principal 当前 `did` 的全局 home Principal Server 投递"。Realm-scoped events / account aggregate / to-device / push / key-package 的实际投递目标由该成员的 **effective delivery binding** 决定。本文是 v1 normative。
 
 ## 2. 接受准则（normative）
 
@@ -28,7 +28,7 @@ see_also:
 2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `ak.component.realm.delivery_binding_policy.v1`（§4）的 `allowed_binding_sources` 集合内。
 3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`unroutable_membership_allowed=true`）。
 4. `delivery_binding.recipient_service_id` MUST 是稳定 service `did_core_id`。服务准入 MUST 满足：该 `did_core_id` 出现在 Realm policy 的 `allowed_recipient_services` 集合内，或该 policy 显式声明哨兵 `["*"]`（unrestricted），或该 `did_core_id` 被 `required_endorsers` 中至少一个治理 `did_core_id` 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。`required_endorsers` 非空时，该背书要求独立生效：即使命中 allowlist 或 `["*"]` 哨兵，`service_acceptance_ref` 仍 MUST 被其中至少一个治理主体背书。**`allowed_recipient_services` 为空集 `[]` 时 = 拒绝（fail-closed，见 §4 字段表）**：既未命中 allowlist、又未声明 `["*"]` 哨兵、又无 `required_endorsers` 背书时，reducer MUST 拒绝该 routable join（`delivery_binding_policy_mismatch`），不得把空集解释为"不限"放行。
-5. `delivery_binding.service_resolution` MUST 携带 inline `ServiceResolutionRecord`，或携带 `{current_record_url, pinned_record_digest?}`。`current_record_url` 指向 `ak.open.service.read.resolution.v1`（`GET /_arkret/open/services/{service_id}/resolution`）；可选 digest 只钉住首次看到的那一版完整 `{record,proof}`，后续新版本必须独立验签。物化前 MUST 验证 record 签名和 `issued_at <= refresh_after < expires_at`、method-native history、`record.service_id == recipient_service_id`、`project(record.full_id) == recipient_service_id`、`record.service_kind == recipient_service_kind`、canonical `base_url` endpoint 绑定与 route-binding digest。引用未取得、被 pinned 的初始版 digest 不匹配或记录已过期时不得将该 binding 物化为 routable。
+5. `delivery_binding.service_resolution` MUST 携带 inline `ServiceResolutionRecord`，或携带 `{current_record_url, pinned_record_digest?}`。`current_record_url` 指向 `ak.open.service.read.resolution.v1`（`GET /_arkret/open/services/{service_id}/resolution`）；可选 digest 只钉住首次看到的那一版完整 `{record,proof}`，后续新版本必须独立验签。物化前 MUST 验证 record 签名和 `issued_at <= refresh_after < expires_at`、method-native history、`record.service_id == recipient_service_id`、`project(record.did) == recipient_service_id`、`record.service_kind == recipient_service_kind`、canonical `base_url` endpoint 绑定与 route-binding digest。引用未取得、被 pinned 的初始版 digest 不匹配或记录已过期时不得将该 binding 物化为 routable。
 6. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
 7. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "keypackages"]`。
 
@@ -38,7 +38,7 @@ MUST 同时携带 `delivery_binding`；reducer 在同一 Control Move 内验证�
 原先的 `invite_delivery_target` 只可作为候选提示，不得自动充当 member binding 或绕过
 本节 evidence / policy 校验。
 
-接收方 MUST 先执行 [`event-payload.schema.json#/$defs/membership_payload`](../../artifacts/schemas/event-payload.schema.json) 与 `member_delivery_binding` schema 校验。`delivery_status` 非法、`delivery_status="routable"` 但缺少 `payload.delivery_binding`、routable binding 缺少 `service_resolution`、`delivery_binding` 字段结构或 conditional required 字段不满足 schema、`delivery_modes` 缺失或为空时，返回 `schema_violation`，reducer 不进入 policy validation。schema 合法后，reducer 校验上述准则失败时 MUST 拒绝该 Control Move，**不得**降级为部分接受：签名无效、subject / service `did_core_id` 不匹配、`full_id` projection 不匹配、resolution record 候选过期、issuer 未解析、`service_acceptance_ref` / `policy_event_ref` 引用的 evidence 不存在或语义无效时，返回 `delivery_binding_invalid`；Realm policy 对 `unroutable_membership_allowed`、`allowed_binding_sources`、`allowed_recipient_services`、`required_endorsers` 或来源优先级的校验失败时，返回 `delivery_binding_policy_mismatch`。
+接收方 MUST 先执行 [`event-payload.schema.json#/$defs/membership_payload`](../../artifacts/schemas/event-payload.schema.json) 与 `member_delivery_binding` schema 校验。`delivery_status` 非法、`delivery_status="routable"` 但缺少 `payload.delivery_binding`、routable binding 缺少 `service_resolution`、`delivery_binding` 字段结构或 conditional required 字段不满足 schema、`delivery_modes` 缺失或为空时，返回 `schema_violation`，reducer 不进入 policy validation。schema 合法后，reducer 校验上述准则失败时 MUST 拒绝该 Control Move，**不得**降级为部分接受：签名无效、subject / service `did_core_id` 不匹配、`did` projection 不匹配、resolution record 候选过期、issuer 未解析、`service_acceptance_ref` / `policy_event_ref` 引用的 evidence 不存在或语义无效时，返回 `delivery_binding_invalid`；Realm policy 对 `unroutable_membership_allowed`、`allowed_binding_sources`、`allowed_recipient_services`、`required_endorsers` 或来源优先级的校验失败时，返回 `delivery_binding_policy_mismatch`。
 
 声明可加入 unroutable member Realm 的客户端 profile SHOULD 在 join / accept UI 中披露："该 Realm 仅向本地可见，不接收服务端推送、同步、to-device、push 或 KeyPackage 投递"。该披露是客户端 profile 义务，不参与 reducer 接受条件；reducer 的可验证判据仅为上述 policy 和 payload 条件。
 
@@ -155,13 +155,13 @@ Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员�
 `delivery_binding` 一旦进入 accepted member cell，**任何 sender** 在向该 Realm 投递面向该成员的事件 / sync delta / to-device 消息 / push 唤醒 / MLS KeyPackage 请求时：
 
 - MUST 解析当前 effective `delivery_binding.recipient_service_id` 作为唯一投递目标。
-- MUST 把该字段当作 `did_core_id`，并只能通过 binding 携带的 inline record / `current_record_url` 及其后刷新的 verified `ServiceResolutionRecord` 映射到 `full_id` / `base_url`。`GET /_arkret/describe` 是到达 URL 后的二跳确认，不是首跳 resolver。
+- MUST 把该字段当作 `did_core_id`，并只能通过 binding 携带的 inline record / `current_record_url` 及其后刷新的 verified `ServiceResolutionRecord` 映射到 `did` / `base_url`。`GET /_arkret/describe` 是到达 URL 后的二跳确认，不是首跳 resolver。
 - MUST NOT 退路到该 actor 的 DID Document `ArkretPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_id` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（重试策略：quarantine + 指数退避，见 [`sync/federation.md`](../sync/federation.md) §4.1）；只有本节固定的同-core route recovery 序列耗尽后，才向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
 - MUST NOT 把"recipient_service_id 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_event_ref` 显式建立。
 
 `delivery_binding.expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并以已登记的 `delivery_binding_stale` 回执，提示该成员客户端通过 §6 rebind 流程提交新 binding。route notice / mirror 只能恢复仍有效 binding 所指向的同一 service core，不能延长 binding 有效期；这里**未提供授权 fallback path**——这是设计约束。
 
-sender MAY 为高频投递保存 TTL `ServiceRouteCache`，key 必须是 `recipient_service_id: did_core_id`，value 至少包含已验证 `service_kind`、`full_id`、`method_history_head`、record sequence/digest、canonical `base_url`、route-binding digest、`current_record_url`、`verified_at`、`refresh_after`、signed record `expires_at` 与本地 `cache_expires_at`。`cache_expires_at` MUST `<= expires_at`；任一到期都使 cache miss，且本地 TTL 不得延长或覆盖 signed expiry。cache 是实现层优化，不是 Realm 授权状态，MUST NOT 写回 member cell 或改写 `binding_source`。`refresh_after` 可触发对 `current_record_url` 的异步刷新；任一 expiry 到达、收到 stale/handover 信号、method head / route-binding digest 改变或执行安全敏感操作时 MUST 取得最新 record 并重新验证。同一 `recipient_service_id` 下的 `full_id` / URL / method head 刷新不改变 member cell，不需要 rebind；`recipient_service_id` 改变才按 §6 rebind。刷新失败按本节 quarantine 规则处理，不得回退到域名推导、旧 `full_id` 或 actor DID Document。
+sender MAY 为高频投递保存 TTL `ServiceRouteCache`，key 必须是 `recipient_service_id: did_core_id`，value 至少包含已验证 `service_kind`、`did`、`method_history_head`、record sequence/digest、canonical `base_url`、route-binding digest、`current_record_url`、`verified_at`、`refresh_after`、signed record `expires_at` 与本地 `cache_expires_at`。`cache_expires_at` MUST `<= expires_at`；任一到期都使 cache miss，且本地 TTL 不得延长或覆盖 signed expiry。cache 是实现层优化，不是 Realm 授权状态，MUST NOT 写回 member cell 或改写 `binding_source`。`refresh_after` 可触发对 `current_record_url` 的异步刷新；任一 expiry 到达、收到 stale/handover 信号、method head / route-binding digest 改变或执行安全敏感操作时 MUST 取得最新 record 并重新验证。同一 `recipient_service_id` 下的 `did` / URL / method head 刷新不改变 member cell，不需要 rebind；`recipient_service_id` 改变才按 §6 rebind。刷新失败按本节 quarantine 规则处理，不得回退到域名推导、旧 `did` 或 actor DID Document。
 
 TTL route cache 与 durable anti-rollback floor 必须分离。sender MUST 为每个 effective `recipient_service_id` 按 [`../sync/service-surface.md` §2.6](../sync/service-surface.md) durable 保存最后接受的 record sequence/digest；cache 丢失或进程重启不得允许回退到更旧 record。该 floor 是本地验证安全状态，不是新的 Realm 授权，也不得写回 member cell。
 
@@ -182,7 +182,7 @@ TTL route cache 与 durable anti-rollback floor 必须分离。sender MUST 为�
 
 ## 6. Rebind 过渡（normative）
 
-成员保持 `membership="join"` 但把 `recipient_service_id` 改为另一个 service `did_core_id`（个人 PS → 组织 PS 等）时，通过同一 `ak.member.state{membership="join"}` 的同状态 self-transition 完成。同一 `did_core_id` 的集群、域名、`full_id` 或 method head 更新是 resolution refresh，不是 rebind：
+成员保持 `membership="join"` 但把 `recipient_service_id` 改为另一个 service `did_core_id`（个人 PS → 组织 PS 等）时，通过同一 `ak.member.state{membership="join"}` 的同状态 self-transition 完成。同一 `did_core_id` 的集群、域名、`did` 或 method head 更新是 resolution refresh，不是 rebind：
 
 1. **签名 / 背书**：rebind Control Move 的可签名主体由 `rebind_authorization` 决定：
    - `member`：仅成员 DID 自签即可。

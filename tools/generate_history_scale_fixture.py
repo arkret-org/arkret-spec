@@ -171,10 +171,10 @@ def build_signer_evidence(schemas: SchemaSet) -> dict[str, Any]:
         "record": {
             "service_id": SERVICE_CORE,
             "service_kind": "principal_server",
-            "full_id": SERVICE_DID,
+            "did": SERVICE_DID,
             "method_history_head": history_head,
             "version_id": version_id,
-            "resolution_event_ref": "did-key-full-id-sha256:" + "31" * 32,
+            "resolution_event_ref": "did-key-did-sha256:" + "31" * 32,
             "record_sequence": 0,
             "previous_record_digest": None,
             "current_record_url": "https://service.example/_arkret/open/services/service/resolution",
@@ -404,9 +404,9 @@ def build_traversal_replay_kat() -> dict[str, Any]:
     digest; this is a symbolic resolver-ingestion collision, not a generated
     SHA-256 collision.
     """
-    actor_full_id = "did:web:replay-kat.example"
+    actor_did = "did:web:replay-kat.example"
     actor_id = "ak:did_core:web:replay-kat.example"
-    verification_method = actor_full_id + "#notary-key-1"
+    verification_method = actor_did + "#notary-key-1"
     historical_public_key_b64u = "0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc"
     current_public_key_b64u = "oJql9HpnWYAv-VX43C0qFKXJnSO-l_hkEn_5ODRVpPA"
     historical_descriptor = {
@@ -433,7 +433,7 @@ def build_traversal_replay_kat() -> dict[str, Any]:
             "target": "successor",
         },
         "signing_inputs": {
-            "actor_full_id": actor_full_id,
+            "actor_did": actor_did,
             "actor_id": actor_id,
             "verification_method": verification_method,
             "historical_seed_b64u": b64u(b"\x11" * 32),

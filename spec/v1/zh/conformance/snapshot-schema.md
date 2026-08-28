@@ -219,8 +219,8 @@ Realm auth/policy state：
 
 - **授权 witness set**：`witness_id` MUST 在该 state 的授权 snapshot-witness 集合内；不在集合内的行
   MUST 以 `snapshot_authority_unverified` 拒绝，且不计入 quorum。
-- **key validity 与撤销新鲜度**：`proof.verification_method` 的 controller `full_id` MUST 由已登记
-  method adapter 验证并 `project(full_id) == witness_id`（禁止完整 DID 与 `did_core_id` 直接字符串
+- **key validity 与撤销新鲜度**：`proof.verification_method` 的 controller `did` MUST 由已登记
+  method adapter 验证并 `project(did) == witness_id`（禁止DID 与 `did_core_id` 直接字符串
   比较）；该 key 在 `manifest.created_at` MUST 处于有效且未撤销状态，判定规则与 §5 对 issuer 的
   撤销新鲜度规则相同。verifier 无法确认撤销新鲜度时 MUST 隔离或拒绝，MUST NOT 计入 quorum。
 - **去重**：quorum 计数以 `witness_id` 为单位。同一 witness 的多个 key 或多份签名只计一次。

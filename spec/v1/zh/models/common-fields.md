@@ -61,7 +61,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `ak:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
 - 前缀由字段的**语义类型**决定，不由承载介质决定。配置、环境变量、数据库、HTTP header 或签名 transcript 不会把裸字符串自动升级成协议 ID；一旦一个值被声明为 `id:<kind>`，它在进入领域模型时就 MUST 已是完整 canonical typed ID，签名与 hash 层 MUST 原样承诺该值，MUST NOT 在签名前后补前缀、去前缀、大小写折叠或接受裸 payload alias。
-- 外部标准拥有的标识符保留该标准的 canonical namespace：完整 DID / DID URL 分别使用 `did:<method>:...` / `did:<method>:...#<fragment>`，MUST NOT为完整 DID 另加 Arkret typed-ID 前缀。Arkret 从 DID 投影出的稳定身份核是另一个已登记类型 `ak:did_core:<method>:<core>`；字段要求 `did_full_id`、`did_url` 或 `did_core_id` 中的哪一种，完全由 schema 决定，不得因它进入签名或数据库而互换。
+- 外部标准拥有的标识符保留该标准的 canonical namespace：DID / DID URL 分别使用 `did:<method>:...` / `did:<method>:...#<fragment>`，MUST NOT 为 DID 另加 Arkret typed-ID 前缀。Arkret 从 DID 投影出的稳定身份核是另一个已登记类型 `ak:did_core:<method>:<core>`；字段要求 `did`、`did_url` 或 `did_core_id` 中的哪一种，完全由 schema 决定，不得因它进入签名或数据库而互换。
 - 配置字段若会进入 wire、canonical object、签名、hash、联邦或审计语义，MUST 接受并保存完整 canonical 值。例如 `trust_domain` 配置使用 `ak:trust_domain:<scope>`。若实现希望提供只填写 `<scope>` 的运营便利入口，必须使用语义不同且显式命名为 `trust_domain_scope`（或等价的 `*_scope`）的输入，在配置解析边界一次性构造并验证 `trust_domain`；同一个配置键 MUST NOT 同时接受裸 scope 与完整 typed ID 两种 alias。
 - 数据库压缩表示必须在 schema 与类型名上显式。名为 `realm_id`、`trust_domain`、`principal_id` 等 canonical identity 列 SHOULD 保存完整 wire value；若只保存载荷，列 / 类型 MUST 命名为 `realm_token`、`trust_domain_scope`、`did_core_payload` 等非 canonical 名称，并由唯一 storage adapter 无损恢复。恢复之前的内部值 MUST NOT越过 storage adapter，也不得参与签名、hash、日志、错误响应或跨服务比较。
 - 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `ak:device:<uuid>`，MUST NOT 写成局部别名如 `dev_a` 或 `a`。
@@ -137,7 +137,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 | 类别 | 值形态与类型来源 | 允许的字段名形态 | 可否作为 identity / authorization key |
 | --- | --- | --- | --- |
 | `typed_object_id` <!-- identifier_category: typed_object_id --> | `ak:<kind>:<payload>`，其中 kind 或 special form 已登记于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)；schema 以指向 `common-ids.schema.json` 的 `$ref` 或等价 anchored pattern 声明 | 对象自身使用 `id`；引用他者使用 `<kind>_id` / `<role>_<kind>_id` / `expected_<role>_<kind>_id`（详见 §2.1.1） | 是。它是协议对象主键，可直接作为授权主体、去重键与签名 transcript 中的身份 |
-| `responsibility_did` <!-- identifier_category: responsibility_did --> | `ak:did_core:<method>:<core>`，或 schema 显式声明的完整 `did:` URI / DID URL | 责任主体使用 `_id`（`actor_id`、`principal_id`、`subject_id`、`<role>_service_id`）；必须强调 DID ecosystem 原始 material 时使用 `_did` / `full_id` / `did_url`（详见 §2.1.3） | 是。它是责任主体身份，相等性即完整值的逐字节相等 |
+| `responsibility_identity_material` <!-- identifier_category: responsibility_identity_material --> | Arkret 从 DID 派生的稳定身份，或注册、resolution、method evidence 中使用的 W3C DID / DID URL；具体表示由下方正交 profile 表决定 | 稳定主体使用 `_id`；DID 使用 `did` / `<role>_did(s)`；DID URL key selector 使用 `verification_method` / `<role>_verification_method` | 仅 `did_core_id` 可以。DID 必须先经 adapter 投影并绑定 expected core；DID URL 只选择 key |
 | `registry_catalog_symbol` <!-- identifier_category: registry_catalog_symbol --> | 命名某个 registry 条目的符号，canonical 形态通常是 `ak.<symbol-path>`；schema 以 anchored `^ak\.` pattern、`const` 或该 registry 的闭合枚举声明 | 保留各 registry 的 canonical 字段名，例如 `operation_id`、`profile_id`、`schema_id`；新增 catalog 字段 SHOULD 使用 registry 自有名或 `*_symbol` | 否。它命名目录条目而不是对象实例，MUST NOT 作为授权主体或对象主键使用 |
 | `opaque_correlation` <!-- identifier_category: opaque_correlation --> | 有界 opaque 字符串（MUST 由 `pattern` 或 `maxLength` 限定上界），由某一方铸造用于关联一次请求、挑战、传输、租约或 transcript 位置；MUST NOT 复用 typed-ID 词法空间，即值 MUST NOT 以 `ak:` 开头 | 保留领域既有名，例如 `request_id`、`challenge_id`、`transaction_id`、`<noun>_round_id`、`*_handle` | 否。它只承载关联语义，MUST NOT 单独决定授权、身份归属或 envelope 去重 |
 | `transport_idempotency_key` <!-- identifier_category: transport_idempotency_key --> | 传输层重复提交坐标，有界 opaque 字符串；不指向任何协议对象，也不进入对象身份 | MUST 使用 `idempotency_key`，MUST NOT 使用 `_id` 后缀，MUST NOT 复用 typed-ID 词法空间 | 否。只用于同一请求的重复提交判定，MUST NOT 进入身份、授权或因果判定 |
@@ -148,7 +148,17 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 
 新增或修改 identifier 字段时：类别 MUST 能由 schema terminal 约束唯一判定；只有类型无法唯一判定的路径才逐条登记到 `tools/identifier-classification-registry.json`，MUST NOT 为已由 `$ref` 明确的字段再复制一份人工登记。`unregistered_object_identifier` 与 `non_identifier` 只是现存字段的过渡状态，MUST NOT 作为新字段的目标类别。已判定但需要跨仓一次性执行的 rename 逐路径登记在同一 registry 的 `pending_rename_convergence`，MUST NOT 用新旧双名、serde alias 或双读实现。
 
-`ak:` 词法空间由 `typed_object_id` 与 `responsibility_did` 两类独占，这是本表"互斥"成立的前提：其余任何类别的 identifier 字段，其 schema terminal 约束 MUST 使值不可能以 `ak:` 开头——只声明了 `pattern` 却允许 `ak:<任意kind>:<载荷>` 的字段等于同时满足两行判据。`description` 散文与 `identifier-classification-registry.json` 的 `reason` MUST NOT 用来替代该 pattern 约束，实现也 MUST NOT 依赖它们判断值的种类。反向亦然：`ak:<kind>:` 前缀只有在 kind 已登记于 `id-kind-registry.json` 时才合法，MUST NOT 引入"kind 已注册即可在非 typed-ID 字段上复用该前缀"这类条件式例外。
+`ak:` 词法空间由 `typed_object_id` 与 `responsibility_identity_material` 两类独占，这是本表"互斥"成立的前提：其余任何类别的 identifier 字段，其 schema terminal 约束 MUST 使值不可能以 `ak:` 开头——只声明了 `pattern` 却允许 `ak:<任意kind>:<载荷>` 的字段等于同时满足两行判据。`description` 散文与 `identifier-classification-registry.json` 的 `reason` MUST NOT 用来替代该 pattern 约束，实现也 MUST NOT 依赖它们判断值的种类。反向亦然：`ak:<kind>:` 前缀只有在 kind 已登记于 `id-kind-registry.json` 时才合法，MUST NOT 引入"kind 已注册即可在非 typed-ID 字段上复用该前缀"这类条件式例外。
+
+**DID representation profile 表（normative，与上表正交）**：
+
+| profile | terminal invariant | 主要用途 | 可否直接作为稳定授权主体 |
+| --- | --- | --- | --- |
+| `did_core_id` | `^ak:did_core:[a-z0-9]+:[^\s/?#]+$` | 持久主体引用、授权、相等、索引 | 是 |
+| `did` | `^did:[a-z0-9]+:[^\s/?#]+$` | 注册、resolution、method evidence | 否；必须投影并与 expected core 绑定 |
+| `did_url` | `^did:[a-z0-9]+:[^\s#?]+#[A-Za-z0-9._:-]+$` | verification method / key selection | 否 |
+
+每个 DID-material property MUST 在 semantic category 与 representation profile 两轴上各有且仅有一个判定。外部标准 literal object 可以在第一轴属于 `external_system_identifier`、同时在第二轴属于 `did` 或 `did_url`；两轴不得压成一张互斥表。表示形态只由 resolved terminal constraint 决定，实现不得凭字段名推断。
 
 **词法下界（normative）**：上一段的"MUST 使值不可能以 `ak:` 开头"是一条对 terminal 约束的要求，
 不是对散文的要求。每个**不拥有 `ak:` 命名空间**的类别（`registry_catalog_symbol`、
@@ -191,7 +201,7 @@ expected_<role>_<kind>_id
 - Event Envelope、Receipt、Attestation、Key Backup、Applet 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`backup_id`、`applet_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
 - 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`default_realm_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
 - protocol responsibility subject 使用 `_id`，即使 wire value 是 DID，例如 `actor_id`、`principal_id`、`subject_id`、`agent_id`、`controller_id`、`watcher_actor_id`。角色词是限定词时不得再插入额外的 `principal` 限定词；`principal_id` 本身以 principal 为中心词，继续保留。
-- 上述稳定 principal / service identity 字段在 v1 承载 `did_core_id`：`ak:did_core:<method>:<core>`。需要实际解析 DID 时另用 `full_id`；不得因字段以 `_id` 结尾而把当前完整 DID 存入业务主键。
+- 上述稳定 principal / service identity 字段在 v1 承载 `did_core_id`：`ak:did_core:<method>:<core>`。需要实际解析 DID 时另用 `did`；不得因字段以 `_id` 结尾而把当前 DID 存入业务主键。
 - Event payload 若写入某个 materialized object / projection 字段的值，payload 字段名 MUST 与该物化字段同名。操作目标、CAS expected head、audit target、selector target 等事件操作角色 MAY 加 role prefix，例如 `space_id` 与 `expected_parent_space_id`。
 
 #### 2.1.2 `_ref` / `_refs`
@@ -206,13 +216,17 @@ expected_<role>_<kind>_id
 
 新增字段若只允许一个具体 canonical materialized object kind，且不是上述因果、proof、schema/profile、content-addressed 或 profile-scoped reference，MUST 使用 `_id` 而不是 `_ref`。
 
-#### 2.1.3 Service identity 与 `_did`
+#### 2.1.3 Service identity、DID 与 `_did`
 
-Service identity 字段统一使用 `service_id` / `<role>_service_id`；例如 `service_id`、`recipient_service_id`、`source_service_id`、`destination_service_id`、`verification_service_id`。这些稳定引用承载 service `did_core_id`，并与 `actor_id`、`principal_id`、`controller_id` 等责任主体命名保持一致。schema description MUST 明确其承载 `ak:did_core:<method>:<core>`，不得描述成可直接解析 endpoint 的完整 DID。
+Service identity 字段统一使用 `service_id` / `<role>_service_id`；例如 `service_id`、`recipient_service_id`、`source_service_id`、`destination_service_id`、`verification_service_id`。这些稳定引用承载 service `did_core_id`，并与 `actor_id`、`principal_id`、`controller_id` 等责任主体命名保持一致。schema description MUST 明确其承载 `ak:did_core:<method>:<core>`，不得描述成可直接解析 endpoint 的 DID。
 
-`_did` 仅保留给不属于 service identity 字段族、且必须强调 DID ecosystem 原始术语的 material，例如 pairwise DID 或 operator DID。例：`pairwise_did`、`operator_principal_id`、`push_gateway_service_id`。v1 不再为跨 DID continuity 定义专用 `_did` 字段。`principal_server_service_id` 是既有 Principal Server 专名，不作为 `service_id` 的别名，也不受 service identity 字段族规则影响。
+Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`，或使用 `<role>_did` / `<role>_dids`。稳定主体引用仍使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_id`、`audit_service_actor_id` 等 `_id` 字段。`did` 与 `_did` 明确表示 W3C DID，绝不表示 `did_core_id`。
 
-普通协议责任主体不得使用 `_did`；使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_id`、`audit_service_actor_id` 等 `_id` 字段。
+公共类型与 schema 定义固定为 `Did` / `did`；不得另定义裸 DID alias。旧的“完整 ID”类型、字段、别名或双读均禁止。`principal_server_service_id` 是既有 Principal Server 专名，不作为 `service_id` 的别名，也不受 service identity 字段族规则影响。
+
+`did` 的存在性由对象职责决定：普通 canonical identity object、Event、membership、grant、profile 与普通主体/service 引用禁止携带 DID；registration / genesis accepted evidence、Identity/Service Resolution Record 与 DID method evidence/control proof 必须把 DID 声明为 required。不得使用通用 optional `did` 充当缓存；缺失、不可见、停用、过期或 stale 必须由对象存在性、closed discriminator/state 与 freshness evidence 表达。
+
+每个 `did_core_id` 的创建路径 MUST 证明它由已登记 adapter 对有效 DID 唯一投影而来；从未具有 DID 的 identity 必须使用其它已登记 ID 类型。可路由 service 必须有有效 resolution record，但普通 service 引用不得内联 DID。
 
 `verification_method` 保留 W3C DID 规范字段名，承载 DID URL，不改名为 `_id` 或 `_did`。
 
@@ -351,11 +365,11 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 | 类型 | wire 形态 | 用途 |
 | --- | --- | --- |
 | `did_core_id` | `ak:did_core:<method>:<core>` | Event、principal / service reference、membership、capability、业务数据库关联与相等判断。 |
-| `full_id` | 标准 bare DID，例如 `did:webvh:<scid>:<host>` | 注册、DID resolution、method-native operation、DID Document / history 验证。 |
+| `did` | 标准 bare DID，例如 `did:webvh:<scid>:<host>` | 注册、DID resolution、method-native operation、DID Document / history 验证。 |
 
-`full_id ≅ did_core_id + method-specific resolution` 只是 adapter 语义，不是字符串拼接格式。只有已登记 DID method adapter 可以从 `full_id` 投影 `did_core_id`；普通业务代码 MUST NOT 自行拆解或反向构造。一个 `full_id` 投影到的 `did_core_id` 必须唯一。DID URL 不属于 `full_id`：`verification_method` 等 DID URL 必须在验证 `full_id` 后由相同 adapter 处理，禁止把 fragment 直接拼到 `did_core_id`。实现 MUST NOT 以字符串前缀判断 DID URL controller；比较前必须由 adapter 解析 DID URL，并验证其 base `full_id` 到目标 `did_core_id` 的唯一投影关系。
+`did ≅ did_core_id + method-specific resolution` 只是 adapter 语义，不是字符串拼接格式。只有已登记 DID method adapter 可以从 `did` 投影 `did_core_id`；普通业务代码 MUST NOT 自行拆解或反向构造。一个 `did` 投影到的 `did_core_id` 必须唯一。DID URL 不属于 `did`：`verification_method` 等 DID URL 必须在验证 `did` 后由相同 adapter 处理，禁止把 fragment 直接拼到 `did_core_id`。实现 MUST NOT 以字符串前缀判断 DID URL controller；比较前必须由 adapter 解析 DID URL，并验证其 base `did` 到目标 `did_core_id` 的唯一投影关系。
 
-`did_core_id` 是 Arkret 的稳定主体标识，`full_id` 是其当前 DID resolution material；二者都不是普通协作对象 ID。标准协作对象（Realm / Circle / Space /
+`did_core_id` 是 Arkret 的稳定主体标识，`did` 是其当前 DID resolution material；二者都不是普通协作对象 ID。标准协作对象（Realm / Circle / Space /
 Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用
 `ak:<kind>:` typed ID 作为对象 ID；设备也不是 actor 主体，其标识是
 `device_id`（`ak:device:<uuidv7>`），没有设备 DID。
@@ -366,7 +380,7 @@ DID 当作身份锚点、仅在封闭触发条件下验证 DID 控制权”的�
 本节不复制总表，避免字段新增后出现两份不一致清单。
 
 仅作为内容、容器、投影或关系事实存在的对象，不需要也不得发明独立 DID；它们通过 typed ID
-被引用，通过 `created_by` / `updated_by` 等字段关联到主体 `did_core_id`。字段里出现完整 DID 只声明
+被引用，通过 `created_by` / `updated_by` 等字段关联到主体 `did_core_id`。字段里出现DID 只声明
 value category，不会自动触发 DID Document 解析或在线验证。
 
 ### 4.2 主体引用字段

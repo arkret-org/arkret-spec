@@ -152,7 +152,7 @@
       "source_role": "generated",
       "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
-      "description": "Generated registry view for full_id validation, did_core_id projection and method-native resolution evidence rules."
+      "description": "Generated registry view for did validation, did_core_id projection and method-native resolution evidence rules."
     },
     {
       "name": "authority_set_policies",

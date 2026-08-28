@@ -792,7 +792,7 @@
       "schema_id": "ak.schema.identity_resolution.v1",
       "file": "schemas/identity-resolution.schema.json",
       "status": "active",
-      "description": "Principal resolution projection/update/evidence and signed service resolution record contracts for the did_core_id/full_id model.",
+      "description": "Principal resolution projection/update/evidence and signed service resolution record contracts for the did_core_id/did model.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "principal resolution evidence or service resolution record",

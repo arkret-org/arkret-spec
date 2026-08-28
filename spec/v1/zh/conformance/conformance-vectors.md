@@ -3535,7 +3535,7 @@ Preconditions：
 
 - Realm 声明 `ak.profile.mls.minimal_metadata_realm.v1`；内容 Event `actor_id` 为 Realm-scoped pairwise `ActorId` core，且该 actor 的 current member cell 为 active。
 - Encrypted envelope 固定 `(group_id, epoch, key_ref.group_state_ref)`，该 accepted group state 有一条 active RFC 9420 basic credential identity 等于 `utf8(actor_id)` 的 LeafNode。
-- Event proof verification-method 的 bare base 是 canonical `did:key` DidFullId，adapter 投影逐字等于 `actor_id`；transport bearer session actor 可以不同，但只承担访问与限流。
+- Event proof verification-method 的 bare base 是 canonical `did:key` Did，adapter 投影逐字等于 `actor_id`；transport bearer session actor 可以不同，但只承担访问与限流。
 
 Cases：
 
@@ -3798,7 +3798,7 @@ Expected：
 
 Steps：
 
-1. 构造 root-signed create + founding-device-signed authorize；第二条 Event 的 proof method 使用 founding principal 已验证 `full_id` 下的 DID URL，并让其 bare `full_id` 经 adapter 投影为 `principal_id`（`did_core_id`）、fragment 逐字等于 `device_id`，同时让 descriptor、payload digest、device/HPKE material 与 initial session request 全部一致；不得从 principal core 与 device fragment 拼接 verification method。
+1. 构造 root-signed create + founding-device-signed authorize；第二条 Event 的 proof method 使用 founding principal 已验证 `did` 下的 DID URL，并让其 bare `did` 经 adapter 投影为 `principal_id`（`did_core_id`）、fragment 逐字等于 `device_id`，同时让 descriptor、payload digest、device/HPKE material 与 initial session request 全部一致；不得从 principal core 与 device fragment 拼接 verification method。
 2. 分别 mutation root/device signature、lease fence、DPoP JKT、scope、Event order/prev_refs、descriptor fields与 payload digest。
 3. 尝试把 authorize Event id/envelope digest加入 root transcript，或把 second proof method改为 `did:key`。
 4. 并发提交两个不同 genesis unit；随后对 winner执行 root re-anchor。
@@ -3872,7 +3872,7 @@ Steps：
    fence takeover，执行内部 saga recovery；其间 stale holder 再以原 request identity 与 bytes 重试
    register。
 4. takeover holder 沿用 frozen reservation，分别在规范允许的字段范围内以新 device 重签 fresh
-   transcript，以及尝试替换 `principal_id`、`full_id`、operation digest 或 canonical operation bytes。
+   transcript，以及尝试替换 `principal_id`、`did`、operation digest 或 canonical operation bytes。
 
 Expected：
 
@@ -3882,7 +3882,7 @@ Expected：
 - 第 3 步恢复只 query/exact replay 原 frozen bytes，registry spy 见不到第二份 operation；最终只有一个
   DID 与一个稳定 `accepted_at`，收敛到同一 `did_published` checkpoint；stale holder 的重试被拒绝且
   零写入。
-- 第 4 步 fresh device transcript 在允许字段范围内重签成功；替换 `principal_id` / `full_id` /
+- 第 4 步 fresh device transcript 在允许字段范围内重签成功；替换 `principal_id` / `did` /
   operation digest / canonical bytes 的请求在任何 registry I/O 前 fail closed，冻结的 DID operation
   保持不变。该步明确区分"DID operation freeze 后不可变"与"genesis 材料允许重签"的边界。
 
@@ -4038,7 +4038,7 @@ Expected：
 
 `vector_id`: `ak.vector.sync.range_completeness_client_query.v1`
 
-前置：服务端 `supported_features[]` 声明 `ak.feature.events_query_range_completeness.v1`；Realm 配置 `audit.range_completeness_witnesses[]` 且已存在覆盖区间 `(F1, F2]` 的 `federation_witness_attested` attestation；区间内 actor Bob 产生过 `seq 10..20` 的 reducer-input event。
+前置：服务端 `supported_features[]` 声明 `ak.feature.events_query_range_completeness.v1`；Realm 配置 `audit.range_completeness_witness_ids[]` 且已存在覆盖区间 `(F1, F2]` 的 `federation_witness_attested` attestation；区间内 actor Bob 产生过 `seq 10..20` 的 reducer-input event。
 
 Steps：
 
@@ -4063,7 +4063,7 @@ Expected：
 
 Steps:
 
-1. Controller client 先生成 Agent WebVH root、binding update key 与下一代 key，在网络提交前可恢复地持久化更新密钥；签名并发布只含 Principal Server + managed-controller delegation、**不含 PCR binding** 的 entry 0。entry 0 accepted 后，Controller 以其 `full_id` 调用 `ak.self.agent.command.provision.v1`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 exact `initial_resolution`、allocation 与 digest 且没有 Agent durable side effect，也不分配 Agent PCR id；Controller 逐字核对 inception pin，按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算 digest，本地冻结含该 `initial_resolution` 的 managed Agent PCR `ak.realm.create`、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再 author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create；accepted 后 outcome 只能是 `awaiting_did_binding`。Controller 再用 entry 0 预承诺的 update key 签发连续 entry 1，新增 exact `ArkretPrincipalControlRealm.serviceEndpoint` 四元组；entry 1 accepted 后才返回 `pairing_request_id` 并推进到 `complete`。公开 history 只固定 digest，不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope`、inception 预含 PCR id、错 inception pin 的变体必须失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
+1. Controller client 先生成 Agent WebVH root、binding update key 与下一代 key，在网络提交前可恢复地持久化更新密钥；签名并发布只含 Principal Server + managed-controller delegation、**不含 PCR binding** 的 entry 0。entry 0 accepted 后，Controller 以其 `did` 调用 `ak.self.agent.command.provision.v1`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 exact `initial_resolution`、allocation 与 digest 且没有 Agent durable side effect，也不分配 Agent PCR id；Controller 逐字核对 inception pin，按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算 digest，本地冻结含该 `initial_resolution` 的 managed Agent PCR `ak.realm.create`、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再 author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create；accepted 后 outcome 只能是 `awaiting_did_binding`。Controller 再用 entry 0 预承诺的 update key 签发连续 entry 1，新增 exact `ArkretPrincipalControlRealm.serviceEndpoint` 四元组；entry 1 accepted 后才返回 `pairing_request_id` 并推进到 `complete`。公开 history 只固定 digest，不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope`、inception 预含 PCR id、错 inception pin 的变体必须失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
 2. Agent runtime 生成 key pair，取得 pairing verifier 签名的 presentation request/challenge；controller 生成符合 `ak.schema.agent_requested_scope_disclosure.v1`、绑定该 verifier/audience/challenge 且接收窗口不超过 300 秒的私有披露，与 key pair request 一起提交。controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
 4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 提交一个 controller-authored `ak.capability.grant` `EventInitialSubmission` 以附加更窄的 Realm-scoped grant。其 `event.payload.grant` 不含内层 proof，Event envelope proof 是唯一 durable issuer signature；另分别尝试提交 body-local proof、让服务端代签/合成 Event、含未 provision action及超出显式内容 resource ceiling 的变体。
@@ -4084,7 +4084,7 @@ Expected:
 
 Steps:
 
-1. 解析 Agent accepted inception DID Document，验证唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 的闭合四元组；扫描完整 DID version history 与公开 registry/notification/Event fixture。
+1. 解析 Agent accepted inception DID Document，验证唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 的闭合四元组；扫描DID version history 与公开 registry/notification/Event fixture。
 2. Verifier 生成签名 `ak.identity.presentation_request`，包含唯一 `request_id`、不可预测 `challenge`、`verifier_service_id`、`audience/domain` 与五分钟内 expiry；controller 经 TSP、HTTP/JWE、DIDComm-like、to-device 或 MLS DM 私有通道返回 `ak.schema.agent_requested_scope_disclosure.v1`。
 3. Verifier 验证 controller current proof、`payload_digest`、`agent_id/controller_id`、`verifier_service_id/audience`、`expires_at-issued_at <= 300s`，消费 `(verifier_service_id, request_id, challenge)`，并以披露 scope 重算 DID commitment。
 4. 负向变体依次为：公开 endpoint 加入完整 `requested_scope`；disclosure 改一个 resource/constraint 但保留旧 digest；错 verifier 或 audience；过期/超 300 秒窗口；重放已消费 challenge；把 disclosure 复制进 grant、authorize Event、notification 或 Realm plaintext。
@@ -5696,7 +5696,7 @@ Expected：
 
 Steps：
 
-- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_id=ak:did_core:webvh:z6mkfixtureBridge`，其已验证 `full_id=did:webvh:z6mkfixtureBridge:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixtureBridge:bridge.example#tx-1`，install active。Applet 提交 `POST /_arkret/edge/applet/transactions`，body exact bytes 是 Arkret canonical JSON、`Content-Encoding` absent，header `Source-Service-ID=ak:did_core:webvh:z6mkfixtureBridge`、`Destination-Service-ID=ak:did_core:webvh:z6mkfixturePrincipal`、`Idempotency-Key=tx-001`、`Content-Digest=sha-256=:...:` 且覆盖 exact body bytes；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixtureBridge:bridge.example#tx-1`，`created` / `expires` 在窗口内；接收方验证 `project(bare(keyid)) == Source-Service-ID == registration.service_id`，body `source_service_id` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
+- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_id=ak:did_core:webvh:z6mkfixtureBridge`，其已验证 `did=did:webvh:z6mkfixtureBridge:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixtureBridge:bridge.example#tx-1`，install active。Applet 提交 `POST /_arkret/edge/applet/transactions`，body exact bytes 是 Arkret canonical JSON、`Content-Encoding` absent，header `Source-Service-ID=ak:did_core:webvh:z6mkfixtureBridge`、`Destination-Service-ID=ak:did_core:webvh:z6mkfixturePrincipal`、`Idempotency-Key=tx-001`、`Content-Digest=sha-256=:...:` 且覆盖 exact body bytes；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixtureBridge:bridge.example#tx-1`，`created` / `expires` 在窗口内；接收方验证 `project(bare(keyid)) == Source-Service-ID == registration.service_id`，body `source_service_id` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
 - **Case B — 缺签名 / 纯 bearer**：同一 body 只携带 `Authorization: Bearer` 或完全缺少 `Signature` / `Signature-Input`。
 - **Case C — transcript / source / content 混淆**：签名覆盖的 `source-service-id`、header `Source-Service-ID` 或 body `source_service_id` 三者任一不同；或 `Destination-Service-ID` 不等于实际接收服务；或 `Content-Digest` 与 exact body bytes 不一致；或 body 是语义等价但非 canonical 的 JSON wire；或使用 `sha256=:` alias、trailer-only `Content-Digest` / `Content-Encoding`。对非 canonical wire、alias、trailer 与 content-coding mutation，sender MUST 重算适用的 digest 并用有效 Applet service key 重新签名，使 receiver 必须由相应 profile 规则而非偶然 signature mismatch 拒绝。
 - **Case D — idempotency replay**：重复 Case A 的相同 headers/body，并从 verified inputs 重算相同 `delivery_authentication_record_digest`；随后再次使用同一 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)`，但改变 body digest、verification method / key digest、`registration_epoch` 或 actor namespace。caller 携带预算 record / digest 的请求必须 schema-invalid，不能覆盖 receiver 派生值。
@@ -5714,7 +5714,7 @@ Expected：
 
 `vector_id`: `ak.vector.applet.managed_actor_authority.v1`
 
-Runner MUST 执行 [`applet-managed-actor-fixture.json`](../../artifacts/fixtures/applet-managed-actor-fixture.json) 的固定 Bot/Ghost 原子单元，验证 exact authority pair、receiving Principal Server、独立 method history/witness、verified full-id namespace、provision/PCR initial-resolution 交叉绑定与零可见失败。Rotation 只改 PCR current cell 而保持 creation anchors；Applet/Ghost revoke 后，通过普通 Event submit 的 self-signed write 也必须 `applet_revoked`，但历史 resolution/audit 仍可读。
+Runner MUST 执行 [`applet-managed-actor-fixture.json`](../../artifacts/fixtures/applet-managed-actor-fixture.json) 的固定 Bot/Ghost 原子单元，验证 exact authority pair、receiving Principal Server、独立 method history/witness、verified DID namespace、provision/PCR initial-resolution 交叉绑定与零可见失败。Rotation 只改 PCR current cell 而保持 creation anchors；Applet/Ghost revoke 后，通过普通 Event submit 的 self-signed write 也必须 `applet_revoked`，但历史 resolution/audit 仍可读。
 
 ### 19.3 Vector: Registration Epoch Transcript
 
@@ -5845,7 +5845,7 @@ runner MUST 实际验证 challenge 消费、proof 绑定与状态机转移，只
 - 要求 distinct controlling organization 时，两个 witness key 同属一个组织 → `webvh_witness_controlling_organization_unverified`。计数按控制组织而非按 key，否则单一运营方持多把 key 即可独自满足"两个不同组织"；
 - evidence 超过生效 max age → `webvh_witness_evidence_stale`。age 自 `observed_at` 起算，重新签发旧观测不构成刷新。
 
-**Arkret 层**：`ak.schema.did_webvh_witness_receipt.v1` 与 `ak.schema.identity_receipt.v1` 是两个不同对象族，经 `ak.root.identity.receipts.read.list.v1` 以 `schema` 常量为 discriminator 的 tagged union 返回。runner MUST 验证：两族可在同一响应中共存并被正确分支；receipt 缺 `expires_at` 或 `controlling_organization` MUST 被拒（前者会让缓存记录退化为永久断言，后者使该 receipt 无法计入 distinct-organization）；`witness_did` 非 `did:key` MUST 被拒；receipt 携带 `max_age_seconds` 等 policy 字段 MUST 被拒——receipt 记录观测，不承载 policy，否则新鲜度门槛会落回被审对象手中。
+**Arkret 层**：`ak.schema.did_webvh_witness_receipt.v1` 与 `ak.schema.identity_receipt.v1` 是两个不同对象族，经 `ak.root.identity.receipts.read.list.v1` 以 `schema` 常量为 discriminator 的 tagged union 返回。runner MUST 验证：两族可在同一响应中共存并被正确分支；receipt 缺 `expires_at` 或 `controlling_organization_did` MUST 被拒（前者会让缓存记录退化为永久断言，后者使该 receipt 无法计入 distinct-organization）；`witness_did` 非 `did:key` MUST 被拒；receipt 携带 `max_age_seconds` 等 policy 字段 MUST 被拒——receipt 记录观测，不承载 policy，否则新鲜度门槛会落回被审对象手中。
 
 receipt 与 `threshold_met` 均 MUST NOT 替代对标准 `did-witness.json` proof、entry hash chain 与 controller proof 的直接验证；`threshold_met` 缺席 MUST NOT 被读作 `true`。
 
@@ -6483,7 +6483,7 @@ endpoint / cipher suite / content profile / room policy、proof controller 与 `
 
 规则正文见 [`../sync/signal.md` §1 / §3](../sync/signal.md)。Runner MUST 覆盖 §3 conformance
 清单的五个 case：授权晚于 `seal_ref` 但 current active 的设备通过设备授权关；`seal_ref` 时
-active 但当前 revoked / fenced / conflicted 的设备被拒；`verification_method` 的 bare full DID
+active 但当前 revoked / fenced / conflicted 的设备被拒；`verification_method` 的 bare DID
 经 method adapter 投影不等于 `sender_actor_id`，或 fragment 不等于 `sender_device_id` 时被拒；
 current directory key 或 Tier-2 /
 service-attested 信任锚缺失被拒；设备 current active 但 sender 无 Realm `seal_ref` 下 scope
@@ -6548,7 +6548,7 @@ Runner MUST 加载
 10. route cache 必须同时保留 target-signed `expires_at` 与本地 `cache_expires_at`，且本地值不得晚于 signed
     expiry；任一边界到达即 hard miss。`now == cache_expires_at` 或 `now == expires_at` 均不得继续路由，
     不得丢弃 signed expiry、以新本地 TTL 延长它、跳过 describe 或把 future notice candidate 当 current route。
-11. same-core 的 full DID / URL successor 只推进 route floor 与 cache，不写 Realm member rebind；candidate
+11. same-core 的 DID / URL successor 只推进 route floor 与 cache，不写 Realm member rebind；candidate
    改为新 core 必须由新的 delivery binding / rebind 授权，不能被 notice、mirror 或 cache 接受。
 12. 1:1 双方计划同时迁移时，只有 A durable ack B 的 exact notice 且 B durable ack A 的 exact notice 后，
     才可报告 cross-ack preannouncement complete 并按共同 cutover/grace 关闭旧入口；任一 ack 缺失、仅内存、

@@ -63,7 +63,7 @@
       "instance": {
         "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
         "service_resolution": {
-          "full_id": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
+          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
           "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "version_id": "1"
         },

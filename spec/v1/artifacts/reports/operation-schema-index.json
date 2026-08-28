@@ -1114,7 +1114,7 @@
           "request_id",
           "identity_creation_lease_id",
           "lease_fence",
-          "full_id",
+          "did",
           "did_operation",
           "pcr_realm_id",
           "realm_create_payload_digest",
@@ -1125,7 +1125,7 @@
           "request_id",
           "identity_creation_lease_id",
           "lease_fence",
-          "full_id",
+          "did",
           "did_operation",
           "pcr_realm_id",
           "realm_create_payload_digest",
@@ -1144,7 +1144,7 @@
           "purpose",
           "account_subject",
           "principal_id",
-          "full_id",
+          "did",
           "operation_digest",
           "did_version_id",
           "log_head_digest",
@@ -1170,7 +1170,7 @@
           "purpose",
           "account_subject",
           "principal_id",
-          "full_id",
+          "did",
           "operation_digest",
           "did_version_id",
           "log_head_digest",
@@ -1201,12 +1201,12 @@
         "required": [
           "request_id",
           "principal_id",
-          "full_id"
+          "did"
         ],
         "properties": [
           "request_id",
           "principal_id",
-          "full_id"
+          "did"
         ],
         "closed": true
       },
@@ -1220,7 +1220,7 @@
           "purpose",
           "account_subject",
           "principal_id",
-          "full_id",
+          "did",
           "did_version_id",
           "log_head_digest",
           "control_key_digest",
@@ -1238,7 +1238,7 @@
           "purpose",
           "account_subject",
           "principal_id",
-          "full_id",
+          "did",
           "did_version_id",
           "log_head_digest",
           "control_key_digest",
@@ -3744,7 +3744,7 @@
         "required": [
           "account_authority_id",
           "principal_id",
-          "full_id",
+          "did",
           "pcr_realm_id",
           "did_version_id",
           "log_head_digest",
@@ -3759,7 +3759,7 @@
         "properties": [
           "account_authority_id",
           "principal_id",
-          "full_id",
+          "did",
           "pcr_realm_id",
           "did_version_id",
           "log_head_digest",
@@ -4032,7 +4032,7 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
-          "full_id",
+          "did",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -4042,7 +4042,7 @@
         ],
         "properties": [
           "organization_id",
-          "full_id",
+          "did",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -4075,13 +4075,13 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
-          "full_id",
+          "did",
           "local_admin_subject",
           "requested_scopes"
         ],
         "properties": [
           "organization_id",
-          "full_id",
+          "did",
           "local_admin_subject",
           "requested_scopes"
         ],
@@ -4093,7 +4093,7 @@
         "required": [
           "challenge_id",
           "organization_id",
-          "full_id",
+          "did",
           "purpose",
           "nonce",
           "audience",
@@ -4107,7 +4107,7 @@
         "properties": [
           "challenge_id",
           "organization_id",
-          "full_id",
+          "did",
           "purpose",
           "nonce",
           "audience",
@@ -4129,7 +4129,7 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
-          "full_id",
+          "did",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -4137,7 +4137,7 @@
         ],
         "properties": [
           "organization_id",
-          "full_id",
+          "did",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -4544,14 +4544,14 @@
         "required": [
           "service_kind",
           "public_base",
-          "full_id",
+          "did",
           "inception_operation",
           "idempotency_key"
         ],
         "properties": [
           "service_kind",
           "public_base",
-          "full_id",
+          "did",
           "inception_operation",
           "idempotency_key",
           "previous_receipt"
@@ -5122,7 +5122,7 @@
             "schema_kind": null,
             "required": [
               "agent_id",
-              "full_id",
+              "did",
               "principal_control_realm_id",
               "allocation_handle",
               "provision_event"
