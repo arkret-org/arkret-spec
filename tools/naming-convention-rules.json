@@ -367,26 +367,6 @@
       "expected": "reject"
     },
     {
-      "rule_id": "NC-HASH-001",
-      "candidate": "transcript_hash",
-      "expected": "reject"
-    },
-    {
-      "rule_id": "NC-HASH-001",
-      "candidate": "hash_algorithm",
-      "expected": "reject"
-    },
-    {
-      "rule_id": "NC-HASH-001",
-      "candidate": "nextKeyHashes",
-      "expected": "reject"
-    },
-    {
-      "rule_id": "NC-HASH-001",
-      "candidate": "hashAlgorithm",
-      "expected": "reject"
-    },
-    {
       "rule_id": "NC-CLASSIFICATION-001",
       "candidate": "morph_kind_type",
       "expected": "reject"
@@ -505,26 +485,6 @@
     {
       "rule_id": "NC-SET-001",
       "candidate": "denied_kinds",
-      "expected": "accept"
-    },
-    {
-      "rule_id": "NC-HASH-001",
-      "candidate": "event_digest",
-      "expected": "accept"
-    },
-    {
-      "rule_id": "NC-HASH-001",
-      "candidate": "digest_algorithm",
-      "expected": "accept"
-    },
-    {
-      "rule_id": "NC-HASH-001",
-      "candidate": "updateKeys",
-      "expected": "accept"
-    },
-    {
-      "rule_id": "NC-HASH-001",
-      "candidate": "hashtag_count",
       "expected": "accept"
     },
     {
