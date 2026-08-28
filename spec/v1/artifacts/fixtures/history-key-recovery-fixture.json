@@ -170,10 +170,19 @@
         ]
       },
       "later_material": {
-        "requested_epochs": [7, 8],
-        "completed_attempt_coverage": [7],
-        "new_local_authoritative_epochs": [8],
-        "new_manifest_coverage": [8],
+        "requested_epochs": [
+          7,
+          8
+        ],
+        "completed_attempt_coverage": [
+          7
+        ],
+        "new_local_authoritative_epochs": [
+          8
+        ],
+        "new_manifest_coverage": [
+          8
+        ],
         "completed_attempt_suppresses_new_manifest": false
       }
     },
@@ -1263,9 +1272,9 @@
         }
       }
     },
-    "evidence_ref": "ak:signer_evidence:sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
-    "evidence_digest": "sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
-    "canonical_bytes": 1620
+    "evidence_ref": "ak:signer_evidence:sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
+    "evidence_digest": "sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
+    "canonical_bytes": 1612
   },
   "governance_dependency_resolve_kat": {
     "accepted_event_without_unsigned": {
@@ -1285,23 +1294,23 @@
       "bytes_digest": "sha256:1e3ced5770464815ca4ef738fdc55edd5826eb59eece2e8adff2f03c2c354133",
       "holder_id": "ak:did_core:key:z6MkfixtureService",
       "retention_expires_at": "2026-08-28T00:00:00.000Z",
-      "holder_signer_evidence_ref": "ak:signer_evidence:sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
-      "holder_signer_evidence_digest": "sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
+      "holder_signer_evidence_ref": "ak:signer_evidence:sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
+      "holder_signer_evidence_digest": "sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
       "signature": {
         "kind": "detached_jws",
         "verification_method": "did:key:z6MkfixtureService#key-1",
-        "payload_digest": "sha256:01d6e179d2ab8d40a43f97dee22453b88fe0fd66a1d1df6a1015552c0843cf8d",
+        "payload_digest": "sha256:fcd53ea4e2e24fd8d1efb1fe87f5e2c38eeccc32ad4c5c5ca6fa01cf28651591",
         "created_at": "2026-08-21T00:00:00.000Z",
         "jws": "e30..c2ln"
       }
     },
-    "availability_receipt_digest": "sha256:ec5a115a2235ea7db8d33f84f3161c19564fe3576c4530ab004bc605de17f195",
+    "availability_receipt_digest": "sha256:19a5e014e7427ad2b3ccf8355dec8b4e849f11648c31d8da50a7bf84e6c76464",
     "resolve_outcome": {
       "items": [
         {
           "selector": {
             "kind": "authenticated_signer_resolution_evidence",
-            "content_digest": "sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f"
+            "content_digest": "sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51"
           },
           "authenticated_signer_resolution_evidence": {
             "kind": "service",
@@ -1362,7 +1371,7 @@
         {
           "selector": {
             "kind": "availability_receipt",
-            "content_digest": "sha256:ec5a115a2235ea7db8d33f84f3161c19564fe3576c4530ab004bc605de17f195"
+            "content_digest": "sha256:19a5e014e7427ad2b3ccf8355dec8b4e849f11648c31d8da50a7bf84e6c76464"
           },
           "availability_receipt": {
             "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e",
@@ -1370,12 +1379,12 @@
             "bytes_digest": "sha256:1e3ced5770464815ca4ef738fdc55edd5826eb59eece2e8adff2f03c2c354133",
             "holder_id": "ak:did_core:key:z6MkfixtureService",
             "retention_expires_at": "2026-08-28T00:00:00.000Z",
-            "holder_signer_evidence_ref": "ak:signer_evidence:sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
-            "holder_signer_evidence_digest": "sha256:25cede589b524fcd1d3e5e89bc12ba65ff6ec0b3ca1bef2a14b7644bf043ee6f",
+            "holder_signer_evidence_ref": "ak:signer_evidence:sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
+            "holder_signer_evidence_digest": "sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
             "signature": {
               "kind": "detached_jws",
               "verification_method": "did:key:z6MkfixtureService#key-1",
-              "payload_digest": "sha256:01d6e179d2ab8d40a43f97dee22453b88fe0fd66a1d1df6a1015552c0843cf8d",
+              "payload_digest": "sha256:fcd53ea4e2e24fd8d1efb1fe87f5e2c38eeccc32ad4c5c5ca6fa01cf28651591",
               "created_at": "2026-08-21T00:00:00.000Z",
               "jws": "e30..c2ln"
             }
@@ -1609,10 +1618,6 @@
           }
         ],
         "ack_token": "response-ack-token-8",
-        "limited": false
-      },
-      "empty_list": {
-        "ack_entries": [],
         "limited": false
       },
       "ack_request": {

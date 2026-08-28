@@ -148,7 +148,7 @@ Content-Type: application/json
 | --- | --- | --- | --- |
 | `realm_id` | `id` | required | 回显请求 Realm，进入签名 canonical bytes，防止跨 Realm 重放。 |
 | `call_id` | `id` | required | 回显请求 call，进入签名 canonical bytes，防止跨通话重放。 |
-| `actor_id` | `did` | required | 回显请求 actor，进入签名 canonical bytes。 |
+| `actor_id` | `did_core_id` | required | 回显请求 actor 的稳定 `did_core_id`，进入签名 canonical bytes。 |
 | `device_id` | `id` | required | 回显请求设备，进入签名 canonical bytes。 |
 | `ttl_seconds` | `int` | required | ICE 配置有效期（秒）。建议 ≤ 1 小时。 |
 | `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`。schema 合法范围为 `minimum=10`、`maximum=1800`。**服务端 MUST 保证 `refresh_lead_seconds` 严格小于 `ttl_seconds`**（否则客户端在签发瞬间即判定 credential 需刷新，陷入刷新风暴)。推荐 floor 60s 仅在 `60 < ttl_seconds` 时适用，否则 `refresh_lead_seconds < ttl_seconds` 优先于推荐 floor（floor 让位的完整论证与取值规则见 §4.2 服务端规则）。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |

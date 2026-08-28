@@ -127,7 +127,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 #### `principal_admission`
 
-`principal_admission` 是自动解析 gate，用于约束提交 `ak.member.state{membership="join"}` 的 `actor_id` / `payload.actor_id` 所指 principal DID。它只判断 principal DID 本身，不替代 capability、invite、review、claim presentation、DID Document 解析、service delegation 或 [`member-delivery-binding.md`](./member-delivery-binding.md) 的投递绑定校验。
+`principal_admission` 是自动解析 gate，用于约束提交 `ak.member.state{membership="join"}` 的 `actor_id` / `payload.actor_id` 所指稳定 principal `did_core_id`。它只判断该 principal identity，不替代 capability、invite、review、claim presentation、DID Document 解析、service delegation 或 [`member-delivery-binding.md`](./member-delivery-binding.md) 的投递绑定校验；需要解析或验证控制权时，裸 DID 与 DID URL 作为独立证据输入处理。
 
 字段：
 
@@ -396,7 +396,7 @@ receipt 与 private body MUST 在同一 durable transaction 中写入；任一 s
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `realm_id` | yes | `id:realm` | 申请目标 Realm。 |
-| `applicant_actor_id` | yes | `did` | 等于 envelope `actor_id`。 |
+| `applicant_actor_id` | yes | `did_core_id` | 等于 envelope `actor_id`。 |
 | `knock_ref` | yes | `event_ref` | 引用 stage 1 的 `ak.member.state{knock}` event id。 |
 | `policy_version_digest` | yes | `digest` | 提交时 `realm.join_policy` cell value 的 canonical digest；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
 | `private_body_digest` | yes | `digest` | 对本次 profile-private body 的 `sha256:JCS`；receipt 只绑定 digest，不复制正文。 |
@@ -487,8 +487,8 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
     "info": "ak.realm.member_application.envelope.v1 || 0x00 || ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5 || 0x00 || sha256:...",
     "ciphertext": "base64url:...",
     "recipients": [
-      {"reviewer_actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
-      {"reviewer_actor_id": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HW_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."}
+      {"reviewer_actor_id": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
+      {"reviewer_actor_id": "ak:did_core:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HW_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."}
     ]
   }
 }

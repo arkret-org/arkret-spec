@@ -63,7 +63,7 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
         {
           "selector_kind": "claim",
           "claim_kind": "organization_membership",
-          "organization_id": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
+          "organization_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
           "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example"
         }
       ],
@@ -256,16 +256,16 @@ Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 
 
 | payload 位置 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- | --- |
-| 顶层 | `resource_id` | `did` / canonical handle / applet id | required | 被发现资源的稳定标识，同时是 cell subject。 |
+| 顶层 | `resource_id` | `did_core_id` / canonical handle / applet id | required | 被发现资源的稳定标识，同时是 cell subject；actor 分支使用 `did_core_id`，不接受裸 DID。 |
 | `value` | `resource_kind` | `enum(actor,applet,handle)` | required | 必须与 Event kind 后缀一致。 |
 | `value` | `discoverability` | §2 enum | required | `public` / `listed` / `restricted` / `unlisted` / `invite_only` / `secret`。 |
-| `value` | `directory_services` | `did_core_id[]` | required | 被允许索引该资源的 Directory service DID 列表。 |
+| `value` | `directory_services` | `did_core_id[]` | required | 被允许索引该资源的稳定 Directory service `did_core_id` 列表。 |
 | `value` | `profile_visibility` | `object` | optional | 每个预览字段的可见性；未列字段默认不披露。 |
 
 payload **MUST NOT** 携带 detached `proof`：controller / governance 签名就是该 Event 的 envelope proof
 （§8.3 已明令废除 payload 内含 proof 的形态）。
 
-Actor discovery MUST NOT 暴露 pairwise/private DID、未披露组织账号或仅因共同 Realm 推断出的关系。Applet discovery MUST 只披露 registration 允许的 public metadata，不得暴露 private namespace、token、webhook secret 或租户内 endpoint。Handle discovery MUST 绑定 handle issuer、subject claim、audience 与过期时间；受限 handle 未满足 presentation / policy gate 时不得返回 subject DID 或 `member_delivery_binding`。
+Actor discovery MUST NOT 暴露 pairwise/private DID、未披露组织账号或仅因共同 Realm 推断出的关系。Applet discovery MUST 只披露 registration 允许的 public metadata，不得暴露 private namespace、token、webhook secret 或租户内 endpoint。Handle discovery MUST 绑定 handle issuer、subject claim、audience 与过期时间；受限 handle 未满足 presentation / policy gate 时不得返回 subject `did_core_id` 或 `member_delivery_binding`。
 
 ## 5. Actor 与 Handle 可发现性
 
@@ -553,12 +553,12 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
   "discovery_event": {
     "kind": "ak.organization.discovery",
     "payload": {
-      "organization_principal_id": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
+      "organization_principal_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
       "value": {
         "discoverability": "public",
         "directory_services": [
-          "did:webvh:zAvx6fqPK7h5rBjBiBRbmLmd6:directory.example",
-          "did:webvh:z43vHHHeh32Hnyv6t7X3t33Xs:directory.acme.example"
+          "ak:did_core:webvh:zAvx6fqPK7h5rBjBiBRbmLmd6",
+          "ak:did_core:webvh:z43vHHHeh32Hnyv6t7X3t33Xs"
         ],
         "profile_visibility": { "...": "..." }
       }
@@ -777,7 +777,7 @@ Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`alice:acme.
 
 当 `intent ∈ {contact_request, invite, member_add}` 且 Directory 返回 `member_delivery_binding` 时，响应 MUST 满足：
 
-1. `subject` / `principal_id` 是被寻址主体的 principal DID；两者同时出现时 MUST byte-for-byte 相同。
+1. `subject` / `principal_id` 是被寻址主体的稳定 principal `did_core_id`，不是裸 DID；两者同时出现时 MUST byte-for-byte 相同。
 2. `handle` 是 canonical handle（`<localpart>:<domain>` 主形态）；UI 字符串不得作为验签输入。
 3. `member_delivery_binding.recipient_service_id` 是 Principal Server service `did_core_id`，且 claim issuer 对该 service identity 的使用有可验证授权。
 4. `claims[]` 至少包含一个可验证 handle claim、VC presentation 或 signed directory claim，绑定 `handle`、`subject`、`member_delivery_binding.recipient_service_id`、issuer、`audience`、`created_at`、`expires_at`。
@@ -896,7 +896,7 @@ object MUST 省略 `issuer`，签名者身份只由 `verification_method` 承载
 每个 candidate MUST 符合 [`ak.schema.realm_join_candidate.v1`](../../artifacts/schemas/realm-join-candidate.schema.json)，并满足：
 
 1. `realm_id` MUST 等于解析结果的 canonical Realm ID。
-2. `service_id` MUST 是 service DID，不是用户 / 成员 principal DID；调用方首次接受新 candidate、candidate binding / policy revision 变化或其 authority freshness 失效时 MUST 验证 service DID binding，并确认 endpoint 支持 candidate 声明的 `operations`。同一未过期 candidate 命中已接受 binding 时直接复用，不得在每次传输前重新在线解析 DID Document。
+2. `service_id` MUST 是稳定 service `did_core_id`，不是裸 DID，也不是用户 / 成员 principal `did_core_id`；调用方首次接受新 candidate、candidate binding / policy revision 变化或其 authority freshness 失效时 MUST 验证该 core 与当前 service DID binding，并确认 endpoint 支持 candidate 声明的 `operations`。同一未过期 candidate 命中已接受 binding 时直接复用，不得在每次传输前重新在线解析 DID Document。
 3. `operations` MUST 包含 `ak.peer.events.command.submit.v1`；缺失时 invitee Principal Server 不得将其用于 join-side federation forwarding。客户端不得调用该 candidate。
 4. `expires_at` 过期、`stale=true`、或 `policy_revision` / `source_refs` 与真相源不一致时，客户端 MUST 重新 `resolve_realm`，不得继续使用缓存 candidate。
 5. Candidate 只决定 invitee Principal Server 可将 join material 转交给哪个已有成员 Principal Server；最终是否接受仍由 Realm auth state、Join Policy、capability、invite / review 链、Event proof 和 reducer 校验决定。

@@ -514,7 +514,7 @@ quota authority MUST 同时满足：
     {
       "claim_kind": "organization_membership",
       "issuer": "did:webvh:zGPwcewZ4W5tpgJnGa3T8reYM:acme.com",
-      "organization_id": "did:webvh:zGPwcewZ4W5tpgJnGa3T8reYM:acme.com",
+      "organization_id": "ak:did_core:webvh:zGPwcewZ4W5tpgJnGa3T8reYM",
       "status": "active",
       "roles": ["employee", "contractor"]
     }

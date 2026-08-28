@@ -1214,7 +1214,7 @@
       "root": {
         "realm_id": "ak:realm:AQpyF2T0bDz8a7SNAM5QdzbniqdGx7oJSb-7ohqeJ1Ui",
         "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
-        "controller_id": "did:web:alice.example",
+        "controller_id": "ak:did_core:web:alice.example",
         "controller_epoch": 0,
         "authority_generation": 4
       },
@@ -1249,13 +1249,13 @@
         {
           "name": "controller_transfer_preserves_chain",
           "author_supplied_patch": {
-            "controller_id": "did:web:bob.example"
+            "controller_id": "ak:did_core:web:bob.example"
           },
           "registered_increment_members": [
             "controller_epoch"
           ],
           "next_root": {
-            "controller_id": "did:web:bob.example",
+            "controller_id": "ak:did_core:web:bob.example",
             "controller_epoch": 1,
             "authority_generation": 4
           },
@@ -1277,7 +1277,7 @@
             "authority_generation"
           ],
           "next_root": {
-            "controller_id": "did:web:alice.example",
+            "controller_id": "ak:did_core:web:alice.example",
             "controller_epoch": 0,
             "authority_generation": 5
           },
@@ -1312,7 +1312,7 @@
         {
           "name": "transfer_missing_acceptance_rejected",
           "next_root": {
-            "controller_id": "did:web:bob.example",
+            "controller_id": "ak:did_core:web:bob.example",
             "controller_epoch": 1,
             "authority_generation": 4
           },

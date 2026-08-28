@@ -214,7 +214,7 @@
           "name": "sfu_not_plaintext_visible",
           "input": {
             "media_service_decrypts": true,
-            "sfu_service_id": "did:webvh:z6mkfixturesfuexample:sfu.example",
+            "sfu_service_id": "ak:did_core:webvh:z6mkfixturesfuexample",
             "plaintext_visible_services": []
           },
           "expected": {
@@ -229,7 +229,7 @@
               "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
               "preconditions": {
                 "media_service_decrypts": true,
-                "sfu_service_id": "did:webvh:z6mkfixturesfuexample:sfu.example",
+                "sfu_service_id": "ak:did_core:webvh:z6mkfixturesfuexample",
                 "plaintext_visible_services": []
               }
             },
@@ -239,7 +239,7 @@
               "canonicalization": "fixture_json_v1",
               "input": {
                 "media_service_decrypts": true,
-                "sfu_service_id": "did:webvh:z6mkfixturesfuexample:sfu.example",
+                "sfu_service_id": "ak:did_core:webvh:z6mkfixturesfuexample",
                 "plaintext_visible_services": []
               }
             },
@@ -262,7 +262,7 @@
           "input": {
             "media_service_decrypts": true,
             "security_frontier_covers_media_service_decrypts": true,
-            "sfu_service_id": "did:webvh:z6mkfixturesfuexample:sfu.example",
+            "sfu_service_id": "ak:did_core:webvh:z6mkfixturesfuexample",
             "plaintext_visible_services": [
               "did:webvh:z6mkfixturesfuexample:sfu.example"
             ],

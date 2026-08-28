@@ -980,7 +980,7 @@
       {
         "name": "entire_unknown_actor_omitted_without_independent_witness",
         "mutation": "omit_actor_and_all_of_its_events_then_recompute_issuer_signature_root_count_and_actor_seq_ranges",
-        "omitted_actor_id": "did:webvh:z6mkfixturedavidexample:david.example",
+        "omitted_actor_id": "ak:did_core:webvh:z6mkfixturedavidexample",
         "issuer_internal_consistency": "valid",
         "independent_actor_set_witness": null,
         "raw_replay_completed": false,

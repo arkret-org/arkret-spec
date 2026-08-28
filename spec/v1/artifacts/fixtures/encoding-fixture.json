@@ -980,9 +980,9 @@
         },
         {
           "name": "payload_actor_id_does_not_shadow_envelope",
-          "payload_actor_id": "did:webvh:z6mkfixturemalloryexample:mallory.example",
-          "envelope_actor_id": "did:webvh:z6mkfixture:alice.example",
-          "expected_component": "did:webvh:z6mkfixture:alice.example"
+          "payload_actor_id": "ak:did_core:webvh:z6mkfixturemalloryexample",
+          "envelope_actor_id": "ak:did_core:webvh:z6mkfixture",
+          "expected_component": "ak:did_core:webvh:z6mkfixture"
         },
         {
           "name": "object_component",

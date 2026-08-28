@@ -103,8 +103,8 @@
     {
       "name": "http_message_signature_digest",
       "input": {
-        "source_service_id": "did:webvh:z6mkfixtureserveralphaexample:server-alpha.example",
-        "destination_service_id": "did:webvh:z6mkfixtureserverbetaexample:server-beta.example",
+        "source_service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+        "destination_service_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
         "method": "POST",
         "target_uri": "https://server-beta.example/_arkret/peer/events",
         "operation_id": "ak.peer.events.command.submit.v1",
@@ -173,9 +173,9 @@
     {
       "name": "source_destination_service_id_mismatch",
       "input": {
-        "signature_source_service_id": "did:webvh:z6mkfixtureserveralphaexample:server-alpha.example",
-        "header_source_service_id": "did:webvh:z6mkfixtureservergammaexample:server-gamma.example",
-        "header_destination_service_id": "did:webvh:z6mkfixtureserverbetaexample:server-beta.example"
+        "signature_source_service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+        "header_source_service_id": "ak:did_core:webvh:z6mkfixtureservergammaexample",
+        "header_destination_service_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample"
       },
       "expected": "request_rejected_or_quarantined"
     },

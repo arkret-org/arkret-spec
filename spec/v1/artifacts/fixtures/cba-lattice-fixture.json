@@ -642,11 +642,11 @@
       "name": "inclusion_list_obligation",
       "description": "A multi-signer notary Seal must discharge valid inclusion-list obligations by inclusion, signed reject, or pre-state verification failure proof.",
       "notary_kind": "threshold",
-      "notary_proposer_id": "did:webvh:z6mkfixturenotaryproposerexample:notary-proposer.example",
-      "notary_signer_id": "did:webvh:z6mkfixturenotarysignerexample:notary-signer.example",
+      "notary_proposer_id": "ak:did_core:webvh:z6mkfixturenotaryproposerexample",
+      "notary_signer_id": "ak:did_core:webvh:z6mkfixturenotarysignerexample",
       "inclusion_list": {
         "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
-        "signer_id": "did:webvh:z6mkfixturenotarysignerexample:notary-signer.example",
+        "signer_id": "ak:did_core:webvh:z6mkfixturenotarysignerexample",
         "list_seq": 7,
         "event_digests": [
           "sha256:7777777777777777777777777777777777777777777777777777777777777777"
@@ -709,7 +709,7 @@
       "description": "Two different Seals signed by the same notary in the same slot authorize public equivocation evidence, quarantine the fork, and reject later Seals from that signer.",
       "fault_pair": {
         "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
-        "signer_id": "did:webvh:z6mkfixturenotaryexample:notary.example",
+        "signer_id": "ak:did_core:webvh:z6mkfixturenotaryexample",
         "notary_seq": 42,
         "seal_a": {
           "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -724,7 +724,7 @@
         "event_kind": "ak.notary.fault.equivocation",
         "submitter_capability_refs": [],
         "payload": {
-          "signer_id": "did:webvh:z6mkfixturenotaryexample:notary.example",
+          "signer_id": "ak:did_core:webvh:z6mkfixturenotaryexample",
           "seal_a": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "seal_b": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
@@ -739,7 +739,7 @@
         "remaining_signer_policy": "continue_if_quorum_else_notary_paused"
       },
       "invalid_parallel_leaf_case": {
-        "signer_id": "did:webvh:z6mkfixtureothernotaryexample:other-notary.example",
+        "signer_id": "ak:did_core:webvh:z6mkfixtureothernotaryexample",
         "notary_seq": 43,
         "expected": {
           "result": "failed_precondition"

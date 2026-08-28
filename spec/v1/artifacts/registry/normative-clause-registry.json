@@ -199,7 +199,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#3-realm-discoverability",
-      "section_digest": "sha256:bc5acdf9ad3b57f51f24f05e2ab4756dc60316ae9011a3cef002900d734b9e0e",
+      "section_digest": "sha256:601588d5ace4e14cec26e9dbf1b0767300a2a305b2dcdcecfe9227b730a9b37d",
       "requirement": "Directory resolution failures are indistinguishable: unauthorized, non-existent and policy-denied targets MUST NOT be separable by error code, field set or timing.",
       "testability_grade": "vector",
       "evidence_refs": [

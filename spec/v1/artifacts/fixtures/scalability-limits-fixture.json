@@ -528,7 +528,7 @@
       },
       "input": {
         "event_kind": "ak.circle.member.state",
-        "target_actor_id": "did:webvh:z6mkfixture:alice.example",
+        "target_actor_id": "ak:did_core:webvh:z6mkfixture",
         "target_circle_encryption_mode": "mls"
       },
       "expected": {
@@ -577,7 +577,7 @@
       },
       "input": {
         "event_kind": "ak.circle.member.state",
-        "target_actor_id": "did:webvh:z6mkfixture:alice.example",
+        "target_actor_id": "ak:did_core:webvh:z6mkfixture",
         "target_circle_encryption_mode": "mls"
       },
       "expected": {

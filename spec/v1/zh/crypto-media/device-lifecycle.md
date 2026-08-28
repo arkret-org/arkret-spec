@@ -459,11 +459,11 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 | --- | --- | --- | --- |
 | `device_message_id` | `id:device_message` | required | 发送方为一个逻辑消息分配的稳定 UUIDv7 typed ID；服务端在重试、分页和重投时 MUST 原样保留。接收端按 `(sender_principal_id, sender endpoint id, device_message_id)` 去重；endpoint id 由下述三分支分别取 `sender_device_id`、`sender_agent_id` 或 `sender_service_id`。 |
 | `kind` | `string` | required | 消息 kind，例如 `ak.key.verification.request`。标准 to-device kind 由 `device-message.schema.json` 的闭合 dispatch 定义，不得登记成 Event.kind。 |
-| `sender_principal_id` | `did` | required | 发送 principal。 |
+| `sender_principal_id` | `did_core_id` | required | 发送 principal 的稳定 `did_core_id`。 |
 | `sender_device_id` | `id:device` | conditional | human device sender；与完整 `sender_agent_*` 三元组、`sender_service_id` 严格 XOR。 |
 | `sender_agent_id` / `sender_agent_verification_method` / `sender_agent_key_authorize_event_id` | `did` / `did_url` / `id:event` | conditional | Native Agent sender 的完整 signer-evidence 三元组；不得半填或与其它 sender 分支混填。 |
 | `sender_service_id` | `did_core_id` | conditional | 受限 Principal Server sender。只允许 `device-message.schema.json#/$defs/actor_private_update_kind` 闭集，且 `sender_principal_id == recipient_principal_id`；service id MUST 等于为该 recipient 提供当前 authenticated self/to-device surface 的 Principal Server service identity。 |
-| `recipient_principal_id` | `did` | required | 接收 principal；MUST 等于投递路径中的目标 principal。 |
+| `recipient_principal_id` | `did_core_id` | required | 接收 principal 的稳定 `did_core_id`；MUST 等于投递路径中的目标 principal。 |
 | `recipient_device_id` | `id:device` | required | 接收设备；MUST 等于投递路径中的目标设备。 |
 | `sent_at` | `datetime` | required | 发送时间。 |
 | `expires_at` | `datetime` | required | 队列过期时间；不得晚于该 kind/profile 声明的 TTL 上限。 |
@@ -751,7 +751,7 @@ POST /_arkret/peer/keys/keypackages/claims/query
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `principal_id` | `did` | required | KeyPackage 所属 principal。 |
+| `principal_id` | `did_core_id` | required | KeyPackage 所属 principal 的稳定 `did_core_id`。 |
 | `device_id` | `id:device` | device branch | KeyPackage 所属 current accepted device；与另外两分支互斥。 |
 | `agent_verification_method` + `agent_key_authorize_event_id` | DID URL + Event id | Native Agent branch | exact current Agent runtime authorization。 |
 | `pairwise_verification_method` + `intended_realm_id` | exact `did:key` method + Realm id | pairwise branch | `principal_id` 必须是 method controller 的 `ak:did_core:key:*` 投影，不建立 account / Device / Agent。 |
@@ -812,7 +812,7 @@ lookup 前拒绝。不确定结果必须使用原 `claim_request_id + request_di
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `claim_request_id` | `base64url` | required | 至少 128-bit CSPRNG 随机 object identity；它同时是 `Idempotency-Key`、durable ledger key 与 claim-envelope challenge 的唯一随机值，uncertain outcome query 必须复用。 |
-| `target_principal_id` | `did` | required | 被邀请或加入的 principal。 |
+| `target_principal_id` | `did_core_id` | required | 被邀请或加入的 principal 的稳定 `did_core_id`。 |
 | `target_device_ids` | `array<id:device>` | conditional | Human-device target branch，至少一项；与 Native Agent/pairwise selector 互斥，不存在空 selector 或服务自行猜测 endpoint 的分支。携 `target_keypackage_ref` 时恰一项。 |
 | `target_agent_id + target_agent_verification_method + target_agent_key_authorize_event_id` | typed tuple | conditional | Native Agent target branch；三项同时出现，Agent 等于 `target_principal_id` 且 Event/method 为 current accepted authorization。 |
 | `target_pairwise_verification_method` | `did_url` | conditional | Minimal-metadata target branch；与 `target_principal_id` 的 Realm-local `ak:did_core:key` actor 精确投影一致，并排除 device/Agent selectors。 |

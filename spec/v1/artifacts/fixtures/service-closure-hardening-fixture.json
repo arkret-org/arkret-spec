@@ -217,14 +217,14 @@
           "name": "actor_seq_digest_disagreement",
           "witnesses": [
             {
-              "witness_id": "did:webvh:z6mkfixturewitnessaexample:witness-a.example",
+              "witness_id": "ak:did_core:webvh:z6mkfixturewitnessaexample",
               "realm_id": "ak:realm:AdYSFbfyN8gSP0coWuZi_vu3NVmR3SR6UfZquaYJiKsn",
               "actor_id": "ak:did_core:webvh:z6mkfixture",
               "actor_seq": 7,
               "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
             },
             {
-              "witness_id": "did:webvh:z6mkfixturewitnessbexample:witness-b.example",
+              "witness_id": "ak:did_core:webvh:z6mkfixturewitnessbexample",
               "realm_id": "ak:realm:AdYSFbfyN8gSP0coWuZi_vu3NVmR3SR6UfZquaYJiKsn",
               "actor_id": "ak:did_core:webvh:z6mkfixture",
               "actor_seq": 7,
