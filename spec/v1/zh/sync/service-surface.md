@@ -3,7 +3,7 @@ title: Service Surface And Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-25
+updated: 2026-08-28
 see_also:
   - service-http-binding.md
   - operations-sync.md
@@ -381,6 +381,13 @@ operation/transport 可用集合、feature 可用集合、profile claim、认证
 完全不变；因此 `x_*` MUST NOT 承载 endpoint、operation、transport、schema selector、认证要求、授权约束、协议 limit 或
 跨实现行为选择。需要影响这些结果的第一方字段必须先登记为 closed schema 字段；`invite_addressing` 即按此规则登记，且与
 `ak.feature.invite_addressing.v1` 双向共现，不保留扩展别名。
+
+软件源码树、SDK/服务构建、生成 registry 文件或整个发布制品的 exact hash / fingerprint 不是协议兼容性载体，MUST NOT
+出现在 `ServiceDescribe`（包括 `x_*`）中，也 MUST NOT 作为连接、operation 可用性、Event authoring、admission、route
+缓存或 fallback 的前置条件。实现只可按 `protocol_version`、本地 exact versioned registry/schema 与本节规定的
+operation bundle、transport、feature、profile、limit 交集判断互操作能力；这些交集成立时，源码或制品字节不同不得使
+整个服务不可用。开发工具 MAY 在单进程本地 UI、日志或 DOM 中暴露当前 bundle/build id 以诊断 stale cache，但该信号
+MUST 保持在协议外、不得随 Describe 或业务请求传输，也不得改变任何协议结果。
 
 当 `service_kind=directory_service` 时，`ak.find.directory.read.describe.v1` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-akfinddirectoryreaddescribev1-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_kinds[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。
 `service_kind` 只选择 role overlay，不自动产生任何 conformance profile claim；尤其

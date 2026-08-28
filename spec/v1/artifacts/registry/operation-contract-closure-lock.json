@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-28.1",
+  "version": "2026-08-28.3",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -24,7 +24,7 @@
     },
     {
       "operation_id": "ak.edge.applet.read.describe.v1",
-      "sha256": "sha256:f494767c38041c3bdf5ebe07fc646a791d81276e6b1d80df5e59c451aa3d8189"
+      "sha256": "sha256:11385871048e2f49e7e23dc6151440349d7c47e2e55664511cf8d71442eb676f"
     },
     {
       "operation_id": "ak.edge.applet.read.ping.v1",
@@ -76,7 +76,7 @@
     },
     {
       "operation_id": "ak.find.directory.read.describe.v1",
-      "sha256": "sha256:7d8cdbd34077b5b7b5ea93f86940b3e856d433a696f7910be56b8ed50f3f6100"
+      "sha256": "sha256:617820704710d7e39c25b29b5c40919e270fc7ddc04e8c834e074a8c262d89b1"
     },
     {
       "operation_id": "ak.find.directory.read.list_handles_for_subject.v1",
@@ -304,7 +304,7 @@
     },
     {
       "operation_id": "ak.peer.events.read.describe.v1",
-      "sha256": "sha256:1f67fec251556592e2eae338480369f46dce7c5433b794ff3159190833444fb4"
+      "sha256": "sha256:182e9e0d4361ae1ccaa302a56a33c1fa57c226130c1f1f6e09094e0a6e248266"
     },
     {
       "operation_id": "ak.peer.events.read.frontier.v1",
@@ -444,7 +444,7 @@
     },
     {
       "operation_id": "ak.root.identity.registry.read.describe.v1",
-      "sha256": "sha256:41a37e1745548c941baab2d68c90ca8c0eb08a66614c5184b3e72b4648b7e811"
+      "sha256": "sha256:37729846d370fb8e266d6282a458d897603ea593881121a1db7880d2fe9a2caf"
     },
     {
       "operation_id": "ak.root.identity.service_registration.command.ensure.v1",
@@ -464,7 +464,7 @@
     },
     {
       "operation_id": "ak.self.account.read.describe.v1",
-      "sha256": "sha256:9202007d3f4961fc77e78ec793e11a317a8c793f1af0c2fbfba7de8d5bcee70c"
+      "sha256": "sha256:4d277614c2b4ff8aeb80ef54a178035ba294323582a1b0d650051bbb930d9f82"
     },
     {
       "operation_id": "ak.self.account.read.viewer.v1",
@@ -744,7 +744,7 @@
     },
     {
       "operation_id": "ak.self.events.read.describe.v1",
-      "sha256": "sha256:1cc16ed7003a3da2a4dbf2c78c060c3772ef29bb5be0ddacbccdeac946aab9bf"
+      "sha256": "sha256:7ac8d9ee0f77cf7949388b15f721a423bee86a6bb64ec358e65185db18582495"
     },
     {
       "operation_id": "ak.self.events.read.frontier.v1",
@@ -1048,7 +1048,7 @@
     },
     {
       "operation_id": "ak.server.read.describe.v1",
-      "sha256": "sha256:c104f07879b8284ebd6c5f88961e3536dafae4300c88e3eca9782ec96a0cf1f0"
+      "sha256": "sha256:9d7c781019dda6be291c8ce47ffc6e1f5be6d180828f2acf06a44bff2601a214"
     }
   ]
 }

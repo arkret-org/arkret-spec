@@ -3,7 +3,7 @@ title: 协议演进
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-26
+updated: 2026-08-28
 see_also:
   - ../authz/event-auth-state-resolution.md
   - ../conformance/conformance-profiles.md
@@ -32,7 +32,10 @@ Arkret/1 分别管理四个版本维度，任何实现不得用其中一个替�
 | Realm reducer profile | Realm 的 `ak.component.realm.reducer_profile.v1` singleton control cell | 定义 Event admission、cell projection、lattice join、state root 与 security frontier 的共识语义。 |
 | Capability | `ServiceDescribe` 的 operation、feature、schema/profile 能力集合 | 决定可选功能是否可用。 |
 
-Spec、SDK 与服务实现的 SemVer 只管理发布制品，不参与联邦请求判定。实现不得用构建 SHA、发布版本或整包内容摘要代替上述机器可读合同。
+Spec、SDK 与服务实现的 SemVer 只管理发布制品，不参与联邦请求判定。实现不得用构建 SHA、发布版本、源码树摘要、
+生成 registry 文件摘要或整包内容摘要代替上述机器可读合同；这些 exact identity 不得进入 `ServiceDescribe` 或业务请求，
+也不得阻断已通过本节机器合同交集判定的 operation。开发态 stale-bundle 诊断只能使用不离开本地进程/UI 的非协议信号，
+规则以 [`../sync/service-surface.md` §3.0](../sync/service-surface.md) 为准。
 
 ## 2. Realm reducer profile
 
