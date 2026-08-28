@@ -495,7 +495,7 @@
           "kind": "event",
           "event_id": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka"
         },
-        "issuer": "ak:did_core:webvh:z6mkfixturesolandexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturesolandexample",
         "subject": {
           "kind": "event",
           "subject_ref": "ak:event:AVXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR"

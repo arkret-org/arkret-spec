@@ -896,7 +896,7 @@
         "versions",
         "relations",
         "comments",
-        "cursor_presence_entries"
+        "cursor_presence"
       ],
       "properties": {
         "document": {
@@ -980,7 +980,7 @@
             "additionalProperties": true
           }
         },
-        "cursor_presence_entries": {
+        "cursor_presence": {
           "type": "array",
           "items": {
             "type": "object",

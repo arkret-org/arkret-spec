@@ -22,7 +22,7 @@
         "request_acceptance_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       },
       "canonical_contact_round": "{\"kind\":\"normal\",\"request_acceptance_receipt_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"sorted_pair_member_ids\":[\"ak:did_core:webvh:z6mkfixturealice\",\"ak:did_core:webvh:z6mkfixturebob\"]}",
-      "expected_contact_round_id": "sha256:55e2bdad8a06d2503f04e1d0cb5046a918f1002eab53e560ce399fe5aaf10c82"
+      "expected_contact_round_id": "sha256:f6b2399820ef57c62ae5dc0d919c77e74027a5b4a36300c79624d8612433e681"
     },
     {
       "name": "glare",
@@ -44,7 +44,7 @@
         ]
       },
       "canonical_contact_round": "{\"kind\":\"glare\",\"requests\":[{\"request_acceptance_receipt_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\"},{\"request_acceptance_receipt_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"request_event_ref\":\"ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA\"}],\"sorted_pair_member_ids\":[\"ak:did_core:webvh:z6mkfixturealice\",\"ak:did_core:webvh:z6mkfixturebob\"]}",
-      "expected_contact_round_id": "sha256:4c0fa7e71411764bfa71af12c350b37b34ad128e81d46152219b65d5780995de"
+      "expected_contact_round_id": "sha256:ff61c3443124b8d102e70a65c3a47817c28421b3c6aeb7aed79107c47168be4d"
     }
   ]
 }

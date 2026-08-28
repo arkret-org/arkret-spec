@@ -922,7 +922,7 @@ invitee Principal Server 的转发算法 SHOULD 按 `priority` 升序，再按�
 {
   "query": "release",
   "organization_principal_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
-  "requester": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+  "requester_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "proof_challenge": "ak.chal_01JTV0KQ7K5ZP4VN6C9WEZK2X1",
   "limit": 20
 }

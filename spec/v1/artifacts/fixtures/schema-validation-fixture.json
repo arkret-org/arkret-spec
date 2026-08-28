@@ -182,7 +182,7 @@
         "founding_device_descriptor": {
           "descriptor_version": 1,
           "device_id": "ak:device:019a0000-0000-7000-8000-000000000002",
-          "device_public_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+          "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
           "device_key_digest": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
           "device_key_algorithm": "Ed25519",
           "device_key_purpose": "event_signing_and_mls_identity",
@@ -309,14 +309,14 @@
         "supported_features": [],
         "auth_metadata": {
           "account_authority": {
-            "origin": "https://alice.example.net",
+            "origin_uri": "https://alice.example.net",
             "gate_account_base": "https://alice.example.net/_arkret/gate/account"
           },
           "methods": [
             {
               "method": "oidc",
-              "issuer": "https://auth.example.net",
-              "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_uri": "https://auth.example.net/.well-known/openid-configuration",
               "client_id": "example_client",
               "grant_exchange": {
                 "kind": "account_handoff"
@@ -342,7 +342,7 @@
         "transport_bindings": [
           {
             "kind": "http_json",
-            "base_url": "https://alice.example.net",
+            "base_uri": "https://alice.example.net",
             "extension_profile_required": null
           }
         ]
@@ -515,7 +515,7 @@
         "transport_bindings": [
           {
             "kind": "http_json",
-            "base_url": "https://directory.example.net",
+            "base_uri": "https://directory.example.net",
             "extension_profile_required": null
           }
         ]
@@ -540,14 +540,14 @@
         "supported_features": [],
         "auth_metadata": {
           "account_authority": {
-            "origin": "https://alice.example.net",
+            "origin_uri": "https://alice.example.net",
             "gate_account_base": "https://alice.example.net/_arkret/gate/account"
           },
           "methods": [
             {
               "method": "oidc",
-              "issuer": "https://auth.example.net",
-              "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_uri": "https://auth.example.net/.well-known/openid-configuration",
               "client_id": "example_client",
               "grant_exchange": {
                 "kind": "account_handoff"
@@ -572,7 +572,7 @@
         "transport_bindings": [
           {
             "kind": "http_json",
-            "base_url": "https://alice.example.net",
+            "base_uri": "https://alice.example.net",
             "extension_profile_required": null
           }
         ]
@@ -596,14 +596,14 @@
         "supported_features": [],
         "auth_metadata": {
           "account_authority": {
-            "origin": "https://alice.example.net",
+            "origin_uri": "https://alice.example.net",
             "gate_account_base": "https://alice.example.net/_arkret/gate/account"
           },
           "methods": [
             {
               "method": "oidc",
-              "issuer": "https://auth.example.net",
-              "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_uri": "https://auth.example.net/.well-known/openid-configuration",
               "client_id": "example_client",
               "grant_exchange": {
                 "kind": "account_handoff"
@@ -629,7 +629,7 @@
         "transport_bindings": [
           {
             "kind": "http_json",
-            "base_url": "https://alice.example.net",
+            "base_uri": "https://alice.example.net",
             "extension_profile_required": null
           }
         ]
@@ -1040,7 +1040,7 @@
           "schema": "ak.schema.erasure_receipt.v1",
           "receipt_id": "ak:receipt:019a6aa0-0200-7000-8000-000000000000",
           "transaction_id": "ak:transaction:019a6aa0-0000-7000-8000-0000000000dd",
-          "issuer": "ak:did_core:webvh:z6mkfixtureerasureexample",
+          "issuer_id": "ak:did_core:webvh:z6mkfixtureerasureexample",
           "subject": {
             "kind": "principal",
             "subject_ref": "did:webvh:z6mkfixture:alice.example"
@@ -1131,7 +1131,7 @@
             "founding_device_descriptor": {
               "descriptor_version": 1,
               "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
-              "device_public_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+              "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
               "device_key_digest": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
               "device_key_algorithm": "Ed25519",
               "device_key_purpose": "event_signing_and_mls_identity",
@@ -1278,7 +1278,7 @@
             "founding_device_descriptor": {
               "descriptor_version": 1,
               "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
-              "device_public_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+              "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
               "device_key_digest": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
               "device_key_algorithm": "Ed25519",
               "device_key_purpose": "event_signing_and_mls_identity",
@@ -1452,7 +1452,7 @@
       "instance": {
         "id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
         "schema": "ak.schema.capability.v1",
-        "issuer": "ak:did_core:webvh:z6mkfixtureownerexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureownerexample",
         "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixtureownerserver",
         "subject": "ak:did_core:webvh:z6mkfixture",
         "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
@@ -1484,7 +1484,7 @@
       "instance": {
         "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
         "schema": "ak.schema.capability.v1",
-        "issuer": "ak:did_core:webvh:z6mkfixtureownerexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureownerexample",
         "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixtureownerserver",
         "subject": "ak:did_core:webvh:z6mkfixture",
         "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
@@ -1517,7 +1517,7 @@
       "instance": {
         "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
         "schema": "ak.schema.capability.v1",
-        "issuer": "ak:did_core:webvh:z6mkfixtureownerexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureownerexample",
         "subject": "ak:did_core:webvh:z6mkfixture",
         "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
         "actions": [
@@ -1549,7 +1549,7 @@
       "instance": {
         "grant": {
           "schema": "ak.schema.capability.v1",
-          "issuer": "ak:did_core:webvh:z6mkfixtureownerexample",
+          "issuer_id": "ak:did_core:webvh:z6mkfixtureownerexample",
           "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixtureownerserver",
           "subject": "ak:did_core:webvh:z6mkfixture",
           "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
@@ -2014,8 +2014,8 @@
           "a_new_agent_must_be_provisioned_from_scratch"
         ],
         "dpop_jkt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaj",
-        "audience": "ak:did_core:webvh:z6mkfixtureprincipalexample",
-        "origin": "https://principal.example",
+        "audience_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+        "origin_uri": "https://principal.example",
         "trust_domain": "ak:trust_domain:did.webvh.principal.example",
         "issued_at": "2026-05-20T00:00:00.000Z",
         "expires_at": "2026-05-20T00:05:00.000Z"
@@ -2041,8 +2041,8 @@
           "agent_slug_is_released_for_reuse"
         ],
         "dpop_jkt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaj",
-        "audience": "ak:did_core:webvh:z6mkfixtureprincipalexample",
-        "origin": "https://principal.example",
+        "audience_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+        "origin_uri": "https://principal.example",
         "trust_domain": "ak:trust_domain:did.webvh.principal.example",
         "issued_at": "2026-05-20T00:00:00.000Z",
         "expires_at": "2026-05-20T00:05:00.000Z"
@@ -2093,7 +2093,7 @@
         "id": "ak:invite:Ad52SfPzfiVjfD_OMKQv6DmARKYKzjGwMHdi1HpHi3N-",
         "schema": "ak.schema.invite.v1",
         "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "inviter": "ak:did_core:webvh:z6mkfixture",
+        "inviter_id": "ak:did_core:webvh:z6mkfixture",
         "third_party_invite": {
           "display_name_hint": "A.",
           "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -2179,7 +2179,7 @@
           "code_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "policy_version": "fixture-1"
         },
-        "attestation_chain": [
+        "attestation_chains": [
           {
             "format": "cose_cbor",
             "bytes_b64u": "AA"
@@ -2228,7 +2228,7 @@
           "code_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "policy_version": "fixture-1"
         },
-        "attestation_chain": [
+        "attestation_chains": [
           {
             "format": "cose_cbor",
             "bytes_b64u": "AA"
@@ -2446,7 +2446,7 @@
         "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "controller_id": "ak:did_core:webvh:z6mkfixturevendorexample",
-        "base_url": "https://applet.example",
+        "base_uri": "https://applet.example",
         "bot_actor_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "claimed_profiles": [
           "ak.profile.applet_service.v1"
@@ -2518,7 +2518,7 @@
         "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "controller_id": "ak:did_core:webvh:z6mkfixturevendorexample",
-        "base_url": "https://applet.example",
+        "base_uri": "https://applet.example",
         "bot_actor_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "claimed_profiles": [
           "ak.profile.applet_service.v1"
@@ -2584,7 +2584,7 @@
         "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "controller_id": "ak:did_core:webvh:z6mkfixturevendorexample",
-        "base_url": "https://applet.example",
+        "base_uri": "https://applet.example",
         "bot_actor_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "claimed_profiles": [
           "ak.profile.applet_service.v1"
@@ -2649,7 +2649,7 @@
       "expect_valid": true,
       "instance": {
         "kind": "conflict",
-        "cells": [
+        "cell_ids": [
           "ak:cell:ak.component.member.state.v1:did:webvh:z6mkfixture1270013a22816webvhalice:127.0.0.1%3A22816:webvh:alice"
         ]
       }
@@ -2658,10 +2658,10 @@
       "name": "cell_ref_with_malformed_percent_escape_rejected",
       "schema_ref": "schemas/bottom.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.cells[0]: 'ak:cell:ak.component.member.state.v1:did:web:host%3' does not match '^ak:cell:ak\\\\.component\\\\.[a-z0-9_]+(?:\\\\.[a-z0-9_]+)*\\\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$'",
+      "first_expected_error": "$.cell_ids[0]: 'ak:cell:ak.component.member.state.v1:did:web:host%3' does not match '^ak:cell:ak\\\\.component\\\\.[a-z0-9_]+(?:\\\\.[a-z0-9_]+)*\\\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$'",
       "instance": {
         "kind": "conflict",
-        "cells": [
+        "cell_ids": [
           "ak:cell:ak.component.member.state.v1:did:web:host%3"
         ]
       }
@@ -2670,10 +2670,10 @@
       "name": "cell_ref_without_complete_ak_component_family_rejected",
       "schema_ref": "schemas/bottom.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.cells[0]: 'ak:cell:message:019640ed-8000-7000-8000-000000000000' does not match '^ak:cell:ak\\\\.component\\\\.[a-z0-9_]+(?:\\\\.[a-z0-9_]+)*\\\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$'",
+      "first_expected_error": "$.cell_ids[0]: 'ak:cell:message:019640ed-8000-7000-8000-000000000000' does not match '^ak:cell:ak\\\\.component\\\\.[a-z0-9_]+(?:\\\\.[a-z0-9_]+)*\\\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$'",
       "instance": {
         "kind": "conflict",
-        "cells": [
+        "cell_ids": [
           "ak:cell:message:019640ed-8000-7000-8000-000000000000"
         ]
       }
@@ -2689,7 +2689,7 @@
         "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "controller_id": "ak:did_core:webvh:z6mkfixturevendorexample",
-        "base_url": "https://applet.example",
+        "base_uri": "https://applet.example",
         "bot_actor_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "claimed_profiles": [
           "ak.profile.applet_service.v1"
@@ -2765,7 +2765,7 @@
           "kind": "agent_runtime_key_possession",
           "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
           "challenge": "pairing-request-01970e58",
-          "audience": "ak:did_core:webvh:z6mkfixturepairexample",
+          "audience_id": "ak:did_core:webvh:z6mkfixturepairexample",
           "expires_at": "2026-05-20T00:05:00.000Z",
           "created_at": "2026-05-20T00:00:00.000Z",
           "runtime_key_binding_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -3288,7 +3288,7 @@
           "kind": "account_status_record",
           "account_status_record_id": "ak:account_status_record:AUPhm9XGSn2ah7YYExswNu0yaccqupAufE2bFvqEoD5N"
         },
-        "issuer": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
         "subject": {
           "kind": "principal",
           "subject_ref": "ak:did_core:webvh:z6mkfixtureerasedaccountexample"
@@ -3613,9 +3613,9 @@
       "instance": {
         "focus_id": "fra-1",
         "backend_kind": "livekit",
-        "connect_url": "wss://livekit.example.com",
+        "connect_uri": "wss://livekit.example.com",
         "backend_token": "signed.jwt.token",
-        "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
           "scheme": "ak.media.participant_binding.v1",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -3623,7 +3623,7 @@
           "focus_id": "fra-1",
           "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
           "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
-          "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
           "issued_at": "2026-08-16T00:00:00.000Z",
           "expires_at": "2026-08-16T00:05:00.000Z",
           "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
@@ -3639,13 +3639,13 @@
       "instance": {
         "focus_id": "fra-1",
         "backend_kind": "arkret_native",
-        "connect_url": "https://media.example.com",
+        "connect_uri": "https://media.example.com",
         "backend_token": {
           "kid": "did:webvh:z6mkfixture:media.example#key-1",
           "payload": {
             "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
             "focus_id": "fra-1",
-            "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+            "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
             "issued_at": "2026-08-16T00:00:00.000Z",
             "expires_at": "2026-08-16T00:05:00.000Z",
             "media": {
@@ -3657,7 +3657,7 @@
           "sig": "AA",
           "signature_algorithm": "Ed25519"
         },
-        "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
           "scheme": "ak.media.participant_binding.v1",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -3665,7 +3665,7 @@
           "focus_id": "fra-1",
           "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
           "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
-          "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
           "issued_at": "2026-08-16T00:00:00.000Z",
           "expires_at": "2026-08-16T00:05:00.000Z",
           "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
@@ -3682,9 +3682,9 @@
       "instance": {
         "focus_id": "fra-1",
         "backend_kind": "arkret_native",
-        "connect_url": "https://media.example.com",
+        "connect_uri": "https://media.example.com",
         "backend_token": "{\"kid\":\"did:webvh:z6mkfixture:media.example#key-1\"}",
-        "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
           "scheme": "ak.media.participant_binding.v1",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -3692,7 +3692,7 @@
           "focus_id": "fra-1",
           "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
           "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
-          "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
           "issued_at": "2026-08-16T00:00:00.000Z",
           "expires_at": "2026-08-16T00:05:00.000Z",
           "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
@@ -3709,9 +3709,9 @@
       "instance": {
         "focus_id": "fra-1",
         "backend_kind": "livekit",
-        "connect_url": "wss://livekit.example.com",
+        "connect_uri": "wss://livekit.example.com",
         "backend_token": {},
-        "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
           "scheme": "ak.media.participant_binding.v1",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -3719,7 +3719,7 @@
           "focus_id": "fra-1",
           "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
           "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
-          "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
           "issued_at": "2026-08-16T00:00:00.000Z",
           "expires_at": "2026-08-16T00:05:00.000Z",
           "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
@@ -3939,7 +3939,7 @@
             "jws": "a..b"
           }
         ],
-        "issuer": "ak:did_core:webvh:z6mkfixture:ingress.example",
+        "issuer_id": "ak:did_core:webvh:z6mkfixture:ingress.example",
         "signature": "legacy-single-signature"
       }
     },

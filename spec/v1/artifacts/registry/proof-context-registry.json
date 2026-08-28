@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-08-29.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-27T14:00:00+08:00",
+  "generated_at": "2026-08-29T00:00:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -65,7 +65,7 @@
         "principal_id",
         "verification_method",
         "created_at",
-        "audience"
+        "audience_id"
       ],
       "defined_in": "zh/identity/account-lifecycle.md",
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_authentication_proof"
@@ -86,7 +86,7 @@
         "log_head_digest",
         "control_key_digest",
         "dpop_jkt",
-        "audience",
+        "audience_id",
         "origin",
         "trust_domain",
         "issued_at",
@@ -135,7 +135,7 @@
         "verification_method",
         "signature_algorithm",
         "challenge",
-        "audience",
+        "audience_id",
         "created_at",
         "expires_at",
         "pairing_code",
@@ -149,7 +149,7 @@
       "object_family": "agent_session_refresh_proof",
       "binding_fields": [
         "request_canonical_digest",
-        "audience",
+        "audience_id",
         "issued_at",
         "expires_at",
         "verification_method"
@@ -513,7 +513,7 @@
         "identity_creation_lease_id",
         "lease_fence",
         "dpop_jkt",
-        "audience",
+        "audience_id",
         "origin",
         "trust_domain",
         "issued_at",
@@ -1020,7 +1020,7 @@
         "predecessor_session_grant_id?",
         "principal_id",
         "device_id",
-        "audience",
+        "audience_id",
         "holder_jkt",
         "session_intent_digest",
         "issued_at",

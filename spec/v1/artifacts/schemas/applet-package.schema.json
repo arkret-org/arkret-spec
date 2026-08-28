@@ -170,24 +170,24 @@
     "applet_namespaces": {
       "type": "object",
       "required": [
-        "actor_namespace_entries",
-        "realm_namespace_entries",
-        "handle_namespace_entries"
+        "actors",
+        "realms",
+        "handles"
       ],
       "properties": {
-        "actor_namespace_entries": {
+        "actors": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/namespace_entry"
           }
         },
-        "realm_namespace_entries": {
+        "realms": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/namespace_entry"
           }
         },
-        "handle_namespace_entries": {
+        "handles": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/namespace_entry"
@@ -337,10 +337,10 @@
       "type": "object",
       "description": "Supported Applet API endpoints and their auth requirement.",
       "required": [
-        "endpoint_entries"
+        "endpoints"
       ],
       "properties": {
-        "endpoint_entries": {
+        "endpoints": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/endpoint_entry"

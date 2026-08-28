@@ -113,10 +113,10 @@
     "consent_cell_list": {
       "type": "object",
       "required": [
-        "consent_cell_views"
+        "consents"
       ],
       "properties": {
-        "consent_cell_views": {
+        "consents": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/consent_cell_view"

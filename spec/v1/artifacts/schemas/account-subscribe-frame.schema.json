@@ -417,20 +417,8 @@
         "summary": {
           "$ref": "#/$defs/realm_summary"
         },
-        "member_roster_entries": {
-          "type": "array",
-          "description": "Lightweight roster hint derived from effective ak.member.state, effective ak.member.identity.update references, and currently visible handle-claim evidence. Entries MUST NOT carry display fields or naked handle strings directly; handle strings may appear only inside signed ak.schema.handle_claim.v1 objects.",
-          "items": {
-            "$ref": "#/$defs/member_roster_entry"
-          }
-        },
-        "members_limited": {
-          "type": "boolean",
-          "description": "True when member_roster_entries[] is truncated and MUST NOT be treated as the complete Realm roster."
-        },
-        "members_next_cursor": {
-          "$ref": "#/$defs/cursor_value",
-          "description": "Optional pagination cursor for continuing member roster retrieval."
+        "member_roster": {
+          "$ref": "#/$defs/member_roster"
         },
         "unread_notifications": {
           "$ref": "#/$defs/unread_notification_counts"
@@ -619,6 +607,31 @@
         "highlight_count": {
           "type": "integer",
           "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "member_roster": {
+      "type": "object",
+      "description": "Lightweight roster page derived from effective ak.member.state, effective ak.member.identity.update references, and currently visible handle-claim evidence. Entries MUST NOT carry display fields or naked handle strings directly; handle strings may appear only inside signed ak.schema.handle_claim.v1 objects.",
+      "required": [
+        "entries",
+        "limited"
+      ],
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member_roster_entry"
+          }
+        },
+        "limited": {
+          "type": "boolean",
+          "description": "True when entries[] is truncated and MUST NOT be treated as the complete Realm roster."
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/cursor_value",
+          "description": "Optional pagination cursor for continuing member roster retrieval."
         }
       },
       "additionalProperties": false

@@ -836,14 +836,14 @@ def build_response_stream_kat(schemas: SchemaSet) -> dict[str, Any]:
         b"ak.history-response-lost-record-v1", lost_unsigned
     )
     list_outcome = {
-        "ack_entries": [{"kind": "lost", "lost_record": lost_record}],
+        "entries": [{"kind": "lost", "lost_record": lost_record}],
         "ack_token": "response-ack-token-8",
         "limited": False,
     }
     ack_request = {
         "ack_token": list_outcome["ack_token"],
         "high_water_cursor": lost_record["cursor"],
-        "ack_entries": [{
+        "entries": [{
             "kind": "lost",
             "sequence": lost_record["sequence"],
             "response_id": lost_record["response_id"],
@@ -867,9 +867,9 @@ def build_response_stream_kat(schemas: SchemaSet) -> dict[str, Any]:
     bad_source = copy.deepcopy(send_request)
     bad_source["source_sender_domain"] = "did:key:z6MkWrongSource"
     out_of_order_ack = copy.deepcopy(ack_request)
-    out_of_order_ack["ack_entries"] = [
-        {**ack_request["ack_entries"][0], "sequence": 9},
-        ack_request["ack_entries"][0],
+    out_of_order_ack["entries"] = [
+        {**ack_request["entries"][0], "sequence": 9},
+        ack_request["entries"][0],
     ]
     return {
         "wire_instances": {
@@ -976,7 +976,7 @@ def build_rrk_registration_rotation_kat(
             "covered_event_digests": [register_event_digest],
             "control_event_set_root": sha256(jcs([register_event_digest])),
             "state_root": sha256(jcs({
-                "cell": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
+                "cell_id": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
                 "value": {
                     "key_tuple": register_tuple,
                     "accepted_key_evidence_ref": register_event["event_id"],
@@ -1007,7 +1007,7 @@ def build_rrk_registration_rotation_kat(
         "ak.realm.organization_recovery_key.rotate", rotate_payload, "rrk-rotate", 9
     )
     rotate_event["preconditions"] = [{
-        "cell": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
+        "cell_id": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
         "predicate": {"op": "head_eq", "value": current_projected_tuple},
     }]
     rotate_event["proofs"][0]["event_digest"] = sha256(
@@ -1040,7 +1040,7 @@ def build_rrk_registration_rotation_kat(
         "events": {"register": register_event, "rotate": rotate_event},
         "accepted_key_evidence_seal": accepted_key_evidence_seal,
         "projected_rotate_op": {
-            "cell": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
+            "cell_id": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
             "from": current_projected_tuple,
             "to": {
                 "key_tuple": rotate_tuple,

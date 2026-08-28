@@ -24,7 +24,7 @@
     "reanchor_event_id",
     "reanchor_batch_receipt_id",
     "proof_summary",
-    "unlocked_backup_classes",
+    "unlocked_backups",
     "welcome_count",
     "outcome",
     "started_at",
@@ -147,7 +147,7 @@
       },
       "additionalProperties": false
     },
-    "unlocked_backup_classes": {
+    "unlocked_backups": {
       "type": "array",
       "uniqueItems": true,
       "minItems": 0,

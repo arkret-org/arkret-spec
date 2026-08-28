@@ -59,6 +59,7 @@ NAMING_COVERAGE_MATRIX_PATH = TOOLS_ROOT / "naming-rule-coverage-matrix.json"
 IDENTIFIER_CLASSIFICATION_PATH = TOOLS_ROOT / "identifier-classification-registry.json"
 SLUG_FIELD_REGISTRY_PATH = TOOLS_ROOT / "slug-field-registry.json"
 ROLE_SUFFIX_REGISTRY_PATH = TOOLS_ROOT / "identifier-role-suffix-registry.json"
+COLLECTION_NAMING_REGISTRY_PATH = TOOLS_ROOT / "collection-naming-registry.json"
 NAMING_RULES_FILE = TOOLS_ROOT / "naming-convention-rules.json"
 ID_KIND_REGISTRY_PATH = ARTIFACTS / "registry" / "id-kind-registry.json"
 COMMON_FIELDS_PATH = SPEC_ROOT / "zh" / "models" / "common-fields.md"
@@ -672,70 +673,6 @@ def _shape_cardinalities(
     return visit(file_name, shape)
 
 
-_PROJECTION_TYPE_SUFFIXES = frozenset(
-    {"entry", "preview", "view", "descriptor", "projection", "row"}
-)
-
-
-def _array_projection_names(
-    documents: dict[str, Any], file_name: str, shape: Any
-) -> set[str]:
-    """Derive exact collection names from direct item projection type names."""
-
-    names: set[str] = set()
-
-    seen: set[tuple[str, str]] = set()
-
-    def inspect_item(current_file: str, node: Any) -> None:
-        if not isinstance(node, dict):
-            return
-        ref = node.get("$ref")
-        if isinstance(ref, str):
-            token = ref.rsplit("/", 1)[-1]
-            snake = "_".join(split_name_words(token))
-            final = snake.rsplit("_", 1)[-1]
-            captured = final in _PROJECTION_TYPE_SUFFIXES
-            if final in _PROJECTION_TYPE_SUFFIXES:
-                names.add(
-                    snake.removesuffix("entry") + "entries"
-                    if final == "entry"
-                    else snake + "s"
-                )
-            if captured:
-                return
-            target, separator, fragment = ref.partition("#")
-            target_file = current_file if not target else Path(target).name
-            edge = (target_file, ref)
-            if edge not in seen and target_file in documents:
-                seen.add(edge)
-                try:
-                    resolved = resolve_json_pointer(
-                        documents[target_file], f"#{fragment}" if separator else ""
-                    )
-                except (KeyError, TypeError, ValueError):
-                    resolved = None
-                inspect_item(target_file, resolved)
-        for keyword in ("allOf", "anyOf", "oneOf"):
-            branches = node.get(keyword)
-            if isinstance(branches, list):
-                for branch in branches:
-                    inspect_item(current_file, branch)
-
-    def find_array(current_file: str, node: Any) -> None:
-        if not isinstance(node, dict):
-            return
-        if "items" in node:
-            inspect_item(current_file, node["items"])
-        for keyword in ("allOf", "anyOf", "oneOf"):
-            branches = node.get(keyword)
-            if isinstance(branches, list):
-                for branch in branches:
-                    find_array(current_file, branch)
-
-    find_array(file_name, shape)
-    return names
-
-
 def _role_terminal_contract(
     terminals: tuple[tuple[str, str], ...], *, plural: bool
 ) -> tuple[str | None, str | None]:
@@ -809,12 +746,100 @@ def _role_stem(name: str, category: str) -> str:
 _DUPLICATE_REPRESENTATION_SUFFIX_RE = re.compile(
     r"(?:_id_id|_ids_ids|_did_did|_uri_uri|_kid_kid)(?![a-z0-9_])"
 )
+_EMBEDDED_REPRESENTATION_SUFFIX_RE = re.compile(
+    r"(?:^|_)(?:id|did|uri|kid)ship(?:_|$)"
+)
+
+_REPRESENTATION_SUFFIX_CATEGORIES = {
+    "_ids": "identifier",
+    "_id": "identifier",
+    "_dids": "did",
+    "_did": "did",
+    "_uris": "uri",
+    "_uri": "uri",
+    "_kids": "did_url",
+    "_kid": "did_url",
+}
+
+
+def _declared_representation_suffix(name: str) -> str | None:
+    for suffix in sorted(_REPRESENTATION_SUFFIX_CATEGORIES, key=len, reverse=True):
+        if name.endswith(suffix):
+            return suffix
+    return None
+
+
+def _representation_suffix_incompatibility(
+    name: str,
+    terminals: tuple[tuple[str, str], ...],
+    cardinalities: set[str],
+) -> tuple[str, str] | None:
+    """Return why a representation suffix contradicts its resolved terminal.
+
+    Opaque local identifiers are intentionally not rejected merely because their
+    regex is not an ``ak:`` typed-ID pattern. The reverse gate acts only on
+    mechanically established contradictions: wrong cardinality, a non-string
+    object/value terminal, a DID-method selector masquerading as a DID, or a
+    closed non-URI enum masquerading as URI material.
+    """
+
+    suffix = _declared_representation_suffix(name)
+    if suffix is None:
+        return None
+    suffix_plural = suffix.endswith("s")
+    if cardinalities == {"array"} and not suffix_plural:
+        return suffix, "array terminal requires a plural representation suffix"
+    if cardinalities == {"scalar"} and suffix_plural:
+        return suffix, "scalar terminal requires a singular representation suffix"
+
+    non_identifier_types = {
+        '"object"',
+        '"boolean"',
+        '"integer"',
+        '"number"',
+    }
+    if suffix in {"_id", "_ids"} and ("type", '"object"') in terminals:
+        # The object-role diagnostic below gives the actionable projected name.
+        return None
+    if any(kind == "type" and value in non_identifier_types for kind, value in terminals):
+        return suffix, "non-identifier value terminal cannot carry a representation suffix"
+
+    terminal_category, expected_suffix = _role_terminal_contract(
+        terminals, plural=cardinalities == {"array"}
+    )
+    if terminal_category is not None:
+        if expected_suffix is not None and suffix != expected_suffix:
+            return suffix, f"resolved {terminal_category} terminal requires {expected_suffix}"
+        return None
+
+    category = _REPRESENTATION_SUFFIX_CATEGORIES[suffix]
+    if category == "did" and any(
+        kind == "pattern" and value in {"^did:[a-z0-9]+$", "^did:[a-z0-9]+:$"}
+        for kind, value in terminals
+    ):
+        return suffix, "DID-method selector token is not a complete DID"
+
+    closed_values: list[str] = []
+    for kind, value in terminals:
+        if kind == "const":
+            closed_values.append(value)
+        elif kind == "enum":
+            closed_values.extend(value.split("|"))
+    if category == "did" and closed_values and all(
+        re.fullmatch(r"did:[a-z0-9]+", value) for value in closed_values
+    ):
+        return suffix, "closed DID-method selector is not a complete DID"
+    if category == "uri" and closed_values and any(
+        not re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", value) for value in closed_values
+    ):
+        return suffix, "closed selector enum is not URI material"
+    return None
 
 
 def _check_duplicate_representation_suffixes(
     lint: Lint, documents: dict[str, Any]
 ) -> None:
-    """Reject mechanically duplicated representation suffixes in wire artifacts."""
+    """Reject duplicated suffixes and suffix fragments inserted into ordinary words."""
 
     def walk(path: Path, value: Any, pointer: str = "") -> None:
         if isinstance(value, dict):
@@ -822,12 +847,16 @@ def _check_duplicate_representation_suffixes(
                 child_pointer = f"{pointer}/{key}"
                 if _DUPLICATE_REPRESENTATION_SUFFIX_RE.search(key):
                     lint.fail(path, f"NC-IDROLE-001 {child_pointer}: duplicated representation suffix")
+                if _EMBEDDED_REPRESENTATION_SUFFIX_RE.search(key):
+                    lint.fail(path, f"NC-IDROLE-001 {child_pointer}: representation suffix corrupts an ordinary word")
                 walk(path, child, child_pointer)
         elif isinstance(value, list):
             for index, child in enumerate(value):
                 walk(path, child, f"{pointer}/{index}")
         elif isinstance(value, str) and _DUPLICATE_REPRESENTATION_SUFFIX_RE.search(value):
             lint.fail(path, f"NC-IDROLE-001 {pointer}: duplicated representation suffix in `{value}`")
+        elif isinstance(value, str) and _EMBEDDED_REPRESENTATION_SUFFIX_RE.search(value):
+            lint.fail(path, f"NC-IDROLE-001 {pointer}: representation suffix corrupts ordinary word in `{value}`")
 
     for file_name, document in documents.items():
         walk(SCHEMA_DIR / file_name, document)
@@ -973,17 +1002,10 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
 
             terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
             cardinalities = _shape_cardinalities(documents, file_name, occurrence.shape)
-            projection_names = _array_projection_names(
-                documents, file_name, occurrence.shape
-            )
             if exception is not None:
                 exception_category, _ = _role_terminal_contract(
                     terminals, plural=cardinalities == {"array"}
                 )
-                if projection_names:
-                    exception_category = "object_projection_array"
-                elif cardinalities == {"array"} and ("type", '"object"') in terminals:
-                    exception_category = "object_array"
                 if exception_category not in exception[1]:
                     lint.fail(
                         ROLE_SUFFIX_REGISTRY_PATH,
@@ -992,6 +1014,21 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                         f"{exception_category!r}",
                     )
                 reached_exceptions.add((file_name, occurrence.pointer))
+                continue
+            inverse_mismatch = _representation_suffix_incompatibility(
+                name, terminals, cardinalities
+            )
+            if inverse_mismatch is not None:
+                declared_suffix, mismatch_reason = inverse_mismatch
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                    f"role_stem={name.removesuffix(declared_suffix)}; "
+                    "terminal_category=non_identifier_or_mismatched_representation; "
+                    "required_subject_class=unspecified; "
+                    f"expected_suffix=none; exception_reason={exception_reason}; "
+                    f"`{name}` declares {declared_suffix} but {mismatch_reason}",
+                )
                 continue
             if name.endswith(("_id", "_ids")) and ("type", '"object"') in terminals:
                 expected = (
@@ -1007,36 +1044,6 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                     f"expected_suffix=object_role; exception_reason={exception_reason}; "
                     f"`{name}` claims an identifier representation but resolves to an "
                     f"object value; rename it to an object role such as `{expected}`",
-                )
-                continue
-
-            if projection_names and name not in projection_names:
-                expected = " or ".join(sorted(projection_names))
-                lint.fail(
-                    SCHEMA_DIR / file_name,
-                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
-                    f"role_stem={name}; terminal_category=object_projection_array; "
-                    "required_subject_class=unspecified; "
-                    f"expected_suffix={expected}; exception_reason={exception_reason}; "
-                    "an entry/preview/view/descriptor/projection/row collection must "
-                    "use the exact plural derived from its item type",
-                )
-                continue
-
-            if (
-                cardinalities == {"array"}
-                and ("type", '"object"') in terminals
-                and not projection_names
-                and not name.rsplit("_", 1)[-1].endswith("s")
-            ):
-                lint.fail(
-                    SCHEMA_DIR / file_name,
-                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
-                    f"role_stem={name}; terminal_category=object_array; "
-                    "required_subject_class=unspecified; "
-                    f"expected_suffix={name}s; exception_reason={exception_reason}; "
-                    "an object array must use a plural collection role or an exact "
-                    "registered collection exception",
                 )
                 continue
 
@@ -1089,7 +1096,186 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
     if stale_exceptions:
         lint.fail(
             ROLE_SUFFIX_REGISTRY_PATH,
-            f"exact identifier/object-shape exceptions are stale or unreachable: {stale_exceptions}",
+            f"exact identifier exceptions are stale or unreachable: {stale_exceptions}",
+        )
+
+
+def check_collection_field_contracts(lint: Lint) -> None:
+    """Enforce NC-COLLECTION-001 independently of identifier representation.
+
+    A referenced item type does not dictate the property spelling. Object
+    collections use the shortest unambiguous plural role in their lexical
+    context; collective nouns and grammar operators are admitted only at exact
+    registered paths. Pagination objects are likewise pinned independently of
+    identifier suffixes.
+    """
+
+    registry = load_json(lint, COLLECTION_NAMING_REGISTRY_PATH)
+    if not isinstance(registry, dict):
+        return
+    if registry.get("source_of_truth") is not False:
+        lint.fail(
+            COLLECTION_NAMING_REGISTRY_PATH,
+            "the collection naming registry records reviewed exceptions; schemas and prose remain normative",
+        )
+    exception_rows = registry.get("exact_exceptions")
+    pagination_rows = registry.get("pagination_objects")
+    singular_s_tokens = registry.get("singular_s_tokens")
+    if (
+        not isinstance(exception_rows, list)
+        or not isinstance(pagination_rows, list)
+        or not isinstance(singular_s_tokens, list)
+        or not all(isinstance(item, str) and item for item in singular_s_tokens)
+    ):
+        lint.fail(
+            COLLECTION_NAMING_REGISTRY_PATH,
+            "exact_exceptions, pagination_objects and singular_s_tokens must be arrays",
+        )
+        return
+    singular_s_token_set = set(singular_s_tokens)
+
+    exceptions: dict[tuple[str, str], str] = {}
+    for index, row in enumerate(exception_rows):
+        where = f"exact_exceptions[{index}]"
+        if not isinstance(row, dict) or not all(
+            isinstance(row.get(key), str) and row[key]
+            for key in ("file", "pointer", "reason")
+        ):
+            lint.fail(COLLECTION_NAMING_REGISTRY_PATH, f"{where} is incomplete")
+            continue
+        key = (row["file"], row["pointer"])
+        if key in exceptions:
+            lint.fail(COLLECTION_NAMING_REGISTRY_PATH, f"{where} duplicates {key}")
+            continue
+        exceptions[key] = row["reason"]
+
+    documents = _schema_documents(lint)
+    reached: set[tuple[str, str]] = set()
+    for file_name, document in documents.items():
+        external_owners = {
+            owner.pointer
+            for owner in enumerate_property_owners(file_name, document)
+            if EXTERNAL_LITERAL_OBJECT_KEYWORD in owner.node
+        }
+        for occurrence in enumerate_schema_properties(file_name, document):
+            owner_pointer = occurrence.pointer.rsplit("/properties/", 1)[0]
+            if owner_pointer in external_owners:
+                continue
+            terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
+            cardinalities = _shape_cardinalities(documents, file_name, occurrence.shape)
+            if cardinalities != {"array"} or ("type", '"object"') not in terminals:
+                continue
+            key = (file_name, occurrence.pointer)
+            if key in exceptions:
+                reached.add(key)
+                continue
+            final_token = occurrence.name.rsplit("_", 1)[-1]
+            if final_token.endswith("s") and final_token not in singular_s_token_set:
+                continue
+            lint.fail(
+                SCHEMA_DIR / file_name,
+                f"NC-COLLECTION-001 {occurrence.pointer}: lexical_owner=arkret_owned; "
+                f"role_stem={occurrence.name}; terminal_category=object_array; "
+                f"expected_suffix=<plural>; exception_reason=none; object collections "
+                "must use the shortest unambiguous plural role, or an exact registered "
+                "collective/mass-noun exception",
+            )
+
+    stale = sorted(set(exceptions) - reached)
+    if stale:
+        lint.fail(
+            COLLECTION_NAMING_REGISTRY_PATH,
+            f"exact collection exceptions are stale or unreachable: {stale}",
+        )
+
+    observed_pages: dict[tuple[str, str], tuple[list[str], list[str]]] = {}
+    for file_name, document in documents.items():
+        for owner in enumerate_property_owners(file_name, document):
+            if EXTERNAL_LITERAL_OBJECT_KEYWORD in owner.node:
+                continue
+            properties = owner.node.get("properties", {})
+            companions = sorted(
+                name
+                for name in owner.names
+                if name != "rate_limited"
+                and (
+                    name in {"limited", "next_cursor", "has_more"}
+                    or name.endswith(("_limited", "_next_cursor", "_has_more"))
+                )
+            )
+            collections = sorted(
+                name
+                for name in owner.names
+                if isinstance(properties.get(name), dict)
+                and _shape_cardinalities(documents, file_name, properties[name]) == {"array"}
+            )
+            if companions and collections:
+                observed_pages[(file_name, owner.pointer)] = (collections, companions)
+
+    seen_pages: set[tuple[str, str]] = set()
+    for index, row in enumerate(pagination_rows):
+        where = f"pagination_objects[{index}]"
+        if not isinstance(row, dict) or not all(
+            isinstance(row.get(key), str) and row[key]
+            for key in ("file", "collection_field", "reason")
+        ) or not isinstance(row.get("pointer"), str) or not isinstance(row.get("companion_fields"), list) or not all(
+            isinstance(item, str) and item for item in row.get("companion_fields", [])
+        ):
+            lint.fail(COLLECTION_NAMING_REGISTRY_PATH, f"{where} is incomplete")
+            continue
+        key = (row["file"], row["pointer"])
+        if key in seen_pages:
+            lint.fail(COLLECTION_NAMING_REGISTRY_PATH, f"{where} duplicates {key}")
+            continue
+        seen_pages.add(key)
+        observed = observed_pages.get(key)
+        if observed is None:
+            lint.fail(
+                COLLECTION_NAMING_REGISTRY_PATH,
+                f"{where} is stale: the owner no longer has both a collection and pagination companions",
+            )
+        document = documents.get(row["file"])
+        if document is None:
+            lint.fail(COLLECTION_NAMING_REGISTRY_PATH, f"{where} names an unknown schema")
+            continue
+        try:
+            page = resolve_json_pointer(document, f"#{row['pointer']}")
+        except (KeyError, TypeError, ValueError):
+            lint.fail(COLLECTION_NAMING_REGISTRY_PATH, f"{where} pointer no longer resolves")
+            continue
+        if not isinstance(page, dict) or page.get("type") != "object":
+            lint.fail(COLLECTION_NAMING_REGISTRY_PATH, f"{where} must resolve to an object")
+            continue
+        properties = page.get("properties")
+        collection_field = row["collection_field"]
+        companions = row["companion_fields"]
+        if not isinstance(properties, dict) or not isinstance(properties.get(collection_field), dict):
+            lint.fail(
+                SCHEMA_DIR / row["file"],
+                f"NC-COLLECTION-001 {row['pointer']}: pagination object is missing collection field `{collection_field}`",
+            )
+            continue
+        cardinalities = _shape_cardinalities(
+            documents, row["file"], properties[collection_field]
+        )
+        missing = [name for name in companions if name not in properties]
+        unexpected_companions = (
+            sorted(set(observed[1]) - set(companions)) if observed is not None else []
+        )
+        if cardinalities != {"array"} or missing or unexpected_companions:
+            lint.fail(
+                SCHEMA_DIR / row["file"],
+                f"NC-COLLECTION-001 {row['pointer']}: pagination object requires array "
+                f"`{collection_field}` and companion fields {companions}; missing={missing}; "
+                f"unregistered_companions={unexpected_companions}",
+            )
+
+    unregistered_pages = sorted(set(observed_pages) - seen_pages)
+    if unregistered_pages:
+        lint.fail(
+            COLLECTION_NAMING_REGISTRY_PATH,
+            "pagination owner closure drift: unregistered="
+            f"{[(file_name, pointer, observed_pages[(file_name, pointer)]) for file_name, pointer in unregistered_pages]}",
         )
 
 

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-27.2",
+  "version": "2026-08-29.1",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",

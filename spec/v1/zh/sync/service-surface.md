@@ -219,12 +219,12 @@ GET /_arkret/describe
   "transport_bindings": [
     {
       "kind": "http_json",
-      "base_url": "https://alice.example.net/",
+      "base_uri": "https://alice.example.net/",
       "extension_profile_required": null
     },
     {
       "kind": "tus",
-      "base_url": "https://alice.example.net/_arkret/self/blob/resumable",
+      "base_uri": "https://alice.example.net/_arkret/self/blob/resumable",
       "extension_profile_required": null,
       "tus_version": ["1.0.0"],
       "tus_extensions": ["creation", "creation-with-upload", "checksum", "expiration", "termination"]
@@ -266,14 +266,14 @@ GET /_arkret/describe
   },
   "auth_metadata": {
     "account_authority": {
-      "origin": "https://alice.example.net",
+      "origin_uri": "https://alice.example.net",
       "gate_account_base": "https://alice.example.net/_arkret/gate/account"
     },
     "methods": [
       {
         "method": "oidc",
-        "issuer": "https://auth.example.com",
-        "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
+        "issuer_uri": "https://auth.example.com",
+        "openid_configuration_uri": "https://auth.example.com/.well-known/openid-configuration",
         "client_id": "ak.example-client",
         "scopes": ["openid", "profile"],
         "grant_exchange": {"kind": "account_handoff"}

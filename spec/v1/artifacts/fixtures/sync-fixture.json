@@ -21,7 +21,7 @@
         "expires_at": "2026-07-16T08:10:00.000Z",
         "content": {
           "transaction_id": "verification-fixture-1",
-          "from_device": "ak:device:01964137-1000-7000-8000-000000000011",
+          "from_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
           "methods": [
             "ak.sas.v1"
           ],
@@ -45,7 +45,7 @@
         "expires_at": "2026-07-16T08:10:00.000Z",
         "content": {
           "transaction_id": "verification-fixture-1",
-          "from_device": "ak:device:01964137-1000-7000-8000-000000000011",
+          "from_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
           "methods": [
             "ak.sas.v1"
           ],

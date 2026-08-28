@@ -38,9 +38,11 @@ from tools.artifact_lint.naming import (
     unregistered_wrapper_word,
 )
 from tools.artifact_lint.naming_contracts import (
+    COLLECTION_NAMING_REGISTRY_PATH,
     IDENTIFIER_CLASSIFICATION_PATH,
     NAMING_COVERAGE_MATRIX_PATH,
     SLUG_FIELD_REGISTRY_PATH,
+    check_collection_field_contracts,
     check_duration_field_units,
     check_identifier_role_suffix_contracts,
     check_identifier_value_categories,
@@ -744,10 +746,10 @@ class IdentifierRoleSuffixTest(MutationHarness):
         def mutate(document):
             shape = document["$defs"]["directory_actor_search_outcome"]
             shape["required"] = [
-                "actor_ids" if item == "actor_previews" else item
+                "actor_ids" if item == "actors" else item
                 for item in shape["required"]
             ]
-            shape["properties"]["actor_ids"] = shape["properties"].pop("actor_previews")
+            shape["properties"]["actor_ids"] = shape["properties"].pop("actors")
 
         errors = self.lint_with_file(
             SCHEMA_DIR / "directory-operations.schema.json",
@@ -757,24 +759,23 @@ class IdentifierRoleSuffixTest(MutationHarness):
         self.assertTrue(any("terminal_category=object" in error for error in errors), errors)
         self.assertTrue(any("expected_suffix=object_role" in error for error in errors), errors)
 
-    def test_projection_collection_requires_exact_item_type_stem(self) -> None:
+    def test_object_collection_does_not_mirror_item_type_name(self) -> None:
         def mutate(document):
             shape = document["$defs"]["directory_actor_search_outcome"]
             shape["required"] = [
-                "realm_previews" if item == "actor_previews" else item
+                "realms" if item == "actors" else item
                 for item in shape["required"]
             ]
-            shape["properties"]["realm_previews"] = shape["properties"].pop(
-                "actor_previews"
+            shape["properties"]["realms"] = shape["properties"].pop(
+                "actors"
             )
 
         errors = self.lint_with_file(
             SCHEMA_DIR / "directory-operations.schema.json",
             mutate,
-            check=check_identifier_role_suffix_contracts,
+            check=check_collection_field_contracts,
         )
-        self.assertTrue(any("terminal_category=object_projection_array" in error for error in errors), errors)
-        self.assertTrue(any("expected_suffix=actor_previews" in error for error in errors), errors)
+        self.assertEqual(errors, [])
 
     def test_non_projection_object_array_cannot_use_singular_role(self) -> None:
         def mutate(document):
@@ -789,10 +790,10 @@ class IdentifierRoleSuffixTest(MutationHarness):
         errors = self.lint_with_file(
             SCHEMA_DIR / "service-identity-bundle.schema.json",
             mutate,
-            check=check_identifier_role_suffix_contracts,
+            check=check_collection_field_contracts,
         )
         self.assertTrue(any("terminal_category=object_array" in error for error in errors), errors)
-        self.assertTrue(any("expected_suffix=receipt_chains" in error for error in errors), errors)
+        self.assertTrue(any("expected_suffix=<plural>" in error for error in errors), errors)
 
     def test_plural_check_uses_final_token_not_an_earlier_s_suffix(self) -> None:
         def mutate(document):
@@ -804,10 +805,25 @@ class IdentifierRoleSuffixTest(MutationHarness):
         errors = self.lint_with_file(
             SCHEMA_DIR / "service-identity-bundle.schema.json",
             mutate,
-            check=check_identifier_role_suffix_contracts,
+            check=check_collection_field_contracts,
         )
         self.assertTrue(any("role_stem=status_item" in error for error in errors), errors)
         self.assertTrue(any("terminal_category=object_array" in error for error in errors), errors)
+
+    def test_s_ending_singular_token_is_not_treated_as_plural(self) -> None:
+        def mutate(document):
+            document["properties"]["status"] = {
+                "type": "array",
+                "items": {"type": "object"},
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "service-identity-bundle.schema.json",
+            mutate,
+            check=check_collection_field_contracts,
+        )
+        self.assertTrue(any("role_stem=status" in error for error in errors), errors)
+        self.assertTrue(any("NC-COLLECTION-001" in error for error in errors), errors)
 
     def test_plural_services_token_cannot_hide_as_middle_qualifier(self) -> None:
         def mutate(document):
@@ -823,6 +839,99 @@ class IdentifierRoleSuffixTest(MutationHarness):
         self.assertTrue(any("plaintext_visible_services_payload" in error for error in errors), errors)
         self.assertTrue(any("terminal_category=qualified_field" in error for error in errors), errors)
 
+    def test_registered_pagination_companions_are_closed_by_owner(self) -> None:
+        def mutate(document):
+            roster = document["$defs"]["member_roster"]
+            roster["required"] = [
+                "members_limited" if item == "limited" else item
+                for item in roster["required"]
+            ]
+            roster["properties"]["members_limited"] = roster["properties"].pop("limited")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "account-subscribe-frame.schema.json",
+            mutate,
+            check=check_collection_field_contracts,
+        )
+        self.assertTrue(
+            any("unregistered_companions=['members_limited']" in error for error in errors),
+            errors,
+        )
+
+    def test_unregistered_pagination_owner_fails_closed(self) -> None:
+        def mutate(document):
+            document["properties"]["next_cursor"] = {"type": "string"}
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "service-identity-bundle.schema.json",
+            mutate,
+            check=check_collection_field_contracts,
+        )
+        self.assertTrue(any("pagination owner closure drift" in error for error in errors), errors)
+
+    def test_collective_noun_exception_is_exact_path_and_closed(self) -> None:
+        def mutate(document):
+            document["exact_exceptions"] = [
+                row
+                for row in document["exact_exceptions"]
+                if not (
+                    row["file"] == "view.schema.json"
+                    and row["pointer"].endswith("/properties/cursor_presence")
+                )
+            ]
+
+        errors = self.lint_with_file(
+            COLLECTION_NAMING_REGISTRY_PATH,
+            mutate,
+            check=check_collection_field_contracts,
+        )
+        self.assertTrue(any("role_stem=cursor_presence" in error for error in errors), errors)
+
+    def test_did_method_selector_cannot_claim_did_representation(self) -> None:
+        def mutate(document):
+            shape = document["$defs"]["did_method_version"]
+            shape["properties"]["method_did"] = shape["properties"].pop("method")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "applet-registration-epoch-transcript.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(
+            any("DID-method selector token is not a complete DID" in error for error in errors),
+            errors,
+        )
+        self.assertTrue(any("expected_suffix=none" in error for error in errors), errors)
+
+    def test_closed_selector_enum_cannot_claim_uri_representation(self) -> None:
+        def mutate(document):
+            document["properties"]["source_uri"] = document["properties"].pop("source")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "realm-join-candidate.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(
+            any("closed selector enum is not URI material" in error for error in errors),
+            errors,
+        )
+
+    def test_object_terminal_cannot_claim_uri_representation(self) -> None:
+        def mutate(document):
+            shape = document["$defs"]["PolicyCheckRequestBody"]
+            shape["properties"]["source_uri"] = shape["properties"].pop("source")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "service-operation-dtos.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(
+            any("non-identifier value terminal" in error for error in errors), errors
+        )
+        self.assertTrue(any("role_stem=source" in error for error in errors), errors)
+
     def test_duplicate_representation_suffix_fails_in_registry(self) -> None:
         def mutate(document):
             document["event_kinds"][0]["payload_schema_ref"] = "payload.subject_id_id"
@@ -833,6 +942,17 @@ class IdentifierRoleSuffixTest(MutationHarness):
             check=check_identifier_role_suffix_contracts,
         )
         self.assertTrue(any("duplicated representation suffix" in error for error in errors), errors)
+
+    def test_representation_suffix_inserted_inside_word_fails(self) -> None:
+        def mutate(document):
+            document["event_kinds"][0]["payload_schema_ref"] = "payload.member_idship"
+
+        errors = self.lint_with_file(
+            ARTIFACTS / "registry" / "event-kind-registry.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("corrupts ordinary word" in error for error in errors), errors)
 
 
 class DurationFieldUnitsTest(MutationHarness):

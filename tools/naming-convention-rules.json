@@ -254,6 +254,21 @@
       "exact_path_exceptions": []
     },
     {
+      "rule_id": "NC-COLLECTION-001",
+      "axis": "collection_semantic_plural",
+      "applies_to": [
+        "wire_property",
+        "object_collection",
+        "pagination_object"
+      ],
+      "predicate": "resolved object arrays use the shortest unambiguous plural semantic role; collective nouns and pagination object shapes require exact registry rows",
+      "narrative_section": "collection-naming",
+      "exceptions": [],
+      "enforcement": "predicate+registry",
+      "enforcement_scope": "naming_contracts.py resolves object-array terminals independently of identifier representations; collection-naming-registry.json closes collective/mass nouns, grammar operators, irregular plurals, and named pagination object structure by exact path.",
+      "exact_path_exceptions": []
+    },
+    {
       "rule_id": "NC-FIELDCASE-001",
       "axis": "wire_field_case",
       "applies_to": [

@@ -14,7 +14,7 @@
     "join_methods",
     "encryption_profile",
     "digest_algorithm",
-    "source_uri",
+    "source",
     "seal_basis",
     "as_of",
     "expires_at"
@@ -94,7 +94,7 @@
       "maximum": 1000,
       "description": "Lower values are preferred. Ties are broken deterministically by service_id."
     },
-    "source_uri": {
+    "source": {
       "type": "string",
       "enum": [
         "invite_hint",
@@ -141,12 +141,12 @@
     {
       "if": {
         "properties": {
-          "source_uri": {
+          "source": {
             "const": "invite_hint"
           }
         },
         "required": [
-          "source_uri"
+          "source"
         ]
       },
       "then": {

@@ -74,7 +74,7 @@ bottom   = inert  // or_set join never produces ⊥
 
 ### 3.2 `ak.consent.grant` Control Move
 
-**为什么暴露 dot 模型（normative rationale）**: observe-remove OR-Set 要求 revoker 在 wire 层能枚举将要撤销的具体 dot；否则两个并发 revoke 会因为没有 `observed_dots` 上下文产生分布式 race（一方撤旧 dot，另一方撤新 dot，UI 看似已撤销但 state 仍 active）。把 dot 暴露给客户端是正确性必需，不是冗余复杂度。
+**为什么暴露 dot 模型（normative rationale）**: observe-remove OR-Set 要求 revoker 在 wire 层能枚举将要撤销的具体 dot；否则两个并发 revoke 会因为没有 `observed_dot_ids` 上下文产生分布式 race（一方撤旧 dot，另一方撤新 dot，UI 看似已撤销但 state 仍 active）。把 dot 暴露给客户端是正确性必需，不是冗余复杂度。
 
 ```text
 ControlMove(ak.consent.grant) {
@@ -117,7 +117,7 @@ Payload-only schema 示例：
 ```json schema=schemas/event-payload.schema.json#/$defs/consent_grant_payload
 {
   "consent_id": "ak:consent:019640ed-6000-7000-8000-000000000001",
-  "peer": "ak:did_core:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip",
+  "peer_id": "ak:did_core:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip",
   "consent_scope": "invite",
   "not_before": "2026-05-07T00:00:00.000Z",
   "expires_at": "2026-12-31T00:00:00.000Z",
@@ -141,7 +141,7 @@ ControlMove(ak.consent.revoke) {
   actor_id      = holder DID
   payload       = {
     consent_id: <consent_id>,
-    observed_dots: ["ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV:0"],
+    observed_dot_ids: ["ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV:0"],
     revoked_at: "2026-06-15T10:00:00Z",
     reason: "Bob harassment incident #4711"
   }
@@ -155,18 +155,18 @@ ControlMove(ak.consent.revoke) {
 }
 
 receiver 按 registry 从 `kind + payload` 唯一投影同一 consent cell 上的
-`or_set remove`；其 `observed_dots` 必须逐字取自 payload。该投影不是 Event
+`or_set remove`；其 `observed_dot_ids` 必须逐字取自 payload。该投影不是 Event
 wire 字段。
 ```
 
-`observed_dots` MUST 列出 revoke 想要撤销的具体 add dot；它们 MUST 在该 Control Move 的 `seal_basis` view 下解析为合法 add op。precondition `contains_dots` 让 reducer 在 dots 已被先行 revoke 时拒绝 no-op 重放，避免审计日志中出现无意义记录；多 issuer 并发 revoke 同一 dot 收敛于 or_set 的去重语义。`observed_dots` 之外的 dot 不受影响——这是 OR-Set 的 normative 行为。
+`observed_dot_ids` MUST 列出 revoke 想要撤销的具体 add dot；它们 MUST 在该 Control Move 的 `seal_basis` view 下解析为合法 add op。precondition `contains_dots` 让 reducer 在 dots 已被先行 revoke 时拒绝 no-op 重放，避免审计日志中出现无意义记录；多 issuer 并发 revoke 同一 dot 收敛于 or_set 的去重语义。`observed_dot_ids` 之外的 dot 不受影响——这是 OR-Set 的 normative 行为。
 
 Payload-only schema 示例：
 
 ```json schema=schemas/event-payload.schema.json#/$defs/consent_revoke_payload
 {
   "consent_id": "ak:consent:019640ed-6000-7000-8000-000000000001",
-  "observed_dots": [
+  "observed_dot_ids": [
     "ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV:0"
   ],
   "revoked_at": "2026-06-15T10:00:00.000Z",
@@ -174,9 +174,9 @@ Payload-only schema 示例：
 }
 ```
 
-Reducer projection 的 `observed_dots[]` MUST 逐字等于 payload 的 `observed_dots[]`；缺失、额外、重复或排序后集合不等都 MUST `schema_violation` / `reducer_projection_failed` 拒绝。这样 schema validation、审计 projection 与 lattice reducer 看到的是同一个撤销集合。
+Reducer projection 的 `observed_dot_ids[]` MUST 逐字等于 payload 的 `observed_dot_ids[]`；缺失、额外、重复或排序后集合不等都 MUST `schema_violation` / `reducer_projection_failed` 拒绝。这样 schema validation、审计 projection 与 lattice reducer 看到的是同一个撤销集合。
 
-**Regrant**：撤销后 holder 可以再次发出 `ak.consent.grant` Event；新 Event 产生新的 `dot`（来自不同 `event_id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
+**Regrant**：撤销后 holder 可以再次发出 `ak.consent.grant` Event；新 Event 产生新的 `dot`（来自不同 `event_id`），不在任何先前 `observed_dot_ids` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
 
 **完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, consent_scope) intent 需要 client 在构造 revoke Control Move 前先查询当前 cell 的 or_set join，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——admin / UI MUST 把这种状态明确提示为 "partial revoke"。
 
@@ -193,7 +193,7 @@ Reducer projection 的 `observed_dots[]` MUST 逐字等于 payload 的 `observed
 | `presence` | peer 可观察 holder presence |
 | `any` | 全部 scope（覆盖所有上述类型）|
 
-`consent_scope=any` 是宽授权 dot：在查询任一具体 scope 时，它与该具体 scope 的 active dot 都可独立满足 gate；它**不等价于**在 lattice 中隐式生成全部具体 scope dot。撤销永远只移除 `observed_dots[]` 显式列出的 dot；要完全撤销同一 `(consent_id, peer)` 的全部授权，客户端必须按 §4.1.1 枚举全部 active dot。
+`consent_scope=any` 是宽授权 dot：在查询任一具体 scope 时，它与该具体 scope 的 active dot 都可独立满足 gate；它**不等价于**在 lattice 中隐式生成全部具体 scope dot。撤销永远只移除 `observed_dot_ids[]` 显式列出的 dot；要完全撤销同一 `(consent_id, peer)` 的全部授权，客户端必须按 §4.1.1 枚举全部 active dot。
 
 `consent_scope=invite`(或 `any`)的 active grant dot 可作为 Realm 邀请的高信任引入证据:邀请者出示该 grant 的 `consent_grant_ref`,接收方按 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) §2 的 `consent_grant` evidence 校验。撤销该 dot 后,§4.1.2 的 invite gate cache 失效，后续以该 dot 为证据的 invite delivery MUST 在接收方降级为低信任 `explicit_address`。这条不改变 consent lattice 语义，只说明 grant dot 的对外引用用途。
 
@@ -203,17 +203,17 @@ Reducer projection 的 `observed_dots[]` MUST 逐字等于 payload 的 `observed
 
 #### 4.1.1 Scope 级联
 
-- **按 `consent_id` 全量撤销**（推荐路径）：revoke Control Move 的 `observed_dots` 列出 cell 当前 `(consent_id, peer, *)` 下所有 active dot，无论原 grant 的 scope 是 `any` 还是具体 consent_scope。这是显式"完全 revoke 该 consent_id"操作。
+- **按 `consent_id` 全量撤销**（推荐路径）：revoke Control Move 的 `observed_dot_ids` 列出 cell 当前 `(consent_id, peer, *)` 下所有 active dot，无论原 grant 的 scope 是 `any` 还是具体 consent_scope。这是显式"完全 revoke 该 consent_id"操作。
 - **按 scope 部分撤销**：revoke Control Move 仅列出某具体 consent_scope 对应的 active dot。剩余 consent_scope 的 dot 保持 active。
 - **`consent_scope="any"` 与具体 consent_scope 互斥语义**：
-  - 撤销一条 `consent_scope=any` 的 grant dot MUST 显式枚举该 `(consent_id, peer)` 下当前 active 的 **所有** consent_scope dot（含具体 consent_scope 的 grant dot）。即 `any` revoke 的 cascade 由 payload 中完整的 `observed_dots[]` 表达；reducer MUST NOT 基于一个 `consent_scope=any` dot 隐式推断并移除未枚举的其他 dot。若 active dot 未被枚举，effective consent 只构成部分撤销，admin / UI MUST 标 `partial_revoke`。
+  - 撤销一条 `consent_scope=any` 的 grant dot MUST 显式枚举该 `(consent_id, peer)` 下当前 active 的 **所有** consent_scope dot（含具体 consent_scope 的 grant dot）。即 `any` revoke 的 cascade 由 payload 中完整的 `observed_dot_ids[]` 表达；reducer MUST NOT 基于一个 `consent_scope=any` dot 隐式推断并移除未枚举的其他 dot。若 active dot 未被枚举，effective consent 只构成部分撤销，admin / UI MUST 标 `partial_revoke`。
   - 反向不成立：撤销一条 `consent_scope=invite` 的具体 consent_scope dot 仅清空 `invite`，不影响同 `(consent_id, peer)` 下 `consent_scope=any` 的 dot——因为 `any` 是 holder 显式更宽授权，需要 holder 再单独撤销 `any` 才算 cascade。
   - 这条非对称规则 MUST 在 admin / UI 中明示，避免用户误以为"撤销 invite 就等于全撤销"。
 - **conformance vector** `ak.vector.consent.scope_cascade.v1` 覆盖 (a) `any` revoke cascade 到具体 consent_scope；(b) 具体 consent_scope revoke 不影响 `any`；(c) 部分 scope revoke 留下其他 scope active；(d) 完整 revoke 必须列出当前 cell 全部 active dot 否则只构成部分 revoke。
 
 #### 4.1.1.1 UI / admin 展示要求
 
-发起 revoke 前，客户端 / admin MUST 展示将被写入 `observed_dots[]` 的实际 dot 清单及其 consent_scope 分组，并明确标注本次操作是 full revoke 还是 partial revoke。若用户选择“撤销 invite”但同一 `(consent_id, peer)` 下仍存在 `consent_scope=any` 或其它具体 consent_scope 的 active dot，UI MUST 在确认前提示这些 dot 将继续授权对应能力；不得用一个泛化按钮文案暗示未枚举的 scope 会被隐式撤销。
+发起 revoke 前，客户端 / admin MUST 展示将被写入 `observed_dot_ids[]` 的实际 dot 清单及其 consent_scope 分组，并明确标注本次操作是 full revoke 还是 partial revoke。若用户选择“撤销 invite”但同一 `(consent_id, peer)` 下仍存在 `consent_scope=any` 或其它具体 consent_scope 的 active dot，UI MUST 在确认前提示这些 dot 将继续授权对应能力；不得用一个泛化按钮文案暗示未枚举的 scope 会被隐式撤销。
 
 #### 4.1.2 缓存失效（normative MUST）
 
@@ -235,13 +235,13 @@ consent revoke 被 accepted Seal 覆盖后，下列下游缓存 MUST eager inval
 
 Consent cell 是 or_set lattice（dot-based observed-remove，详见 [`event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md)）。Effective consent 由当前 Seal view 下 cell 的 or_set join 派生：
 
-- `active_dots(cell) = { (dot, value) ∈ or_set.adds | dot ∉ or_set.observed_dots }`
+- `active_dots(cell) = { (dot, value) ∈ or_set.adds | dot ∉ or_set.observed_dot_ids }`
 - `effective_grants(cell) = group active_dots(cell) by value.intent` —— projection 把同 intent 的多 active dot 折叠成一条 effective consent。
 - 一个`(consent_id,peer,concrete_scope)`的grant当前生效（即invite/非Contact action gate放行）当且仅当：
   - `active_dots(cell)` 中存在 ≥1 条 `value.intent == (consent_id, peer, concrete_scope)` **或** `value.intent == (consent_id, peer, "any")` 的 dot；
   - 当前时间 ∈ `[not_before, expires_at]`（窗口字段缺省视为 `(-∞, +∞)`）。
 - 不同consent ID是独立cell；查询`(holder,peer,scope)`时只有invite/非Contact action service遍历holder cells匹配。
-- 同一 CBA basis 内并发 grant 与 revoke 在 or_set join 后唯一确定（add dot 集合与 observed_dots 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / admin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。
+- 同一 CBA basis 内并发 grant 与 revoke 在 or_set join 后唯一确定（add dot 集合与 observed_dot_ids 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / admin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。
 
 物化 `Consent` 对象由 holder client / admin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。Consent 没有 canonical-object schema：cell 的写入 payload 由 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `ak.consent.grant` / `ak.consent.revoke` 绑定，投影形态由 [`consent-operations.schema.json#/$defs/consent_cell_view`](../../artifacts/schemas/consent-operations.schema.json) 固定；本文只定义语义。
 

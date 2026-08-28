@@ -127,7 +127,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 {"kind": "unauthorized"}
 ```
 
-`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`members[]`），`leave` / `ban` 不进入 roster（见 §8.1 roster `members[]` 定义）。`state`、`state_after`、Realm-scoped `account_data` 以及顶层 `account_data` 使用事件容器形状:
+`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`member_roster.entries[]`），`leave` / `ban` 不进入 roster（见 §8.1 roster `member_roster.entries[]` 定义）。`state`、`state_after`、Realm-scoped `account_data` 以及顶层 `account_data` 使用事件容器形状:
 
 ```json
 {
@@ -244,9 +244,11 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
     "invited_member_count": 1,
     "heroes": ["did:webvh:..."]
   },
-  "members": [],
-  "members_limited": true,
-  "members_next_cursor": "ak:cursor:<opaque-valid-stream-cursor>",
+  "member_roster": {
+    "entries": [],
+    "limited": true,
+    "next_cursor": "ak:cursor:<opaque-valid-stream-cursor>"
+  },
   "unread_notifications": {
     "notification_count": 3,
     "highlight_count": 1
@@ -388,13 +390,13 @@ event_id ASC
 
 `state.events` 中的 `ak.member.state` 是成员资格的权威真相源；它由 reducer 决策，携带完整 `actor_id`、`membership`、`delivery_binding`、proof refs 等字段。客户端按 seal view + Lattice cell value 解释这些事件。
 
-为给客户端列表视图（成员侧栏、participant 标识、@mention 自动补全初始集）提供一份轻量 roster，服务端 MAY 在每个 Realm 响应里附带 `members[]` 字段。`members[]` 是 `ak.member.state` cell、当前 effective `ak.member.identity.update` set 和当前可见 handle-claim set 的派生 hint，不参与 state hash / frontier 计算，也不替代逐事件验证。`members[]` MUST NOT 把 display name 或裸 handle 字符串直接作为 roster 字段回填；若返回 handle，MUST 作为完整签名 `ak.schema.handle_claim.v1` evidence 或其 digest/ref 返回。
+为给客户端列表视图（成员侧栏、participant 标识、@mention 自动补全初始集）提供一份轻量 roster，服务端 MAY 在每个 Realm 响应里附带 `member_roster.entries[]` 字段。`member_roster.entries[]` 是 `ak.member.state` cell、当前 effective `ak.member.identity.update` set 和当前可见 handle-claim set 的派生 hint，不参与 state hash / frontier 计算，也不替代逐事件验证。`member_roster.entries[]` MUST NOT 把 display name 或裸 handle 字符串直接作为 roster 字段回填；若返回 handle，MUST 作为完整签名 `ak.schema.handle_claim.v1` evidence 或其 digest/ref 返回。
 
-`members[]` 的协议安全边界如下：
+`member_roster.entries[]` 的协议安全边界如下：
 
 - 客户端 MAY 用正向 roster entry 驱动成员 UI、未知 actor backfill、KeyPackage claim / MLS admission 的**重试调度**；但 roster entry 本身不授予 membership、KeyPackage delivery、MLS Add / Remove 或 application send 权限。每个不可逆服务操作仍 MUST 由服务端按当前 accepted auth state 独立授权；MLS producer 在构造 / 提交 Commit 前仍 MUST 取得并验证覆盖目标 membership frontier 的 governance proof。
-- `members_limited=false` 只证明服务端声明本次 roster 完整。客户端 MAY 把“完整 roster 与本地 MLS group 不一致”用作保守的 `encryption_transition_pending` 信号；“两者一致”不得单独清除由 accepted membership Event / Seal 产生的 `epoch_update_required`，后者只能由满足 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.4.1 / §2.5 的 winning Commit 与 verified governance binding 清除。
-- `members_limited=true` 或字段缺失时，客户端 MUST NOT 从 actor 缺席推断 leave / ban，也不得据此移除 MLS leaf 或解除发送暂停。正向 entry 仍可触发幂等的查询 / reconciliation；服务端拒绝、proof 缺失或 authoritative Event 与 hint 冲突时 MUST fail closed，并 backfill `ak.member.state` / refresh baseline。
+- `member_roster.limited=false` 只证明服务端声明本次 roster 完整。客户端 MAY 把“完整 roster 与本地 MLS group 不一致”用作保守的 `encryption_transition_pending` 信号；“两者一致”不得单独清除由 accepted membership Event / Seal 产生的 `epoch_update_required`，后者只能由满足 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.4.1 / §2.5 的 winning Commit 与 verified governance binding 清除。
+- `member_roster.limited=true` 或字段缺失时，客户端 MUST NOT 从 actor 缺席推断 leave / ban，也不得据此移除 MLS leaf 或解除发送暂停。正向 entry 仍可触发幂等的查询 / reconciliation；服务端拒绝、proof 缺失或 authoritative Event 与 hint 冲突时 MUST fail closed，并 backfill `ak.member.state` / refresh baseline。
 - 服务端生成 roster 时 MUST 使用同一响应 frontier 下的 effective membership cells；不得把尚未 accepted、已 leave / ban 或来自不同 frontier 的 actor 标成 `join`。客户端若同时拥有可验证的 authoritative membership state，MUST 以该 state 为准并把矛盾 roster 视为同步完整性错误，而不是覆盖本地 accepted state。
 
 成员展示信息由两类 source 合成：
@@ -406,8 +408,9 @@ event_id ASC
 
 ```json
 {
-  "members": [
-    {
+  "member_roster": {
+    "entries": [
+      {
       "actor_id": "ak:did_core:key:z6MkRealmPairwise...",
       "membership": "join",
       "identity_event_ids": [
@@ -437,13 +440,14 @@ event_id ASC
         }
       ],
       "member_display_state_digest": "sha256:..."
-    }
-  ],
-  "members_limited": false
+      }
+    ],
+    "limited": false
+  }
 }
 ```
 
-`members[]` entry 字段规范：
+`member_roster.entries[]` entry 字段规范：
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
@@ -545,9 +549,9 @@ Handle claim 获取与刷新规则：
 - roster / member picker / mention autocomplete 的当前 handle projection MUST 由当前可见 handle-claim set + Realm policy 运行 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 得出。`ak.member.identity.update` 事件的 churn 不应成为 handle 更新传播的必要条件。
 - 若 `member_display_state_digest` 因 handle-claim set 变化而改变，服务端 SHOULD 在下一次 `/_arkret/self/account/subscribe` delta 中发送新的 roster entry 或使客户端相关 cache 失效；无法内联完整 claims 时，MUST 至少让 `handle_claim_digests` 或 digest 缺失状态发生可观察变化。
 
-`lazy_load_members=true` 时，服务端 MAY 截断 `members[]` 为 timeline 涉及的 actor + `summary.heroes` 子集，但此时 MUST 设置 `members_limited=true`，并 SHOULD 提供 `members_next_cursor` 或等价分页提示。客户端看到 `members_limited=true` MUST NOT 把 `members[]` 当作完整成员列表。`members[]` 的去重键是 `actor_id`；同一 `actor_id` 出现多次时客户端 MUST 保留首条并忽略后续。
+`lazy_load_members=true` 时，服务端 MAY 截断 `member_roster.entries[]` 为 timeline 涉及的 actor + `summary.heroes` 子集，但此时 MUST 设置 `member_roster.limited=true`，并 SHOULD 提供 `member_roster.next_cursor` 或等价分页提示。客户端看到 `member_roster.limited=true` MUST NOT 把 `member_roster.entries[]` 当作完整成员列表。`member_roster.entries[]` 的去重键是 `actor_id`；同一 `actor_id` 出现多次时客户端 MUST 保留首条并忽略后续。
 
-`summary` 中的 `heroes` 与本节 `members[]` 互补：`heroes` 是当成员数超过显示阈值时挑选的少量代表性 DID，`members[]` 是当前响应内可投影的 roster 条目集合；完整性由 `members_limited` / pagination 明确表达。
+`summary` 中的 `heroes` 与本节 `member_roster.entries[]` 互补：`heroes` 是当成员数超过显示阈值时挑选的少量代表性 DID，`member_roster.entries[]` 是当前响应内可投影的 roster 条目集合；完整性由 `member_roster.limited` / pagination 明确表达。
 
 ## 9. Account Data and Private State
 

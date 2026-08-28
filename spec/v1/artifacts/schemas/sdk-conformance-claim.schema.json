@@ -220,7 +220,7 @@
       "required": [
         "clause_id",
         "result",
-        "evidence_items"
+        "evidence"
       ],
       "properties": {
         "clause_id": {
@@ -234,7 +234,7 @@
             "not_applicable"
           ]
         },
-        "evidence_items": {
+        "evidence": {
           "type": "array",
           "maxItems": 32,
           "items": {

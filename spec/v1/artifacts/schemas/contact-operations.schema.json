@@ -850,11 +850,11 @@
     "contact_list": {
       "type": "object",
       "required": [
-        "contact_list_rows",
+        "contacts",
         "has_more"
       ],
       "properties": {
-        "contact_list_rows": {
+        "contacts": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/contact_list_row"
@@ -929,7 +929,7 @@
         "direct_conversation": {
           "$ref": "#/$defs/direct_conversation_summary"
         },
-        "contact_agent_projections": {
+        "contact_agents": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/contact_agent_projection"

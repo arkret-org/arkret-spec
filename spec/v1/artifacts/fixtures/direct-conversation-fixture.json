@@ -97,7 +97,7 @@
       "semantic_outcome": "accept",
       "instance": {
         "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
-        "participants_unordered": [
+        "unordered_participant_ids": [
           "ak:did_core:webvh:z6mkfixture",
           "ak:did_core:webvh:z6mkfixturebobexample"
         ],
@@ -549,8 +549,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_round_id": "sha256:55e2bdad8a06d2503f04e1d0cb5046a918f1002eab53e560ce399fe5aaf10c82",
-            "root_contact_round_id": "sha256:55e2bdad8a06d2503f04e1d0cb5046a918f1002eab53e560ce399fe5aaf10c82",
+            "current_contact_round_id": "sha256:f6b2399820ef57c62ae5dc0d919c77e74027a5b4a36300c79624d8612433e681",
+            "root_contact_round_id": "sha256:f6b2399820ef57c62ae5dc0d919c77e74027a5b4a36300c79624d8612433e681",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "issuer_id": "ak:did_core:web:ps.example",
@@ -587,8 +587,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_round_id": "sha256:55e2bdad8a06d2503f04e1d0cb5046a918f1002eab53e560ce399fe5aaf10c82",
-            "root_contact_round_id": "sha256:55e2bdad8a06d2503f04e1d0cb5046a918f1002eab53e560ce399fe5aaf10c82",
+            "current_contact_round_id": "sha256:f6b2399820ef57c62ae5dc0d919c77e74027a5b4a36300c79624d8612433e681",
+            "root_contact_round_id": "sha256:f6b2399820ef57c62ae5dc0d919c77e74027a5b4a36300c79624d8612433e681",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "issuer_id": "ak:did_core:web:ps.example",

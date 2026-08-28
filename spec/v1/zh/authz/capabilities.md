@@ -65,7 +65,7 @@ ID 语义：
   "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
   "schema": "ak.schema.capability.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "issuer": "ak:did_core:webvh:z6qRDFWgaBgTY3UGDLivJztno",
+  "issuer_id": "ak:did_core:webvh:z6qRDFWgaBgTY3UGDLivJztno",
   "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixtureissuerprincipalserver",
   "subject": "ak:did_core:webvh:z8NNMm8UHw7JcDSuuZd34UisF",
   "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",

@@ -3457,8 +3457,8 @@ paths:
     get:
       operationId: ak.self.events.stream.subscribe
       x-arkret-required-any-of:
-      - - realms
-      - - actors
+      - - realm_ids
+      - - actor_ids
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -3487,9 +3487,9 @@ paths:
         schema:
           type: string
           const: ak.self.events.stream.subscribe.v1
-      - name: realms
+      - name: realm_ids
         in: query
-        description: Filter by Realm IDs. UNION within, intersection with `actors[]`.
+        description: Filter by Realm IDs. UNION within, intersection with `actor_ids[]`.
         schema:
           type: array
           items:
@@ -3497,9 +3497,9 @@ paths:
           minItems: 1
         style: form
         explode: true
-      - name: actors
+      - name: actor_ids
         in: query
-        description: Filter by Actor DIDs. UNION within, intersection with `realms[]`.
+        description: Filter by Actor DIDs. UNION within, intersection with `realm_ids[]`.
         schema:
           type: array
           items:

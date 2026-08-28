@@ -765,10 +765,10 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         (resolve_openapi_component_schema(lint, openapi_path, components, "HumanSessionGrantRequest") or {})
         .get("required", [])
     )
-    if not {"audience", "accepted_device_possession_proof"}.issubset(human_session_grant_required):
+    if not {"audience_id", "accepted_device_possession_proof"}.issubset(human_session_grant_required):
         lint.fail(
             openapi_path,
-            "HumanSessionGrantRequest.required must include audience and accepted_device_possession_proof",
+            "HumanSessionGrantRequest.required must include audience_id and accepted_device_possession_proof",
         )
     agent_session_grant_proof_required = set(
         (resolve_openapi_component_schema(lint, openapi_path, components, "AgentSessionGrantRequest") or {})
@@ -776,8 +776,8 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         .get("proof", {})
         .get("required", [])
     )
-    if "audience" not in agent_session_grant_proof_required:
-        lint.fail(openapi_path, "AgentSessionGrantRequest.proof.required must include audience")
+    if "audience_id" not in agent_session_grant_proof_required:
+        lint.fail(openapi_path, "AgentSessionGrantRequest.proof.required must include audience_id")
 
     projection_components = {
         "ak.self.space.read.list.v1": "ProjectionSpaceList",
@@ -854,11 +854,11 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         if not isinstance(schema, dict) or schema.get("$ref") != ref:
             lint.fail(openapi_path, f"{operation_id}.{name} parameter must reference {ref}")
 
-    expect_any_of("ak.self.events.stream.subscribe.v1", [["realms"], ["actors"]])
-    expect_array_param("ak.self.events.stream.subscribe.v1", "realms", "#/components/schemas/RealmId")
+    expect_any_of("ak.self.events.stream.subscribe.v1", [["realm_ids"], ["actor_ids"]])
+    expect_array_param("ak.self.events.stream.subscribe.v1", "realm_ids", "#/components/schemas/RealmId")
     expect_array_param(
         "ak.self.events.stream.subscribe.v1",
-        "actors",
+        "actor_ids",
         "../schemas/common-ids.schema.json#/$defs/did_core_id",
     )
     expect_param_ref("ak.self.events.stream.subscribe.v1", "after", "#/components/schemas/Cursor")
@@ -871,16 +871,16 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         if not isinstance(schema, dict):
             lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody schema missing")
         else:
-            expected_any_of = [{"required": ["realms"]}, {"required": ["actors"]}]
+            expected_any_of = [{"required": ["realm_ids"]}, {"required": ["actor_ids"]}]
             if schema.get("anyOf") != expected_any_of:
-                lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody must require realms or actors")
+                lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody must require realm_ids or actor_ids")
             properties = schema.get("properties")
             if not isinstance(properties, dict):
                 lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody properties missing")
             else:
                 for name, ref in (
-                    ("realms", "#/components/schemas/RealmId"),
-                    ("actors", "../schemas/common-ids.schema.json#/$defs/did_core_id"),
+                    ("realm_ids", "#/components/schemas/RealmId"),
+                    ("actor_ids", "../schemas/common-ids.schema.json#/$defs/did_core_id"),
                 ):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict):

@@ -25,7 +25,7 @@
       "instance": {
         "value": {
           "discoverability": "listed",
-          "directory_services": ["ak:did_core:webvh:z6mkdirectoryfixture"],
+          "directory_ids": ["ak:did_core:webvh:z6mkdirectoryfixture"],
           "anti_enumeration": {
             "member_count_mode": "bucketed",
             "member_count_hysteresis": {"ratio": 0.15},
@@ -121,13 +121,13 @@
       }
     },
     {
-      "name": "realm_policy_bundle_accepts_domain_scoped_handle_issuer_policy",
+      "name": "realm_policy_bundle_accepts_domain_scoped_handle_issuer_policies",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
       "expect_valid": true,
       "instance": {
         "policy_revision": 1,
-        "handle_issuer_policy": [{
-          "issuer": "ak:did_core:webvh:z6mkissuerfixture",
+        "handle_issuer_policies": [{
+          "issuer_id": "ak:did_core:webvh:z6mkissuerfixture",
           "authorized_handle_domains": ["example.com", "*.corp.example.com"],
           "issuer_class": "domain_authority"
         }]
@@ -137,10 +137,10 @@
       "name": "realm_policy_bundle_rejects_bare_handle_issuer_strings",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
       "expect_valid": false,
-      "first_expected_error": "contains:handle_issuer_policy",
+      "first_expected_error": "contains:handle_issuer_policies",
       "instance": {
         "policy_revision": 1,
-        "handle_issuer_policy": ["ak:did_core:webvh:z6mkissuerfixture"]
+        "handle_issuer_policies": ["ak:did_core:webvh:z6mkissuerfixture"]
       }
     },
     {

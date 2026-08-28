@@ -595,7 +595,7 @@ Schema id: `ak.schema.message.v1`
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Message metadata object，`content_type` MUST 精确为 `application/vnd.arkret.message-metadata+json`。不得用 ContentBlock 的 `application/vnd.arkret.message+json` wrapper 携带。 | E2EE 场景下包裹 Message metadata。 |
 | `state` | yes | `enum(active, redacted)` | 新建时 MUST 显式写 `active`(`state` 为 required，不靠默认补齐)。`redacted` 由 `ak.message.redact` reducer 设置（content / encrypted_content 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段表达可见性。 | 消息生命周期状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `revision_root` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root` 下的 revision 形成有序 chain，由 `ak.message.revise` reducer 维护。**`ak.message.create` 的 payload MUST NOT 携带 `revision_root` 字段**（即使值与 `id` 相同）——首次创建时 reducer 自行初始化 `revision_root = id`；只有 `ak.message.revise` 与后续 revise event 才允许携带 `revision_root`，且其值 MUST 等于 chain 起点 message 的 `id`。create payload 出现 `revision_root` MUST 触发 `schema_violation`（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | revision chain 起点（顶层 schema-validated）。 |
+| `revision_root_id` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root_id` 下的 revision 形成有序 chain，由 `ak.message.revise` reducer 维护。**`ak.message.create` 的 payload MUST NOT 携带 `revision_root_id` 字段**（即使值与 `id` 相同）——首次创建时 reducer 自行初始化 `revision_root_id = id`；只有 `ak.message.revise` 与后续 revise event 才允许携带 `revision_root_id`，且其值 MUST 等于 chain 起点 message 的 `id`。create payload 出现 `revision_root_id` MUST 触发 `schema_violation`（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | revision chain 起点（顶层 schema-validated）。 |
 | `edited_at` | no | `timestamp` | 取 §9.5.1 默认展示 revision 对应 revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST be no earlier than `created_at`。**仅为展示派生时间戳**；并发 revision 没有 canonical winner，全部 heads 都保留。 | 默认展示 revision 的编辑时间。 |
 | `redaction_ref` | conditional | `id:event` | `state=redacted` 时必填，指向触发 redaction 的 `ak.message.redact` event；其他 state MUST 缺省。 | redaction event 引用。 |
 | `attachments` | no | `array` | 最多 32 项；item 形态按 profile 声明，通常通过 Relation `attached_to` 表达。 | 附件 hint。 |
@@ -605,7 +605,7 @@ Schema id: `ak.schema.message.v1`
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 | `effective_scope` | materialized | `EffectiveScope` | 只读投影，MUST 等于签名 `Event.scope_ref`；actor 的 content payload 不重复携带，accepted 后 immutable。 | Message 的实际可见与授权边界。 |
 
-> `revision_root` 字段位于对象顶层，**不**藏在 `metadata.fields` 黑盒中；可见性由顶层 `state` 枚举（`active` / `redacted`）表达，不存在独立的 `visible_state` 顶层字段。`metadata.fields.revision_root` / `metadata.fields.visible_state` / `metadata.fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
+> `revision_root_id` 字段位于对象顶层，**不**藏在 `metadata.fields` 黑盒中；可见性由顶层 `state` 枚举（`active` / `redacted`）表达，不存在独立的 `visible_state` 顶层字段。`metadata.fields.revision_root_id` / `metadata.fields.visible_state` / `metadata.fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
 
 **长文本正文的物化与生命周期（normative）**：`content`（或 `encrypted_content` 的 plaintext）为 `ak.content.long_text` 时，Message 物化的仍然是**一个** Message 对象，正文分成已认证的 inline `body` fallback 与一个 Blob-backed 完整正文（见 [`content-types.md` §4.1.1](./content-types.md)）。
 
@@ -630,7 +630,7 @@ Schema id: `ak.schema.message.v1`
     "formatted_body": "<mention did=\"ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4\">@bob</mention> 请确认这个 item 的 legal 风险。"
   },
   "state": "active",
-  "revision_root": "ak:message:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
+  "revision_root_id": "ak:message:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
@@ -835,7 +835,7 @@ Message timeline 的同步与 reducer 行为：
 
 #### 9.5.1 并发 revision 的「最新可见 revision」全序选择（normative）
 
-同一 `revision_root` chain 内，两条 `ak.message.revise`（或 `ak.message.create` 后接 revise）若**因果上互不可达**（彼此不在对方的 `prev_refs` 因果闭包中），不存在天然的「谁更晚」。全部并发 heads 都是 canonical revision；默认视图 MAY 用下列 producer-biased 稳定顺序选一条先展示，但该选择不是 canonical winner：
+同一 `revision_root_id` chain 内，两条 `ak.message.revise`（或 `ak.message.create` 后接 revise）若**因果上互不可达**（彼此不在对方的 `prev_refs` 因果闭包中），不存在天然的「谁更晚」。全部并发 heads 都是 canonical revision；默认视图 MAY 用下列 producer-biased 稳定顺序选一条先展示，但该选择不是 canonical winner：
 
 1. **因果优先**：若一条 revise event 在另一条的 `prev_refs` 因果闭包中（严格因果后继），则后继 revision 胜出，前驱被该后继 supersede。此步用 prev_refs 因果序，不用任何墙钟字段。
 2. **并发默认展示顺序**：对一组**互不可达**的 revision，按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的 canonical presentation order 排列，默认视图 MAY 先展示序列最后一条。producer 能以可忽略成本影响该相对位置，因此 UI MUST 提供查看全部并发 branches 的入口，不得把默认项标成“较新”“获胜”或已收敛。

@@ -61,7 +61,7 @@
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "target_device_ids": ["ak:device:0196419b-0000-7000-8000-000000000002"],
-        "requester": "ak:did_core:webvh:z6mkfixture",
+        "requester_id": "ak:did_core:webvh:z6mkfixture",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
@@ -90,7 +90,7 @@
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "target_device_ids": ["ak:device:0196419b-0000-7000-8000-000000000002"],
-        "requester": "ak:did_core:webvh:z6mkfixture",
+        "requester_id": "ak:did_core:webvh:z6mkfixture",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
@@ -113,7 +113,7 @@
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAg",
         "target_principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
-        "requester": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "requester_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
@@ -265,7 +265,7 @@
         "target_device_ids": [
           "ak:device:0196419b-0000-7000-8000-000000000002"
         ],
-        "requester": "ak:did_core:webvh:z6mkfixture",
+        "requester_id": "ak:did_core:webvh:z6mkfixture",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
@@ -274,8 +274,8 @@
         ],
         "expires_at": "2026-08-24T00:05:00.000Z"
       },
-      "canonical_jcs": "{\"claim_purpose\":\"realm_membership\",\"claim_request_id\":\"AAAAAAAAAAAAAAAAAAAAAQ\",\"expires_at\":\"2026-08-24T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"mls_group_id\":\"fixture-group\",\"requester\":\"ak:did_core:webvh:z6mkfixture\",\"required_capabilities\":[\"ak.content.v1\"],\"target_device_ids\":[\"ak:device:0196419b-0000-7000-8000-000000000002\"],\"target_principal_id\":\"ak:did_core:webvh:z6mkfixturebobexample\"}",
-      "request_digest": "sha256:da8727b8cf4af6d3332d37386c0789d0c1dd093744a5b64ae024924585151cfd"
+      "canonical_jcs": "{\"claim_purpose\":\"realm_membership\",\"claim_request_id\":\"AAAAAAAAAAAAAAAAAAAAAQ\",\"expires_at\":\"2026-08-24T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"mls_group_id\":\"fixture-group\",\"requester_id\":\"ak:did_core:webvh:z6mkfixture\",\"required_capabilities\":[\"ak.content.v1\"],\"target_device_ids\":[\"ak:device:0196419b-0000-7000-8000-000000000002\"],\"target_principal_id\":\"ak:did_core:webvh:z6mkfixturebobexample\"}",
+      "request_digest": "sha256:9baa91343b43ac49426d1b9fb93f4f1045f2f5ebc9844174f4ee5c3f190505f7"
     },
     {
       "branch": "native_agent",
@@ -285,7 +285,7 @@
         "target_agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
         "target_agent_verification_method": "did:webvh:z6mkfixtureagent:agent.example#runtime-1",
         "target_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "requester": "ak:did_core:webvh:z6mkfixture",
+        "requester_id": "ak:did_core:webvh:z6mkfixture",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
@@ -294,8 +294,8 @@
         ],
         "expires_at": "2026-08-24T00:05:00.000Z"
       },
-      "canonical_jcs": "{\"claim_purpose\":\"realm_membership\",\"claim_request_id\":\"AAAAAAAAAAAAAAAAAAAAAg\",\"expires_at\":\"2026-08-24T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"mls_group_id\":\"fixture-group\",\"requester\":\"ak:did_core:webvh:z6mkfixture\",\"required_capabilities\":[\"ak.content.v1\"],\"target_agent_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\",\"target_agent_key_authorize_event_id\":\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"target_agent_verification_method\":\"did:webvh:z6mkfixtureagent:agent.example#runtime-1\",\"target_principal_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\"}",
-      "request_digest": "sha256:e432e4ecd1a2a538e4e8ea61f46cb4588a98b519be5bdbaea914fda69f4930f6"
+      "canonical_jcs": "{\"claim_purpose\":\"realm_membership\",\"claim_request_id\":\"AAAAAAAAAAAAAAAAAAAAAg\",\"expires_at\":\"2026-08-24T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"mls_group_id\":\"fixture-group\",\"requester_id\":\"ak:did_core:webvh:z6mkfixture\",\"required_capabilities\":[\"ak.content.v1\"],\"target_agent_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\",\"target_agent_key_authorize_event_id\":\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"target_agent_verification_method\":\"did:webvh:z6mkfixtureagent:agent.example#runtime-1\",\"target_principal_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\"}",
+      "request_digest": "sha256:42f1c934f5b945602b2f751f37bde76f3128631bcb458bfbf6d33cb440f0ebd5"
     },
     {
       "branch": "minimal_metadata_pairwise",
@@ -303,7 +303,7 @@
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAw",
         "target_principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "target_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
-        "requester": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
+        "requester_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
@@ -312,8 +312,8 @@
         ],
         "expires_at": "2026-08-24T00:05:00.000Z"
       },
-      "canonical_jcs": "{\"claim_purpose\":\"realm_membership\",\"claim_request_id\":\"AAAAAAAAAAAAAAAAAAAAAw\",\"expires_at\":\"2026-08-24T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"mls_group_id\":\"fixture-group\",\"requester\":\"ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE\",\"required_capabilities\":[\"ak.content.v1\"],\"target_pairwise_verification_method\":\"did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE\",\"target_principal_id\":\"ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE\"}",
-      "request_digest": "sha256:0363c2d7116811db223e897651730b970e2ee0cdafefda27b4e7f462f4a8f06a"
+      "canonical_jcs": "{\"claim_purpose\":\"realm_membership\",\"claim_request_id\":\"AAAAAAAAAAAAAAAAAAAAAw\",\"expires_at\":\"2026-08-24T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"mls_group_id\":\"fixture-group\",\"requester_id\":\"ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE\",\"required_capabilities\":[\"ak.content.v1\"],\"target_pairwise_verification_method\":\"did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE\",\"target_principal_id\":\"ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE\"}",
+      "request_digest": "sha256:f08bb4bbfd50330eaf08fee909caa7e724f04da078621a4edaa0fdf1c9ada283"
     }
   ],
   "cases": [
@@ -606,7 +606,7 @@
           "ak:device:0196419b-0000-7000-8000-000000000002"
         ],
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "requester": "ak:did_core:webvh:z6mkfixture",
+        "requester_id": "ak:did_core:webvh:z6mkfixture",
         "mls_group_id": "fixture-group",
         "claim_purpose": "realm_membership",
         "required_capabilities": [
@@ -665,7 +665,7 @@
       "destination_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
       "source_trust_domain": "ak:trust_domain:fixture.example",
       "destination_trust_domain": "ak:trust_domain:fixture.example",
-      "requester": "ak:did_core:webvh:z6mkfixture",
+      "requester_id": "ak:did_core:webvh:z6mkfixture",
       "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
       "pair_key": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
       "intended_realm_id": "ak:realm:AS-0RWJz6zv6mr92HyIWAP4vU2xUwY46P0DKOC-3MxLT",

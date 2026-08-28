@@ -22,7 +22,7 @@
       "schema_ref": "schemas/transport-binding.schema.json#/$defs/websocket",
       "instance": {
         "kind": "websocket",
-        "base_url": "wss://server.example/_arkret/ws",
+        "base_uri": "wss://server.example/_arkret/ws",
         "extension_profile_required": "ak.profile.binding.websocket.v1",
         "subprotocol": "arkret.v1",
         "authentication": "challenge_dpop_session_v1",
@@ -34,7 +34,7 @@
     },
     {
       "name": "noncanonical_or_credentialed_url_rejected",
-      "base_urls": [
+      "base_uris": [
         "ws://server.example/_arkret/ws",
         "wss://server.example:443/_arkret/ws",
         "wss://SERVER.example/_arkret/ws",
@@ -77,14 +77,14 @@
         "supported_features": [],
         "auth_metadata": {
           "account_authority": {
-            "origin": "https://alice.example.net",
+            "origin_uri": "https://alice.example.net",
             "gate_account_base": "https://alice.example.net/_arkret/gate/account"
           },
           "methods": [
             {
               "method": "oidc",
-              "issuer": "https://auth.example.net",
-              "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_uri": "https://auth.example.net/.well-known/openid-configuration",
               "client_id": "example_client",
               "grant_exchange": {
                 "kind": "account_handoff"
@@ -110,12 +110,12 @@
         "transport_bindings": [
           {
             "kind": "http_json",
-            "base_url": "https://alice.example.net",
+            "base_uri": "https://alice.example.net",
             "extension_profile_required": null
           },
           {
             "kind": "websocket",
-            "base_url": "wss://server.example/_arkret/ws",
+            "base_uri": "wss://server.example/_arkret/ws",
             "extension_profile_required": "ak.profile.binding.websocket.v1",
             "subprotocol": "arkret.v1",
             "authentication": "challenge_dpop_session_v1",
@@ -149,7 +149,7 @@
   "dpop_kat": {
     "proof_schema_ref": "schemas/websocket-dpop-proof.schema.json",
     "replay_cache_namespace": "ak.websocket_auth.v1",
-    "base_url": "wss://server.example/_arkret/ws",
+    "base_uri": "wss://server.example/_arkret/ws",
     "origin": "https://app.example",
     "connection_id": "Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm",
     "nonce": "bm9uY2UtMDEyMzQ1Njc4OWFiY2RlZg",
@@ -195,7 +195,7 @@
         "bm9uY2UtMDEyMzQ1Njc4OWFiY2RlZg"
       ],
       "canonical_origin": "https://app.example",
-      "canonical_base_url": "wss://server.example/_arkret/ws",
+      "canonical_base_uri": "wss://server.example/_arkret/ws",
       "issued_at": "2026-07-29T00:00:00.000Z",
       "expires_at": "2026-07-29T00:00:05.000Z",
       "consumed": false
@@ -308,7 +308,7 @@
     {
       "name": "open_events",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
-      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.events.stream.subscribe.v1\",\"parameters\":{\"catchup\":false,\"realms\":[\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"]}}",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.events.stream.subscribe.v1\",\"parameters\":{\"catchup\":false,\"realm_ids\":[\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"]}}",
       "expect_valid": true
     },
     {

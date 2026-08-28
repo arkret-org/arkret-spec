@@ -154,11 +154,11 @@
     "did_method_version": {
       "type": "object",
       "required": [
-        "method_did",
+        "method",
         "unversioned_refetch"
       ],
       "properties": {
-        "method_did": {
+        "method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+$"
         },
@@ -182,11 +182,11 @@
       "oneOf": [
         {
           "required": [
-            "method_did",
+            "method",
             "unversioned_refetch"
           ],
           "properties": {
-            "method_did": {
+            "method": {
               "const": "did:web"
             },
             "unversioned_refetch": {
@@ -210,7 +210,7 @@
         },
         {
           "properties": {
-            "method_did": {
+            "method": {
               "enum": [
                 "did:webvh",
                 "did:key"
@@ -221,19 +221,19 @@
             }
           },
           "required": [
-            "method_did",
+            "method",
             "version_id",
             "unversioned_refetch"
           ]
         },
         {
           "required": [
-            "method_did",
+            "method",
             "version_time",
             "unversioned_refetch"
           ],
           "properties": {
-            "method_did": {
+            "method": {
               "const": "did:webvh"
             },
             "unversioned_refetch": {

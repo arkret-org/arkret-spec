@@ -67,7 +67,7 @@ POST /_arkret/edge/push/register-device
 ```json
 {
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-  "push_gateway": "https://push.example.com/_arkret/edge/push/notify",
+  "push_gateway_uri": "https://push.example.com/_arkret/edge/push/notify",
   "push_key": "fcm:eJx9k2...",
   "platform": "android",
   "app_id": "com.arkret.client",
@@ -78,7 +78,7 @@ POST /_arkret/edge/push/register-device
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `device_id` | id:device | MUST | 设备的 typed id,形态为 `ak:device:<uuidv7>`(与 push-operations.schema.json `device_id` pattern 一致) |
-| `push_gateway` | string | MUST | 推送网关的 URL |
+| `push_gateway_uri` | string | MUST | 推送网关的 URL |
 | `push_key` | string | MUST | 设备在推送平台上的注册令牌 |
 | `platform` | string | SHOULD | `android`, `ios`, `web`, `desktop` |
 | `app_id` | string | SHOULD | 应用的包名 / Bundle ID |

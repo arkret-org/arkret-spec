@@ -2310,7 +2310,7 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
 
     expected_binding_fields = {
         "pair_key",
-        "participants_unordered",
+        "unordered_participant_ids",
         "realm_id",
         "main_strand_id",
         "founding_unit_digest",
@@ -2327,7 +2327,7 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
         if "binding_digest" in payload:
             lint.fail(fixture_path, f"{label}.payload must not carry binding_digest")
         basis = payload.get("authorization_basis")
-        participants = payload.get("participants_unordered")
+        participants = payload.get("unordered_participant_ids")
         refs = basis.get("event_refs") if isinstance(basis, dict) else None
         if (
             not isinstance(participants, list)
@@ -2350,7 +2350,7 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
             return None
         return {
             "pair_key": payload["pair_key"],
-            "participants_unordered": sorted(participants, key=lambda value: value.encode("utf-8")),
+            "unordered_participant_ids": sorted(participants, key=lambda value: value.encode("utf-8")),
             "realm_id": payload["realm_id"],
             "main_strand_id": payload["main_strand_id"],
             "founding_unit_digest": payload["founding_unit_digest"],
@@ -3467,7 +3467,7 @@ def check_history_scale_fixture(lint: Lint) -> None:
                 "holder_trusted_basis": register.get("payload", {}).get("holder_trusted_basis"),
             }
             expected_precondition = [{
-                "cell": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
+                "cell_id": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
                 "predicate": {"op": "head_eq", "value": prior_tuple},
             }]
             if rotate.get("preconditions") != expected_precondition:
@@ -4232,9 +4232,9 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
             descriptor_schema_ref,
             descriptor,
         )
-        canonical_errors = websocket_canonical_wss_errors(descriptor.get("base_url"))
+        canonical_errors = websocket_canonical_wss_errors(descriptor.get("base_uri"))
         if canonical_errors:
-            lint.fail(path, "closed_descriptor base_url is not canonical: " + "; ".join(canonical_errors))
+            lint.fail(path, "closed_descriptor base_uri is not canonical: " + "; ".join(canonical_errors))
 
         if "operations" in descriptor:
             lint.fail(
@@ -4266,20 +4266,20 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
                 )
 
     url_case = discovery_by_name.get("noncanonical_or_credentialed_url_rejected") or {}
-    rejected_urls = url_case.get("base_urls")
+    rejected_urls = url_case.get("base_uris")
     if not isinstance(rejected_urls, list) or not rejected_urls:
-        lint.fail(path, "noncanonical URL case requires base_urls")
+        lint.fail(path, "noncanonical URL case requires base_uris")
     else:
         for value in rejected_urls:
             if not websocket_canonical_wss_errors(value):
-                lint.fail(path, f"noncanonical base_url vector is canonical: {value!r}")
+                lint.fail(path, f"noncanonical base_uri vector is canonical: {value!r}")
             if isinstance(descriptor, dict) and isinstance(descriptor_schema_ref, str):
                 mutation = copy.deepcopy(descriptor)
-                mutation["base_url"] = value
+                mutation["base_uri"] = value
                 check_json_instance_against_schema(
                     lint,
                     path,
-                    f"noncanonical base_url {value!r}",
+                    f"noncanonical base_uri {value!r}",
                     descriptor_schema_ref,
                     mutation,
                     expect_valid=False,
@@ -4308,8 +4308,8 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
         return
     if protected.get("jwk") != kat.get("public_jwk"):
         lint.fail(path, "dpop_kat protected jwk must equal public_jwk")
-    if claims.get("htu") != kat.get("base_url"):
-        lint.fail(path, "dpop_kat htu must equal the advertised base_url verbatim")
+    if claims.get("htu") != kat.get("base_uri"):
+        lint.fail(path, "dpop_kat htu must equal the advertised base_uri verbatim")
     canonical_htu_errors = websocket_canonical_wss_errors(claims.get("htu"))
     if canonical_htu_errors:
         lint.fail(path, "dpop_kat htu is not canonical: " + "; ".join(canonical_htu_errors))
@@ -4341,10 +4341,10 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
         expected_challenge_key = [kat.get("connection_id"), kat.get("nonce")]
         if challenge_state.get("key") != expected_challenge_key:
             lint.fail(path, "dpop_kat challenge_state key must be [connection_id, nonce]")
-        for field in ("canonical_origin", "canonical_base_url", "issued_at", "expires_at"):
+        for field in ("canonical_origin", "canonical_base_uri", "issued_at", "expires_at"):
             expected_field = {
                 "canonical_origin": kat.get("origin"),
-                "canonical_base_url": kat.get("base_url"),
+                "canonical_base_uri": kat.get("base_uri"),
                 "issued_at": kat.get("issued_at"),
                 "expires_at": kat.get("expires_at"),
             }[field]

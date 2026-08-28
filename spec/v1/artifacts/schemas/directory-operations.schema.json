@@ -538,11 +538,11 @@
     "directory_realm_search_outcome": {
       "type": "object",
       "required": [
-        "realm_previews",
+        "realms",
         "has_more"
       ],
       "properties": {
-        "realm_previews": {
+        "realms": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/realm_preview"
@@ -731,11 +731,11 @@
     "directory_organization_search_outcome": {
       "type": "object",
       "required": [
-        "organization_previews",
+        "organizations",
         "has_more"
       ],
       "properties": {
-        "organization_previews": {
+        "organizations": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/organization_preview"
@@ -829,11 +829,11 @@
     "directory_actor_search_outcome": {
       "type": "object",
       "required": [
-        "actor_previews",
+        "actors",
         "has_more"
       ],
       "properties": {
-        "actor_previews": {
+        "actors": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/actor_preview"

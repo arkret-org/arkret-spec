@@ -57,7 +57,7 @@
         "notary",
         "policy_server",
         "principal_server",
-        "push_gateway_uri",
+        "push_gateway",
         "recovery_service",
         "search_service",
         "sfu_service",
@@ -1037,7 +1037,7 @@
       "if": {
         "properties": {
           "service_kind": {
-            "const": "push_gateway_uri"
+            "const": "push_gateway"
           }
         },
         "required": [

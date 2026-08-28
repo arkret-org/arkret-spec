@@ -2264,11 +2264,11 @@
     "history_key_response_list_outcome": {
       "type": "object",
       "required": [
-        "history_response_page_entries",
+        "entries",
         "limited"
       ],
       "properties": {
-        "history_response_page_entries": {
+        "entries": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/history_response_page_entry"
@@ -2291,12 +2291,12 @@
         {
           "if": {
             "properties": {
-              "history_response_page_entries": {
+              "entries": {
                 "minItems": 1
               }
             },
             "required": [
-              "history_response_page_entries"
+              "entries"
             ]
           },
           "then": {
@@ -2388,7 +2388,7 @@
       "required": [
         "ack_token",
         "high_water_cursor",
-        "history_response_ack_entries"
+        "entries"
       ],
       "properties": {
         "ack_token": {
@@ -2400,7 +2400,7 @@
           "type": "string",
           "minLength": 1
         },
-        "history_response_ack_entries": {
+        "entries": {
           "type": "array",
           "minItems": 1,
           "items": {

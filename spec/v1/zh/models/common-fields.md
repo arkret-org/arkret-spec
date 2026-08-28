@@ -234,6 +234,14 @@ Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`�
 
 `verification_method` 保留 W3C DID 规范字段名，承载 DID URL，不改名为 `_id` 或 `_did`。
 
+#### 2.1.4 对象集合与分页结构
+
+<!-- rule_id: NC-COLLECTION-001 --> **上下文内最短明确集合名（normative）**：Arkret-owned 对象集合 MUST 使用其 lexical context 内最短且无歧义的复数语义角色；被引用的 item `$ref` 类型名不得机械决定 property 名。`Entry`、`Row`、`View`、`Preview`、`Projection`、`Descriptor` 都是普通语义词，不是类似 `_id` / `_uri` 的 representation suffix：只有元素在协议语义上确实是条目、行、视图、预览、投影或描述符，并且省略该词会造成真实歧义时，字段才使用 `entries`、`rows`、`views`、`previews`、`projections`、`descriptors`；否则使用领域复数，例如 `actors`、`contacts`、`signers`。
+
+非复数 collective / mass noun（例如 `evidence`、`cursor_presence`）、不规则复数和数组型 grammar operator 必须按精确 schema path 登记在 `tools/collection-naming-registry.json`，且登记必须说明该名称为何比普通复数更准确。不得通过复制 item 类型名来替代这项语义审查。
+
+集合与 `limited`、`next_cursor`、`has_more` 等分页 companion 的关联 SHOULD 优先通过有名的嵌套分页对象表达，并在该 owner 内使用最短明确名称；`account-subscribe-frame` 的 `member_roster: { entries, limited, next_cursor }` 是该形态的规范实例。无法嵌套时，MUST 由 `tools/collection-naming-registry.json` 的精确 owner row 明确关联 `collection_field` 与 `companion_fields`；不得依赖或强制 companion 字符串复制完整 collection property 前缀。此结构未发布，不保留此前扁平长名的 alias、双读或兼容 annotation。
+
 ## 3. Common Object Fields
 
 所有 durable canonical object SHOULD 使用以下公共字段，除非对象类型另有说明。公共字段的 canonical 排列顺序以 §3.2 为单一真源（content → lifecycle → audit）：即 `state`、`state_changed_at`、`stage`、`stage_changed_at` 等 lifecycle 簇 MUST 排在 `created_by`、`created_at`、`updated_by`、`updated_at` 等 audit 簇之前（与全部已实现 schema 一致）。对象专属字段 MAY 插入在 scope / lifecycle / body 分组中，但同名公共字段的相对顺序 MUST 与 §3.2 和 `tools/field-order-rules.json` 保持一致。本节字段表（§3.1）仅为概念性字段清单，不作为顺序真源。

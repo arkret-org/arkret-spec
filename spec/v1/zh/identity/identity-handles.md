@@ -1287,7 +1287,7 @@ Verifier MUST：
 
   以下位置是**允许的派生投影 / audit 例外**，handle 字符串在其中不构成权威源：
 
-  - **Roster 内联 handle claim evidence**：`/_arkret/self/account/subscribe` 的 `members[].handle_claims[]` MAY 携带完整签名 `ak.schema.handle_claim.v1`，用于 roster / member picker / mention autocomplete 的本地 claim cache。这里的 handle 字符串属于 claim 本身，不是 roster 自造字段；issuer 重新签发或撤销后，roster digest / claim set 必须随之变化。该 evidence 只能在同一 roster entry 已披露 `subject_id` 时返回；未披露 `subject_id` 时，`handle_claims[]`、`handle_claim_digests[]` 与 `handle_claims_limited` 都必须省略。
+  - **Roster 内联 handle claim evidence**：`/_arkret/self/account/subscribe` 的 `member_roster.entries[].handle_claims[]` MAY 携带完整签名 `ak.schema.handle_claim.v1`，用于 roster / member picker / mention autocomplete 的本地 claim cache。这里的 handle 字符串属于 claim 本身，不是 roster 自造字段；issuer 重新签发或撤销后，roster digest / claim set 必须随之变化。该 evidence 只能在同一 roster entry 已披露 `subject_id` 时返回；未披露 `subject_id` 时，`handle_claims[]`、`handle_claim_digests[]` 与 `handle_claims_limited` 都必须省略。
   - **Mention reference 的 audit metadata**：§3.8.1 定义的 `handle_at_time`、`display_name_at_time`、`controller_subject_id`、`controller_handle_at_time`、`agent_slug_at_time`、`mention_text_original` MAY 出现在 mention / profile reference 等位置，但仅作为 audit / search / fallback 元数据，不参与权威决策（见 §3.8.3）。
 
   `@<controller-handle>/<agent_slug>` 是客户端入口解析瞬间允许的 native personal agent 输入别名；它不是 canonical handle、公开 Directory 搜索 / 列表索引键或 handle claim 形态。客户端 MUST 用 controller handle claim 加 `ak.schema.agent_selector_claim.v1` 把它解析为 agent `subject_id`，未能唯一解析时 fail closed。Agent selector claim 复用 handle 层的 issuer proof、visibility、audience、expiry 与 revocation 姿态，但不改变 canonical handle ABNF，也不得把 `agent_slug` 拼进 `ak.schema.handle_claim.v1.handle`。

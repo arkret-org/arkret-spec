@@ -1912,7 +1912,7 @@ ak.vector.redaction.policy_scope.v1
 {
   "target_ref": "ak:message:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u",
   "decision": "quarantine",
-  "issuer": "ak:did_core:webvh:z6mkfixturePolicyBot",
+  "issuer_id": "ak:did_core:webvh:z6mkfixturePolicyBot",
   "request_canonical_digest": "sha256:5f8b3c2ad4e1907664bb2f0c9d1e3a57c48d6b02fe971a35c8d40b7e9a2f6c1d",
   "action": "quarantine_message"
 }

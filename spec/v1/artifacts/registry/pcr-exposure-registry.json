@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-08-29.1",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -229,7 +229,7 @@
           "direction": "response",
           "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
           "json_pointers": [
-            "/$defs/device_projection_attestation_core/properties/device_signing_key"
+            "/$defs/device_projection_attestation_core/properties/device_signing_key_did"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.relationship_or_shared_context.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"

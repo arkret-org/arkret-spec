@@ -176,7 +176,7 @@
       "required": [
         "realm_id",
         "direction",
-        "realm_link_entries"
+        "links"
       ],
       "properties": {
         "realm_id": {
@@ -190,7 +190,7 @@
             "both"
           ]
         },
-        "realm_link_entries": {
+        "links": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/realm_link_entry"

@@ -212,10 +212,10 @@ _DID_REF_TARGETS = {
 }
 
 _INLINE_DID_KEY_ENCODING_POINTERS = {
-    "device-pairing.schema.json#/$defs/device_pairing_target_attestation/properties/device_public_key/pattern",
+    "device-pairing.schema.json#/$defs/device_pairing_target_attestation/properties/device_public_key_did/pattern",
     "keys-operations.schema.json#/$defs/did_key/pattern",
-    "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_public_key/pattern",
-    "event-envelope.schema.json#/$defs/principal_server_admission_proof/properties/producer_signing_key/pattern",
+    "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_public_key_did/pattern",
+    "event-envelope.schema.json#/$defs/principal_server_admission_proof/properties/producer_signing_key_did/pattern",
 }
 
 

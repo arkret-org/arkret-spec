@@ -17,7 +17,7 @@
     "spec/v1/artifacts/registry/error-code-registry.json",
     "spec/v1/artifacts/registry/proof-context-registry.json"
   ],
-  "description": "Conformance vectors for registering an external, already-published Organization DID with a deployment (identity-did.md §8.4). The family separates five things that are routinely conflated: resolution, control verification, local registration, Realm relationship and service delegation. Being resolvable or referenceable never yields local administrative authority. Registration is two-phase by decision, not by preference: the registry issues and remembers a single-use challenge, and only then does the caller prove control at a pinned version. The control proof binds local_admin_subject so a captured proof cannot be redirected to another beneficiary, and registration_generation gives the binding an identity that changes across re-establishment so the terminal revoked state and the organization-keyed idempotency stop contradicting each other. Opening a new generation atomically supersedes the previous current generation; old receipts cannot authorize after the current pointer advances even when their immutable signed payload still says active. proof_kind is a closed two-member discriminator over mature DIDs; creating a new Organization DID is a separate ceremony with no member here, so a receiver never has to guess whether a proof asserts existing control or creation. Cases whose schema_only_valid is true satisfy JSON Schema yet MUST be rejected, because cross-field invariants such as the challenge window, scope agreement and quorum sufficiency cannot be expressed in JSON Schema. Placeholder DIDs, digests and JWS strings are structural only and MUST NOT be treated as cryptographic vectors.",
+  "description": "Conformance vectors for registering an external, already-published Organization DID with a deployment (identity-did.md §8.4). The family separates five things that are routinely conflated: resolution, control verification, local registration, Realm relationship and service delegation. Being resolvable or referenceable never yields local administrative authority. Registration is two-phase by decision, not by preference: the registry issues and remembers a single-use challenge, and only then does the caller prove control at a pinned version. The control proof binds local_admin_subject_id so a captured proof cannot be redirected to another beneficiary, and registration_generation gives the binding an identity that changes across re-establishment so the terminal revoked state and the organization-keyed idempotency stop contradicting each other. Opening a new generation atomically supersedes the previous current generation; old receipts cannot authorize after the current pointer advances even when their immutable signed payload still says active. proof_kind is a closed two-member discriminator over mature DIDs; creating a new Organization DID is a separate ceremony with no member here, so a receiver never has to guess whether a proof asserts existing control or creation. Cases whose schema_only_valid is true satisfy JSON Schema yet MUST be rejected, because cross-field invariants such as the challenge window, scope agreement and quorum sufficiency cannot be expressed in JSON Schema. Placeholder DIDs, digests and JWS strings are structural only and MUST NOT be treated as cryptographic vectors.",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -44,10 +44,10 @@
         "did": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "purpose": "ak.organization_registration_control_proof.v1",
         "nonce": "cmVnaXN0cmF0aW9uLW5vbmNlLTAx",
-        "audience": "ak:did_core:webvh:z6mkfixtureregistryexample",
-        "origin": "https://registry.example/",
+        "audience_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "origin_uri": "https://registry.example/",
         "trust_domain": "ak:trust_domain:registry.example",
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_profile_manage"
         ],
@@ -79,7 +79,7 @@
             }
           ]
         },
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_profile_manage"
         ]
@@ -117,7 +117,7 @@
             }
           ]
         },
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_realm_endorse"
         ]
@@ -138,7 +138,7 @@
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof_kind": "resolved_verification_method",
         "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "delegated_scopes": [
           "organization_profile_manage"
         ],
@@ -215,7 +215,7 @@
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof_kind": "resolved_verification_method",
         "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "delegated_scopes": [
           "organization_profile_manage"
         ],
@@ -242,7 +242,7 @@
       "instance": {
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "did": "did:webvh:z6mkfixtureacmeexample:acme.example",
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_realm_admin"
         ]
@@ -252,7 +252,7 @@
       "name": "handle_attestation_without_subject_is_invalid",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody",
       "expect_valid": false,
-      "first_expected_error": "contains:'subject' is a required property",
+      "first_expected_error": "contains:'subject_id' is a required property",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "notes": "Binding the subject inside the attestation is what stops an attestation issued for one organization from being presented for another.",
@@ -274,13 +274,13 @@
             }
           ]
         },
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_profile_manage"
         ],
         "handle_attestation": {
           "handle": "acme",
-          "issuer": "ak:did_core:web:handles.example",
+          "issuer_id": "ak:did_core:web:handles.example",
           "audience": "registry.example",
           "status": "active",
           "expires_at": "2026-08-01T00:00:00.000Z"
@@ -301,10 +301,10 @@
         "did": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "purpose": "ak.organization_registration_control_proof.v1",
         "nonce": "cmVnaXN0cmF0aW9uLW5vbmNlLTAx",
-        "audience": "ak:did_core:webvh:z6mkfixtureregistryexample",
-        "origin": "https://registry.example/",
+        "audience_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "origin_uri": "https://registry.example/",
         "trust_domain": "ak:trust_domain:registry.example",
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_profile_manage"
         ],
@@ -365,7 +365,7 @@
             }
           ]
         },
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_profile_manage",
           "organization_service_delegate"
@@ -417,7 +417,7 @@
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof_kind": "resolved_verification_method",
         "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "delegated_scopes": [
           "organization_realm_endorse"
         ],
@@ -441,7 +441,7 @@
       "schema_only_valid": true,
       "semantic_outcome": "reject",
       "expected_reason_code": "organization_registration_challenge_invalid",
-      "notes": "Schema-valid but local_admin_subject differs from the value bound into challenge_valid and signed over by the control proof. This is the redirection attack the binding exists to stop: a proof that named only the organization and the version would let anyone who obtained it submit ensure naming themselves and receive the organization's administrative scopes. The receiver MUST compare against the stored challenge and reject.",
+      "notes": "Schema-valid but local_admin_subject_id differs from the value bound into challenge_valid and signed over by the control proof. This is the redirection attack the binding exists to stop: a proof that named only the organization and the version would let anyone who obtained it submit ensure naming themselves and receive the organization's administrative scopes. The receiver MUST compare against the stored challenge and reject.",
       "instance": {
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "did": "did:webvh:z6mkfixtureacmeexample:acme.example",
@@ -460,7 +460,7 @@
             }
           ]
         },
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureattackerexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureattackerexample",
         "requested_scopes": [
           "organization_profile_manage"
         ]
@@ -487,7 +487,7 @@
           "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "control_proof_kind": "resolved_verification_method",
           "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-          "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+          "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
           "delegated_scopes": [
             "organization_profile_manage"
           ],
@@ -522,7 +522,7 @@
           "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "control_proof_kind": "resolved_verification_method",
           "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-          "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+          "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
           "delegated_scopes": [
             "organization_profile_manage"
           ],
@@ -546,7 +546,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
       "expect_valid": true,
       "semantic_outcome": "accept",
-      "notes": "Changing local_admin_subject or the scope set also opens a new generation, because the delegation being granted is not the one the previous receipt attests. Returning created=false here would let a widened delegation hide behind an idempotent replay. Publishing generation 2, terminating generation 1 with organization_registration_superseded and advancing the current pointer are one atomic transition.",
+      "notes": "Changing local_admin_subject_id or the scope set also opens a new generation, because the delegation being granted is not the one the previous receipt attests. Returning created=false here would let a widened delegation hide behind an idempotent replay. Publishing generation 2, terminating generation 1 with organization_registration_superseded and advancing the current pointer are one atomic transition.",
       "instance": {
         "registration_receipt": {
           "registration_receipt_id": "ak:organization_registration_receipt:e11a6b849bac3054a61a24386d1592f41dda278e53566ada445c710394a3af90",
@@ -557,7 +557,7 @@
           "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "control_proof_kind": "resolved_verification_method",
           "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-          "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
+          "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
           "delegated_scopes": [
             "organization_profile_manage",
             "organization_service_delegate"
@@ -598,7 +598,7 @@
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof_kind": "resolved_verification_method",
         "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureoldadminexample",
+        "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureoldadminexample",
         "delegated_scopes": [
           "organization_profile_manage"
         ],

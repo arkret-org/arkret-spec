@@ -23,7 +23,7 @@
   },
   "coverage_summary": {
     "predicate": 18,
-    "registry_closure": 8,
+    "registry_closure": 9,
     "schema_type": 3,
     "prose_only": 7,
     "uncovered": 0
@@ -545,6 +545,38 @@
       ],
       "coverage_level": "full",
       "residual_gap": "Exact-path external literal objects and closed polymorphic subjects require an explicit registered exception; the resolved-terminal walker reports every exception reason and does not propagate it to wrappers."
+    },
+    {
+      "rule_id": "NC-COLLECTION-001",
+      "title": "Object collections use the shortest unambiguous plural role and named pagination structure",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.1.4",
+        "quote": "Arkret-owned 对象集合 MUST 使用其 lexical context 内最短且无歧义的复数语义角色"
+      },
+      "applies_to": [
+        "wire_property",
+        "object_collection",
+        "pagination_object"
+      ],
+      "enforcement_kind": "registry_closure",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "naming_contracts.py:check_collection_field_contracts"
+        ],
+        "registries": [
+          "tools/collection-naming-registry.json"
+        ]
+      },
+      "entry_points": [
+        "collection_field_contracts"
+      ],
+      "tests": [
+        "tools/test_naming_gate_lint.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "The resolved-terminal walker mechanically rejects singular object-array roles, closes every collective or mass-noun exception by exact path, and pins registered pagination object structure. Choosing the shortest unambiguous domain plural remains semantic review: Entry, Row, View, Preview, Projection and Descriptor are ordinary words whose necessity cannot be inferred from the referenced type token."
     },
     {
       "rule_id": "NC-NAMESPACE-001",

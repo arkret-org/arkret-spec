@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-26.3",
+  "version": "2026-08-29.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-08-29T00:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -15,7 +15,7 @@
     "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors."
   ],
   "principal_resolution_contract": {
-    "version": "2026-08-24.1",
+    "version": "2026-08-29.1",
     "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
     "cell_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
     "profile_write_policy": {

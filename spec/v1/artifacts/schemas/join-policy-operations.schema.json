@@ -546,7 +546,7 @@
       "required": [
         "realm_id",
         "viewer_is_reviewer",
-        "application_entries"
+        "applications"
       ],
       "properties": {
         "realm_id": {
@@ -555,7 +555,7 @@
         "viewer_is_reviewer": {
           "type": "boolean"
         },
-        "application_entries": {
+        "applications": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/application_entry"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-28.3",
+  "version": "2026-08-29.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-28T13:30:00+08:00",
+  "generated_at": "2026-08-29T00:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -24,7 +24,7 @@
     }
   },
   "realm_bootstrap_registry": {
-    "version": "2026-08-21.1",
+    "version": "2026-08-29.1",
     "ordinary_collaboration": {
       "atomic": true,
       "all_or_nothing": true,
@@ -10335,8 +10335,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-27.7",
-    "generated_at": "2026-08-27T14:00:00+08:00"
+    "version": "2026-08-29.1",
+    "generated_at": "2026-08-29T00:00:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -11288,8 +11288,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-26.2",
-    "generated_at": "2026-08-26T20:20:00+08:00"
+    "version": "2026-08-29.1",
+    "generated_at": "2026-08-29T00:00:00+08:00"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -15990,8 +15990,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-28.3",
-    "generated_at": "2026-08-28T13:30:00+08:00",
+    "version": "2026-08-29.1",
+    "generated_at": "2026-08-29T00:00:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_principal_server.v1",
@@ -19719,7 +19719,7 @@
       "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors."
     ],
     "principal_resolution_contract": {
-      "version": "2026-08-24.1",
+      "version": "2026-08-29.1",
       "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
       "cell_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
       "profile_write_policy": {
@@ -20284,7 +20284,7 @@
         "conflicts": []
       }
     ],
-    "version": "2026-08-27.7",
-    "generated_at": "2026-08-27T14:00:00+08:00"
+    "version": "2026-08-29.1",
+    "generated_at": "2026-08-29T00:00:00+08:00"
   }
 }

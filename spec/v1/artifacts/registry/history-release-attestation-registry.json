@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-27.2",
+  "version": "2026-08-29.1",
   "source_of_truth": true,
   "schema_ref": "schemas/history-key.schema.json#/$defs/history_release_attestation",
   "wire_registry_binding": "HistoryReleaseAttestation.verifier_profile_id is ak.history_release_predicates.v1. The enclosing HistoryKeyResponseRecord.service_proof covers the complete attestation. An unsupported verifier profile is rejected only for the affected object and is never translated to an authorization failure.",

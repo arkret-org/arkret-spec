@@ -318,13 +318,13 @@
       "type": "object",
       "required": [
         "realm_id",
-        "circle_views"
+        "circles"
       ],
       "properties": {
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "circle_views": {
+        "circles": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/circle_view"
