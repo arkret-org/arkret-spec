@@ -468,6 +468,22 @@ def nc_fieldcase_001(candidate: str) -> bool:
     return not bool(SNAKE_CASE_RE.fullmatch(name))
 
 
+def nc_idrole_001(candidate: str) -> bool:
+    """Identifier-role legality cannot be decided from a name alone.
+
+    This table entry keeps the narrative rule registered on the same executable
+    surface as the other naming rules. The authoritative judgement is
+    ``check_identifier_role_suffix_contracts``, which combines the candidate
+    with its resolved terminal category, lexical owner, and exact-path registry
+    exception. The lexical predicate catches only the canonical bare-role probes
+    used by this registry. It is deliberately not the schema gate: a future role
+    such as ``signer`` is still rejected by the resolved-terminal walker even
+    though the name alone cannot reveal its representation category.
+    """
+
+    return candidate in {"issuer", "subject", "audience", "inviter", "invitee"}
+
+
 PREDICATES: dict[str, Callable[[str], bool]] = {
     "NC-BOOL-001": nc_bool_001,
     "NC-COUNT-001": nc_count_001,
@@ -480,6 +496,7 @@ PREDICATES: dict[str, Callable[[str], bool]] = {
     "NC-SET-001": nc_set_001,
     "NC-HASH-001": nc_hash_001,
     "NC-CLASSIFICATION-001": nc_classification_001,
+    "NC-IDROLE-001": nc_idrole_001,
     "NC-FIELDCASE-001": nc_fieldcase_001,
 }
 

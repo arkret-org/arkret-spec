@@ -398,7 +398,7 @@
         "room_state_ref": {
           "$ref": "#/$defs/event_id"
         },
-        "rejected": {
+        "rejections": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/failure"
@@ -559,7 +559,7 @@
           },
           "additionalProperties": false
         },
-        "rejected": {
+        "rejections": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/failure"

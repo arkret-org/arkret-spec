@@ -4090,7 +4090,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "Internal server-side audit reason recorded when an MLS KeyPackage claim exceeds the per-(requester_service_id, target_principal_id) rate limit. The outward response MUST stay anti-enumeration (generic `claim_failed` or rate-limited envelope) and MUST NOT leak target existence; this reason is the canonical audit-log token only. See zh/conformance/scalability-constraints.md §6 and zh/identity/key-management.md."
+      "description": "Internal server-side audit reason recorded when an MLS KeyPackage claim exceeds the per-(requester_id, target_principal_id) rate limit. The outward response MUST stay anti-enumeration (generic `claim_failed` or rate-limited envelope) and MUST NOT leak target existence; this reason is the canonical audit-log token only. See zh/conformance/scalability-constraints.md §6 and zh/identity/key-management.md."
     },
     {
       "code": "keypackage_expired",

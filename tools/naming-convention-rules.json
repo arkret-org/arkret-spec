@@ -239,6 +239,21 @@
       "exact_path_exceptions": []
     },
     {
+      "rule_id": "NC-IDROLE-001",
+      "axis": "identifier_role_representation_suffix",
+      "applies_to": [
+        "wire_property",
+        "registry_semantic_field",
+        "prose_json_example"
+      ],
+      "predicate": "resolved identifier terminals require semantic role plus _id, _did, _uri, or _kid; subject-class qualifiers such as service remain orthogonal",
+      "narrative_section": "identifier-role-suffix",
+      "exceptions": [],
+      "enforcement": "predicate+registry",
+      "enforcement_scope": "naming_contracts.py resolves every schema property terminal and combines generic grammars with exact-path external-literal and closed-union exceptions from identifier-role-suffix-registry.json.",
+      "exact_path_exceptions": []
+    },
+    {
       "rule_id": "NC-FIELDCASE-001",
       "axis": "wire_field_case",
       "applies_to": [
@@ -256,11 +271,16 @@
         }
       ],
       "enforcement": "predicate+registry",
-      "enforcement_scope": "The predicate decides the name; the schema-level x-arkret-external-literal-object annotation decides which objects sit outside the Arkret lexicon, and naming_contracts.py:check_wire_property_name_case closes both directions, including annotations that no longer exempt anything.",
+      "enforcement_scope": "The predicate decides the name; the schema-level x-arkret-external-literal-object annotation decides which exact objects sit outside the Arkret lexicon. A fully snake_case marker may still be required by NC-IDROLE-001 for an external literal such as RFC 9457 instance.",
       "exact_path_exceptions": []
     }
   ],
   "negative_cases": [
+    {
+      "rule_id": "NC-IDROLE-001",
+      "candidate": "issuer",
+      "expected": "reject"
+    },
     {
       "rule_id": "NC-BOOL-001",
       "candidate": "allow_export",
@@ -382,6 +402,11 @@
     "Details"
   ],
   "positive_cases": [
+    {
+      "rule_id": "NC-IDROLE-001",
+      "candidate": "issuer_id",
+      "expected": "accept"
+    },
     {
       "rule_id": "NC-BOOL-001",
       "candidate": "consent_required",

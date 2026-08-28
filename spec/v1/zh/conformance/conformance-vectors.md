@@ -3594,7 +3594,7 @@ Expected：
 Steps：
 
 1. Device 可用 KeyPackage 数量低于 `keypackage_min_available`。
-2. 同一 `(requester_service_id, target_principal_id)` 在 60s 内发起超过 5 次 claim。
+2. 同一 `(requester_id, target_principal_id)` 在 60s 内发起超过 5 次 claim。
 3. 已 claimed KeyPackage 到达 `expires_at` 后再尝试 consume。
 
 Expected：

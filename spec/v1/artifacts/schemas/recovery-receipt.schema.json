@@ -24,7 +24,7 @@
     "reanchor_event_id",
     "reanchor_batch_receipt_id",
     "proof_summary",
-    "backup_classes_unlocked",
+    "unlocked_backup_classes",
     "welcome_count",
     "outcome",
     "started_at",
@@ -147,7 +147,7 @@
       },
       "additionalProperties": false
     },
-    "backup_classes_unlocked": {
+    "unlocked_backup_classes": {
       "type": "array",
       "uniqueItems": true,
       "minItems": 0,
@@ -187,7 +187,7 @@
       "minimum": 0,
       "description": "Number of MLS Welcomes successfully replayed for the recovering device."
     },
-    "welcome_realm_summary": {
+    "welcome_realm_summaries": {
       "type": "array",
       "uniqueItems": true,
       "items": {

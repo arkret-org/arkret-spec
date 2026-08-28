@@ -336,7 +336,7 @@
       "type": "object",
       "required": [
         "principal_id",
-        "keypackages",
+        "keypackage_upload_entries",
         "endpoint_signature"
       ],
       "oneOf": [
@@ -389,7 +389,7 @@
         "agent_key_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
-        "keypackages": {
+        "keypackage_upload_entries": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/keypackage_upload_entry"
@@ -429,7 +429,7 @@
           "type": "integer",
           "minimum": 0
         },
-        "rejected": {
+        "rejections": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/failure"

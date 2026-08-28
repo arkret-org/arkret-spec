@@ -164,14 +164,14 @@
       "type": "object",
       "required": [
         "realm_id",
-        "relationships",
+        "realm_organization_relationship_rows",
         "declared_organization_hint_ids"
       ],
       "properties": {
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "relationships": {
+        "realm_organization_relationship_rows": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/realm_organization_relationship_row"

@@ -242,7 +242,7 @@
       "type": "object",
       "description": "Machine-readable privacy-preserving identifier derivation claims. Secret material is never published here; only profile and epoch metadata needed for audit and rotation checks.",
       "properties": {
-        "push_target_id": {
+        "push_target_id_derivation": {
           "type": "object",
           "required": [
             "derivation_profile",
@@ -1051,7 +1051,7 @@
         "properties": {
           "privacy_derivation": {
             "required": [
-              "push_target_id"
+              "push_target_id_derivation"
             ]
           }
         }

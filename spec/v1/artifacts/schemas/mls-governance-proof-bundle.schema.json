@@ -172,11 +172,11 @@
     },
     "frontier_branch_projection": {
       "type": "object",
-      "required": ["target_seal_ref", "state_root", "entries", "range_witnesses"],
+      "required": ["target_seal_ref", "state_root", "frontier_cell_entries", "range_witnesses"],
       "properties": {
         "target_seal_ref": {"$ref": "./event-envelope.schema.json#/$defs/seal_ref"},
         "state_root": {"$ref": "#/$defs/digest", "description": "The exact signed state_root of target_seal_ref. Every entry and boundary witness in this branch MUST use that same target Seal and root."},
-        "entries": {"type": "array", "items": {"$ref": "#/$defs/frontier_cell_entry"}},
+        "frontier_cell_entries": {"type": "array", "items": {"$ref": "#/$defs/frontier_cell_entry"}},
         "range_witnesses": {"type": "array", "items": {"$ref": "#/$defs/frontier_range_witness"}}
       },
       "additionalProperties": false,
@@ -184,10 +184,10 @@
     },
     "frontier_projection": {
       "type": "object",
-      "required": ["frontier_registry_digest", "branches"],
+      "required": ["frontier_registry_digest", "frontier_branch_projections"],
       "properties": {
         "frontier_registry_digest": {"$ref": "#/$defs/digest", "description": "sha256(RFC 8785 JCS bytes of the exact mls-security-frontier-registry.json artifact used for this projection). The verifier compares it with its locally pinned artifact digest; the service cannot select registry semantics."},
-        "branches": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/frontier_branch_projection"}, "description": "Canonical UTF-8 order by target_seal_ref and every-and-only the query proof_target_basis leaves."}
+        "frontier_branch_projections": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/frontier_branch_projection"}, "description": "Canonical UTF-8 order by target_seal_ref and every-and-only the query proof_target_basis leaves."}
       },
       "additionalProperties": false,
       "description": "Per-target-leaf signed projections. The verifier validates every branch independently, then uses complete accepted-Seal replay and the generated lattice registry to join the full target antichain before deriving one security_frontier_digest."

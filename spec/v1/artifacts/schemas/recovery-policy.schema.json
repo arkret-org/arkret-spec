@@ -279,7 +279,7 @@
       },
       "description": "Recovery services explicitly declared in the principal's DID Document (or sovereign trust seal). Required when allowed_proof_kinds contains 'trusted_recovery_service'."
     },
-    "recovery_keys": {
+    "recovery_key_entries": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
@@ -288,7 +288,7 @@
       },
       "description": "Recovery signing keys this principal authorizes for 'recovery_unlock' proofs and for the single publication signature produced after 'threshold_recovery' secret reconstruction. Each entry binds a verification method (24-word Recovery Key derived signing key, or hardware-released equivalent) to the principal. A recovery_unlock proof's recovery_secret_ref, and a threshold_recovery publication rule's issuer set, MUST resolve to active entries in this array; the proof signature MUST verify under the selected entry's public key. Required when allowed_proof_kinds contains either 'recovery_unlock' or 'threshold_recovery'. See identity/key-management.md §7.5.2 and §8, identity/security-transactions.md §2, and crypto-media/device-lifecycle.md §14."
     },
-    "recovery_key_agreements": {
+    "recovery_key_agreement_entries": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
@@ -444,12 +444,12 @@
     {
       "if": {
         "required": [
-          "recovery_keys"
+          "recovery_key_entries"
         ]
       },
       "then": {
         "required": [
-          "recovery_key_agreements"
+          "recovery_key_agreement_entries"
         ]
       }
     },
@@ -470,8 +470,8 @@
       "then": {
         "required": [
           "threshold",
-          "recovery_keys",
-          "recovery_key_agreements"
+          "recovery_key_entries",
+          "recovery_key_agreement_entries"
         ]
       }
     },
@@ -531,7 +531,7 @@
       },
       "then": {
         "required": [
-          "recovery_keys"
+          "recovery_key_entries"
         ]
       }
     }

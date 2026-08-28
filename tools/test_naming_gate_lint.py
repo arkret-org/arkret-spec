@@ -724,6 +724,116 @@ class IdentifierRoleSuffixTest(MutationHarness):
         self.assertTrue(any("terminal_category=service_kind" in error for error in errors), errors)
         self.assertTrue(any("expected_suffix=_kind" in error for error in errors), errors)
 
+    def test_identifier_array_cannot_use_bare_plural_role(self) -> None:
+        def mutate(document):
+            shape = document["$defs"]["resolve_request"]
+            shape["required"] = [
+                "actors" if item == "actor_ids" else item for item in shape["required"]
+            ]
+            shape["properties"]["actors"] = shape["properties"].pop("actor_ids")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "actor-profile-operations.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("terminal_category=did_core_id" in error for error in errors), errors)
+        self.assertTrue(any("expected_suffix=_ids" in error for error in errors), errors)
+
+    def test_object_array_cannot_claim_ids_representation(self) -> None:
+        def mutate(document):
+            shape = document["$defs"]["directory_actor_search_outcome"]
+            shape["required"] = [
+                "actor_ids" if item == "actor_previews" else item
+                for item in shape["required"]
+            ]
+            shape["properties"]["actor_ids"] = shape["properties"].pop("actor_previews")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "directory-operations.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("terminal_category=object" in error for error in errors), errors)
+        self.assertTrue(any("expected_suffix=object_role" in error for error in errors), errors)
+
+    def test_projection_collection_requires_exact_item_type_stem(self) -> None:
+        def mutate(document):
+            shape = document["$defs"]["directory_actor_search_outcome"]
+            shape["required"] = [
+                "realm_previews" if item == "actor_previews" else item
+                for item in shape["required"]
+            ]
+            shape["properties"]["realm_previews"] = shape["properties"].pop(
+                "actor_previews"
+            )
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "directory-operations.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("terminal_category=object_projection_array" in error for error in errors), errors)
+        self.assertTrue(any("expected_suffix=actor_previews" in error for error in errors), errors)
+
+    def test_non_projection_object_array_cannot_use_singular_role(self) -> None:
+        def mutate(document):
+            document["required"] = [
+                "receipt_chain" if item == "receipt_chains" else item
+                for item in document["required"]
+            ]
+            document["properties"]["receipt_chain"] = document["properties"].pop(
+                "receipt_chains"
+            )
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "service-identity-bundle.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("terminal_category=object_array" in error for error in errors), errors)
+        self.assertTrue(any("expected_suffix=receipt_chains" in error for error in errors), errors)
+
+    def test_plural_check_uses_final_token_not_an_earlier_s_suffix(self) -> None:
+        def mutate(document):
+            document["properties"]["status_item"] = {
+                "type": "array",
+                "items": {"type": "object"},
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "service-identity-bundle.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("role_stem=status_item" in error for error in errors), errors)
+        self.assertTrue(any("terminal_category=object_array" in error for error in errors), errors)
+
+    def test_plural_services_token_cannot_hide_as_middle_qualifier(self) -> None:
+        def mutate(document):
+            document["properties"]["plaintext_visible_services_payload"] = {
+                "type": "object"
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "service-identity-bundle.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("plaintext_visible_services_payload" in error for error in errors), errors)
+        self.assertTrue(any("terminal_category=qualified_field" in error for error in errors), errors)
+
+    def test_duplicate_representation_suffix_fails_in_registry(self) -> None:
+        def mutate(document):
+            document["event_kinds"][0]["payload_schema_ref"] = "payload.subject_id_id"
+
+        errors = self.lint_with_file(
+            ARTIFACTS / "registry" / "event-kind-registry.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("duplicated representation suffix" in error for error in errors), errors)
+
 
 class DurationFieldUnitsTest(MutationHarness):
     """NC-DURATION-001: a unitless integer duration or a non-ISO duration string fails."""

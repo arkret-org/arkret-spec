@@ -1518,11 +1518,11 @@
     "agent_list": {
       "type": "object",
       "required": [
-        "agents",
+        "agent_projections",
         "has_more"
       ],
       "properties": {
-        "agents": {
+        "agent_projections": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/agent_projection"
@@ -1944,10 +1944,10 @@
     "agent_sidecar_list": {
       "type": "object",
       "required": [
-        "items"
+        "agent_sidecar_views"
       ],
       "properties": {
-        "items": {
+        "agent_sidecar_views": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/agent_sidecar_view"
@@ -2011,13 +2011,13 @@
       "type": "object",
       "required": [
         "agent_id",
-        "entries"
+        "agent_participation_entries"
       ],
       "properties": {
         "agent_id": {
           "type": "string"
         },
-        "entries": {
+        "agent_participation_entries": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/agent_participation_entry"

@@ -688,7 +688,7 @@
       "required": [
         "kind",
         "actor_id",
-        "realm_ids"
+        "realm_actor_frontier_views"
       ],
       "properties": {
         "kind": {
@@ -697,7 +697,7 @@
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "realm_ids": {
+        "realm_actor_frontier_views": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/RealmActorFrontierView"
@@ -1688,7 +1688,7 @@
           "required": [
             "kind",
             "contact_round_evidence",
-            "contact_round_continuity_chain"
+            "contact_round_continuity_chains"
           ],
           "properties": {
             "kind": {
@@ -1698,7 +1698,7 @@
               "$ref": "./contact-operations.schema.json#/$defs/contact_round_evidence_bundle",
               "description": "Portable evidence for the pair's current Contact round. The verifier re-derives founder from the root Contact round, never from the current round."
             },
-            "contact_round_continuity_chain": {
+            "contact_round_continuity_chains": {
               "type": "array",
               "minItems": 0,
               "maxItems": 64,
@@ -2620,11 +2620,11 @@
       "type": "object",
       "description": "Result of ak.self.events.read.scan.v1. Ordering follows the \"近邻先返回\" rule unless `order` was explicitly set on the request; see service-http-binding.md §3.3.3.",
       "required": [
-        "events",
+        "event_read_rows",
         "has_more"
       ],
       "properties": {
-        "events": {
+        "event_read_rows": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/EventReadRow"
@@ -3302,7 +3302,7 @@
           },
           "description": "Event IDs whose canonical bytes matched a prior accepted event (idempotent no-op)."
         },
-        "rejected": {
+        "events_submit_rejected_rows": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/EventsSubmitRejectedRow"
@@ -3315,7 +3315,7 @@
           },
           "description": "Event IDs deferred to async / human verification."
         },
-        "realm_actor_frontiers": {
+        "realm_actor_frontier_views": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/RealmActorFrontierView"
@@ -4695,7 +4695,7 @@
       "additionalProperties": false,
       "required": [
         "realm_id",
-        "morphs",
+        "projection_morph_rows",
         "total",
         "has_more"
       ],
@@ -4703,7 +4703,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "morphs": {
+        "projection_morph_rows": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/ProjectionMorphRow"
@@ -4782,7 +4782,7 @@
       "additionalProperties": false,
       "required": [
         "realm_id",
-        "spaces",
+        "projection_space_rows",
         "total",
         "has_more"
       ],
@@ -4790,7 +4790,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "spaces": {
+        "projection_space_rows": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/ProjectionSpaceRow"
@@ -4876,7 +4876,7 @@
       "additionalProperties": false,
       "required": [
         "realm_id",
-        "strands",
+        "projection_strand_rows",
         "total",
         "has_more"
       ],
@@ -4884,7 +4884,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "strands": {
+        "projection_strand_rows": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/ProjectionStrandRow"
@@ -6121,7 +6121,7 @@
                 "minLength": 1
               }
             },
-            "participation": {
+            "agent_participation_entries": {
               "type": "array",
               "description": "`ak.profile.agent_participation_policy.v1` overlay (service-surface.md §10.1). Present when the agent session scope covers participation-aware scope. Each entry is isomorphic to agent_participation_entry ({target_scope, selection, version, next_replace_input:{expected_version}}), with next_replace_input.expected_version equal to version. The runtime uses it to avoid disabled actions; the target still evaluates current policy, capability and lifecycle at action time and does not trust a copied ceiling/effective value.",
               "items": {

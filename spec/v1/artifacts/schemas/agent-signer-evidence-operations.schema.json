@@ -163,10 +163,10 @@
     "query_outcome": {
       "type": "object",
       "required": [
-        "evidence"
+        "evidence_items"
       ],
       "properties": {
-        "evidence": {
+        "evidence_items": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
@@ -211,13 +211,13 @@
       "type": "object",
       "required": [
         "schema",
-        "evidence"
+        "evidence_items"
       ],
       "properties": {
         "schema": {
           "const": "ak.schema.agent_signer_evidence_bundle.v1"
         },
-        "evidence": {
+        "evidence_items": {
           "type": "array",
           "maxItems": 256,
           "items": {

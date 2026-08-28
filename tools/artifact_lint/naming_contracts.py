@@ -437,10 +437,11 @@ def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None
     properties that node declares and cannot be inherited by a `$ref`, by another
     object of the same type name, or by a same-named property elsewhere.
 
-    Three failures are symmetric and all of them matter: a non-snake name outside
-    a marked object, a marked object whose annotation is incomplete, and a marked
-    object that no longer has anything to exempt. The last one keeps the exemption
-    set shrinking on its own instead of outliving the field it was granted for.
+    The annotation also establishes exact lexical ownership for external
+    identifier-role literals whose names may already be snake_case (for example
+    RFC 9457 ``instance``). Therefore a fully snake_case marked object is not
+    inherently stale: the marker can still be consumed by NC-IDROLE-001, while
+    its required specification, anchor, and reason keep the exception auditable.
     """
 
     reached: set[tuple[str, str]] = set()
@@ -491,13 +492,6 @@ def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None
                     f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD}.anchor must be an "
                     f"https:// URL carrying the section fragment that defines these names",
                 )
-            if not violations:
-                lint.fail(
-                    schema_path,
-                    f"{owner.pointer} declares {EXTERNAL_LITERAL_OBJECT_KEYWORD} but every "
-                    f"property it declares is already snake_case; delete the stale annotation",
-                )
-
     # Walker duality. The owner walk and the occurrence walk are two views of one
     # population, so a regression in either one shrinks the judged surface without
     # failing anything unless they are compared.
@@ -635,8 +629,115 @@ def resolve_terminal_constraints(
     return tuple(sorted(visit(file_name, shape)))
 
 
+def _shape_cardinalities(
+    documents: dict[str, Any], file_name: str, shape: Any
+) -> set[str]:
+    """Resolve whether a property carries a scalar or an array value."""
+
+    seen: set[tuple[str, str]] = set()
+
+    def visit(current_file: str, node: Any) -> set[str]:
+        if not isinstance(node, dict):
+            return set()
+        ref = node.get("$ref")
+        if isinstance(ref, str):
+            target, separator, fragment = ref.partition("#")
+            target_file = current_file if not target else Path(target).name
+            edge = (target_file, ref)
+            if edge in seen or target_file not in documents:
+                return set()
+            seen.add(edge)
+            try:
+                resolved = resolve_json_pointer(
+                    documents[target_file], f"#{fragment}" if separator else ""
+                )
+            except (KeyError, TypeError, ValueError):
+                return set()
+            return visit(target_file, resolved)
+        if node.get("type") == "array" or "items" in node:
+            return {"array"}
+        out: set[str] = set()
+        for keyword in ("allOf", "anyOf", "oneOf"):
+            branches = node.get(keyword)
+            if isinstance(branches, list):
+                for branch in branches:
+                    out |= visit(current_file, branch)
+        declared = node.get("type")
+        if declared is not None and declared != "null" and declared != "array":
+            out.add("scalar")
+        if any(key in node for key in ("pattern", "const", "enum", "format")):
+            out.add("scalar")
+        return out
+
+    return visit(file_name, shape)
+
+
+_PROJECTION_TYPE_SUFFIXES = frozenset(
+    {"entry", "preview", "view", "descriptor", "projection", "row"}
+)
+
+
+def _array_projection_names(
+    documents: dict[str, Any], file_name: str, shape: Any
+) -> set[str]:
+    """Derive exact collection names from direct item projection type names."""
+
+    names: set[str] = set()
+
+    seen: set[tuple[str, str]] = set()
+
+    def inspect_item(current_file: str, node: Any) -> None:
+        if not isinstance(node, dict):
+            return
+        ref = node.get("$ref")
+        if isinstance(ref, str):
+            token = ref.rsplit("/", 1)[-1]
+            snake = "_".join(split_name_words(token))
+            final = snake.rsplit("_", 1)[-1]
+            captured = final in _PROJECTION_TYPE_SUFFIXES
+            if final in _PROJECTION_TYPE_SUFFIXES:
+                names.add(
+                    snake.removesuffix("entry") + "entries"
+                    if final == "entry"
+                    else snake + "s"
+                )
+            if captured:
+                return
+            target, separator, fragment = ref.partition("#")
+            target_file = current_file if not target else Path(target).name
+            edge = (target_file, ref)
+            if edge not in seen and target_file in documents:
+                seen.add(edge)
+                try:
+                    resolved = resolve_json_pointer(
+                        documents[target_file], f"#{fragment}" if separator else ""
+                    )
+                except (KeyError, TypeError, ValueError):
+                    resolved = None
+                inspect_item(target_file, resolved)
+        for keyword in ("allOf", "anyOf", "oneOf"):
+            branches = node.get(keyword)
+            if isinstance(branches, list):
+                for branch in branches:
+                    inspect_item(current_file, branch)
+
+    def find_array(current_file: str, node: Any) -> None:
+        if not isinstance(node, dict):
+            return
+        if "items" in node:
+            inspect_item(current_file, node["items"])
+        for keyword in ("allOf", "anyOf", "oneOf"):
+            branches = node.get(keyword)
+            if isinstance(branches, list):
+                for branch in branches:
+                    find_array(current_file, branch)
+
+    find_array(file_name, shape)
+    return names
+
+
 def _role_terminal_contract(
-    terminals: tuple[tuple[str, str], ...]
+    terminals: tuple[tuple[str, str], ...], *, plural: bool
 ) -> tuple[str | None, str | None]:
     """Return a single resolved identifier category and its mandatory suffix.
 
@@ -648,20 +749,20 @@ def _role_terminal_contract(
     categories: set[tuple[str, str]] = set()
     for kind, value in terminals:
         if kind == "pattern" and value.startswith("^ak:did_core:"):
-            categories.add(("did_core_id", "_id"))
+            categories.add(("did_core_id", "_ids" if plural else "_id"))
         elif kind == "pattern" and _AK_TYPED_PREFIX_RE.match(value):
-            categories.add(("typed_object_id", "_id"))
+            categories.add(("typed_object_id", "_ids" if plural else "_id"))
         elif kind == "pattern" and value.startswith("^did:"):
             # `did:<method>` / `did:<method>:` are method-selector tokens, not
             # DID identifiers.  They belong to the classification grammar.
             if value in {"^did:[a-z0-9]+$", "^did:[a-z0-9]+:$"}:
                 continue
             if re.search(r"\][+*]\)?#|\}\+\)?#", value):
-                categories.add(("did_url", "_kid"))
+                categories.add(("did_url", "_kids" if plural else "_kid"))
             else:
-                categories.add(("did", "_did"))
+                categories.add(("did", "_dids" if plural else "_did"))
         elif kind == "format" and value in {"uri", "uri-reference"}:
-            categories.add(("uri", "_uri"))
+            categories.add(("uri", "_uris" if plural else "_uri"))
     if len(categories) == 1:
         return next(iter(categories))
     if len(categories) > 1:
@@ -680,7 +781,13 @@ def _role_name_matches_terminal(
             continue
         if name in grammar.get("exact_names", []):
             return True
-        if any(name.endswith(item) for item in grammar.get("suffixes", [])):
+        for registered_suffix in grammar.get("suffixes", []):
+            if not name.endswith(registered_suffix):
+                continue
+            if registered_suffix in {
+                "_id", "_ids", "_did", "_dids", "_kid", "_kids", "_uri", "_uris"
+            }:
+                return registered_suffix == suffix
             return True
     return False
 
@@ -697,6 +804,37 @@ def _role_stem(name: str, category: str) -> str:
         if name.endswith(suffix):
             return name[: -len(suffix)]
     return name
+
+
+_DUPLICATE_REPRESENTATION_SUFFIX_RE = re.compile(
+    r"(?:_id_id|_ids_ids|_did_did|_uri_uri|_kid_kid)(?![a-z0-9_])"
+)
+
+
+def _check_duplicate_representation_suffixes(
+    lint: Lint, documents: dict[str, Any]
+) -> None:
+    """Reject mechanically duplicated representation suffixes in wire artifacts."""
+
+    def walk(path: Path, value: Any, pointer: str = "") -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                child_pointer = f"{pointer}/{key}"
+                if _DUPLICATE_REPRESENTATION_SUFFIX_RE.search(key):
+                    lint.fail(path, f"NC-IDROLE-001 {child_pointer}: duplicated representation suffix")
+                walk(path, child, child_pointer)
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                walk(path, child, f"{pointer}/{index}")
+        elif isinstance(value, str) and _DUPLICATE_REPRESENTATION_SUFFIX_RE.search(value):
+            lint.fail(path, f"NC-IDROLE-001 {pointer}: duplicated representation suffix in `{value}`")
+
+    for file_name, document in documents.items():
+        walk(SCHEMA_DIR / file_name, document)
+    for path in sorted((ARTIFACTS / "registry").glob("*.json")):
+        document = load_json(lint, path)
+        if document is not None:
+            walk(path, document)
 
 
 def check_identifier_role_suffix_contracts(lint: Lint) -> None:
@@ -739,22 +877,30 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
             lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"registered_service_qualified_fields[{index}] is incomplete")
             continue
         registered_service_qualified.add(row["field"])
-    exceptions: dict[tuple[str, str], str] = {}
+    exceptions: dict[tuple[str, str], tuple[str, set[str]]] = {}
     for index, row in enumerate(exception_rows):
         if not isinstance(row, dict):
             lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"exact_exceptions[{index}] must be an object")
             continue
         key = (row.get("file"), row.get("pointer"))
         reason = row.get("reason")
-        if not all(isinstance(item, str) and item for item in (*key, reason)):
+        terminal_categories = row.get("terminal_categories")
+        if (
+            not all(isinstance(item, str) and item for item in (*key, reason))
+            or not isinstance(terminal_categories, list)
+            or not terminal_categories
+            or not all(isinstance(item, str) and item for item in terminal_categories)
+        ):
             lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"exact_exceptions[{index}] is incomplete")
             continue
         if key in exceptions:
             lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"duplicate exact exception {key}")
             continue
-        exceptions[key] = reason
+        exceptions[key] = (reason, set(terminal_categories))
 
     documents = _schema_documents(lint)
+    _check_duplicate_representation_suffixes(lint, documents)
+    reached_exceptions: set[tuple[str, str]] = set()
     for file_name, document in documents.items():
         external_owners = {
             owner.pointer
@@ -770,9 +916,8 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                 continue
 
             name = occurrence.name
-            exception_reason = exceptions.get(
-                (file_name, occurrence.pointer), "none"
-            )
+            exception = exceptions.get((file_name, occurrence.pointer))
+            exception_reason = exception[0] if exception else "none"
 
             if (
                 (name.endswith("_service_id") or name.endswith("_service_ids"))
@@ -810,29 +955,109 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                 continue
 
             if (
-                ("_service_" in name or name.endswith("_services"))
+                ({"service", "services"} & set(name.split("_")))
                 and name not in registered_service_roles
                 and name not in registered_service_qualified
             ):
-                expected = name.replace("_service_", "_")
-                if expected.endswith("_services"):
-                    expected = expected.removesuffix("_services") + "_ids"
                 lint.fail(
                     SCHEMA_DIR / file_name,
                     f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
                     f"role_stem={name}; terminal_category=qualified_field; "
                     "required_subject_class=service; expected_suffix=role_specific; "
                     f"exception_reason={exception_reason}; `{name}` inserts service as an "
-                    f"entity-class qualifier; rename it to a true protocol role such as "
-                    f"`{expected}`, or register the complete service role with an exact reason",
+                    "entity-class qualifier; rename it according to its resolved value "
+                    "category, or register the complete service role with exact field, "
+                    "role_stem, and reason",
                 )
                 continue
 
             terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
-            terminal_category, expected_suffix = _role_terminal_contract(terminals)
+            cardinalities = _shape_cardinalities(documents, file_name, occurrence.shape)
+            projection_names = _array_projection_names(
+                documents, file_name, occurrence.shape
+            )
+            if exception is not None:
+                exception_category, _ = _role_terminal_contract(
+                    terminals, plural=cardinalities == {"array"}
+                )
+                if projection_names:
+                    exception_category = "object_projection_array"
+                elif cardinalities == {"array"} and ("type", '"object"') in terminals:
+                    exception_category = "object_array"
+                if exception_category not in exception[1]:
+                    lint.fail(
+                        ROLE_SUFFIX_REGISTRY_PATH,
+                        f"exact exception {(file_name, occurrence.pointer)} declares "
+                        f"terminal_categories={sorted(exception[1])} but resolves to "
+                        f"{exception_category!r}",
+                    )
+                reached_exceptions.add((file_name, occurrence.pointer))
+                continue
+            if name.endswith(("_id", "_ids")) and ("type", '"object"') in terminals:
+                expected = (
+                    name.removesuffix("_ids") + "s"
+                    if name.endswith("_ids")
+                    else name.removesuffix("_id")
+                )
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                    f"role_stem={_role_stem(name, 'typed_object_id')}; "
+                    "terminal_category=object; required_subject_class=unspecified; "
+                    f"expected_suffix=object_role; exception_reason={exception_reason}; "
+                    f"`{name}` claims an identifier representation but resolves to an "
+                    f"object value; rename it to an object role such as `{expected}`",
+                )
+                continue
+
+            if projection_names and name not in projection_names:
+                expected = " or ".join(sorted(projection_names))
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                    f"role_stem={name}; terminal_category=object_projection_array; "
+                    "required_subject_class=unspecified; "
+                    f"expected_suffix={expected}; exception_reason={exception_reason}; "
+                    "an entry/preview/view/descriptor/projection/row collection must "
+                    "use the exact plural derived from its item type",
+                )
+                continue
+
+            if (
+                cardinalities == {"array"}
+                and ("type", '"object"') in terminals
+                and not projection_names
+                and not name.rsplit("_", 1)[-1].endswith("s")
+            ):
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                    f"role_stem={name}; terminal_category=object_array; "
+                    "required_subject_class=unspecified; "
+                    f"expected_suffix={name}s; exception_reason={exception_reason}; "
+                    "an object array must use a plural collection role or an exact "
+                    "registered collection exception",
+                )
+                continue
+
+            if cardinalities == {"array"}:
+                plural = True
+            else:
+                plural = False
+            terminal_category, expected_suffix = _role_terminal_contract(
+                terminals, plural=plural
+            )
             if terminal_category is None:
                 continue
-            if exception_reason != "none":
+            if cardinalities not in ({"array"}, {"scalar"}, set()):
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                    f"role_stem={name}; terminal_category=mixed_cardinality; "
+                    "required_subject_class=unspecified; expected_suffix=none; "
+                    f"exception_reason={exception_reason}; identifier scalar/array unions "
+                    "require an exact closed-union exception",
+                )
                 continue
             if expected_suffix is None:
                 lint.fail(
@@ -859,6 +1084,13 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                 f"expected_suffix={expected_suffix}; exception_reason={exception_reason}; "
                 f"Arkret-owned single identifiers must use `{name}{expected_suffix}`",
             )
+
+    stale_exceptions = sorted(set(exceptions) - reached_exceptions)
+    if stale_exceptions:
+        lint.fail(
+            ROLE_SUFFIX_REGISTRY_PATH,
+            f"exact identifier/object-shape exceptions are stale or unreachable: {stale_exceptions}",
+        )
 
 
 _AK_TYPED_PREFIX_RE = re.compile(r"^\^\(?(?:\?:)?ak:([a-z0-9_]+):")

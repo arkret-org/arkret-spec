@@ -417,7 +417,7 @@
         "summary": {
           "$ref": "#/$defs/realm_summary"
         },
-        "member_ids": {
+        "member_roster_entries": {
           "type": "array",
           "description": "Lightweight roster hint derived from effective ak.member.state, effective ak.member.identity.update references, and currently visible handle-claim evidence. Entries MUST NOT carry display fields or naked handle strings directly; handle strings may appear only inside signed ak.schema.handle_claim.v1 objects.",
           "items": {
@@ -426,7 +426,7 @@
         },
         "members_limited": {
           "type": "boolean",
-          "description": "True when members[] is truncated and MUST NOT be treated as the complete Realm roster."
+          "description": "True when member_roster_entries[] is truncated and MUST NOT be treated as the complete Realm roster."
         },
         "members_next_cursor": {
           "$ref": "#/$defs/cursor_value",

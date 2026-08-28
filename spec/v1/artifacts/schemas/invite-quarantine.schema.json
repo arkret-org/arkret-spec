@@ -7,7 +7,7 @@
   "required": [
     "schema",
     "updated_at",
-    "entries"
+    "quarantine_entries"
   ],
   "properties": {
     "schema": {
@@ -17,7 +17,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Instant of the accepted Principal Server CAS write that produced this value."
     },
-    "entries": {
+    "quarantine_entries": {
       "type": "array",
       "maxItems": 200,
       "items": {

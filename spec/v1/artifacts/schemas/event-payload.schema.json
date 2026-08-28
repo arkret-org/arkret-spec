@@ -3381,7 +3381,7 @@
       "type": "object",
       "description": "Holder-signed normal Contact acceptance fact. This is version 1 of the issuer-local directional lineage. It grants only the explicit Contact scopes and neither reads nor writes Consent.",
       "required": [
-        "peer_id",
+        "peer",
         "contact_round_id",
         "version",
         "request_event_ref",
@@ -3389,7 +3389,7 @@
         "granted_to_peer_scopes"
       ],
       "properties": {
-        "peer_id": {
+        "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "contact_round_id": {
@@ -3418,12 +3418,12 @@
       "type": "object",
       "description": "Holder-signed terminal rejection of one exact accepted request. It establishes no Contact round and carries no Consent or Contact round evidence fields.",
       "required": [
-        "peer_id",
+        "peer",
         "request_event_ref",
         "request_acceptance_receipt_digest"
       ],
       "properties": {
-        "peer_id": {
+        "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "request_event_ref": {
@@ -3442,12 +3442,12 @@
       "type": "object",
       "description": "Requester-signed directional Contact request fact. It is created before any acceptance receipt or basis exists, so neither may appear in this payload. It grants only the requester's explicit Contact scopes and neither reads nor writes Consent.",
       "required": [
-        "peer_id",
+        "peer",
         "granted_to_peer_scopes",
         "introduction_evidence_digest"
       ],
       "properties": {
-        "peer_id": {
+        "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "granted_to_peer_scopes": {
@@ -3474,13 +3474,13 @@
       "type": "object",
       "description": "Holder-signed terminal event for one issuer-local Contact lineage. The event kind itself supplies terminal semantics; the payload carries only the exact peer, basis and predecessor coordinates. It does not read, write or revoke Consent.",
       "required": [
-        "peer_id",
+        "peer",
         "contact_round_id",
         "version",
         "predecessor_event_ref"
       ],
       "properties": {
-        "peer_id": {
+        "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "contact_round_id": {
@@ -10360,7 +10360,7 @@
         "join_policy": {
           "$ref": "#/$defs/join_policy_component"
         },
-        "handle_issuer_policy": {
+        "handle_issuer_policies": {
           "type": "array",
           "minItems": 1,
           "maxItems": 256,

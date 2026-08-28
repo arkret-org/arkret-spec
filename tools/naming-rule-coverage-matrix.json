@@ -439,7 +439,9 @@
       ],
       "enforcement_kind": "predicate",
       "enforced_by": {
-        "predicates": [],
+        "predicates": [
+          "NC-IDROLE-001"
+        ],
         "functions": [
           "prose.py:check_naming_predicates"
         ],

@@ -2407,7 +2407,7 @@
               "kind": "composite",
               "components": [
                 "payload.invite_id",
-                "payload.subject_id_id"
+                "payload.subject_id"
               ]
             },
             "lattice": "or_set",

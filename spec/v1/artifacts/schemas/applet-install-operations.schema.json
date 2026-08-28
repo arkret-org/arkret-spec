@@ -265,7 +265,7 @@
             "partially_installed"
           ]
         },
-        "rejected": {
+        "rejections": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/rejected_item"
@@ -627,7 +627,7 @@
           },
           "uniqueItems": true
         },
-        "rejected": {
+        "rejections": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/rejected_item"

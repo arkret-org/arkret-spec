@@ -152,10 +152,10 @@
     "account_data_list": {
       "type": "object",
       "required": [
-        "entries"
+        "account_data_entries"
       ],
       "properties": {
-        "entries": {
+        "account_data_entries": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/account_data_entry"

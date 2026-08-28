@@ -14,7 +14,7 @@
     "requested_scopes",
     "approved_scopes",
     "denied_scopes",
-    "events_to_submit",
+    "event_submissions",
     "capability_constraints",
     "namespace_conflicts",
     "e2ee_effect",
@@ -62,7 +62,7 @@
         "$ref": "#/$defs/denied_scope"
       }
     },
-    "events_to_submit": {
+    "event_submissions": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/event_submission"

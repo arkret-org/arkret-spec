@@ -214,13 +214,13 @@
       "type": "object",
       "required": [
         "checkpoint",
-        "uncompressed_tail"
+        "uncompressed_tail_entries"
       ],
       "properties": {
         "checkpoint": {
           "$ref": "#/$defs/bilateral_continuity_checkpoint"
         },
-        "uncompressed_tail": {
+        "uncompressed_tail_entries": {
           "type": "array",
           "minItems": 1,
           "maxItems": 64,
@@ -850,11 +850,11 @@
     "contact_list": {
       "type": "object",
       "required": [
-        "contacts",
+        "contact_list_rows",
         "has_more"
       ],
       "properties": {
-        "contacts": {
+        "contact_list_rows": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/contact_list_row"
@@ -929,7 +929,7 @@
         "direct_conversation": {
           "$ref": "#/$defs/direct_conversation_summary"
         },
-        "agents": {
+        "contact_agent_projections": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/contact_agent_projection"

@@ -11,7 +11,7 @@
     "service_id",
     "platform",
     "measurement",
-    "attestation_chain",
+    "attestation_chains",
     "attestation_key",
     "verification_method",
     "validity",
@@ -98,7 +98,7 @@
       },
       "additionalProperties": false
     },
-    "attestation_chain": {
+    "attestation_chains": {
       "type": "array",
       "minItems": 1,
       "description": "Ordered attestation evidence chain: leaf attestation (signed by the enclave) → intermediate (e.g. PCK certificate, AK certificate) → root (vendor attestation root certificate). Each item is base64url-encoded DER / CBOR per platform format. Verifier MUST validate signature chain and trust the root against the Realm-declared trust root list.",

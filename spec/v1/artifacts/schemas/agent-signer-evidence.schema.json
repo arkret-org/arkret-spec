@@ -127,7 +127,7 @@
         "authorization",
         "key_state_witness",
         "agent_lifecycle_witness",
-        "seal_lineage"
+        "seal_lineages"
       ],
       "properties": {
         "authority_id": {
@@ -157,7 +157,7 @@
         "agent_lifecycle_witness": {
           "$ref": "#/$defs/agent_lifecycle_witness"
         },
-        "seal_lineage": {
+        "seal_lineages": {
           "type": "array",
           "minItems": 1,
           "maxItems": 4096,

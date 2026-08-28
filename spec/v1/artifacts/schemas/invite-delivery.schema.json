@@ -7,7 +7,7 @@
   "required": [
     "schema",
     "updated_at",
-    "entries"
+    "delivery_entries"
   ],
   "properties": {
     "schema": {
@@ -17,7 +17,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Instant of the accepted CAS write that produced this value."
     },
-    "entries": {
+    "delivery_entries": {
       "type": "array",
       "maxItems": 200,
       "items": {

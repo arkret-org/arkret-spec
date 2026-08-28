@@ -547,12 +547,12 @@
                 },
                 "then": {
                   "required": [
-                    "recovery_members",
+                    "recovery_notary_signer_descriptors",
                     "controller_organization_id",
                     "recovery_controller_organization_ids"
                   ],
                   "properties": {
-                    "recovery_members": {
+                    "recovery_notary_signer_descriptors": {
                       "minItems": 1
                     },
                     "recovery_controller_organization_ids": {
@@ -567,7 +567,7 @@
       }
     },
     {
-      "$comment": "Threshold notary committees must declare their equivocation culprit-attribution mode at Realm create time. The arithmetic rule (quorum_intersection iff 2*threshold > members.length) is reducer/conformance validation; see notary.forensic_attribution $comment.",
+      "$comment": "Threshold notary committees must declare their equivocation culprit-attribution mode at Realm create time. The arithmetic rule (quorum_intersection iff 2*threshold > notary_signer_descriptors.length) is reducer/conformance validation; see notary.forensic_attribution $comment.",
       "if": {
         "properties": {
           "notary": {
@@ -590,7 +590,7 @@
           "notary": {
             "required": [
               "kind",
-              "member_ids",
+              "notary_signer_descriptors",
               "threshold",
               "forensic_attribution"
             ]
@@ -1011,7 +1011,7 @@
             "signer": {
               "$ref": "#/$defs/notary_signer_descriptor"
             },
-            "recovery_members": {
+            "recovery_notary_signer_descriptors": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
@@ -1037,7 +1037,7 @@
           "type": "object",
           "required": [
             "kind",
-            "member_ids",
+            "notary_signer_descriptors",
             "threshold",
             "forensic_attribution"
           ],
@@ -1045,7 +1045,7 @@
             "kind": {
               "const": "threshold"
             },
-            "member_ids": {
+            "notary_signer_descriptors": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
@@ -1070,13 +1070,13 @@
           "type": "object",
           "required": [
             "kind",
-            "member_ids"
+            "notary_signer_descriptors"
           ],
           "properties": {
             "kind": {
               "const": "open_set"
             },
-            "member_ids": {
+            "notary_signer_descriptors": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
@@ -1092,7 +1092,7 @@
           "required": [
             "kind",
             "signer",
-            "recovery_members"
+            "recovery_notary_signer_descriptors"
           ],
           "properties": {
             "kind": {
@@ -1101,7 +1101,7 @@
             "signer": {
               "$ref": "#/$defs/notary_signer_descriptor"
             },
-            "recovery_members": {
+            "recovery_notary_signer_descriptors": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
@@ -1124,7 +1124,7 @@
           "additionalProperties": false
         }
       ],
-      "description": "notary.kind is the sole profile discriminator. Across members, recovery_members, and their union, actor_id, verification_method, and frozen_public_key_digest are each duplicate-free; signer and recovery slots are disjoint on all three axes. threshold must not exceed members.length. Admission enforces these field-wise invariants in addition to JSON structural uniqueness."
+      "description": "notary.kind is the sole profile discriminator. Across notary_signer_descriptors, recovery_notary_signer_descriptors, and their union, actor_id, verification_method, and frozen_public_key_digest are each duplicate-free; signer and recovery slots are disjoint on all three axes. threshold must not exceed notary_signer_descriptors.length. Admission enforces these field-wise invariants in addition to JSON structural uniqueness."
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"

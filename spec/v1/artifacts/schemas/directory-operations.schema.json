@@ -538,11 +538,11 @@
     "directory_realm_search_outcome": {
       "type": "object",
       "required": [
-        "realm_ids",
+        "realm_previews",
         "has_more"
       ],
       "properties": {
-        "realm_ids": {
+        "realm_previews": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/realm_preview"
@@ -615,7 +615,7 @@
         "realm_preview": {
           "$ref": "#/$defs/realm_preview"
         },
-        "stripped_state": {
+        "stripped_state_entries": {
           "type": "array",
           "items": {
             "type": "object"
@@ -731,11 +731,11 @@
     "directory_organization_search_outcome": {
       "type": "object",
       "required": [
-        "organizations",
+        "organization_previews",
         "has_more"
       ],
       "properties": {
-        "organizations": {
+        "organization_previews": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/organization_preview"
@@ -829,11 +829,11 @@
     "directory_actor_search_outcome": {
       "type": "object",
       "required": [
-        "actor_ids",
+        "actor_previews",
         "has_more"
       ],
       "properties": {
-        "actor_ids": {
+        "actor_previews": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/actor_preview"

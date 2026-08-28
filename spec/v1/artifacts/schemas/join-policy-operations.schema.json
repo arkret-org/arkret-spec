@@ -546,7 +546,7 @@
       "required": [
         "realm_id",
         "viewer_is_reviewer",
-        "applications"
+        "application_entries"
       ],
       "properties": {
         "realm_id": {
@@ -555,7 +555,7 @@
         "viewer_is_reviewer": {
           "type": "boolean"
         },
-        "applications": {
+        "application_entries": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/application_entry"
@@ -617,7 +617,7 @@
       "required": [
         "realm_id",
         "application_ref",
-        "entries"
+        "application_audit_entries"
       ],
       "properties": {
         "realm_id": {
@@ -626,7 +626,7 @@
         "application_ref": {
           "$ref": "#/$defs/digest"
         },
-        "entries": {
+        "application_audit_entries": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/application_audit_entry"

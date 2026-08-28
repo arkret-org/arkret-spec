@@ -34,6 +34,71 @@
   ],
   "registered_service_qualified_fields": [
     {
+      "field": "service",
+      "role_stem": "service",
+      "reason": "complete generic service object role"
+    },
+    {
+      "field": "services",
+      "role_stem": "service",
+      "reason": "plural complete generic service object role"
+    },
+    {
+      "field": "service_acceptance_ref",
+      "role_stem": "service_acceptance",
+      "reason": "reference to the registered service_acceptance protocol event role"
+    },
+    {
+      "field": "service_account_id",
+      "role_stem": "service_account",
+      "reason": "identifier of the registered external service-account role"
+    },
+    {
+      "field": "service_binding",
+      "role_stem": "service_binding",
+      "reason": "complete registered federation service-binding object role"
+    },
+    {
+      "field": "service_binding_ref",
+      "role_stem": "service_binding",
+      "reason": "reference to the registered federation service-binding role"
+    },
+    {
+      "field": "service_did_document",
+      "role_stem": "service_did_document",
+      "reason": "complete DID Document projected for the registered generic service role"
+    },
+    {
+      "field": "service_proof",
+      "role_stem": "service_proof",
+      "reason": "complete registered service-authentication proof role"
+    },
+    {
+      "field": "service_resolution",
+      "role_stem": "service_resolution",
+      "reason": "complete registered service-resolution carrier role"
+    },
+    {
+      "field": "service_resolution_record",
+      "role_stem": "service_resolution_record",
+      "reason": "complete registered service-resolution record role"
+    },
+    {
+      "field": "service_route_handover_notice",
+      "role_stem": "service_route_handover_notice",
+      "reason": "complete registered service-route handover artifact role"
+    },
+    {
+      "field": "service_scope",
+      "role_stem": "service_scope",
+      "reason": "registered scope carried by the generic service role"
+    },
+    {
+      "field": "service_signer_evidence",
+      "role_stem": "service_signer_evidence",
+      "reason": "complete registered signer-evidence role for a service"
+    },
+    {
       "field": "media_service_decrypts",
       "role_stem": "media_service",
       "reason": "media_service is the registered E2EE media-processing protocol role"
@@ -189,6 +254,90 @@
       "pointer": "/$defs/SignedSessionGrantClaims/properties/jti",
       "terminal_categories": ["typed_object_id"],
       "reason": "RFC 7519 registered JWT claim name retained inside the signed claims object"
+    },
+    {
+      "file": "agent-signer-evidence.schema.json",
+      "pointer": "/$defs/key_state_witness/properties/cell_value",
+      "terminal_categories": ["object_array"],
+      "reason": "closed canonical cell-value tuple, not a collection of role objects"
+    },
+    {
+      "file": "agent-signer-evidence.schema.json",
+      "pointer": "/$defs/key_transition_witness/properties/cell_value",
+      "terminal_categories": ["object_array"],
+      "reason": "closed canonical cell-value tuple, not a collection of role objects"
+    },
+    {
+      "file": "applet-package.schema.json",
+      "pointer": "/$defs/applet_namespaces/properties/actor_namespace_entries",
+      "terminal_categories": ["object_projection_array"],
+      "reason": "role-qualified projection of reusable namespace_entry; the actor qualifier prevents sibling collection collisions"
+    },
+    {
+      "file": "applet-package.schema.json",
+      "pointer": "/$defs/applet_namespaces/properties/realm_namespace_entries",
+      "terminal_categories": ["object_projection_array"],
+      "reason": "role-qualified projection of reusable namespace_entry; the realm qualifier prevents sibling collection collisions"
+    },
+    {
+      "file": "applet-package.schema.json",
+      "pointer": "/$defs/applet_namespaces/properties/handle_namespace_entries",
+      "terminal_categories": ["object_projection_array"],
+      "reason": "role-qualified projection of reusable namespace_entry; the handle qualifier prevents sibling collection collisions"
+    },
+    {
+      "file": "calendar-event.schema.json",
+      "pointer": "/$defs/recurrence/properties/by_day",
+      "terminal_categories": ["object_array"],
+      "reason": "registered recurrence grammar operator whose array value is one by-day expression"
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/realm_media_service_payload/properties/value/properties/foci",
+      "terminal_categories": ["object_array"],
+      "reason": "foci is the established irregular plural of focus"
+    },
+    {
+      "file": "query.schema.json",
+      "pointer": "/$defs/boolean_filter/properties/and",
+      "terminal_categories": ["object_array"],
+      "reason": "closed boolean-query operator whose operands are encoded as an array"
+    },
+    {
+      "file": "query.schema.json",
+      "pointer": "/$defs/boolean_filter/properties/or",
+      "terminal_categories": ["object_array"],
+      "reason": "closed boolean-query operator whose operands are encoded as an array"
+    },
+    {
+      "file": "query.schema.json",
+      "pointer": "/$defs/query_request_body/properties/order_by",
+      "terminal_categories": ["object_array"],
+      "reason": "registered ordered query-clause grammar; order_by names the whole ordered clause"
+    },
+    {
+      "file": "realm.schema.json",
+      "pointer": "/$defs/notary_configuration/oneOf/0/properties/recovery_notary_signer_descriptors",
+      "terminal_categories": ["object_projection_array"],
+      "reason": "role-qualified recovery subset of notary_signer_descriptor; qualifier distinguishes it from the primary signer set"
+    },
+    {
+      "file": "realm.schema.json",
+      "pointer": "/$defs/notary_configuration/oneOf/3/properties/recovery_notary_signer_descriptors",
+      "terminal_categories": ["object_projection_array"],
+      "reason": "role-qualified recovery subset of notary_signer_descriptor; qualifier distinguishes it from the primary signer set"
+    },
+    {
+      "file": "view.schema.json",
+      "pointer": "/$defs/query/properties/order_by",
+      "terminal_categories": ["object_array"],
+      "reason": "registered ordered view-query clause grammar; order_by names the whole ordered clause"
+    },
+    {
+      "file": "view.schema.json",
+      "pointer": "/$defs/collection_config/properties/item_order_by",
+      "terminal_categories": ["object_array"],
+      "reason": "registered ordered collection clause grammar; item_order_by names the whole ordered clause"
     }
   ]
 }

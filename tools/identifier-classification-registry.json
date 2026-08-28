@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 507,
-    "typed_object_id": 896,
+    "responsibility_identity_material": 670,
+    "typed_object_id": 936,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -699,14 +699,6 @@
       "reason": "MIMI / Matrix interop identifier retained verbatim from the external provider surface."
     },
     {
-      "name": "push_target_id",
-      "terminal_signature": "[[\"type\", \"\\\"object\\\"\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "service-describe.schema.json#/properties/privacy_derivation/properties/push_target_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
       "name": "question_id",
       "terminal_signature": "[[\"pattern\", \"^[a-z][a-z0-9_-]{0,63}$\"]]",
       "category": "document_local_symbol",
@@ -1081,6 +1073,38 @@
       "occurrences": 1,
       "example_path": "view.schema.json#/$defs/dashboard_config/properties/widgets/items/properties/widget_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
+    },
+    {
+      "name": "allowed_recipient_ids",
+      "terminal_signature": "[[\"const\", \"*\"], [\"pattern\", \"^ak:did_core:[a-z0-9]+:[^\\\\s/?#]+$\"]]",
+      "category": "responsibility_identity_material",
+      "occurrences": 1,
+      "example_path": "event-payload.schema.json#/$defs/realm_delivery_binding_policy_payload/properties/allowed_recipient_ids",
+      "reason": "Closed DID-core-or-wildcard policy selector; the non-wildcard branch carries responsibility identity material."
+    },
+    {
+      "name": "cell_id",
+      "terminal_signature": "[[\"const\", \"ak:cell:ak.component.identity.resolution.v1:null\"]]",
+      "category": "typed_object_id",
+      "occurrences": 2,
+      "example_path": "event-envelope.schema.json#/$defs/identity_resolution_head_precondition/properties/cell_id",
+      "reason": "Closed constant in the registered ak:cell typed-object identifier namespace."
+    },
+    {
+      "name": "recovery_controller_organization_ids",
+      "terminal_signature": "[]",
+      "category": "responsibility_identity_material",
+      "occurrences": 1,
+      "example_path": "realm.schema.json#/allOf/1/then/properties/notary/allOf/0/then/properties/recovery_controller_organization_ids",
+      "reason": "Constraint refinement branch of a DID-core list declared by the base object; this branch only makes it required."
+    },
+    {
+      "name": "supersedes_id",
+      "terminal_signature": "[]",
+      "category": "typed_object_id",
+      "occurrences": 1,
+      "example_path": "recovery-policy.schema.json#/allOf/0/then/properties/supersedes_id",
+      "reason": "Constraint refinement branch of a typed recovery-policy ID declared by the base object; this branch only makes it required."
     }
   ]
 }

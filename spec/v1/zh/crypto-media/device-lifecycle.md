@@ -847,7 +847,7 @@ lookup 前拒绝。不确定结果必须使用原 `claim_request_id + request_di
 - 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。v1 不存在 owner inventory 或 maintenance query，upload、self/peer claim 与 peer outcome-query 均不得返回 `available_count`。客户端维护 endpoint-scoped 本地 inventory ledger，只在本地 usable 数量低于 8 时于一个 single-flight maintenance cycle 上传一个至多包含 `8 - local_usable_count` 个 fresh 包的 deficit batch；健康 inventory 重载必须零上传。并发 runtime MAY 短暂 overfill，但每个 cycle 不得超过其启动时 deficit。
 - claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转为 revoked / unusable 状态；服务不得把它自动放回 `published`，也不得接受迟到的 consume。设备需要重新发布新的 KeyPackage。
 - Device / Key Server MUST 维护过期扫描或等价触发：KeyPackage `expires_at`、claim `expires_at`、device revoke、principal control state 失效、capability revoke 或 Realm policy 变更任一发生时，后续 `query` / `claim` MUST NOT 返回该 KeyPackage；后台清理不得是唯一防线。扫描周期 SHOULD ≤ 60s，且每次 `claim` 路径必须先做同步 freshness 判定。
-- KeyPackage claim MUST 对 `(requester_service_id, target_principal_id)` 做限速，默认窗口为 60s 内最多 5 次 claim 尝试。超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope，不泄露目标存在性）；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。
+- KeyPackage claim MUST 对 `(requester_id, target_principal_id)` 做限速，默认窗口为 60s 内最多 5 次 claim 尝试。超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope，不泄露目标存在性）；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。
 - claim record SHOULD 被 Principal Server / Device Key Server 保留到 Welcome 过期后的一段短 TTL，用于重试、诊断和滥用审计；不得长期保留可关联 private Realm / MLS group 的明文目标信息。
 
 ### 9.1 KeyPackage 状态机（normative）

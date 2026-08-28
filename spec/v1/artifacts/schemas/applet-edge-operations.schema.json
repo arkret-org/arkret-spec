@@ -256,7 +256,7 @@
           ],
           "description": "Closed transaction result: all items accepted, a mixed result, or all items rejected."
         },
-        "rejected": {
+        "rejections": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/rejected_item"

@@ -4,7 +4,7 @@
   "title": "Arkret Service Identity Recovery Bundle",
   "description": "Verifiable disaster-recovery bundle for one service DID. Private key bytes are never carried; key references resolve through the configured key backend.",
   "type": "object",
-  "required": ["schema", "identity", "webvh_history", "receipt_chain", "exported_at"],
+  "required": ["schema", "identity", "webvh_history_entries", "receipt_chains", "exported_at"],
   "properties": {
     "schema": {"const": "ak.schema.service_identity_bundle.v1"},
     "identity": {
@@ -19,12 +19,12 @@
       },
       "additionalProperties": false
     },
-    "webvh_history": {
+    "webvh_history_entries": {
       "type": "array",
       "minItems": 1,
       "items": {"type": "object"}
     },
-    "receipt_chain": {
+    "receipt_chains": {
       "type": "array",
       "minItems": 1,
       "items": {"type": "object"}
