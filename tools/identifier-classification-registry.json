@@ -890,7 +890,7 @@
       "name": "service_account_id",
       "terminal_signature": "[[\"pattern\", \"^(?!(?:ak|did):)\"]]",
       "category": "service_local_account_identifier",
-      "occurrences": 1,
+      "occurrences": 4,
       "example_path": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/properties/service_account_id",
       "reason": "Durable service-local account key carried in introspection metadata; it is scoped by the owning Principal Server."
     },

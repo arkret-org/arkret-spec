@@ -6169,16 +6169,6 @@
       ]
     },
     {
-      "schema_path": "keypackage-operations.schema.json#/$defs/keypackages_revoke_request_body/properties/owner_account_id",
-      "property_name": "owner_account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "keypackage-operations.schema.json#/$defs/keypackages_upload_request_body/properties/agent_verification_method",
       "property_name": "agent_verification_method",
       "semantic_category": "responsibility_identity_material",
@@ -6901,36 +6891,6 @@
     {
       "schema_path": "principal-locator.schema.json#/properties/subject_id",
       "property_name": "subject_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "principal-operations.schema.json#/$defs/keypackage_terminal_command/oneOf/0/properties/owner_account_id",
-      "property_name": "owner_account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "principal-operations.schema.json#/$defs/keypackage_terminal_command/oneOf/1/properties/owner_account_id",
-      "property_name": "owner_account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "principal-operations.schema.json#/$defs/keypackage_terminal_command/oneOf/2/properties/owner_account_id",
-      "property_name": "owner_account_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

@@ -22,7 +22,7 @@
       "verification_method": "did:webvh:z6mkfixture:principal.example#ed25519-2026-05-fixture",
       "received_at": "2026-05-02T00:00:00.000Z",
       "replay_nonce": "ZnJhbmtpbmctbm9uY2UtMDE",
-      "signature": "zY91qBQ0SxVSDxfxxEHdG0EBCj_goj67y3_lbpRvyn-HKE7qgoYGt1QGosaiBQdm_mIrpadjc_nTphY0KMHGAw"
+      "signature": "qsv2-fVzdtHwnV6qje1o0MEt1-kQFMrXnJKHU_OUIttOfYMI0yhG_Cz4WWfws45g0Q1TbTUt-FtqC5lBUlcBDw"
     },
     "removed_members": [
       "signature"
@@ -37,8 +37,8 @@
       "replay_nonce": "ZnJhbmtpbmctbm9uY2UtMDE"
     },
     "transcript_jcs": "{\"domain\":\"ak.franking_proof.signature.v1\",\"event_id\":\"ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"received_at\":\"2026-05-02T00:00:00.000Z\",\"received_by\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"replay_nonce\":\"ZnJhbmtpbmctbm9uY2UtMDE\",\"verification_method\":\"did:webvh:z6mkfixture:principal.example#ed25519-2026-05-fixture\"}",
-    "transcript_digest": "sha256:38ebe37bf0a668f7c6c69426e74279e23baaae678dd1875aae67e4796e4169e1",
-    "signature_b64u": "zY91qBQ0SxVSDxfxxEHdG0EBCj_goj67y3_lbpRvyn-HKE7qgoYGt1QGosaiBQdm_mIrpadjc_nTphY0KMHGAw",
+    "transcript_digest": "sha256:a18b17adffa9ed5e5ae8c703b6aa34b4dfdd048c88067e986ae96ba52c01ecf2",
+    "signature_b64u": "qsv2-fVzdtHwnV6qje1o0MEt1-kQFMrXnJKHU_OUIttOfYMI0yhG_Cz4WWfws45g0Q1TbTUt-FtqC5lBUlcBDw",
     "expected_result": "accept",
     "bound_field_mutations": [
       {

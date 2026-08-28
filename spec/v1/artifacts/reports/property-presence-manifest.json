@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10186,
+    "total_properties": 10189,
     "total_schema_documents": 167,
     "by_presence_class": {
       "optional": 2798,
       "optional_defaulted": 68,
-      "required": 6974,
+      "required": 6977,
       "required_nullable": 138,
       "tristate": 208
     },
@@ -13027,6 +13027,7 @@
         "/$defs/SessionGrantOutcome/properties/scope_details/properties/realm_ids": "optional",
         "/$defs/SessionGrantOutcome/properties/scope_details/properties/strand_ids": "optional",
         "/$defs/SessionGrantOutcome/properties/scope_details/properties/track_names": "optional",
+        "/$defs/SessionGrantOutcome/properties/service_account_id": "required",
         "/$defs/SessionGrantOutcome/properties/session_grant": "required",
         "/$defs/SessionGrantOutcome/properties/session_grant_id": "required",
         "/$defs/SessionGrantOutcome/properties/session_public_key": "required",
@@ -13036,6 +13037,7 @@
         "/$defs/SessionGrantRefreshOutcome/properties/grant_jwt": "required",
         "/$defs/SessionGrantRefreshOutcome/properties/previous_session_grant_id": "required",
         "/$defs/SessionGrantRefreshOutcome/properties/scopes": "required",
+        "/$defs/SessionGrantRefreshOutcome/properties/service_account_id": "required",
         "/$defs/SessionGrantRefreshOutcome/properties/session_grant_id": "required",
         "/$defs/SessionGrantRefreshOutcome/properties/session_public_key": "required",
         "/$defs/SessionGrantReplayExpiredProblem/properties/session_grant_id": "required",
@@ -13067,6 +13069,7 @@
         "/$defs/SignedSessionGrantClaims/properties/proof_kind": "optional",
         "/$defs/SignedSessionGrantClaims/properties/scope_details": "optional",
         "/$defs/SignedSessionGrantClaims/properties/scopes": "required",
+        "/$defs/SignedSessionGrantClaims/properties/service_account_id": "required",
         "/$defs/SignedSessionGrantClaims/properties/session_id": "required",
         "/$defs/SignedSessionGrantClaims/properties/session_public_key": "required",
         "/$defs/SignedSessionGrantClaims/properties/subject_id": "required",

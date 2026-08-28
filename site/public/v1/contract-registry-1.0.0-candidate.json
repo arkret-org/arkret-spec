@@ -10406,6 +10406,7 @@
         "issuer_id",
         "issuance_nonce",
         "subject_id",
+        "service_account_id",
         "session_public_key",
         "audience_id",
         "scopes",
