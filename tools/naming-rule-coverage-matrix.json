@@ -470,7 +470,9 @@
       ],
       "enforcement_kind": "predicate",
       "enforced_by": {
-        "predicates": [],
+        "predicates": [
+          "NC-IDROLE-001"
+        ],
         "functions": [
           "prose.py:check_naming_predicates"
         ],
@@ -561,7 +563,9 @@
       ],
       "enforcement_kind": "registry_closure",
       "enforced_by": {
-        "predicates": [],
+        "predicates": [
+          "NC-COLLECTION-001"
+        ],
         "functions": [
           "naming_contracts.py:check_collection_field_contracts"
         ],

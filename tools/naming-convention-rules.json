@@ -214,13 +214,13 @@
           "external_anchor": "RFC 9420 section 8.2 GroupContext confirmed_transcript_hash"
         },
         {
-          "id": "webvh-inception-next-key-hashes",
+          "id": "did-webvh-inception-next-key-hashes",
           "file": "service-operation-dtos.schema.json",
           "pointer": "/$defs/ServiceWebvhInceptionParameters/properties/nextKeyHashes",
           "name": "nextKeyHashes",
           "basis": "external_literal",
-          "reason": "did:webvh inception parameter projected verbatim; the pre-rotation commitment is compared byte-for-byte against the external key log.",
-          "external_anchor": "did:webvh specification nextKeyHashes parameter"
+          "reason": "DID WebVH inception parameters are hashed and verified verbatim, including the external nextKeyHashes member.",
+          "external_anchor": "DID WebVH specification nextKeyHashes parameter"
         }
       ]
     },
@@ -291,6 +291,11 @@
     }
   ],
   "negative_cases": [
+    {
+      "rule_id": "NC-COLLECTION-001",
+      "candidate": "status",
+      "expected": "reject"
+    },
     {
       "rule_id": "NC-IDROLE-001",
       "candidate": "issuer",
@@ -367,6 +372,26 @@
       "expected": "reject"
     },
     {
+      "rule_id": "NC-HASH-001",
+      "candidate": "transcript_hash",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "hash_algorithm",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "nextKeyHashes",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "hashAlgorithm",
+      "expected": "reject"
+    },
+    {
       "rule_id": "NC-CLASSIFICATION-001",
       "candidate": "morph_kind_type",
       "expected": "reject"
@@ -397,6 +422,11 @@
     "Details"
   ],
   "positive_cases": [
+    {
+      "rule_id": "NC-COLLECTION-001",
+      "candidate": "actors",
+      "expected": "accept"
+    },
     {
       "rule_id": "NC-IDROLE-001",
       "candidate": "issuer_id",
@@ -485,6 +515,26 @@
     {
       "rule_id": "NC-SET-001",
       "candidate": "denied_kinds",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "event_digest",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "digest_algorithm",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "updateKeys",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "hashtag_count",
       "expected": "accept"
     },
     {

@@ -484,6 +484,18 @@ def nc_idrole_001(candidate: str) -> bool:
     return candidate in {"issuer", "subject", "audience", "inviter", "invitee"}
 
 
+def nc_collection_001(candidate: str) -> bool:
+    """Lexical probes for the independent collection naming contract.
+
+    The resolved-terminal and exact-path judgement lives in
+    ``check_collection_field_contracts``. This predicate only keeps mutation
+    probes for unmistakably singular collection candidates on the shared
+    naming-rule surface.
+    """
+
+    return candidate in {"entry", "item", "member", "status", "class"}
+
+
 PREDICATES: dict[str, Callable[[str], bool]] = {
     "NC-BOOL-001": nc_bool_001,
     "NC-COUNT-001": nc_count_001,
@@ -497,6 +509,7 @@ PREDICATES: dict[str, Callable[[str], bool]] = {
     "NC-HASH-001": nc_hash_001,
     "NC-CLASSIFICATION-001": nc_classification_001,
     "NC-IDROLE-001": nc_idrole_001,
+    "NC-COLLECTION-001": nc_collection_001,
     "NC-FIELDCASE-001": nc_fieldcase_001,
 }
 

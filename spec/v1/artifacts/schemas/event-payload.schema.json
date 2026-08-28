@@ -12370,10 +12370,5 @@
       ],
       "description": "Relation create input: the full Relation object schema minus the id, the banned `type` name, and the reducer-managed `effective_scope`. Reusing relation.schema.json makes the Relation create shape decidable by schema exactly like the Strand / Morph / Space create shapes, while relation.schema.json's own `fields` property keeps the free edge-metadata surface open. Semantic validation MUST require payload.relation.created_by to match the top-level actor_id and payload.relation.created_at to match the top-level created_at before acceptance."
     }
-  },
-  "properties": {
-    "brand_new_thing_id": {
-      "type": "string"
-    }
   }
 }

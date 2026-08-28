@@ -761,17 +761,17 @@ class IdentifierRoleSuffixTest(MutationHarness):
 
     def test_object_collection_does_not_mirror_item_type_name(self) -> None:
         def mutate(document):
-            shape = document["$defs"]["directory_actor_search_outcome"]
+            shape = document["$defs"]["applet_namespaces"]
             shape["required"] = [
-                "realms" if item == "actors" else item
+                "participants" if item == "actors" else item
                 for item in shape["required"]
             ]
-            shape["properties"]["realms"] = shape["properties"].pop(
+            shape["properties"]["participants"] = shape["properties"].pop(
                 "actors"
             )
 
         errors = self.lint_with_file(
-            SCHEMA_DIR / "directory-operations.schema.json",
+            SCHEMA_DIR / "applet-package.schema.json",
             mutate,
             check=check_collection_field_contracts,
         )

@@ -1053,24 +1053,13 @@
     {
       "file": "sdk-conformance-claim.schema.json",
       "key": "evidence",
-      "occurrences": 2,
+      "occurrences": 3,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
         "attestation"
       ],
       "reason": "Conformance clauses may attach executable proof artifacts or externally issued test attestations."
-    },
-    {
-      "file": "sdk-conformance-claim.schema.json",
-      "key": "evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "The clause-level evidence collection carries executable proof artifacts or externally issued test attestations."
     },
     {
       "file": "sdk-conformance-claim.schema.json",
