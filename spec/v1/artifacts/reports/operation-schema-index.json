@@ -53,7 +53,7 @@
         ],
         "properties": [
           "status",
-          "rejected",
+          "rejections",
           "retry_after_ms"
         ],
         "closed": true
@@ -846,7 +846,7 @@
         ],
         "properties": [
           "realm_preview",
-          "stripped_state",
+          "stripped_state_entries",
           "join_rule",
           "join_candidates"
         ],
@@ -913,11 +913,11 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome",
         "schema_kind": "object",
         "required": [
-          "actor_ids",
+          "actor_previews",
           "has_more"
         ],
         "properties": [
-          "actor_ids",
+          "actor_previews",
           "next_cursor",
           "has_more"
         ],
@@ -943,11 +943,11 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome",
         "schema_kind": "object",
         "required": [
-          "organizations",
+          "organization_previews",
           "has_more"
         ],
         "properties": [
-          "organizations",
+          "organization_previews",
           "next_cursor",
           "has_more"
         ],
@@ -977,11 +977,11 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome",
         "schema_kind": "object",
         "required": [
-          "realm_ids",
+          "realm_previews",
           "has_more"
         ],
         "properties": [
-          "realm_ids",
+          "realm_previews",
           "next_cursor",
           "has_more"
         ],
@@ -2414,7 +2414,7 @@
         "properties": [
           "event_ref",
           "delivery",
-          "rejected"
+          "rejections"
         ],
         "closed": true
       }
@@ -2492,7 +2492,7 @@
         "properties": [
           "accepted",
           "room_state_ref",
-          "rejected"
+          "rejections"
         ],
         "closed": true
       }
@@ -3251,9 +3251,9 @@
           "control_proposal_acks",
           "agent_event_admission_receipts",
           "duplicate",
-          "rejected",
+          "events_submit_rejected_rows",
           "quarantine",
-          "realm_actor_frontiers",
+          "realm_actor_frontier_views",
           "cursor",
           "original_outcome",
           "agent_membership_cascade"
@@ -3491,11 +3491,11 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
         "schema_kind": "object",
         "required": [
-          "events",
+          "event_read_rows",
           "has_more"
         ],
         "properties": [
-          "events",
+          "event_read_rows",
           "prev_cursor",
           "next_cursor",
           "has_more",
@@ -4845,10 +4845,10 @@
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_list",
         "schema_kind": "object",
         "required": [
-          "entries"
+          "account_data_entries"
         ],
         "properties": [
-          "entries"
+          "account_data_entries"
         ],
         "closed": true
       }
@@ -5320,11 +5320,11 @@
         "schema_kind": "object",
         "required": [
           "agent_id",
-          "entries"
+          "agent_participation_entries"
         ],
         "properties": [
           "agent_id",
-          "entries"
+          "agent_participation_entries"
         ],
         "closed": true
       }
@@ -5352,11 +5352,11 @@
         "schema_kind": "object",
         "required": [
           "agent_id",
-          "entries"
+          "agent_participation_entries"
         ],
         "properties": [
           "agent_id",
-          "entries"
+          "agent_participation_entries"
         ],
         "closed": true
       }
@@ -5368,11 +5368,11 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list",
         "schema_kind": "object",
         "required": [
-          "agents",
+          "agent_projections",
           "has_more"
         ],
         "properties": [
-          "agents",
+          "agent_projections",
           "next_cursor",
           "has_more"
         ],
@@ -5585,10 +5585,10 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_list",
         "schema_kind": "object",
         "required": [
-          "items"
+          "agent_sidecar_views"
         ],
         "properties": [
-          "items",
+          "agent_sidecar_views",
           "next_cursor"
         ],
         "closed": true
@@ -5668,10 +5668,10 @@
         "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome",
         "schema_kind": "object",
         "required": [
-          "evidence"
+          "evidence_items"
         ],
         "properties": [
-          "evidence",
+          "evidence_items",
           "failures"
         ],
         "closed": true
@@ -5758,7 +5758,7 @@
           "e2ee_authorization_refs",
           "widget_policy_ref",
           "effective_status",
-          "rejected"
+          "rejections"
         ],
         "closed": true
       }
@@ -5803,7 +5803,7 @@
           "status",
           "steps",
           "revoked_refs",
-          "rejected"
+          "rejections"
         ],
         "closed": true
       }
@@ -6523,11 +6523,11 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "circles"
+          "circle_views"
         ],
         "properties": [
           "realm_id",
-          "circles"
+          "circle_views"
         ],
         "closed": true
       }
@@ -6702,10 +6702,10 @@
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list",
         "schema_kind": "object",
         "required": [
-          "cells"
+          "consent_cell_views"
         ],
         "properties": [
-          "cells"
+          "consent_cell_views"
         ],
         "closed": true
       }
@@ -7171,11 +7171,11 @@
         "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list",
         "schema_kind": "object",
         "required": [
-          "contacts",
+          "contact_list_rows",
           "has_more"
         ],
         "properties": [
-          "contacts",
+          "contact_list_rows",
           "next_cursor",
           "has_more"
         ],
@@ -7597,9 +7597,9 @@
           "control_proposal_acks",
           "agent_event_admission_receipts",
           "duplicate",
-          "rejected",
+          "events_submit_rejected_rows",
           "quarantine",
-          "realm_actor_frontiers",
+          "realm_actor_frontier_views",
           "cursor",
           "original_outcome",
           "agent_membership_cascade",
@@ -7625,9 +7625,9 @@
               "control_proposal_acks",
               "agent_event_admission_receipts",
               "duplicate",
-              "rejected",
+              "events_submit_rejected_rows",
               "quarantine",
-              "realm_actor_frontiers",
+              "realm_actor_frontier_views",
               "cursor",
               "original_outcome",
               "agent_membership_cascade"
@@ -8050,11 +8050,11 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
         "schema_kind": "object",
         "required": [
-          "events",
+          "event_read_rows",
           "has_more"
         ],
         "properties": [
-          "events",
+          "event_read_rows",
           "prev_cursor",
           "next_cursor",
           "has_more",
@@ -8886,7 +8886,7 @@
         ],
         "properties": [
           "accepted",
-          "rejected",
+          "rejections",
           "keypackage_refs"
         ],
         "closed": true
@@ -9080,13 +9080,13 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "morphs",
+          "projection_morph_rows",
           "total",
           "has_more"
         ],
         "properties": [
           "realm_id",
-          "morphs",
+          "projection_morph_rows",
           "total",
           "next_cursor",
           "has_more"
@@ -9105,14 +9105,14 @@
           "versions",
           "relations",
           "comments",
-          "cursor_presence"
+          "cursor_presence_entries"
         ],
         "properties": [
           "document",
           "versions",
           "relations",
           "comments",
-          "cursor_presence",
+          "cursor_presence_entries",
           "frontier"
         ],
         "closed": true
@@ -9385,12 +9385,12 @@
         "required": [
           "realm_id",
           "application_ref",
-          "entries"
+          "application_audit_entries"
         ],
         "properties": [
           "realm_id",
           "application_ref",
-          "entries"
+          "application_audit_entries"
         ],
         "closed": true
       }
@@ -9499,12 +9499,12 @@
         "required": [
           "realm_id",
           "viewer_is_reviewer",
-          "applications"
+          "application_entries"
         ],
         "properties": [
           "realm_id",
           "viewer_is_reviewer",
-          "applications",
+          "application_entries",
           "next_cursor"
         ],
         "closed": true
@@ -9695,12 +9695,12 @@
         "required": [
           "realm_id",
           "direction",
-          "links"
+          "realm_link_entries"
         ],
         "properties": [
           "realm_id",
           "direction",
-          "links"
+          "realm_link_entries"
         ],
         "closed": true
       }
@@ -9745,12 +9745,12 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "relationships",
+          "realm_organization_relationship_rows",
           "declared_organization_hint_ids"
         ],
         "properties": [
           "realm_id",
-          "relationships",
+          "realm_organization_relationship_rows",
           "declared_organization_hint_ids"
         ],
         "closed": true
@@ -10184,13 +10184,13 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "spaces",
+          "projection_space_rows",
           "total",
           "has_more"
         ],
         "properties": [
           "realm_id",
-          "spaces",
+          "projection_space_rows",
           "total",
           "next_cursor",
           "has_more"
@@ -10206,13 +10206,13 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "strands",
+          "projection_strand_rows",
           "total",
           "has_more"
         ],
         "properties": [
           "realm_id",
-          "strands",
+          "projection_strand_rows",
           "total",
           "next_cursor",
           "has_more"
@@ -10371,11 +10371,11 @@
         "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_outcome",
         "schema_kind": "object",
         "required": [
-          "ack_entries",
+          "history_response_page_entries",
           "limited"
         ],
         "properties": [
-          "ack_entries",
+          "history_response_page_entries",
           "ack_token",
           "cursor",
           "limited"
@@ -10392,12 +10392,12 @@
         "required": [
           "ack_token",
           "high_water_cursor",
-          "ack_entries"
+          "history_response_ack_entries"
         ],
         "properties": [
           "ack_token",
           "high_water_cursor",
-          "ack_entries"
+          "history_response_ack_entries"
         ],
         "closed": true
       },
