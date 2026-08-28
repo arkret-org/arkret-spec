@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-28.1",
+  "version": "2026-08-28.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-28T13:00:00+08:00",
+  "generated_at": "2026-08-28T13:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7652,6 +7652,46 @@
             "closed": true
           }
         ]
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueRequest",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "predecessor_refs",
+          "event_digests"
+        ],
+        "properties": [
+          "realm_id",
+          "predecessor_refs",
+          "event_digests"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueOutcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "predecessor_refs",
+          "event_digests",
+          "sealed_at",
+          "availability_receipt_digests",
+          "governance_dependencies"
+        ],
+        "properties": [
+          "realm_id",
+          "predecessor_refs",
+          "event_digests",
+          "sealed_at",
+          "availability_receipt_digests",
+          "governance_dependencies"
+        ],
+        "closed": true
       }
     },
     {

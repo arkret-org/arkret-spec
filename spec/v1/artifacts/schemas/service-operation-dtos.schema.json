@@ -71,6 +71,12 @@
       "$ref": "#/$defs/GovernanceDependencyResolveOutcome"
     },
     {
+      "$ref": "#/$defs/SealAvailabilityReceiptIssueRequest"
+    },
+    {
+      "$ref": "#/$defs/SealAvailabilityReceiptIssueOutcome"
+    },
+    {
       "$ref": "#/$defs/AccountCursorRevokeRequestBody"
     },
     {
@@ -516,6 +522,105 @@
       },
       "additionalProperties": false,
       "description": "Every canonical selector is accounted for exactly once. Returned and missing entries are sorted by (selector.kind UTF-8 bytes, JCS(selector) UTF-8 bytes). Each branch has one exact check: availability_receipt recomputes the registered full AvailabilityReceipt digest; authenticated_signer_resolution_evidence and minimal_metadata_mls_leaf_signer_evidence compute SHA-256 over the complete canonical evidence object. Each evidence object is at most 1 MiB. If the complete same-shape outcome exceeds min(request.byte_limit,8388608), the service returns limit_exceeded with no partial items or cursor; callers split selectors and retry. Unknown, unauthorized, outside-cut and missing selectors share missing_selectors."
+    },
+    "SealAvailabilityReceiptIssueRequest": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "predecessor_refs",
+        "event_digests"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "predecessor_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+          },
+          "description": "The exact current accepted Seal frontier, byte-wise ascending and duplicate-free."
+        },
+        "event_digests": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "description": "The exact accepted uncovered Control Event set the client intends to place in Seal.delta, byte-wise ascending and duplicate-free."
+        }
+      },
+      "additionalProperties": false,
+      "description": "PCR-only pre-sign request for the availability dependencies of one exact prospective successor Seal. The server, not the caller, chooses sealed_at."
+    },
+    "SealAvailabilityReceiptIssueOutcome": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "predecessor_refs",
+        "event_digests",
+        "sealed_at",
+        "availability_receipt_digests",
+        "governance_dependencies"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "predecessor_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+          }
+        },
+        "event_digests": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          }
+        },
+        "sealed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "availability_receipt_digests": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "description": "Every and only full AvailabilityReceipt content digest the prospective Seal must commit, byte-wise ascending and duplicate-free."
+        },
+        "governance_dependencies": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2048,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/GovernanceDependency"
+          },
+          "description": "Every and only issued AvailabilityReceipt plus its authenticated holder-signer evidence, sorted by canonical selector order."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact PCR availability preparation. The client MUST verify request echo, canonical ordering, dependency content addresses and receipt coverage, then copy sealed_at and availability_receipt_digests unchanged into the signed Seal."
     },
     "AccountCursorRevokeOutcome": {
       "type": "object",

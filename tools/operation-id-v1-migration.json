@@ -984,6 +984,10 @@
       "new": "ak.self.realm_policy_server.resource.replace.v1"
     },
     {
+      "old": "ak.self.seals.command.issue_availability_receipts",
+      "new": "ak.self.seals.command.issue_availability_receipts.v1"
+    },
+    {
       "old": "ak.self.seals.command.submit",
       "new": "ak.self.seals.command.submit.v1"
     },

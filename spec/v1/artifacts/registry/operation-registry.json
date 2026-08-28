@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.12",
+  "version": "2026-08-28.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T19:00:00+08:00",
+  "generated_at": "2026-08-28T12:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -113,6 +113,7 @@
         "ak.self.events.read.describe.v1",
         "ak.self.events.read.delivery_status.v1",
         "ak.self.events.command.submit.v1",
+        "ak.self.seals.command.issue_availability_receipts.v1",
         "ak.self.seals.command.submit.v1",
         "ak.self.events.resource.get.v1",
         "ak.self.events.read.resolve.v1",
@@ -3444,6 +3445,24 @@
       }
     },
     {
+      "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
+      "http": "POST /_arkret/self/seals/availability-receipts",
+      "grpc": "SelfSeals/IssueAvailabilityReceipts",
+      "mq": "self.seals.command.issue_availability_receipts",
+      "notes": "PCR-only pre-sign preparation for one exact prospective successor Seal. The receiver requires the exact current predecessor frontier and exact accepted uncovered Control Event set, derives the sole eligible holder from the accepted PCR genesis ak.realm.create principal_server_id after validating its principal_server_admission and historical signer evidence, chooses sealed_at, issues and durably stores every required AvailabilityReceipt plus authenticated holder-signer evidence, and returns every-and-only dependency with canonical digests. It fails closed when the local Principal Server is not that create-locked holder, the default min_holders=1 contract cannot be met, or any requested basis is stale or incomplete. The response is preparation material only and does not commit a Seal.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueOutcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "stores_content_addressed_governance_dependencies_but_does_not_commit_an_event_or_seal"
+      }
+    },
+    {
       "operation_id": "ak.self.seals.command.submit.v1",
       "http": "POST /_arkret/self/seals",
       "grpc": "SelfSeals/Submit",
@@ -6022,6 +6041,10 @@
         },
         {
           "operation_id": "ak.self.realm_policy_server.resource.replace.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",
           "binding_kind": "http_json"
         },
         {

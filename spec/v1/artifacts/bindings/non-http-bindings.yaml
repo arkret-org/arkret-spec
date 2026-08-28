@@ -205,6 +205,7 @@ grpc:
     SelfSeals:
       Frontier: ak.self.seals.read.frontier.v1
       GovernanceDependencies: ak.self.seals.read.governance_dependencies.v1
+      IssueAvailabilityReceipts: ak.self.seals.command.issue_availability_receipts.v1
       MlsGovernanceProof: ak.self.seals.read.mls_governance_proof.v1
       Resolve: ak.self.seals.read.resolve.v1
       Submit: ak.self.seals.command.submit.v1
@@ -395,6 +396,7 @@ mq:
     self.control_proposal_decisions.read.get: ak.self.control_proposal_decisions.read.get.v1
     self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue.v1
     self.events.command.submit: ak.self.events.command.submit.v1
+    self.seals.command.issue_availability_receipts: ak.self.seals.command.issue_availability_receipts.v1
     self.seals.command.submit: ak.self.seals.command.submit.v1
     self.events.read.delivery_status: ak.self.events.read.delivery_status.v1
     self.seals.read.frontier: ak.self.seals.read.frontier.v1

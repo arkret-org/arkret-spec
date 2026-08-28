@@ -3740,6 +3740,34 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome
+  /_arkret/self/seals/availability-receipts:
+    post:
+      operationId: ak.self.seals.command.issue_availability_receipts
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.seals.command.issue_availability_receipts.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Issue exact availability dependencies before a device signs a PCR successor Seal.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueRequest
+      responses:
+        '200':
+          description: Exact server-timestamped availability preparation and its complete typed dependencies
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealAvailabilityReceiptIssueOutcome
   /_arkret/self/seals:
     post:
       operationId: ak.self.seals.command.submit
