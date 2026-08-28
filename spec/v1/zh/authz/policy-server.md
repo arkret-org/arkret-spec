@@ -367,7 +367,7 @@ verifier MUST 从收到的 decision 重建同一对象后验签。任何剥离�
 4. `auth_state_digest`、`policy_frontier_digest`、`membership_frontier_digest` 与本地 accepted authorization / policy / membership frontier 一致；不一致 MUST 回退完整授权判定或重新请求 policy check;
 5. 当前 accepted moderation / policy frontier 不晚于 decision 绑定的 frontier；任何后续
    `ak.moderation.decision.lift` 或 sealed control override 都会推进该 frontier，并按第 4
-   项使缓存失效。receiver MUST NOT 尝试从 lift 的 `observed_dots[]` 反推某份
+   项使缓存失效。receiver MUST NOT 尝试从 lift 的 `observed_dot_ids[]` 反推某份
    out-of-band signed decision 的 request identity。
 
 Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/_arkret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。

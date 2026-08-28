@@ -361,7 +361,7 @@
         "control_key_digest",
         "dpop_jkt",
         "audience_id",
-        "origin_uri",
+        "origin",
         "trust_domain",
         "issued_at",
         "expires_at",
@@ -423,8 +423,8 @@
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin_uri": {
-          "$ref": "#/$defs/non_empty_string"
+        "origin": {
+          "$ref": "./common-ids.schema.json#/$defs/web_origin"
         },
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
@@ -860,7 +860,7 @@
         "lease_fence",
         "dpop_jkt",
         "audience_id",
-        "origin_uri",
+        "origin",
         "trust_domain",
         "issued_at",
         "expires_at"
@@ -934,9 +934,8 @@
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin_uri": {
-          "type": "string",
-          "format": "uri"
+        "origin": {
+          "$ref": "./common-ids.schema.json#/$defs/web_origin"
         },
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
@@ -988,7 +987,7 @@
         "lease_fence",
         "dpop_jkt",
         "audience_id",
-        "origin_uri",
+        "origin",
         "trust_domain",
         "issued_at",
         "expires_at",
@@ -1064,9 +1063,8 @@
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin_uri": {
-          "type": "string",
-          "format": "uri"
+        "origin": {
+          "$ref": "./common-ids.schema.json#/$defs/web_origin"
         },
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
@@ -1734,10 +1732,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "account_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
-          "maxLength": 255
+          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
         },
         "principal_authority": {
           "type": "object",
@@ -1903,10 +1898,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "account_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
-          "maxLength": 255
+          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
         },
         "status_seq": {
           "type": "integer",
@@ -1950,10 +1942,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "account_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
-          "maxLength": 255
+          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
         },
         "from_status_seq": {
           "type": "integer",
@@ -1981,10 +1970,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "account_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
-          "maxLength": 255
+          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
         },
         "records": {
           "type": "array",
@@ -2032,10 +2018,7 @@
           "minimum": 1
         },
         "account_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
-          "maxLength": 255
+          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
         },
         "current_account_status_record_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"
@@ -2230,7 +2213,7 @@
         "control_key_digest",
         "dpop_jkt",
         "audience_id",
-        "origin_uri",
+        "origin",
         "trust_domain",
         "issued_at",
         "expires_at"
@@ -2287,8 +2270,8 @@
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin_uri": {
-          "$ref": "#/$defs/non_empty_string"
+        "origin": {
+          "$ref": "./common-ids.schema.json#/$defs/web_origin"
         },
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
@@ -2368,7 +2351,7 @@
         "consequence_disclosure",
         "dpop_jkt",
         "audience_id",
-        "origin_uri",
+        "origin",
         "trust_domain",
         "issued_at",
         "expires_at"
@@ -2420,9 +2403,8 @@
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin_uri": {
-          "type": "string",
-          "format": "uri"
+        "origin": {
+          "$ref": "./common-ids.schema.json#/$defs/web_origin"
         },
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"

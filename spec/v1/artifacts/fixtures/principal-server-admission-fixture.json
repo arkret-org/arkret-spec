@@ -22,6 +22,26 @@
       ]
     },
     {
+      "name": "deactivated_pair_rejects_local_replacement_account",
+      "given": "an account for (principal_id, principal_server_id) is deactivated and its lifetime uniqueness tombstone remains",
+      "action": "create a replacement account for the same pair on that Principal Server",
+      "expected": "reject",
+      "invariants": [
+        "deactivation never releases pair uniqueness",
+        "no second PCR lineage or account_id is allocated on the same Principal Server"
+      ]
+    },
+    {
+      "name": "deactivated_principal_may_onboard_at_another_principal_server",
+      "given": "an account is deactivated on Principal Server A",
+      "action": "create a service account for the same principal_id on Principal Server B",
+      "expected": "accept_after_full_onboarding",
+      "invariants": [
+        "the new account has a distinct principal_server_id and account_id",
+        "the old account, session, device and KeyPackage resources remain terminal"
+      ]
+    },
+    {
       "name": "principal_server_id_is_producer_signed",
       "given": "a producer proof validates the canonical Event",
       "action": "rewrite principal_server_id after signing",

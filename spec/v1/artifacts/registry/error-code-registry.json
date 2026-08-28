@@ -1506,7 +1506,7 @@
       "code": "operation_selector_required",
       "http_status": 400,
       "scope": "both",
-      "description": "A canonical operation carrier has multiple advertised versioned operation_id candidates remaining after applying its authenticated endpoint/binding context, but omitted the selector required to disambiguate them. HTTP and TUS use Arkret-Operation conditionally; WebSocket open frames use operation_id as defined by their frame schema. A selector is not required when one exact operation_id is uniquely derivable. Receivers MUST NOT infer a version from payload shape.",
+      "description": "Every canonical Arkret HTTP or TUS request MUST carry exactly one Arkret-Operation selector naming the exact locally advertised operation_id before body parsing, including endpoint families with one candidate. A missing selector fails with operation_selector_required. Endpoint uniqueness, payload shape, SDK version, defaults, and fallback MUST NOT replace the selector. WebSocket open frames carry the operation_id required by their frame schema.",
       "type_uri": "https://arkret.org/problems/operation_selector_required",
       "title": "Operation selector required"
     },

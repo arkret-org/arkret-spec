@@ -236,7 +236,7 @@
           "$ref": "./member-delivery-binding-candidate.schema.json",
           "description": "Optional builder evidence returned by a Directory or trusted issuer for intent=invite. When present, verifiers MUST check subject_id, handle, recipient_id, audience, issuer_id, expiry and proofs against this delivery."
         },
-        "resolved_by": {
+            "resolved_by": {
           "$ref": "#/$defs/did_core_id",
           "description": "Optional stable Directory or issuer service did_core_id that supplied the handle resolution."
         },

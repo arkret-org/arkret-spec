@@ -382,15 +382,22 @@
       "type": "object",
       "required": [
         "device_id",
-        "push_gateway_uri",
+        "push_gateway_url",
         "push_key"
       ],
       "properties": {
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
-        "push_gateway_uri": {
-          "$ref": "#/$defs/uri"
+        "push_gateway_url": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/uri"
+            },
+            {
+              "pattern": "^https://"
+            }
+          ]
         },
         "push_key": {
           "$ref": "#/$defs/push_key"

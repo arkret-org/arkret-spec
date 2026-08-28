@@ -1539,7 +1539,7 @@
       ],
       "properties": {
         "owner_account_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
         },
         "keypackage_refs": {
           "$ref": "#/$defs/keypackage_ref_array"

@@ -34,7 +34,7 @@
     },
     {
       "id": "service_registration_key",
-      "description": "The service_kind half of a ServiceRegistrationKey (service_kind + canonical public_base). Only roles that own a service DID under a public base belong here. Producers and validators MUST reject any service_kind absent from this context.",
+      "description": "The service_kind half of a ServiceRegistrationKey (service_kind + canonical public_base_url). Only roles that own a service DID under a public base belong here. Producers and validators MUST reject any service_kind absent from this context.",
       "consumers": [
         {
           "file": "schemas/service-operation-dtos.schema.json",

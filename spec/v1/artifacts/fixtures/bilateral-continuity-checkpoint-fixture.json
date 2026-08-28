@@ -33,7 +33,7 @@
         "request_receipts": [],
         "current_proofs": []
       },
-      "expected_root_basis_digest": "sha256:b2d4dfdbc9a9bf3ef0191f7553872fe0bb312a90309d68d05f29273ab27eaffc",
+      "expected_root_basis_digest": "sha256:dbd01b215216be726eed28eda97ffa2b2777da213df66bcc5ca399e0f9b13787",
       "wire_member": false
     },
     {

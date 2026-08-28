@@ -6449,8 +6449,8 @@
       ]
     },
     {
-      "schema_path": "media-metadata.schema.json#/properties/thumbnails/items/properties/generated_by_id",
-      "property_name": "generated_by_id",
+      "schema_path": "media-metadata.schema.json#/properties/thumbnails/items/properties/generated_by",
+      "property_name": "generated_by",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -7859,6 +7859,16 @@
       ]
     },
     {
+      "schema_path": "security-transaction.schema.json#/$defs/accepted_step/properties/acceptor/oneOf/0/properties/principal_id",
+      "property_name": "principal_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "security-transaction.schema.json#/$defs/client_step_attestation/properties/auth_data/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
@@ -8549,8 +8559,48 @@
       ]
     },
     {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/ProjectionMorphRow/properties/created_by",
+      "property_name": "created_by",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/ProjectionSpaceRow/properties/created_by",
+      "property_name": "created_by",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/ProjectionStrandRow/properties/assigned_actor_ids",
       "property_name": "assigned_actor_ids",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/ProjectionStrandRow/properties/created_by",
+      "property_name": "created_by",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/ProjectionStrandRow/properties/updated_by",
+      "property_name": "updated_by",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -8821,6 +8871,16 @@
     {
       "schema_path": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/properties/subject_id",
       "property_name": "subject_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/SnapshotBootstrap/properties/created_by",
+      "property_name": "created_by",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

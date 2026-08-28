@@ -17,9 +17,15 @@
       "const": "ak.schema.applet_widget_declaration.v1"
     },
     "widget_origin": {
-      "type": "string",
-      "description": "HTTPS origin only: scheme, host, and optional port; no path, query, or fragment.",
-      "pattern": "^https://[^/?#\\s]+$"
+      "allOf": [
+        {
+          "$ref": "./common-ids.schema.json#/$defs/web_origin"
+        },
+        {
+          "pattern": "^https://"
+        }
+      ],
+      "description": "Canonical HTTPS Web Origin only: lowercase scheme and host plus an optional valid non-default port. Userinfo, path (including a trailing slash), query, fragment, explicit :443, and out-of-range ports are forbidden."
     },
     "csp": {
       "type": "string",

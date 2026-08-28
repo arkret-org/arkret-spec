@@ -603,9 +603,9 @@
       "id_form": "suite_tagged_full_digest",
       "identity_authority": "issuer_record",
       "derivation_contract_ref": "#/id_kind_registry/issuer_record_identity_contract",
-    "storage_identity_key": [
-      "issuer_id",
-      "typed_id"
+      "storage_identity_key": [
+        "issuer_id",
+        "typed_id"
       ]
     },
     {

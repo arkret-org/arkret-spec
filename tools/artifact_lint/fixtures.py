@@ -169,6 +169,57 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
                 lint.fail(path, f"{name}: stated SHA-256 digest preimage mismatch")
     for name in sorted(required - names):
         lint.fail(path, f"missing required Event-ID case {name}")
+
+    cases_by_name = {
+        case.get("name"): case
+        for case in data.get("cases", [])
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    human_pcr = cases_by_name.get(
+        "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected"
+    )
+    if not isinstance(human_pcr, dict) or (
+        human_pcr.get("principal_kind"),
+        human_pcr.get("realm_purpose"),
+        human_pcr.get("accepted_form", {}).get("realm_id_source"),
+        human_pcr.get("accepted_form", {}).get("retype_is_byte_identical"),
+    ) != (
+        "human",
+        "principal_control",
+        "retype_of_genesis_ak_realm_create_event_token",
+        True,
+    ):
+        lint.fail(
+            path,
+            "human PCR vector must assert byte-identical realm_id retyping from its "
+            "ak.realm.create event_id",
+        )
+
+    managed_pcr = cases_by_name.get(
+        "agent_provision_forward_declaration_is_constructible"
+    )
+    if not isinstance(managed_pcr, dict) or (
+        managed_pcr.get("principal_kind"),
+        managed_pcr.get("realm_purpose"),
+        managed_pcr.get("expected", {}).get("realm_id_source"),
+    ) != (
+        "managed_agent",
+        "managed_agent_control",
+        "derived_from_event_id",
+    ):
+        lint.fail(
+            path,
+            "managed Agent PCR vector must assert realm_id derivation from its "
+            "ak.realm.create event_id",
+        )
+    elif managed_pcr.get("derived_realm_id", "").removeprefix(
+        "ak:realm:"
+    ) != managed_pcr.get("derived_event_id", "").removeprefix("ak:event:"):
+        lint.fail(
+            path,
+            "managed Agent PCR vector realm_id and event_id tokens must be byte-identical",
+        )
+
     single_bit_case = next(
         (
             case
@@ -188,6 +239,98 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
             differing_bits = sum((left ^ right).bit_count() for left, right in zip(first, second, strict=True))
             if len(first) != 33 or len(second) != 33 or first[0] != second[0] or differing_bits != 1:
                 lint.fail(path, "single-bit Event-ID case must differ by exactly one digest bit")
+
+
+def check_operation_selector_fixture(lint: Lint) -> None:
+    """Single-candidate HTTP selectors are required and signature-covered."""
+    bootstrap_path = (
+        ARTIFACTS / "fixtures" / "service-protocol-version-bootstrap-fixture.json"
+    )
+    bootstrap = load_json(lint, bootstrap_path)
+    if not isinstance(bootstrap, dict):
+        return
+    bootstrap_cases = {
+        case.get("name"): case
+        for case in bootstrap.get("cases", [])
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    supported = bootstrap_cases.get("describe_supported")
+    if not isinstance(supported, dict) or (
+        supported.get("carrier"),
+        supported.get("arkret_operation"),
+        supported.get("expected", {}).get("outcome"),
+    ) != (
+        "service_describe",
+        "ak.server.read.describe.v1",
+        "continue_typed_validation",
+    ):
+        lint.fail(
+            bootstrap_path,
+            "single-candidate service_describe success must carry its exact selector",
+        )
+    missing = bootstrap_cases.get("describe_operation_selector_missing")
+    if not isinstance(missing, dict) or (
+        "arkret_operation" in missing
+        or missing.get("carrier") != "service_describe"
+        or missing.get("expected", {}).get("outcome")
+        != "operation_selector_required"
+        or missing.get("expected", {}).get("body_parse_attempts") != 0
+    ):
+        lint.fail(
+            bootstrap_path,
+            "single-candidate service_describe without a selector must fail before body parsing",
+        )
+
+    signature_path = ARTIFACTS / "fixtures" / "final-conformance-closure-fixture.json"
+    signature = load_json(lint, signature_path)
+    if not isinstance(signature, dict):
+        return
+    applet_case = next(
+        (
+            case
+            for case in signature.get("cases", [])
+            if isinstance(case, dict)
+            and case.get("vector_id")
+            == "ak.vector.applet.transaction_delivery_authentication_record_digest.v1"
+        ),
+        None,
+    )
+    if not isinstance(applet_case, dict) or "arkret-operation" not in applet_case.get(
+        "required_components", []
+    ):
+        lint.fail(
+            signature_path,
+            "signed applet transaction vector must require arkret-operation coverage",
+        )
+        return
+    transactions = {
+        transaction.get("name"): transaction
+        for transaction in applet_case.get("transactions", [])
+        if isinstance(transaction, dict)
+        and isinstance(transaction.get("name"), str)
+    }
+    valid = transactions.get("valid_inbound")
+    if not isinstance(valid, dict) or (
+        valid.get("arkret_operation")
+        != "ak.edge.applet.command.transaction.v1"
+        or "arkret-operation" not in valid.get("covered_components", [])
+        or valid.get("expected", {}).get("decision") != "accept"
+    ):
+        lint.fail(
+            signature_path,
+            "valid signed request must carry and cover the exact Arkret-Operation selector",
+        )
+    uncovered = transactions.get("operation_selector_not_covered")
+    if not isinstance(uncovered, dict) or (
+        uncovered.get("arkret_operation")
+        != "ak.edge.applet.command.transaction.v1"
+        or "arkret-operation" in uncovered.get("covered_components", [])
+        or uncovered.get("expected", {}).get("reason") != "http_signature_invalid"
+    ):
+        lint.fail(
+            signature_path,
+            "signed request with an uncovered Arkret-Operation selector must fail closed",
+        )
 
 
 
@@ -2175,6 +2318,7 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
       { "envelope": <obj>, "event_digest": "sha256:..." }
       { "envelope": <obj>, "payload_hash": "sha256:..." }
       { "canonical_bytes": "<hex>", "digest": "sha256:..." }
+      { "root_basis": <obj>, "expected_root_basis_digest": "sha256:..." }
 
     This is intentionally narrow: it does not try to canonicalize whole
     repositories of arbitrary fixtures. New fixtures opt in by naming
@@ -2190,6 +2334,7 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
         ("envelope", "event_digest"),
         ("envelope", "payload_hash"),
         ("canonical_input", "expected_digest"),
+        ("root_basis", "expected_root_basis_digest"),
     ]
 
     def iter_dict_nodes(value: Any) -> Iterable[dict[str, Any]]:
@@ -4092,6 +4237,52 @@ def check_agent_requested_scope_commitment_digest(lint: Lint) -> None:
                 f"requested_scope: {stated!r} != {case_expected!r}",
             )
 
+    runtime_pairing = next(
+        (
+            case
+            for case in cases
+            if isinstance(case, dict) and case.get("name") == "agent_runtime_key_binding"
+        ),
+        None,
+    )
+    if not isinstance(runtime_pairing, dict):
+        lint.fail(path, "agent fixture omits the agent_runtime_key_binding case")
+        return
+    possession = runtime_pairing.get("proof_of_possession")
+    if not isinstance(possession, dict):
+        lint.fail(path, "agent_runtime_key_binding omits proof_of_possession")
+        return
+    possession_digest = sha256_text(canonical_json(possession))
+    if runtime_pairing.get("expected_proof_of_possession_digest") != possession_digest:
+        lint.fail(
+            path,
+            "agent_runtime_key_binding.expected_proof_of_possession_digest drifted "
+            "from JCS(proof_of_possession)",
+        )
+    binding_json = runtime_pairing.get("canonical_pairing_request_binding_json")
+    if not isinstance(binding_json, str):
+        lint.fail(path, "agent_runtime_key_binding omits canonical_pairing_request_binding_json")
+        return
+    try:
+        binding = json.loads(binding_json)
+    except json.JSONDecodeError as exc:
+        lint.fail(path, f"canonical_pairing_request_binding_json is invalid JSON: {exc}")
+        return
+    if canonical_json(binding) != binding_json:
+        lint.fail(path, "canonical_pairing_request_binding_json is not RFC 8785 JCS")
+    if binding.get("proof_of_possession_digest") != possession_digest:
+        lint.fail(
+            path,
+            "canonical pairing request does not bind the recomputed proof-of-possession digest",
+        )
+    binding_digest = sha256_text(binding_json)
+    if runtime_pairing.get("expected_pairing_request_binding_digest") != binding_digest:
+        lint.fail(
+            path,
+            "agent_runtime_key_binding.expected_pairing_request_binding_digest drifted "
+            "from its canonical binding bytes",
+        )
+
 
 def check_websocket_bundle_closure_cases(lint: Lint, path: Path, data: dict[str, Any]) -> None:
     """Execute the ServiceDescribe-level operation reachability cases.
@@ -4232,9 +4423,9 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
             descriptor_schema_ref,
             descriptor,
         )
-        canonical_errors = websocket_canonical_wss_errors(descriptor.get("base_uri"))
+        canonical_errors = websocket_canonical_wss_errors(descriptor.get("base_url"))
         if canonical_errors:
-            lint.fail(path, "closed_descriptor base_uri is not canonical: " + "; ".join(canonical_errors))
+            lint.fail(path, "closed_descriptor base_url is not canonical: " + "; ".join(canonical_errors))
 
         if "operations" in descriptor:
             lint.fail(
@@ -4266,20 +4457,20 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
                 )
 
     url_case = discovery_by_name.get("noncanonical_or_credentialed_url_rejected") or {}
-    rejected_urls = url_case.get("base_uris")
+    rejected_urls = url_case.get("base_urls")
     if not isinstance(rejected_urls, list) or not rejected_urls:
-        lint.fail(path, "noncanonical URL case requires base_uris")
+        lint.fail(path, "noncanonical URL case requires base_urls")
     else:
         for value in rejected_urls:
             if not websocket_canonical_wss_errors(value):
-                lint.fail(path, f"noncanonical base_uri vector is canonical: {value!r}")
+                lint.fail(path, f"noncanonical base_url vector is canonical: {value!r}")
             if isinstance(descriptor, dict) and isinstance(descriptor_schema_ref, str):
                 mutation = copy.deepcopy(descriptor)
-                mutation["base_uri"] = value
+                mutation["base_url"] = value
                 check_json_instance_against_schema(
                     lint,
                     path,
-                    f"noncanonical base_uri {value!r}",
+                    f"noncanonical base_url {value!r}",
                     descriptor_schema_ref,
                     mutation,
                     expect_valid=False,
@@ -4308,8 +4499,8 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
         return
     if protected.get("jwk") != kat.get("public_jwk"):
         lint.fail(path, "dpop_kat protected jwk must equal public_jwk")
-    if claims.get("htu") != kat.get("base_uri"):
-        lint.fail(path, "dpop_kat htu must equal the advertised base_uri verbatim")
+    if claims.get("htu") != kat.get("base_url"):
+        lint.fail(path, "dpop_kat htu must equal the advertised base_url verbatim")
     canonical_htu_errors = websocket_canonical_wss_errors(claims.get("htu"))
     if canonical_htu_errors:
         lint.fail(path, "dpop_kat htu is not canonical: " + "; ".join(canonical_htu_errors))
@@ -4341,10 +4532,10 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
         expected_challenge_key = [kat.get("connection_id"), kat.get("nonce")]
         if challenge_state.get("key") != expected_challenge_key:
             lint.fail(path, "dpop_kat challenge_state key must be [connection_id, nonce]")
-        for field in ("canonical_origin", "canonical_base_uri", "issued_at", "expires_at"):
+        for field in ("canonical_origin", "canonical_base_url", "issued_at", "expires_at"):
             expected_field = {
                 "canonical_origin": kat.get("origin"),
-                "canonical_base_uri": kat.get("base_uri"),
+                "canonical_base_url": kat.get("base_url"),
                 "issued_at": kat.get("issued_at"),
                 "expires_at": kat.get("expires_at"),
             }[field]

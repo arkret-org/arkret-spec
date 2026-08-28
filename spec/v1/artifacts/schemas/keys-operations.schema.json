@@ -131,7 +131,7 @@
     "did_key": {
       "type": "string",
       "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ak.device.authorize.payload.device_public_key (device-lifecycle.md §5.2 / §5.4). To check SignalEnvelope and durable Event proofs, receivers resolve a verification_method DID URL under the verified principal did, validate its bare did through the registered adapter, require project(did) to equal the actor/principal did_core_id, and require its fragment to equal the full ak:device:<uuidv7> id. Constructing a verification method by appending a fragment to did_core_id is forbidden."
+      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ak.device.authorize.payload.device_public_key_did (device-lifecycle.md §5.2 / §5.4). To check SignalEnvelope and durable Event proofs, receivers resolve a verification_method DID URL under the verified principal did, validate its bare did through the registered adapter, require project(did) to equal the actor/principal did_core_id, and require its fragment to equal the full ak:device:<uuidv7> id. Constructing a verification method by appending a fragment to did_core_id is forbidden."
     },
     "device_generation_state": {
       "type": "object",

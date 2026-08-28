@@ -48,9 +48,12 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 都从父 transaction 的 `coordinator_id` 取得；这四项与 canonical request bytes 是构造时的 computed view，
 不得作为平行 wire 输入或 durable 真相源。coordinator 必须以同一 `JCS(request)` bytes 执行和持久化。
 `accepted_steps[]` 的每项固定为
-`{prepared_material_digest, acceptor_id, output_ref, output_digest, accepted_at}`；数组位置按下述固定步骤表
+`{prepared_material_digest, acceptor, output_ref, output_digest, accepted_at}`；数组位置按下述固定步骤表
 唯一决定 step kind，整个数组必须是连续前缀，不能跳步、重排或为同一步记录第二个 digest。活动事务的下一步
 等于 `steps(kind)[accepted_steps.length]`；resource 不重复序列化该派生值。
+`acceptor` 是接受该步骤的稳定 participant identity，closed 为
+`{kind: principal, principal_id: DidCoreId} | {kind: device, device_id: DeviceId}`；服务 participant
+必须写入永久 Arkret core identity，不得写入 W3C 裸 DID、transport URI 或 mixed identifier string。
 
 共同不变量：
 

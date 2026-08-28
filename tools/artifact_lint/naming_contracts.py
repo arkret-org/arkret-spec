@@ -619,9 +619,9 @@ def resolve_terminal_constraints(
             out.add(("const", str(node["const"])))
         elif isinstance(node.get("enum"), list):
             out.add(("enum", "|".join(sorted(str(value) for value in node["enum"]))))
-        elif isinstance(node.get("format"), str):
+        if isinstance(node.get("format"), str):
             out.add(("format", node["format"]))
-        elif "type" in node:
+        elif not out and "type" in node:
             declared = node["type"]
             if declared != "null":
                 out.add(("type", json.dumps(declared, sort_keys=True)))
@@ -683,7 +683,7 @@ def _role_terminal_contract(
     historically familiar issuer/subject roles.
     """
 
-    categories: set[tuple[str, str]] = set()
+    categories: set[tuple[str, str | None]] = set()
     for kind, value in terminals:
         if kind == "pattern" and value.startswith("^ak:did_core:"):
             categories.add(("did_core_id", "_ids" if plural else "_id"))
@@ -699,7 +699,15 @@ def _role_terminal_contract(
             else:
                 categories.add(("did", "_dids" if plural else "_did"))
         elif kind == "format" and value in {"uri", "uri-reference"}:
-            categories.add(("uri", "_uris" if plural else "_uri"))
+            # URI syntax does not decide URL-vs-URI field spelling.  Network
+            # locators and generic URI identities are registered separately.
+            categories.add(("uri", None))
+    # JSON Schema commonly combines a broad URI format with a narrower DID or
+    # DID-URL lexical pattern. The pattern owns the representation category in
+    # that case; format remains decisive only when no narrower identifier
+    # terminal was resolved.
+    if len(categories) > 1:
+        categories = {entry for entry in categories if entry[0] != "uri"}
     if len(categories) == 1:
         return next(iter(categories))
     if len(categories) > 1:
@@ -735,7 +743,7 @@ def _role_stem(name: str, category: str) -> str:
         "typed_object_id": ("_ids", "_id"),
         "did": ("_dids", "_did"),
         "did_url": ("_verification_method", "_kids", "_kid"),
-        "uri": ("_uris", "_uri"),
+        "uri": ("_urls", "_uris", "_url", "_uri"),
     }.get(category, ())
     for suffix in suffixes:
         if name.endswith(suffix):
@@ -744,10 +752,10 @@ def _role_stem(name: str, category: str) -> str:
 
 
 _DUPLICATE_REPRESENTATION_SUFFIX_RE = re.compile(
-    r"(?:_id_id|_ids_ids|_did_did|_uri_uri|_kid_kid)(?![a-z0-9_])"
+    r"(?:_id_id|_ids_ids|_did_did|_uri_uri|_url_url|_kid_kid)(?![a-z0-9_])"
 )
 _EMBEDDED_REPRESENTATION_SUFFIX_RE = re.compile(
-    r"(?:^|_)(?:id|did|uri|kid)ship(?:_|$)"
+    r"(?:^|_)(?:id|did|uri|url|kid)ship(?:_|$)"
 )
 
 _REPRESENTATION_SUFFIX_CATEGORIES = {
@@ -757,6 +765,8 @@ _REPRESENTATION_SUFFIX_CATEGORIES = {
     "_did": "did",
     "_uris": "uri",
     "_uri": "uri",
+    "_urls": "uri",
+    "_url": "uri",
     "_kids": "did_url",
     "_kid": "did_url",
 }
@@ -767,6 +777,98 @@ def _declared_representation_suffix(name: str) -> str | None:
         if name.endswith(suffix):
             return suffix
     return None
+
+
+_URI_SCHEME_PROBES = {
+    "http": "http://example.test/path/",
+    "https": "https://example.test/path/",
+    "ws": "ws://example.test/path/",
+    "wss": "wss://example.test/path/",
+    "geo": "geo:0,0",
+    "mimi": "mimi://example.test/room",
+    "acct": "acct:user@example.test",
+    "urn": "urn:example:value",
+    "oci": "oci:example/value",
+    "git": "git:example/value",
+}
+
+
+def _terminal_uri_schemes(terminals: tuple[tuple[str, str], ...]) -> set[str]:
+    """Return schemes proven by URI-shaped regex terminals.
+
+    A broad ``format: uri`` intentionally proves no network scheme.  URL
+    fields must carry a lexical HTTP(S)/WS(S) constraint; URI identity fields
+    may rely on either a URI format or a non-network scheme pattern.
+    """
+
+    schemes: set[str] = set()
+    for kind, value in terminals:
+        if kind != "pattern":
+            continue
+        if "https?://" in value:
+            schemes.update({"http", "https"})
+        for scheme in ("http", "https", "ws", "wss"):
+            if f"{scheme}://" in value:
+                schemes.add(scheme)
+        for scheme, probe in _URI_SCHEME_PROBES.items():
+            try:
+                if re.search(value, probe):
+                    schemes.add(scheme)
+            except re.error:
+                continue
+    return schemes
+
+
+def _has_uri_terminal(terminals: tuple[tuple[str, str], ...]) -> bool:
+    return any(
+        kind == "format" and value in {"uri", "uri-reference"}
+        for kind, value in terminals
+    ) or bool(_terminal_uri_schemes(terminals))
+
+
+def _has_closed_web_origin_terminal(terminals: tuple[tuple[str, str], ...]) -> bool:
+    valid = (
+        "https://example.test",
+        "http://example.test:8080",
+        "https://[2001:db8::1]:8443",
+    )
+    invalid = (
+        "https://example.test/",
+        "https://example.test:443",
+        "http://example.test:80",
+        "https://example.test:65536",
+        "https://user@example.test",
+        "https://example.test/path",
+        "https://example.test?query=1",
+        "https://example.test#fragment",
+        "https://Example.test",
+    )
+    for kind, pattern in terminals:
+        if kind != "pattern":
+            continue
+        try:
+            if all(re.fullmatch(pattern, value) for value in valid) and not any(
+                re.fullmatch(pattern, value) for value in invalid
+            ):
+                return True
+        except re.error:
+            continue
+    return False
+
+
+def _web_origin_schemes(terminals: tuple[tuple[str, str], ...]) -> set[str]:
+    patterns = [value for kind, value in terminals if kind == "pattern"]
+    if not patterns:
+        return set()
+    accepted: set[str] = set()
+    for scheme in ("http", "https"):
+        value = f"{scheme}://example.test"
+        try:
+            if all(re.search(pattern, value) is not None for pattern in patterns):
+                accepted.add(scheme)
+        except re.error:
+            continue
+    return accepted
 
 
 def _representation_suffix_incompatibility(
@@ -882,13 +984,26 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
     exception_rows = registry.get("exact_exceptions")
     service_role_rows = registry.get("registered_service_role_fields")
     qualified_service_rows = registry.get("registered_service_qualified_fields")
+    provenance_byline_rows = registry.get("registered_provenance_byline_fields")
+    network_locator_rows = registry.get("registered_network_locator_fields")
+    uri_reference_rows = registry.get("registered_uri_reference_fields")
+    origin_rows = registry.get("registered_origin_fields")
     if not all(
         isinstance(rows, list)
-        for rows in (grammars, exception_rows, service_role_rows, qualified_service_rows)
+        for rows in (
+            grammars,
+            exception_rows,
+            service_role_rows,
+            qualified_service_rows,
+            provenance_byline_rows,
+            network_locator_rows,
+            uri_reference_rows,
+            origin_rows,
+        )
     ):
         lint.fail(
             ROLE_SUFFIX_REGISTRY_PATH,
-            "generic_grammars, exact_exceptions and registered_service_role_fields must be arrays",
+            "identifier role registries and exception tables must be arrays",
         )
         return
     registered_service_roles: set[str] = set()
@@ -906,6 +1021,98 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
             lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"registered_service_qualified_fields[{index}] is incomplete")
             continue
         registered_service_qualified.add(row["field"])
+    registered_provenance_bylines: dict[str, tuple[str, set[str]]] = {}
+    for index, row in enumerate(provenance_byline_rows):
+        where = f"registered_provenance_byline_fields[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} must be an object")
+            continue
+        field = row.get("field")
+        reason = row.get("reason")
+        terminal_categories = row.get("terminal_categories")
+        if (
+            not isinstance(field, str)
+            or not re.fullmatch(r"[a-z][a-z0-9_]*_by", field)
+            or not isinstance(reason, str)
+            or not reason
+            or not isinstance(terminal_categories, list)
+            or not terminal_categories
+            or not all(isinstance(item, str) and item for item in terminal_categories)
+        ):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} is incomplete")
+            continue
+        if field in registered_provenance_bylines:
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"duplicate provenance byline field `{field}`")
+            continue
+        registered_provenance_bylines[field] = (reason, set(terminal_categories))
+    registered_network_locators: dict[str, tuple[str, set[str]]] = {}
+    for index, row in enumerate(network_locator_rows):
+        where = f"registered_network_locator_fields[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} must be an object")
+            continue
+        field = row.get("field")
+        schemes = row.get("schemes")
+        reason = row.get("reason")
+        if (
+            not isinstance(field, str)
+            or (field != "url" and not field.endswith("_url"))
+            or not isinstance(schemes, list)
+            or not schemes
+            or not all(scheme in {"http", "https", "ws", "wss"} for scheme in schemes)
+            or not isinstance(reason, str)
+            or not reason
+        ):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} is incomplete")
+            continue
+        if field in registered_network_locators:
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"duplicate network locator field `{field}`")
+            continue
+        registered_network_locators[field] = (reason, set(schemes))
+    registered_uri_references: dict[str, str] = {}
+    for index, row in enumerate(uri_reference_rows):
+        where = f"registered_uri_reference_fields[{index}]"
+        if not isinstance(row, dict) or not all(
+            isinstance(row.get(key), str) and row[key] for key in ("field", "reason")
+        ):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} is incomplete")
+            continue
+        field = row["field"]
+        if field != "uri" and not field.endswith("_uri"):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} must name a complete URI role")
+            continue
+        if field in registered_uri_references:
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"duplicate URI reference field `{field}`")
+            continue
+        registered_uri_references[field] = row["reason"]
+    registered_origins: dict[tuple[str, str], tuple[str, set[str]]] = {}
+    for index, row in enumerate(origin_rows):
+        where = f"registered_origin_fields[{index}]"
+        if not isinstance(row, dict) or not all(
+            isinstance(row.get(key), str) and row[key] for key in ("file", "pointer", "reason")
+        ):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where} is incomplete")
+            continue
+        key = (row["file"], row["pointer"])
+        property_name = row["pointer"].rsplit("/properties/", 1)[-1]
+        if property_name != "origin" and not property_name.endswith("_origin"):
+            lint.fail(
+                ROLE_SUFFIX_REGISTRY_PATH,
+                f"{where} must point to a complete `origin` or `*_origin` role",
+            )
+            continue
+        schemes = row.get("schemes", ["http", "https"])
+        if (
+            not isinstance(schemes, list)
+            or not schemes
+            or not all(scheme in {"http", "https"} for scheme in schemes)
+        ):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"{where}.schemes is invalid")
+            continue
+        if key in registered_origins:
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"duplicate Web Origin registration {key}")
+            continue
+        registered_origins[key] = (row["reason"], set(schemes))
     exceptions: dict[tuple[str, str], tuple[str, set[str]]] = {}
     for index, row in enumerate(exception_rows):
         if not isinstance(row, dict):
@@ -930,6 +1137,10 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
     documents = _schema_documents(lint)
     _check_duplicate_representation_suffixes(lint, documents)
     reached_exceptions: set[tuple[str, str]] = set()
+    reached_provenance_bylines: set[str] = set()
+    reached_network_locators: set[str] = set()
+    reached_uri_references: set[str] = set()
+    reached_origins: set[tuple[str, str]] = set()
     for file_name, document in documents.items():
         external_owners = {
             owner.pointer
@@ -947,6 +1158,20 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
             name = occurrence.name
             exception = exceptions.get((file_name, occurrence.pointer))
             exception_reason = exception[0] if exception else "none"
+
+            if re.search(r"_by_(?:id|ids|did|dids|verification_method|verification_methods)$", name):
+                bare_byline = re.sub(
+                    r"_(?:id|ids|did|dids|verification_method|verification_methods)$",
+                    "",
+                    name,
+                )
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: provenance/byline role `{name}` "
+                    f"must retain the complete bare role `{bare_byline}`; its DidCoreId, Did, "
+                    "DidUrl, or closed-union terminal is enforced independently of spelling",
+                )
+                continue
 
             if (
                 (name.endswith("_service_id") or name.endswith("_service_ids"))
@@ -1015,6 +1240,94 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                     )
                 reached_exceptions.add((file_name, occurrence.pointer))
                 continue
+            network_locator = registered_network_locators.get(name)
+            if network_locator is not None:
+                observed_schemes = _terminal_uri_schemes(terminals)
+                allowed_schemes = network_locator[1]
+                if cardinalities not in ({"scalar"}, set()):
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: registered network locator "
+                        f"`{name}` must be scalar URL material",
+                    )
+                elif not observed_schemes:
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: registered network locator "
+                        f"`{name}` must constrain an HTTP(S)/WS(S) scheme; `format: uri` "
+                        "alone does not establish URL semantics",
+                    )
+                elif not observed_schemes <= allowed_schemes:
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: registered network locator "
+                        f"`{name}` permits schemes={sorted(allowed_schemes)} but its terminal "
+                        f"admits {sorted(observed_schemes)}",
+                    )
+                reached_network_locators.add(name)
+                continue
+            uri_reference = registered_uri_references.get(name)
+            if uri_reference is not None:
+                if cardinalities not in ({"scalar"}, set()):
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: registered URI reference "
+                        f"`{name}` must be scalar URI material",
+                    )
+                elif not _has_uri_terminal(terminals):
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: registered URI reference "
+                        f"`{name}` does not resolve to a URI terminal",
+                    )
+                reached_uri_references.add(name)
+                continue
+            origin_key = (file_name, occurrence.pointer)
+            origin_role = registered_origins.get(origin_key)
+            if origin_role is not None:
+                if cardinalities not in ({"scalar"}, set()) or not _has_uri_terminal(terminals):
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: complete Web Origin role "
+                        "`origin` must resolve to a scalar URI terminal",
+                    )
+                elif not _has_closed_web_origin_terminal(terminals):
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: complete Web Origin role "
+                        "`origin` must use the canonical scheme+host+effective-port profile "
+                        "and reject userinfo, path, query, fragment, trailing slash, default "
+                        "ports, out-of-range ports, and non-canonical host spelling",
+                    )
+                elif _web_origin_schemes(terminals) != origin_role[1]:
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: complete Web Origin role "
+                        f"`{name}` must allow exactly the registered schemes "
+                        f"{sorted(origin_role[1])}",
+                    )
+                reached_origins.add(origin_key)
+                continue
+            provenance_byline = registered_provenance_bylines.get(name)
+            if provenance_byline is not None:
+                terminal_category, _ = _role_terminal_contract(
+                    terminals, plural=cardinalities == {"array"}
+                )
+                if cardinalities not in ({"scalar"}, set()):
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: registered provenance/byline "
+                        f"role `{name}` must be a scalar identifier",
+                    )
+                elif terminal_category not in provenance_byline[1]:
+                    lint.fail(
+                        SCHEMA_DIR / file_name,
+                        f"NC-IDROLE-001 {occurrence.pointer}: registered provenance/byline "
+                        f"role `{name}` permits terminal_categories="
+                        f"{sorted(provenance_byline[1])} but resolves to {terminal_category!r}",
+                    )
+                reached_provenance_bylines.add(name)
+                continue
             inverse_mismatch = _representation_suffix_incompatibility(
                 name, terminals, cardinalities
             )
@@ -1055,6 +1368,17 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                 terminals, plural=plural
             )
             if terminal_category is None:
+                continue
+            if terminal_category == "uri":
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                    f"role_stem={name}; terminal_category=uri; "
+                    "required_subject_class=unspecified; expected_suffix=semantic_registration; "
+                    f"exception_reason={exception_reason}; `format: uri` does not determine "
+                    "whether the Arkret-owned field is a network `_url`, a generic `_uri`, "
+                    "or a complete Web Origin role",
+                )
                 continue
             if cardinalities not in ({"array"}, {"scalar"}, set()):
                 lint.fail(
@@ -1097,6 +1421,33 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
         lint.fail(
             ROLE_SUFFIX_REGISTRY_PATH,
             f"exact identifier exceptions are stale or unreachable: {stale_exceptions}",
+        )
+    stale_provenance_bylines = sorted(
+        set(registered_provenance_bylines) - reached_provenance_bylines
+    )
+    if stale_provenance_bylines:
+        lint.fail(
+            ROLE_SUFFIX_REGISTRY_PATH,
+            "registered provenance/byline fields are stale or unreachable: "
+            f"{stale_provenance_bylines}",
+        )
+    stale_network_locators = sorted(set(registered_network_locators) - reached_network_locators)
+    if stale_network_locators:
+        lint.fail(
+            ROLE_SUFFIX_REGISTRY_PATH,
+            f"registered network locator fields are stale or unreachable: {stale_network_locators}",
+        )
+    stale_uri_references = sorted(set(registered_uri_references) - reached_uri_references)
+    if stale_uri_references:
+        lint.fail(
+            ROLE_SUFFIX_REGISTRY_PATH,
+            f"registered URI reference fields are stale or unreachable: {stale_uri_references}",
+        )
+    stale_origins = sorted(set(registered_origins) - reached_origins)
+    if stale_origins:
+        lint.fail(
+            ROLE_SUFFIX_REGISTRY_PATH,
+            f"registered origin fields are stale or unreachable: {stale_origins}",
         )
 
 

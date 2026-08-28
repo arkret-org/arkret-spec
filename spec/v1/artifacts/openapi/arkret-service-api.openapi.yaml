@@ -2749,7 +2749,7 @@ paths:
           - principal_server
           - auth_server
           - identity_registry
-      - name: public_base
+      - name: public_base_url
         in: query
         required: true
         schema:
@@ -11241,7 +11241,7 @@ paths:
         session's grant rotation chain.
 
         Ordinary clients MUST NOT call this endpoint, MUST NOT derive it from
-        gate_account_base, and MUST NOT retry it directly. Clients retry only
+        gate_account_base_url, and MUST NOT retry it directly. Clients retry only
         POST /_arkret/gate/account/logout.
       responses:
         '200':

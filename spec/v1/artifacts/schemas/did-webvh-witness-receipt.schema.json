@@ -64,9 +64,10 @@
       "$ref": "#/$defs/timestamp",
       "description": "When the issuer actually fetched or observed the witness proof. Freshness is evaluated against this instant, not against created_at: an issuer could otherwise re-sign a years-old observation and present it as current."
     },
-    "source_uri": {
+    "source_url": {
       "type": "string",
       "format": "uri",
+      "pattern": "^https://",
       "description": "Optional origin the proof was read from (the DID's own did-witness.json or a declared mirror). Recorded so a consumer can tell a first-party read from a mirrored one when adjudicating conflicting receipts."
     },
     "issuer_id": {

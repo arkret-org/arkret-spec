@@ -193,9 +193,10 @@
             "none_supported"
           ]
         },
-        "endpoint_uri": {
+        "endpoint_url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^https://"
         },
         "last_checked_at": {
           "$ref": "#/$defs/timestamp"

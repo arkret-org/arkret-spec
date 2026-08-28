@@ -293,7 +293,7 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   payload 中显式枚举，而不是由冻结前态确定。它与 `or_set_remove_observed` 的分工是封闭的——
   前者移除 producer 指名的子集，后者移除冻结前态下的全部存活 dot；两者 MUST NOT 互相替代。
   规范来源见 [`../identity/consent-model.md`](../identity/consent-model.md) §3.3 的
-  `observed_dots`（同一 `(consent_id, peer, consent_scope)` 下可以只撤销部分 dot，
+  `observed_dot_ids`（同一 `(consent_id, peer, consent_scope)` 下可以只撤销部分 dot，
   且 reducer MUST NOT 基于一个 `consent_scope=any` 的 dot 推断移除其它 dot）。
 
   > 与 §2.4.2 末段「一个 payload delta 需要多个同 family op 时必须使用唯一批量特例」的关系：

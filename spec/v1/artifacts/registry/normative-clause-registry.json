@@ -163,7 +163,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:8dd558657d39ec6ec3c93916c2d9d1f787e5020fbae3d136d02f23129c045056",
+      "section_digest": "sha256:8998c8ba30aea2d358e3d9fdfe81365a300576e2c83688e3284ce15f0429a54c",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -178,7 +178,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:3a3cc57727cdfdbd9f34ee550cba2554b25d5631fe1d7d51dba3d0b8f1cef74e",
+      "section_digest": "sha256:f5799c1ea4b8d8638da769c0ca8a8f2db82a247a8c6e3fb84dc82fd67676261b",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id plus its in-envelope Principal Server admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; every MLS epoch binds the independently re-derived security frontier for its accepted key-access state; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -266,7 +266,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:98fbfe34fbe40d24bf619c2c512f5e1e2935d7e85ec83da597afe8e9402d9559",
+      "section_digest": "sha256:e2bee2b83ae4702e85b68b68810e07da7021d5c231665a9c8ad44dc11dfa58aa",
       "requirement": "Revocation rolls back downstream grants and forces a re-check of dependent decisions; a revoked grant MUST NOT keep authorizing pending or cached writes.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -298,7 +298,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:8e735b899f64f5b648de2bee2bc1099adc268c0ec83e25ff82364bf6740d3c4f",
+      "section_digest": "sha256:df74fbf9db29f6b3265577bb87e48b69b276775a343f8a5d9c1ba6ac195b6920",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted. A patch path MUST NOT address a reducer-managed field of the target object kind; the per-object forbidden set, its universal minimum set and its one named View state exemption are read from registry/reducer-managed-path-registry.json, never re-derived from prose.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -344,7 +344,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:dd89cab19da3cf50f47d172ed2a4bf47b8df491142017cd9a39f579090dd471c",
+      "section_digest": "sha256:1c1775bac4681924afe30c39d2f066ff9567efb0aee5db2fa627f2d033bee24d",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -396,7 +396,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/governance/member-delivery-binding.md#5-路由不可降级normative",
-      "section_digest": "sha256:235cf195cf7918b7e9d4422f29880c08bc3c3f58ca4b3e1cf96345480e77fabc",
+      "section_digest": "sha256:5e5b6c89ae4b05c0f2e7534aff29e01bbc920d0cd972a400d1b3d95da6d8cf24",
       "requirement": "Member delivery binding never silently downgrades: a stale binding frontier, an expired handover grace window or an unresolvable binding MUST fail closed instead of routing to the previous service.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -492,7 +492,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/common-fields.md#52-unified-lifecycle-event-templatedoc-only-canonical",
-      "section_digest": "sha256:f36d5ccc2af6fbb0b9a6e30cd79164a953853f8f349ce135b46bc26734bdad0b",
+      "section_digest": "sha256:db2711c05cabcf740c6e7eafb8aaf7ee4ccf9a924f2726009558f38efc64c501",
       "requirement": "A cross-object ak.redaction whose target_ref uses the ak:event: form only trims that Event's fields per preserve[] and MUST NOT change any object's state, including the event-derived object minted from a targeted create Event; an object enters state=redacted only through the object typed-id form of target_ref (Message still goes exclusively through ak.message.redact). The two spellings of one 33-octet token land in two distinct ak.component.object.redaction.v1 cells that are independent and never merge; a reducer MUST NOT canonicalize the ak:event: spelling into the derived object typed id.",
       "testability_grade": "vector",
       "evidence_refs": [

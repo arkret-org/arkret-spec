@@ -144,6 +144,62 @@
       "reason": "recovery_service is the registered threshold-recovery share holder role"
     }
   ],
+  "registered_provenance_byline_fields": [
+    {"field": "approved_by", "terminal_categories": ["did_core_id"], "reason": "complete approval provenance role"},
+    {"field": "cancelled_by", "terminal_categories": ["did_core_id"], "reason": "complete cancellation provenance role"},
+    {"field": "changed_by", "terminal_categories": ["did_core_id"], "reason": "complete change provenance role"},
+    {"field": "created_by", "terminal_categories": ["did_core_id"], "reason": "complete creation byline role"},
+    {"field": "executed_by", "terminal_categories": ["did_core_id"], "reason": "complete delegated-execution provenance role"},
+    {"field": "generated_by", "terminal_categories": ["did_core_id"], "reason": "complete generation provenance role"},
+    {"field": "produced_by", "terminal_categories": ["did_core_id"], "reason": "complete production provenance role"},
+    {"field": "received_by", "terminal_categories": ["did_core_id"], "reason": "complete receipt provenance role"},
+    {"field": "removed_by", "terminal_categories": ["did_core_id"], "reason": "complete removal provenance role"},
+    {"field": "requested_by", "terminal_categories": ["did_core_id"], "reason": "complete request provenance role"},
+    {"field": "resolved_by", "terminal_categories": ["did_core_id"], "reason": "complete resolution provenance role"},
+    {"field": "restored_by", "terminal_categories": ["did_core_id"], "reason": "complete restoration provenance role"},
+    {"field": "revoked_by", "terminal_categories": ["did_core_id"], "reason": "complete revocation provenance role; the separately registered device-revoke union may name a device or stable principal"},
+    {"field": "updated_by", "terminal_categories": ["did_core_id"], "reason": "complete update byline role"}
+  ],
+  "registered_network_locator_fields": [
+    {"field": "arkret_base_url", "schemes": ["http", "https"], "reason": "dereferenceable Arkret service base locator"},
+    {"field": "base_url", "schemes": ["http", "https", "wss"], "reason": "dereferenceable or connectable service base locator; each schema narrows the allowed transport"},
+    {"field": "candidate_base_url", "schemes": ["https"], "reason": "dereferenceable handover candidate base locator"},
+    {"field": "candidate_record_url", "schemes": ["https"], "reason": "dereferenceable handover candidate record locator"},
+    {"field": "connect_url", "schemes": ["https", "wss"], "reason": "connectable media transport locator"},
+    {"field": "current_record_url", "schemes": ["https"], "reason": "dereferenceable signed current-record locator"},
+    {"field": "endpoint_url", "schemes": ["https"], "reason": "dereferenceable endpoint hint or revocation locator"},
+    {"field": "gate_account_base_url", "schemes": ["https"], "reason": "dereferenceable Account Authority base locator"},
+    {"field": "inclusion_proof_url", "schemes": ["https"], "reason": "dereferenceable inclusion-proof locator"},
+    {"field": "openid_configuration_url", "schemes": ["https"], "reason": "dereferenceable OpenID Provider metadata locator"},
+    {"field": "policy_server_url", "schemes": ["https"], "reason": "dereferenceable Realm policy-server endpoint locator"},
+    {"field": "public_base_url", "schemes": ["http", "https"], "reason": "dereferenceable public service base locator; HTTP is restricted to explicit development deployments"},
+    {"field": "push_gateway_url", "schemes": ["https"], "reason": "dereferenceable push-gateway locator"},
+    {"field": "retrieval_url", "schemes": ["https"], "reason": "dereferenceable registry-content retrieval hint"},
+    {"field": "source_url", "schemes": ["https"], "reason": "dereferenceable witness-proof source locator"},
+    {"field": "url", "schemes": ["http", "https"], "reason": "complete presigned blob download locator"},
+    {"field": "webhook_url", "schemes": ["https"], "reason": "dereferenceable webhook delivery locator"}
+  ],
+  "registered_uri_reference_fields": [
+    {"field": "gate_audience_uri", "reason": "audience identifier committed into the pairing transcript"},
+    {"field": "geo_uri", "reason": "non-network geo URI reference"},
+    {"field": "issuer_uri", "reason": "issuer URI concept retained by the authentication protocol"},
+    {"field": "mimi_room_uri", "reason": "canonical non-HTTP MIMI room identifier"},
+    {"field": "mimi_uri", "reason": "canonical non-HTTP MIMI identifier"},
+    {"field": "provider_uri", "reason": "provider URI identity retained by the authentication protocol"},
+    {"field": "redirect_uri", "reason": "OAuth registered parameter spelling"},
+    {"field": "uri", "reason": "complete generic URI reference role"}
+  ],
+  "registered_origin_fields": [
+    {"file": "account-operations.schema.json", "pointer": "/$defs/account_registration_control_proof/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
+    {"file": "account-operations.schema.json", "pointer": "/$defs/identity_binding_challenge_outcome/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
+    {"file": "account-operations.schema.json", "pointer": "/$defs/identity_creation_control_proof/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
+    {"file": "account-operations.schema.json", "pointer": "/$defs/did_binding_challenge_outcome/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
+    {"file": "account-operations.schema.json", "pointer": "/$defs/identity_abandonment_challenge_outcome/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
+    {"file": "agent-operations.schema.json", "pointer": "/$defs/agent_provisioning_abandonment_challenge_outcome/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
+    {"file": "applet-widget-declaration.schema.json", "pointer": "/properties/widget_origin", "schemes": ["https"], "reason": "complete HTTPS Web Origin role for an isolated applet widget"},
+    {"file": "service-describe.schema.json", "pointer": "/$defs/account_authority/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
+    {"file": "service-operation-dtos.schema.json", "pointer": "/$defs/OrganizationRegistrationChallenge/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"}
+  ],
   "generic_grammars": [
     {
       "category": "primary_or_responsibility_id",
@@ -156,12 +212,6 @@
       "terminal_categories": ["did_core_id", "typed_object_id", "did_url"],
       "exact_names": [],
       "suffixes": ["_ref", "_refs"]
-    },
-    {
-      "category": "actor_attribution",
-      "terminal_categories": ["did_core_id"],
-      "exact_names": [],
-      "suffixes": ["_by"]
     },
     {
       "category": "cursor_coordinate",
@@ -235,13 +285,13 @@
       "file": "event-payload.schema.json",
       "pointer": "/$defs/device_authorize_payload/properties/authorized_by",
       "terminal_categories": ["mixed[did_core_id,typed_object_id]"],
-      "reason": "closed device-or-principal ID union selected by authorization_binding_kind and governed by the actor-attribution grammar"
+      "reason": "closed device-or-principal ID union selected by authorization_binding_kind; the complete authorized_by role retains its bare byline spelling"
     },
     {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/device_revoke_payload/properties/revoked_by",
       "terminal_categories": ["mixed[did_core_id,typed_object_id]"],
-      "reason": "closed device-or-principal ID union governed by the actor-attribution grammar"
+      "reason": "closed device-or-principal ID union; the complete revoked_by provenance role retains its bare byline spelling"
     },
     {
       "file": "device-pairing.schema.json",
@@ -254,6 +304,12 @@
       "pointer": "/$defs/SignedSessionGrantClaims/properties/jti",
       "terminal_categories": ["typed_object_id"],
       "reason": "RFC 7519 registered JWT claim name retained inside the signed claims object"
+    },
+    {
+      "file": "service-describe.schema.json",
+      "pointer": "/properties/rate_limit_policy/properties/entries/items/properties/endpoint",
+      "terminal_categories": ["uri"],
+      "reason": "closed endpoint selector union: absolute service path or absolute HTTP(S) URL"
     }
   ]
 }

@@ -2139,6 +2139,62 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
         ),
     }
     schema_nodes = [node for _json_path, node, _key in walk_json(data) if isinstance(node, dict)]
+
+    realm_identity_comment = (
+        "zh/models/realm-and-space.md section 2.5.0: ak.realm.create MUST omit "
+        "realm_id and use the realm_genesis scope. Every Realm, including "
+        "Collaboration, Direct Conversation, human PCR, and managed Agent PCR, derives "
+        "realm_id = retype(event_id, \"realm\") from this create Event. The uniform "
+        "omission leaves one receiver-derived genesis form and avoids the digest cycle. "
+        "Every other kind MUST carry realm_id."
+    )
+    realm_identity_matches = [
+        node
+        for node in schema_nodes
+        if isinstance(node.get("$comment"), str)
+        and node["$comment"].startswith(
+            "zh/models/realm-and-space.md section 2.5.0: ak.realm.create"
+        )
+    ]
+    if len(realm_identity_matches) != 1:
+        lint.fail(
+            path,
+            "Event envelope must contain exactly one Realm genesis identity comment",
+        )
+    elif realm_identity_matches[0].get("$comment") != realm_identity_comment:
+        lint.fail(
+            path,
+            "Realm genesis identity comment must use the uniform event-derived formula "
+            "for human and managed Agent PCRs",
+        )
+
+    expected_realm_genesis_description = (
+        "Genesis scope for ak.realm.create only. It carries no realm_id because the "
+        "receiver derives every Realm id, including Collaboration, Direct Conversation, "
+        "human PCR, and managed Agent PCR, as retype(event_id, \"realm\") from this "
+        "create Event (zh/models/realm-and-space.md section 2.5.0). The uniform omission "
+        "also prevents the digest cycle."
+    )
+    scope_ref = data.get("$defs", {}).get("scope_ref", {})
+    realm_genesis_branches = [
+        branch
+        for branch in scope_ref.get("oneOf", [])
+        if isinstance(branch, dict)
+        and branch.get("properties", {}).get("kind", {}).get("const")
+        == "realm_genesis"
+    ]
+    if len(realm_genesis_branches) != 1:
+        lint.fail(path, "scope_ref must contain exactly one realm_genesis branch")
+    elif (
+        realm_genesis_branches[0].get("description")
+        != expected_realm_genesis_description
+    ):
+        lint.fail(
+            path,
+            "scope_ref.realm_genesis description must use the uniform event-derived "
+            "formula for human and managed Agent PCRs",
+        )
+
     for comment_prefix, (branch_name, expected_purpose) in discriminator_conditions.items():
         matches = [
             node

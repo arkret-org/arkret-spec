@@ -83,7 +83,7 @@
             "type": "string",
             "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
           },
-          "generated_by_id": {
+          "generated_by": {
             "$ref": "#/$defs/did_core_id"
           },
           "visibility": {

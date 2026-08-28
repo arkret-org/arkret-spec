@@ -79,7 +79,7 @@ flowchart TB
 
 任何会改变其他 peer 对事件可见性、可写性或可分发性判断的 moderation decision——即 `hard_deny`、`quarantine`、`require_review`——MUST 通过 sealed Move 写入 `ak.component.moderation_state.v1` cell，详细规则见 [`authz/policy-server.md` §7.1](../authz/policy-server.md)。`dismiss` 同样使用 sealed `ak.moderation.decision`，但其 `target_ref` MUST 指向被驳回举报的 `ak.self.moderation.report` Event，且只把对应 queue item 终结为 `resolved`；它在目标内容的 decision fold 中等价于 `none`，不得放行本来缺少 capability 或被其它 active decision 拒绝的操作。Policy Server signed decision 与个人 blocklist仍是 out-of-band，不进入该 cell。
 
-**确定性收敛与提交路径（normative）**：`ak.component.moderation_state.v1` 与 `ak.component.moderation.appeal.v1` 两类 cell 的确定性收敛由 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 注册的 lattice 定义，与 capability cell（[`authz/capabilities.md` §12.1](../authz/capabilities.md)）同型：`ak.moderation.decision` = 对 moderation_state cell 的 `or_set` **add**；`ak.moderation.decision.lift` = 对同一 cell 的**部分撤销**，投影为 `or_set_remove_dots`，移除集合逐字节等于 payload 的 `observed_dots[]`；`ak.moderation.appeal.*` = appeal cell 上的 `fsm` 状态机（submitted → under_review → decided → closed）。裁决（`ak.moderation.decision[.lift]`）与申诉（`ak.moderation.appeal.*`）一律经 `POST /_arkret/self/events` 作为 self-authored Move 提交，**不经任何实现私有运维 / admin 写路径**；治理状态完全由数据/控制面 reducer 收敛，运维管理面不持有 moderation 真相。
+**确定性收敛与提交路径（normative）**：`ak.component.moderation_state.v1` 与 `ak.component.moderation.appeal.v1` 两类 cell 的确定性收敛由 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 注册的 lattice 定义，与 capability cell（[`authz/capabilities.md` §12.1](../authz/capabilities.md)）同型：`ak.moderation.decision` = 对 moderation_state cell 的 `or_set` **add**；`ak.moderation.decision.lift` = 对同一 cell 的**部分撤销**，投影为 `or_set_remove_dots`，移除集合逐字节等于 payload 的 `observed_dot_ids[]`；`ak.moderation.appeal.*` = appeal cell 上的 `fsm` 状态机（submitted → under_review → decided → closed）。裁决（`ak.moderation.decision[.lift]`）与申诉（`ak.moderation.appeal.*`）一律经 `POST /_arkret/self/events` 作为 self-authored Move 提交，**不经任何实现私有运维 / admin 写路径**；治理状态完全由数据/控制面 reducer 收敛，运维管理面不持有 moderation 真相。
 
 **active decision set 与 effective decision（normative）**：moderation_state cell 的当前值是“所有尚未被 observed-remove 的 decision add”组成的集合，不是 last-writer register。对某次 read / write / distribute / policy-check，reducer 先筛出 target 与可选 `action` 对本次路径适用的 active entries，再按封闭收紧序 `hard_deny > quarantine > require_review > none` 取最严格 effective decision；`dismiss` 只适用于 report queue item 且 fold 为 `none`，`soft_deny` 不写 cell，`allow` 也不是 decision add。多个 issuer 或同一 issuer 的多个合法 add 并存是 OR-Set 的正常可 join 状态，必须按该 fold 得到相同结果，**不得**因“集合元素多于一个”直接报 `moderation_control_split`，也不得按本地到达顺序选 winner。只有同一 add identity 对应不同 canonical bytes、remove provenance 不可验证或 cell 无法按注册 lattice join 等真正非 joinable / 损坏状态才进入 [`policy-server.md` §7.2](../authz/policy-server.md#72-错误码与-reason_code-扩展) 的 split fail-closed。
 
@@ -90,13 +90,13 @@ flowchart TB
 - 对同一 target 仍有其它适用 active decision 时，effective decision 继续按上述最严格 fold 计算；解除一条 review 不得隐式 lift 其它 issuer 的 decision。
 
 **lift 的移除集合（normative）**：`ak.moderation.decision.lift` 的 payload MUST 携带
-`observed_dots[]`，reducer 精确投影为 `{"kind":"or_set_remove_dots","dots":{"field":"payload.observed_dots"}}`，
+`observed_dot_ids[]`，reducer 精确投影为 `{"kind":"or_set_remove_dots","dots":{"field":"payload.observed_dot_ids"}}`，
 移除集合与该数组**逐字节相等**。每个 dot 的 `event_id` 段 MUST 等于 `decision_ref` 的完整 EventId token——
 这就是上一条"不得隐式 lift 其它 issuer 的 decision"的机器可读形式。
 
 lift MUST NOT 使用 `or_set_remove_observed`：该形态移除冻结前态下该 cell 上**全部**存活 add
 dot，会连带撤销其它 issuer 的 decision；[`../models/event-and-patch.md` §2.4.2](../models/event-and-patch.md)
-逐字禁止用它做部分撤销。`decision_ref` 与 `observed_dots[]` 不可互相替代：前者是
+逐字禁止用它做部分撤销。`decision_ref` 与 `observed_dot_ids[]` 不可互相替代：前者是
 `ak:event:<44-char-event-token>`，dot 是 `ak:event:<44-char-event-token>:<write_index>`，二者永不逐字节相等，而 §2.4.2
 不提供 `event_ref -> dot` 的派生式。
 

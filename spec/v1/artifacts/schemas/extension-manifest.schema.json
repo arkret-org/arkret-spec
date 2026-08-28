@@ -190,9 +190,10 @@
         "digest": {
           "$ref": "#/$defs/digest"
         },
-        "retrieval_uri": {
+        "retrieval_url": {
           "type": "string",
           "format": "uri",
+          "pattern": "^https://",
           "description": "Optional retrieval hint only. The registry_id plus digest, not this URL, identifies the referenced content."
         }
       },

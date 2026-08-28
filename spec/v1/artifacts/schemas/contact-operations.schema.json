@@ -743,7 +743,7 @@
             "handle_claim": {
               "$ref": "./handle-claim.schema.json"
             },
-            "resolved_by": {
+        "resolved_by": {
               "$ref": "#/$defs/did_core_id"
             },
             "resolved_at": {

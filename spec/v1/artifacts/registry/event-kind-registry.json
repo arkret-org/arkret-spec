@@ -4411,7 +4411,7 @@
           "effect_projection": {
             "kind": "or_set_remove_dots",
             "dots": {
-              "field": "payload.observed_dots"
+              "field": "payload.observed_dot_ids"
             }
           }
         }
@@ -5979,7 +5979,7 @@
           "effect_projection": {
             "kind": "or_set_remove_dots",
             "dots": {
-              "field": "payload.observed_dots"
+              "field": "payload.observed_dot_ids"
             }
           }
         }

@@ -1269,7 +1269,7 @@
         "consequence_disclosure",
         "dpop_jkt",
         "audience_id",
-        "origin_uri",
+        "origin",
         "trust_domain",
         "issued_at",
         "expires_at"
@@ -1319,9 +1319,8 @@
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin_uri": {
-          "type": "string",
-          "format": "uri"
+        "origin": {
+          "$ref": "./common-ids.schema.json#/$defs/web_origin"
         },
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
@@ -1469,7 +1468,7 @@
       "type": "object",
       "description": "One-time bootstrap material handed to a personal agent runtime after provisioning. This is not a session grant, capability grant or long-term secret.",
       "required": [
-        "arkret_base_uri",
+        "arkret_base_url",
         "service_id",
         "agent_id",
         "pairing_request_id",
@@ -1477,9 +1476,10 @@
         "pairing_expires_at"
       ],
       "properties": {
-        "arkret_base_uri": {
+        "arkret_base_url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^https?://"
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"

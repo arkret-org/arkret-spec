@@ -1436,7 +1436,7 @@
       "required": [
         "subscriber_principal_id",
         "resource_filter",
-        "webhook_uri"
+        "webhook_url"
       ],
       "properties": {
         "subscriber_principal_id": {
@@ -1480,9 +1480,10 @@
           },
           "additionalProperties": false
         },
-        "webhook_uri": {
+        "webhook_url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^https://"
         },
         "secret": {
           "$ref": "#/$defs/non_empty_string"

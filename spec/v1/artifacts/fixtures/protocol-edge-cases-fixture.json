@@ -637,7 +637,7 @@
         "target_failure_mode": "fail_closed_and_warn_user"
       },
       "assertions": [
-        "the accepted_device possession object is closed over device_id, device_public_key, hpke_key, algorithms, device_key_algorithm, authorization_binding_kind and pairing_challenge_transcript_digest, and over nothing the approving device chooses",
+        "the accepted_device possession object is closed over device_id, device_public_key_did, hpke_key, algorithms, device_key_algorithm, authorization_binding_kind and pairing_challenge_transcript_digest, and over nothing the approving device chooses",
         "the approving device and the Account Authority each rebuild that object independently and never accept a requester-supplied attestation copy",
         "pairing_challenge_transcript_digest is compared against a locally recomputed challenge transcript before signature verification",
         "hpke_key and algorithms are read only from the verified attestation; neither the stage request nor the bootstrap carries them",

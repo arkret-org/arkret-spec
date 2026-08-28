@@ -3449,10 +3449,11 @@
       "applies_to_fixtures": [
         "principal-server-admission-fixture.json"
       ],
-      "description": "Authority-pair uniqueness, signed Event principal_server_id, exact producer-proof binding, origin-only admission and replica preservation.",
+      "description": "Lifetime authority-pair uniqueness including deactivation tombstones and cross-Principal-Server replacement, signed Event principal_server_id, exact producer-proof binding, origin-only admission and replica preservation.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/principal-server-admission-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/account-lifecycle.md"
       ]
     },
     {

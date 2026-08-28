@@ -56,7 +56,7 @@
     "gate_audience_uri": {
       "type": "string",
       "format": "uri",
-      "description": "Origin of the Account Authority gate surface (gate_account_base) this pairing request is bound to. Minted by the staging service; the challenge proof commits to it so a proof cannot be replayed against another Account Authority."
+      "description": "Origin of the Account Authority gate surface (gate_account_base_url) this pairing request is bound to. Minted by the staging service; the challenge proof commits to it so a proof cannot be replayed against another Account Authority."
     },
     "device_pairing_to_device_challenge_transcript": {
       "type": "object",
@@ -130,7 +130,7 @@
     },
     "device_pairing_target_attestation": {
       "type": "object",
-      "description": "Closed possession attestation the target device produces for the accepted_device pairing path, and the only authority for its hpke_key and algorithms: neither the staged record nor the bootstrap carries them, so the approving device reads them here after the signature verifies and copies them byte-for-byte into the ak.device.authorize payload. Signing input is UTF8(\"ak.device_authorize_accepted_device_possession_proof.v1\\n\") || canonical_json({algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key, hpke_key, pairing_challenge_transcript_digest}); see crypto-media/device-lifecycle.md section 5.2.2. The object is closed over target-owned material plus this pairing challenge, so the target can build it before it knows which sibling will approve and what principal_id, authorized_by, not_before, expires_at or scopes that sibling will choose; those values are carried by the approving device Event proof instead. It travels only over the out-of-band channel (QR fragment or to-device message) and MUST NOT be posted back through the unauthenticated stage or resolve surface. It is never a wire field of ak.gate.account.command.pair_device.v1: every member is already recomputable there from the request payload and the Account Authority own challenge transcript.",
+      "description": "Closed possession attestation the target device produces for the accepted_device pairing path, and the only authority for its hpke_key and algorithms: neither the staged record nor the bootstrap carries them, so the approving device reads them here after the signature verifies and copies them byte-for-byte into the ak.device.authorize payload. Signing input is UTF8(\"ak.device_authorize_accepted_device_possession_proof.v1\\n\") || canonical_json({algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key_did, hpke_key, pairing_challenge_transcript_digest}); see crypto-media/device-lifecycle.md section 5.2.2. The object is closed over target-owned material plus this pairing challenge, so the target can build it before it knows which sibling will approve and what principal_id, authorized_by, not_before, expires_at or scopes that sibling will choose; those values are carried by the approving device Event proof instead. It travels only over the out-of-band channel (QR fragment or to-device message) and MUST NOT be posted back through the unauthenticated stage or resolve surface. It is never a wire field of ak.gate.account.command.pair_device.v1: every member is already recomputable there from the request payload and the Account Authority own challenge transcript.",
       "required": [
         "device_id",
         "device_public_key_did",
@@ -149,7 +149,7 @@
         "device_public_key_did": {
           "type": "string",
           "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-          "description": "Self-describing did:key form of the same Ed25519 key as new_device_pubkey.key. A verifier MUST reject an attestation whose device_public_key decodes to different key bytes than the staged or forwarded new_device_pubkey."
+          "description": "Self-describing did:key form of the same Ed25519 key as new_device_pubkey.key. A verifier MUST reject an attestation whose device_public_key_did decodes to different key bytes than the staged or forwarded new_device_pubkey."
         },
         "hpke_key": {
           "$ref": "#/$defs/non_empty_string",
@@ -171,7 +171,7 @@
         },
         "device_signature": {
           "$ref": "./event-payload.schema.json#/$defs/signature_material",
-          "description": "Ed25519 signature by the private key of device_public_key over the canonical signing input above. The approving device MUST copy it byte-for-byte into device_authorize_payload.device_signature and into the pair_device request device_signature."
+          "description": "Ed25519 signature by the private key of device_public_key_did over the canonical signing input above. The approving device MUST copy it byte-for-byte into device_authorize_payload.device_signature and into the pair_device request device_signature."
         }
       },
       "additionalProperties": false
@@ -273,7 +273,7 @@
       "type": "object",
       "description": "Pairing material handed to an already-authorized device after resolving a device-pairing short link. It carries the server-minted challenge material so the authorized device can recompute the ak.device-pairing.challenge.v1 transcript and verify the proof it received out of band from the new device. It does NOT carry the proof itself, nor the device_pairing_target_attestation, nor the hpke_key and algorithms that attestation signs: the staging surface is unauthenticated and never sees any of them, and mirroring signed values here would only create a second, non-authoritative copy. This is not a session grant, capability grant or long-term secret; the authorized device still drives ak.gate.account.command.pair_device.v1 to complete authorization.",
       "required": [
-        "arkret_base_uri",
+        "arkret_base_url",
         "device_pairing_request_id",
         "pairing_code",
         "new_device_pubkey",
@@ -283,9 +283,10 @@
         "expires_at"
       ],
       "properties": {
-        "arkret_base_uri": {
+        "arkret_base_url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^https?://"
         },
         "device_pairing_request_id": {
           "$ref": "#/$defs/device_pairing_request_id"
@@ -349,7 +350,7 @@
         },
         "authorized_event_ref": {
           "$ref": "#/$defs/event_id",
-          "description": "Accepted ak.device.authorize Event id. It is the entry point for the mandatory pre-assembly check in crypto-media/device-lifecycle.md section 5.4.1: before the target device assembles the identity locally it MUST fetch this Event and confirm byte-identical device_signature, byte-identical device_public_key, hpke_key and algorithms, and an expected principal_id, or fail closed."
+          "description": "Accepted ak.device.authorize Event id. It is the entry point for the mandatory pre-assembly check in crypto-media/device-lifecycle.md section 5.4.1: before the target device assembles the identity locally it MUST fetch this Event and confirm byte-identical device_signature, byte-identical device_public_key_did, hpke_key and algorithms, and an expected principal_id, or fail closed."
         }
       },
       "allOf": [

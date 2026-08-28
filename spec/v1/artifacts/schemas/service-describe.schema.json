@@ -313,9 +313,19 @@
           "items": {
             "type": "object",
             "properties": {
-              "endpoint_uri": {
+              "endpoint": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "anyOf": [
+                  {
+                    "pattern": "^/"
+                  },
+                  {
+                    "format": "uri",
+                    "pattern": "^https?://"
+                  }
+                ],
+                "description": "Closed endpoint selector: either an absolute HTTP(S) URL or an absolute-path endpoint on this service."
               },
               "operation_id": {
                 "type": "string",
@@ -1180,19 +1190,18 @@
         "^x_[a-z][a-z0-9_]{0,63}$": true
       },
       "required": [
-        "origin_uri",
-        "gate_account_base"
+        "origin",
+        "gate_account_base_url"
       ],
       "properties": {
-        "origin_uri": {
-          "type": "string",
-          "format": "uri",
+        "origin": {
+          "allOf": [{ "$ref": "./common-ids.schema.json#/$defs/web_origin" }],
           "description": "Absolute origin of the client-visible Account Authority."
         },
-        "gate_account_base": {
+        "gate_account_base_url": {
           "type": "string",
           "format": "uri",
-          "pattern": "/_arkret/gate/account/?$",
+          "pattern": "^https://[^?#]+/_arkret/gate/account/?$",
           "description": "Absolute base URL from which all client-visible /_arkret/gate/account/* endpoints MUST be derived."
         }
       }
@@ -1223,9 +1232,10 @@
           "type": "string",
           "format": "uri"
         },
-        "openid_configuration_uri": {
+        "openid_configuration_url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^https://"
         },
         "client_id": {
           "type": "string",
@@ -1259,7 +1269,7 @@
           "then": {
             "required": [
               "issuer_uri",
-              "openid_configuration_uri"
+              "openid_configuration_url"
             ]
           }
         }
@@ -1319,16 +1329,17 @@
       "type": "object",
       "required": [
         "kind",
-        "base_uri",
+        "base_url",
         "extension_profile_required"
       ],
       "properties": {
         "kind": {
           "const": "http_json"
         },
-        "base_uri": {
+        "base_url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^https://"
         },
         "extension_profile_required": {
           "type": "null"
@@ -1340,7 +1351,7 @@
       "type": "object",
       "required": [
         "kind",
-        "base_uri",
+        "base_url",
         "extension_profile_required",
         "tus_version",
         "tus_extensions"
@@ -1349,9 +1360,10 @@
         "kind": {
           "const": "tus"
         },
-        "base_uri": {
+        "base_url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^https://"
         },
         "extension_profile_required": {
           "type": "null"
@@ -1385,7 +1397,7 @@
       "type": "object",
       "required": [
         "kind",
-        "base_uri",
+        "base_url",
         "extension_profile_required",
         "subprotocol",
         "authentication",
@@ -1396,7 +1408,7 @@
         "kind": {
           "const": "websocket"
         },
-        "base_uri": {
+        "base_url": {
           "type": "string",
           "format": "uri",
           "pattern": "^wss://[a-z0-9.-]+(?::[1-9][0-9]{0,4})?/(?:[A-Za-z0-9._~!$&'()*+,;=:@/-]|%[0-9A-F]{2})*$",

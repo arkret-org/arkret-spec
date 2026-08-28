@@ -175,7 +175,7 @@ Schema id: `ak.schema.capability.v1`
 | `expires_at` | no | `timestamp` |  | 过期时间。 |
 | `updated_by` | no | `did_core_id` | grant lifecycle update 的 actor；普通 grant body 仍不可变。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | grant lifecycle update 的时间；普通 grant body 仍不可变。 | 最近更新时间。 |
-| `revoked_by` | no | `did` | 撤销后设置。 | 撤销者。 |
+| `revoked_by` | no | `did_core_id` | 撤销后设置。 | 撤销者。 |
 | `revoked_at` | no | `timestamp` |  | 撤销时间。 |
 | `proofs` | yes | `array<Proof>` |  | 授权签名。 |
 

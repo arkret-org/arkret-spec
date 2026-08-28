@@ -10,7 +10,7 @@
     "applet_id",
     "service_id",
     "controller_id",
-    "base_uri",
+    "base_url",
     "bot_actor_id",
     "claimed_profiles",
     "protocols",
@@ -49,9 +49,10 @@
     "controller_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "base_uri": {
+    "base_url": {
       "type": "string",
-      "format": "uri"
+      "format": "uri",
+      "pattern": "^https://"
     },
     "bot_actor_id": {
       "$ref": "#/$defs/did_core_id"

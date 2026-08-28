@@ -45,7 +45,7 @@
         "purpose": "ak.organization_registration_control_proof.v1",
         "nonce": "cmVnaXN0cmF0aW9uLW5vbmNlLTAx",
         "audience_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
-        "origin_uri": "https://registry.example/",
+        "origin": "https://registry.example",
         "trust_domain": "ak:trust_domain:registry.example",
         "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
@@ -302,7 +302,7 @@
         "purpose": "ak.organization_registration_control_proof.v1",
         "nonce": "cmVnaXN0cmF0aW9uLW5vbmNlLTAx",
         "audience_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
-        "origin_uri": "https://registry.example/",
+        "origin": "https://registry.example",
         "trust_domain": "ak:trust_domain:registry.example",
         "local_admin_subject_id": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [

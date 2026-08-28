@@ -1332,7 +1332,7 @@
         "applet_id",
         "service_id",
         "controller_id",
-        "base_uri",
+        "base_url",
         "bot_actor_id",
         "claimed_profiles",
         "protocols",
@@ -1360,9 +1360,10 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "DID of the Applet controller / external system; signs the registration."
         },
-        "base_uri": {
+        "base_url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^https://"
         },
         "bot_actor_id": {
           "$ref": "#/$defs/did_core_id"
@@ -3348,7 +3349,7 @@
     },
     "consent_revoke_payload": {
       "type": "object",
-      "description": "Revoke a previously granted consent. Wire-equivalent to a Control Move whose effect is remove(tag) on the consent cell ak:cell:ak.component.consent.grant.v1:<consent_id> (the same cell written by ak.consent.grant). Payload observed_dots MUST match the Control Move effect's observed_dots so schema validation and audit can see exactly what was removed.",
+      "description": "Revoke a previously granted consent. Wire-equivalent to a Control Move whose effect is remove(tag) on the consent cell ak:cell:ak.component.consent.grant.v1:<consent_id> (the same cell written by ak.consent.grant). Payload observed_dot_ids MUST match the Control Move effect's observed_dot_ids so schema validation and audit can see exactly what was removed.",
       "required": [
         "consent_id",
         "observed_dot_ids"
@@ -4017,7 +4018,7 @@
       "required": [
         "principal_id",
         "device_id",
-        "device_public_key",
+        "device_public_key_did",
         "hpke_key",
         "algorithms",
         "device_key_algorithm",
@@ -4033,7 +4034,7 @@
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
-        "device_public_key": {
+        "device_public_key_did": {
           "$ref": "#/$defs/non_empty_string"
         },
         "hpke_key": {
@@ -4042,7 +4043,7 @@
         },
         "algorithms": {
           "$ref": "#/$defs/string_list",
-          "description": "Canonical sorted unique algorithm ids supported by this device. Enters device trust binding transcript together with device_public_key and hpke_key. For accepted_device pairing its authority is the target device_pairing_target_attestation, not any service-supplied or staged copy."
+          "description": "Canonical sorted unique algorithm ids supported by this device. Enters device trust binding transcript together with device_public_key_did and hpke_key. For accepted_device pairing its authority is the target device_pairing_target_attestation, not any service-supplied or staged copy."
         },
         "device_key_algorithm": {
           "const": "Ed25519"
@@ -8208,7 +8209,7 @@
     },
     "moderation_decision_lift_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision.lift. Writes an or_set remove effect on the same ak.component.moderation_state.v1 cell, removing exactly the dots enumerated in observed_dots, which MUST belong to the decision identified by decision_ref. See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §5.5.2 (appeal verdict=overturn MUST pair a lift whose target equals decision_ref in the same ordered submit batch or equivalent control transaction).",
+      "description": "Payload for ak.moderation.decision.lift. Writes an or_set remove effect on the same ak.component.moderation_state.v1 cell, removing exactly the dots enumerated in observed_dot_ids, which MUST belong to the decision identified by decision_ref. See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §5.5.2 (appeal verdict=overturn MUST pair a lift whose target equals decision_ref in the same ordered submit batch or equivalent control transaction).",
       "required": [
         "target_ref",
         "decision_ref",
@@ -11531,7 +11532,7 @@
         "focus_id",
         "focus_kind",
         "token_endpoint",
-        "connect_uri"
+        "connect_url"
       ],
       "properties": {
         "focus_id": {
@@ -11564,7 +11565,7 @@
           "pattern": "^https://[^\\s]+$",
           "description": "Token exchange endpoint (section 3). Shared abstraction across every backend; only backend_token differs. Part of the section 2.1 trust root, so a client MUST verify the exact cell value against the current accepted Seal view before anchoring it."
         },
-        "connect_uri": {
+        "connect_url": {
           "type": "string",
           "pattern": "^(https|wss)://[^\\s]+$",
           "description": "Backend connection entry point; the concrete protocol is fixed by the type-specific binding appendix."

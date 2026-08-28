@@ -46,9 +46,10 @@
       ],
       "description": "The only v1 forwarding role: a Principal Server selected from a current joined-member delivery binding. This is a bounded route hint, not an authorization grant."
     },
-    "endpoint_uri": {
+    "endpoint_url": {
       "type": "string",
       "format": "uri",
+      "pattern": "^https://",
       "description": "Optional non-authoritative endpoint hint. Callers MUST NOT route from this field or a DID Document endpoint; they MUST obtain and validate service_resolution, use its canonical base_url for first transport, and confirm capabilities through GET /_arkret/describe."
     },
     "operations": {

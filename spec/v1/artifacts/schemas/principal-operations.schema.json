@@ -188,7 +188,7 @@
           ],
           "properties": {
             "owner_account_id": {
-              "$ref": "#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/service_account_id"
             },
             "keypackage_ref": {
               "$ref": "#/$defs/opaque_id"
@@ -217,7 +217,7 @@
           ],
           "properties": {
             "owner_account_id": {
-              "$ref": "#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/service_account_id"
             },
             "keypackage_ref": {
               "$ref": "#/$defs/opaque_id"
@@ -254,7 +254,7 @@
           ],
           "properties": {
             "owner_account_id": {
-              "$ref": "#/$defs/did_core_id"
+              "$ref": "./common-ids.schema.json#/$defs/service_account_id"
             },
             "keypackage_ref": {
               "$ref": "#/$defs/opaque_id"
@@ -494,7 +494,7 @@
     },
     "pcr_genesis_unit": {
       "type": "object",
-      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to did_core_id is forbidden, and did:key is not accepted for this slot. Before the accepted device directory exists, the verifier resolves that one canonical method through a unit-local candidate overlay to the descriptor/payload device_public_key; it MUST NOT consult or mutate the durable directory until every check succeeds. No partial acceptance is permitted.",
+      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to did_core_id is forbidden, and did:key is not accepted for this slot. Before the accepted device directory exists, the verifier resolves that one canonical method through a unit-local candidate overlay to the descriptor/payload device_public_key_did; it MUST NOT consult or mutate the durable directory until every check succeeds. No partial acceptance is permitted.",
       "required": [
         "events"
       ],

@@ -197,7 +197,9 @@
           ]
         },
         "inclusion_proof_url": {
-          "type": "string"
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
         },
         "challenge_window_seconds": {
           "type": "integer",

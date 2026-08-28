@@ -220,14 +220,14 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。Principal Server 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session.v1`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
+认证与授权服务器可以分离。Principal Server 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base_url` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session.v1`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
 
 ```json
 {
   "auth_metadata": {
     "account_authority": {
       "origin": "https://account.example",
-      "gate_account_base": "https://account.example/_arkret/gate/account"
+      "gate_account_base_url": "https://account.example/_arkret/gate/account"
     },
     "methods": [
       {
@@ -327,7 +327,7 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 
 实现 MUST 通过 `ak.vector.session.dpop_target_uri_binding.v1`，证明跨 authority、跨 scheme、伪造转发头与 authority 不可重建场景均 fail closed，且不存在 path-only fallback。
 
-**DPoP 与 RFC 9421 PoP 是两层正交保障**。DPoP（RFC 9449）提供 per-request 认证 + sender-constraint，但**不绑定请求 body**——默认 profile 下 body 完整性依赖 TLS(与 Matrix 同口径)。§3.2 的 RFC 9421 PoP 则额外提供 body 完整性(覆盖 `content-digest`)。两层用**同一把** Ed25519 grant-binding(DPoP)key:该 key 的 RFC 7638 thumbprint 即 grant 的 `cnf.jkt`(DPoP 绑定),其公钥即 grant 委托的 `session_public_key`(9421 绑定),客户端无需为 DPoP 与 9421 各管理一把密钥。此 grant-binding key 是短期会话认证凭据，必须独立生成、独立存储并随 session 轮换；其私钥字节、公钥字节、JWK thumbprint 与 `kid` 都 MUST NOT 等于或复用签事件 / KeyPackage / MLS 的长期设备身份 key(`device_public_key`)。违反分离要求的请求 MUST 以 `unauthenticated` fail closed(见 [`../crypto-media/device-lifecycle.md` §3.3/§5.2](../crypto-media/device-lifecycle.md))。
+**DPoP 与 RFC 9421 PoP 是两层正交保障**。DPoP（RFC 9449）提供 per-request 认证 + sender-constraint，但**不绑定请求 body**——默认 profile 下 body 完整性依赖 TLS(与 Matrix 同口径)。§3.2 的 RFC 9421 PoP 则额外提供 body 完整性(覆盖 `content-digest`)。两层用**同一把** Ed25519 grant-binding(DPoP)key:该 key 的 RFC 7638 thumbprint 即 grant 的 `cnf.jkt`(DPoP 绑定),其公钥即 grant 委托的 `session_public_key`(9421 绑定),客户端无需为 DPoP 与 9421 各管理一把密钥。此 grant-binding key 是短期会话认证凭据，必须独立生成、独立存储并随 session 轮换；其私钥字节、公钥字节、JWK thumbprint 与 `kid` 都 MUST NOT 等于或复用签事件 / KeyPackage / MLS 的长期设备身份 key(`device_public_key_did`)。违反分离要求的请求 MUST 以 `unauthenticated` fail closed(见 [`../crypto-media/device-lifecycle.md` §3.3/§5.2](../crypto-media/device-lifecycle.md))。
 
 - **默认 profile**:self-path 的会话出示就是本节的 grant + DPoP;RFC 9421 PoP 可选叠加。
 - **高安全 profile**(`sovereign_deployment` / `high_security_organization`，见 §3.2 末段):对所有受保护的 `ak.self.*` operation，Principal Server **MUST** 在 grant + DPoP 之外**再要求** RFC 9421 PoP 出示；仅出示 grant + DPoP、缺 `Signature-Input` 的此类请求 MUST 被拒。此时 9421 校验的 `session_public_key` **MUST** 取自该 grant 的 session-grant 内省结果(grant + DPoP 会话为请求级、不落库为本地 bearer)，而非持久化 session 记录。

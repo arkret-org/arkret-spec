@@ -257,12 +257,12 @@
         "schema_kind": "object",
         "required": [
           "device_id",
-          "push_gateway_uri",
+          "push_gateway_url",
           "push_key"
         ],
         "properties": [
           "device_id",
-          "push_gateway_uri",
+          "push_gateway_url",
           "push_key",
           "platform",
           "app_id",
@@ -426,12 +426,12 @@
         "required": [
           "subscriber_principal_id",
           "resource_filter",
-          "webhook_uri"
+          "webhook_url"
         ],
         "properties": [
           "subscriber_principal_id",
           "resource_filter",
-          "webhook_uri",
+          "webhook_url",
           "secret",
           "expires_at"
         ],
@@ -1158,7 +1158,7 @@
           "lease_fence",
           "dpop_jkt",
           "audience_id",
-          "origin_uri",
+          "origin",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1184,7 +1184,7 @@
           "lease_fence",
           "dpop_jkt",
           "audience_id",
-          "origin_uri",
+          "origin",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1226,7 +1226,7 @@
           "control_key_digest",
           "dpop_jkt",
           "audience_id",
-          "origin_uri",
+          "origin",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1245,7 +1245,7 @@
           "witness_evidence",
           "dpop_jkt",
           "audience_id",
-          "origin_uri",
+          "origin",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1291,7 +1291,7 @@
           "consequence_disclosure",
           "dpop_jkt",
           "audience_id",
-          "origin_uri",
+          "origin",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1309,7 +1309,7 @@
           "consequence_disclosure",
           "dpop_jkt",
           "audience_id",
-          "origin_uri",
+          "origin",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1991,7 +1991,7 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap",
         "schema_kind": "object",
         "required": [
-          "arkret_base_uri",
+          "arkret_base_url",
           "service_id",
           "agent_id",
           "pairing_request_id",
@@ -1999,7 +1999,7 @@
           "pairing_expires_at"
         ],
         "properties": [
-          "arkret_base_uri",
+          "arkret_base_url",
           "service_id",
           "agent_id",
           "pairing_request_id",
@@ -2106,7 +2106,7 @@
         "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap",
         "schema_kind": "object",
         "required": [
-          "arkret_base_uri",
+          "arkret_base_url",
           "device_pairing_request_id",
           "pairing_code",
           "new_device_pubkey",
@@ -2116,7 +2116,7 @@
           "expires_at"
         ],
         "properties": [
-          "arkret_base_uri",
+          "arkret_base_url",
           "device_pairing_request_id",
           "pairing_code",
           "new_device_pubkey",
@@ -4097,7 +4097,7 @@
           "purpose",
           "nonce",
           "audience_id",
-          "origin_uri",
+          "origin",
           "trust_domain",
           "local_admin_subject_id",
           "requested_scopes",
@@ -4111,7 +4111,7 @@
           "purpose",
           "nonce",
           "audience_id",
-          "origin_uri",
+          "origin",
           "trust_domain",
           "local_admin_subject_id",
           "requested_scopes",
@@ -4543,14 +4543,14 @@
         "schema_kind": "object",
         "required": [
           "service_kind",
-          "public_base",
+          "public_base_url",
           "did",
           "inception_operation",
           "idempotency_key"
         ],
         "properties": [
           "service_kind",
-          "public_base",
+          "public_base_url",
           "did",
           "inception_operation",
           "idempotency_key",
@@ -5041,7 +5041,7 @@
           "consequence_disclosure",
           "dpop_jkt",
           "audience_id",
-          "origin_uri",
+          "origin",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -5059,7 +5059,7 @@
           "consequence_disclosure",
           "dpop_jkt",
           "audience_id",
-          "origin_uri",
+          "origin",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -6104,11 +6104,11 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome",
         "schema_kind": "object",
         "required": [
-          "uri",
+          "url",
           "expires_at"
         ],
         "properties": [
-          "uri",
+          "url",
           "expires_at",
           "purpose"
         ],
@@ -6183,7 +6183,7 @@
         "schema_kind": "object",
         "required": [
           "focus_id",
-          "connect_uri",
+          "connect_url",
           "backend_token",
           "participant_id",
           "participant_binding",
@@ -6192,7 +6192,7 @@
         ],
         "properties": [
           "focus_id",
-          "connect_uri",
+          "connect_url",
           "backend_token",
           "participant_id",
           "participant_binding",

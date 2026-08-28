@@ -455,7 +455,7 @@ MUST 无人工操作地执行以下 crash-safe 收敛循环：
    receipt 失效，因此不得单独引发 request churn。只有 missing range 扩展、request expiry、release-service
    rebind，或已冻结 traversal 确实无法解析/验证时，才能按现行 create 规则作者化新 request。
 2. requester MUST 持续读取每个已接受 request 的 private response stream，按 §6 验证、安装并只在 durable
-   disposition 后 ack。空页的唯一 canonical 形状是 `ack_entries=[]`、`limited=false`，且省略
+   disposition 后 ack。空页的唯一 canonical 形状是 `entries=[]`、`limited=false`，且省略
    `ack_token` 与 `cursor`；客户端 MUST NOT 持久钉住或 ACK 空页，MUST NOT 推进 high-water，并 MUST
    以有界退避从同一 `after=last_acked_cursor` 重新读取。非空页 MUST 携带 `ack_token`。
 3. 同 profile 的 current authorized endpoint MUST 持续消费它可见的 scope-private request projection。当它持有与

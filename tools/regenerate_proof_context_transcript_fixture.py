@@ -46,6 +46,7 @@ REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 SCHEMAS = ARTIFACTS / "schemas"
 
 FIXTURE = ARTIFACTS / "fixtures" / "proof-context-transcript-fixture.json"
+FIXTURE_VERSION = "2026-08-27.1"
 VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 
 # The single conformance signing key already published by
@@ -161,7 +162,7 @@ VALUE_TABLE: dict[str, Any] = {
     "device_authorize_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
     "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
     "device_key_algorithm": "Ed25519",
-    "device_public_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+    "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
     "device_signing_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
     "device_status": "authorized",
     "did": "did:webvh:z6mkfixturesubjectexample:subject.example",
@@ -479,6 +480,7 @@ def build_case(
             for name in required_binding + present_optional:
                 if (
                     name in PROOF_SIDE_FIELDS
+                    or (family == "directory_governance_request" and name == "audience_id")
                     or name in SELF_DIGEST_FIELDS
                     or name in body
                     or (family == "ingress_receipt" and name == "authority_set_ref")
@@ -583,6 +585,8 @@ def build_case(
             binding[name] = case["unsigned_digest"]
         elif name == "audience":
             binding[name] = AUDIENCE_SINGLE if name in required_binding else list(AUDIENCE_ARRAY)
+        elif name == "audience_id":
+            binding[name] = AUDIENCE_SINGLE
         elif name in SELF_DIGEST_FIELDS:
             binding[name] = typed_digest(f"ak.fixture.proof_context_transcript.{family}.{name}")
         elif isinstance(case.get("unsigned_object"), dict) and name in case["unsigned_object"]:
@@ -650,7 +654,7 @@ def build_document() -> dict[str, Any]:
         )
 
     return {
-        "version": registry["version"],
+        "version": FIXTURE_VERSION,
         "suite": "proof_context_transcripts",
         "runner": {
             "kind": "named_suite",

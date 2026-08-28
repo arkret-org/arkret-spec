@@ -127,7 +127,7 @@ def proof_inputs() -> list[tuple[str, dict[str, object], list[str]]]:
                 "share_releases": [
                     {
                         "share_id": "share-a",
-                        "holder": "ak:did_core:web:holder-a.example",
+                        "holder_id": "ak:did_core:web:holder-a.example",
                         "transcript_digest": "sha256:" + "33" * 32,
                         "verification_method": "did:web:holder-a.example#recovery-1",
                         "signature_algorithm": "Ed25519",
@@ -135,7 +135,7 @@ def proof_inputs() -> list[tuple[str, dict[str, object], list[str]]]:
                     },
                     {
                         "share_id": "share-b",
-                        "holder": "ak:did_core:web:holder-b.example",
+                        "holder_id": "ak:did_core:web:holder-b.example",
                         "transcript_digest": "sha256:" + "44" * 32,
                         "verification_method": "did:web:holder-b.example#recovery-1",
                         "signature_algorithm": "Ed25519",

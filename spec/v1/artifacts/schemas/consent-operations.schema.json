@@ -163,7 +163,7 @@
     },
     "consent_revoke_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed ak.consent.revoke Control Move and nothing else. Its payload.observed_dots MUST enumerate every active dot that becomes inactive, and the caller reads those dots back from consent_cell_view.active_grant_dots: an observe-remove OR-Set revoker has to name the exact dots or two concurrent revokes race, one removing the old dot and the other the new one while the UI reports success (zh/identity/consent-model.md section 3.2). A consent_scope=any cascade is no exception.",
+      "description": "Carries the caller-signed ak.consent.revoke Control Move and nothing else. Its payload.observed_dot_ids MUST enumerate every active dot that becomes inactive, and the caller reads those dots back from consent_cell_view.active_grant_dots: an observe-remove OR-Set revoker has to name the exact dots or two concurrent revokes race, one removing the old dot and the other the new one while the UI reports success (zh/identity/consent-model.md section 3.2). A consent_scope=any cascade is no exception.",
       "required": [
         "revoke_event"
       ],

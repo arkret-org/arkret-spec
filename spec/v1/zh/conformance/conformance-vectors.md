@@ -8,7 +8,7 @@ updated: 2026-08-11
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
 
-`ak.vector.identity.principal_server_admission.v1` 覆盖 account authority pair 终身唯一性、Event 顶层 `principal_server_id`、producer proof 精确绑定、origin-only admission、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `principal-server-admission-fixture.json` 的全部 semantic cases；任何以 PCR identifier 比较外部 principal equality、接收服务重签或独立 signer-evidence sidecar 都不合格。
+`ak.vector.identity.principal_server_admission.v1` 覆盖 account authority pair 终身唯一性（包括 deactivation 后同一 Principal Server replacement account 拒绝、另一 Principal Server 完整 onboarding 允许）、Event 顶层 `principal_server_id`、producer proof 精确绑定、origin-only admission、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `principal-server-admission-fixture.json` 的全部 semantic cases；任何以 PCR identifier 比较外部 principal equality、deactivation 后释放同 pair uniqueness、接收服务重签或独立 signer-evidence sidecar 都不合格。
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
 2. CBA · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
@@ -5682,7 +5682,7 @@ Expected：
 
 `vector_id`: `ak.vector.session.device_identity_key_separation.v1`
 
-本向量固化 grant-binding session key 与长期 device identity key 的材料分离。DPoP 与 RFC 9421 可以共享同一短期 session key；但其 key bytes、公钥 fingerprint、JWK thumbprint 或 `kid` 任一与 `device_public_key` 对应材料相同都必须 fail closed，不能以“生命周期逻辑分开”替代密码学 key separation。
+本向量固化 grant-binding session key 与长期 device identity key 的材料分离。DPoP 与 RFC 9421 可以共享同一短期 session key；但其 key bytes、公钥 fingerprint、JWK thumbprint 或 `kid` 任一与 `device_public_key_did` 对应材料相同都必须 fail closed，不能以“生命周期逻辑分开”替代密码学 key separation。
 
 ## 19. Applet Transaction Push Vectors
 
@@ -6045,13 +6045,13 @@ Steps:
 
 Expected:
 
-- 正例：`accepted_device` 的 `device_signature` 使用 domain `ak.device_authorize_accepted_device_possession_proof.v1`，签名对象恰为 `{algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key, hpke_key, pairing_challenge_transcript_digest}`，批准设备与 gate 各自重建后验签通过；gate 不接受任何请求方提供的 attestation 副本。
+- 正例：`accepted_device` 的 `device_signature` 使用 domain `ak.device_authorize_accepted_device_possession_proof.v1`，签名对象恰为 `{algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key_did, hpke_key, pairing_challenge_transcript_digest}`，批准设备与 gate 各自重建后验签通过；gate 不接受任何请求方提供的 attestation 副本。
 - 正例：路径 A 与路径 B 共享同一个 `device_pairing_target_attestation` schema 与同一个 domain；路径判别由 `pairing_challenge_transcript_digest` 所承诺的封闭 challenge transcript 承担。
 - 正例：`hpke_key` 与 `algorithms` 只从验签通过的 attestation 取得；stage 请求与 `DevicePairingBootstrap` 都不承载这两个值。
 - 负例：attestation 的 `pairing_challenge_transcript_digest` 与本次 pairing 重算得到的 `transcript_digest` 不等 MUST 拒绝，且 MUST 在验签之前拒绝。
-- 负例：attestation 的 `hpke_key` 与 `ak.gate.account.command.pair_device.v1` 的 `hpke_key` 或 `authorize_event.event.payload.hpke_key` 不一致 MUST 拒绝；`algorithms` / `device_public_key` / `device_id` 同理。
+- 负例：attestation 的 `hpke_key` 与 `ak.gate.account.command.pair_device.v1` 的 `hpke_key` 或 `authorize_event.event.payload.hpke_key` 不一致 MUST 拒绝；`algorithms` / `device_public_key_did` / `device_id` 同理。
 - 负例：把 `root_anchored` 的 `ak.device_authorize_possession_proof.v1` transcript 用于 `accepted_device`，或把 `accepted_device` attestation 用于 genesis / re-anchor 的第二条 authorize，双向 MUST 拒绝。
-- 负例：attestation 的 `device_public_key` 与 `new_device_pubkey.key` 解码为不同 key，或 `device_id` 与 `new_device_pubkey.kid` 不等，MUST 拒绝。
+- 负例：attestation 的 `device_public_key_did` 与 `new_device_pubkey.key` 解码为不同 key，或 `device_id` 与 `new_device_pubkey.kid` 不等，MUST 拒绝。
 - 负例：把 attestation 经免认证 stage / resolve 面回传，或在 `DevicePairingBootstrap` 中镜像 `hpke_key` / `algorithms`，视为不合规。
 - 负例（§5.4.1）：被接受 Event 的 `principal_id` 非用户预期，或 `payload.device_signature` 与目标设备产出的 attestation 签名不逐字节相同，目标设备 MUST fail closed——不使用该身份、不安装或请求该 principal 的密钥材料、不发布 KeyPackage，并向用户告警。
 - 负例：目标设备在完成 §5.4.1 校验之前就完成本地装配，视为不合规。
@@ -6669,7 +6669,7 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
   normal/lost 合并 sequence ack、attempt completed/expired 与 quota 边界；
 - `ak.vector.history_key.client_convergence.v1`：exporter all-history requester 在缺 epoch 后无人工操作 create/resume，
   create-response 丢失与重启后仍复用同一 durable intent/request/HPKE key；首次空页固定为
-  `{ack_entries:[],limited:false}` 且省略 `ack_token/cursor`，不持久、不 ACK、不推进 high-water，同一 after 续读后
+  `{entries:[],limited:false}` 且省略 `ack_token/cursor`，不持久、不 ACK、不推进 high-water，同一 after 续读后
   可见稍后到达的 manifest；source ready-marker 崩溃后 exact bytes 重放；部分材料 attempt 完成后取得新的未覆盖
   requested epoch 会产生第二 manifest。向量还 MUST 覆盖暂时无 source 的非终态诊断、`since_join` 零 request
   以及 requester/source 当前失权时零新写入。向量 MUST 另外执行 [`../governance/history-visibility.md` §6.2](../governance/history-visibility.md)

@@ -109,6 +109,7 @@ from .fixtures import (
     check_mls_governance_proof_fixture,
     check_normative_clause_registry,
     check_one_of_branch_discriminability,
+    check_operation_selector_fixture,
     check_producer_allocated_identity_vectors,
     check_reducer_profile_registry,
     check_schema_fixture_canonical_public_material,
@@ -432,6 +433,10 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_declared_schema_fixture_instances(lint),
             ),
             ("event_id_fixture", lambda: check_content_bound_event_id_fixture(lint)),
+            (
+                "operation_selector_fixture",
+                lambda: check_operation_selector_fixture(lint),
+            ),
             ("erasure_verification", lambda: check_erasure_verification_contract(lint)),
             ("producer_id_vectors", lambda: check_producer_allocated_identity_vectors(lint)),
             ("applet_revoke_saga", lambda: check_applet_revoke_saga_contract(lint)),

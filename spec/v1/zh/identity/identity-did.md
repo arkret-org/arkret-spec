@@ -196,7 +196,7 @@ DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独�
 - 用户/组织搬迁 Principal Server、变更端口、增加 mirror 或切换第三方 host 时，service owner 发布同一 service `did_core_id` 的 signed successor `ServiceResolutionRecord`；调用方验证 record chain、`did` method history、proof 与 freshness。同-core route refresh 不触发 member rebind，service core 改变才必须显式 rebind。
 - DID Document 中即使存在 `ArkretPrincipalServer` service entry，也不是默认或 Realm-scoped 路由 authority。某个 Realm 中已接受的 `ak.member.state{membership="join"}` 必须携带 `delivery_binding.recipient_id + service_resolution`；该 Realm 的事件、sync、to-device、push 与 KeyPackage 投递只使用该 binding，不存在 `did_document_default` runtime fallback。
 - **DID 只作为 identity anchor。** Principal DID method log 只承载 active update root、pre-rotation commitment、method-native history 与 witness evidence。DID Document 不得用 `service`、verification relationship 或 fragment 指派设备 authority，也不得承载设备、recovery policy、capability 或业务 profile state。
-- **设备密钥不写入 DID method key log。** `device_public_key` 只由 PCR accepted `ak.device.authorize` 进入设备集投影。普通业务 Event proof 保留签名时的DID URL；verifier 将其 bare `did` 经 adapter 投影为 Event `actor_id`，并以 fragment 选择 accepted PCR device evidence、执行 generation fence。不得把 core `actor_id` 拼接 fragment，也不得回退到 DID Document verification method 充当设备授权。
+- **设备密钥不写入 DID method key log。** `device_public_key_did` 只由 PCR accepted `ak.device.authorize` 进入设备集投影。普通业务 Event proof 保留签名时的DID URL；verifier 将其 bare `did` 经 adapter 投影为 Event `actor_id`，并以 fragment 选择 accepted PCR device evidence、执行 generation fence。不得把 core `actor_id` 拼接 fragment，也不得回退到 DID Document verification method 充当设备授权。
 - Genesis/re-anchor verifier 只从对应 DID history 解析 identity root。首设备和 replacement device 的 candidate key来自同批 descriptor/authorize payload，通过 unit-local overlay 验证；DID resolver 不提供该 key。
 - Handle（例如 `@alice:acme.example` / `alice@acme.example`，canonical `alice:acme.example`）属于 Handle 层，不属于 DID method 或 DID Document service discovery。它 MAY 解析出 `subject DID + member_delivery_binding`，但该结果只有在加入 Realm 时被物化为 `delivery_binding` 并通过 Realm policy 校验后，才成为 Realm-scoped 投递路径。
 - Handle 域名（含品牌域名）与 DID 托管域名可以完全无关。例如品牌持有者可以使用 `alice:alice.example.com` 作为公开 handle，而 DID 仍然由 `users.someprovider.example` 托管，只要 `alsoKnownAs` 与 issuer claim 双向验证一致。
@@ -449,16 +449,16 @@ verification 侧反向执行——「把 log entry 当作字符串，把从 DID 
 
 - **I-2 持久身份与 Provider mapping 是真相源，config 不含 DID**：部署配置 MUST NOT 接受、复制或 pin 本服务的 `service_id`。运行时只从已验证的本地 `service_identity` 记录、外部 Service Identity Provider 的稳定 registration mapping，或可验证 identity bundle 恢复 DID。配置只声明网络 endpoint、Provider transport credential 和 key/bundle backend。所有 wire `service_id`、issuer 和 audience 均使用 SDK `DidCoreId` 强类型。
 
-- **I-3 显式 first-provisioning 门仅适用于 B 类**："持久层无 service identity" 对自身就是 Provider 的部署可能是真正首次部署，也可能是数据灾难；没有外部权威能区分两者。因此 B 类生产部署仅在显式一次性 `first-provisioning` 信号存在时 MAY 创建新 DID。开发模式 MAY 自动 provision。B 类有可验证 bundle 时 MUST 恢复原 DID；无 bundle、无记录、无信号时 MUST fail closed。A 类不使用该信号：它先按 `ServiceRegistrationKey {service_kind, public_base}` 查询外部 Provider，mapping 存在则校验本地 control/signing key binding 后回填原 DID，明确 not-found 才提交 client-signed inception，传输失败时进入 waiting 且绝不 mint。
+- **I-3 显式 first-provisioning 门仅适用于 B 类**："持久层无 service identity" 对自身就是 Provider 的部署可能是真正首次部署，也可能是数据灾难；没有外部权威能区分两者。因此 B 类生产部署仅在显式一次性 `first-provisioning` 信号存在时 MAY 创建新 DID。开发模式 MAY 自动 provision。B 类有可验证 bundle 时 MUST 恢复原 DID；无 bundle、无记录、无信号时 MUST fail closed。A 类不使用该信号：它先按 `ServiceRegistrationKey {service_kind, public_base_url}` 查询外部 Provider，mapping 存在则校验本地 control/signing key binding 后回填原 DID，明确 not-found 才提交 client-signed inception，传输失败时进入 waiting 且绝不 mint。
 
 - **I-4 强制 service pre-rotation**：service DID inception 与每次 rotation MUST 同时持有恰好一把 active update key 和一把本服务预生成的 next update key。`updateKeys` 与 `nextKeyHashes` 均恰含一项；`nextKeyHashes[0]` MUST 是 next update key Multikey 文本按 [`key-management.md` §5.0.1](./key-management.md) 相同的 sha2-256 multihash + Base58BTC 规则所得承诺。Provider / resolver 接受后继 entry 前 MUST 验证其 `updateKeys[0]` 命中前一 entry 的 `nextKeyHashes[0]`，并将被替换 key 标为 spent；缺少承诺、数量不为一或 commitment 不匹配 MUST fail closed 为 `service_registration_denied` / reason=`service_prerotation_invalid`。Provider 不得生成、接收或托管 next private key。
 
 Service Identity Provider 的标准操作是：
 
 - `ak.root.identity.service_registration.command.ensure.v1` → `POST /_arkret/root/identity/service-registrations:ensure`；
-- `ak.root.identity.service_registration.resource.get.v1` → `GET /_arkret/root/identity/service-registrations?service_kind=...&public_base=...`。
+- `ak.root.identity.service_registration.resource.get.v1` → `GET /_arkret/root/identity/service-registrations?service_kind=...&public_base_url=...`。
 
-注册键由 registry 限定的 `service_kind` 与 canonical `public_base` 组成。同一个注册键 MUST 永远映射到同一个 DID；普通 ensure、重启、数据库重连和 key rotation 都不得改变它。Provider MUST 验证 client-signed `did:webvh` inception 内声明的 service type / endpoint 与注册键完全相等，MUST 以 `UNIQUE(service_kind, public_base)` 和单事务先查后建保证并发幂等，并且在 mapping 行缺失时扫描现存托管 DID Document：任何 document 已声明同一注册键都必须返回 `service_identity_conflict`，不得创建第二 DID。`idempotency_key` 只用于审计关联，不是并发正确性的来源。
+注册键由 registry 限定的 `service_kind` 与 canonical `public_base_url` 组成。同一个注册键 MUST 永远映射到同一个 DID；普通 ensure、重启、数据库重连和 key rotation 都不得改变它。Provider MUST 验证 client-signed `did:webvh` inception 内声明的 service type / endpoint 与注册键完全相等，MUST 以 `UNIQUE(service_kind, public_base_url)` 和单事务先查后建保证并发幂等，并且在 mapping 行缺失时扫描现存托管 DID Document：任何 document 已声明同一注册键都必须返回 `service_identity_conflict`，不得创建第二 DID。`idempotency_key` 只用于审计关联，不是并发正确性的来源。
 
 `ServiceRegistrationReceipt` 采用 Arkret 统一 detached JWS，不引入 Data Integrity cryptosuite 例外。transcript 只能按下列步骤构造：
 
@@ -469,7 +469,7 @@ Service Identity Provider 的标准操作是：
 
 Provider 是 hosting 方而非控制者。transport bearer、mTLS 或内网凭据只认证部署通道；inception、rotation、endpoint update 与 registration-key migration 仍 MUST 由服务持有的 WebVH control/update key 签名。Provider 不得生成、接收或托管调用方私钥。服务自身必须持久化 active signing key ref、active control key ref、**next control key material**、version 与 receipt；B 类若要求数据库灾难后保持 DID，其可验证 identity bundle backend MUST 同时保存当前与下一代 control key material，否则不得声称可保持 DID。
 
-运行时状态至少区分 `Ready`、`DegradedStored`、`WaitingProvider`、`RegistrationKeyDrift`、`RotationMaterialLost` 与 `Faulted`。已有并验证过的本地记录在 Provider 短暂不可用时 MAY 以 `DegradedStored` 提供普通签发/验证流程，但 MUST 禁止身份变更；本地为空且 Provider 不可达时进入 `WaitingProvider`，readiness=false，Service Describe 返回 `503 service_identity_unavailable` 与 `Retry-After`，Provider 恢复后自动重试，无需重启。`public_base` 漂移进入 `RegistrationKeyDrift`，继续用原 DID 服务但不得静默 ensure；只有 control-key-signed `migrate-base` 可以原子重绑同一 DID。已验证当前 DID 但 next control key material 丢失时进入 `RotationMaterialLost`：普通签发 / 验证可继续且 readiness 保持，所有 rotation、endpoint update 与 registration-key migration MUST 禁止并持续告警，直到从可验证 bundle 恢复匹配承诺的 key；不得生成新 key 绕过既有承诺。
+运行时状态至少区分 `Ready`、`DegradedStored`、`WaitingProvider`、`RegistrationKeyDrift`、`RotationMaterialLost` 与 `Faulted`。已有并验证过的本地记录在 Provider 短暂不可用时 MAY 以 `DegradedStored` 提供普通签发/验证流程，但 MUST 禁止身份变更；本地为空且 Provider 不可达时进入 `WaitingProvider`，readiness=false，Service Describe 返回 `503 service_identity_unavailable` 与 `Retry-After`，Provider 恢复后自动重试，无需重启。`public_base_url` 漂移进入 `RegistrationKeyDrift`，继续用原 DID 服务但不得静默 ensure；只有 control-key-signed `migrate-base` 可以原子重绑同一 DID。已验证当前 DID 但 next control key material 丢失时进入 `RotationMaterialLost`：普通签发 / 验证可继续且 readiness 保持，所有 rotation、endpoint update 与 registration-key migration MUST 禁止并持续告警，直到从可验证 bundle 恢复匹配承诺的 key；不得生成新 key 绕过既有承诺。
 
 Profile 分层（承接 §3.4 的 witness 要求，不新增语义）：
 
@@ -1000,7 +1000,7 @@ service identity registration 分开：三者的主体模型不同，混用会�
 **为什么不复用 service registration。** 结构先例可以借：root identity 下的 operation 位置、
 ensure 的幂等姿态与 resource.get 的只读分工、pinned `version_id + log_head_digest + control_key_digest`、
 闭合 receipt claims，以及 receipt id / payload digest / detached JWS / signing-time issuer authority 的
-transcript 构造方式。但主体不可借：`ServiceRegistrationKey {service_kind, public_base}`、
+transcript 构造方式。但主体不可借：`ServiceRegistrationKey {service_kind, public_base_url}`、
 service type/endpoint 校验、`service_id` 主体名、Provider 默认托管 service DID history 的含义，
 以及 `ak.service_registration_receipt_proof.v1` context 都不适用于组织。
 把 organization 冒充 service 会让"本部署托管它的历史"这一含义随命名一起被继承。

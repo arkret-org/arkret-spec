@@ -194,7 +194,7 @@
       "type": "object",
       "required": [
         "prepared_material_digest",
-        "acceptor_id",
+        "acceptor",
         "output_ref",
         "output_digest",
         "accepted_at"
@@ -203,9 +203,31 @@
         "prepared_material_digest": {
           "$ref": "#/$defs/digest"
         },
-        "acceptor_id": {
-          "type": "string",
-          "pattern": "^(did:[a-z0-9]+:[^\\s#?]+|ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+        "acceptor": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["kind", "principal_id"],
+              "properties": {
+                "kind": { "const": "principal" },
+                "principal_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": ["kind", "device_id"],
+              "properties": {
+                "kind": { "const": "device" },
+                "device_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/device_id"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         },
         "output_ref": {
           "$ref": "#/$defs/step_output_ref"

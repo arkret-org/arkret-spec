@@ -115,7 +115,7 @@ class OrSetTagLintTest(unittest.TestCase):
         self.assertEqual(
             self._lint_projection(
                 "or_set",
-                {"kind": "or_set_remove_dots", "dots": {"field": "payload.observed_dots"}},
+                {"kind": "or_set_remove_dots", "dots": {"field": "payload.observed_dot_ids"}},
             ),
             [],
         )
@@ -131,7 +131,7 @@ class OrSetTagLintTest(unittest.TestCase):
             "or_set",
             {
                 "kind": "or_set_remove_dots",
-                "dots": {"field": "payload.observed_dots"},
+                "dots": {"field": "payload.observed_dot_ids"},
                 "match": {"element_field": "peer", "source": {"field": "payload.peer"}},
             },
         )
@@ -140,7 +140,7 @@ class OrSetTagLintTest(unittest.TestCase):
     def test_remove_dots_is_not_defined_for_other_lattices(self) -> None:
         errors = self._lint_projection(
             "ordered_log",
-            {"kind": "or_set_remove_dots", "dots": {"field": "payload.observed_dots"}},
+            {"kind": "or_set_remove_dots", "dots": {"field": "payload.observed_dot_ids"}},
         )
         self.assertTrue(any("must be one of" in error for error in errors), errors)
 

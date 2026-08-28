@@ -17,6 +17,7 @@
     "opaque_correlation",
     "registry_catalog_symbol",
     "responsibility_identity_material",
+    "service_local_account_identifier",
     "transport_idempotency_key",
     "typed_object_id",
     "unregistered_object_identifier"
@@ -26,8 +27,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 670,
-    "typed_object_id": 936,
+    "responsibility_identity_material": 665,
+    "typed_object_id": 937,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -42,12 +43,11 @@
     },
     {
       "name": "account_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "unregistered_object_identifier",
+      "terminal_signature": "[[\"pattern\", \"^(?!(?:ak|did):)\"]]",
+      "category": "service_local_account_identifier",
       "occurrences": 6,
       "example_path": "account-operations.schema.json#/$defs/account_status_record/properties/account_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "reason": "Durable service-local account key scoped by its owning Principal Server; it is deliberately outside both the Arkret typed-ID and DID namespaces."
     },
     {
       "name": "action_id",
@@ -619,6 +619,14 @@
       "reason": "Registry catalog symbol naming a registered entry, not an instance of a protocol object."
     },
     {
+      "name": "owner_account_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!(?:ak|did):)\"]]",
+      "category": "service_local_account_identifier",
+      "occurrences": 4,
+      "example_path": "keypackage-operations.schema.json#/$defs/keypackages_revoke_request_body/properties/owner_account_id",
+      "reason": "The owning service-local account key for a KeyPackage command; it is not the principal DidCoreId."
+    },
+    {
       "name": "organization_id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
       "category": "responsibility_identity_material",
@@ -880,12 +888,11 @@
     },
     {
       "name": "service_account_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "unregistered_object_identifier",
+      "terminal_signature": "[[\"pattern\", \"^(?!(?:ak|did):)\"]]",
+      "category": "service_local_account_identifier",
       "occurrences": 1,
       "example_path": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/properties/service_account_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "reason": "Durable service-local account key carried in introspection metadata; it is scoped by the owning Principal Server."
     },
     {
       "name": "session_id",

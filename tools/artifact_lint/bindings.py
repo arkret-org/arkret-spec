@@ -1051,6 +1051,31 @@ def check_openapi_error_enum_alignment(lint: Lint) -> None:
     if not isinstance(registry, dict) or not isinstance(openapi, dict):
         return
 
+    selector_rows = [
+        row
+        for row in registry.get("codes", [])
+        if isinstance(row, dict) and row.get("code") == "operation_selector_required"
+    ]
+    expected_selector_description = (
+        "Every canonical Arkret HTTP or TUS request MUST carry exactly one "
+        "Arkret-Operation selector naming the exact locally advertised operation_id "
+        "before body parsing, including endpoint families with one candidate. A missing "
+        "selector fails with operation_selector_required. Endpoint uniqueness, payload "
+        "shape, SDK version, defaults, and fallback MUST NOT replace the selector. "
+        "WebSocket open frames carry the operation_id required by their frame schema."
+    )
+    if len(selector_rows) != 1:
+        lint.fail(
+            registry_path,
+            "error registry must contain exactly one operation_selector_required row",
+        )
+    elif selector_rows[0].get("description") != expected_selector_description:
+        lint.fail(
+            registry_path,
+            "operation_selector_required must describe the unconditional single-candidate "
+            "HTTP/TUS selector rule and pre-body-parse failure",
+        )
+
     for index, row in enumerate(registry.get("codes", [])):
         if not isinstance(row, dict):
             continue

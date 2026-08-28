@@ -546,6 +546,19 @@ class IdentifierClassificationTest(MutationHarness):
         lint = run_check(check_identifier_value_categories)
         self.assertEqual(lint.errors, [])
 
+    def test_owner_account_id_cannot_regress_to_did_core_id(self) -> None:
+        def mutate(document):
+            document["$defs"]["keypackages_revoke_request_body"]["properties"][
+                "owner_account_id"
+            ] = {"$ref": "./common-ids.schema.json#/$defs/did_core_id"}
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "keypackage-operations.schema.json",
+            mutate,
+            check=check_identifier_value_categories,
+        )
+        self.assertTrue(any("owner_account_id" in error for error in errors), errors)
+
     def test_dropping_a_row_fails(self) -> None:
         def mutate(document):
             document["classifications"] = document["classifications"][1:]
@@ -629,6 +642,33 @@ class IdentifierRoleSuffixTest(MutationHarness):
         lint = run_check(check_identifier_role_suffix_contracts)
         self.assertEqual(lint.errors, [])
 
+    def test_web_origin_profile_cannot_be_weakened_to_generic_http_uri(self) -> None:
+        def mutate(document):
+            document["$defs"]["web_origin"]["pattern"] = "^https?://"
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "common-ids.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("complete Web Origin role" in error for error in errors), errors)
+
+    def test_widget_origin_cannot_be_weakened_to_http(self) -> None:
+        def mutate(document):
+            document["properties"]["widget_origin"]["allOf"] = document["properties"][
+                "widget_origin"
+            ]["allOf"][:1]
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "applet-widget-declaration.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(
+            any("widget_origin" in error and "registered schemes" in error for error in errors),
+            errors,
+        )
+
     def test_bare_did_core_issuer_fails_with_review_axes(self) -> None:
         def mutate(document):
             shape = document["$defs"]["EventsFrontierFederationPeerState"]
@@ -656,7 +696,75 @@ class IdentifierRoleSuffixTest(MutationHarness):
             check=check_identifier_role_suffix_contracts,
         )
         self.assertTrue(any("terminal_category=uri" in error for error in errors), errors)
-        self.assertTrue(any("expected_suffix=_uri" in error for error in errors), errors)
+        self.assertTrue(any("expected_suffix=semantic_registration" in error for error in errors), errors)
+
+    def test_pattern_does_not_hide_uri_format_from_the_terminal_resolver(self) -> None:
+        def mutate(document):
+            document["$defs"]["device_summary"]["properties"]["callback_url"] = {
+                "type": "string",
+                "format": "uri",
+                "pattern": "^https://",
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "account-operations.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("role_stem=callback_url" in error for error in errors), errors)
+        self.assertTrue(any("terminal_category=uri" in error for error in errors), errors)
+        self.assertTrue(any("format: uri` does not determine" in error for error in errors), errors)
+
+    def test_registered_network_locator_requires_a_network_scheme_terminal(self) -> None:
+        def mutate(document):
+            document["properties"]["source_url"].pop("pattern")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "did-webvh-witness-receipt.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("format: uri` alone does not establish URL semantics" in error for error in errors), errors)
+
+    def test_registered_byline_rejects_representation_suffix(self) -> None:
+        def mutate(document):
+            shape = document["$defs"]["agent_key_approval_evidence"]
+            shape["required"] = [
+                "approved_by_did" if item == "approved_by" else item
+                for item in shape["required"]
+            ]
+            shape["properties"]["approved_by_did"] = shape["properties"].pop("approved_by")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "event-payload.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("must retain the complete bare role `approved_by`" in error for error in errors), errors)
+
+    def test_registered_byline_terminal_profile_can_be_did(self) -> None:
+        schema_path = SCHEMA_DIR / "event-payload.schema.json"
+        registry_path = ROOT / "tools" / "identifier-role-suffix-registry.json"
+        schema_original = schema_path.read_bytes()
+        registry_original = registry_path.read_bytes()
+        schema = json.loads(schema_original.decode("utf-8"))
+        registry = json.loads(registry_original.decode("utf-8"))
+        schema["$defs"]["agent_key_approval_evidence"]["properties"]["approved_by"] = {
+            "$ref": "./common-ids.schema.json#/$defs/did"
+        }
+        for row in registry["registered_provenance_byline_fields"]:
+            if row["field"] == "approved_by":
+                row["terminal_categories"] = ["did"]
+                break
+        try:
+            schema_path.write_text(json.dumps(schema, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+            registry_path.write_text(json.dumps(registry, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+            errors = run_check(check_identifier_role_suffix_contracts).errors
+            self.assertFalse(any("approved_by" in error for error in errors), errors)
+        finally:
+            schema_path.write_bytes(schema_original)
+            registry_path.write_bytes(registry_original)
+            drop_reader_caches()
 
     def test_unregistered_role_stem_is_still_terminal_driven(self) -> None:
         """A new role cannot bypass the gate merely by avoiding the historical stem list."""
@@ -905,32 +1013,26 @@ class IdentifierRoleSuffixTest(MutationHarness):
 
     def test_closed_selector_enum_cannot_claim_uri_representation(self) -> None:
         def mutate(document):
-            document["properties"]["source_uri"] = document["properties"].pop("source")
+            document["properties"]["source_url"] = document["properties"].pop("source")
 
         errors = self.lint_with_file(
             SCHEMA_DIR / "realm-join-candidate.schema.json",
             mutate,
             check=check_identifier_role_suffix_contracts,
         )
-        self.assertTrue(
-            any("closed selector enum is not URI material" in error for error in errors),
-            errors,
-        )
+        self.assertTrue(any("registered network locator `source_url`" in error for error in errors), errors)
 
     def test_object_terminal_cannot_claim_uri_representation(self) -> None:
         def mutate(document):
             shape = document["$defs"]["PolicyCheckRequestBody"]
-            shape["properties"]["source_uri"] = shape["properties"].pop("source")
+            shape["properties"]["source_url"] = shape["properties"].pop("source")
 
         errors = self.lint_with_file(
             SCHEMA_DIR / "service-operation-dtos.schema.json",
             mutate,
             check=check_identifier_role_suffix_contracts,
         )
-        self.assertTrue(
-            any("non-identifier value terminal" in error for error in errors), errors
-        )
-        self.assertTrue(any("role_stem=source" in error for error in errors), errors)
+        self.assertTrue(any("registered network locator `source_url`" in error for error in errors), errors)
 
     def test_duplicate_representation_suffix_fails_in_registry(self) -> None:
         def mutate(document):

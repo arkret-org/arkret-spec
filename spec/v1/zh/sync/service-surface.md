@@ -96,7 +96,7 @@ DID Document SHOULD 只负责：
 | --- | --- | --- |
 | Principal Server | 普通用户或组织自建的核心入口 | 用户/组织的受控入口、Event 提交/读取、account viewer / profile 自服务、client sync、联邦 transaction、invite locator / 私有 invite delivery、服务发现聚合、明文可见边界执行；其 describe MUST 发布 `auth_metadata.account_authority`。 |
 | Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
-| Account Authority | 个人部署通常与 Principal Server 同 origin；组织可由统一网关、Auth Server 或独立前置承载 | 账号准入、注册、session grant 签发 / 刷新 / 撤销 / 登出、device pairing、passkey/OIDC/SSO 结果换 grant、hard logout 内部编排。对客户端必须是单一 `gate_account_base`；内部 MAY 委托 Auth Server 与 Principal Server，并在 split Auth-side 时通过标准 `ak.gate.account.command.logout_auth_session.v1` S2S 子操作终结 Auth-side session。 |
+| Account Authority | 个人部署通常与 Principal Server 同 origin；组织可由统一网关、Auth Server 或独立前置承载 | 账号准入、注册、session grant 签发 / 刷新 / 撤销 / 登出、device pairing、passkey/OIDC/SSO 结果换 grant、hard logout 内部编排。对客户端必须是单一 `gate_account_base_url`；内部 MAY 委托 Auth Server 与 Principal Server，并在 split Auth-side 时通过标准 `ak.gate.account.command.logout_auth_session.v1` S2S 子操作终结 Auth-side session。 |
 | Auth Server / method provider | 个人部署可内置；组织通常独立或接入 SSO / IdP | 认证仪式、浏览器登录上下文、passkey/OIDC/SSO、issuer / subject 校验；不得作为零散 `gate/account` operation 的客户端可见目标，除非它整体就是 Account Authority。 |
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | client sync、subscription、backfill、snapshot head、跨域 transaction、invite delivery、重放和 destination 绑定校验。 |
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
@@ -115,9 +115,9 @@ REST namespace 第一段路径（`self` / `gate` / `root` / `find` / `peer` / `o
 
 #### 2.5.1 Account Authority 与认证方法发现
 
-Principal Server 的根级 `/_arkret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base`，客户端发起的 Arkret `/_arkret/gate/account/*` 请求都 MUST 从该 base 派生。客户端 MUST NOT 根据 operation 名称自行判断某个请求该打 Principal Server、某个请求该打 Auth Server；若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置（网关、反代或同进程合并）完整承载该 base，并在内部按 operation 路由。`ak.gate.account.command.logout_auth_session.v1` 是 Account Authority → Auth Server 的 S2S 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base` 派生。
+Principal Server 的根级 `/_arkret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base_url`，客户端发起的 Arkret `/_arkret/gate/account/*` 请求都 MUST 从该 base 派生。客户端 MUST NOT 根据 operation 名称自行判断某个请求该打 Principal Server、某个请求该打 Auth Server；若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置（网关、反代或同进程合并）完整承载该 base，并在内部按 operation 路由。`ak.gate.account.command.logout_auth_session.v1` 是 Account Authority → Auth Server 的 S2S 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base_url` 派生。
 
-`auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Arkret 不定义 `/_arkret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Arkret 的桥是 Account Authority 的 `POST {gate_account_base}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
+`auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Arkret 不定义 `/_arkret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Arkret 的桥是 Account Authority 的 `POST {gate_account_base_url}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
 Account Authority 内部分派不得改变 operation 的协议身份。尤其 `ak.gate.account.command.pair_agent_key.v1` 依赖 Principal Server 的 pairing record、Agent PCR Event acceptance 与 activation projection 时，split deployment MUST 将原始 typed request 委托到权威 Principal Server 的同一 `/_arkret/gate/account/agent-key-pair` binding，并保留 Event ID 幂等身份；不得把该职责改造成产品私有 `fanout` URL 或只入本地队列后向客户端报告成功。具体 commit 规则见 [`../identity/key-management.md` §3.6.1 / §3.6.2](../identity/key-management.md)。
 
@@ -219,12 +219,12 @@ GET /_arkret/describe
   "transport_bindings": [
     {
       "kind": "http_json",
-      "base_uri": "https://alice.example.net/",
+      "base_url": "https://alice.example.net/",
       "extension_profile_required": null
     },
     {
       "kind": "tus",
-      "base_uri": "https://alice.example.net/_arkret/self/blob/resumable",
+      "base_url": "https://alice.example.net/_arkret/self/blob/resumable",
       "extension_profile_required": null,
       "tus_version": ["1.0.0"],
       "tus_extensions": ["creation", "creation-with-upload", "checksum", "expiration", "termination"]
@@ -266,14 +266,14 @@ GET /_arkret/describe
   },
   "auth_metadata": {
     "account_authority": {
-      "origin_uri": "https://alice.example.net",
-      "gate_account_base": "https://alice.example.net/_arkret/gate/account"
+      "origin": "https://alice.example.net",
+      "gate_account_base_url": "https://alice.example.net/_arkret/gate/account"
     },
     "methods": [
       {
         "method": "oidc",
         "issuer_uri": "https://auth.example.com",
-        "openid_configuration_uri": "https://auth.example.com/.well-known/openid-configuration",
+        "openid_configuration_url": "https://auth.example.com/.well-known/openid-configuration",
         "client_id": "ak.example-client",
         "scopes": ["openid", "profile"],
         "grant_exchange": {"kind": "account_handoff"}

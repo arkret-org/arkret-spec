@@ -228,7 +228,7 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
 
 - **降低严格度**（任一 `to` 严格度低于 `from`，如 `suspended → active`、`locked → soft_logged_out`）必须由 Account Authority 在 current-head CAS transaction 内验证该转换对应的 fresh identity-control、appeal 或管理员授权。授权证明进入本地审计记录，不进入 portable `AccountStatusRecord`，不得由 receiver 二次裁决。
 - **`erasure_pending` 为 terminal**（规则 3）：其唯一出边为空，任何转出 MUST 拒绝 `erasure_pending_is_terminal`。
-- **`deactivated` 重激活**（normative）：v1 **不**允许同一 `account_id` 的 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout 对绑定到该 account 的 device、KeyPackage、session、push 与 to-device 资源不可逆；需要恢复访问的用户 MUST 创建新的 service account（新 `account_id`）并走完整 onboarding，可继续绑定同一 principal `did_core_id`，但不得复活旧 account 或旧资源。`deactivated` 的唯一合法出边是 `erasure_pending`。实现 MUST NOT 签发声称把该 `account_id` 的 `deactivated` 降级回较低严格度状态的 successor record（`account_status_transition_invalid`）。
+- **`deactivated` 重激活**（normative）：v1 **不**允许同一 `account_id` 的 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout 对绑定到该 account 的 device、KeyPackage、session、push 与 to-device 资源不可逆；需要恢复访问的用户 MUST 在**另一 Principal Server** 创建新的 service account（新 `account_id`、新的 `(principal_id, principal_server_id)` authority pair）并走完整 onboarding，可继续绑定同一 principal `did_core_id`，但不得在原 Principal Server 创建 replacement account、复活旧 account 或旧资源。同一 Principal Server 必须继续执行 §2.1.2 的 lifetime create-once 与 uniqueness tombstone。`deactivated` 的唯一合法出边是 `erasure_pending`。实现 MUST NOT 签发声称把该 `account_id` 的 `deactivated` 降级回较低严格度状态的 successor record（`account_status_transition_invalid`）。
 
 状态真相是 Account Authority issuer ledger 中的 immutable signed record：
 
@@ -330,13 +330,13 @@ Current account status 是 ledger current head 的 `status`。该 ledger 是 Acc
 - **Auth Server(认证服务)**:`browser_session`(登录认证上下文)+ 它签发的 `ak.session.grant` 轮换链(及其 `cnf.jkt` 设备持有绑定，见 [`crypto-media/device-lifecycle.md` §3.2](../crypto-media/device-lifecycle.md))。
 - **Principal Server(资源服务)**:本地 account session 记录、设备会话记录、对该 grant 的 session-grant 内省缓存(TTL ≤120s)、待投递 to-device 队列。客户端可见登录凭据仍是 `ak.session.grant`，客户端以 `Authorization: DPoP <ak.session.grant>` + `DPoP` proof 直接访问 `/_arkret/self/*`(见 [`../sync/api-conventions.md` §3.3](../sync/api-conventions.md));Principal Server **不**为客户端铸独立本地 bearer，**不**暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。
 
-**编排(normative)**:hard logout 由 Account Authority 编排。客户端 MUST 从 `ServiceDescribe.auth_metadata.account_authority.gate_account_base` 派生并调用:
+**编排(normative)**:hard logout 由 Account Authority 编排。客户端 MUST 从 `ServiceDescribe.auth_metadata.account_authority.gate_account_base_url` 派生并调用:
 
 ```text
 POST /_arkret/gate/account/logout
 ```
 
-该请求 MUST 使用 `Authorization: DPoP <ak.session.grant>` 出示当前 grant，并带 `DPoP` proof；DPoP `ath` MUST 绑定该 grant，`htu` MUST 绑定由 `gate_account_base` 派生出的 `/logout` URL，使 Account Authority 能定位要终结的 grant chain 与 principal device session。客户端 MUST NOT 分别向 Auth Server 与 Principal Server 两个 origin 发起登出；部署内部的分权威调用是 Account Authority 的实现细节。普通客户端可见的 logout endpoint **只有** `POST /_arkret/gate/account/logout`。
+该请求 MUST 使用 `Authorization: DPoP <ak.session.grant>` 出示当前 grant，并带 `DPoP` proof；DPoP `ath` MUST 绑定该 grant，`htu` MUST 绑定由 `gate_account_base_url` 派生出的 `/logout` URL，使 Account Authority 能定位要终结的 grant chain 与 principal device session。客户端 MUST NOT 分别向 Auth Server 与 Principal Server 两个 origin 发起登出；部署内部的分权威调用是 Account Authority 的实现细节。普通客户端可见的 logout endpoint **只有** `POST /_arkret/gate/account/logout`。
 
 1. **客户端** MUST：停止 sync、清除本地 session credential / `session_grant` / OIDC 凭证；hard logout SHOULD 额外清除本设备的 grant-binding(DPoP)私钥，使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
 2. **Account Authority → Auth-side** MUST 登出当前 grant 所属的 Auth-side session / `browser_session`，在同一 issuer ledger 中幂等撤销该链的 active grant 并终结轮换链。若 Auth-side 不在同进程，Account Authority MUST 调用标准 S2S 子操作 `POST /_arkret/gate/account/auth-sessions/logout`(`ak.gate.account.command.logout_auth_session.v1`)；该调用 MUST 使用 Account Authority → Auth Server 的部署内 S2S bearer（同 `session_grant_introspection_bearer` 认证族），MUST NOT 复用客户端为高层 `/logout` URL 铸造的 DPoP proof。此后 (i) 凭同一 `cnf.jkt` grant-binding proof 调 `refresh` MUST 被拒(`session_logged_out`)，整条轮换链不可再续；(ii) 该 Auth-side session 下任何 grant 的 introspection MUST 从同一 ledger 返回 inactive(即 grant-binding key 不能在登出后重建或维持会话)。该步骤不得发布 SessionGrant state Event。
@@ -403,7 +403,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 | **Identity link cache** | 客户端与服务端可见缓存 MUST eager invalidate 所有 `(*, pairwise_did → deactivated_principal)` 映射；不得等待 7d TTL 或 MLS epoch 推进。 | `ak.identity_link` cache invalidation |
 | **Capability cache** | 所有 cached `ak.capability.grant` decision 引用该 principal 作为 subject 或 issuer 的 MUST eager invalidate；下次 capability check 走完整判定。 | cache invalidation |
 
-**写屏障（write barrier）**：`deactivated` accepted 进入当前 account status frontier 后，任何通过该 `account_id` 的 session、device 或 account binding 发起，或以该 account 作为 owner 的新 `ak.session.grant`、`ak.device.authorize`、KeyPackage publish / claim、agent / applet delegation、capability grant / delegation、push route、to-device enqueue 和 Realm membership delivery-binding 写入 MUST `failed_precondition`，`reason_code="account_deactivated"`。该屏障按 `account_id` 的 status frontier 生效，不得被较新的 HLC、不同 device、未完成 federation ack 或尚未失效的本地 cache 绕过；绑定同一 principal `did_core_id` 的不同 active `account_id` 不受旧 account 屏障影响，但必须用自己的新 session/device/KeyPackage 完成 onboarding。已经在屏障前 accepted 的历史 Event 不被改写；尚处 pending / quarantine / soft-fail 的写入 MUST 在恢复前重新检查该屏障。
+**写屏障（write barrier）**：`deactivated` accepted 进入当前 account status frontier 后，任何通过该 `account_id` 的 session、device 或 account binding 发起，或以该 account 作为 owner 的新 `ak.session.grant`、`ak.device.authorize`、KeyPackage publish / claim、agent / applet delegation、capability grant / delegation、push route、to-device enqueue 和 Realm membership delivery-binding 写入 MUST `failed_precondition`，`reason_code="account_deactivated"`。该屏障按 `account_id` 的 status frontier 生效，不得被较新的 HLC、不同 device、未完成 federation ack 或尚未失效的本地 cache 绕过；绑定同一 principal `did_core_id` 的不同 active `account_id` 只可能属于**不同 Principal Server**，因此不受旧 account 屏障影响，但必须在各自 authority pair 下用自己的新 session/device/KeyPackage 完成 onboarding。同一 Principal Server 不得借此绕过 §2.1.2 的 lifetime create-once。已经在屏障前 accepted 的历史 Event 不被改写；尚处 pending / quarantine / soft-fail 的写入 MUST 在恢复前重新检查该屏障。
 
 约束：
 

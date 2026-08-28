@@ -522,7 +522,7 @@
       "normative_anchor": {
         "file": "spec/v1/zh/models/common-fields.md",
         "section": "2.1.3",
-        "quote": "Arkret-owned identifier 字段 MUST 使用完整语义角色加表示后缀"
+        "quote": "Arkret-owned identifier 字段默认使用完整语义角色加表示后缀"
       },
       "applies_to": [
         "wire_property",

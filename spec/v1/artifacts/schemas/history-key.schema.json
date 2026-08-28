@@ -422,11 +422,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "account_id": {
-          "allOf": [
-            {"$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"}
-          ],
-          "minLength": 1,
-          "maxLength": 512
+          "$ref": "./common-ids.schema.json#/$defs/service_account_id"
         },
         "account_status_record_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"

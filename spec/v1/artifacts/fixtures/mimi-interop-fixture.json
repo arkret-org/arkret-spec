@@ -40,7 +40,7 @@
           "content_draft": "draft-ietf-mimi-content-08",
           "room_policy_draft": "draft-ietf-mimi-room-policy-03",
           "identifier_draft": "draft-kohbrok-mimi-identifiers-01",
-          "base_uri": "https://mimi.example.com/_arkret/open/mimi",
+          "base_url": "https://mimi.example.com/_arkret/open/mimi",
           "provider_id": "mimi://mimi.example.com",
           "endpoints": [
             {

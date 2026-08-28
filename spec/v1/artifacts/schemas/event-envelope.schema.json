@@ -4155,7 +4155,7 @@
       }
     },
     {
-      "$comment": "zh/models/realm-and-space.md section 2.5.0: ak.realm.create MUST omit realm_id and use the realm_genesis scope. Collaboration realm_id is derived from this Event's event_id; PCR realm_id is derived from the signed actor DID. The uniform omission leaves one receiver-derived genesis form and avoids the collaboration digest cycle. Every other kind MUST carry realm_id.",
+      "$comment": "zh/models/realm-and-space.md section 2.5.0: ak.realm.create MUST omit realm_id and use the realm_genesis scope. Every Realm, including Collaboration, Direct Conversation, human PCR, and managed Agent PCR, derives realm_id = retype(event_id, \"realm\") from this create Event. The uniform omission leaves one receiver-derived genesis form and avoids the digest cycle. Every other kind MUST carry realm_id.",
       "if": {
         "required": [
           "kind"
@@ -4337,7 +4337,7 @@
             }
           },
           "additionalProperties": false,
-          "description": "Genesis scope for ak.realm.create only. It carries no realm_id because the receiver derives the Realm id: from this Event for collaboration, or from the signed actor DID for PCR (zh/models/realm-and-space.md section 2.5.0). The uniform omission also prevents the collaboration digest cycle."
+          "description": "Genesis scope for ak.realm.create only. It carries no realm_id because the receiver derives every Realm id, including Collaboration, Direct Conversation, human PCR, and managed Agent PCR, as retype(event_id, \"realm\") from this create Event (zh/models/realm-and-space.md section 2.5.0). The uniform omission also prevents the digest cycle."
         }
       ]
     },

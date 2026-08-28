@@ -1372,10 +1372,10 @@
         "kind": "delta",
         "cursor": "ak:cursor:fixture",
         "device_lists": {
-          "changed": [
+          "changed_ids": [
             "ak:did_core:webvh:z6mkfixture"
           ],
-          "left": []
+          "left_ids": []
         }
       }
     },
@@ -1387,8 +1387,8 @@
         "kind": "delta",
         "cursor": "ak:cursor:fixture",
         "device_lists": {
-          "changed": [],
-          "left": [],
+          "changed_ids": [],
+          "left_ids": [],
           "devices": []
         }
       }

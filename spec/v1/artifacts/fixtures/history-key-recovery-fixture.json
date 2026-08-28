@@ -33,7 +33,7 @@
       },
       "empty_response_page": {
         "wire": {
-          "ack_entries": [],
+          "entries": [],
           "limited": false
         },
         "durable_pending_page": false,
@@ -1272,8 +1272,8 @@
         }
       }
     },
-    "evidence_ref": "ak:signer_evidence:sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
-    "evidence_digest": "sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
+    "evidence_ref": "ak:signer_evidence:sha256:fd5909975ce3221ecb78b5fb5a96c1dd1acf5a3cba2f05f6f582270122f1251c",
+    "evidence_digest": "sha256:fd5909975ce3221ecb78b5fb5a96c1dd1acf5a3cba2f05f6f582270122f1251c",
     "canonical_bytes": 1612
   },
   "governance_dependency_resolve_kat": {
@@ -1294,23 +1294,23 @@
       "bytes_digest": "sha256:1e3ced5770464815ca4ef738fdc55edd5826eb59eece2e8adff2f03c2c354133",
       "holder_id": "ak:did_core:key:z6MkfixtureService",
       "retention_expires_at": "2026-08-28T00:00:00.000Z",
-      "holder_signer_evidence_ref": "ak:signer_evidence:sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
-      "holder_signer_evidence_digest": "sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
+      "holder_signer_evidence_ref": "ak:signer_evidence:sha256:fd5909975ce3221ecb78b5fb5a96c1dd1acf5a3cba2f05f6f582270122f1251c",
+      "holder_signer_evidence_digest": "sha256:fd5909975ce3221ecb78b5fb5a96c1dd1acf5a3cba2f05f6f582270122f1251c",
       "signature": {
         "kind": "detached_jws",
         "verification_method": "did:key:z6MkfixtureService#key-1",
-        "payload_digest": "sha256:fcd53ea4e2e24fd8d1efb1fe87f5e2c38eeccc32ad4c5c5ca6fa01cf28651591",
+        "payload_digest": "sha256:3b7ff268b36eed6d48dd46e34e45243f8b10e4811843e91cd49b6ea7ce668e73",
         "created_at": "2026-08-21T00:00:00.000Z",
         "jws": "e30..c2ln"
       }
     },
-    "availability_receipt_digest": "sha256:19a5e014e7427ad2b3ccf8355dec8b4e849f11648c31d8da50a7bf84e6c76464",
+    "availability_receipt_digest": "sha256:a49aa69caf13387a3ad332e1e9e9fe59231cb7af900f3826c8595bad423b39e0",
     "resolve_outcome": {
       "items": [
         {
           "selector": {
             "kind": "authenticated_signer_resolution_evidence",
-            "content_digest": "sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51"
+            "content_digest": "sha256:fd5909975ce3221ecb78b5fb5a96c1dd1acf5a3cba2f05f6f582270122f1251c"
           },
           "authenticated_signer_resolution_evidence": {
             "kind": "service",
@@ -1371,7 +1371,7 @@
         {
           "selector": {
             "kind": "availability_receipt",
-            "content_digest": "sha256:19a5e014e7427ad2b3ccf8355dec8b4e849f11648c31d8da50a7bf84e6c76464"
+            "content_digest": "sha256:a49aa69caf13387a3ad332e1e9e9fe59231cb7af900f3826c8595bad423b39e0"
           },
           "availability_receipt": {
             "realm_id": "ak:realm:AfjSiYTXJZS-0ifVfy1f_uzsmJIBjDyN11_-dxnne50e",
@@ -1379,12 +1379,12 @@
             "bytes_digest": "sha256:1e3ced5770464815ca4ef738fdc55edd5826eb59eece2e8adff2f03c2c354133",
             "holder_id": "ak:did_core:key:z6MkfixtureService",
             "retention_expires_at": "2026-08-28T00:00:00.000Z",
-            "holder_signer_evidence_ref": "ak:signer_evidence:sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
-            "holder_signer_evidence_digest": "sha256:58abe78508dd58163539ad40ec215dd09a14b62abfedefd610b009d1584a2d51",
+            "holder_signer_evidence_ref": "ak:signer_evidence:sha256:fd5909975ce3221ecb78b5fb5a96c1dd1acf5a3cba2f05f6f582270122f1251c",
+            "holder_signer_evidence_digest": "sha256:fd5909975ce3221ecb78b5fb5a96c1dd1acf5a3cba2f05f6f582270122f1251c",
             "signature": {
               "kind": "detached_jws",
               "verification_method": "did:key:z6MkfixtureService#key-1",
-              "payload_digest": "sha256:fcd53ea4e2e24fd8d1efb1fe87f5e2c38eeccc32ad4c5c5ca6fa01cf28651591",
+              "payload_digest": "sha256:3b7ff268b36eed6d48dd46e34e45243f8b10e4811843e91cd49b6ea7ce668e73",
               "created_at": "2026-08-21T00:00:00.000Z",
               "jws": "e30..c2ln"
             }
