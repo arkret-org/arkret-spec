@@ -29,9 +29,9 @@ def main() -> int:
     for case in fixture.get("cases", []):
         name = case["name"]
         contact_round = case["contact_round"]
-        members = contact_round.get("sorted_pair_members")
+        members = contact_round.get("sorted_pair_member_ids")
         if not isinstance(members, list) or len(members) != 2 or members != sorted(set(members)):
-            raise SystemExit(f"{name}: sorted_pair_members is not canonical and distinct")
+            raise SystemExit(f"{name}: sorted_pair_member_ids is not canonical and distinct")
         if contact_round.get("kind") == "glare":
             requests = contact_round.get("requests")
             if not isinstance(requests, list) or len(requests) != 2:

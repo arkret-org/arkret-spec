@@ -23,7 +23,7 @@
         "contact_round_id": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "contact_round": {
           "kind": "normal",
-          "sorted_pair_members": [
+          "sorted_pair_member_ids": [
             "ak:did_core:webvh:z6mkfixturealice",
             "ak:did_core:webvh:z6mkfixturebob"
           ],

@@ -94,9 +94,9 @@ source checkpoint、accepted-at 与 issuer；receipt 不得反向承诺尚未存
 domain label 不是 `contact_round` 的 wire 字段，实现不得把它插入 object 后改算 `SHA256(JCS(object))`：
 
 ```text
-normal = {kind:"normal", sorted_pair_members,
+normal = {kind:"normal", sorted_pair_member_ids,
           request_event_ref, request_acceptance_receipt_digest}
-glare  = {kind:"glare", sorted_pair_members,
+glare  = {kind:"glare", sorted_pair_member_ids,
           requests:[{request_event_ref,request_acceptance_receipt_digest}, ...]}
 ```
 
@@ -305,15 +305,15 @@ handle、display name、设备 ID、Principal Server endpoint、Realm ID、Stran
 
 ```text
 founder(contact_round) =
-    normal 分支 -> sorted_pair_members 中不等于 request_event_ref 之 issuer 的那一方（即 responder）
-    glare  分支 -> requests[0].request_event_ref 之 issuer
+    normal 分支 -> sorted_pair_member_ids 中不等于 request_event_ref 之 issuer_id 的那一方（即 responder）
+    glare  分支 -> requests[0].request_event_ref 之 issuer_id
 ```
 
 **normal 分支取 responder 而非 requester 是 normative 选择**：Contact round 由 responder 的 `normal_response_acceptance_receipt` 点亮，该 receipt 证明 responder 在该 round 成立时在线且刚完成签名；requester 可能在数日前发出请求后即长期离线。base v1 不定义 fallback（§5.7），因此把 founder 定为可能不在场的一方会使该 pair 永久无法创建。
 
 glare 分支不存在 responder，`requests[0]` 依 §2 已登记的 canonical ordering 取得，**MUST NOT** 另立排序规则。
 
-`sorted_pair_members` 不恰为二、request issuer 不属于该 pair、glare requests 未按登记顺序或两个 issuer 不构成该 pair 时，founder 派生 **MUST** 失败并整组拒绝，**MUST NOT** 以补集或本地偏好猜测。
+`sorted_pair_member_ids` 不恰为二、request issuer_id 不属于该 pair、glare requests 未按登记顺序或两个 issuer_id 不构成该 pair 时，founder 派生 **MUST** 失败并整组拒绝，**MUST NOT** 以补集或本地偏好猜测。
 
 ### 5.3 root Contact round 与 recontact continuity
 
@@ -349,7 +349,7 @@ checkpoint issuance 复用现有 Contact 机器面而不再建立一套三阶段
 1. 该 ref 指向完整 portable Contact round evidence bundle 及至 root Contact round 的 continuity chain，`contact_round_id`、normal/glare core、request/response receipts 或 glare attestations、terminal links 与双方 proofs 均可验证；
 2. 按 §5.2/§5.3 求出 `founder`；
 3. `created_by == actor_id == founder`（追加约束，**不**放松既有 `created_by == actor_id`）；
-4. payload 的 `pair_key` 等于从 round 的 `sorted_pair_members` 与 trust domain 重算之值；
+4. payload 的 `pair_key` 等于从 round 的 `sorted_pair_member_ids` 与 trust domain 重算之值；
 5. Realm profile 为 `ak.profile.direct_conversation_realm.v1`，`collaboration_role="direct_conversation"`，effective participants 恰为该 pair；
 6. §6.2 的固定 baseline 投影全部命中；
 7. 该 `realm_id` 无对象身份冲突。

@@ -14,21 +14,21 @@
       "name": "normal",
       "contact_round": {
         "kind": "normal",
-        "sorted_pair_members": [
+        "sorted_pair_member_ids": [
           "ak:did_core:webvh:z6mkfixturealice",
           "ak:did_core:webvh:z6mkfixturebob"
         ],
         "request_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "request_acceptance_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       },
-      "canonical_contact_round": "{\"kind\":\"normal\",\"request_acceptance_receipt_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"sorted_pair_members\":[\"ak:did_core:webvh:z6mkfixturealice\",\"ak:did_core:webvh:z6mkfixturebob\"]}",
+      "canonical_contact_round": "{\"kind\":\"normal\",\"request_acceptance_receipt_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"sorted_pair_member_ids\":[\"ak:did_core:webvh:z6mkfixturealice\",\"ak:did_core:webvh:z6mkfixturebob\"]}",
       "expected_contact_round_id": "sha256:55e2bdad8a06d2503f04e1d0cb5046a918f1002eab53e560ce399fe5aaf10c82"
     },
     {
       "name": "glare",
       "contact_round": {
         "kind": "glare",
-        "sorted_pair_members": [
+        "sorted_pair_member_ids": [
           "ak:did_core:webvh:z6mkfixturealice",
           "ak:did_core:webvh:z6mkfixturebob"
         ],
@@ -43,7 +43,7 @@
           }
         ]
       },
-      "canonical_contact_round": "{\"kind\":\"glare\",\"requests\":[{\"request_acceptance_receipt_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\"},{\"request_acceptance_receipt_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"request_event_ref\":\"ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA\"}],\"sorted_pair_members\":[\"ak:did_core:webvh:z6mkfixturealice\",\"ak:did_core:webvh:z6mkfixturebob\"]}",
+      "canonical_contact_round": "{\"kind\":\"glare\",\"requests\":[{\"request_acceptance_receipt_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\"},{\"request_acceptance_receipt_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"request_event_ref\":\"ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA\"}],\"sorted_pair_member_ids\":[\"ak:did_core:webvh:z6mkfixturealice\",\"ak:did_core:webvh:z6mkfixturebob\"]}",
       "expected_contact_round_id": "sha256:4c0fa7e71411764bfa71af12c350b37b34ad128e81d46152219b65d5780995de"
     }
   ]
