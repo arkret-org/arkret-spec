@@ -75,21 +75,33 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
+      "version": "2026-08-29.2",
+      "generated_at": "2026-08-29T07:10:52+08:00",
+      "content_digest": "sha256:4efbc79e93db7554b0b0f23fd36acf49f97ed33377841c4ddf4e23852e2dabd4"
+    },
+    {
+      "path": "spec/v1/artifacts/registry/did-document-contract-registry.json",
       "version": "2026-08-29.1",
       "generated_at": "2026-08-29T00:00:00+08:00",
-      "content_digest": "sha256:92499a5e8e128fe77babb9074f8824ea2fc58994f1603ceafedb778318efb0b5"
+      "content_digest": "sha256:830f4ab45a428c13868bea5d172c65d3331bb8f17fc730b3c1a5555724767d54"
+    },
+    {
+      "path": "spec/v1/artifacts/registry/did-evidence-boundary-registry.json",
+      "version": "2026-08-29.1",
+      "generated_at": "2026-08-29T00:00:00+08:00",
+      "content_digest": "sha256:eb10b7e1486eb043ce1a25140678070d9eb5c2c91596b97f8be912a237d68e0b"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
       "version": "2026-08-27.1",
       "generated_at": null,
-      "content_digest": "sha256:376b150941b3e3416a8e04e1883bbe3746f423d22e530060583b7110b4998c7d"
+      "content_digest": "sha256:e71ac10e60f0f2518eb4661627e54ad9c0bd5df8c4db81b408b75ac59ba865db"
     },
     {
       "path": "spec/v1/artifacts/registry/did-method-adapter-registry.json",
       "version": "2026-08-29.1",
       "generated_at": "2026-08-29T00:00:00+08:00",
-      "content_digest": "sha256:b02ca4f3c7b04ccdb67b81a5328070199adb41ab32835a9561ac23de6ef10f3b"
+      "content_digest": "sha256:276aa73a71d16c16d86e4c4f4ca13465d42f00f65724aadc4bf005381cfb17fd"
     },
     {
       "path": "spec/v1/artifacts/registry/digest-suite-registry.json",
@@ -203,7 +215,7 @@
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
       "version": "2026-08-29.1",
       "generated_at": "2026-08-29T00:00:00+08:00",
-      "content_digest": "sha256:9450f79bef8472ed0137b804331e76d55f90d41925e06ebd5748c04fd6e65b6c"
+      "content_digest": "sha256:3933aef3ac2dc8fe2558b450c799ea5f498153e21cda65bf14845046d339d28e"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -219,21 +231,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-08-28.14",
+      "version": "2026-08-28.15",
       "generated_at": null,
-      "content_digest": "sha256:9dfdb3f413381586a1827729a4c431738cc77cc1f890409ffbb24233a61f515d"
+      "content_digest": "sha256:3fe0d40011f7b6f1527d56c26954ad12dd58dca31e15598b3d8d8815a2a1c868"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-08-29.1",
-      "generated_at": "2026-08-29T00:00:00+08:00",
-      "content_digest": "sha256:0748a252cf4ece0721685c93d4c341fbf690da20eda7162dcef977b73adeab07"
+      "version": "2026-08-29.2",
+      "generated_at": "2026-08-29T07:10:52+08:00",
+      "content_digest": "sha256:85e60206777ab660e5263a43dd1aaa3b5abd5205478f39b14c3d70bd3df401db"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
       "version": "2026-08-28.2",
       "generated_at": "2026-08-28T13:30:00+08:00",
-      "content_digest": "sha256:12a532405af7affde884c120436ba45d151c3e8de8b07e3b36592182b63d3c02"
+      "content_digest": "sha256:92ef6a6d21b1696a9aa2fe3bc97e2c8a91fe336c7eadfb386f95d90159b37e0b"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",
@@ -299,7 +311,7 @@
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
       "version": "2026-08-27.1",
       "generated_at": "2026-08-27T14:00:00+08:00",
-      "content_digest": "sha256:3d2a0d648ccbac587337e664947ca5a11f0bb2e852368d4967621aab83b04fc2"
+      "content_digest": "sha256:8f6547a6d9dfb10250d89eef632d1640d7e0405e504b1c43d981ebe34de7236f"
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",
@@ -353,7 +365,7 @@
       "path": "spec/v1/artifacts/registry/vector-registry.json",
       "version": "2026-08-29.1",
       "generated_at": "2026-08-29T00:00:00+08:00",
-      "content_digest": "sha256:056eaa90cb471157ec8f21a2770a3743442025bbe3d7d8c36776bdfcdd6cb7e2"
+      "content_digest": "sha256:1106e7428f988d49c412ac9489c057cea213f4568867ccb2e10c841d24df0bbd"
     }
   ]
 }

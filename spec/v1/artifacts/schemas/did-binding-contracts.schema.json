@@ -100,20 +100,20 @@
     },
     "normalized_did_service": {
       "type": "object",
-      "description": "Canonical Arkret projection of one DID service entry. service_uri preserves the W3C service id as a generic URI (not an Arkret stable object id); service_protocol_names is the sorted, duplicate-free projection of the W3C type set; service_endpoint retains its complete canonical JSON value. Arkret-defined names and endpoint shapes are closed by did-document-contract-registry.json.",
+      "description": "Canonical Arkret projection of one DID service entry. uri preserves the W3C service id as a generic URI (not an Arkret stable object id); protocol_names is the sorted, duplicate-free projection of the W3C type set; endpoint retains its complete canonical JSON value. Arkret-defined names and endpoint shapes are closed by did-document-contract-registry.json.",
       "required": [
-        "service_uri",
-        "service_protocol_names",
-        "service_endpoint",
+        "uri",
+        "protocol_names",
+        "endpoint",
         "extensions"
       ],
       "properties": {
-        "service_uri": {
+        "uri": {
           "type": "string",
           "format": "uri",
           "minLength": 1
         },
-        "service_protocol_names": {
+        "protocol_names": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
@@ -122,7 +122,7 @@
             "minLength": 1
           }
         },
-        "service_endpoint": {},
+        "endpoint": {},
         "extensions": {
           "type": "array",
           "uniqueItems": true,
@@ -181,7 +181,8 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "format": "uri"
+            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]+$",
+            "description": "Canonical URI validated by the DID resolver before projection; this array may contain non-network schemes such as acct: and therefore is not a URL field."
           }
         },
         "verification_methods": {
@@ -230,9 +231,21 @@
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "$ref": "./common-ids.schema.json#/$defs/did_url"
+        "$ref": "#/$defs/normalized_did_relationship_entry"
       },
-      "description": "Sorted duplicate-free verification-method DID URLs. Every entry must identify a method present in verification_methods; embedded W3C methods are first hoisted into verification_methods and then referenced here."
+      "description": "Sorted duplicate-free relationship references. Every entry must identify a method present in verification_methods; embedded W3C methods are first hoisted into verification_methods and then referenced here."
+    },
+    "normalized_did_relationship_entry": {
+      "type": "object",
+      "required": [
+        "verification_method"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        }
+      },
+      "additionalProperties": false
     },
     "evidence_receipt": {
       "type": "object",

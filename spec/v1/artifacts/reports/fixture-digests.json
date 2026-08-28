@@ -118,11 +118,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
-      "sha256": "60dd99bba6f4b16619a33c6cde49ebdfaa89911edb90c01374eab2a30705d4cf"
+      "sha256": "123ca7c385fc40280762fc2605f5d5acbe825c624dd245c813b2af37aa3b7944"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json",
-      "sha256": "e6b7830b2b686bad4b7ecd6e025991c16653258209b8ea8b213aa0190b9dfae7"
+      "sha256": "0bfefac18e8cfa5444029a857330b07ddea400dbb8516f572d71edefa0daa638"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json",
@@ -234,7 +234,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-      "sha256": "67ecfdb284e8f77382d03db5fbc85af0c4b577a536c9cf1372ec1c61dadd1d2c"
+      "sha256": "93b9015d1ff6618989844f7a6ddae9815c0065b362767b18689ae6c98c6b201f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/principal-server-admission-fixture.json",
-      "sha256": "2c444613c973f465f5071e9722ec77775d5db813beb389b2fbdc7ab641b3f3df"
+      "sha256": "e600de119049461c6e41a3642f1e75ec93b7770861f914011917501f34690ebb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",

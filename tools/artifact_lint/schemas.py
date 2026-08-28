@@ -3744,7 +3744,17 @@ def check_did_and_device_constraints(lint: Lint) -> None:
             f"missing={sorted(expected_boundary_ids - boundary_ids)!r}, "
             f"stale={sorted(boundary_ids - expected_boundary_ids)!r}",
         )
-    if "core_to_did" in canonical_json(adapter_registry) or '"expand"' in canonical_json(adapter_registry):
+    def contains_forbidden_adapter_key(value: Any) -> bool:
+        if isinstance(value, dict):
+            return any(
+                key in {"core_to_did", "expand"} or contains_forbidden_adapter_key(child)
+                for key, child in value.items()
+            )
+        if isinstance(value, list):
+            return any(contains_forbidden_adapter_key(child) for child in value)
+        return False
+
+    if contains_forbidden_adapter_key(adapter_registry):
         lint.fail(adapter_registry_path, "DID adapters must not expose core_to_did/expand")
 
     document_contract_path = ARTIFACTS / "registry" / "did-document-contract-registry.json"

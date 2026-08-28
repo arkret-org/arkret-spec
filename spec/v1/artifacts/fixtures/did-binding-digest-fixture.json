@@ -37,21 +37,25 @@
             }
           ],
           "authentication": [
-            "did:web:alice.example#key-1"
+            {
+              "verification_method": "did:web:alice.example#key-1"
+            }
           ],
           "assertion_methods": [
-            "did:web:alice.example#key-1"
+            {
+              "verification_method": "did:web:alice.example#key-1"
+            }
           ],
           "key_agreements": [],
           "capability_invocations": [],
           "capability_delegations": [],
           "services": [
             {
-              "service_uri": "did:web:alice.example#principal-server",
-              "service_protocol_names": [
+              "uri": "did:web:alice.example#principal-server",
+              "protocol_names": [
                 "ArkretService"
               ],
-              "service_endpoint": "https://ps.alice.example/",
+              "endpoint": "https://ps.alice.example/",
               "extensions": [
                 {
                   "name": "serviceKind",
@@ -67,13 +71,13 @@
         }
       },
       "expected": {
-        "jcs_utf8": "{\"also_known_as\":[\"acct:alice@example.com\"],\"assertion_methods\":[\"did:web:alice.example#key-1\"],\"authentication\":[\"did:web:alice.example#key-1\"],\"capability_delegations\":[],\"capability_invocations\":[],\"contexts\":[\"https://www.w3.org/ns/did/v1\"],\"controller_dids\":[],\"did\":\"did:web:alice.example\",\"extensions\":[],\"key_agreements\":[],\"metadata\":{\"primary_handle\":\"alice:example.com\"},\"services\":[{\"extensions\":[{\"name\":\"serviceKind\",\"value\":\"principal_server\"}],\"service_endpoint\":\"https://ps.alice.example/\",\"service_protocol_names\":[\"ArkretService\"],\"service_uri\":\"did:web:alice.example#principal-server\"}],\"verification_methods\":[{\"controller_did\":\"did:web:alice.example\",\"extensions\":[],\"public_key_material\":{\"publicKeyMultibase\":\"z6MkfixtureAlicePublicKey1111111111111111111\"},\"verification_method\":\"did:web:alice.example#key-1\",\"verification_method_suite\":\"Multikey\"}]}",
-        "document_digest": "sha256:9ca3c9696401ea2f9b28b55b8e7490767e1584970661838297a1dcc8e8a0e2c8"
+        "jcs_utf8": "{\"also_known_as\":[\"acct:alice@example.com\"],\"assertion_methods\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"authentication\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"capability_delegations\":[],\"capability_invocations\":[],\"contexts\":[\"https://www.w3.org/ns/did/v1\"],\"controller_dids\":[],\"did\":\"did:web:alice.example\",\"extensions\":[],\"key_agreements\":[],\"metadata\":{\"primary_handle\":\"alice:example.com\"},\"services\":[{\"endpoint\":\"https://ps.alice.example/\",\"extensions\":[{\"name\":\"serviceKind\",\"value\":\"principal_server\"}],\"protocol_names\":[\"ArkretService\"],\"uri\":\"did:web:alice.example#principal-server\"}],\"verification_methods\":[{\"controller_did\":\"did:web:alice.example\",\"extensions\":[],\"public_key_material\":{\"publicKeyMultibase\":\"z6MkfixtureAlicePublicKey1111111111111111111\"},\"verification_method\":\"did:web:alice.example#key-1\",\"verification_method_suite\":\"Multikey\"}]}",
+        "document_digest": "sha256:b57c4d71d80930c8e8484a08a5d319c84b4abf0fd15278d48e01af2fe3005b81"
       },
       "assertions": [
         "re-serializing the same document with any other raw JSON property order MUST produce the same digest",
-        "removing also_known_as MUST change the digest to sha256:830ea6ac9339b57a6257e412ae99fbffacb478fbcc01fa96bccd2fd719fbbad7",
-        "removing both also_known_as and metadata.primary_handle MUST change the digest to sha256:951e391daca1b97ab1636d900a98c5913313ce8e3390ac10edb8bf8f08ab1668",
+        "removing also_known_as MUST change the digest to sha256:8e3390661d2794427d953d8cdae54385dbe5977d28abfb72f546e94af7913305",
+        "removing both also_known_as and metadata.primary_handle MUST change the digest to sha256:db64bc2a75eaf3346eaf2776300663715e5ae9c57ff22dc251c0af32b1e34358",
         "duplicate or conflicting property, verification-method id, service id, metadata key, relationship or extension name MUST fail before digesting",
         "a raw resolver response digest MUST NOT be carried in document_digest; raw bytes use raw_document_digest"
       ]
@@ -85,12 +89,12 @@
         "evidence_receipt": {
           "kind": "ak.did.binding_evidence.v1",
           "method": "web",
-          "document_digest": "sha256:9ca3c9696401ea2f9b28b55b8e7490767e1584970661838297a1dcc8e8a0e2c8",
+          "document_digest": "sha256:b57c4d71d80930c8e8484a08a5d319c84b4abf0fd15278d48e01af2fe3005b81",
           "method_proofs": []
         }
       },
       "expected": {
-        "evidence_digest": "sha256:af8037e7215a6aeff4c093ec1ec76c35a520dda8163f0e295f7cfd56c0be13d6"
+        "evidence_digest": "sha256:a40c4bc1eb53ad7e57d218665e16149024f58f1a98cd3c877ebd39795b53dc6b"
       },
       "assertions": [
         "a proofless method degrades to an empty method_proofs array, never to an implementation-invented placeholder object",

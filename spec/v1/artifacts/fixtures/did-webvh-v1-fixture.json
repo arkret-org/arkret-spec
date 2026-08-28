@@ -65,7 +65,7 @@
       "expected": {
         "decision": "reject",
         "error_code": "did_method_successor_invalid",
-        "reason": "portable_was_not_enabled_by_predecessor"
+        "decision_detail": "portable_was_not_enabled_by_predecessor"
       }
     },
     {

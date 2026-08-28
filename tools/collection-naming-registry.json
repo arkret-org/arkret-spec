@@ -22,6 +22,11 @@
   ],
   "exact_exceptions": [
     {
+      "file": "did-binding-contracts.schema.json",
+      "pointer": "/$defs/normalized_did_document/properties/authentication",
+      "reason": "authentication is the W3C DID Core verification-relationship collective name retained by the normalized projection; its closed array entries each carry one verification_method reference"
+    },
+    {
       "file": "agent-signer-evidence.schema.json",
       "pointer": "/$defs/key_state_witness/properties/cell_value",
       "reason": "closed canonical cell-value tuple, not a collection of role objects"

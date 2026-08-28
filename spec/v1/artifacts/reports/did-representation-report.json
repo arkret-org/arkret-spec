@@ -2649,6 +2649,56 @@
       ]
     },
     {
+      "schema_path": "did-binding-contracts.schema.json#/$defs/normalized_did_document/properties/controller_dids",
+      "property_name": "controller_dids",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
+      ]
+    },
+    {
+      "schema_path": "did-binding-contracts.schema.json#/$defs/normalized_did_document/properties/did",
+      "property_name": "did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
+      ]
+    },
+    {
+      "schema_path": "did-binding-contracts.schema.json#/$defs/normalized_did_relationship_entry/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
+      "schema_path": "did-binding-contracts.schema.json#/$defs/normalized_did_verification_method/properties/controller_did",
+      "property_name": "controller_did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
+      ]
+    },
+    {
+      "schema_path": "did-binding-contracts.schema.json#/$defs/normalized_did_verification_method/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "did-binding-contracts.schema.json#/$defs/resolver_policy_snapshot/properties/accepted_did_methods",
       "property_name": "accepted_did_methods",
       "semantic_category": "responsibility_identity_material",

@@ -84,6 +84,18 @@
       "category": "did_method_log_or_evidence"
     },
     {
+      "pointer": "did-binding-contracts.schema.json#/$defs/normalized_did_document/properties/controller_dids/items/$ref",
+      "category": "resolution_or_did_document"
+    },
+    {
+      "pointer": "did-binding-contracts.schema.json#/$defs/normalized_did_document/properties/did/$ref",
+      "category": "resolution_or_did_document"
+    },
+    {
+      "pointer": "did-binding-contracts.schema.json#/$defs/normalized_did_verification_method/properties/controller_did/$ref",
+      "category": "resolution_or_did_document"
+    },
+    {
       "pointer": "did-binding-contracts.schema.json#/$defs/webvh_log_evidence/properties/witnesses/items/properties/controlling_organization_did/$ref",
       "category": "did_method_log_or_evidence"
     },
