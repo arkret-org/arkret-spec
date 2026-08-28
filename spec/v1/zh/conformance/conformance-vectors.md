@@ -6662,11 +6662,17 @@ receipt reviewer pair 与 verification-method controller 投影必须逐字一�
 
 ## MLS 历史恢复闭合向量
 
-Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行三个 closed suite：
+Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行四个 closed suite：
 
 - `ak.vector.history_key.closed_response_delivery.v1`：request create/receipt、相等 TTL、manifest 全量 T0 admission、
   single-continuous-range chunk、source relay、honest release-service attestation、byte-identical exact retry、小型 send receipt、
   normal/lost 合并 sequence ack、attempt completed/expired 与 quota 边界；
+- `ak.vector.history_key.client_convergence.v1`：exporter all-history requester 在缺 epoch 后无人工操作 create/resume，
+  create-response 丢失与重启后仍复用同一 durable intent/request/HPKE key；首次空页固定为
+  `{ack_entries:[],limited:false}` 且省略 `ack_token/cursor`，不持久、不 ACK、不推进 high-water，同一 after 续读后
+  可见稍后到达的 manifest；source ready-marker 崩溃后 exact bytes 重放；部分材料 attempt 完成后取得新的未覆盖
+  requested epoch 会产生第二 manifest。向量还 MUST 覆盖暂时无 source 的非终态诊断、`since_join` 零 request
+  以及 requester/source 当前失权时零新写入；
 - `ak.vector.history_key.frontier_traversal_split.v1`：near-current `group_security_frontier` 的 bounded stateless 完整响应，与
   bulk/old-history receipt-bound direct Seal traversal 严格分型；覆盖 `trusted_history_base_basis`、独立 anti-rollback
   `trusted_current_basis`、target dominance、完整 predecessor cut、registered dependency resolve、current ratchet/join floor、per-item RRK traversal 及 self/peer visibility 边界；

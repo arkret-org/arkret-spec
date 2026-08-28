@@ -9,6 +9,7 @@
   },
   "covers_vectors": [
     "ak.vector.history_key.closed_response_delivery.v1",
+    "ak.vector.history_key.client_convergence.v1",
     "ak.vector.history_key.exporter_prejoin_t0_t1.v1",
     "ak.vector.history_key.frontier_traversal_split.v1",
     "ak.vector.history_key.sender_crypto.v1",
@@ -21,6 +22,60 @@
     "ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
     "ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1"
   ],
+  "client_convergence_kat": {
+    "requester": {
+      "trigger": "exporter_all_history_missing_epoch",
+      "crash_before_create_response": {
+        "durable_pending_intent": true,
+        "durable_recipient_hpke_private_key": true,
+        "retry_reuses_request_id_and_key": true,
+        "live_request_count": 1
+      },
+      "empty_response_page": {
+        "wire": {
+          "ack_entries": [],
+          "limited": false
+        },
+        "durable_pending_page": false,
+        "ack_sent": false,
+        "high_water_advanced": false,
+        "next_after": "last_acked_cursor",
+        "later_manifest_visible": true
+      },
+      "temporary_unavailability": {
+        "diagnostic": "awaiting_authorized_source_response",
+        "terminal": false,
+        "retry_until_request_expiry": true
+      }
+    },
+    "source": {
+      "crash_after_ready_marker": {
+        "retry_uses_exact_staged_bytes": true,
+        "new_response_ids": false
+      },
+      "later_material": {
+        "requested_epochs": [7, 8],
+        "completed_attempt_coverage": [7],
+        "new_local_authoritative_epochs": [8],
+        "new_manifest_coverage": [8],
+        "completed_attempt_suppresses_new_manifest": false
+      }
+    },
+    "negative_cases": [
+      {
+        "name": "since_join_missing_prejoin_epoch",
+        "new_request_count": 0
+      },
+      {
+        "name": "requester_not_currently_authorized",
+        "new_request_count": 0
+      },
+      {
+        "name": "source_not_currently_authorized",
+        "new_attempt_count": 0
+      }
+    ]
+  },
   "sender_crypto_kats": {
     "authoritative_fixture": "arkret-private-kdf-fixture.json",
     "cases": [
@@ -1438,6 +1493,10 @@
           }
         ],
         "ack_token": "response-ack-token-8",
+        "limited": false
+      },
+      "empty_list": {
+        "ack_entries": [],
         "limited": false
       },
       "ack_request": {

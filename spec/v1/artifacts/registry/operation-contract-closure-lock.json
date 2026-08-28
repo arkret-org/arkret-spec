@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-27.3",
+  "version": "2026-08-28.1",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -784,7 +784,7 @@
     },
     {
       "operation_id": "ak.self.history_key_responses.read.list.v1",
-      "sha256": "sha256:d4eb6c31ea69fd84e2f8b8caf1227a65ede441f44bfc5d65ae39e73aa094e587"
+      "sha256": "sha256:3a933198af3fb9c5857710f4dbc95d7e65734198eaebd18ef41519c12159cad9"
     },
     {
       "operation_id": "ak.self.identity.read.resolution_audit.v1",

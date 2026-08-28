@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-27.4",
-  "generated_at": "2026-08-27T15:10:00+08:00",
+  "version": "2026-08-28.1",
+  "generated_at": "2026-08-28T10:28:14+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2286,7 +2286,7 @@
         "unsupported_optional": "preserve encrypted events and expose key_missing"
       },
       "conditional_requirements": {
-        "exporter_all_history": "A client that creates or joins a scope with content_scheme=mls_exporter_aead_v1 and history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and implement the complete history-key request/manifest/chunk/response-stream plus receipt-bound direct accepted-Seal traversal contract through the standard Event, Seal and governance-dependency resolve surfaces. The stateless Seal-governance proof is near-current frontier only. Missing feature support is fail closed; standard MLS has no history-recovery fallback."
+        "exporter_all_history": "A client that creates or joins a scope with content_scheme=mls_exporter_aead_v1 and history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and implement the complete history-key request/manifest/chunk/response-stream plus receipt-bound direct accepted-Seal traversal contract through the standard Event, Seal and governance-dependency resolve surfaces. It MUST run the crash-safe automatic requester/source convergence loop: durable single-flight request create/resume, non-ack empty-page polling, exact source outbox retry, and a new manifest when later local-authoritative material remains uncovered. The stateless Seal-governance proof is near-current frontier only. Missing feature support is fail closed; standard MLS has no history-recovery fallback."
       }
     },
     "ak.profile.agent_signer_evidence.v1": {

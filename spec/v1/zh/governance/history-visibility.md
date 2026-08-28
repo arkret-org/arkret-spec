@@ -435,6 +435,39 @@ exact Event→candidate digest binding，不得把 candidate 或整个 epoch 标
 disposition 的 sequence。尚未 durable ack 的 accepted record 不得默默驱逐；不可恢复损坏必须返回
 `lost_records[{sequence,cursor,response_id,record_digest}]`，不得用裸 `lost=true` 解除 ack 死锁。资源常量以 scalability registry 为唯一机读真源。
 
+### 6.1 E2EE client 自动收敛义务 (normative)
+
+声明 `ak.profile.e2ee_client.v1` 且 `ak.feature.history_key_recovery.v1` 的客户端，对
+`content_scheme=mls_exporter_aead_v1` 与 current effective
+`history_access=all_history_for_current_members` 的 scope，在发现已接收的 encrypted Event 缺少 exporter epoch 时，
+MUST 无人工操作地执行以下 crash-safe 收敛循环：
+
+1. requester MUST 先持久化 recipient HPKE private key 与 pending create intent，再创建或恢复一个覆盖当前
+   canonical missing ranges 的未过期 private request。同一 `(effective_scope, requester_actor_id,
+   requester_authorization_incarnation, missing canonical ranges)` 在任意时刻只能有一个可用的 durable
+   single-flight request；重启、超时、列表空页或短暂网络失败只能恢复该 intent/request，不得每轮创建新的
+   `request_id` 或 HPKE key。新 request 必须使用作者当时最新 durable trusted bases；仅 basis 前进不会使已接受
+   receipt 失效，因此不得单独引发 request churn。只有 missing range 扩展、request expiry、release-service
+   rebind，或已冻结 traversal 确实无法解析/验证时，才能按现行 create 规则作者化新 request。
+2. requester MUST 持续读取每个已接受 request 的 private response stream，按 §6 验证、安装并只在 durable
+   disposition 后 ack。空页的唯一 canonical 形状是 `ack_entries=[]`、`limited=false`，且省略
+   `ack_token` 与 `cursor`；客户端 MUST NOT 持久钉住或 ACK 空页，MUST NOT 推进 high-water，并 MUST
+   以有界退避从同一 `after=last_acked_cursor` 重新读取。非空页 MUST 携带 `ack_token`。
+3. 同 profile 的 current authorized endpoint MUST 持续消费它可见的 scope-private request projection。当它持有与
+   request 范围交集的 `local_authoritative` material 且 T0/T1 及所有 current authorization gate 通过时，
+   MUST 构造最小已持有覆盖的 manifest/chunks，在 ready marker 前耐久 staging，并按 exact bytes 重试直到
+   attempt `completed|expired`。存在 unfinished attempt 时不得为同一覆盖重签另一组 response id；既有 attempt
+   completed 之后若本地又取得该 request 尚未覆盖的 requested epoch，必须创建新 manifest，不得因“已响应过”
+   永久抑制新材料。Permanent chunk rejection 继续按 §6 使用新 manifest，不得改写旧 attempt。
+4. 本地诊断必须至少区分 `awaiting_authorized_source_response`、`response_verification_pending`、
+   `decryption_unavailable_by_policy`、`decryption_unavailable_by_profile_floor` 与 request expiry。在没有受验证证据时，
+   requester 不得声称某 source 离线或材料已销毁；等待 source、T1 dependency 或短暂传输失败都不是 policy
+   terminal。只有现行 closed terminal reason 才能停止对该 request 的自动尝试。
+
+这些义务只保证在“至少一个符合条件的 endpoint 在 request 有效期内持有 material、可见 request 且所有安全门禁成功”
+时客户端会发起并持续尝试恢复；它不把 `all_history_for_current_members` 扩张为服务端明文托管、密钥永久存在或
+绝对可用性承诺。
+
 ## 7. History-only store 与终态
 
 候选 secret bytes 全局按 material key `(effective_scope,mls_group_id,epoch,candidate_digest)` 去重；`candidate_digest` 是 exact secret bytes

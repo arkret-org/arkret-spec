@@ -850,13 +850,20 @@ E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处
 
 
 
-在 timeout 前，客户端 SHOULD 按以下顺序恢复：
+在 timeout 前，客户端 SHOULD 按以下顺序恢复；其中第 3 项在后述条件满足时是 MUST，不是可选 UX：
 
 1. 拉取缺失的 `ak.mls.*` state event、winner `ak.mls.commit`、Welcome 和 `governance_binding` 依赖。
 2. 查询本 actor 授权设备的 encrypted key backup / secret storage。
-3. 在 history sharing policy 允许时，请求当前授权 peer 对指定 epoch range 发送 key share。
+3. 对声明 `ak.profile.e2ee_client.v1` 与 `ak.feature.history_key_recovery.v1`、且 current scope 为
+   `content_scheme=mls_exporter_aead_v1` + `history_access=all_history_for_current_members` 的客户端，MUST
+   按 [`history-visibility.md` §6.1](../governance/history-visibility.md) 自动创建/恢复 private history-key request、持续读取
+   response stream，并作为 eligible current peer 自动耐久响应。其它 policy/profile 只在明确允许时 MAY 请求
+   current authorized peer 对指定 epoch range 发送 key share。
 4. 若 Realm policy 声明 Archive Node / Audit Node / Key Recovery Service，可向该受托服务请求最小 epoch range。
 
 当连续 epoch 缺口超过 `epoch_gap_recovery_threshold`（默认 32 个 epoch）或本地 backfill 预算耗尽时，客户端 SHOULD 切换到 range-based recovery：按 epoch 区间请求 key material、MLS Commit chain 和必要 snapshot proof，而不是逐消息重试。任何 key share 都必须绑定接收 principal、device、epoch range、policy hash 和发送设备签名；不得向已被移除、未授权或无法验证的成员请求密钥。
+
+对上述强制 history-key 恢复，空 response page 不是完成、失败或可 ACK 的页；客户端必须保留原 high-water 并有界退避续读。
+暂时没有响应只能记为 `awaiting_authorized_source_response`，不得在无受验证证据时推断“source 离线”或“密钥已销毁”。
 
 超过 `decryption_pending_timeout` 后，客户端 MUST 将用户可见投影标记为 `decryption_failed`，保留 metadata-only 占位、排序位置、引用关系和重试诊断，并向用户显示不可解密状态。若之后合法 key material 到达，客户端 MAY 重新解密并把状态从 `decryption_failed` 恢复为 verified content，但该 MAY 受 [`encryption-and-audit.md` §2.10](../crypto-media/encryption-and-audit.md) late key recovery 状态机约束：必须通过原始接收时刻 T0 的 membership / history / key scope 校验，UI 必须显示 late recovery timeline marker；audit profile 下必须先 emit `ak.audit.accessed` 并取得 RYW receipt 后才可显示明文。恢复审计记录必须保留，不得静默替换原 metadata-only 占位。

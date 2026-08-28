@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10161,
+    "total_properties": 10162,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2797,
+      "optional": 2798,
       "optional_defaulted": 68,
-      "required": 6950,
-      "required_nullable": 138,
+      "required": 6949,
+      "required_nullable": 139,
       "tristate": 208
     },
     "tristate_occurrences": 208,
@@ -8195,9 +8195,10 @@
         "/$defs/history_key_response_ack_request/properties/ack_entries": "required",
         "/$defs/history_key_response_ack_request/properties/ack_token": "required",
         "/$defs/history_key_response_ack_request/properties/high_water_cursor": "required",
-        "/$defs/history_key_response_list_outcome/allOf/0/if/properties/limited": "required",
+        "/$defs/history_key_response_list_outcome/allOf/0/if/properties/ack_entries": "required_nullable",
+        "/$defs/history_key_response_list_outcome/allOf/1/if/properties/limited": "required",
         "/$defs/history_key_response_list_outcome/properties/ack_entries": "required",
-        "/$defs/history_key_response_list_outcome/properties/ack_token": "required",
+        "/$defs/history_key_response_list_outcome/properties/ack_token": "optional",
         "/$defs/history_key_response_list_outcome/properties/cursor": "optional",
         "/$defs/history_key_response_list_outcome/properties/limited": "required",
         "/$defs/history_key_response_list_query/properties/after": "optional",
@@ -8460,6 +8461,7 @@
       },
       "conditionally_required": [
         "/$defs/history_key_request_list_outcome/properties/cursor",
+        "/$defs/history_key_response_list_outcome/properties/ack_token",
         "/$defs/history_key_response_list_outcome/properties/cursor",
         "/$defs/history_key_response_record/properties/manifest_admission",
         "/$defs/history_key_response_record/properties/release_attestation",

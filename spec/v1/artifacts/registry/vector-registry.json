@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-28",
+  "version": "2026-08-28.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-28T05:27:23+08:00",
+  "generated_at": "2026-08-28T10:31:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3171,6 +3171,19 @@
         "spec/v1/zh/conformance/conformance-vectors.md"
       ],
       "description": "Closed private request, manifest-first continuous-range chunk, relay, honest release-service attestation, exact duplicate, list/ack/expiry and quota matrix."
+    },
+    {
+      "vector_id": "ak.vector.history_key.client_convergence.v1",
+      "status": "active",
+      "domain": "history_key",
+      "applies_to_fixtures": [
+        "history-key-recovery-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ],
+      "description": "Crash-safe automatic requester/source convergence for exporter all-history: durable single-flight create, empty-page non-ack polling, exact outbox retry, later-material follow-up manifests, closed terminal diagnostics, and since-join/current-authorization negative cases."
     },
     {
       "vector_id": "ak.vector.history_key.exporter_prejoin_t0_t1.v1",

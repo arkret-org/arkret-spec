@@ -2265,7 +2265,6 @@
       "type": "object",
       "required": [
         "ack_entries",
-        "ack_token",
         "limited"
       ],
       "properties": {
@@ -2289,6 +2288,30 @@
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "ack_entries": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "ack_entries"
+            ]
+          },
+          "then": {
+            "required": [
+              "ack_token"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "ack_token"
+              ]
+            }
+          }
+        },
         {
           "if": {
             "properties": {
