@@ -204,7 +204,7 @@
       "domain": "ak.history-request-list-cursor-v1",
       "primitive": "HMAC-SHA256",
       "jcs_preimage_fields": [
-        "release_service_id",
+        "release_id",
         "effective_scope",
         "recipient_binding_digest",
         "last_sort_key",
@@ -215,7 +215,7 @@
       "domain": "ak.history-response-cursor-v1",
       "primitive": "HMAC-SHA256",
       "jcs_preimage_fields": [
-        "release_service_id",
+        "release_id",
         "request_id",
         "last_sequence",
         "request_expires_at"
@@ -225,7 +225,7 @@
       "domain": "ak.history-response-ack-token-v1",
       "primitive": "HMAC-SHA256",
       "jcs_preimage_fields": [
-        "release_service_id",
+        "release_id",
         "request_id",
         "ordered_ack_entries",
         "high_water_cursor",
@@ -238,7 +238,7 @@
       "primitive": "HMAC-SHA256",
       "jcs_preimage_fields": [
         "holder_principal_id",
-        "holder_service_id",
+        "holder_id",
         "archive_list_query_digest",
         "accepted_key_evidence_ref",
         "holder_trusted_basis",

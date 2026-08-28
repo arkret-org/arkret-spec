@@ -466,7 +466,7 @@
       "negative_cases": [
         "raw_principal_id_in_storage_key",
         "realm_id_added_to_derivation_input",
-        "peer_service_id_used_as_identity_key",
+        "peer_id_used_as_identity_key",
         "decrypted_subject_principal_id_does_not_recompute_to_storage_key"
       ],
       "assertions": [

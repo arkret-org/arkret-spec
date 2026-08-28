@@ -6,7 +6,7 @@
   "type": "object",
   "required": [
     "kind",
-    "cells"
+    "cell_ids"
   ],
   "properties": {
     "kind": {
@@ -21,7 +21,7 @@
       ],
       "description": "Why the join produced bottom. 'conflict' = concurrent cas_register / fsm divergence on safety-critical cell. 'invalid_transition' = fsm op violates allowed_transitions. 'missing_dependency' = event ref to absent / failed prior event. 'unauthorized' = event issuer lacks capability for the op (verifier-side). 'notary_split' = multiple Seal leaves diverge on next-seal authority. 'schema_error' = lattice op or value violates declared cell schema."
     },
-    "cells": {
+    "cell_ids": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,

@@ -42,6 +42,7 @@ from tools.artifact_lint.naming_contracts import (
     NAMING_COVERAGE_MATRIX_PATH,
     SLUG_FIELD_REGISTRY_PATH,
     check_duration_field_units,
+    check_identifier_role_suffix_contracts,
     check_identifier_value_categories,
     check_naming_rule_coverage_matrix,
     check_slug_field_closure,
@@ -617,6 +618,111 @@ class IdentifierClassificationTest(MutationHarness):
             check=check_identifier_value_categories,
         )
         self.assertTrue(any("brand_new_thing_id" in error for error in errors), errors)
+
+
+class IdentifierRoleSuffixTest(MutationHarness):
+    """NC-IDROLE-001: role semantics never suppress the value-category suffix."""
+
+    def test_gate_is_green(self) -> None:
+        lint = run_check(check_identifier_role_suffix_contracts)
+        self.assertEqual(lint.errors, [])
+
+    def test_bare_did_core_issuer_fails_with_review_axes(self) -> None:
+        def mutate(document):
+            shape = document["$defs"]["EventsFrontierFederationPeerState"]
+            shape["required"] = ["issuer" if item == "issuer_id" else item for item in shape["required"]]
+            shape["properties"]["issuer"] = shape["properties"].pop("issuer_id")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "service-operation-dtos.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("terminal_category=did_core_id" in error for error in errors), errors)
+        self.assertTrue(any("lexical_owner=arkret_owned" in error for error in errors), errors)
+        self.assertTrue(any("expected_suffix=_id" in error for error in errors), errors)
+
+    def test_bare_uri_issuer_fails(self) -> None:
+        def mutate(document):
+            shape = document["$defs"]["account_handoff_authentication_proof"]
+            shape["required"] = ["issuer" if item == "issuer_uri" else item for item in shape["required"]]
+            shape["properties"]["issuer"] = shape["properties"].pop("issuer_uri")
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "account-operations.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("terminal_category=uri" in error for error in errors), errors)
+        self.assertTrue(any("expected_suffix=_uri" in error for error in errors), errors)
+
+    def test_unregistered_role_stem_is_still_terminal_driven(self) -> None:
+        """A new role cannot bypass the gate merely by avoiding the historical stem list."""
+
+        def mutate(document):
+            document["$defs"]["device_summary"]["properties"]["signer"] = {
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "account-operations.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("role_stem=signer" in error for error in errors), errors)
+        self.assertTrue(any("expected_suffix=_id" in error for error in errors), errors)
+
+    def test_external_literal_ownership_does_not_propagate_through_ref(self) -> None:
+        def mutate(document):
+            document["$defs"]["device_summary"]["properties"]["normalized_controller"] = {
+                "$ref": "./service-operation-dtos.schema.json#/$defs/ServiceDidDocument/properties/id"
+            }
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "account-operations.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("role_stem=normalized_controller" in error for error in errors), errors)
+        self.assertTrue(any("lexical_owner=arkret_owned" in error for error in errors), errors)
+
+    def test_role_qualified_service_id_fails(self) -> None:
+        def mutate(document):
+            shape = document["$defs"]["contact_address"]
+            shape["required"] = [
+                "recipient_service_id" if item == "recipient_id" else item
+                for item in shape["required"]
+            ]
+            shape["properties"]["recipient_service_id"] = shape["properties"].pop(
+                "recipient_id"
+            )
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "contact-operations.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("required_subject_class=service" in error for error in errors), errors)
+        self.assertTrue(any("rename `recipient_service_id` to `recipient_id`" in error for error in errors), errors)
+
+    def test_role_qualified_service_kind_fails(self) -> None:
+        def mutate(document):
+            shape = document["$defs"]["contact_address"]
+            shape["required"] = [
+                "recipient_service_kind" if item == "recipient_kind" else item
+                for item in shape["required"]
+            ]
+            shape["properties"]["recipient_service_kind"] = shape["properties"].pop(
+                "recipient_kind"
+            )
+
+        errors = self.lint_with_file(
+            SCHEMA_DIR / "contact-operations.schema.json",
+            mutate,
+            check=check_identifier_role_suffix_contracts,
+        )
+        self.assertTrue(any("terminal_category=service_kind" in error for error in errors), errors)
+        self.assertTrue(any("expected_suffix=_kind" in error for error in errors), errors)
 
 
 class DurationFieldUnitsTest(MutationHarness):

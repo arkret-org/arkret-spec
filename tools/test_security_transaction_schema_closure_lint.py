@@ -119,7 +119,7 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
     def test_prepared_event_unit_mirror_fails(self) -> None:
         def mutate(schema) -> None:
             unit = schema["$defs"]["prepared_event_unit"]
-            unit["properties"]["destination_service_id"] = {"type": "string"}
+            unit["properties"]["destination_id"] = {"type": "string"}
 
         errors = self._lint(mutate)
         self.assertTrue(any("define only request and request_digest" in error for error in errors), errors)

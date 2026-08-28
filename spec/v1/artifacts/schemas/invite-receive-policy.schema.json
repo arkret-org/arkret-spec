@@ -69,7 +69,7 @@
       "uniqueItems": true,
       "description": "Subject-private denylist for canonical handle domains. Matches are rejected before allowed_handle_domains is evaluated."
     },
-    "trusted_handle_issuers": {
+    "trusted_handle_issuer_ids": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did_core_id"
@@ -77,7 +77,7 @@
       "uniqueItems": true,
       "description": "Optional subject-private allowlist of handle claim issuers accepted for handle_claim evidence."
     },
-    "trusted_directory_services": {
+    "trusted_directory_ids": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did_core_id"
@@ -92,21 +92,21 @@
       },
       "uniqueItems": true
     },
-    "trusted_principal_services": {
+    "trusted_principal_ids": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did_core_id"
       },
       "uniqueItems": true
     },
-    "denied_principal_services": {
+    "denied_principal_ids": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did_core_id"
       },
       "uniqueItems": true
     },
-    "denied_subjects": {
+    "denied_subject_ids": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did_core_id"
@@ -244,28 +244,28 @@
           "uniqueItems": true,
           "description": "Deployment-level allowlist for handle domains accepted as handle_claim evidence. Empty means no handle domain is accepted."
         },
-        "trusted_handle_issuers": {
+        "trusted_handle_issuer_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
-        "trusted_directory_services": {
+        "trusted_directory_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
-        "trusted_principal_services": {
+        "trusted_principal_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
-        "denied_principal_services": {
+        "denied_principal_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"

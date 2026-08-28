@@ -173,7 +173,7 @@
         "verification_method",
         "signature_algorithm",
         "challenge",
-        "audience",
+        "audience_id",
         "expires_at",
         "created_at",
         "runtime_key_binding_digest",
@@ -195,7 +195,7 @@
         "challenge": {
           "$ref": "#/$defs/opaque_local_id"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable target-service authorization identity; any verification_method remains a DID URL whose bare DID MUST project to this did_core_id."
         },
@@ -1268,8 +1268,8 @@
         "allocation_handle",
         "consequence_disclosure",
         "dpop_jkt",
-        "audience",
-        "origin",
+        "audience_id",
+        "origin_uri",
         "trust_domain",
         "issued_at",
         "expires_at"
@@ -1316,10 +1316,10 @@
         "dpop_jkt": {
           "$ref": "./account-operations.schema.json#/$defs/dpop_jkt"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin": {
+        "origin_uri": {
           "type": "string",
           "format": "uri"
         },
@@ -1469,7 +1469,7 @@
       "type": "object",
       "description": "One-time bootstrap material handed to a personal agent runtime after provisioning. This is not a session grant, capability grant or long-term secret.",
       "required": [
-        "arkret_base_url",
+        "arkret_base_uri",
         "service_id",
         "agent_id",
         "pairing_request_id",
@@ -1477,7 +1477,7 @@
         "pairing_expires_at"
       ],
       "properties": {
-        "arkret_base_url": {
+        "arkret_base_uri": {
           "type": "string",
           "format": "uri"
         },

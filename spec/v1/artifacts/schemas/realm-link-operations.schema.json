@@ -229,7 +229,7 @@
       "required": [
         "realm_id",
         "effective_policy",
-        "inheritance_chain",
+        "inheritance_chain_ids",
         "inheritance_mode"
       ],
       "properties": {
@@ -240,7 +240,7 @@
           "type": "object",
           "description": "Merged policy view (e.g. allowed_policies[], allowed_capability_bundles[])."
         },
-        "inheritance_chain": {
+        "inheritance_chain_ids": {
           "type": "array",
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/realm_id"

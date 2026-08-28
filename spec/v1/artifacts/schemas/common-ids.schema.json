@@ -42,7 +42,7 @@
     "push_target_id": {
       "type": "string",
       "pattern": "^ak:pseudonym:push:[A-Za-z0-9_-]{42}[048AEIMQUYcgkosw]$",
-      "description": "Canonical typed pairwise push pseudonym. The suffix is the unpadded Base64URL encoding of the complete 32-octet HMAC-SHA256 output for one (recipient_service_id, principal_id, device_id, push_route, salt_epoch_id) tuple. Receivers MUST decode exactly 32 octets and require canonical re-encoding; it is never a DID, object id, raw provider token, or stable cross-service correlation key."
+      "description": "Canonical typed pairwise push pseudonym. The suffix is the unpadded Base64URL encoding of the complete 32-octet HMAC-SHA256 output for one (recipient_id, principal_id, device_id, push_route, salt_epoch_id) tuple. Receivers MUST decode exactly 32 octets and require canonical re-encoding; it is never a DID, object id, raw provider token, or stable cross-service correlation key."
     },
     "grant_id": {
       "type": "string",

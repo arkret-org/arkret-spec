@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/member-delivery-binding-candidate.schema.json",
   "title": "Arkret Member Delivery Binding Candidate",
-  "description": "Builder-side candidate object that ferries Handle resolution output (intent=member_add | invite) or a trusted-issuer-signed equivalent into the Realm member_add / invite pipeline. Produces a Realm-scoped member_delivery_binding only after the reducer independently re-validates against Join Policy. See identity-handles.md §3.7. The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id).",
+  "description": "Builder-side candidate object that ferries Handle resolution output (intent=member_add | invite) or a trusted-issuer-signed equivalent into the Realm member_add / invite pipeline. Produces a Realm-scoped member_delivery_binding only after the reducer independently re-validates against Join Policy. See identity-handles.md §3.7. The external account authority is exactly (subject_id, member_delivery_binding.recipient_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_id).",
   "type": "object",
   "required": [
     "subject_id",
     "handle",
     "member_delivery_binding",
-    "issuer_service_id",
+    "issuer_id",
     "audience",
     "issued_at",
     "expires_at",
@@ -36,19 +36,19 @@
     "member_delivery_binding": {
       "type": "object",
       "required": [
-        "recipient_service_id",
+        "recipient_id",
         "service_resolution",
         "binding_source"
       ],
       "properties": {
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-          "description": "First-hop resolution material for recipient_service_id. The reducer verifies its binding and freshness before materialising the delivery binding."
+          "description": "First-hop resolution material for recipient_id. The reducer verifies its binding and freshness before materialising the delivery binding."
         },
-        "recipient_service_kind": {
+        "recipient_kind": {
           "const": "principal_server"
         },
         "binding_source": {
@@ -88,7 +88,7 @@
       },
       "additionalProperties": false
     },
-    "issuer_service_id": {
+    "issuer_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Stable service did_core_id of the signer (Directory service, Principal Server, or Organization service)."
     },
@@ -120,7 +120,7 @@
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "At least one proof binding handle, subject_id, member_delivery_binding (including service_resolution), audience, issuer_service_id, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
+      "description": "At least one proof binding handle, subject_id, member_delivery_binding (including service_resolution), audience, issuer_id, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
     },
     "claim_digest": {
       "type": "string",

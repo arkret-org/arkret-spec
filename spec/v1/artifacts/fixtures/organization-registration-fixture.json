@@ -145,7 +145,7 @@
         "status": "active",
         "issued_at": "2026-05-01T00:01:00.000Z",
         "expires_at": "2026-08-01T00:00:00.000Z",
-        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
@@ -221,7 +221,7 @@
         ],
         "status": "active",
         "issued_at": "2026-05-01T00:01:00.000Z",
-        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
@@ -424,7 +424,7 @@
         "status": "stale",
         "issued_at": "2026-05-01T00:01:00.000Z",
         "expires_at": "2026-08-01T00:00:00.000Z",
-        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
@@ -494,7 +494,7 @@
           "status": "active",
           "issued_at": "2026-05-01T00:01:00.000Z",
           "expires_at": "2026-08-01T00:00:00.000Z",
-          "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+          "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
           "proof": {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
@@ -529,7 +529,7 @@
           "status": "active",
           "issued_at": "2026-05-01T00:01:00.000Z",
           "expires_at": "2026-08-01T00:00:00.000Z",
-          "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+          "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
           "proof": {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
@@ -565,7 +565,7 @@
           "status": "active",
           "issued_at": "2026-05-01T00:01:00.000Z",
           "expires_at": "2026-08-01T00:00:00.000Z",
-          "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+          "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
           "proof": {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
@@ -605,7 +605,7 @@
         "status": "active",
         "issued_at": "2026-05-01T00:01:00.000Z",
         "expires_at": "2026-08-01T00:00:00.000Z",
-        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",

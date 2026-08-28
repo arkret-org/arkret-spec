@@ -22,7 +22,7 @@ Realm 可通过 state event 声明策略服务：
 {
   "kind": "ak.realm.policy_server",
   "payload": {
-    "policy_server_service_id": "ak:did_core:webvh:z9oyrNdJAoqkAh5Remo6dZUdV",
+    "policy_server_id": "ak:did_core:webvh:z9oyrNdJAoqkAh5Remo6dZUdV",
     "policy_server_url": "https://policy.example.com/_arkret/self/policy/check",
     "public_keys": [
       "ak:did_core:webvh:z9oyrNdJAoqkAh5Remo6dZUdV"
@@ -75,7 +75,7 @@ Realm 可通过 state event 声明策略服务：
 [`event-payload.schema.json#/$defs/realm_policy_server_payload`](../../artifacts/schemas/event-payload.schema.json)
 封闭为两种互斥形态：
 
-1. declaration：至少携带 `policy_server_service_id` 与 `policy_server_url`，可携带本节其余声明字段；
+1. declaration：至少携带 `policy_server_id` 与 `policy_server_url`，可携带本节其余声明字段；
 2. value tombstone：精确为 `{"tombstone":true}`，不得同时携带任何 declaration 字段。
 
 两种形态都写同一 `ak.component.realm.policy_server.v1:null` cell。Registry reducer contract

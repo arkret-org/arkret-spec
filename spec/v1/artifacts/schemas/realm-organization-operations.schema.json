@@ -165,7 +165,7 @@
       "required": [
         "realm_id",
         "relationships",
-        "declared_organization_hints"
+        "declared_organization_hint_ids"
       ],
       "properties": {
         "realm_id": {
@@ -178,7 +178,7 @@
           },
           "description": "Projected ak.realm.organization statement rows (verified_active and revoked_or_expired), latest-per-(organization_id, relationship)."
         },
-        "declared_organization_hints": {
+        "declared_organization_hint_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"

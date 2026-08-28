@@ -164,10 +164,10 @@
             "origin_domain": {"const": "rrk_archive"},
             "origin_quota_domain": {
               "type": "object",
-              "required": ["holder_principal_id", "holder_service_id", "recovery_key_id", "accepted_key_evidence_ref"],
+              "required": ["holder_principal_id", "holder_id", "recovery_key_id", "accepted_key_evidence_ref"],
               "properties": {
                 "holder_principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-                "holder_service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+                "holder_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
                 "recovery_key_id": {"$ref": "./common-ids.schema.json#/$defs/recovery_key_id"},
                 "accepted_key_evidence_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
               },
@@ -299,7 +299,7 @@
         "recovery_key_id",
         "key_agreement_ref",
         "holder_principal_id",
-        "holder_service_id",
+        "holder_id",
         "holder_signing_ref",
         "accepted_key_evidence_ref",
         "holder_trusted_basis"
@@ -312,7 +312,7 @@
         "holder_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "holder_service_id": {
+        "holder_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "holder_signing_ref": {
@@ -556,14 +556,14 @@
     "source_relay_view_locator": {
       "type": "object",
       "required": [
-        "relay_service_id",
+        "relay_id",
         "relay_attestation_digest",
         "source_authority_digest",
         "observed_at",
         "expires_at"
       ],
       "properties": {
-        "relay_service_id": {
+        "relay_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "relay_attestation_digest": {
@@ -851,7 +851,7 @@
         "requester_authorization_incarnation",
         "trusted_history_base_basis",
         "trusted_current_basis",
-        "release_service_id",
+        "release_id",
         "release_service_binding_ref",
         "release_service_resolution_ref",
         "release_service_resolution_sequence",
@@ -892,7 +892,7 @@
         "trusted_current_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis"
         },
-        "release_service_id": {
+        "release_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "The requester's authenticated current Principal Server selected as the unique honest release service for this request response stream."
         },
@@ -1186,7 +1186,7 @@
         "kind",
         "request",
         "request_receipt",
-        "destination_service_id",
+        "destination_id",
         "destination_authorization",
         "replicated_at",
         "expires_at",
@@ -1202,7 +1202,7 @@
         "request_receipt": {
           "$ref": "#/$defs/history_key_request_receipt"
         },
-        "destination_service_id": {
+        "destination_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "destination_authorization": {
@@ -1232,7 +1232,7 @@
               "required": [
                 "kind",
                 "holder_principal_id",
-                "holder_service_id",
+                "holder_id",
                 "archive_tuple_digest"
               ],
               "properties": {
@@ -1242,7 +1242,7 @@
                 "holder_principal_id": {
                   "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                 },
-                "holder_service_id": {
+                "holder_id": {
                   "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                 },
                 "archive_tuple_digest": {
@@ -1265,13 +1265,13 @@
         }
       },
       "additionalProperties": false,
-      "description": "Private S2S immutable request fanout from the release service to either one exact current member delivery-binding service or an exact RRK holder service whose archive tuple intersects requested ranges. destination_authorization is a closed union and must name destination_service_id."
+      "description": "Private S2S immutable request fanout from the release service to either one exact current member delivery-binding service or an exact RRK holder service whose archive tuple intersects requested ranges. destination_authorization is a closed union and must name destination_id."
     },
     "history_key_request_replica_outcome": {
       "type": "object",
       "required": [
         "request_digest",
-        "destination_service_id",
+        "destination_id",
         "accepted_at",
         "service_proof"
       ],
@@ -1279,7 +1279,7 @@
         "request_digest": {
           "$ref": "#/$defs/digest"
         },
-        "destination_service_id": {
+        "destination_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "accepted_at": {
@@ -1296,7 +1296,7 @@
       "type": "object",
       "required": [
         "holder_principal_id",
-        "holder_service_id",
+        "holder_id",
         "current_holder_signing_ref",
         "accepted_key_evidence_ref",
         "archive_authorization_tuple_digest",
@@ -1306,7 +1306,7 @@
       ],
       "properties": {
         "holder_principal_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-        "holder_service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "holder_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
         "current_holder_signing_ref": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
         "accepted_key_evidence_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
         "archive_authorization_tuple_digest": {"$ref": "#/$defs/digest"},
@@ -1368,9 +1368,9 @@
         "source_actor_id",
         "source_sender_domain",
         "source_kind",
-        "source_service_id",
+        "source_id",
         "source_authority_locator",
-        "destination_release_service_id",
+        "destination_release_id",
         "relayed_at",
         "expires_at",
         "service_proof"
@@ -1408,13 +1408,13 @@
         "source_authorization_incarnation": {
           "$ref": "#/$defs/authorization_incarnation"
         },
-        "source_service_id": {
+        "source_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "source_authority_locator": {
           "$ref": "#/$defs/source_authority_locator"
         },
-        "destination_release_service_id": {
+        "destination_release_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "relayed_at": {
@@ -1506,7 +1506,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Private S2S immutable source record carrier to request_receipt.release_service_id. The destination verifies the relay service against the source's current delivery/authority binding before it performs the final T1 linearization and creates HistoryReleaseAttestation."
+      "description": "Private S2S immutable source record carrier to request_receipt.release_id. The destination verifies the relay service against the source's current delivery/authority binding before it performs the final T1 linearization and creates HistoryReleaseAttestation."
     },
     "history_response_manifest": {
       "type": "object",
@@ -2571,7 +2571,7 @@
         "archive_sequence": {
           "type": "integer",
           "minimum": 0,
-          "description": "Strictly monotonic sequence assigned by holder_service_id on first durable acceptance of this immutable archive replica."
+          "description": "Strictly monotonic sequence assigned by holder_id on first durable acceptance of this immutable archive replica."
         },
         "archive_replica_digest": {
           "$ref": "#/$defs/digest",
@@ -2647,8 +2647,8 @@
         "archive",
         "container_event_ref",
         "history_traversal_retention",
-        "source_service_id",
-        "holder_service_id",
+        "source_id",
+        "holder_id",
         "replicated_at",
         "service_proof"
       ],
@@ -2665,10 +2665,10 @@
         "history_traversal_retention": {
           "$ref": "#/$defs/history_governance_traversal_retention"
         },
-        "source_service_id": {
+        "source_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "holder_service_id": {
+        "holder_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "replicated_at": {
@@ -2680,13 +2680,13 @@
         }
       },
       "additionalProperties": false,
-      "description": "Private immutable S2S archive replica to the exact holder_service_id frozen by the archive tuple. It binds one container Event, the accepted-key evidence Event, the distinct holder trusted basis and one archive-lifetime exact-one-epoch direct Seal traversal. Semantic uniqueness is (effective_scope,mls_group_id,epoch,container_event_ref,archive tuple digest). The full body digest is only the exact-retry key: changing replicated_at cannot allocate another sequence for the same semantic row. Archive bytes and the traversal's complete registered apply_seal dependency closure are retained and reconciled for the archive lifetime; v1 has no remote GC or renewal state."
+      "description": "Private immutable S2S archive replica to the exact holder_id frozen by the archive tuple. It binds one container Event, the accepted-key evidence Event, the distinct holder trusted basis and one archive-lifetime exact-one-epoch direct Seal traversal. Semantic uniqueness is (effective_scope,mls_group_id,epoch,container_event_ref,archive tuple digest). The full body digest is only the exact-retry key: changing replicated_at cannot allocate another sequence for the same semantic row. Archive bytes and the traversal's complete registered apply_seal dependency closure are retained and reconciled for the archive lifetime; v1 has no remote GC or renewal state."
     },
     "organization_recovery_archive_replica_outcome": {
       "type": "object",
       "required": [
         "archive_replica_digest",
-        "holder_service_id",
+        "holder_id",
         "archive_sequence",
         "accepted_at",
         "service_proof"
@@ -2695,7 +2695,7 @@
         "archive_replica_digest": {
           "$ref": "#/$defs/digest"
         },
-        "holder_service_id": {
+        "holder_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "archive_sequence": {

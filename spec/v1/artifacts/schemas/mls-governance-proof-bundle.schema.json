@@ -89,9 +89,9 @@
     },
     "frontier_cell_entry": {
       "type": "object",
-      "required": ["cell", "value_digest", "provenance_event_refs", "inclusion_witness"],
+      "required": ["cell_id", "value_digest", "provenance_event_refs", "inclusion_witness"],
       "properties": {
-        "cell": {"$ref": "./event-envelope.schema.json#/$defs/cell_ref"},
+        "cell_id": {"$ref": "./event-envelope.schema.json#/$defs/cell_ref"},
         "value_digest": {"$ref": "#/$defs/digest", "description": "Digest of the exact resolved cell value reconstructed from the content-addressed provenance Events; full value bytes are not embedded in the page."},
         "provenance_event_refs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "./common-ids.schema.json#/$defs/event_id"}, "description": "Canonical complete FSM/join-chain Event references. Their signed bytes are resolved outside the page and must match proof_material descriptors."},
         "inclusion_witness": {"$ref": "#/$defs/merkle_membership_witness"}

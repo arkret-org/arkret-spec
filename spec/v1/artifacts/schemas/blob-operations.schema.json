@@ -64,7 +64,7 @@
         "content_digest",
         "size_bytes",
         "received_at",
-        "issuer_service_id",
+        "issuer_id",
         "signature"
       ],
       "properties": {
@@ -81,7 +81,7 @@
         "received_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "issuer_service_id": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "signature": {

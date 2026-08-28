@@ -381,7 +381,7 @@
           "type": "string",
           "pattern": "^geo:"
         },
-        "url": {
+        "uri": {
           "type": "string",
           "format": "uri"
         }

@@ -109,10 +109,10 @@
     "proof": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",
       "required": [
-        "audience"
+        "audience_id"
       ],
       "properties": {
-        "audience": {
+        "audience_id": {
           "$ref": "#/$defs/did_core_id"
         }
       },
@@ -137,8 +137,8 @@
       "type": "object",
       "required": [
         "claim_id",
-        "subject",
-        "issuer",
+        "subject_id",
+        "issuer_id",
         "claim_kind",
         "value",
         "issued_at"
@@ -154,10 +154,10 @@
             }
           ]
         },
-        "subject": {
+        "subject_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "claim_kind": {
@@ -192,9 +192,9 @@
       "type": "object",
       "required": [
         "kind",
-        "iss",
+        "issuer_id",
         "verification_method",
-        "audience",
+        "audience_id",
         "nonce",
         "claim",
         "created_at",
@@ -204,14 +204,14 @@
         "kind": {
           "const": "ak.directory.restricted_claim_presentation.v1"
         },
-        "iss": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
           "description": "DID URL of the issuer key that signed this presentation; its controller MUST equal iss."
         },
-        "audience": {
+        "audience_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "nonce": {
@@ -307,7 +307,7 @@
           "$ref": "string-profiles.schema.json#/$defs/short_text",
           "maxLength": 2048
         },
-        "owning_organizations": {
+        "owning_organization_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"
@@ -376,7 +376,7 @@
           "minimum": 0,
           "description": "Public exact organization member count when the organization directory policy permits exact counts."
         },
-        "realms": {
+        "realm_ids": {
           "type": "array",
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -515,7 +515,7 @@
         "source_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "proof_challenge": {
@@ -538,11 +538,11 @@
     "directory_realm_search_outcome": {
       "type": "object",
       "required": [
-        "realms",
+        "realm_ids",
         "has_more"
       ],
       "properties": {
-        "realms": {
+        "realm_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/realm_preview"
@@ -572,7 +572,7 @@
         "signed_link": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "proof_challenge": {
@@ -643,7 +643,7 @@
         "address": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "proof_challenge": {
@@ -829,11 +829,11 @@
     "directory_actor_search_outcome": {
       "type": "object",
       "required": [
-        "actors",
+        "actor_ids",
         "has_more"
       ],
       "properties": {
-        "actors": {
+        "actor_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/actor_preview"
@@ -896,7 +896,7 @@
             "joined",
             "invited",
             "knocked",
-            "left",
+            "left_ids",
             "unknown"
           ]
         },
@@ -954,7 +954,7 @@
         "intent": {
           "$ref": "#/$defs/intent"
         },
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "audience": {
@@ -977,7 +977,7 @@
       "type": "object",
       "required": [
         "principal_id",
-        "subject",
+        "subject_id",
         "handle",
         "verified"
       ],
@@ -985,7 +985,7 @@
         "principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "subject": {
+        "subject_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "handle": {
@@ -1019,7 +1019,7 @@
         "controller_handle",
         "agent_slug",
         "intent",
-        "requester"
+        "requester_id"
       ],
       "properties": {
         "controller_handle": {
@@ -1041,7 +1041,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "proofs": {
@@ -1057,18 +1057,18 @@
     "directory_agent_selector_resolution_outcome": {
       "type": "object",
       "required": [
-        "controller_subject",
-        "subject",
+        "controller_subject_id",
+        "subject_id",
         "agent_slug",
         "verified",
         "selector_claim"
       ],
       "properties": {
-        "controller_subject": {
+        "controller_subject_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Controller principal DID resolved from controller_handle and verified against the selector claim."
         },
-        "subject": {
+        "subject_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Native personal agent principal DID selected by (controller_subject, agent_slug)."
         },
@@ -1096,10 +1096,10 @@
       "description": "List currently visible handle claims for a subject. The service MUST apply the same visibility, audience, requester proof, rate-limit, and indistinguishable-denial rules as resolve_handle; absence of a returned handle is not proof the subject has none.",
       "x-arkret-proof-context": "ak.directory_list_handles_for_subject_request_proof.v1",
       "required": [
-        "subject"
+        "subject_id"
       ],
       "properties": {
-        "subject": {
+        "subject_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "realm_id": {
@@ -1108,7 +1108,7 @@
         "intent": {
           "$ref": "#/$defs/intent"
         },
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "proof_challenge": {
@@ -1436,7 +1436,7 @@
       "required": [
         "subscriber_principal_id",
         "resource_filter",
-        "webhook_endpoint"
+        "webhook_uri"
       ],
       "properties": {
         "subscriber_principal_id": {
@@ -1480,7 +1480,7 @@
           },
           "additionalProperties": false
         },
-        "webhook_endpoint": {
+        "webhook_uri": {
           "type": "string",
           "format": "uri"
         },

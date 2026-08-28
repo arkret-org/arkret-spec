@@ -16,7 +16,7 @@
   "properties": {
     "device_message_id": {
       "$ref": "#/$defs/device_message_id",
-      "description": "Sender-assigned stable identity of one logical to-device message. Queue services MUST preserve it byte-for-byte across retries and redelivery. Receivers deduplicate by (sender_principal_id, sender endpoint id, device_message_id), where the endpoint id is sender_device_id, sender_agent_id, or sender_service_id according to the closed sender branch."
+      "description": "Sender-assigned stable identity of one logical to-device message. Queue services MUST preserve it byte-for-byte across retries and redelivery. Receivers deduplicate by (sender_principal_id, sender endpoint id, device_message_id), where the endpoint id is sender_device_id, sender_agent_id, or sender_id according to the closed sender branch."
     },
     "kind": {
       "type": "string",
@@ -24,11 +24,11 @@
     },
     "sender_principal_id": {
       "$ref": "#/$defs/did_core_id",
-      "description": "Sender Principal DID. Intentionally NOT named sender_actor_id: device messages are out-of-band per-device transport envelopes that travel principal-to-principal outside any Realm context, so the Realm-scoped Actor identity used by message.schema.json / event-payload.schema.json does not apply here. For a device sender, pair it with sender_device_id and verify that pair against the accepted PCR device projection; for a Native Agent sender it equals sender_agent_id and the signer is anchored by sender_agent_verification_method plus sender_agent_key_authorize_event_id. For the restricted Principal Server service branch it MUST equal recipient_principal_id: the holder remains the message principal while sender_service_id identifies the internal materializer."
+      "description": "Sender Principal DID. Intentionally NOT named sender_actor_id: device messages are out-of-band per-device transport envelopes that travel principal-to-principal outside any Realm context, so the Realm-scoped Actor identity used by message.schema.json / event-payload.schema.json does not apply here. For a device sender, pair it with sender_device_id and verify that pair against the accepted PCR device projection; for a Native Agent sender it equals sender_agent_id and the signer is anchored by sender_agent_verification_method plus sender_agent_key_authorize_event_id. For the restricted Principal Server service branch it MUST equal recipient_principal_id: the holder remains the message principal while sender_id identifies the internal materializer."
     },
     "sender_device_id": {
       "$ref": "#/$defs/device_id",
-      "description": "Authoring human device. Exactly one sender endpoint branch is present: this field, the complete sender_agent_* triple, or sender_service_id. A Native Agent runtime has no device identity and MUST NOT be disguised as an ak:device (crypto-media/device-lifecycle.md section 9.0.1); the restricted Principal Server materializer likewise has a service identity rather than a fake device. Receivers use the selected endpoint field in the device-message deduplication key."
+      "description": "Authoring human device. Exactly one sender endpoint branch is present: this field, the complete sender_agent_* triple, or sender_id. A Native Agent runtime has no device identity and MUST NOT be disguised as an ak:device (crypto-media/device-lifecycle.md section 9.0.1); the restricted Principal Server materializer likewise has a service identity rather than a fake device. Receivers use the selected endpoint field in the device-message deduplication key."
     },
     "sender_agent_id": {
       "$ref": "#/$defs/did_core_id",
@@ -42,7 +42,7 @@
       "$ref": "./common-ids.schema.json#/$defs/event_id",
       "description": "Accepted Agent key authorization Event that anchors sender_agent_verification_method."
     },
-    "sender_service_id": {
+    "sender_id": {
       "$ref": "#/$defs/did_core_id",
       "description": "Principal Server service identity that internally materialized an actor-private update for the holder. This branch is restricted to actor_private_update_kind, sender_principal_id MUST equal recipient_principal_id, and the service id MUST equal the Principal Server identity bound to the recipient's current authenticated self/to-device surface. It is not a bearer delegation and cannot be submitted through ak.self.device_messages.command.send.v1."
     },
@@ -70,7 +70,7 @@
   "additionalProperties": false,
   "allOf": [
     {
-      "$comment": "Closed sender endpoint XOR: sender_device_id alone, the complete sender_agent_* triple alone, or sender_service_id alone. Half-filled and mixed branches are rejected.",
+      "$comment": "Closed sender endpoint XOR: sender_device_id alone, the complete sender_agent_* triple alone, or sender_id alone. Half-filled and mixed branches are rejected.",
       "oneOf": [
         {
           "required": [
@@ -95,7 +95,7 @@
               },
               {
                 "required": [
-                  "sender_service_id"
+                  "sender_id"
                 ]
               }
             ]
@@ -116,7 +116,7 @@
               },
               {
                 "required": [
-                  "sender_service_id"
+                  "sender_id"
                 ]
               }
             ]
@@ -124,7 +124,7 @@
         },
         {
           "required": [
-            "sender_service_id"
+            "sender_id"
           ],
           "not": {
             "anyOf": [
@@ -157,7 +157,7 @@
       "$comment": "Only the recipient Principal Server's internal materializer may use the service branch, and only for the closed actor-private update kind set. Principal equality and authenticated service binding are semantic checks described by the normative prose.",
       "if": {
         "required": [
-          "sender_service_id"
+          "sender_id"
         ]
       },
       "then": {
@@ -212,7 +212,7 @@
           "content": {
             "required": [
               "transaction_id",
-              "from_device",
+              "from_device_id",
               "methods",
               "timestamp",
               "expires_at"
@@ -237,7 +237,7 @@
           "content": {
             "required": [
               "transaction_id",
-              "from_device",
+              "from_device_id",
               "methods"
             ]
           }
@@ -260,7 +260,7 @@
           "content": {
             "required": [
               "transaction_id",
-              "from_device",
+              "from_device_id",
               "method"
             ]
           }
@@ -283,7 +283,7 @@
           "content": {
             "required": [
               "transaction_id",
-              "from_device",
+              "from_device_id",
               "commitment"
             ]
           }
@@ -306,7 +306,7 @@
           "content": {
             "required": [
               "transaction_id",
-              "from_device",
+              "from_device_id",
               "key"
             ]
           }
@@ -329,7 +329,7 @@
           "content": {
             "required": [
               "transaction_id",
-              "from_device",
+              "from_device_id",
               "mac",
               "keys"
             ]
@@ -353,7 +353,7 @@
           "content": {
             "required": [
               "transaction_id",
-              "from_device",
+              "from_device_id",
               "code"
             ]
           }
@@ -438,7 +438,7 @@
       "required": [
         "request_id",
         "secret_id",
-        "from_device",
+        "from_device_id",
         "recipient_hpke_public_key"
       ],
       "properties": {
@@ -451,7 +451,7 @@
           "pattern": "^[a-z0-9_]+$",
           "description": "Opaque identifier of the requested secret, e.g. example_mls_account_secret."
         },
-        "from_device": {
+        "from_device_id": {
           "$ref": "#/$defs/device_id",
           "description": "Requesting (new) device; MUST equal envelope sender_device_id."
         },
@@ -469,7 +469,7 @@
       "required": [
         "request_id",
         "secret_id",
-        "from_device",
+        "from_device_id",
         "scheme",
         "enc",
         "ciphertext"
@@ -484,7 +484,7 @@
           "pattern": "^[a-z0-9_]+$",
           "description": "Opaque requested secret identifier; MUST equal the secret_id authenticated inside the sealed plaintext and HPKE AAD."
         },
-        "from_device": {
+        "from_device_id": {
           "$ref": "#/$defs/device_id",
           "description": "Authorizing (existing) device; MUST equal envelope sender_device_id and MUST be a non-revoked device of the recipient principal."
         },
@@ -508,13 +508,13 @@
       "type": "object",
       "required": [
         "transaction_id",
-        "from_device"
+        "from_device_id"
       ],
       "properties": {
         "transaction_id": {
           "$ref": "#/$defs/transaction_id"
         },
-        "from_device": {
+        "from_device_id": {
           "$ref": "#/$defs/device_id"
         },
         "methods": {

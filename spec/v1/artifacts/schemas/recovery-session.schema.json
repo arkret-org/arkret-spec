@@ -548,7 +548,7 @@
             "type": "object",
             "required": [
               "share_id",
-              "holder",
+              "holder_id",
               "transcript_digest",
               "verification_method",
               "signature_algorithm",
@@ -559,7 +559,7 @@
                 "type": "string",
                 "pattern": "^[A-Za-z0-9_-]{1,64}$"
               },
-              "holder": {
+              "holder_id": {
                 "$ref": "#/$defs/did_core_id"
               },
               "transcript_digest": {
@@ -873,7 +873,7 @@
             "type": "object",
             "required": [
               "share_id",
-              "holder",
+              "holder_id",
               "transcript_digest",
               "verification_method",
               "signature_algorithm"
@@ -883,7 +883,7 @@
                 "type": "string",
                 "pattern": "^[A-Za-z0-9_-]{1,64}$"
               },
-              "holder": {
+              "holder_id": {
                 "$ref": "#/$defs/did_core_id"
               },
               "transcript_digest": {

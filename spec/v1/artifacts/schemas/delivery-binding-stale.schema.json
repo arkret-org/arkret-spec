@@ -2,22 +2,22 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/delivery-binding-stale.schema.json",
   "title": "Arkret Delivery Binding Stale Error Body",
-  "description": "Canonical error body for the delivery_binding_stale federation signal. A receiver that has accepted a member delivery-binding rebind handover returns this when a sender still delivers under the pre-handover binding. Carries new_recipient_service_id, handover_frontier, and a verifiable handover_proof binding the accepted ak.member.state{membership=join} rebind Move. High-risk redirect: senders MUST cross-verify handover_frontier via a non-destination witness and validate handover_proof (reachability, seal-frontier finalization, allowed_recipient_services membership, trust-domain guard) before following. See zh/sync/federation.md §4.1 and registry/error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
+  "description": "Canonical error body for the delivery_binding_stale federation signal. A receiver that has accepted a member delivery-binding rebind handover returns this when a sender still delivers under the pre-handover binding. Carries new_recipient_id, handover_frontier, and a verifiable handover_proof binding the accepted ak.member.state{membership=join} rebind Move. High-risk redirect: senders MUST cross-verify handover_frontier via a non-destination witness and validate handover_proof (reachability, seal-frontier finalization, allowed_recipient_services membership, trust-domain guard) before following. See zh/sync/federation.md §4.1 and registry/error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
   "type": "object",
   "required": [
-    "new_recipient_service_id",
-    "new_service_resolution",
+    "new_recipient_id",
+    "new_recipient_resolution",
     "handover_frontier",
     "handover_proof"
   ],
   "properties": {
-    "new_recipient_service_id": {
+    "new_recipient_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Stable target Principal Server service did_core_id after rebind. MUST be within the current effective allowed_recipient_services / delivery binding policy allow set."
     },
-    "new_service_resolution": {
+    "new_recipient_resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-      "description": "First-hop material for new_recipient_service_id. A sender verifies the handover and this resolution record before following the redirect."
+      "description": "First-hop material for new_recipient_id. A sender verifies the handover and this resolution record before following the redirect."
     },
     "handover_frontier": {
       "$ref": "#/$defs/event_id_list",
@@ -28,7 +28,7 @@
       "description": "Verifiable proof binding the accepted ak.member.state{membership=join} rebind Move that produced the new binding.",
       "required": [
         "frontier",
-        "recipient_service_id",
+        "recipient_id",
         "actor_id",
         "witness"
       ],
@@ -37,9 +37,9 @@
           "$ref": "#/$defs/event_id_list",
           "description": "MUST equal the top-level handover_frontier."
         },
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "MUST equal the top-level new_recipient_service_id."
+          "description": "MUST equal the top-level new_recipient_id."
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",

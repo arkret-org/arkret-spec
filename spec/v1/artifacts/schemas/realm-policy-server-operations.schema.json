@@ -32,7 +32,7 @@
       "type": "object",
       "required": [
         "realm_id",
-        "policy_server_service_id",
+        "policy_server_id",
         "policy_server_url",
         "cache_ttl_seconds",
         "timeout_ms",
@@ -44,7 +44,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "policy_server_service_id": {
+        "policy_server_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "policy_server_url": {

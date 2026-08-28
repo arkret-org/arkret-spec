@@ -798,8 +798,8 @@
         "event_kind": "ak.identity.accountability_grant",
         "cell_family": "ak.component.identity.accountability.v1",
         "components": [
-          "payload.issuer",
-          "payload.subject",
+          "payload.issuer_id",
+          "payload.subject_id",
           {
             "kind": "string_set_digest",
             "field": "payload.accountability_scope",

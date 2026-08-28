@@ -329,7 +329,7 @@ GET /_arkret/describe
       "verification_run_id": "verify-2026-05-02T000000Z",
       "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "artifact_ref": "https://verifier.example/log/verify-2026-05-02T000000Z",
-      "verifier_service_id": "ak:did_core:webvh:zC72cg8H1bJUTB6ZngzxP68BJ",
+      "verifier_id": "ak:did_core:webvh:zC72cg8H1bJUTB6ZngzxP68BJ",
       "signature": "base64url:...",
       "timestamp": "2026-05-02T00:00:00.000Z"
     }
@@ -405,8 +405,8 @@ operation/schema/fixture closure 时才可独立声明它，缺少其中任一 o
   构建 conformance matrix 的工具 MUST 把它视为严格弱于 `claimed_profiles`。
 - `claimed_profiles: [{profile_id, claim_kind: "self_claimed", ...}]` — 服务自声明加入的 profile。
   `claim_kind` 当前固定为 `self_claimed`；Conformance Verifier 验证结果 MUST 改写到 `verified_profiles`，不得复制到本字段。
-- `verified_profiles: [{profile_id, claim_kind: "conformance_verified", verification_run_id, artifact_digest, artifact_ref, verifier_service_id, signature, timestamp, expires_at?}]` —
-  附带 verification run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、verifier identity、签名与验证时间戳的已验证 profile。`verifier_service_id` 承载稳定 verifier `did_core_id`；artifact proof 的 verification-method DID URL 必须取 bare `did`，经已登记 adapter 验证并投影到该值，不得把DID 填入此字段。签发主体是中立角色 **Conformance Verifier**（定义见
+- `verified_profiles: [{profile_id, claim_kind: "conformance_verified", verification_run_id, artifact_digest, artifact_ref, verifier_id, signature, timestamp, expires_at?}]` —
+  附带 verification run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、verifier identity、签名与验证时间戳的已验证 profile。`verifier_id` 承载稳定 verifier `did_core_id`；artifact proof 的 verification-method DID URL 必须取 bare `did`，经已登记 adapter 验证并投影到该值，不得把DID 填入此字段。签发主体是中立角色 **Conformance Verifier**（定义见
   [`conformance-suite.md`](../conformance/conformance-suite.md) §6.2）。**约束**：当 `development_mode=true`
   时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
 - `interop_surfaces: [{name, kind, since?, notes?}]` — Arkret v1 conformance 之外的 surface：
@@ -431,7 +431,7 @@ operation/schema/fixture closure 时才可独立声明它，缺少其中任一 o
 2. dev / placeholder posture 下，自检 `verified_profiles == []` 并在初始化时 fail closed。
 3. conformance 报告工具与 admin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`conformance_verified`、
    `experimental`、`compat`、`not_claimed`。
-4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 verification artifact，校验 `artifact_digest`、`verifier_service_id`、`signature`、时间戳和可选 `expires_at`。
+4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 verification artifact，校验 `artifact_digest`、`verifier_id`、`signature`、时间戳和可选 `expires_at`。
 
 `plaintext_visibility.data_classes` 是机器可判定的明文类别白名单。`event_kinds`、`payload_paths`、`blob_purposes` 和 `projection_outputs` 只是进一步缩小或解释范围，不能替代 `data_classes`；`notes` 只供人读。Realm policy 的 `plaintext_visible_services[].data_classes` MUST 是目标 `ServiceDescribe.plaintext_visibility.data_classes` 的子集，且 `visibility` 不得高于 `max_visibility`。若 describe 缺失 `data_classes` 或只给出自由文本 `purposes`，客户端 / reducer MUST 把它视为不能接收私有明文。
 
@@ -924,7 +924,7 @@ POST /_arkret/find/directory/resolve-agent-selector
 POST /_arkret/find/directory/list-handles-for-subject
 ```
 
-Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / contact request / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 intent 验证通过时披露。`resolve-agent-selector` 只做精确 `@<controller-handle>/<agent_slug>` compose-time 解析；成功时返回 agent DID 与当前可见 `ak.schema.agent_selector_claim.v1`，未授权、不可见、不存在、revoked / expired / ambiguous 时 MUST 使用与不存在不可区分的失败。`list-handles-for-subject` 用于已知 subject DID 时列出当前 context 可见 signed handle claims；它必须执行同样的 disclosure、issuer trust、audience 和 requester policy 过滤。Directory 返回的 `member_delivery_binding.recipient_service_id` 只可作为 contact address / handle evidence / join builder 输入，不能替代 `receive_policy_constraints`、Realm `delivery_binding` 或 grant 校验。该字段是 **builder evidence，不是 delivery 授权**：它**不是** member-level delivery 的权威路由来源（权威来源是 effective `ak.member.state.delivery_binding`），reducer MUST 按 [`../governance/member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化 effective delivery binding，不得把 Directory 披露的该字段直接当作投递目标授权。语义边界回指 [`invite-addressing.md` §9](./invite-addressing.md)。
+Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / contact request / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 intent 验证通过时披露。`resolve-agent-selector` 只做精确 `@<controller-handle>/<agent_slug>` compose-time 解析；成功时返回 agent DID 与当前可见 `ak.schema.agent_selector_claim.v1`，未授权、不可见、不存在、revoked / expired / ambiguous 时 MUST 使用与不存在不可区分的失败。`list-handles-for-subject` 用于已知 subject DID 时列出当前 context 可见 signed handle claims；它必须执行同样的 disclosure、issuer trust、audience 和 requester policy 过滤。Directory 返回的 `member_delivery_binding.recipient_id` 只可作为 contact address / handle evidence / join builder 输入，不能替代 `receive_policy_constraints`、Realm `delivery_binding` 或 grant 校验。该字段是 **builder evidence，不是 delivery 授权**：它**不是** member-level delivery 的权威路由来源（权威来源是 effective `ak.member.state.delivery_binding`），reducer MUST 按 [`../governance/member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化 effective delivery binding，不得把 Directory 披露的该字段直接当作投递目标授权。语义边界回指 [`invite-addressing.md` §9](./invite-addressing.md)。
 
 ### 8.6 私密联系人发现
 

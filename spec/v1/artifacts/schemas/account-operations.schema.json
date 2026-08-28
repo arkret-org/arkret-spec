@@ -301,7 +301,7 @@
         "proof_kind",
         "challenge",
         "request_canonical_digest",
-        "audience",
+        "audience_id",
         "issued_at",
         "expires_at",
         "signature"
@@ -324,7 +324,7 @@
         "request_canonical_digest": {
           "$ref": "#/$defs/sha256_digest"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable target-service authorization identity. A service DID used for signature verification is supplied separately and MUST project to this did_core_id."
         },
@@ -360,8 +360,8 @@
         "log_head_digest",
         "control_key_digest",
         "dpop_jkt",
-        "audience",
-        "origin",
+        "audience_id",
+        "origin_uri",
         "trust_domain",
         "issued_at",
         "expires_at",
@@ -420,10 +420,10 @@
           "$ref": "#/$defs/dpop_jkt",
           "description": "DPoP holder thumbprint echoed by the durable challenge."
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin": {
+        "origin_uri": {
           "$ref": "#/$defs/non_empty_string"
         },
         "trust_domain": {
@@ -457,8 +457,8 @@
         "proof_kind",
         "challenge",
         "request_canonical_digest",
-        "audience",
-        "issuer",
+        "audience_id",
+        "issuer_uri",
         "client_id",
         "redirect_uri",
         "state",
@@ -480,10 +480,10 @@
           "$ref": "#/$defs/sha256_digest",
           "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete account_handoff_request_body with proof.request_canonical_digest and proof.signature omitted."
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "issuer": {
+        "issuer_uri": {
           "type": "string",
           "format": "uri"
         },
@@ -859,8 +859,8 @@
         "identity_creation_lease_id",
         "lease_fence",
         "dpop_jkt",
-        "audience",
-        "origin",
+        "audience_id",
+        "origin_uri",
         "trust_domain",
         "issued_at",
         "expires_at"
@@ -931,10 +931,10 @@
         "dpop_jkt": {
           "$ref": "#/$defs/dpop_jkt"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin": {
+        "origin_uri": {
           "type": "string",
           "format": "uri"
         },
@@ -987,8 +987,8 @@
         "identity_creation_lease_id",
         "lease_fence",
         "dpop_jkt",
-        "audience",
-        "origin",
+        "audience_id",
+        "origin_uri",
         "trust_domain",
         "issued_at",
         "expires_at",
@@ -1061,10 +1061,10 @@
         "dpop_jkt": {
           "$ref": "#/$defs/dpop_jkt"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin": {
+        "origin_uri": {
           "type": "string",
           "format": "uri"
         },
@@ -1884,7 +1884,7 @@
         "account_authority_id",
         "account_id",
         "status_seq",
-        "receiver_service_id",
+        "receiver_id",
         "accepted_at",
         "proof"
       ],
@@ -1912,7 +1912,7 @@
           "type": "integer",
           "minimum": 1
         },
-        "receiver_service_id": {
+        "receiver_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "accepted_at": {
@@ -2229,8 +2229,8 @@
         "log_head_digest",
         "control_key_digest",
         "dpop_jkt",
-        "audience",
-        "origin",
+        "audience_id",
+        "origin_uri",
         "trust_domain",
         "issued_at",
         "expires_at"
@@ -2284,10 +2284,10 @@
         "dpop_jkt": {
           "$ref": "#/$defs/dpop_jkt"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin": {
+        "origin_uri": {
           "$ref": "#/$defs/non_empty_string"
         },
         "trust_domain": {
@@ -2367,8 +2367,8 @@
         "lease_fence",
         "consequence_disclosure",
         "dpop_jkt",
-        "audience",
-        "origin",
+        "audience_id",
+        "origin_uri",
         "trust_domain",
         "issued_at",
         "expires_at"
@@ -2417,10 +2417,10 @@
         "dpop_jkt": {
           "$ref": "#/$defs/dpop_jkt"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "origin": {
+        "origin_uri": {
           "type": "string",
           "format": "uri"
         },

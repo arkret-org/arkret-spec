@@ -42,7 +42,7 @@
     "non_empty_string": {
       "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
-    "url": {
+    "uri": {
       "type": "string",
       "format": "uri"
     },
@@ -133,7 +133,7 @@
     },
     "route_tokens": {
       "type": "object",
-      "description": "Gateway-internal opaque routing fragment shared by blind and visible notifications. Every field here drives gateway-side routing / dedup / circuit-breaker state and MUST be stripped before the gateway calls any push provider; it MUST NOT be forwarded to a provider. Tokens are issued by the recipient Sync or Principal Service and bound to recipient_service_id, push gateway service DID, purpose, scope, and salt epoch.",
+      "description": "Gateway-internal opaque routing fragment shared by blind and visible notifications. Every field here drives gateway-side routing / dedup / circuit-breaker state and MUST be stripped before the gateway calls any push provider; it MUST NOT be forwarded to a provider. Tokens are issued by the recipient Sync or Principal Service and bound to recipient_id, push gateway service DID, purpose, scope, and salt epoch.",
       "properties": {
         "realm_route_token": {
           "$ref": "#/$defs/push_route_token",
@@ -382,15 +382,15 @@
       "type": "object",
       "required": [
         "device_id",
-        "push_gateway",
+        "push_gateway_uri",
         "push_key"
       ],
       "properties": {
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
-        "push_gateway": {
-          "$ref": "#/$defs/url"
+        "push_gateway_uri": {
+          "$ref": "#/$defs/uri"
         },
         "push_key": {
           "$ref": "#/$defs/push_key"
@@ -411,7 +411,7 @@
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "#/$defs/did_core_id"
         }
       },
@@ -425,7 +425,7 @@
       "properties": {
         "push_target_id": {
           "$ref": "./common-ids.schema.json#/$defs/push_target_id",
-          "description": "Server-derived pairwise pseudonym for this registration, derived per push-notifications.md section 2.2 (HMAC-SHA256 over the service-private push secret and the canonical recipient_service_id / principal_id / device_id / push_route_id / salt_epoch_id tuple). The caller and the device MUST use this exact value as the notify target; they MUST NOT mint their own push_target_id."
+          "description": "Server-derived pairwise pseudonym for this registration, derived per push-notifications.md section 2.2 (HMAC-SHA256 over the service-private push secret and the canonical recipient_id / principal_id / device_id / push_route_id / salt_epoch_id tuple). The caller and the device MUST use this exact value as the notify target; they MUST NOT mint their own push_target_id."
         },
         "registration_id": {
           "$ref": "#/$defs/registration_id"

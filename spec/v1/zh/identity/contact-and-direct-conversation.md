@@ -393,7 +393,7 @@ founding_receipt_transcript = H("ak.direct-conversation.founding-receipt.v1",
                                 receipt 去掉 proof 后的完整 closed object)
 ```
 
-`proof.verification_method` **MUST** 解析为 `issuer_service_id` 在 `accepted_at` 时的 current service key，
+`proof.verification_method` **MUST** 解析为 `issuer_id` 在 `accepted_at` 时的 current service key，
 `proof.created_at` **MUST** 等于 `accepted_at`。receiver **MUST** 从 receipt 自身字段重算该 transcript 再验签，
 **MUST NOT** 采信任何随 receipt 传来的预算 digest；这使 byte-identical retry 与两个独立实现必然得到同一
 transcript 与同一签名输入。

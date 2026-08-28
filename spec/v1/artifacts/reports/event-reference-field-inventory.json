@@ -8,7 +8,7 @@
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
     "digest_copy_or_commitment": 19,
-    "complete_event_id": 167,
+    "complete_event_id": 169,
     "external_event_namespace": 1
   },
   "fields": [
@@ -650,8 +650,20 @@
     },
     {
       "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/realm_tombstone_payload/properties/replacement_event_id",
+      "field": "replacement_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
       "json_pointer": "/$defs/sidecar_context_attach_payload/properties/predecessor_event_ref",
       "field": "predecessor_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/space_object_tombstone_payload/properties/replacement_event_id",
+      "field": "replacement_event_id",
       "classification": "complete_event_id"
     },
     {

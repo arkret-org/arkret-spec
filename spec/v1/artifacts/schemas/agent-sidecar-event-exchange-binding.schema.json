@@ -234,7 +234,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Initial coordinator. It MUST be one of addressed_agent_ids. It MAY be omitted only when addressed_agent_ids contains exactly one item, in which case that sole item is implied."
         },
-        "source_frontier_anchor": {
+        "source_frontier_anchor_id": {
           "type": "string",
           "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         }

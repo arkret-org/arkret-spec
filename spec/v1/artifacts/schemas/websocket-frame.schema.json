@@ -44,7 +44,7 @@
     "account_filter": {
       "type": "object",
       "properties": {
-        "realms": {
+        "realm_ids": {
           "type": "array",
           "maxItems": 256,
           "uniqueItems": true,
@@ -103,7 +103,7 @@
     "events_open_parameters": {
       "type": "object",
       "properties": {
-        "realms": {
+        "realm_ids": {
           "type": "array",
           "minItems": 1,
           "maxItems": 256,
@@ -112,7 +112,7 @@
             "$ref": "./common-ids.schema.json#/$defs/realm_id"
           }
         },
-        "actors": {
+        "actor_ids": {
           "type": "array",
           "minItems": 1,
           "maxItems": 256,
@@ -131,12 +131,12 @@
       "anyOf": [
         {
           "required": [
-            "realms"
+            "realm_ids"
           ]
         },
         {
           "required": [
-            "actors"
+            "actor_ids"
           ]
         }
       ],

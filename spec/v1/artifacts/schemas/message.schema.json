@@ -176,7 +176,7 @@
       "$ref": "#/$defs/timestamp",
       "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding ak.message.redact Event. Aligns with the common-fields rule in models/common-fields.md §3."
     },
-    "revision_root": {
+    "revision_root_id": {
       "type": "string",
       "pattern": "^ak:message:[A-Za-z0-9_-]{44}$",
       "description": "First revision in this message's edit chain. The first revision MUST have revision_root == id. Maintained by ak.message.revise reducer."
@@ -434,7 +434,7 @@
           },
           {
             "required": [
-              "revision_root"
+              "revision_root_id"
             ]
           },
           {
@@ -493,7 +493,7 @@
         "anyOf": [
           {
             "required": [
-              "revision_root"
+              "revision_root_id"
             ]
           },
           {

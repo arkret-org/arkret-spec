@@ -9,8 +9,8 @@
       "required": [
         "request_id",
         "principal_id",
-        "agent_authority_service_id",
-        "agent_authority_service_resolution"
+        "agent_authority_id",
+        "agent_authority_resolution"
       ],
       "properties": {
         "request_id": {
@@ -21,11 +21,11 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Controller principal whose Account Authority lifecycle gate is being attested."
         },
-        "agent_authority_service_id": {
+        "agent_authority_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Native Agent PCR authority service assembling signer evidence. It MUST equal both the authenticated S2S caller and service_id in the controller principal's current AcceptedAtServiceBinding."
         },
-        "agent_authority_service_resolution": {
+        "agent_authority_resolution": {
           "$ref": "#/$defs/authenticated_service_resolution",
           "description": "Current signed route and method-native control evidence for the Agent PCR authority. The Account Authority verifies this carrier before using its RFC 9421 keyid; a did_core_id, URL, bearer token or self-asserted public key is never a key source."
         }
@@ -95,7 +95,7 @@
         "operation_id",
         "request_digest",
         "verifier_id",
-        "audience",
+        "audience_id",
         "challenge"
       ],
       "properties": {
@@ -119,7 +119,7 @@
         "verifier_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "challenge": {
@@ -137,7 +137,7 @@
         "agent_id",
         "verification_method",
         "event_id",
-        "receiver_service_id"
+        "receiver_id"
       ],
       "properties": {
         "verification_mode": {
@@ -154,7 +154,7 @@
         "event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
         },
-        "receiver_service_id": {
+        "receiver_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         }
       },

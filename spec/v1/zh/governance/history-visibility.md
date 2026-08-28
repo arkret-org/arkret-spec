@@ -270,7 +270,7 @@ Request create 返回成功前，release service 必须冻结并完整验证 req
 Control Move 及 registered replay dependencies。remote member source 只走普通 authenticated Realm/federation 治理可见性；request replica 只证明请求/receipt bytes、authorization 与 TTL，不承诺 cut 且不扩张治理可见性。仅 RRK pending archive replica 可用 `pending_archive_replica_digest` 取得 peer retained-cut 窄访问。caller 不得自报 allowed ref 数组；服务从 retained intent/cut 机械判定。普通 timeline visibility 与
 TraversalAccess 互斥，unknown/unauthorized/out-of-cut 同形。旧 evidence-page read operation 与 descriptor-access branch 均不存在。
 
-Request create 时 requester 当前 delivery binding/authenticated Principal Server 是该 request response stream 唯一 `release_service_id`。Request
+Request create 时 requester 当前 delivery binding/authenticated Principal Server 是该 request response stream 唯一 `release_id`。Request
 receipt、sealed capability context 与 response stream 都冻结该 service DID、binding/resolution refs 和 route digest；后续 retry 或路由变化
 不得替换。固定 service DID 是该 request 的唯一 release authority；chunk 首次入队时仍必须确认 receipt 中的 delivery binding
 仍指向该 DID。同一 DID 的 ServiceResolution successor 允许成为新 route；只有 delivery binding 改绑另一 service DID 时
@@ -405,7 +405,7 @@ Service proof 的 transcript 是移除 `service_proof` 后完整 closed response
 不完整的外层摘要。每条 normal record 与 lost descriptor 都 MUST 携带
 `release_service_signer_evidence_ref + release_service_signer_evidence_digest`；该坐标必须解析为
 `AuthenticatedSignerResolutionEvidence::Service`，其 signer id 和 verification method 分别逐字等于 receipt 冻结的
-`release_service_id` 与该条 `service_proof.verification_method`，并按 `service_proof.created_at` 验证完整 method history。
+`release_id` 与该条 `service_proof.verification_method`，并按 `service_proof.created_at` 验证完整 method history。
 Release service 必须在首次写入 record/lost 的同一事务中把该 evidence 及其递归依赖按 request-receipt access 保留到 request expiry；
 requester 通过 receipt-bound governance-dependency resolve 获取，不依赖 current DID document 或另建 resolution-chain surface。
 Manifest record MUST 不含 release attestation。
@@ -526,7 +526,7 @@ resident instance 并取得新 sequence。每 `(scope,group,epoch)` 最多 8 份
 `origin_quota_domain`。三分支为：
 
 - `response_sender`：quota domain=`{source_sender_domain}`，origin ref=`{response_id,source_record_digest}`；
-- `rrk_archive`：quota domain=`{holder_principal_id,holder_service_id,recovery_key_id,accepted_key_evidence_ref}`，其中 accepted
+- `rrk_archive`：quota domain=`{holder_principal_id,holder_id,recovery_key_id,accepted_key_evidence_ref}`，其中 accepted
   evidence EventId 就是 rotation identity 且不存在独立 key version；origin ref=
   `{container_event_ref,archive_digest}`；
 - `portable_backup`：quota domain=`{backup_series_id,producer_actor_id}`，origin ref=`{backup_origin_id}`。
@@ -594,7 +594,7 @@ backfill/revoke。Custody 复制、HSM、Shamir 或 threshold 不上 Realm/Circl
 
 跨服务 holder 可达性只用私有 `ak.peer.organization_recovery_archives.command.replicate.v1`：source scope service 将 exact
 archive、container Event ref、archive-lifetime `HistoryGovernanceTraversalRetention` 复制到 tuple 冻结的
-`holder_service_id`。Archive tuple 保留声明 key provenance 的 `accepted_key_evidence_ref` EventId 与 holder acceptance 已 pin 的 prior
+`holder_id`。Archive tuple 保留声明 key provenance 的 `accepted_key_evidence_ref` EventId 与 holder acceptance 已 pin 的 prior
 `holder_trusted_basis` 完整 Seal antichain；没有 singular activation Seal selector。每个 ArchiveListItem 的 traversal intent 只有一个 singleton
 `requested_ranges=[{from_epoch:epoch,to_epoch:epoch}]`，base 逐字等于该 tuple 的 holder trusted basis，target basis 经完整 replay 证明
 key-evidence Event 已成为 effective tuple 且 container Event 是该 epoch winning transition。不同 item 逻辑独立，服务可按 digest 物理复用

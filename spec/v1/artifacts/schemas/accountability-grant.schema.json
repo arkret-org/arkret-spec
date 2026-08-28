@@ -6,8 +6,8 @@
   "type": "object",
   "required": [
     "schema",
-    "issuer",
-    "subject",
+    "issuer_id",
+    "subject_id",
     "accountability_scope",
     "not_before",
     "grant_status",
@@ -17,11 +17,11 @@
     "schema": {
       "const": "ak.schema.accountability_grant.v1"
     },
-    "issuer": {
+    "issuer_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Stable principal did_core_id accepting accountability for subject. Verifiers MUST take the proof verification-method DID URL's bare controller did, validate it with the registered method adapter, and require project(did) to equal issuer; direct DID/core-id string comparison is forbidden."
     },
-    "subject": {
+    "subject_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Actor principal DID being endorsed."
     },

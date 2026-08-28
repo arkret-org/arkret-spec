@@ -208,7 +208,7 @@ Session close 后不得追加新的 `ak.audit.release`；需要更多材料必�
 - `attested_hardware` release MUST 等待 verifier 从 receipt 的 `witnesses[]`、该 frontier 已接受的 `audit.ryw_witnesses[]` policy 与 operator control chain 计算出 `federation_witness_attested`：至少两个 witness，且 `witness_id`、`verification_method`、`controlling_organization_id` 分别互异；每个 witness 均被 policy 列出，并且不得由 release service、audit actor 或 Realm operator 自己控制。每个 receipt MUST 携带 `realm_operator_organization`，verifier MUST 由 Realm service / operator 的 DID 控制链独立验证该值；任一 witness 的 `controlling_organization_id` 与其相同或同属一个最终控制组织时，receipt MUST `audit_receipt_invalidated` fail closed。producer 不在 wire 上声明该派生 class。
 - `disclosed_policy` MAY 使用 verifier 从单个有效 witness 计算出的 `single_source` receipt，但 issuer 仍不得是 release service / audit actor 本身。
 - Receipt 的 `audit_policy_version_digest` MUST 覆盖 `{realm_id, trust_domain, audit_binding, release_policy, release_window_policy, activation_frontier_digest, first_auditable_epoch}`，并与 `ak.audit.release.eligibility_proof` 一致；policy hash MUST 按本节定义计算，不得引入其他 hash 语义。
-- Remote attestation evidence 绑定的是 release service / applet controlled output path，不是 MLS group membership。Evidence MUST 绑定 `realm_id`、`service_id`、`audit_service_actor_id`、measurement、purpose、policy digest、validity 和 operator DID。
+- Remote attestation evidence 绑定的是 release service / applet controlled output path，不是 MLS group membership。Evidence MUST 绑定 `realm_id`、`service_id`、`audit_actor_id`、measurement、purpose、policy digest、validity 和 operator DID。
 
 ## 7. 非保证项
 

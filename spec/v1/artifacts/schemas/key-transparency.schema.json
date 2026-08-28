@@ -8,7 +8,7 @@
   "additionalProperties": false,
   "required": [
     "schema",
-    "log_service_id",
+    "log_id",
     "principal_id",
     "key_material_digest",
     "log_head",
@@ -20,7 +20,7 @@
     "schema": {
       "const": "ak.schema.key_transparency.v1"
     },
-    "log_service_id": {
+    "log_id": {
       "$ref": "#/$defs/did_core_id"
     },
     "principal_id": {
@@ -136,12 +136,12 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "witness_service_id",
+        "witness_id",
         "verification_method",
         "signature"
       ],
       "properties": {
-        "witness_service_id": {
+        "witness_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "verification_method": {

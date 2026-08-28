@@ -18,7 +18,7 @@
     "witness_verification_method",
     "controlling_organization_did",
     "observed_at",
-    "issuer_service_id",
+    "issuer_id",
     "expires_at",
     "created_at",
     "signature"
@@ -64,12 +64,12 @@
       "$ref": "#/$defs/timestamp",
       "description": "When the issuer actually fetched or observed the witness proof. Freshness is evaluated against this instant, not against created_at: an issuer could otherwise re-sign a years-old observation and present it as current."
     },
-    "source": {
+    "source_uri": {
       "type": "string",
       "format": "uri",
       "description": "Optional origin the proof was read from (the DID's own did-witness.json or a declared mirror). Recorded so a consumer can tell a first-party read from a mirrored one when adjudicating conflicting receipts."
     },
-    "issuer_service_id": {
+    "issuer_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Stable did_core_id of the Arkret service issuing this receipt. This is the trust root for the receipt itself, and is unrelated to the DID's own controller."
     },
@@ -99,7 +99,7 @@
           "type": "string"
         }
       },
-      "description": "Issuer detached proof. payload_digest = sha256(canonical_json(receipt with signature omitted)). The detached JWS signs canonical_json({context:'ak.did_webvh_witness_receipt_proof.v1', payload_digest, issuer_service_id, did, version_id, witness_did, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag and is not a wire field. signature.created_at MUST equal receipt.created_at. signature.verification_method MUST be a currently valid assertion method controlled by issuer_service_id. Receipt audience and proof audience MUST either both be absent or be the same single string; array-valued proof audiences are invalid for this object family."
+      "description": "Issuer detached proof. payload_digest = sha256(canonical_json(receipt with signature omitted)). The detached JWS signs canonical_json({context:'ak.did_webvh_witness_receipt_proof.v1', payload_digest, issuer_id, did, version_id, witness_did, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag and is not a wire field. signature.created_at MUST equal receipt.created_at. signature.verification_method MUST be a currently valid assertion method controlled by issuer_id. Receipt audience and proof audience MUST either both be absent or be the same single string; array-valued proof audiences are invalid for this object family."
     }
   },
   "additionalProperties": false

@@ -286,7 +286,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification; the Content-Digest header profile, exact-content digest, or canonical-JSON wire check failed; or source_service_id disagreed with the Source-Service-ID header / signature transcript. Applies to Applet transaction push and to MIMI provider-to-provider writes (zh/extensions/mimi-interop.md §5). See zh/extensions/applet-integration.md §7.3.1.",
+      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification; the Content-Digest header profile, exact-content digest, or canonical-JSON wire check failed; or source_id disagreed with the Source-Service-ID header / signature transcript. Applies to Applet transaction push and to MIMI provider-to-provider writes (zh/extensions/mimi-interop.md §5). See zh/extensions/applet-integration.md §7.3.1.",
       "type_uri": "https://arkret.org/problems/http_signature_invalid",
       "title": "Http signature invalid"
     },
@@ -1554,7 +1554,7 @@
       "code": "delivery_binding_stale",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_service_id and handover_frontier so the sender can retry at the current service. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
+      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_id and handover_frontier so the sender can retry at the current service. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/delivery_binding_stale",
       "title": "Delivery binding stale"
     },
@@ -1562,7 +1562,7 @@
       "code": "delivery_binding_handed_over",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Federation sender continued using a previous recipient_service_id after the handover grace window expired; sender MUST resolve the current binding and retry there.",
+      "description": "Federation sender continued using a previous recipient_id after the handover grace window expired; sender MUST resolve the current binding and retry there.",
       "type_uri": "https://arkret.org/problems/delivery_binding_handed_over",
       "title": "Delivery binding handed over"
     },
@@ -1570,7 +1570,7 @@
       "code": "delivery_binding_unresolvable",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_service_id after the bounded retry limit; sender MUST NOT fall back to the DID Document ArkretPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md §5.1.4.",
+      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_id after the bounded retry limit; sender MUST NOT fall back to the DID Document ArkretPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md §5.1.4.",
       "type_uri": "https://arkret.org/problems/delivery_binding_unresolvable",
       "title": "Delivery binding unresolvable"
     },
@@ -2689,7 +2689,7 @@
         "event_envelope",
         "audit_decision"
       ],
-      "description": "Audit Agent attestation evidence does not match the expected binding: realm_id, service_id, audit_service_actor_id, measurement, audit_purpose, policy digest, validity, or operator DID diverge from the registered audit binding. Join and release paths MUST fail closed. See zh/crypto-media/audited-e2ee.md §6 and artifacts/schemas/audit-release-attestation.schema.json."
+      "description": "Audit Agent attestation evidence does not match the expected binding: realm_id, service_id, audit_actor_id, measurement, audit_purpose, policy digest, validity, or operator DID diverge from the registered audit binding. Join and release paths MUST fail closed. See zh/crypto-media/audited-e2ee.md §6 and artifacts/schemas/audit-release-attestation.schema.json."
     },
     {
       "code": "audit_agent_destruction_not_paired_with_remove",
@@ -3287,7 +3287,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A federation delivery-binding handover response carried a proof that does not verify against the Realm Event graph, handover_frontier, actor_id, new_recipient_service_id, or effective delivery binding policy. Sender MUST stop redirection and MUST NOT fall back to DID Document routing. See zh/sync/federation.md §4.1."
+      "description": "A federation delivery-binding handover response carried a proof that does not verify against the Realm Event graph, handover_frontier, actor_id, new_recipient_id, or effective delivery binding policy. Sender MUST stop redirection and MUST NOT fall back to DID Document routing. See zh/sync/federation.md §4.1."
     },
     {
       "code": "delivery_binding_handover_rate_limited",
@@ -3312,7 +3312,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "The resolved member delivery binding source, recipient_service_id, endorsement set, unroutable-membership status, or selected source priority conflicts with the Realm delivery_binding_policy allowlist / priority rules. Reducers MUST NOT fall through to a lower-priority binding source after this mismatch. See zh/governance/member-delivery-binding.md §2 and §3.1."
+      "description": "The resolved member delivery binding source, recipient_id, endorsement set, unroutable-membership status, or selected source priority conflicts with the Realm delivery_binding_policy allowlist / priority rules. Reducers MUST NOT fall through to a lower-priority binding source after this mismatch. See zh/governance/member-delivery-binding.md §2 and §3.1."
     },
     {
       "code": "delivery_binding_stale",
@@ -4772,14 +4772,14 @@
         "event_envelope",
         "service_call"
       ],
-      "description": "A `ak.device.push_route` registration would exceed the v1 wire limit of 16 active push_route entries per `(recipient_service_id, principal_id, device_id)`. The server MUST reject the new registration. See zh/crypto-media/device-lifecycle.md §5.6.2 and zh/conformance/scalability-constraints.md §6.1."
+      "description": "A `ak.device.push_route` registration would exceed the v1 wire limit of 16 active push_route entries per `(recipient_id, principal_id, device_id)`. The server MUST reject the new registration. See zh/crypto-media/device-lifecycle.md §5.6.2 and zh/conformance/scalability-constraints.md §6.1."
     },
     {
       "code": "push_route_registration_rate_limited",
       "applies_to": [
         "service_call"
       ],
-      "description": "Internal audit reason recorded when push-route registration / rotation writes for a `(recipient_service_id, principal_id, device_id)` exceed the default rate (8 writes per 60s). The outward response uses a generic rate-limited envelope; this reason is for server-side abuse detection only. See zh/crypto-media/device-lifecycle.md §5.6.2 and zh/conformance/scalability-constraints.md §6.1."
+      "description": "Internal audit reason recorded when push-route registration / rotation writes for a `(recipient_id, principal_id, device_id)` exceed the default rate (8 writes per 60s). The outward response uses a generic rate-limited envelope; this reason is for server-side abuse detection only. See zh/crypto-media/device-lifecycle.md §5.6.2 and zh/conformance/scalability-constraints.md §6.1."
     },
     {
       "code": "push_target_unknown",

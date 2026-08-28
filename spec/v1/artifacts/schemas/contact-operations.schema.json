@@ -385,7 +385,7 @@
       "type": "object",
       "required": [
         "subject_id",
-        "recipient_service_id",
+        "recipient_id",
         "service_resolution"
       ],
       "properties": {
@@ -393,19 +393,19 @@
           "$ref": "#/$defs/did_core_id",
           "description": "Principal DID whose private Contact projection receives this fact."
         },
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Stable Principal Server service did_core_id that hosts subject_id and accepts this delivery. Together with subject_id this is the complete Contact participant authority key."
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-          "description": "First-hop resolution material for recipient_service_id."
+          "description": "First-hop resolution material for recipient_id."
         },
         "route_assistance": {
           "$ref": "./identity-resolution.schema.json#/$defs/route_assistance",
-          "description": "Optional transport-only hints for recovering the same recipient_service_id route during Contact delivery bootstrap. They are not part of the signed Contact Event, Contact projection, Realm member cell or authority state; they do not extend any token/receipt TTL or authorize delivery."
+          "description": "Optional transport-only hints for recovering the same recipient_id route during Contact delivery bootstrap. They are not part of the signed Contact Event, Contact projection, Realm member cell or authority state; they do not extend any token/receipt TTL or authorize delivery."
         },
-        "recipient_service_kind": {
+        "recipient_kind": {
           "const": "principal_server"
         }
       },
@@ -446,7 +446,7 @@
           "type": "object",
           "required": [
             "kind",
-            "sorted_pair_members",
+            "sorted_pair_member_ids",
             "request_event_ref",
             "request_acceptance_receipt_digest"
           ],
@@ -454,7 +454,7 @@
             "kind": {
               "const": "normal"
             },
-            "sorted_pair_members": {
+            "sorted_pair_member_ids": {
               "type": "array",
               "items": {
                 "$ref": "#/$defs/did_core_id"
@@ -476,14 +476,14 @@
           "type": "object",
           "required": [
             "kind",
-            "sorted_pair_members",
+            "sorted_pair_member_ids",
             "requests"
           ],
           "properties": {
             "kind": {
               "const": "glare"
             },
-            "sorted_pair_members": {
+            "sorted_pair_member_ids": {
               "type": "array",
               "items": {
                 "$ref": "#/$defs/did_core_id"
@@ -640,7 +640,7 @@
       "type": "object",
       "required": [
         "contact_round_id",
-        "issuer",
+        "issuer_id",
         "head_event_ref",
         "terminal",
         "accepted_frontier",
@@ -652,7 +652,7 @@
         "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "head_event_ref": {
@@ -914,13 +914,13 @@
           "$ref": "#/$defs/contact_scopes",
           "description": "Optional shorthand. When present, MUST equal bidirectional_scopes."
         },
-        "peer_service_id": {
+        "peer_host_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Optional stable Principal Server service did_core_id hosting the peer. Omitted for same-Principal-Server contacts."
         },
-        "peer_service_resolution": {
+        "peer_host_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-          "description": "Required bootstrap material whenever peer_service_id is present. It MAY be refreshed without changing peer_service_id."
+          "description": "Required bootstrap material whenever peer_id is present. It MAY be refreshed without changing peer_id."
         },
         "continuity_evidence": {
           "$ref": "#/$defs/contact_continuity_evidence",
@@ -987,11 +987,11 @@
         }
       ],
       "dependentRequired": {
-        "peer_service_id": [
-          "peer_service_resolution"
+        "peer_id": [
+          "peer_host_resolution"
         ],
-        "peer_service_resolution": [
-          "peer_service_id"
+        "peer_host_resolution": [
+          "peer_id"
         ]
       },
       "additionalProperties": false
@@ -1965,8 +1965,8 @@
     "glare_concurrency_attestation": {
       "type": "object",
       "required": [
-        "issuer",
-        "peer",
+        "issuer_id",
+        "peer_id",
         "request_receipt_digests",
         "observed_frontier",
         "complete_through",
@@ -1975,10 +1975,10 @@
         "signature"
       ],
       "properties": {
-        "issuer": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "peer": {
+        "peer_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "request_receipt_digests": {
@@ -2026,7 +2026,7 @@
         "response_event_ref",
         "outgoing_slot_absence_digest",
         "accepted_at",
-        "issuer",
+        "issuer_id",
         "signature"
       ],
       "properties": {
@@ -2047,7 +2047,7 @@
         "accepted_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "signature": {
@@ -2085,9 +2085,9 @@
         "request_kind",
         "request_digest",
         "outcome",
-        "recipient_service_id",
+        "recipient_id",
         "received_at",
-        "issuer",
+        "issuer_id",
         "signature"
       ],
       "properties": {
@@ -2117,13 +2117,13 @@
           "$ref": "./principal-operations.schema.json#/$defs/digest",
           "description": "H('ak.peer-contact.control-result.v1',{request_digest,result_kind,glare_concurrency_attestation?,current_proof?}) over the exact closed successful result."
         },
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "signature": {
@@ -2350,9 +2350,9 @@
         "request_digest",
         "signed_event_ref",
         "outcome",
-        "recipient_service_id",
+        "recipient_id",
         "received_at",
-        "issuer",
+        "issuer_id",
         "signature"
       ],
       "properties": {
@@ -2374,13 +2374,13 @@
             "deferred"
           ]
         },
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "signature": {
@@ -3069,7 +3069,7 @@
         "request_receipt",
         "reject_event_ref",
         "accepted_at",
-        "issuer",
+        "issuer_id",
         "signature"
       ],
       "properties": {
@@ -3083,7 +3083,7 @@
         "accepted_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "signature": {
@@ -3121,7 +3121,7 @@
         "request_event_ref",
         "source_checkpoint",
         "accepted_at",
-        "issuer"
+        "issuer_id"
       ],
       "properties": {
         "holder": {
@@ -3151,7 +3151,7 @@
         "accepted_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         }
       },

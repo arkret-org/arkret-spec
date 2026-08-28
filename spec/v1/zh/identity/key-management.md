@@ -260,13 +260,13 @@ caller 自报 active 布尔值都是 schema violation。
 Agent authority **不能自行合成这一层 evidence**。组装 current admission evidence 或签发 historical admission receipt
 之前，它 MUST 以 authenticated S2S 身份调用
 `ak.gate.account.command.issue_controller_gate_attestation.v1`，提交 closed
-`{request_id, principal_id, agent_authority_service_id, agent_authority_service_resolution}`。后者携 current signed
+`{request_id, principal_id, agent_authority_id, agent_authority_resolution}`。后者携 current signed
 `ServiceResolutionRecord`、adapter-discriminated method evidence 与其认证的 normalized DID Document；Account Authority
 MUST 独立重做 method evidence、document digest、record proof/currentness、`project(did)` 与 active assertion key 校验，
 然后才可用同一 keyid 验 RFC 9421。签名 MUST 覆盖 method、target URI/path、Content-Digest、
 Source/Destination-Service-ID、operation id 与 request id。DidCoreId、URL、bearer 或 caller 自报 public key 均不是验签钥匙来源；
-bearer 只能作为附加部署门。`agent_authority_service_id` MUST 与请求的 verified source
-service identity 逐字相等。Account Authority 还 MUST 要求 `agent_authority_service_id` 等于 controller account authority pair 的 `principal_server_id`。随后只从本地 authoritative account/device state 选择 basis；未知 principal、source/service 不一致与无权 caller 统一返回不可枚举的 `not_found`，不得泄露 account status。attestation 时窗 MUST 不超过 300 秒；producer 不得用
+bearer 只能作为附加部署门。`agent_authority_id` MUST 与请求的 verified source
+service identity 逐字相等。Account Authority 还 MUST 要求 `agent_authority_id` 等于 controller account authority pair 的 `principal_server_id`。随后只从本地 authoritative account/device state 选择 basis；未知 principal、source/service 不一致与无权 caller 统一返回不可枚举的 `not_found`，不得泄露 account status。attestation 时窗 MUST 不超过 300 秒；producer 不得用
 service-local cache row、session introspection、controller 自报状态或过期 attestation替代。该 attestation 只是短 TTL
 controller-lifecycle snapshot，可在其时窗内被同一 producer复用，故不携 operation/request digest/audience/challenge；
 每个 `current_observation` 与 outer attestation 必须把它的 digest 重新绑定到 exact request context，裸 gate 单独跨请求
@@ -292,7 +292,7 @@ receiver `accepted_at`、Agent/key method、origin 冻结的
 `producer_signer_resolution_evidence_ref/digest` 与 receiver。Event digest 从 ID 解码，并覆盖 Event 自身的 `seal_ref`、
 `seal_basis` 或 anchor 形态，因此 receipt 不重复携带一个对 Data Event、Control Move 和 anchor 含义不一致的
 `event_admitted_seal_id`。
-receipt 的 `receiver_service_id` MUST 与实际接收并承诺该Event的destination service相同，receipt proof必须由该
+receipt 的 `receiver_id` MUST 与实际接收并承诺该Event的destination service相同，receipt proof必须由该
 destination 在 `accepted_at` 有效的 registered verification method验证；查询方不得用source service或 current head
 document 中的 method 替代。v1 不新增 historical service-resolution endpoint：既有 current signed
 ServiceResolutionRecord 的 WebVH method-history evidence 已携带完整 log，materializer 与 verifier 必须先验证该完整
@@ -540,7 +540,7 @@ public projection 本身仍 MUST 可验证：它由 Principal Server 的 `projec
 
 Organization principal 的 control stream 遵守同一 PCR 规则，但它没有共享 human password account。组织 PCR 的 genesis / recovery / delegated write MUST 由组织 DID inception/controller proof、满足组织 governance threshold 的 proof、或组织 DID Document / governance profile 明确委派的 Account Authority / `ArkretGovernanceService` 授权。委派路径的 purpose MUST 覆盖对应动作（例如 `principal_control_realm_bootstrap`、`device_enrollment`、`session_issuer` 或 `ak.realm.organization`），且事件必须保留实际执行主体（`executed_by`、governance decision id 或等价审计 ref）。普通企业 SSO/OIDC/passkey 登录只认证某个管理员 principal；它不能单独创建、登录或控制组织 PCR，除非该 Account Authority 同时出示上述组织侧 delegation / governance proof。
 
-Native Personal Agent 是独立 DID principal，不继承 controller 的 PCR 或 home/Collaboration Realm。Managed-agent DID accepted inception entry 0 MUST 只含 Principal Server 与唯一 `ArkretManagedPrincipalController` delegation，MUST NOT 含 PCR id 或 `ArkretPrincipalControlRealm`。Agent PCR genesis accepted 后，controller MUST 使用 entry 0 预承诺的 update key 发布连续 entry 1，并新增唯一 service entry：`id=<agent DID>#arkret-principal-control-realm`、`type="ArkretPrincipalControlRealm"`，`serviceEndpoint` 为闭合对象 `{realm_id, controller_did, authorization_ref, requested_scope_digest}`。`realm_id` 是该 Agent PCR genesis `ak.realm.create` 的 event-derived `ak:realm:*`（按 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md) 的通则 `retype(event_id)` 派生，服务端不得自选）；该 service entry 是他人**发现**该 realm id 的已发布指针，不是其派生权威；`controller_did` 是获授权的 managed-principal controller；`authorization_ref` 是 entry 0 中覆盖 `principal_control_realm_bootstrap`、agent-control authoring 与 `principal_control_realm_recovery` 的 delegation DID URL；`requested_scope_digest` 必须按 [`../authz/capabilities.md` §9.1](../authz/capabilities.md) 的域分离 canonical input 重算匹配。entry 1 的四元组 create-locked；后续 DID update 删除或改变任一字段时，该 managed-Agent binding 对新授权失效，不能把更新后的值视为扩权。公开 DID Document 与其历史 MUST NOT 包含 `requested_scope`、具体 resource selector 或 constraint。Receiver 必须按 authorizing Event / grant 的 accepted-at 解析 Agent DID history，逐字验证此 entry，并从 controller 经 [`../identity/identity-handles.md` §16](./identity-handles.md) 的认证私有 presentation 路径取得符合 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 的完整 scope 披露。Receiver MUST 校验 `request_id`/`challenge` 单次使用、`verifier_service_id`/`audience` 精确匹配、`expires_at-issued_at <= 300s`、controller 当前 proof 与 disclosure digest，再以披露 scope 重算 DID 中 commitment；任一环节失败均 fail closed。成功接收后 MAY 把披露作为加密的 verifier-private evidence 保存，但缓存键 MUST 至少包含 `(agent_id, requested_scope_digest, verifier_service_id, audience)`，不得把 service-local Agent row 单独当成协议绑定，也不得把披露写回公开 DID、Realm plaintext、durable Event、pairing code 或通知。
+Native Personal Agent 是独立 DID principal，不继承 controller 的 PCR 或 home/Collaboration Realm。Managed-agent DID accepted inception entry 0 MUST 只含 Principal Server 与唯一 `ArkretManagedPrincipalController` delegation，MUST NOT 含 PCR id 或 `ArkretPrincipalControlRealm`。Agent PCR genesis accepted 后，controller MUST 使用 entry 0 预承诺的 update key 发布连续 entry 1，并新增唯一 service entry：`id=<agent DID>#arkret-principal-control-realm`、`type="ArkretPrincipalControlRealm"`，`serviceEndpoint` 为闭合对象 `{realm_id, controller_did, authorization_ref, requested_scope_digest}`。`realm_id` 是该 Agent PCR genesis `ak.realm.create` 的 event-derived `ak:realm:*`（按 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md) 的通则 `retype(event_id)` 派生，服务端不得自选）；该 service entry 是他人**发现**该 realm id 的已发布指针，不是其派生权威；`controller_did` 是获授权的 managed-principal controller；`authorization_ref` 是 entry 0 中覆盖 `principal_control_realm_bootstrap`、agent-control authoring 与 `principal_control_realm_recovery` 的 delegation DID URL；`requested_scope_digest` 必须按 [`../authz/capabilities.md` §9.1](../authz/capabilities.md) 的域分离 canonical input 重算匹配。entry 1 的四元组 create-locked；后续 DID update 删除或改变任一字段时，该 managed-Agent binding 对新授权失效，不能把更新后的值视为扩权。公开 DID Document 与其历史 MUST NOT 包含 `requested_scope`、具体 resource selector 或 constraint。Receiver 必须按 authorizing Event / grant 的 accepted-at 解析 Agent DID history，逐字验证此 entry，并从 controller 经 [`../identity/identity-handles.md` §16](./identity-handles.md) 的认证私有 presentation 路径取得符合 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 的完整 scope 披露。Receiver MUST 校验 `request_id`/`challenge` 单次使用、`verifier_id`/`audience` 精确匹配、`expires_at-issued_at <= 300s`、controller 当前 proof 与 disclosure digest，再以披露 scope 重算 DID 中 commitment；任一环节失败均 fail closed。成功接收后 MAY 把披露作为加密的 verifier-private evidence 保存，但缓存键 MUST 至少包含 `(agent_id, requested_scope_digest, verifier_id, audience)`，不得把 service-local Agent row 单独当成协议绑定，也不得把披露写回公开 DID、Realm plaintext、durable Event、pairing code 或通知。
 
 该边界的 conformance vector 为 `ak.vector.agent.managed_pcr_separation.v1`。
 
@@ -712,12 +712,12 @@ Control Realm 不保存 grant genesis、grant state cell 或其任何投影。
 ```json
 {
   "kind": "ak.session.grant",
-  "jti": "ak:session_grant:ATLC-gY-xpE0kN3QXVYxo0Kh32EoNCTBQTSFuu_P57e6",
-  "issuer": "ak:did_core:webvh:z6mkfixture-auth-a",
+  "jti": "ak:session_grant:AZ0oygQqi49PKjNV8SXyFW3rediuQPhSh-cimdK5R62n",
+  "issuer_id": "ak:did_core:webvh:z6mkfixtureauthaexample",
   "issuance_nonce": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
-  "subject": "ak:did_core:webvh:z6mkfixture-alice",
+  "subject_id": "ak:did_core:webvh:z6mkfixture",
   "session_public_key": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\"}",
-  "audience": "ak:did_core:webvh:z6mkfixture-service",
+  "audience_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
   "scopes": [
     "ak.self.account.read.describe.v1",
     "ak.self.events.read.scan.v1"
@@ -750,11 +750,11 @@ issuer 必须从下面的 closed immutable preimage 派生 SessionGrant ID：
 ```text
 issuance_preimage = JCS({
   schema: "ak.session_grant.issuance.v1",
-  issuer,
+  issuer_id,
   issuance_nonce,
-  subject,
+  subject_id,
   session_public_key,
-  audience,
+  audience_id,
   scopes,
   not_before,
   expires_at,
@@ -790,9 +790,9 @@ binding 当作不参与 ID 的附加 metadata。
 
 `session_public_key` MUST 先解析为受支持且不含 private member 的 public JWK，再编码为 RFC 8785 JCS
 UTF-8 字符串；JWT claim 自身必须携带该 canonical 字符串。接收方重新解析并序列化后若不能逐字节得到
-相同字符串，MUST 拒绝。`audience` 的 canonical 形态是目标 resource service 的稳定 `did_core_id`，
-与 `SessionGrantRequestProof.audience`、issue/refresh outcome 的 typed `DidCoreId` 相同；HTTP origin / endpoint URL
-由 DPoP `htu` 单独绑定，MUST NOT 写入 SessionGrant audience。该选择与 SDK 的 `DidCoreId` wire type及 Account
+相同字符串，MUST 拒绝。`audience_id` 的 canonical 形态是目标 resource service 的稳定 `did_core_id`，
+与 `SessionGrantRequestProof.audience_id`、issue/refresh outcome 的 typed `DidCoreId` 相同；HTTP origin / endpoint URL
+由 DPoP `htu` 单独绑定，MUST NOT 写入 SessionGrant `audience_id`。该选择与 SDK 的 `DidCoreId` wire type及 Account
 Authority 对 non-DID audience 的 fail-closed 校验一致。preimage 不含独立顶层 `device_id`：human device
 绑定由 required `holder_binding={kind="human_device",device_binding}` 表达；Agent runtime 绑定由对应的
 `holder_binding` 分支表达。operation `scopes[]` 只承载授权求交后的服务操作，不得再编码设备身份或旧
@@ -805,14 +805,14 @@ signed claim。verifier MUST 验证 JWT signature、issuer key 的 accepted-at �
 32-octet digest` token；它不是 Realm / Event 的 `reserved-zero nibble || 4-bit suite` header，不是 Event
 ID，也不是 `ak:grant:` Capability
 GrantId；不得提供 Event retype、`from_event_id` 或 accepted-Event marker 路径。跨 issuer 的 durable
-identity/replay key MUST 使用 `(issuer_did, typed_id)`。
+identity/replay key MUST 使用 `(issuer_id, typed_id)`。
 
 `session_id` MUST 在首次签发前由 issuer 独立分配，作为稳定的 rotation-chain ID；refresh 继承它。
 `session_id` MUST NOT 等于或派生自 `grant_id`，否则 ID derivation 形成自引用。
 
 ### 6.2 签发、签名边界与 durable exact replay（normative）
 
-Account Authority MUST 先验证 account↔principal binding、登录或恢复 proof、当前 holder DPoP、audience
+Account Authority MUST 先验证 account↔principal binding、登录或恢复 proof、当前 holder DPoP、`audience_id`
 与 scope ceiling，再建立 issuer-owned issuance operation。issuer 必须在响应前原子持久化 canonical
 intent、request identity、preimage bytes、nonce、digest、grant ID、完整 JWT、signing key id、状态与时间；
 JWT 是该 immutable issuance record 的签名投影。Coauth/Account Authority 只签自己的 JWT 与 issuer
@@ -820,10 +820,10 @@ status，MUST NOT 获取或使用 principal/root/device/notary 私钥，MUST NOT
 `/_arkret/self/events` Event，也 MUST NOT 等待 PCR frontier、Seal 或 `accepted[]`。
 
 每个 production proof 分支 MUST 提供稳定 request identity；ledger key 至少包含
-`(issuer_did, operation_or_proof_kind, request_identity)`。同 key + byte-identical canonical intent MUST 在
+`(issuer_id, operation_or_proof_kind, request_identity)`。同 key + byte-identical canonical intent MUST 在
 进程重启、并发重试及 commit 后响应丢失时返回首次持久化的同一 nonce、grant ID 与 byte-identical JWT；
 同 key + 不同 intent MUST `duplicate_conflict` 且零新 grant、零状态变化。replay lookup 仍 MUST 重新验证
-本次 holder/DPoP、HTTP method/target、issuer/audience 与 canonical request digest；它只复用已持久化的
+本次 holder/DPoP、HTTP method/target、`issuer_id` / `audience_id` 与 canonical request digest；它只复用已持久化的
 one-shot proof 验证结果，不允许仅知道 request identity 的第三方取回 JWT。
 
 若 replay 命中的记录已经 expired，MUST 返回 `session_grant_replay_expired`；若已 `revoked` 或
@@ -864,7 +864,7 @@ SessionGrant 签发而扩张为日常 Event signer。
 规则：
 
 - session grant MUST 由可信 issuer 签名，且 session key MUST NOT 超过 grant 的有效期；
-- session grant MUST 绑定 audience；
+- session grant MUST 绑定 `audience_id`；
 - 在条件允许时，session grant SHOULD 在 WebCrypto / 平台 keystore 中以不可导出方式存储；
 - canonical 撤销真相只能来自 issuer ledger、immutable `expires_at` 或触发 ledger cascade 的 current
   account/device/Agent lifecycle；不得另建 Event cell、未注册 revocation-list ID 或第二套状态源。

@@ -397,13 +397,13 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "expect_valid": true,
       "instance": {
-        "recipient_service_id": "ak:did_core:webvh:z6mkpushrecipientservice",
+        "recipient_id": "ak:did_core:webvh:z6mkpushrecipientservice",
         "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
         "expected_revision": 0,
         "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
-        "push_gateway_service_id": "ak:did_core:webvh:z6mkpushgatewayservice",
+        "push_gateway_id": "ak:did_core:webvh:z6mkpushgatewayservice",
         "encryption_key": "hpke-public-key",
         "capabilities": [
           "blind_wakeup"
@@ -415,7 +415,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "expect_valid": true,
       "instance": {
-        "recipient_service_id": "ak:did_core:webvh:z6mkpushrecipientservice",
+        "recipient_id": "ak:did_core:webvh:z6mkpushrecipientservice",
         "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
@@ -429,12 +429,12 @@
       "expect_valid": false,
       "first_expected_error": "contains:not valid under any",
       "instance": {
-        "recipient_service_id": "ak:did_core:webvh:z6mkpushrecipientservice",
+        "recipient_id": "ak:did_core:webvh:z6mkpushrecipientservice",
         "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
         "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
-        "push_gateway_service_id": "ak:did_core:webvh:z6mkpushgatewayservice",
+        "push_gateway_id": "ak:did_core:webvh:z6mkpushgatewayservice",
         "encryption_key": "hpke-public-key",
         "capabilities": [
           "blind_wakeup"
@@ -447,7 +447,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:not valid under any",
       "instance": {
-        "recipient_service_id": "ak:did_core:webvh:z6mkpushrecipientservice",
+        "recipient_id": "ak:did_core:webvh:z6mkpushrecipientservice",
         "principal_id": "ak:did_core:webvh:z6mkpushprincipal",
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",

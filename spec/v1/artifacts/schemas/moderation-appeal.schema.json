@@ -55,7 +55,7 @@
         "realm_id",
         "decision_ref",
         "target_ref",
-        "appellant",
+        "appellant_id",
         "reason_text_ref",
         "created_at"
       ],
@@ -69,7 +69,7 @@
         "target_ref": {
           "$ref": "#/$defs/target_ref"
         },
-        "appellant": {
+        "appellant_id": {
           "$ref": "#/$defs/actor_ref",
           "description": "Actor lodging the appeal. MUST be the original moderation target's controller or an authorized advocate."
         },
@@ -101,7 +101,7 @@
       "required": [
         "appeal_id",
         "realm_id",
-        "reviewer",
+        "reviewer_id",
         "reviewed_at"
       ],
       "properties": {
@@ -111,7 +111,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "reviewer": {
+        "reviewer_id": {
           "$ref": "#/$defs/actor_ref"
         },
         "reviewed_at": {
@@ -130,7 +130,7 @@
       "required": [
         "appeal_id",
         "realm_id",
-        "reviewer",
+        "reviewer_id",
         "decision",
         "reason_text_ref",
         "decided_at"
@@ -142,7 +142,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "reviewer": {
+        "reviewer_id": {
           "$ref": "#/$defs/actor_ref"
         },
         "decision": {
@@ -231,7 +231,7 @@
       "required": [
         "appeal_id",
         "realm_id",
-        "closer",
+        "closer_id",
         "closed_at"
       ],
       "properties": {
@@ -241,7 +241,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "closer": {
+        "closer_id": {
           "$ref": "#/$defs/actor_ref",
           "description": "Actor or service closing the appeal (reviewer, appellant, or a deployment's authorized close service). Reducer authorizes the close via the normal capability gate (or closer == appellant for withdrawal); the protocol does not mandate any timer service DID or timeout window."
         },

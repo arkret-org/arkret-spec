@@ -156,7 +156,7 @@
       "applies_to_fixtures": [
         "agent-signer-evidence-fixture.json"
       ],
-      "description": "Historical Agent signer evidence is materialized under the registered selector tuple: same tuple with the same receipt digest and canonical root is an exact replay checked before signing a new outer, a different receipt or root is duplicate_conflict with zero overwrite, a different receiver_service_id is a separate legal branch, an incomplete dependency closure or a permanently lost receipt stays unresolved, the historical outer attestation verifies long after attested_at with no verifier-now TTL, and the receiver method is resolved at receipt.accepted_at rather than from current state.",
+      "description": "Historical Agent signer evidence is materialized under the registered selector tuple: same tuple with the same receipt digest and canonical root is an exact replay checked before signing a new outer, a different receipt or root is duplicate_conflict with zero overwrite, a different receiver_id is a separate legal branch, an incomplete dependency closure or a permanently lost receipt stays unresolved, the historical outer attestation verifies long after attested_at with no verifier-now TTL, and the receiver method is resolved at receipt.accepted_at rather than from current state.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/identity/key-management.md",
@@ -3647,7 +3647,7 @@
       "applies_to_fixtures": [
         "security-closure-fixture.json"
       ],
-      "description": "Realm reducer authority for ak.invite.claim: binding_proof and subject_proof signature transcripts, token_commitment match, verification_service_id allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
+      "description": "Realm reducer authority for ak.invite.claim: binding_proof and subject_proof signature transcripts, token_commitment match, verification_id allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",

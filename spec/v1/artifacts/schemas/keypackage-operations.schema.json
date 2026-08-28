@@ -540,7 +540,7 @@
       "required": [
         "claim_request_id",
         "target_principal_id",
-        "requester",
+        "requester_id",
         "intended_realm_id",
         "mls_group_id",
         "claim_purpose",
@@ -556,7 +556,7 @@
         "target_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "intended_realm_id": {
@@ -734,14 +734,14 @@
     "keypackages_claim_service_binding": {
       "type": "object",
       "required": [
-        "source_service_id",
-        "destination_service_id"
+        "source_id",
+        "destination_id"
       ],
       "properties": {
-        "source_service_id": {
+        "source_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "destination_service_id": {
+        "destination_id": {
           "$ref": "#/$defs/did_core_id"
         }
       },
@@ -752,7 +752,7 @@
       "required": [
         "claim_request_id",
         "target_principal_id",
-        "requester",
+        "requester_id",
         "intended_realm_id",
         "mls_group_id",
         "claim_purpose",
@@ -770,7 +770,7 @@
         "target_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "intended_realm_id": {
@@ -956,8 +956,8 @@
         "claim_request_id",
         "request_digest",
         "claims_digest",
-        "source_service_id",
-        "destination_service_id",
+        "source_id",
+        "destination_id",
         "request",
         "claimed_at",
         "expires_at",
@@ -975,10 +975,10 @@
         "claims_digest": {
           "$ref": "#/$defs/digest"
         },
-        "source_service_id": {
+        "source_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "destination_service_id": {
+        "destination_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "request": {
@@ -996,7 +996,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Destination-service-signed durable receipt. source_service_id and request are covered by the receipt signature; request_digest additionally binds the complete transport command, including participant authorization and portable signer evidence."
+      "description": "Destination-service-signed durable receipt. source_id and request are covered by the receipt signature; request_digest additionally binds the complete transport command, including participant authorization and portable signer evidence."
     },
     "keypackage_claim_terminal_receipt": {
       "type": "object",
@@ -1005,8 +1005,8 @@
         "claim_request_id",
         "request_digest",
         "terminal_state",
-        "source_service_id",
-        "destination_service_id",
+        "source_id",
+        "destination_id",
         "terminal_at",
         "signature"
       ],
@@ -1033,10 +1033,10 @@
         "keypackage_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
         },
-        "source_service_id": {
+        "source_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "destination_service_id": {
+        "destination_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "terminal_at": {
@@ -1304,7 +1304,7 @@
         "claim_request_id",
         "keypackage_ref",
         "recipient_principal_id",
-        "recipient_service_id",
+        "recipient_id",
         "realm_id",
         "mls_group_id",
         "mls_epoch",
@@ -1419,7 +1419,7 @@
           "type": "string",
           "pattern": "^did:key:([^#]+)#\\1$"
         },
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "realm_id": {

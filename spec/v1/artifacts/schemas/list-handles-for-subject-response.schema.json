@@ -5,13 +5,13 @@
   "description": "Result body for ak.find.directory.read.list_handles_for_subject.v1. It lists currently visible handle claims for a disclosed holder/principal subject did_core_id in the caller's context. Every claim in claims[] MUST have claim.subject byte-for-byte equal to this response subject; proof DID URLs are compared only after adapter projection.",
   "type": "object",
   "required": [
-    "subject",
+    "subject_id",
     "claims",
     "as_of",
     "has_more"
   ],
   "properties": {
-    "subject": {
+    "subject_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Holder/principal did_core_id used as the reverse lookup key. This is not a Realm actor_id. Proof verification methods remain DID URLs and are projected to this value by the registered method adapter."
     },

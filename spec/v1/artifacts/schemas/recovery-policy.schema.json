@@ -9,7 +9,7 @@
     "policy_id",
     "principal_id",
     "version",
-    "supersedes",
+    "supersedes_id",
     "trust_domain",
     "allowed_proof_kinds",
     "publication_authorization_rules",
@@ -32,7 +32,7 @@
       "minimum": 1,
       "description": "Monotonically increasing counter scoped by principal_id. Receivers MUST reject a publish whose version is not strictly greater than the currently accepted policy."
     },
-    "supersedes": {
+    "supersedes_id": {
       "oneOf": [
         {
           "type": "null"
@@ -218,14 +218,14 @@
       "description": "Device-quorum configuration. Required when allowed_proof_kinds contains 'device_quorum'.",
       "required": [
         "k",
-        "members"
+        "member_ids"
       ],
       "properties": {
         "k": {
           "type": "integer",
           "minimum": 2
         },
-        "members": {
+        "member_ids": {
           "type": "array",
           "minItems": 2,
           "uniqueItems": true,
@@ -391,7 +391,7 @@
       },
       "then": {
         "properties": {
-          "supersedes": {
+          "supersedes_id": {
             "type": "null"
           }
         }
@@ -411,7 +411,7 @@
       },
       "then": {
         "properties": {
-          "supersedes": {
+          "supersedes_id": {
             "type": "string",
             "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
@@ -737,7 +737,7 @@
         "policy_id",
         "principal_id",
         "version",
-        "acceptance_basis",
+        "acceptance_basis_ref",
         "trust_domain",
         "allowed_proof_kinds",
         "issued_at"
@@ -753,7 +753,7 @@
           "type": "integer",
           "minimum": 1
         },
-        "acceptance_basis": {
+        "acceptance_basis_ref": {
           "$ref": "./offline-publication.schema.json#/$defs/lease_basis_ref",
           "description": "Immutable accepted CBA basis whose control state commits this exact recovery policy version."
         },
@@ -778,7 +778,7 @@
             ]
           }
         },
-        "supersedes": {
+        "supersedes_id": {
           "oneOf": [
             {
               "type": "null"
@@ -872,7 +872,7 @@
         "policy_id",
         "principal_id",
         "version",
-        "acceptance_basis",
+        "acceptance_basis_ref",
         "accepted_at"
       ],
       "properties": {
@@ -886,7 +886,7 @@
           "type": "integer",
           "minimum": 1
         },
-        "acceptance_basis": {
+        "acceptance_basis_ref": {
           "$ref": "./offline-publication.schema.json#/$defs/lease_basis_ref",
           "description": "Immutable accepted CBA basis whose control state commits this exact recovery policy version."
         },
@@ -900,7 +900,7 @@
       "type": "object",
       "required": [
         "share_id",
-        "holder",
+        "holder_id",
         "transport",
         "share_commitment"
       ],
@@ -909,7 +909,7 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{1,64}$"
         },
-        "holder": {
+        "holder_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "DID of the share holder. MAY be a user, a hardware module identified by did:key, or a custodial service. The holder DID does NOT inherit any business capability of the principal."
         },

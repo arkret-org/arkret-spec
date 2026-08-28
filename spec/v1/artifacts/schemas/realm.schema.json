@@ -66,7 +66,7 @@
       "$ref": "#/$defs/trust_domain",
       "description": "Immutable deployment trust domain captured by ak.realm.create. Receivers MUST require this to match the current Realm trust domain before accepting cross-domain replay-sensitive proofs."
     },
-    "owning_organizations": {
+    "owning_organization_ids": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did_core_id"
@@ -309,7 +309,7 @@
     },
     "availability_policy": {
       "type": "object",
-      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Eligible holders are derived only from canonical recipient_service_id values in effective routable joined-member delivery bindings frozen at the predecessor view. The policy never creates an out-of-membership replication target. Absent means {min_holders:1,applies_to:['seal_include'],minimum_retention_ms:86400000}.",
+      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Eligible holders are derived only from canonical recipient_id values in effective routable joined-member delivery bindings frozen at the predecessor view. The policy never creates an out-of-membership replication target. Absent means {min_holders:1,applies_to:['seal_include'],minimum_retention_ms:86400000}.",
       "required": [
         "min_holders",
         "applies_to"
@@ -542,20 +542,20 @@
                 "$comment": "Organization-controlled single_signer Realms MUST declare the recovery-notary diversity path alongside the controlling organization.",
                 "if": {
                   "required": [
-                    "controller_organization"
+                    "controller_organization_id"
                   ]
                 },
                 "then": {
                   "required": [
                     "recovery_members",
-                    "controller_organization",
-                    "recovery_controller_organizations"
+                    "controller_organization_id",
+                    "recovery_controller_organization_ids"
                   ],
                   "properties": {
                     "recovery_members": {
                       "minItems": 1
                     },
-                    "recovery_controller_organizations": {
+                    "recovery_controller_organization_ids": {
                       "minItems": 1
                     }
                   }
@@ -590,7 +590,7 @@
           "notary": {
             "required": [
               "kind",
-              "members",
+              "member_ids",
               "threshold",
               "forensic_attribution"
             ]
@@ -1019,10 +1019,10 @@
                 "$ref": "#/$defs/notary_signer_descriptor"
               }
             },
-            "controller_organization": {
+            "controller_organization_id": {
               "$ref": "#/$defs/did_core_id"
             },
-            "recovery_controller_organizations": {
+            "recovery_controller_organization_ids": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
@@ -1037,7 +1037,7 @@
           "type": "object",
           "required": [
             "kind",
-            "members",
+            "member_ids",
             "threshold",
             "forensic_attribution"
           ],
@@ -1045,7 +1045,7 @@
             "kind": {
               "const": "threshold"
             },
-            "members": {
+            "member_ids": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
@@ -1070,13 +1070,13 @@
           "type": "object",
           "required": [
             "kind",
-            "members"
+            "member_ids"
           ],
           "properties": {
             "kind": {
               "const": "open_set"
             },
-            "members": {
+            "member_ids": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
@@ -1109,10 +1109,10 @@
                 "$ref": "#/$defs/notary_signer_descriptor"
               }
             },
-            "controller_organization": {
+            "controller_organization_id": {
               "$ref": "#/$defs/did_core_id"
             },
-            "recovery_controller_organizations": {
+            "recovery_controller_organization_ids": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,

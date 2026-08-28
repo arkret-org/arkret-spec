@@ -48,8 +48,8 @@
           "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAg",
           "request_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
           "claims_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-          "source_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
-          "destination_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "destination_id": "ak:did_core:webvh:z6mkfixturepsexample",
           "request": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAg",
             "target_principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",

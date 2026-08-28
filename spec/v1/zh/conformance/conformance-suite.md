@@ -209,7 +209,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 - `verification_run_id` — 本次 suite 运行的标识；
 - `artifact_digest` — artifact 内容 hash（`sha256:<hex>`）；
 - `artifact_ref` — artifact 的检索引用（URI 或 transparency-log 引用）；
-- verifier 的 DID（`verifier_service_id`）与其对 `profile_id`、`verification_run_id`、`artifact_digest`、`artifact_ref`、verifier 与时间戳的签名；
+- verifier 的 DID（`verifier_id`）与其对 `profile_id`、`verification_run_id`、`artifact_digest`、`artifact_ref`、verifier 与时间戳的签名；
 - 验证时间戳（与可选 `expires_at`）。
 
 `ServiceDescribe.verified_profiles` 的每个条目（`claim_kind="conformance_verified"`）引用一个这样的 verification artifact；字段约束与客户端校验义务见 [`service-surface.md`](../sync/service-surface.md) §3.0 与 `ak.schema.service_describe.v1`。协议只绑定本节定义的角色与 artifact 形态，不绑定任何具体验证工具或机构名。

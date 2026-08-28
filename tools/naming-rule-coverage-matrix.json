@@ -513,12 +513,12 @@
       "residual_gap": "signed_by, sender and sender_display_name are rejected by the alias table; whether a given signature field should carry a role prefix is not decided mechanically."
     },
     {
-      "rule_id": "NC-SERVICEID-001",
-      "title": "Service identity fields are service_id, never *_service_did",
+      "rule_id": "NC-IDROLE-001",
+      "title": "Arkret-owned identifier fields use role plus representation suffix",
       "normative_anchor": {
         "file": "spec/v1/zh/models/common-fields.md",
-        "section": "2.1",
-        "quote": "Service identity 字段统一使用 `service_id`"
+        "section": "2.1.3",
+        "quote": "Arkret-owned identifier 字段 MUST 使用完整语义角色加表示后缀"
       },
       "applies_to": [
         "wire_property",
@@ -529,18 +529,20 @@
       "enforced_by": {
         "predicates": [],
         "functions": [
-          "prose.py:check_naming_predicates"
+          "naming_contracts.py:check_identifier_role_suffix_contracts"
         ],
-        "registries": []
+        "registries": [
+          "tools/identifier-role-suffix-registry.json"
+        ]
       },
       "entry_points": [
-        "naming_predicates"
+        "identifier_role_suffixes"
       ],
       "tests": [
         "tools/test_naming_gate_lint.py"
       ],
-      "coverage_level": "partial",
-      "residual_gap": "check_key rejects service_did and every *_service_did spelling except the registered principal_server_did stem; deciding when material genuinely needs the DID ecosystem `_did` name (pairwise_did, operator DIDs) stays human."
+      "coverage_level": "full",
+      "residual_gap": "Exact-path external literal objects and closed polymorphic subjects require an explicit registered exception; the resolved-terminal walker reports every exception reason and does not propagate it to wrappers."
     },
     {
       "rule_id": "NC-NAMESPACE-001",
@@ -922,11 +924,11 @@
     },
     {
       "rule_id": "NC-AUDIENCE-001",
-      "title": "recipient_service_id and audience are not interchangeable",
+      "title": "recipient_id and audience are not interchangeable",
       "normative_anchor": {
         "file": "spec/v1/zh/models/common-fields.md",
         "section": "2.",
-        "quote": "`recipient_service_id` 与 `audience` 不可互换"
+        "quote": "`recipient_id` 与 `audience` 不可互换"
       },
       "applies_to": [
         "wire_property",

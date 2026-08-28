@@ -1033,7 +1033,7 @@
             "reason_code": "proof_invalid",
             "invariants": [
               "current effective Realm allowlist is authoritative",
-              "valid subject_proof does not override verification_service_id rejection",
+              "valid subject_proof does not override verification_id rejection",
               "no membership proposal is materialized"
             ]
           },
@@ -1060,7 +1060,7 @@
               "membership_proposal": "none",
               "invariants": [
                 "current effective Realm allowlist is authoritative",
-                "valid subject_proof does not override verification_service_id rejection",
+                "valid subject_proof does not override verification_id rejection",
                 "no membership proposal is materialized"
               ]
             },

@@ -165,7 +165,7 @@
       "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
       "verification_mode": "historical_event",
       "same_selector_tuple": false,
-      "selector_component_that_differs": "receiver_service_id",
+      "selector_component_that_differs": "receiver_id",
       "additional_historical_roots_published": 1,
       "expected": "verified"
     },
@@ -272,7 +272,7 @@
       "rfc9421_covers_method_path_digest_source_destination_operation_request": true,
       "verification_key_from_active_service_resolution": true,
       "bearer_used_as_signature_substitute": false,
-      "authenticated_source_matches_agent_authority_service_id": true,
+      "authenticated_source_matches_agent_authority_id": true,
       "current_principal_server_matches_source": true,
       "account_authority_projection_status": "active",
       "issued_eligibility": "active",

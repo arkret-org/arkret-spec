@@ -26,7 +26,7 @@
       "semantic_outcome": "accept",
       "instance": {
         "schema": "ak.schema.key_transparency.v1",
-        "log_service_id": "ak:did_core:webvh:z6mkfixturetransparencyexample",
+        "log_id": "ak:did_core:webvh:z6mkfixturetransparencyexample",
         "principal_id": "ak:did_core:webvh:z6mkfixture",
         "key_material_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "log_head": {
@@ -50,12 +50,12 @@
         },
         "witness_signatures": [
           {
-            "witness_service_id": "ak:did_core:webvh:z6mkfixturewitnessaexample",
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessaexample",
             "verification_method": "did:webvh:z6mkfixturewitnessaexample:witness-a.example#key-1",
             "signature": "signature-placeholder-a"
           },
           {
-            "witness_service_id": "ak:did_core:webvh:z6mkfixturewitnessbexample",
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessbexample",
             "verification_method": "did:webvh:z6mkfixturewitnessbexample:witness-b.example#key-1",
             "signature": "signature-placeholder-b"
           }
@@ -71,7 +71,7 @@
       "expected_reason_code": "key_transparency_proof_missing",
       "instance": {
         "schema": "ak.schema.key_transparency.v1",
-        "log_service_id": "ak:did_core:webvh:z6mkfixturetransparencyexample",
+        "log_id": "ak:did_core:webvh:z6mkfixturetransparencyexample",
         "principal_id": "ak:did_core:webvh:z6mkfixture",
         "key_material_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "log_head": {
@@ -86,12 +86,12 @@
         },
         "witness_signatures": [
           {
-            "witness_service_id": "ak:did_core:webvh:z6mkfixturewitnessaexample",
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessaexample",
             "verification_method": "did:webvh:z6mkfixturewitnessaexample:witness-a.example#key-1",
             "signature": "signature-placeholder-a"
           },
           {
-            "witness_service_id": "ak:did_core:webvh:z6mkfixturewitnessbexample",
+            "witness_id": "ak:did_core:webvh:z6mkfixturewitnessbexample",
             "verification_method": "did:webvh:z6mkfixturewitnessbexample:witness-b.example#key-1",
             "signature": "signature-placeholder-b"
           }

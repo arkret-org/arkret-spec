@@ -1250,7 +1250,7 @@ components:
       - realm_policy_digest
       - membership_frontier
       - delivery_binding_frontier
-      - destination_service_kind
+      - destination_kind
       properties:
         realm_id:
           type: string
@@ -1271,7 +1271,7 @@ components:
         delivery_binding_diagnostics:
           type: object
           additionalProperties: true
-        destination_service_kind:
+        destination_kind:
           type: string
           minLength: 1
       additionalProperties: false
@@ -11320,7 +11320,7 @@ paths:
       x-arkret-auth:
         public_metadata: false
         holder_proof: false
-        notes: Authenticated S2S only. The receiver independently verifies the request's current signed ServiceResolutionRecord, method evidence and normalized DID Document before using its active assertion key for RFC 9421. Bearer does not replace the signature. The verified source service must equal request.agent_authority_service_id and service_id in the controller current AcceptedAtServiceBinding.
+        notes: Authenticated S2S only. The receiver independently verifies the request's current signed ServiceResolutionRecord, method evidence and normalized DID Document before using its active assertion key for RFC 9421. Bearer does not replace the signature. The verified source service must equal request.agent_authority_id and service_id in the controller current AcceptedAtServiceBinding.
       summary: Issue the Account Authority controller lifecycle gate used in Native Agent signer evidence.
       description: |
         The Account Authority reads its own current account binding/status

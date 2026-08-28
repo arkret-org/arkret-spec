@@ -81,8 +81,8 @@
         "status",
         "receipt_id",
         "receipt_digest",
-        "issuer_service_id",
-        "receiver_service_id",
+        "issuer_id",
+        "receiver_id",
         "accepted_at",
         "proof"
       ],
@@ -100,10 +100,10 @@
         "receipt_digest": {
           "$ref": "#/$defs/digest"
         },
-        "issuer_service_id": {
+        "issuer_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "receiver_service_id": {
+        "receiver_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "accepted_at": {

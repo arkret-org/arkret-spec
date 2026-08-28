@@ -933,7 +933,7 @@
     },
     "service_resolution_publish_request": {
       "type": "object",
-      "description": "Publishes exactly one target-signed record or notice into a Realm-scoped peer mirror. The authenticated Source-Service-ID, not an untrusted body field, supplies source_service_id. artifact_digest is over the exact complete selected artifact. The receiver validates current federation-peer authority, target visibility/delegation, target proof, basis, chain, freshness and bounds before any durable write.",
+      "description": "Publishes exactly one target-signed record or notice into a Realm-scoped peer mirror. The authenticated Source-Service-ID, not an untrusted body field, supplies source_id. artifact_digest is over the exact complete selected artifact. The receiver validates current federation-peer authority, target visibility/delegation, target proof, basis, chain, freshness and bounds before any durable write.",
       "required": [
         "request_id",
         "realm_id",
@@ -973,11 +973,11 @@
     },
     "service_resolution_publish_ack_core": {
       "type": "object",
-      "description": "Receiver-authored durable exact-digest acknowledgement. Transport idempotency is keyed by (source_service_id, realm_id, request_id) and binds request_digest: an exact retry returns the original ack and a different request digest is duplicate_conflict. Artifact integrity is independently keyed by (source_service_id, realm_id, artifact_key): the same artifact key with another artifact_digest is duplicate_conflict with zero overwrite, while a new request_id for identical artifact bytes may receive a new ack cross-bound to that request.",
+      "description": "Receiver-authored durable exact-digest acknowledgement. Transport idempotency is keyed by (source_id, realm_id, request_id) and binds request_digest: an exact retry returns the original ack and a different request digest is duplicate_conflict. Artifact integrity is independently keyed by (source_id, realm_id, artifact_key): the same artifact key with another artifact_digest is duplicate_conflict with zero overwrite, while a new request_id for identical artifact bytes may receive a new ack cross-bound to that request.",
       "required": [
         "request_id",
-        "source_service_id",
-        "receiver_service_id",
+        "source_id",
+        "receiver_id",
         "realm_id",
         "request_digest",
         "artifact_key",
@@ -989,10 +989,10 @@
           "type": "string",
           "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "source_service_id": {
+        "source_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "receiver_service_id": {
+        "receiver_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "realm_id": {
@@ -1044,11 +1044,11 @@
     },
     "service_resolution_resolve_request": {
       "type": "object",
-      "description": "Realm-scoped anti-enumeration query for target-signed successor material. requester authority comes from the authenticated peer service and current Realm relationship. target_service_id must already be visible to requester through an effective joined-member delivery binding or explicit service delegation. Unknown, unauthorized, invisible and not-held outcomes are externally indistinguishable.",
+      "description": "Realm-scoped anti-enumeration query for target-signed successor material. requester authority comes from the authenticated peer service and current Realm relationship. target_id must already be visible to requester through an effective joined-member delivery binding or explicit service delegation. Unknown, unauthorized, invisible and not-held outcomes are externally indistinguishable.",
       "required": [
         "realm_id",
-        "target_service_id",
-        "target_service_kind",
+        "target_id",
+        "target_kind",
         "known_record_sequence",
         "known_record_digest"
       ],
@@ -1056,10 +1056,10 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "target_service_id": {
+        "target_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "target_service_kind": {
+        "target_kind": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
@@ -1314,13 +1314,13 @@
     },
     "route_mirror_hint": {
       "type": "object",
-      "description": "Transport-only hint for one route-mirror service. mirror_service_id is only a stable lookup identity and MUST be paired with independently verifiable service_resolution first-hop material; neither the did_core_id nor the carrier authorizes target-service routing or Realm access.",
+      "description": "Transport-only hint for one route-mirror service. mirror_id is only a stable lookup identity and MUST be paired with independently verifiable service_resolution first-hop material; neither the did_core_id nor the carrier authorizes target-service routing or Realm access.",
       "required": [
-        "mirror_service_id",
+        "mirror_id",
         "service_resolution"
       ],
       "properties": {
-        "mirror_service_id": {
+        "mirror_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable did_core_id of the candidate route-mirror service. A bare did_core_id is never a route or authority."
         },

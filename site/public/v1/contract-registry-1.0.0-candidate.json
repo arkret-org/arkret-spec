@@ -638,7 +638,7 @@
             "cell_family": "ak.component.agent.selector_claim.v1",
             "cell_subject": {
               "components": [
-                "payload.controller_subject",
+                "payload.controller_subject_id",
                 "payload.agent_slug"
               ],
               "kind": "composite"
@@ -2155,8 +2155,8 @@
             "cell_subject": {
               "kind": "composite",
               "components": [
-                "payload.issuer",
-                "payload.subject",
+                "payload.issuer_id",
+                "payload.subject_id",
                 {
                   "kind": "string_set_digest",
                   "field": "payload.accountability_scope",
@@ -2330,7 +2330,7 @@
             "cell_family": "ak.component.member.state.v1",
             "cell_subject": {
               "kind": "did",
-              "field": "payload.invitee"
+              "field": "payload.invitee_id"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -2342,7 +2342,7 @@
             },
             "condition": {
               "kind": "field_present",
-              "field": "payload.invitee"
+              "field": "payload.invitee_id"
             }
           }
         ],
@@ -2355,7 +2355,7 @@
             },
             "predicate": {
               "kind": "stored_field_present",
-              "field": "invitee"
+              "field": "invitee_id"
             },
             "failure": {
               "code": "failed_precondition",
@@ -2369,8 +2369,8 @@
             },
             "predicate": {
               "kind": "stored_field_equals_payload",
-              "field": "invitee",
-              "payload_field": "payload.invitee"
+              "field": "invitee_id",
+              "payload_field": "payload.invitee_id"
             },
             "failure": {
               "code": "failed_precondition",
@@ -2407,7 +2407,7 @@
               "kind": "composite",
               "components": [
                 "payload.invite_id",
-                "payload.subject_id"
+                "payload.subject_id_id"
               ]
             },
             "lattice": "or_set",
@@ -2451,7 +2451,7 @@
             "cell_family": "ak.component.member.state.v1",
             "cell_subject": {
               "kind": "did",
-              "field": "payload.invitee"
+              "field": "payload.invitee_id"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -2463,7 +2463,7 @@
             },
             "condition": {
               "kind": "field_present",
-              "field": "payload.invitee"
+              "field": "payload.invitee_id"
             }
           }
         ],
@@ -2492,7 +2492,7 @@
             "cell_family": "ak.component.member.state.v1",
             "cell_subject": {
               "kind": "did",
-              "field": "payload.invitee"
+              "field": "payload.invitee_id"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -2504,7 +2504,7 @@
             },
             "condition": {
               "kind": "field_present",
-              "field": "payload.invitee"
+              "field": "payload.invitee_id"
             }
           }
         ],
@@ -7291,7 +7291,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Server-revision-CAS active binding or revoked tombstone for a (recipient_service_id, principal, device, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_service_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
+        "payload": "Server-revision-CAS active binding or revoked tombstone for a (recipient_id, principal, device, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_id context.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
         "id_source": "not_an_object_id"
       },
@@ -7671,7 +7671,7 @@
         "reducer_authority": "realm",
         "reducer_effects": [
           "match pending ak.invite.third_party by invite_id and token_commitment",
-          "re-check verification_service_id against current effective Realm allowlist",
+          "re-check verification_id against current effective Realm allowlist",
           "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
           "transition invite cell pending -> claimed and materialize subject-bound membership proposal",
           "expire and clean pending invite material before claim acceptance when expires_at <= now"
@@ -8839,7 +8839,7 @@
           "cell_subject": {
             "kind": "composite",
             "components": [
-              "payload.recipient_service_id",
+              "payload.recipient_id",
               "payload.principal_id",
               "payload.device_id",
               "payload.push_route"
@@ -9206,7 +9206,7 @@
         "schema_id": "ak.schema.principal_locator.v1",
         "file": "schemas/principal-locator.schema.json",
         "status": "active",
-        "description": "Signed online invite locator asserting subject_id and recipient_service_id for private invite delivery."
+        "description": "Signed online invite locator asserting subject_id and recipient_id for private invite delivery."
       },
       {
         "schema_id": "ak.schema.invite_delivery_request.v1",
@@ -10248,7 +10248,7 @@
         "schema_id": "ak.schema.delivery_binding_stale.v1",
         "file": "schemas/delivery-binding-stale.schema.json",
         "status": "active",
-        "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_id, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
+        "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_id, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "delivery_binding_stale federation response body",
@@ -10390,7 +10390,7 @@
         "session_grant"
       ],
       "identity_key": [
-        "issuer_did",
+        "issuer_id",
         "typed_id"
       ],
       "authority": "signed_immutable_issuer_record",
@@ -10403,11 +10403,11 @@
       "token_layout": "digest_suite_wire_code || 32-byte digest",
       "preimage_fields": [
         "schema",
-        "issuer",
+        "issuer_id",
         "issuance_nonce",
-        "subject",
+        "subject_id",
         "session_public_key",
-        "audience",
+        "audience_id",
         "scopes",
         "not_before",
         "expires_at",
@@ -10421,7 +10421,7 @@
       "closed_encoding": {
         "issuance_nonce": "base64url_no_pad_exactly_32_octets",
         "session_public_key": "supported_public_jwk_encoded_as_rfc8785_jcs_string",
-        "audience": "canonical_bare_resource_service_did; never an HTTP origin or endpoint URL",
+        "audience_id": "canonical_bare_resource_service_did; never an HTTP origin or endpoint URL",
         "scopes": "protocol_bytewise_sorted_unique_after_authorization_intersection",
         "timestamps": "utc_canonical_millisecond",
         "optional_fields": "omit_when_absent_never_null",
@@ -10432,7 +10432,7 @@
       "device_id_rule": "No independent top-level device_id claim enters the preimage; standard human holder_binding and its complete device_binding carry accepted-device authority. Recovery candidate-device and Agent runtime holder bindings carry their own device_id and forbid device_binding.",
       "durable_replay": {
         "key": [
-          "issuer_did",
+          "issuer_id",
           "operation_or_proof_kind",
           "request_identity"
         ],
@@ -10441,7 +10441,7 @@
         "replay_revalidation": [
           "holder_or_dpop_proof",
           "http_method_and_target",
-          "issuer_and_audience",
+          "issuer_id_and_audience_id",
           "canonical_request_digest"
         ],
         "retention": "not_shorter_than_the_corresponding_one_shot_proof_maximum_retry_window",
@@ -10566,7 +10566,7 @@
           "payload_encoding": "32 octets rendered as exactly 64 lowercase hexadecimal characters",
           "derivation_from_request_forbidden": true,
           "uniqueness_scope": [
-            "issuing_registry_service_id"
+            "issuing_registry_id"
           ],
           "uniqueness_rule": "The registry MUST atomically reserve the value before returning it and MUST reallocate on any collision with a live or consumed ledger row; a challenge value is never reissued.",
           "single_use": true,
@@ -10785,7 +10785,7 @@
         "category": "media",
         "status": "active",
         "wire_form": "ak:rtc_participant:<uuidv7>",
-        "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_id, ice_bucket(issued_at))` by the media service token issuer, where v1 ice_bucket is the fixed 300-second UTC bucket. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern.",
+        "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_id, ice_bucket(issued_at))` by the media service token issuer, where v1 ice_bucket is the fixed 300-second UTC bucket. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
       },
@@ -11859,8 +11859,8 @@
               "closed_fields": [
                 "operation_id",
                 "direction",
-                "source_service_id",
-                "destination_service_id",
+                "source_id",
+                "destination_id",
                 "signature_label",
                 "verification_method",
                 "verification_key_digest",
@@ -12248,7 +12248,7 @@
         },
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/controller-gate-attestations",
-        "notes": "Account Authority S2S producer operation for Native Agent signer evidence. The request carries agent_authority_service_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(did), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_service_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Principal Server is the Agent PCR authority under the managed-Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
+        "notes": "Account Authority S2S producer operation for Native Agent signer evidence. The request carries agent_authority_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(did), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Principal Server is the Agent PCR authority under the managed-Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -13099,7 +13099,7 @@
         "http": "POST /_arkret/peer/invites",
         "grpc": "PeerInvites/Submit",
         "mq": "peer.invites.command.submit",
-        "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-ID equal to invite_address.recipient_service_id, a ak.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
+        "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-ID equal to invite_address.recipient_id, a ak.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -14903,7 +14903,7 @@
         "http": "POST /_arkret/self/invite-locators",
         "grpc": "SelfInviteLocator/Issue",
         "mq": "self.invite_locator.command.issue",
-        "notes": "Issues a fresh opaque locator for the authenticated principal. subject_id and recipient_service_id are server-derived; the raw bearer token is returned exactly once and MUST NOT be persisted.",
+        "notes": "Issues a fresh opaque locator for the authenticated principal. subject_id and recipient_id are server-derived; the raw bearer token is returned exactly once and MUST NOT be persisted.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
@@ -15905,7 +15905,7 @@
         "http": "POST /_arkret/peer/history-key-responses/relay",
         "grpc": "PeerHistoryKey/ResponseRelay",
         "mq": "peer.history_key_responses.command.relay",
-        "notes": "Private S2S relay of the immutable source record plus SourceRelayAttestation from the source's authenticated current local Principal Server to request_receipt.release_service_id. Destination validates the relay service against current source delivery/authority binding and performs the only final T1/release linearization. The two-service cut is not globally atomic; v1 assumes honest services and bounded TTL observation.",
+        "notes": "Private S2S relay of the immutable source record plus SourceRelayAttestation from the source's authenticated current local Principal Server to request_receipt.release_id. Destination validates the relay service against current source delivery/authority binding and performs the only final T1/release linearization. The two-service cut is not globally atomic; v1 assumes honest services and bounded TTL observation.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 8388608,
         "success_shape_kind": "typed_response",
@@ -15955,7 +15955,7 @@
         "http": "POST /_arkret/peer/organization-recovery-archives/replicate",
         "grpc": "PeerHistoryKey/OrganizationRecoveryArchiveReplicate",
         "mq": "peer.organization_recovery_archives.command.replicate",
-        "notes": "Private immutable RRK archive replica to exact holder_service_id. It binds exact archive bytes, container Event, accepted evidence Event, complete holder_trusted_basis and archive-lifetime direct traversal retention for one epoch. First durable acceptance assigns one archive_sequence per semantic key; changing replicated_at cannot add a row. Exact duplicate returns the first byte-identical accepted receipt. Archive and replay closure are retained for the Realm recovery-material lifetime; v1 defines no remote GC/renewal.",
+        "notes": "Private immutable RRK archive replica to exact holder_id. It binds exact archive bytes, container Event, accepted evidence Event, complete holder_trusted_basis and archive-lifetime direct traversal retention for one epoch. First durable acceptance assigns one archive_sequence per semantic key; changing replicated_at cannot add a row. Exact duplicate returns the first byte-identical accepted receipt. Archive and replay closure are retained for the Realm recovery-material lifetime; v1 defines no remote GC/renewal.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 1048576,
         "success_shape_kind": "typed_response",

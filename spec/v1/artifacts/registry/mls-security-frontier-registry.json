@@ -100,7 +100,7 @@
         "recovery_key_id",
         "key_agreement_ref",
         "holder_principal_id",
-        "holder_service_id",
+        "holder_id",
         "holder_signing_ref",
         "hpke_suite",
         "frozen_public_key_b64u",

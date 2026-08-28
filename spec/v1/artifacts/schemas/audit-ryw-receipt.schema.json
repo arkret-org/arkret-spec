@@ -7,12 +7,12 @@
   "required": [
     "schema",
     "receipt_id",
-    "issuer",
+    "issuer_id",
     "issuer_role",
     "audit_event_id",
     "realm_id",
     "trust_domain",
-    "realm_operator_organization",
+    "realm_operator_organization_id",
     "audit_actor_id",
     "frontier",
     "observed_at",
@@ -29,7 +29,7 @@
       "type": "string",
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "issuer": {
+    "issuer_id": {
       "$ref": "#/$defs/did_core_id"
     },
     "issuer_role": {
@@ -52,7 +52,7 @@
       "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
       "description": "Deployment trust domain for the Realm at the receipt frontier. Verifiers MUST require this to match the current receive context and the enclosing audit Event Realm context before using audit_policy_version_digest."
     },
-    "realm_operator_organization": {
+    "realm_operator_organization_id": {
       "$ref": "#/$defs/did_core_id",
       "description": "Stable ID of the Realm operator's ultimate controlling organization at this receipt frontier. Verifiers MUST derive and verify it from the Realm service/operator DID control chain; it is not a self-attested label. For federation_witness_attested, every witness controlling_organization_id MUST be distinct from this value and from any organization under the same ultimate controller."
     },

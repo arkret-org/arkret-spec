@@ -688,7 +688,7 @@
       "required": [
         "kind",
         "actor_id",
-        "realms"
+        "realm_ids"
       ],
       "properties": {
         "kind": {
@@ -697,7 +697,7 @@
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "realms": {
+        "realm_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/RealmActorFrontierView"
@@ -983,11 +983,11 @@
     "BlobPresignOutcome": {
       "type": "object",
       "required": [
-        "url",
+        "uri",
         "expires_at"
       ],
       "properties": {
-        "url": {
+        "uri": {
           "type": "string",
           "format": "uri",
           "description": "Fully-qualified URL clients can pass to browser primitives. Contains the `presign` query parameter, `blob_ref`, and a presign envelope bound to `realm_id` for Realm-owned blobs."
@@ -1055,7 +1055,7 @@
           "required": [
             "call_id",
             "focus_id",
-            "participant_identity",
+            "participant_id",
             "issued_at",
             "expires_at",
             "media"
@@ -1071,7 +1071,7 @@
               "minLength": 1,
               "maxLength": 64
             },
-            "participant_identity": {
+            "participant_id": {
               "type": "string",
               "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
@@ -1116,9 +1116,9 @@
       "type": "object",
       "required": [
         "focus_id",
-        "connect_url",
+        "connect_uri",
         "backend_token",
-        "participant_identity",
+        "participant_id",
         "participant_binding",
         "expires_at",
         "backend_kind"
@@ -1130,14 +1130,14 @@
           "minLength": 1,
           "maxLength": 64
         },
-        "connect_url": {
+        "connect_uri": {
           "type": "string",
           "format": "uri"
         },
         "backend_token": {
           "description": "Closed branch selected by backend_kind: arkret_native uses the typed signature object; every other v1 backend uses a non-empty opaque string."
         },
-        "participant_identity": {
+        "participant_id": {
           "type": "string",
           "description": "SFU-local short handle, scope `(call_id, focus_id, sfu_did)`. UUIDv7-form rtc_participant typed ID.",
           "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -1152,7 +1152,7 @@
             "focus_id",
             "actor_id",
             "device_id",
-            "participant_identity",
+            "participant_id",
             "issued_at",
             "expires_at",
             "issuer_kid",
@@ -1182,7 +1182,7 @@
               "type": "string",
               "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
-            "participant_identity": {
+            "participant_id": {
               "type": "string",
               "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
@@ -1892,11 +1892,11 @@
         {
           "type": "object",
           "required": [
-            "audience",
+            "audience_id",
             "proof_purpose"
           ],
           "properties": {
-            "audience": {
+            "audience_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             },
             "proof_purpose": {
@@ -1919,7 +1919,7 @@
         "discovery_event",
         "source_refs",
         "as_of",
-        "principal_server_service_id"
+        "principal_server_id"
       ],
       "properties": {
         "discovery_event": {
@@ -1958,7 +1958,7 @@
         "as_of": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "principal_server_service_id": {
+        "principal_server_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "ttl_seconds": {
@@ -2387,17 +2387,17 @@
       "description": "Federation peer ak.peer.events.read.frontier.v1 response. Requires S2S signed trust-domain headers.",
       "required": [
         "realm_id",
-        "heads",
+        "head_ids",
         "frontier_root",
         "observed_at",
-        "issuer",
+        "issuer_id",
         "signature"
       ],
       "properties": {
         "realm_id": {
           "$ref": "#/$defs/RealmId"
         },
-        "heads": {
+        "head_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/EventId"
@@ -2446,7 +2446,7 @@
         "observed_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "signature": {
@@ -2697,17 +2697,17 @@
       "anyOf": [
         {
           "required": [
-            "realms"
+            "realm_ids"
           ]
         },
         {
           "required": [
-            "actors"
+            "actor_ids"
           ]
         }
       ],
       "properties": {
-        "realms": {
+        "realm_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/RealmId"
@@ -2715,7 +2715,7 @@
           "minItems": 1,
           "description": "Filter by Realm IDs. UNION within, intersection with `actors[]`."
         },
-        "actors": {
+        "actor_ids": {
           "type": "array",
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -3504,7 +3504,7 @@
         "realm_policy_digest",
         "membership_frontier",
         "delivery_binding_frontier",
-        "destination_service_kind"
+        "destination_kind"
       ],
       "properties": {
         "realm_id": {
@@ -3532,7 +3532,7 @@
           "type": "object",
           "additionalProperties": true
         },
-        "destination_service_kind": {
+        "destination_kind": {
           "type": "string",
           "minLength": 1
         }
@@ -3735,7 +3735,7 @@
       "required": [
         "device_id",
         "session_public_key",
-        "audience"
+        "audience_id"
       ],
       "properties": {
         "device_id": {
@@ -3747,7 +3747,7 @@
           "minLength": 1,
           "description": "Exact RFC 8785 JCS public JWK for the existing handoff DPoP holder key. Private members are forbidden."
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         }
       },
@@ -3909,7 +3909,7 @@
           "const": "submitted",
           "description": "Stored submit outcome. Later queue resolution does not rewrite this response; exact replay returns the byte-identical submitted outcome."
         },
-        "routed_to": {
+        "routed_to_ids": {
           "type": "array",
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -3987,10 +3987,10 @@
         "did",
         "purpose",
         "nonce",
-        "audience",
-        "origin",
+        "audience_id",
+        "origin_uri",
         "trust_domain",
-        "local_admin_subject",
+        "local_admin_subject_id",
         "requested_scopes",
         "expires_at",
         "created_at"
@@ -4015,11 +4015,11 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{22,128}$"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable service did_core_id of the issuing registry. A proof bound to one registry MUST NOT be accepted by another; the proof verification method remains a DID URL projected to this value by the registered method adapter."
         },
-        "origin": {
+        "origin_uri": {
           "type": "string",
           "format": "uri",
           "pattern": "^https?://[^?#]+/$"
@@ -4027,7 +4027,7 @@
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
         },
-        "local_admin_subject": {
+        "local_admin_subject_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "The local principal the requested scopes will be delegated to. It is fixed at challenge time and signed over by the control proof, because a proof that binds only the organization and the version says nothing about who benefits from it: anyone who obtained such a proof could submit ensure naming themselves and receive the organization's administrative scopes. ensure MUST reject a request whose local_admin_subject differs from the one in the referenced challenge."
         },
@@ -4055,7 +4055,7 @@
       "required": [
         "organization_id",
         "did",
-        "local_admin_subject",
+        "local_admin_subject_id",
         "requested_scopes"
       ],
       "properties": {
@@ -4067,7 +4067,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did",
           "description": "Current published bare DID submitted for first registration. The registry MUST independently resolve and validate it and require project(did)=organization_id."
         },
-        "local_admin_subject": {
+        "local_admin_subject_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "The local principal the requested scopes will be delegated to. It is fixed at challenge time and signed over by the control proof, because a proof that binds only the organization and the version says nothing about who benefits from it: anyone who obtained such a proof could submit ensure naming themselves and receive the organization's administrative scopes. ensure MUST reject a request whose local_admin_subject differs from the one in the referenced challenge."
         },
@@ -4092,7 +4092,7 @@
         "version_id",
         "log_head_digest",
         "control_proof",
-        "local_admin_subject",
+        "local_admin_subject_id",
         "requested_scopes"
       ],
       "properties": {
@@ -4120,7 +4120,7 @@
         "control_proof": {
           "$ref": "#/$defs/OrganizationControlProof"
         },
-        "local_admin_subject": {
+        "local_admin_subject_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "The local principal the requested scopes are delegated to. MUST equal the value bound into the referenced challenge and signed over by control_proof; a mismatch means the proof was made for a different beneficiary and MUST be rejected with organization_registration_challenge_invalid."
         },
@@ -4138,15 +4138,15 @@
           "additionalProperties": false,
           "description": "Optional supporting attestation only. An organization handle or domain claim may improve discovery and display, but MUST NOT substitute for DID control or quorum proof: whoever operates a domain is not thereby the controller of the organization's DID. Named attestation rather than evidence because it carries exactly one material family (common-fields.md R6).",
           "required": [
-            "subject",
+            "subject_id",
             "handle",
-            "issuer",
+            "issuer_id",
             "audience",
             "status",
             "expires_at"
           ],
           "properties": {
-            "subject": {
+            "subject_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id",
               "description": "Stable organization did_core_id the handle is claimed for. MUST equal organization_id; the attestation proof's DID URL is independently projected to its issuer did_core_id."
             },
@@ -4154,7 +4154,7 @@
               "type": "string",
               "minLength": 1
             },
-            "issuer": {
+            "issuer_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             },
             "audience": {
@@ -4207,12 +4207,12 @@
         "log_head_digest",
         "control_proof_kind",
         "control_key_digest",
-        "local_admin_subject",
+        "local_admin_subject_id",
         "delegated_scopes",
         "status",
         "issued_at",
         "expires_at",
-        "issuer_service_id",
+        "issuer_id",
         "proof"
       ],
       "properties": {
@@ -4255,7 +4255,7 @@
           "pattern": "^sha256:[0-9a-f]{64}$",
           "description": "Under resolved_verification_method, the digest of the active control/update public key at version_id. Under governance_quorum, the digest of the canonical governance key set head that satisfied the threshold. It is never a next-key commitment and never private material."
         },
-        "local_admin_subject": {
+        "local_admin_subject_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "delegated_scopes": {
@@ -4282,12 +4282,12 @@
           "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "After this instant the binding MUST be treated as stale regardless of stored status. A receipt without a bounded life would let a single first-time proof authorise an organization relationship indefinitely."
         },
-        "issuer_service_id": {
+        "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization_registration_receipt_proof.v1', payload_digest, issuer_service_id, registration_receipt_id, organization_id, did, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers validate the registered organization's did and project it to organization_id, then independently obtain the issuer service's verified resolution, require its did to project to issuer_service_id, and verify verification_method as a signing-time assertionMethod."
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization_registration_receipt_proof.v1', payload_digest, issuer_id, registration_receipt_id, organization_id, did, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers validate the registered organization's did and project it to organization_id, then independently obtain the issuer service's verified resolution, require its did to project to issuer_id, and verify verification_method as a signing-time assertionMethod."
         }
       }
     },
@@ -4612,7 +4612,7 @@
         "request_canonical_digest",
         "action",
         "actor_id",
-        "source"
+        "source_uri"
       ],
       "properties": {
         "request_id": {
@@ -4636,7 +4636,7 @@
           "type": "string",
           "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "source": {
+        "source_uri": {
           "type": "object",
           "required": [
             "service_id",
@@ -5490,7 +5490,7 @@
         "log_head_digest",
         "control_key_digest",
         "issued_at",
-        "provider_service_id",
+        "provider_id",
         "proof"
       ],
       "properties": {
@@ -5524,12 +5524,12 @@
         "issued_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "provider_service_id": {
+        "provider_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.service_registration_receipt_proof.v1', payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers resolve the provider did, require project(did)=provider_service_id, and verify verification_method as a signing-time assertionMethod of that did."
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.service_registration_receipt_proof.v1', payload_digest, provider_id, registration_receipt_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers resolve the provider did, require project(did)=provider_id, and verify verification_method as a signing-time assertionMethod of that did."
         }
       }
     },
@@ -5736,10 +5736,10 @@
       "description": "Non-secret grant metadata returned to the validating Principal Server. Never includes the grant JWT, refresh token, or session private key.",
       "required": [
         "id",
-        "issuer",
-        "subject",
+        "issuer_id",
+        "subject_id",
         "service_account_id",
-        "audience",
+        "audience_id",
         "scopes",
         "expires_at",
         "revocation_ref",
@@ -5752,11 +5752,11 @@
         "id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
-        "issuer": {
-          "type": "string"
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "subject": {
-          "type": "string"
+        "subject_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_account_id": {
           "type": "string",
@@ -5765,7 +5765,7 @@
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable did_core_id of the resource service this grant is valid for."
         },
@@ -6027,7 +6027,7 @@
           "type": "string",
           "description": "The signed grant JWT to introspect. Mutually exclusive with id."
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable service did_core_id the caller is validating the grant for; a mismatch yields status audience_mismatch."
         },
@@ -6060,7 +6060,7 @@
         "expires_at",
         "session_grant_id",
         "session_public_key",
-        "audience"
+        "audience_id"
       ],
       "properties": {
         "principal_id": {
@@ -6086,7 +6086,7 @@
           "format": "canonical-public-jwk-jcs",
           "description": "JWK of the holder/session key the grant is bound to (the device holder key). The client needs this to perform RFC 9421 PoP and to derive the DPoP cnf.jkt for /_arkret/self/* requests (api-conventions.md §3.2 / §3.3); returning it at issue time avoids a mandatory introspect round-trip before the first self-path request. Equals the grant's bound session_public_key for both human and agent grants. Mirrors SessionGrantRefreshOutcome.session_public_key."
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable did_core_id of the Principal Server or resource service the grant is valid for. MUST equal the grant's bound audience. Mirrors SessionGrantRefreshOutcome.audience."
         },
@@ -6140,7 +6140,7 @@
         "grant_jwt",
         "session_public_key",
         "expires_at",
-        "audience",
+        "audience_id",
         "scopes",
         "dpop_jkt",
         "previous_session_grant_id"
@@ -6161,7 +6161,7 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable did_core_id of the resource service; unchanged from the predecessor grant."
         },
@@ -6190,7 +6190,7 @@
         "purpose",
         "principal_id",
         "device_id",
-        "audience",
+        "audience_id",
         "holder_jkt",
         "session_intent_digest",
         "issued_at",
@@ -6230,7 +6230,7 @@
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable resource-service did_core_id."
         },
@@ -6320,7 +6320,7 @@
       "required": [
         "context",
         "request_canonical_digest",
-        "audience",
+        "audience_id",
         "issued_at",
         "expires_at",
         "verification_method",
@@ -6334,7 +6334,7 @@
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "issued_at": {
@@ -6368,7 +6368,7 @@
           "minLength": 1,
           "description": "Near-expiry human DPoP-bound SessionGrant presented as Authorization: DPoP plus a matching DPoP proof."
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "If present, MUST equal the predecessor grant audience."
         },
@@ -6394,7 +6394,7 @@
           "minLength": 1,
           "description": "Near-expiry Agent DPoP-bound SessionGrant presented as Authorization: DPoP plus a matching DPoP proof."
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "If present, MUST equal the predecessor grant audience."
         },
@@ -6425,7 +6425,7 @@
         "request_id",
         "principal_id",
         "device_id",
-        "audience",
+        "audience_id",
         "accepted_device_possession_proof"
       ],
       "properties": {
@@ -6439,7 +6439,7 @@
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "accepted_device_possession_proof": {
@@ -6456,7 +6456,7 @@
         "request_id",
         "principal_id",
         "device_id",
-        "audience"
+        "audience_id"
       ],
       "properties": {
         "credential_class": {
@@ -6472,7 +6472,7 @@
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         }
       }
@@ -6556,7 +6556,7 @@
             "proof_kind",
             "challenge",
             "request_canonical_digest",
-            "audience",
+            "audience_id",
             "verification_method",
             "signature"
           ],
@@ -6572,7 +6572,7 @@
               "type": "string",
               "pattern": "^sha256:[0-9a-f]{64}$"
             },
-            "audience": {
+            "audience_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id",
               "description": "Stable did_core_id of the resource service issuing the challenge and receiving the session request."
             },
@@ -6644,11 +6644,11 @@
       "required": [
         "kind",
         "jti",
-        "issuer",
+        "issuer_id",
         "issuance_nonce",
-        "subject",
+        "subject_id",
         "session_public_key",
-        "audience",
+        "audience_id",
         "scopes",
         "not_before",
         "expires_at",
@@ -6664,7 +6664,7 @@
         "jti": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "issuance_nonce": {
@@ -6672,7 +6672,7 @@
           "pattern": "^[A-Za-z0-9_-]{43}$",
           "description": "Canonical unpadded Base64URL encoding of the issuer-generated 256-bit issuance nonce. Exact replay reuses the same nonce, issuance preimage, grant ID and JWT."
         },
-        "subject": {
+        "subject_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "session_public_key": {
@@ -6681,7 +6681,7 @@
           "minLength": 1,
           "description": "A supported public JWK serialized as its exact RFC 8785 JCS UTF-8 string. Producers MUST parse and canonicalize input before signing; consumers MUST reject strings whose parsed JWK re-serialization is not byte-identical. Private JWK members are forbidden."
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable did_core_id of the resource service. HTTP origins are bound separately by DPoP htu and MUST NOT be used as the SessionGrant audience."
         },

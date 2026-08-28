@@ -43,7 +43,7 @@
       ],
       "active_install": {
         "service_id": "ak:did_core:webvh:z6mkfixturebridgeexample",
-        "destination_service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+        "destination_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
         "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "key_ref": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
         "actor_namespace": "did:webvh:z6mkfixturebridgeexample:bridge.example#ghost"
@@ -65,9 +65,9 @@
           "signature_label": "sig1",
           "signature_algorithm": "ed25519",
           "verification_key_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "source_service_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
-          "source_service_id_body": "ak:did_core:webvh:z6mkfixturebridgeexample",
-          "destination_service_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+          "source_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
+          "source_id_body": "ak:did_core:webvh:z6mkfixturebridgeexample",
+          "destination_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
           "content_digest_matches_body": true,
           "content_digest": "sha-256=:u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=:",
           "idempotency_key": "tx-001",
@@ -105,9 +105,9 @@
             "idempotency-key"
           ],
           "keyid": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
-          "source_service_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
-          "source_service_id_body": "ak:did_core:webvh:z6mkfixturemalloryexample",
-          "destination_service_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+          "source_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
+          "source_id_body": "ak:did_core:webvh:z6mkfixturemalloryexample",
+          "destination_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
           "content_digest_matches_body": true,
           "expected": {
             "decision": "reject",
@@ -140,9 +140,9 @@
         {
           "name": "no_active_install",
           "signature_present": true,
-          "source_service_id_header": "ak:did_core:webvh:z6mkfixtureunknownbridgeexample",
-          "source_service_id_body": "ak:did_core:webvh:z6mkfixtureunknownbridgeexample",
-          "destination_service_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+          "source_id_header": "ak:did_core:webvh:z6mkfixtureunknownbridgeexample",
+          "source_id_body": "ak:did_core:webvh:z6mkfixtureunknownbridgeexample",
+          "destination_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
           "content_digest_matches_body": true,
           "expected": {
             "decision": "reject",
@@ -162,9 +162,9 @@
             "idempotency-key"
           ],
           "keyid": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
-          "source_service_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
-          "source_service_id_body": "ak:did_core:webvh:z6mkfixturebridgeexample",
-          "destination_service_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+          "source_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
+          "source_id_body": "ak:did_core:webvh:z6mkfixturebridgeexample",
+          "destination_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
           "content_digest_matches_body": true,
           "actor_namespace": "did:webvh:z6mkfixture:alice.example",
           "authorization_ref_owner": "ak:did_core:webvh:z6mkfixturebridgeexample",

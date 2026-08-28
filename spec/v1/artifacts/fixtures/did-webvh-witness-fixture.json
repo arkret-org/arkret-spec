@@ -363,7 +363,7 @@
         "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
         "observed_at": "2026-05-01T00:00:00.000Z",
         "source": "https://subject.example/.well-known/did-witness.json",
-        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "expires_at": "2026-05-02T00:00:00.000Z",
         "created_at": "2026-05-01T00:00:00.000Z",
         "signature": {
@@ -388,7 +388,7 @@
         "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
         "seq": 2,
         "head_event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-        "registry_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "registry_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "witness_role": "replica",
         "created_at": "2026-05-01T00:00:00.000Z",
         "signature": {
@@ -416,7 +416,7 @@
         "witness_did": "did:key:z6MkfixtureWitnessA",
         "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
         "observed_at": "2026-05-01T00:00:00.000Z",
-        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "created_at": "2026-05-01T00:00:00.000Z",
         "signature": {
           "kind": "detached_jws",
@@ -444,7 +444,7 @@
         "witness_did": "did:key:z6MkfixtureWitnessA",
         "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
         "observed_at": "2026-05-01T00:00:00.000Z",
-        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "expires_at": "2026-05-02T00:00:00.000Z",
         "created_at": "2026-05-01T00:00:00.000Z",
         "signature": {
@@ -472,7 +472,7 @@
         "witness_did": "did:web:witness-a.example",
         "witness_verification_method": "did:web:witness-a.example#key-1",
         "observed_at": "2026-05-01T00:00:00.000Z",
-        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "expires_at": "2026-05-02T00:00:00.000Z",
         "created_at": "2026-05-01T00:00:00.000Z",
         "signature": {
@@ -501,7 +501,7 @@
         "witness_did": "did:key:z6MkfixtureWitnessA",
         "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
         "observed_at": "2026-05-01T00:00:00.000Z",
-        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "expires_at": "2026-05-02T00:00:00.000Z",
         "created_at": "2026-05-01T00:00:00.000Z",
         "max_age_seconds": 3600,
@@ -531,7 +531,7 @@
             "witness_did": "did:key:z6MkfixtureWitnessA",
             "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
             "observed_at": "2026-05-01T00:00:00.000Z",
-            "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+            "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
             "expires_at": "2026-05-02T00:00:00.000Z",
             "created_at": "2026-05-01T00:00:00.000Z",
             "signature": {
@@ -549,7 +549,7 @@
             "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
             "seq": 2,
             "head_event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-            "registry_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
+            "registry_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
             "witness_role": "replica",
             "created_at": "2026-05-01T00:00:00.000Z",
             "signature": {

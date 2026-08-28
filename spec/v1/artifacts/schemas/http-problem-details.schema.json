@@ -3,6 +3,11 @@
   "$id": "https://arkret.org/v1/schemas/http-problem-details.schema.json",
   "title": "Arkret HTTP Problem Details",
   "description": "Canonical RFC 9457 application/problem+json error response. The type URI is the stable machine discriminator and must resolve through error-code-registry.json. Unknown extension members are tolerated by consumers as required by RFC 9457; producers may emit only extensions registered for the selected type.",
+  "x-arkret-external-literal-object": {
+    "specification": "RFC 9457 Problem Details for HTTP APIs",
+    "anchor": "https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1",
+    "reason": "The complete object uses the RFC literal member vocabulary; instance is the standard URI-reference member rather than an Arkret wrapper role."
+  },
   "type": "object",
   "required": [
     "type",

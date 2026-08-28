@@ -1907,10 +1907,10 @@
               "if": {
                 "type": "object",
                 "required": [
-                  "cell"
+                  "cell_id"
                 ],
                 "properties": {
-                  "cell": {
+                  "cell_id": {
                     "const": "ak:cell:ak.component.identity.resolution.v1:null"
                   }
                 }
@@ -4242,7 +4242,7 @@
           "pattern": "^(?!ak:)",
           "minLength": 1
         },
-        "url": {
+        "uri": {
           "type": "string",
           "format": "uri"
         }
@@ -4456,11 +4456,11 @@
     "precondition": {
       "type": "object",
       "required": [
-        "cell",
+        "cell_id",
         "predicate"
       ],
       "properties": {
-        "cell": {
+        "cell_id": {
           "$ref": "#/$defs/cell_ref"
         },
         "predicate": {
@@ -4472,11 +4472,11 @@
     "identity_resolution_head_precondition": {
       "type": "object",
       "required": [
-        "cell",
+        "cell_id",
         "predicate"
       ],
       "properties": {
-        "cell": {
+        "cell_id": {
           "const": "ak:cell:ak.component.identity.resolution.v1:null"
         },
         "predicate": {
@@ -4709,7 +4709,7 @@
         "event_digest",
         "producer_proof_digest",
         "producer_verification_method",
-        "producer_signing_key",
+        "producer_signing_key_did",
         "signer_resolution_evidence_ref",
         "signer_resolution_evidence_digest",
         "accepted_at",
@@ -4735,7 +4735,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_url",
           "description": "Must equal the bound producer proof verification_method byte-for-byte."
         },
-        "producer_signing_key": {
+        "producer_signing_key_did": {
           "type": "string",
           "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
           "description": "Public signing key that verifies the exact producer proof at admission time."

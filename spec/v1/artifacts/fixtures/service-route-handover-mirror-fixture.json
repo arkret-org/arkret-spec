@@ -95,8 +95,8 @@
       "semantic_outcome": "accept",
       "instance": {
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-        "target_service_id": "ak:did_core:webvh:z6mkTarget",
-        "target_service_kind": "principal_server",
+        "target_id": "ak:did_core:webvh:z6mkTarget",
+        "target_kind": "principal_server",
         "known_record_sequence": 7,
         "known_record_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "max_records": 32,
@@ -110,8 +110,8 @@
       "first_expected_error": "contains:33 is greater than the maximum of 32",
       "instance": {
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-        "target_service_id": "ak:did_core:webvh:z6mkTarget",
-        "target_service_kind": "principal_server",
+        "target_id": "ak:did_core:webvh:z6mkTarget",
+        "target_kind": "principal_server",
         "known_record_sequence": 7,
         "known_record_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "max_records": 33,
@@ -166,8 +166,8 @@
       "semantic_outcome": "accept",
       "instance": {
         "request_id": "ak:request:019b0000-0000-7000-8000-000000000002",
-        "source_service_id": "ak:did_core:webvh:z6mkSource",
-        "receiver_service_id": "ak:did_core:webvh:z6mkMirror",
+        "source_id": "ak:did_core:webvh:z6mkSource",
+        "receiver_id": "ak:did_core:webvh:z6mkMirror",
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "request_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "artifact_key": {
@@ -187,8 +187,8 @@
       "first_expected_error": "contains:'request_digest' is a required property",
       "instance": {
         "request_id": "ak:request:019b0000-0000-7000-8000-000000000002",
-        "source_service_id": "ak:did_core:webvh:z6mkSource",
-        "receiver_service_id": "ak:did_core:webvh:z6mkMirror",
+        "source_id": "ak:did_core:webvh:z6mkSource",
+        "receiver_id": "ak:did_core:webvh:z6mkMirror",
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "artifact_key": {
           "artifact_family": "service_route_handover_notice",
@@ -352,7 +352,7 @@
       "name": "publish_dual_idempotency_keys_exact_replay_and_conflict",
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_request",
       "inputs": {
-        "source_service_id": "ak:did_core:webvh:z6mkSource",
+        "source_id": "ak:did_core:webvh:z6mkSource",
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "request_id": "ak:request:019b0000-0000-7000-8000-000000000002",
         "idempotency_key_header": "ak:request:019b0000-0000-7000-8000-000000000002",
@@ -377,8 +377,8 @@
       "semantic_outcome": "accept_exact_transport_replay_and_new_request_same_artifact_reject_two_conflicts",
       "expected_reason_code": "duplicate_conflict",
       "expected_effects": {
-        "transport_key": "source_service_id+realm_id+request_id",
-        "artifact_integrity_key": "source_service_id+realm_id+artifact_key",
+        "transport_key": "source_id+realm_id+request_id",
+        "artifact_integrity_key": "source_id+realm_id+artifact_key",
         "header_equals_request_id_required": true,
         "exact_replay_returns_original_ack": true,
         "new_request_same_artifact_may_receive_cross_bound_ack": true,
@@ -554,7 +554,7 @@
       "name": "same_core_route_refresh_does_not_rebind_new_core_does",
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_route_cache_entry",
       "inputs": {
-        "member_recipient_service_id": "ak:did_core:webvh:z6mkTarget",
+        "member_recipient_id": "ak:did_core:webvh:z6mkTarget",
         "same_core_successor_service_id": "ak:did_core:webvh:z6mkTarget",
         "new_core_candidate_service_id": "ak:did_core:webvh:z6mkReplacement"
       },

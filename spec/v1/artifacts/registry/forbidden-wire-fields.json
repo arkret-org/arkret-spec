@@ -654,7 +654,7 @@
       "context": "attestation_evidence",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
-      "replacement": "audit_service_actor_id",
+      "replacement": "audit_actor_id",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -966,12 +966,12 @@
       "context": "service_describe_verified_profiles",
       "since_revision": "2026-06-10",
       "rejection_level": "hard_reject",
-      "replacement": "verifier_service_id",
+      "replacement": "verifier_id",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "ServiceDescribe.verified_profiles uses verifier_service_id and claim_kind=conformance_verified because the signing authority is the neutral Conformance Verifier role (conformance-suite.md §6.2). Tool-specific issuer fields or claim values are forbidden."
+      "notes": "ServiceDescribe.verified_profiles uses verifier_id and claim_kind=conformance_verified because the signing authority is the neutral Conformance Verifier role (conformance-suite.md §6.2). Tool-specific issuer fields or claim values are forbidden."
     },
     {
       "id": "cotest_run_id",
@@ -1086,7 +1086,7 @@
       "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
-      "replacement": "destination_service_kind",
+      "replacement": "destination_kind",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -2367,11 +2367,11 @@
       "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
-      "id": "recipient_service_id",
+      "id": "recipient_id",
       "context": "handle_claim_top_level",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "member_delivery_binding.recipient_service_id",
+      "replacement": "member_delivery_binding.recipient_id",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -2383,7 +2383,7 @@
       "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
-      "replacement": "recipient_service_kind",
+      "replacement": "recipient_kind",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -3200,12 +3200,12 @@
       "context": "membership_payload",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
-      "replacement": "via_service_ids",
+      "replacement": "via_ids",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "The membership delivery routing list carries service DIDs; the field names the value category explicitly as via_service_ids. Bare via is removed."
+      "notes": "The membership delivery routing list carries service DIDs; the field names the value category explicitly as via_ids. Bare via is removed."
     },
     {
       "id": "webhook_auth.type",

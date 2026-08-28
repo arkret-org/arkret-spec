@@ -36,7 +36,7 @@
       "delivery_binding_frontier": [
         "ak:event:Ad8o1Z5dxBRyRnjhZlo8lI5ItWLW9yi79MlZtGsn7WcQ"
       ],
-      "destination_service_kind": "principal_server"
+      "destination_kind": "principal_server"
     }
   },
   "cases": [
@@ -103,8 +103,8 @@
     {
       "name": "http_message_signature_digest",
       "input": {
-        "source_service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
-        "destination_service_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
+        "source_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+        "destination_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
         "method": "POST",
         "target_uri": "https://server-beta.example/_arkret/peer/events",
         "operation_id": "ak.peer.events.command.submit.v1",
@@ -171,11 +171,11 @@
       "expected": "exact_canonical_content_digests_match_signature_input"
     },
     {
-      "name": "source_destination_service_id_mismatch",
+      "name": "source_destination_id_mismatch",
       "input": {
-        "signature_source_service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
-        "header_source_service_id": "ak:did_core:webvh:z6mkfixtureservergammaexample",
-        "header_destination_service_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample"
+        "signature_source_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+        "header_source_id": "ak:did_core:webvh:z6mkfixtureservergammaexample",
+        "header_destination_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample"
       },
       "expected": "request_rejected_or_quarantined"
     },
@@ -383,7 +383,7 @@
           "verification_method",
           "producer_signer_resolution_evidence_ref",
           "producer_signer_resolution_evidence_digest",
-          "receiver_service_id"
+          "receiver_id"
         ]
       },
       "cases": [
@@ -405,7 +405,7 @@
         },
         {
           "case": "two_receivers_accept_the_same_event",
-          "expected": "one_receipt_per_receiver_service_id_as_distinct_historical_branches"
+          "expected": "one_receipt_per_receiver_id_as_distinct_historical_branches"
         },
         {
           "case": "byte_identical_resubmission_of_an_accepted_event",
@@ -432,7 +432,7 @@
           "expected": "handoff_incomplete_and_delivery_not_marked_complete"
         },
         {
-          "case": "receipt_proof_unparsable_or_receiver_service_id_mismatch",
+          "case": "receipt_proof_unparsable_or_receiver_id_mismatch",
           "expected": "handoff_incomplete_and_delivery_not_marked_complete"
         },
         {

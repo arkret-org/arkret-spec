@@ -194,7 +194,7 @@ DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独�
 
 - DID 字符串中出现的域名（例如 `did:webvh:...:users.acme.example` 中的 `users.acme.example`）只表示 `did.jsonl` 历史的托管位置，**不**承诺该域名运行 Principal Server，也**不**是用户公开 handle。
 - 用户/组织搬迁 Principal Server、变更端口、增加 mirror 或切换第三方 host 时，service owner 发布同一 service `did_core_id` 的 signed successor `ServiceResolutionRecord`；调用方验证 record chain、`did` method history、proof 与 freshness。同-core route refresh 不触发 member rebind，service core 改变才必须显式 rebind。
-- DID Document 中即使存在 `ArkretPrincipalServer` service entry，也不是默认或 Realm-scoped 路由 authority。某个 Realm 中已接受的 `ak.member.state{membership="join"}` 必须携带 `delivery_binding.recipient_service_id + service_resolution`；该 Realm 的事件、sync、to-device、push 与 KeyPackage 投递只使用该 binding，不存在 `did_document_default` runtime fallback。
+- DID Document 中即使存在 `ArkretPrincipalServer` service entry，也不是默认或 Realm-scoped 路由 authority。某个 Realm 中已接受的 `ak.member.state{membership="join"}` 必须携带 `delivery_binding.recipient_id + service_resolution`；该 Realm 的事件、sync、to-device、push 与 KeyPackage 投递只使用该 binding，不存在 `did_document_default` runtime fallback。
 - **DID 只作为 identity anchor。** Principal DID method log 只承载 active update root、pre-rotation commitment、method-native history 与 witness evidence。DID Document 不得用 `service`、verification relationship 或 fragment 指派设备 authority，也不得承载设备、recovery policy、capability 或业务 profile state。
 - **设备密钥不写入 DID method key log。** `device_public_key` 只由 PCR accepted `ak.device.authorize` 进入设备集投影。普通业务 Event proof 保留签名时的DID URL；verifier 将其 bare `did` 经 adapter 投影为 Event `actor_id`，并以 fragment 选择 accepted PCR device evidence、执行 generation fence。不得把 core `actor_id` 拼接 fragment，也不得回退到 DID Document verification method 充当设备授权。
 - Genesis/re-anchor verifier 只从对应 DID history 解析 identity root。首设备和 replacement device 的 candidate key来自同批 descriptor/authorize payload，通过 unit-local overlay 验证；DID resolver 不提供该 key。
@@ -462,10 +462,10 @@ Service Identity Provider 的标准操作是：
 
 `ServiceRegistrationReceipt` 采用 Arkret 统一 detached JWS，不引入 Data Integrity cryptosuite 例外。transcript 只能按下列步骤构造：
 
-1. 令 `receipt_claims` 为不含 `registration_receipt_id` 与 `proof` 的对象 `{registration_key, service_id, did, version_id, log_head_digest, control_key_digest, issued_at, provider_service_id}`；`registration_receipt_id = "ak:service_registration_receipt:" || hex(SHA-256(canonical_json(receipt_claims)))`。
+1. 令 `receipt_claims` 为不含 `registration_receipt_id` 与 `proof` 的对象 `{registration_key, service_id, did, version_id, log_head_digest, control_key_digest, issued_at, provider_id}`；`registration_receipt_id = "ak:service_registration_receipt:" || hex(SHA-256(canonical_json(receipt_claims)))`。
 2. 令 `document` 为包含 `registration_receipt_id`、但删除整个 `proof` 后的完整 receipt；`payload_digest = "sha256:" || hex(SHA-256(canonical_json(document)))`。
-3. detached JWS MUST 签 `canonical_json({context:"ak.service_registration_receipt_proof.v1", payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?})`。`created_at` MUST 等于 receipt `issued_at`；代码块 / 对象书写顺序不构成 byte order，key 顺序唯一由 [`encoding.md` §2](../conformance/encoding.md) 决定。
-4. `provider_service_id` MUST 是 Provider 的稳定 service `did_core_id`。消费者 MUST 取得 Provider 当前 `did`，用已登记 method adapter 验证其 method-native history 并要求 `project(did) == provider_service_id`；`verification_method` 的 bare controller DID MUST 等于该 `did`，且该 method 在 receipt 签发时属于对应 DID Document 的 `assertionMethod`。不得把 `provider_service_id` 当作可解析 DID，也不得把 VM controller DID 与它直接作字符串相等比较；transport bearer、mTLS、HTTPS 成功或 proof 结构校验均不得替代密码学验证。identity bundle 的离线恢复同样 MUST 完成上述验证。
+3. detached JWS MUST 签 `canonical_json({context:"ak.service_registration_receipt_proof.v1", payload_digest, provider_id, registration_receipt_id, verification_method, created_at, domain?, audience?})`。`created_at` MUST 等于 receipt `issued_at`；代码块 / 对象书写顺序不构成 byte order，key 顺序唯一由 [`encoding.md` §2](../conformance/encoding.md) 决定。
+4. `provider_id` MUST 是 Provider 的稳定 service `did_core_id`。消费者 MUST 取得 Provider 当前 `did`，用已登记 method adapter 验证其 method-native history 并要求 `project(did) == provider_id`；`verification_method` 的 bare controller DID MUST 等于该 `did`，且该 method 在 receipt 签发时属于对应 DID Document 的 `assertionMethod`。不得把 `provider_id` 当作可解析 DID，也不得把 VM controller DID 与它直接作字符串相等比较；transport bearer、mTLS、HTTPS 成功或 proof 结构校验均不得替代密码学验证。identity bundle 的离线恢复同样 MUST 完成上述验证。
 
 Provider 是 hosting 方而非控制者。transport bearer、mTLS 或内网凭据只认证部署通道；inception、rotation、endpoint update 与 registration-key migration 仍 MUST 由服务持有的 WebVH control/update key 签名。Provider 不得生成、接收或托管调用方私钥。服务自身必须持久化 active signing key ref、active control key ref、**next control key material**、version 与 receipt；B 类若要求数据库灾难后保持 DID，其可验证 identity bundle backend MUST 同时保存当前与下一代 control key material，否则不得声称可保持 DID。
 
@@ -639,7 +639,7 @@ ephemeral pairwise actor principal 转为长期关系时也适用本节：它必
 {
   "context": "ak.identity_receipt_proof.v1",
   "payload_digest": "sha256:<64-hex>",
-  "registry_service_id": "ak:did_core:webvh:<registry-core>",
+  "registry_id": "ak:did_core:webvh:<registry-core>",
   "did": "did:webvh:<subject>",
   "verification_method": "did:webvh:<registry>#<key-id>",
   "created_at": "<canonical RFC3339 timestamp>"
@@ -651,8 +651,8 @@ ephemeral pairwise actor principal 转为长期关系时也适用本节：它必
 `domain` 与 `audience` 按该顺序在存在时追加。`context` 是 verifier 构造的固定对象族
 domain tag，不进入 receipt wire body。`signature.created_at` 必须与 receipt 顶层
 `created_at` 相等；`signature.verification_method` 的 DID URL base 必须经 registry service 当前
-`did` 的 adapter 解析并投影为 `registry_service_id`，且该 method 必须是当前有效的 assertion
-method；不得把 fragment 拼到 `registry_service_id`。顶层 `audience` 与 proof `audience` 必须同时缺失，或同时为相同的单个
+`did` 的 adapter 解析并投影为 `registry_id`，且该 method 必须是当前有效的 assertion
+method；不得把 fragment 拼到 `registry_id`。顶层 `audience` 与 proof `audience` 必须同时缺失，或同时为相同的单个
 字符串；此对象族禁止 array audience。Verifier 必须先重算并常量时间比较
 `payload_digest`，再构造上述 binding object 验证 JWS。直接签 receipt body、遗漏
 `context`、复用 `ak.event_proof.v1` 或只签 proof 字段都必须拒绝。
@@ -1054,13 +1054,13 @@ organization_id, did, local_admin_subject, version_id, log_head_digest, verifica
 1. `receipt_claims` 精确为不含 `registration_receipt_id` 与 `proof` 的对象
    `{organization_id, did, registration_generation, version_id, log_head_digest, control_proof_kind,
    control_key_digest, local_admin_subject, delegated_scopes, status, issued_at, expires_at,
-   issuer_service_id}`；`registration_receipt_id = "ak:organization_registration_receipt:" ||
+   issuer_id}`；`registration_receipt_id = "ak:organization_registration_receipt:" ||
    hex(SHA-256(canonical_json(receipt_claims)))`。
 2. `document` 是加入 `registration_receipt_id`、但删除整个 `proof` 后的完整 receipt；
    `proof.payload_digest = "sha256:" || hex(SHA-256(canonical_json(document)))`。
 3. detached JWS MUST 签
    `canonical_json({context:"ak.organization_registration_receipt_proof.v1", payload_digest,
-   issuer_service_id, registration_receipt_id, organization_id, did, verification_method, created_at,
+   issuer_id, registration_receipt_id, organization_id, did, verification_method, created_at,
    domain?, audience?})`；`created_at` MUST 等于 `issued_at`。任何实现把 receipt id 或 proof
    递归放回各自摘要输入都会得到不可构造的自引用合同，MUST 拒绝。
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-requested-scope-disclosure.schema.json",
   "title": "Arkret Agent Requested Scope Disclosure",
-  "description": "Controller-signed, verifier-bound private disclosure of a managed Agent's immutable requested_scope. This object is authorization evidence, not a grant. It MUST travel only over an authenticated confidential presentation/operation channel and MUST NOT be written to a public DID Document, durable Realm Event, public registry, pairing code, or notification. The verifier consumes request_id/challenge once, validates the short presentation window, verifies a current controller proof, recomputes the requested-scope commitment against the accepted-at Agent DID commitment, and then applies the Agent ceiling subset rules. After successful one-time admission, an implementation MAY retain the object only as encrypted verifier-private evidence keyed by the recomputed digest, verifier_service_id and audience.",
+  "description": "Controller-signed, verifier-bound private disclosure of a managed Agent's immutable requested_scope. This object is authorization evidence, not a grant. It MUST travel only over an authenticated confidential presentation/operation channel and MUST NOT be written to a public DID Document, durable Realm Event, public registry, pairing code, or notification. The verifier consumes request_id/challenge once, validates the short presentation window, verifies a current controller proof, recomputes the requested-scope commitment against the accepted-at Agent DID commitment, and then applies the Agent ceiling subset rules. After successful one-time admission, an implementation MAY retain the object only as encrypted verifier-private evidence keyed by the recomputed digest, verifier_id and audience.",
   "type": "object",
   "required": [
     "schema",
@@ -10,7 +10,7 @@
     "agent_id",
     "controller_id",
     "requested_scope",
-    "verifier_service_id",
+    "verifier_id",
     "audience",
     "challenge",
     "issued_at",
@@ -24,7 +24,7 @@
     "request_id": {
       "type": "string",
       "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Identifier of the signed ak.identity.presentation_request or an equivalent authenticated private challenge request. It is single-use at verifier_service_id."
+      "description": "Identifier of the signed ak.identity.presentation_request or an equivalent authenticated private challenge request. It is single-use at verifier_id."
     },
     "agent_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -36,19 +36,19 @@
       "$ref": "./event-payload.schema.json#/$defs/agent_key_scope",
       "description": "Complete immutable Agent ceiling disclosed only to the bound verifier. It does not grant any action or resource."
     },
-    "verifier_service_id": {
+    "verifier_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Exact verifier named by the presentation request. A different verifier MUST NOT accept or forward this disclosure as its own evidence."
     },
     "audience": {
       "type": "string",
       "minLength": 1,
-      "description": "Exact origin, service audience, or canonical operation audience requested by verifier_service_id."
+      "description": "Exact origin, service audience, or canonical operation audience requested by verifier_id."
     },
     "challenge": {
       "type": "string",
       "minLength": 16,
-      "description": "Verifier-generated unpredictable challenge. The (verifier_service_id, request_id, challenge) tuple is single-use; replay MUST fail closed."
+      "description": "Verifier-generated unpredictable challenge. The (verifier_id, request_id, challenge) tuple is single-use; replay MUST fail closed."
     },
     "issued_at": {
       "$ref": "#/$defs/timestamp"
@@ -63,7 +63,7 @@
       "items": {
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
-      "description": "At least one current controller proof. The proof verification method MUST belong to controller_id or one of its currently authorized devices. payload_digest is sha256(canonical_json(this object with proofs omitted)); detached JWS signs canonical_json({context:'ak.agent_requested_scope_disclosure_proof.v1', payload_digest, agent_id, controller_id, verifier_service_id, audience, challenge, verification_method, created_at})."
+      "description": "At least one current controller proof. The proof verification method MUST belong to controller_id or one of its currently authorized devices. payload_digest is sha256(canonical_json(this object with proofs omitted)); detached JWS signs canonical_json({context:'ak.agent_requested_scope_disclosure_proof.v1', payload_digest, agent_id, controller_id, verifier_id, audience, challenge, verification_method, created_at})."
     }
   },
   "additionalProperties": false,

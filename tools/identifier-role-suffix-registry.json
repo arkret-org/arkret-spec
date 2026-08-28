@@ -1,0 +1,194 @@
+{
+  "version": "2026-08-28",
+  "source_of_truth": false,
+  "normative_rule": "NC-IDROLE-001",
+  "registered_service_role_fields": [
+    {
+      "field": "service_id",
+      "reason": "service is the complete generic protocol role"
+    },
+    {
+      "field": "service_ids",
+      "reason": "plural of the complete generic service role"
+    },
+    {
+      "field": "allowed_service_ids",
+      "reason": "allowed qualifies the complete generic service role"
+    },
+    {
+      "field": "media_service_id",
+      "reason": "media_service is a registered composite protocol role"
+    },
+    {
+      "field": "service_kind",
+      "reason": "service is the complete generic classified role"
+    },
+    {
+      "field": "service_kinds",
+      "reason": "plural of the complete generic classified service role"
+    },
+    {
+      "field": "media_service_kind",
+      "reason": "media_service is a registered composite protocol role"
+    }
+  ],
+  "registered_service_qualified_fields": [
+    {
+      "field": "media_service_decrypts",
+      "role_stem": "media_service",
+      "reason": "media_service is the registered E2EE media-processing protocol role"
+    },
+    {
+      "field": "release_service_binding_ref",
+      "role_stem": "release_service",
+      "reason": "release_service is the registered audited-history key release authority role"
+    },
+    {
+      "field": "release_service_resolution_record_digest",
+      "role_stem": "release_service",
+      "reason": "digest binds the registered release_service resolution record"
+    },
+    {
+      "field": "release_service_resolution_ref",
+      "role_stem": "release_service",
+      "reason": "reference resolves the registered release_service authority"
+    },
+    {
+      "field": "release_service_resolution_sequence",
+      "role_stem": "release_service",
+      "reason": "sequence belongs to the registered release_service resolution lineage"
+    },
+    {
+      "field": "release_service_route_digest",
+      "role_stem": "release_service",
+      "reason": "digest binds the registered release_service route"
+    },
+    {
+      "field": "release_service_signer_evidence_digest",
+      "role_stem": "release_service",
+      "reason": "digest binds signer evidence for the registered release_service authority"
+    },
+    {
+      "field": "release_service_signer_evidence_ref",
+      "role_stem": "release_service",
+      "reason": "reference names signer evidence for the registered release_service authority"
+    },
+    {
+      "field": "trusted_recovery_services",
+      "role_stem": "recovery_service",
+      "reason": "recovery_service is the registered threshold-recovery share holder role"
+    }
+  ],
+  "generic_grammars": [
+    {
+      "category": "primary_or_responsibility_id",
+      "terminal_categories": ["did_core_id", "typed_object_id"],
+      "exact_names": ["id"],
+      "suffixes": ["_id", "_ids"]
+    },
+    {
+      "category": "reference_material",
+      "terminal_categories": ["did_core_id", "typed_object_id", "did_url"],
+      "exact_names": [],
+      "suffixes": ["_ref", "_refs"]
+    },
+    {
+      "category": "actor_attribution",
+      "terminal_categories": ["did_core_id"],
+      "exact_names": [],
+      "suffixes": ["_by"]
+    },
+    {
+      "category": "cursor_coordinate",
+      "terminal_categories": ["typed_object_id"],
+      "exact_names": ["cursor"],
+      "suffixes": ["_cursor"]
+    },
+    {
+      "category": "frontier_coordinate",
+      "terminal_categories": ["typed_object_id"],
+      "exact_names": ["frontier", "heads", "leaves", "before", "after", "wait_for", "invite", "join", "remove", "share"],
+      "suffixes": ["_frontier"]
+    },
+    {
+      "category": "did_material",
+      "terminal_categories": ["did"],
+      "exact_names": ["did"],
+      "suffixes": ["_did", "_dids"]
+    },
+    {
+      "category": "key_selector",
+      "terminal_categories": ["did_url"],
+      "exact_names": ["kid", "verification_method"],
+      "suffixes": ["_kid", "_kids", "_verification_method"]
+    },
+    {
+      "category": "uri_material",
+      "terminal_categories": ["uri"],
+      "exact_names": ["uri"],
+      "suffixes": ["_uri", "_uris"]
+    },
+    {
+      "category": "trust_domain_special_form",
+      "terminal_categories": ["typed_object_id"],
+      "exact_names": ["trust_domain"],
+      "suffixes": []
+    }
+  ],
+  "exact_exceptions": [
+    {
+      "file": "capability-grant.schema.json",
+      "pointer": "/properties/subject",
+      "terminal_categories": ["did_core_id"],
+      "reason": "closed condition-selector union: did_core_id or discriminator-bearing condition object"
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/capability_grant_payload/properties/grant/properties/subject",
+      "terminal_categories": ["did_core_id"],
+      "reason": "exact projection of CapabilityGrant.subject closed condition-selector union"
+    },
+    {
+      "file": "common-ids.schema.json",
+      "pointer": "/$defs/tsp_vid/oneOf/0/properties/value",
+      "terminal_categories": ["did"],
+      "reason": "value is the payload of the closed tsp_vid union and its sibling kind discriminator selects the DID representation"
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/value",
+      "terminal_categories": ["did_url"],
+      "reason": "value is inside the closed account-block target union whose containing branch determines the representation"
+    },
+    {
+      "file": "event-envelope.schema.json",
+      "pointer": "/properties/authorization_ref",
+      "terminal_categories": ["mixed[did_url,typed_object_id]"],
+      "reason": "closed, lexically disjoint authorization reference union governed by the independent _ref grammar"
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/device_authorize_payload/properties/authorized_by",
+      "terminal_categories": ["mixed[did_core_id,typed_object_id]"],
+      "reason": "closed device-or-principal ID union selected by authorization_binding_kind and governed by the actor-attribution grammar"
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/device_revoke_payload/properties/revoked_by",
+      "terminal_categories": ["mixed[did_core_id,typed_object_id]"],
+      "reason": "closed device-or-principal ID union governed by the actor-attribution grammar"
+    },
+    {
+      "file": "device-pairing.schema.json",
+      "pointer": "/$defs/device_pairing_challenge_proof/properties/kid",
+      "terminal_categories": ["typed_object_id"],
+      "reason": "registered compact proof key-selector member; the sibling transcript discriminator fixes its device-key meaning"
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "pointer": "/$defs/SignedSessionGrantClaims/properties/jti",
+      "terminal_categories": ["typed_object_id"],
+      "reason": "RFC 7519 registered JWT claim name retained inside the signed claims object"
+    }
+  ]
+}

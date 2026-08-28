@@ -66,7 +66,7 @@
         "history_access",
         "encryption_profile",
         "state",
-        "members",
+        "member_ids",
         "created_by",
         "created_at"
       ],
@@ -97,7 +97,7 @@
         "directory_visibility": {
           "type": "string",
           "enum": [
-            "members",
+            "member_ids",
             "realm_members"
           ]
         },
@@ -167,7 +167,7 @@
           "$ref": "./event-payload.schema.json#/$defs/membership_state",
           "description": "The caller's own Circle membership state when one exists."
         },
-        "members": {
+        "member_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"

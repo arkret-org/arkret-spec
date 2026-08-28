@@ -225,11 +225,11 @@
     "device_list_changes": {
       "type": "object",
       "required": [
-        "changed",
-        "left"
+        "changed_ids",
+        "left_ids"
       ],
       "properties": {
-        "changed": {
+        "changed_ids": {
           "type": "array",
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -237,7 +237,7 @@
           "uniqueItems": true,
           "maxItems": 10000
         },
-        "left": {
+        "left_ids": {
           "type": "array",
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -318,19 +318,19 @@
       "type": "object",
       "description": "User-visible diagnostic for multiple accepted ordered-log siblings at one actor_seq. Every listed sibling remains in timeline.events and the joined state leaf; none is a winner or loser.",
       "required": [
-        "cell",
-        "issuer",
+        "cell_id",
+        "issuer_id",
         "issuer_seq",
         "reason",
         "event_ids",
         "event_digests"
       ],
       "properties": {
-        "cell": {
+        "cell_id": {
           "type": "string",
           "pattern": "^ak:cell:ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "issuer_seq": {
@@ -417,7 +417,7 @@
         "summary": {
           "$ref": "#/$defs/realm_summary"
         },
-        "members": {
+        "member_ids": {
           "type": "array",
           "description": "Lightweight roster hint derived from effective ak.member.state, effective ak.member.identity.update references, and currently visible handle-claim evidence. Entries MUST NOT carry display fields or naked handle strings directly; handle strings may appear only inside signed ak.schema.handle_claim.v1 objects.",
           "items": {
@@ -478,12 +478,12 @@
           "items": {
             "type": "object",
             "required": [
-              "cell",
+              "cell_id",
               "status",
               "bottom"
             ],
             "properties": {
-              "cell": {
+              "cell_id": {
                 "type": "string",
                 "pattern": "^ak:cell:ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
               },
@@ -598,7 +598,7 @@
           "type": "integer",
           "minimum": 0
         },
-        "heroes": {
+        "hero_ids": {
           "type": "array",
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/did_core_id"

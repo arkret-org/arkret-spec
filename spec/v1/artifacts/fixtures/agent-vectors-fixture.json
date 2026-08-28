@@ -573,7 +573,7 @@
             }
           ]
         },
-        "verifier_service_id": "ak:did_core:webvh:z6mkverifier",
+        "verifier_id": "ak:did_core:webvh:z6mkverifier",
         "audience": "https://pair.example/_arkret/gate/account/agent-key-pair",
         "challenge": "ak.challenge.01964137000070008000000000000000",
         "issued_at": "2026-04-26T00:00:00.000Z",

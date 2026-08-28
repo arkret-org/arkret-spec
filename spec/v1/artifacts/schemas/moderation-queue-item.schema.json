@@ -50,7 +50,7 @@
         "franking_proof_only"
       ]
     },
-    "assigned_to": {
+    "assigned_to_ids": {
       "type": "array",
       "items": {
         "$ref": "./common-ids.schema.json#/$defs/did_core_id"

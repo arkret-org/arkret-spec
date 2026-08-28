@@ -35,11 +35,11 @@
         "schema_kind": "object",
         "required": [
           "applet_id",
-          "source_service_id"
+          "source_id"
         ],
         "properties": [
           "applet_id",
-          "source_service_id",
+          "source_id",
           "events",
           "signals"
         ],
@@ -257,17 +257,17 @@
         "schema_kind": "object",
         "required": [
           "device_id",
-          "push_gateway",
+          "push_gateway_uri",
           "push_key"
         ],
         "properties": [
           "device_id",
-          "push_gateway",
+          "push_gateway_uri",
           "push_key",
           "platform",
           "app_id",
           "display_name",
-          "recipient_service_id"
+          "recipient_id"
         ],
         "closed": true
       },
@@ -312,13 +312,13 @@
           "discovery_event",
           "source_refs",
           "as_of",
-          "principal_server_service_id"
+          "principal_server_id"
         ],
         "properties": [
           "discovery_event",
           "source_refs",
           "as_of",
-          "principal_server_service_id",
+          "principal_server_id",
           "ttl_seconds",
           "supersedes_announce_id"
         ],
@@ -426,12 +426,12 @@
         "required": [
           "subscriber_principal_id",
           "resource_filter",
-          "webhook_endpoint"
+          "webhook_uri"
         ],
         "properties": [
           "subscriber_principal_id",
           "resource_filter",
-          "webhook_endpoint",
+          "webhook_uri",
           "secret",
           "expires_at"
         ],
@@ -525,13 +525,13 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
         "schema_kind": "object",
         "required": [
-          "subject"
+          "subject_id"
         ],
         "properties": [
-          "subject",
+          "subject_id",
           "realm_id",
           "intent",
-          "requester",
+          "requester_id",
           "proof_challenge",
           "proofs",
           "as_of",
@@ -544,13 +544,13 @@
         "schema_ref": "schemas/list-handles-for-subject-response.schema.json",
         "schema_kind": "object",
         "required": [
-          "subject",
+          "subject_id",
           "claims",
           "as_of",
           "has_more"
         ],
         "properties": [
-          "subject",
+          "subject_id",
           "claims",
           "primary_handle",
           "as_of",
@@ -712,7 +712,7 @@
           "controller_handle",
           "agent_slug",
           "intent",
-          "requester"
+          "requester_id"
         ],
         "properties": [
           "controller_handle",
@@ -721,7 +721,7 @@
           "proof_challenge",
           "intent",
           "realm_id",
-          "requester",
+          "requester_id",
           "proofs"
         ],
         "closed": true
@@ -730,15 +730,15 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome",
         "schema_kind": "object",
         "required": [
-          "controller_subject",
-          "subject",
+          "controller_subject_id",
+          "subject_id",
           "agent_slug",
           "verified",
           "selector_claim"
         ],
         "properties": [
-          "controller_subject",
-          "subject",
+          "controller_subject_id",
+          "subject_id",
           "agent_slug",
           "verified",
           "selector_claim",
@@ -763,7 +763,7 @@
           "proof_challenge",
           "claim_presentations",
           "intent",
-          "requester",
+          "requester_id",
           "audience",
           "realm_id",
           "proofs"
@@ -775,13 +775,13 @@
         "schema_kind": "object",
         "required": [
           "principal_id",
-          "subject",
+          "subject_id",
           "handle",
           "verified"
         ],
         "properties": [
           "principal_id",
-          "subject",
+          "subject_id",
           "handle",
           "verified",
           "claims",
@@ -832,7 +832,7 @@
           "alias",
           "invite_token",
           "signed_link",
-          "requester",
+          "requester_id",
           "proof_challenge",
           "claim_presentations"
         ],
@@ -864,7 +864,7 @@
         ],
         "properties": [
           "address",
-          "requester",
+          "requester_id",
           "proof_challenge",
           "claim_presentations",
           "proofs",
@@ -913,11 +913,11 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome",
         "schema_kind": "object",
         "required": [
-          "actors",
+          "actor_ids",
           "has_more"
         ],
         "properties": [
-          "actors",
+          "actor_ids",
           "next_cursor",
           "has_more"
         ],
@@ -965,7 +965,7 @@
           "query",
           "organization_principal_id",
           "source_realm_id",
-          "requester",
+          "requester_id",
           "proof_challenge",
           "claim_presentations",
           "cursor",
@@ -977,11 +977,11 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome",
         "schema_kind": "object",
         "required": [
-          "realms",
+          "realm_ids",
           "has_more"
         ],
         "properties": [
-          "realms",
+          "realm_ids",
           "next_cursor",
           "has_more"
         ],
@@ -1079,14 +1079,14 @@
         "required": [
           "request_id",
           "principal_id",
-          "agent_authority_service_id",
-          "agent_authority_service_resolution"
+          "agent_authority_id",
+          "agent_authority_resolution"
         ],
         "properties": [
           "request_id",
           "principal_id",
-          "agent_authority_service_id",
-          "agent_authority_service_resolution"
+          "agent_authority_id",
+          "agent_authority_resolution"
         ],
         "closed": true
       },
@@ -1157,8 +1157,8 @@
           "identity_creation_lease_id",
           "lease_fence",
           "dpop_jkt",
-          "audience",
-          "origin",
+          "audience_id",
+          "origin_uri",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1183,8 +1183,8 @@
           "identity_creation_lease_id",
           "lease_fence",
           "dpop_jkt",
-          "audience",
-          "origin",
+          "audience_id",
+          "origin_uri",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1225,8 +1225,8 @@
           "log_head_digest",
           "control_key_digest",
           "dpop_jkt",
-          "audience",
-          "origin",
+          "audience_id",
+          "origin_uri",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1244,8 +1244,8 @@
           "control_key_digest",
           "witness_evidence",
           "dpop_jkt",
-          "audience",
-          "origin",
+          "audience_id",
+          "origin_uri",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1290,8 +1290,8 @@
           "lease_fence",
           "consequence_disclosure",
           "dpop_jkt",
-          "audience",
-          "origin",
+          "audience_id",
+          "origin_uri",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1308,8 +1308,8 @@
           "lease_fence",
           "consequence_disclosure",
           "dpop_jkt",
-          "audience",
-          "origin",
+          "audience_id",
+          "origin_uri",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -1379,7 +1379,7 @@
           "request_id",
           "principal_id",
           "device_id",
-          "audience",
+          "audience_id",
           "accepted_device_possession_proof",
           "requested_scope",
           "agent_key_authorization_ref",
@@ -1399,14 +1399,14 @@
               "request_id",
               "principal_id",
               "device_id",
-              "audience",
+              "audience_id",
               "accepted_device_possession_proof"
             ],
             "properties": [
               "request_id",
               "principal_id",
               "device_id",
-              "audience",
+              "audience_id",
               "accepted_device_possession_proof"
             ],
             "closed": true
@@ -1444,14 +1444,14 @@
               "request_id",
               "principal_id",
               "device_id",
-              "audience"
+              "audience_id"
             ],
             "properties": [
               "credential_class",
               "request_id",
               "principal_id",
               "device_id",
-              "audience"
+              "audience_id"
             ],
             "closed": true
           }
@@ -1466,7 +1466,7 @@
           "expires_at",
           "session_grant_id",
           "session_public_key",
-          "audience"
+          "audience_id"
         ],
         "properties": [
           "principal_id",
@@ -1475,7 +1475,7 @@
           "expires_at",
           "session_grant_id",
           "session_public_key",
-          "audience",
+          "audience_id",
           "granted_scope",
           "scope_details"
         ],
@@ -1715,7 +1715,7 @@
         ],
         "properties": [
           "grant_jwt",
-          "audience",
+          "audience_id",
           "device_id",
           "accepted_device_possession_proof",
           "agent_session_refresh_proof"
@@ -1732,7 +1732,7 @@
             ],
             "properties": [
               "grant_jwt",
-              "audience",
+              "audience_id",
               "device_id",
               "accepted_device_possession_proof"
             ],
@@ -1748,7 +1748,7 @@
             ],
             "properties": [
               "grant_jwt",
-              "audience",
+              "audience_id",
               "device_id",
               "agent_session_refresh_proof"
             ],
@@ -1764,7 +1764,7 @@
           "grant_jwt",
           "session_public_key",
           "expires_at",
-          "audience",
+          "audience_id",
           "scopes",
           "dpop_jkt",
           "previous_session_grant_id"
@@ -1774,7 +1774,7 @@
           "grant_jwt",
           "session_public_key",
           "expires_at",
-          "audience",
+          "audience_id",
           "scopes",
           "dpop_jkt",
           "previous_session_grant_id"
@@ -1991,7 +1991,7 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap",
         "schema_kind": "object",
         "required": [
-          "arkret_base_url",
+          "arkret_base_uri",
           "service_id",
           "agent_id",
           "pairing_request_id",
@@ -1999,7 +1999,7 @@
           "pairing_expires_at"
         ],
         "properties": [
-          "arkret_base_url",
+          "arkret_base_uri",
           "service_id",
           "agent_id",
           "pairing_request_id",
@@ -2074,14 +2074,14 @@
         "required": [
           "device_pairing_request_id",
           "pairing_code",
-          "gate_audience",
+          "gate_audience_uri",
           "server_nonce",
           "expires_at"
         ],
         "properties": [
           "device_pairing_request_id",
           "pairing_code",
-          "gate_audience",
+          "gate_audience_uri",
           "server_nonce",
           "expires_at"
         ],
@@ -2106,22 +2106,22 @@
         "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap",
         "schema_kind": "object",
         "required": [
-          "arkret_base_url",
+          "arkret_base_uri",
           "device_pairing_request_id",
           "pairing_code",
           "new_device_pubkey",
           "client_nonce",
-          "gate_audience",
+          "gate_audience_uri",
           "server_nonce",
           "expires_at"
         ],
         "properties": [
-          "arkret_base_url",
+          "arkret_base_uri",
           "device_pairing_request_id",
           "pairing_code",
           "new_device_pubkey",
           "client_nonce",
-          "gate_audience",
+          "gate_audience_uri",
           "server_nonce",
           "display_name",
           "device_metadata",
@@ -2222,7 +2222,7 @@
         "required": [
           "schema",
           "subject_id",
-          "recipient_service_id",
+          "recipient_id",
           "service_resolution",
           "issued_at",
           "expires_at",
@@ -2232,10 +2232,10 @@
         "properties": [
           "schema",
           "subject_id",
-          "recipient_service_id",
+          "recipient_id",
           "service_resolution",
           "route_assistance",
-          "recipient_service_kind",
+          "recipient_kind",
           "issued_at",
           "expires_at",
           "locator_ref_digest",
@@ -2257,7 +2257,7 @@
         ],
         "properties": [
           "notification",
-          "origin_provider",
+          "origin_provider_id",
           "routing"
         ],
         "closed": true
@@ -2283,11 +2283,11 @@
         "schema_kind": "object",
         "required": [
           "asset_ref",
-          "requester"
+          "requester_id"
         ],
         "properties": [
           "asset_ref",
-          "requester",
+          "requester_id",
           "strand_id",
           "ohttp_context",
           "range"
@@ -2317,7 +2317,7 @@
         "required": [
           "strand_id",
           "target_ref",
-          "reporter",
+          "reporter_id",
           "abuse_reason_code"
         ],
         "properties": [
@@ -2325,7 +2325,7 @@
           "mimi_room_uri",
           "realm_id",
           "target_ref",
-          "reporter",
+          "reporter_id",
           "abuse_reason_code",
           "evidence_package",
           "franking_proof",
@@ -2343,7 +2343,7 @@
         "properties": [
           "report_id",
           "status",
-          "routed_to"
+          "routed_to_ids"
         ],
         "closed": true
       }
@@ -2504,12 +2504,12 @@
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
         "schema_kind": "object",
         "required": [
-          "requester",
+          "requester_id",
           "strand_id",
           "device_id"
         ],
         "properties": [
-          "requester",
+          "requester_id",
           "strand_id",
           "device_id",
           "mimi_room_uri",
@@ -2561,7 +2561,7 @@
         ],
         "properties": [
           "identifiers",
-          "requester",
+          "requester_id",
           "privacy_profile",
           "proofs"
         ],
@@ -3058,8 +3058,8 @@
           "status",
           "receipt_id",
           "receipt_digest",
-          "issuer_service_id",
-          "receiver_service_id",
+          "issuer_id",
+          "receiver_id",
           "accepted_at",
           "proof",
           "reason_code"
@@ -3073,8 +3073,8 @@
               "status",
               "receipt_id",
               "receipt_digest",
-              "issuer_service_id",
-              "receiver_service_id",
+              "issuer_id",
+              "receiver_id",
               "accepted_at",
               "proof"
             ],
@@ -3082,8 +3082,8 @@
               "status",
               "receipt_id",
               "receipt_digest",
-              "issuer_service_id",
-              "receiver_service_id",
+              "issuer_id",
+              "receiver_id",
               "accepted_at",
               "proof"
             ],
@@ -3357,15 +3357,15 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "heads",
+          "head_ids",
           "frontier_root",
           "observed_at",
-          "issuer",
+          "issuer_id",
           "signature"
         ],
         "properties": [
           "realm_id",
-          "heads",
+          "head_ids",
           "max_hlc",
           "frontier_root",
           "auth_state_root",
@@ -3374,7 +3374,7 @@
           "actor_seq_upper_bounds",
           "witness_receipts",
           "observed_at",
-          "issuer",
+          "issuer_id",
           "signature"
         ],
         "closed": true
@@ -3476,8 +3476,8 @@
         "schema_kind": "object",
         "required": [],
         "properties": [
-          "realms",
-          "actors",
+          "realm_ids",
+          "actor_ids",
           "before",
           "after",
           "order",
@@ -3588,7 +3588,7 @@
         "required": [
           "claim_request_id",
           "target_principal_id",
-          "requester",
+          "requester_id",
           "intended_realm_id",
           "mls_group_id",
           "claim_purpose",
@@ -3600,7 +3600,7 @@
         "properties": [
           "claim_request_id",
           "target_principal_id",
-          "requester",
+          "requester_id",
           "intended_realm_id",
           "mls_group_id",
           "claim_purpose",
@@ -3843,15 +3843,15 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "target_service_id",
-          "target_service_kind",
+          "target_id",
+          "target_kind",
           "known_record_sequence",
           "known_record_digest"
         ],
         "properties": [
           "realm_id",
-          "target_service_id",
-          "target_service_kind",
+          "target_id",
+          "target_kind",
           "known_record_sequence",
           "known_record_digest",
           "known_notice_digest",
@@ -4037,7 +4037,7 @@
           "version_id",
           "log_head_digest",
           "control_proof",
-          "local_admin_subject",
+          "local_admin_subject_id",
           "requested_scopes"
         ],
         "properties": [
@@ -4047,7 +4047,7 @@
           "version_id",
           "log_head_digest",
           "control_proof",
-          "local_admin_subject",
+          "local_admin_subject_id",
           "requested_scopes",
           "handle_attestation"
         ],
@@ -4076,13 +4076,13 @@
         "required": [
           "organization_id",
           "did",
-          "local_admin_subject",
+          "local_admin_subject_id",
           "requested_scopes"
         ],
         "properties": [
           "organization_id",
           "did",
-          "local_admin_subject",
+          "local_admin_subject_id",
           "requested_scopes"
         ],
         "closed": true
@@ -4096,10 +4096,10 @@
           "did",
           "purpose",
           "nonce",
-          "audience",
-          "origin",
+          "audience_id",
+          "origin_uri",
           "trust_domain",
-          "local_admin_subject",
+          "local_admin_subject_id",
           "requested_scopes",
           "expires_at",
           "created_at"
@@ -4110,10 +4110,10 @@
           "did",
           "purpose",
           "nonce",
-          "audience",
-          "origin",
+          "audience_id",
+          "origin_uri",
           "trust_domain",
-          "local_admin_subject",
+          "local_admin_subject_id",
           "requested_scopes",
           "expires_at",
           "created_at"
@@ -4267,14 +4267,14 @@
           "policy_id",
           "principal_id",
           "version",
-          "acceptance_basis",
+          "acceptance_basis_ref",
           "accepted_at"
         ],
         "properties": [
           "policy_id",
           "principal_id",
           "version",
-          "acceptance_basis",
+          "acceptance_basis_ref",
           "accepted_at"
         ],
         "closed": true
@@ -5040,8 +5040,8 @@
           "allocation_handle",
           "consequence_disclosure",
           "dpop_jkt",
-          "audience",
-          "origin",
+          "audience_id",
+          "origin_uri",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -5058,8 +5058,8 @@
           "allocation_handle",
           "consequence_disclosure",
           "dpop_jkt",
-          "audience",
-          "origin",
+          "audience_id",
+          "origin_uri",
           "trust_domain",
           "issued_at",
           "expires_at"
@@ -6104,11 +6104,11 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome",
         "schema_kind": "object",
         "required": [
-          "url",
+          "uri",
           "expires_at"
         ],
         "properties": [
-          "url",
+          "uri",
           "expires_at",
           "purpose"
         ],
@@ -6183,18 +6183,18 @@
         "schema_kind": "object",
         "required": [
           "focus_id",
-          "connect_url",
+          "connect_uri",
           "backend_token",
-          "participant_identity",
+          "participant_id",
           "participant_binding",
           "expires_at",
           "backend_kind"
         ],
         "properties": [
           "focus_id",
-          "connect_url",
+          "connect_uri",
           "backend_token",
-          "participant_identity",
+          "participant_id",
           "participant_binding",
           "expires_at",
           "backend_kind"
@@ -6229,7 +6229,7 @@
           "history_access",
           "encryption_profile",
           "state",
-          "members",
+          "member_ids",
           "created_by",
           "created_at"
         ],
@@ -6252,7 +6252,7 @@
           "state",
           "member_count",
           "viewer_membership",
-          "members",
+          "member_ids",
           "created_by",
           "created_at",
           "updated_by",
@@ -6288,7 +6288,7 @@
           "history_access",
           "encryption_profile",
           "state",
-          "members",
+          "member_ids",
           "created_by",
           "created_at"
         ],
@@ -6311,7 +6311,7 @@
           "state",
           "member_count",
           "viewer_membership",
-          "members",
+          "member_ids",
           "created_by",
           "created_at",
           "updated_by",
@@ -6347,7 +6347,7 @@
           "history_access",
           "encryption_profile",
           "state",
-          "members",
+          "member_ids",
           "created_by",
           "created_at"
         ],
@@ -6370,7 +6370,7 @@
           "state",
           "member_count",
           "viewer_membership",
-          "members",
+          "member_ids",
           "created_by",
           "created_at",
           "updated_by",
@@ -6423,7 +6423,7 @@
           "history_access",
           "encryption_profile",
           "state",
-          "members",
+          "member_ids",
           "created_by",
           "created_at"
         ],
@@ -6446,7 +6446,7 @@
           "state",
           "member_count",
           "viewer_membership",
-          "members",
+          "member_ids",
           "created_by",
           "created_at",
           "updated_by",
@@ -6548,7 +6548,7 @@
           "history_access",
           "encryption_profile",
           "state",
-          "members",
+          "member_ids",
           "created_by",
           "created_at"
         ],
@@ -6571,7 +6571,7 @@
           "state",
           "member_count",
           "viewer_membership",
-          "members",
+          "member_ids",
           "created_by",
           "created_at",
           "updated_by",
@@ -8035,8 +8035,8 @@
         "schema_kind": "object",
         "required": [],
         "properties": [
-          "realms",
-          "actors",
+          "realm_ids",
+          "actor_ids",
           "before",
           "after",
           "order",
@@ -8351,12 +8351,12 @@
           "unknown_invites",
           "allowed_handle_domains",
           "denied_handle_domains",
-          "trusted_handle_issuers",
-          "trusted_directory_services",
+          "trusted_handle_issuer_ids",
+          "trusted_directory_ids",
           "trusted_realm_ids",
-          "trusted_principal_services",
-          "denied_principal_services",
-          "denied_subjects",
+          "trusted_principal_ids",
+          "denied_principal_ids",
+          "denied_subject_ids",
           "disclosure"
         ],
         "closed": true
@@ -8384,12 +8384,12 @@
           "unknown_invites",
           "allowed_handle_domains",
           "denied_handle_domains",
-          "trusted_handle_issuers",
-          "trusted_directory_services",
+          "trusted_handle_issuer_ids",
+          "trusted_directory_ids",
           "trusted_realm_ids",
-          "trusted_principal_services",
-          "denied_principal_services",
-          "denied_subjects",
+          "trusted_principal_ids",
+          "denied_principal_ids",
+          "denied_subject_ids",
           "disclosure"
         ],
         "closed": true
@@ -8413,12 +8413,12 @@
           "unknown_invites",
           "allowed_handle_domains",
           "denied_handle_domains",
-          "trusted_handle_issuers",
-          "trusted_directory_services",
+          "trusted_handle_issuer_ids",
+          "trusted_directory_ids",
           "trusted_realm_ids",
-          "trusted_principal_services",
-          "denied_principal_services",
-          "denied_subjects",
+          "trusted_principal_ids",
+          "denied_principal_ids",
+          "denied_subject_ids",
           "disclosure"
         ],
         "closed": true
@@ -8555,7 +8555,7 @@
           "backup_version",
           "series_id",
           "series_seq",
-          "supersedes",
+          "supersedes_id",
           "supersedes_digest",
           "frontier_ref",
           "recovery_policy_ref",
@@ -8654,7 +8654,7 @@
           "backup_version",
           "series_id",
           "series_seq",
-          "supersedes",
+          "supersedes_id",
           "supersedes_digest",
           "frontier_ref",
           "recovery_policy_ref",
@@ -8724,7 +8724,7 @@
         "required": [
           "claim_request_id",
           "target_principal_id",
-          "requester",
+          "requester_id",
           "intended_realm_id",
           "mls_group_id",
           "claim_purpose",
@@ -8736,7 +8736,7 @@
         "properties": [
           "claim_request_id",
           "target_principal_id",
-          "requester",
+          "requester_id",
           "intended_realm_id",
           "mls_group_id",
           "claim_purpose",
@@ -9029,7 +9029,7 @@
         "properties": [
           "report_id",
           "status",
-          "routed_to"
+          "routed_to_ids"
         ],
         "closed": true
       }
@@ -9130,7 +9130,7 @@
           "request_canonical_digest",
           "action",
           "actor_id",
-          "source"
+          "source_uri"
         ],
         "properties": [
           "request_id",
@@ -9139,7 +9139,7 @@
           "action",
           "actor_id",
           "device_id",
-          "source",
+          "source_uri",
           "event_preview",
           "auth_context"
         ],
@@ -9248,13 +9248,13 @@
         "required": [
           "realm_id",
           "owner_id",
-          "members",
+          "member_ids",
           "deleted"
         ],
         "properties": [
           "realm_id",
           "owner_id",
-          "members",
+          "member_ids",
           "deleted",
           "archived",
           "frozen",
@@ -9285,13 +9285,13 @@
         "required": [
           "realm_id",
           "owner_id",
-          "members",
+          "member_ids",
           "deleted"
         ],
         "properties": [
           "realm_id",
           "owner_id",
-          "members",
+          "member_ids",
           "deleted",
           "archived",
           "frozen",
@@ -9322,13 +9322,13 @@
         "required": [
           "realm_id",
           "owner_id",
-          "members",
+          "member_ids",
           "deleted"
         ],
         "properties": [
           "realm_id",
           "owner_id",
-          "members",
+          "member_ids",
           "deleted",
           "archived",
           "frozen",
@@ -9359,13 +9359,13 @@
         "required": [
           "realm_id",
           "owner_id",
-          "members",
+          "member_ids",
           "deleted"
         ],
         "properties": [
           "realm_id",
           "owner_id",
-          "members",
+          "member_ids",
           "deleted",
           "archived",
           "frozen",
@@ -9534,14 +9534,14 @@
         "required": [
           "realm_id",
           "inheritance_mode",
-          "inheritance_chain",
+          "inheritance_chain_ids",
           "organization_policy_layers",
           "effective_rules"
         ],
         "properties": [
           "realm_id",
           "inheritance_mode",
-          "inheritance_chain",
+          "inheritance_chain_ids",
           "organization_policy_layers",
           "realm_policy",
           "effective_rules",
@@ -9616,13 +9616,13 @@
         "required": [
           "realm_id",
           "owner_id",
-          "members",
+          "member_ids",
           "deleted"
         ],
         "properties": [
           "realm_id",
           "owner_id",
-          "members",
+          "member_ids",
           "deleted",
           "archived",
           "frozen",
@@ -9674,13 +9674,13 @@
         "required": [
           "realm_id",
           "effective_policy",
-          "inheritance_chain",
+          "inheritance_chain_ids",
           "inheritance_mode"
         ],
         "properties": [
           "realm_id",
           "effective_policy",
-          "inheritance_chain",
+          "inheritance_chain_ids",
           "inheritance_mode"
         ],
         "closed": true
@@ -9746,12 +9746,12 @@
         "required": [
           "realm_id",
           "relationships",
-          "declared_organization_hints"
+          "declared_organization_hint_ids"
         ],
         "properties": [
           "realm_id",
           "relationships",
-          "declared_organization_hints"
+          "declared_organization_hint_ids"
         ],
         "closed": true
       }
@@ -9779,7 +9779,7 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "policy_server_service_id",
+          "policy_server_id",
           "policy_server_url",
           "cache_ttl_seconds",
           "timeout_ms",
@@ -9789,7 +9789,7 @@
         ],
         "properties": [
           "realm_id",
-          "policy_server_service_id",
+          "policy_server_id",
           "policy_server_url",
           "cache_ttl_seconds",
           "timeout_ms",
@@ -9819,7 +9819,7 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "policy_server_service_id",
+          "policy_server_id",
           "policy_server_url",
           "cache_ttl_seconds",
           "timeout_ms",
@@ -9829,7 +9829,7 @@
         ],
         "properties": [
           "realm_id",
-          "policy_server_service_id",
+          "policy_server_id",
           "policy_server_url",
           "cache_ttl_seconds",
           "timeout_ms",
@@ -9866,7 +9866,7 @@
           "transaction_id",
           "kind",
           "principal_id",
-          "coordinator_service_id",
+          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -9878,7 +9878,7 @@
           "transaction_id",
           "kind",
           "principal_id",
-          "coordinator_service_id",
+          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -9959,7 +9959,7 @@
           "transaction_id",
           "kind",
           "principal_id",
-          "coordinator_service_id",
+          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -9971,7 +9971,7 @@
           "transaction_id",
           "kind",
           "principal_id",
-          "coordinator_service_id",
+          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -9993,7 +9993,7 @@
           "transaction_id",
           "kind",
           "principal_id",
-          "coordinator_service_id",
+          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -10005,7 +10005,7 @@
           "transaction_id",
           "kind",
           "principal_id",
-          "coordinator_service_id",
+          "coordinator_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -10464,7 +10464,7 @@
           "kind",
           "request",
           "request_receipt",
-          "destination_service_id",
+          "destination_id",
           "destination_authorization",
           "replicated_at",
           "expires_at",
@@ -10474,7 +10474,7 @@
           "kind",
           "request",
           "request_receipt",
-          "destination_service_id",
+          "destination_id",
           "destination_authorization",
           "replicated_at",
           "expires_at",
@@ -10487,13 +10487,13 @@
         "schema_kind": "object",
         "required": [
           "request_digest",
-          "destination_service_id",
+          "destination_id",
           "accepted_at",
           "service_proof"
         ],
         "properties": [
           "request_digest",
-          "destination_service_id",
+          "destination_id",
           "accepted_at",
           "service_proof"
         ],
@@ -10616,8 +10616,8 @@
           "archive",
           "container_event_ref",
           "history_traversal_retention",
-          "source_service_id",
-          "holder_service_id",
+          "source_id",
+          "holder_id",
           "replicated_at",
           "service_proof"
         ],
@@ -10626,8 +10626,8 @@
           "archive",
           "container_event_ref",
           "history_traversal_retention",
-          "source_service_id",
-          "holder_service_id",
+          "source_id",
+          "holder_id",
           "replicated_at",
           "service_proof"
         ],
@@ -10638,14 +10638,14 @@
         "schema_kind": "object",
         "required": [
           "archive_replica_digest",
-          "holder_service_id",
+          "holder_id",
           "archive_sequence",
           "accepted_at",
           "service_proof"
         ],
         "properties": [
           "archive_replica_digest",
-          "holder_service_id",
+          "holder_id",
           "archive_sequence",
           "accepted_at",
           "service_proof"

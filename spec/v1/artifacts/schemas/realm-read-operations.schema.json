@@ -44,7 +44,7 @@
       "required": [
         "realm_id",
         "owner_id",
-        "members",
+        "member_ids",
         "deleted"
       ],
       "properties": {
@@ -54,7 +54,7 @@
         "owner_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "members": {
+        "member_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"
@@ -130,7 +130,7 @@
       "required": [
         "realm_id",
         "inheritance_mode",
-        "inheritance_chain",
+        "inheritance_chain_ids",
         "organization_policy_layers",
         "effective_rules"
       ],
@@ -145,7 +145,7 @@
             "organization"
           ]
         },
-        "inheritance_chain": {
+        "inheritance_chain_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"

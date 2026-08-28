@@ -20,7 +20,7 @@ SecurityTransaction {
   transaction_id,
   kind,
   principal_id,
-  coordinator_service_id,
+  coordinator_id,
   expires_at,
   created_at,
   request_digest,
@@ -45,7 +45,7 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 每个 `prepared_event_unit` 的 wire 形态固定为 `{request,request_digest}`：`request` 必须独立满足
 `EventsSubmitBatchRequestBody`，`request_digest` 必须等于其 digest suite 对 `RFC8785_JCS(request)` 的计算结果。
 该 unit 的 operation 固定为 `ak.self.events.command.submit.v1`，request schema 固定为上述 DTO，destination 与 audience
-都从父 transaction 的 `coordinator_service_id` 取得；这四项与 canonical request bytes 是构造时的 computed view，
+都从父 transaction 的 `coordinator_id` 取得；这四项与 canonical request bytes 是构造时的 computed view，
 不得作为平行 wire 输入或 durable 真相源。coordinator 必须以同一 `JCS(request)` bytes 执行和持久化。
 `accepted_steps[]` 的每项固定为
 `{prepared_material_digest, acceptor_id, output_ref, output_digest, accepted_at}`；数组位置按下述固定步骤表
@@ -129,7 +129,7 @@ private key，不生成、更改或代签 Event。
 coordinator 在 terminal receipt 接受与完成 ledger 同一原子提交中生成
 `ak.schema.recovery_completion_attestation.v1`。其 Ed25519 签名输入固定为
 `RFC8785_JCS({schema, transaction_id, transaction_request_digest, prepared_plan_digest, principal_id,
-coordinator_service_id, recovery_session_id, terminal_receipt_id, terminal_receipt_digest,
+coordinator_id, recovery_session_id, terminal_receipt_id, terminal_receipt_digest,
 replacement_device_id, device_authorization_event_id, result_model_generation_ref, completed_at})`，wire 上不携字段名清单。
 Event digest 必须由 suite-bearing `device_authorization_event_id` 解码；修改该 ID 会同时修改派生 digest 并使签名失败。
 

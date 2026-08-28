@@ -119,7 +119,7 @@
     "agent_authority_snapshot_core": {
       "type": "object",
       "required": [
-        "authority_service_id",
+        "authority_id",
         "principal_control_realm_id",
         "frontier_seal_id",
         "frontier_state_root",
@@ -130,7 +130,7 @@
         "seal_lineage"
       ],
       "properties": {
-        "authority_service_id": {
+        "authority_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "principal_control_realm_id": {
@@ -233,7 +233,7 @@
       "type": "object",
       "required": [
         "authority_kind",
-        "authority_service_id",
+        "authority_id",
         "verification_method",
         "snapshot_digest",
         "issued_at",
@@ -244,7 +244,7 @@
         "authority_kind": {
           "const": "agent_authority"
         },
-        "authority_service_id": {
+        "authority_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "verification_method": {
@@ -275,7 +275,7 @@
         "status",
         "basis",
         "basis_digest",
-        "authority_service_id",
+        "authority_id",
         "verification_method",
         "issued_at",
         "expires_at",
@@ -320,7 +320,7 @@
           "$ref": "#/$defs/sha256",
           "description": "Digest of the Account Authority-private binding/status projection selected by basis. The portable object never carries a service-local account_id or raw account cell."
         },
-        "authority_service_id": {
+        "authority_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "verification_method": {
@@ -414,7 +414,7 @@
         "operation_id",
         "request_digest",
         "verifier_id",
-        "audience",
+        "audience_id",
         "challenge",
         "agent_snapshot_digest",
         "agent_key_seal_id",
@@ -433,7 +433,7 @@
         "verifier_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "audience": {
+        "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "challenge": {
@@ -475,7 +475,7 @@
         "verification_method",
         "producer_signer_resolution_evidence_ref",
         "producer_signer_resolution_evidence_digest",
-        "receiver_service_id",
+        "receiver_id",
         "proof"
       ],
       "properties": {
@@ -506,7 +506,7 @@
         "producer_signer_resolution_evidence_digest": {
           "$ref": "#/$defs/sha256"
         },
-        "receiver_service_id": {
+        "receiver_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "proof": {
@@ -521,7 +521,7 @@
       "required": [
         "domain",
         "core_digest",
-        "source_service_id",
+        "source_id",
         "verification_method",
         "issued_at",
         "expires_at",
@@ -535,7 +535,7 @@
           "$ref": "#/$defs/sha256",
           "description": "SHA-256 over RFC 8785 JCS of the complete top-level evidence with outer_attestation omitted."
         },
-        "source_service_id": {
+        "source_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "verification_method": {
@@ -559,7 +559,7 @@
       "required": [
         "domain",
         "core_digest",
-        "source_service_id",
+        "source_id",
         "verification_method",
         "attested_at",
         "proof"
@@ -571,7 +571,7 @@
         "core_digest": {
           "$ref": "#/$defs/sha256"
         },
-        "source_service_id": {
+        "source_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "verification_method": {
@@ -817,11 +817,11 @@
       "items": {
         "type": "object",
         "required": [
-          "tag",
+          "tag_id",
           "value"
         ],
         "properties": {
-          "tag": {
+          "tag_id": {
             "$ref": "./event-payload.schema.json#/$defs/or_set_dot"
           },
           "value": {

@@ -52,8 +52,8 @@
         "status",
         "subject_id",
         "source_peer_principal_id",
-        "source_service_id",
-        "recipient_service_id",
+        "source_id",
+        "recipient_id",
         "consent_scope",
         "introduction_kind",
         "effective_kind",
@@ -80,10 +80,10 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Requester/inviter principal used by consent review and revoke invalidation."
         },
-        "source_service_id": {
+        "source_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "consent_scope": {

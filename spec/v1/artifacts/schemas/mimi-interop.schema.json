@@ -77,7 +77,7 @@
             "content_draft",
             "room_policy_draft",
             "identifier_draft",
-            "base_url",
+            "base_uri",
             "provider_id",
             "endpoints",
             "features",
@@ -98,7 +98,7 @@
             "identifier_draft": {
               "const": "draft-kohbrok-mimi-identifiers-01"
             },
-            "base_url": {
+            "base_uri": {
               "type": "string",
               "format": "uri"
             },
@@ -227,7 +227,7 @@
             "profile",
             "mimi_room_uri",
             "binding_scope",
-            "hub_provider",
+            "hub_provider_id",
             "local_provider_role",
             "status"
           ],
@@ -255,10 +255,10 @@
               },
               "additionalProperties": true
             },
-            "hub_provider": {
+            "hub_provider_id": {
               "$ref": "#/$defs/did_core_id"
             },
-            "follower_providers": {
+            "follower_provider_ids": {
               "type": "array",
               "items": {
                 "$ref": "#/$defs/did_core_id"

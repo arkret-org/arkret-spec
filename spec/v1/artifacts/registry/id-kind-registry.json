@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-08-26.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T14:00:00+08:00",
+  "generated_at": "2026-08-26T20:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -55,7 +55,7 @@
       "session_grant"
     ],
     "identity_key": [
-      "issuer_did",
+      "issuer_id",
       "typed_id"
     ],
     "authority": "signed_immutable_issuer_record",
@@ -68,11 +68,11 @@
     "token_layout": "digest_suite_wire_code || 32-byte digest",
     "preimage_fields": [
       "schema",
-      "issuer",
+      "issuer_id",
       "issuance_nonce",
-      "subject",
+      "subject_id",
       "session_public_key",
-      "audience",
+      "audience_id",
       "scopes",
       "not_before",
       "expires_at",
@@ -86,7 +86,7 @@
     "closed_encoding": {
       "issuance_nonce": "base64url_no_pad_exactly_32_octets",
       "session_public_key": "supported_public_jwk_encoded_as_rfc8785_jcs_string",
-      "audience": "canonical_bare_resource_service_did; never an HTTP origin or endpoint URL",
+      "audience_id": "canonical_bare_resource_service_did; never an HTTP origin or endpoint URL",
       "scopes": "protocol_bytewise_sorted_unique_after_authorization_intersection",
       "timestamps": "utc_canonical_millisecond",
       "optional_fields": "omit_when_absent_never_null",
@@ -97,7 +97,7 @@
     "device_id_rule": "No independent top-level device_id claim enters the preimage; standard human holder_binding and its complete device_binding carry accepted-device authority. Recovery candidate-device and Agent runtime holder bindings carry their own device_id and forbid device_binding.",
     "durable_replay": {
       "key": [
-        "issuer_did",
+        "issuer_id",
         "operation_or_proof_kind",
         "request_identity"
       ],
@@ -106,7 +106,7 @@
       "replay_revalidation": [
         "holder_or_dpop_proof",
         "http_method_and_target",
-        "issuer_and_audience",
+        "issuer_id_and_audience_id",
         "canonical_request_digest"
       ],
       "retention": "not_shorter_than_the_corresponding_one_shot_proof_maximum_retry_window",
@@ -231,7 +231,7 @@
         "payload_encoding": "32 octets rendered as exactly 64 lowercase hexadecimal characters",
         "derivation_from_request_forbidden": true,
         "uniqueness_scope": [
-          "issuing_registry_service_id"
+          "issuing_registry_id"
         ],
         "uniqueness_rule": "The registry MUST atomically reserve the value before returning it and MUST reallocate on any collision with a live or consumed ledger row; a challenge value is never reissued.",
         "single_use": true,
@@ -450,7 +450,7 @@
       "category": "media",
       "status": "active",
       "wire_form": "ak:rtc_participant:<uuidv7>",
-      "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_id, ice_bucket(issued_at))` by the media service token issuer, where v1 ice_bucket is the fixed 300-second UTC bucket. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern.",
+      "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_id, ice_bucket(issued_at))` by the media service token issuer, where v1 ice_bucket is the fixed 300-second UTC bucket. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

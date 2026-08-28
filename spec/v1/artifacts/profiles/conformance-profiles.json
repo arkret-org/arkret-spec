@@ -2740,7 +2740,7 @@
       "additional_requirements": {
         "invite_claim_reducer_authority_must": "ak.invite.claim MUST be decided by the destination Realm reducer, not by Auth Server, verification service, Principal Server transport ingress, or client projection caches.",
         "invite_claim_token_commitment_must": "Reducer MUST match payload.token_commitment to the pending ak.invite.third_party invite and reject mismatch or already-claimed commitments with no membership proposal.",
-        "invite_claim_allowlist_recheck_must": "Reducer MUST re-check binding_proof.verification_service_id against the current effective Realm allowlist and any invite-pinned service DID before accepting subject_proof.",
+        "invite_claim_allowlist_recheck_must": "Reducer MUST re-check binding_proof.verification_id against the current effective Realm allowlist and any invite-pinned service DID before accepting subject_proof.",
         "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
         "invite_claim_membership_conversion_must": "Successful claim MUST atomically transition invite pending -> claimed and materialize only a subject-bound standard invite or membership proposal; final join still requires ak.invite.accept or an explicitly profiled equivalent path.",
         "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1.",
@@ -3504,7 +3504,7 @@
     },
     "ak.profile.push_gateway.blind_wakeup.v1": {
       "role": "gateway",
-      "description": "Default push gateway privacy baseline. Every implementation claiming ak.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Strand id / name, Message id, event id, device verification-method DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_id, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5.6.",
+      "description": "Default push gateway privacy baseline. Every implementation claiming ak.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Strand id / name, Message id, event id, device verification-method DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_id, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5.6.",
       "enforcement_phases": [
         "conformance",
         "startup_claim_guard"
@@ -3536,7 +3536,7 @@
       },
       "additional_requirements": {
         "stable_identifier_ban_must": "Provider payload MUST NOT contain principal DID, sender DID / handle, Realm id / name, Strand id / name, Message id, event id, device verification-method DID URL, reaction emoji, attachment filename, IP, geolocation, or any cross-Realm stable correlation key.",
-        "pseudonym_scope_must": "push_target_id MUST be a pairwise pseudonym scoped to (recipient_service_id, principal, device, push_route); MUST NOT be reusable across Principal Server contexts.",
+        "pseudonym_scope_must": "push_target_id MUST be a pairwise pseudonym scoped to (recipient_id, principal, device, push_route); MUST NOT be reusable across Principal Server contexts.",
         "default_claim_must": "Any implementation claiming ak.profile.push_gateway.v1 MUST also claim this profile and MUST NOT advertise downgrade switches that disable blind wakeup."
       }
     },
@@ -3636,7 +3636,7 @@
       },
       "additional_requirements": {
         "partition_must": "Bridges MUST partition push traffic so that Arkret v1 default-baseline peers (ak.profile.push_gateway.blind_wakeup.v1) NEVER receive matrix_passthrough-shaped payloads.",
-        "no_default_mixing_must": "Implementations MUST NOT advertise both ak.profile.push_gateway.blind_wakeup.v1 and ak.profile.push_gateway.matrix_passthrough.v1 as applying to the same (recipient_service_id, device) tuple.",
+        "no_default_mixing_must": "Implementations MUST NOT advertise both ak.profile.push_gateway.blind_wakeup.v1 and ak.profile.push_gateway.matrix_passthrough.v1 as applying to the same (recipient_id, device) tuple.",
         "interop_only_must": "This profile is interop-only; it MUST NOT be used as a substitute for ak.profile.push_gateway.blind_wakeup.v1 in default Arkret deployments."
       }
     },

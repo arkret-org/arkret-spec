@@ -347,7 +347,7 @@
       "object_family": "did_webvh_witness_receipt",
       "binding_fields": [
         "payload_digest",
-        "issuer_service_id",
+        "issuer_id",
         "subject_did",
         "version_id",
         "witness_did",
@@ -528,7 +528,7 @@
       "object_family": "identity_receipt",
       "binding_fields": [
         "payload_digest",
-        "registry_service_id",
+        "registry_id",
         "subject_did",
         "verification_method",
         "created_at",
@@ -625,7 +625,7 @@
       "binding_fields": [
         "payload_digest",
         "subject_id",
-        "recipient_service_id",
+        "recipient_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -779,7 +779,7 @@
       "object_family": "organization_registration_receipt",
       "binding_fields": [
         "payload_digest",
-        "issuer_service_id",
+        "issuer_id",
         "registration_receipt_id",
         "organization_id",
         "verification_method",
@@ -817,7 +817,7 @@
       "binding_fields": [
         "payload_digest",
         "subject_id",
-        "recipient_service_id",
+        "recipient_id",
         "verification_method",
         "created_at",
         "domain?",
@@ -925,7 +925,7 @@
       "object_family": "service_registration_receipt",
       "binding_fields": [
         "payload_digest",
-        "provider_service_id",
+        "provider_id",
         "registration_receipt_id",
         "verification_method",
         "created_at",
@@ -941,8 +941,8 @@
       "binding_fields": [
         "payload_digest",
         "request_id",
-        "source_service_id",
-        "receiver_service_id",
+        "source_id",
+        "receiver_id",
         "realm_id",
         "request_digest",
         "artifact_key",
@@ -1122,7 +1122,7 @@
         "requester_authorization_incarnation",
         "trusted_history_base_basis",
         "trusted_current_basis",
-        "release_service_id",
+        "release_id",
         "release_service_binding_ref",
         "release_service_resolution_ref",
         "release_service_resolution_sequence",
@@ -1224,7 +1224,7 @@
         "kind",
         "request",
         "request_receipt",
-        "destination_service_id",
+        "destination_id",
         "destination_authorization",
         "replicated_at",
         "expires_at",
@@ -1240,7 +1240,7 @@
       "binding_fields": [
         "payload_digest",
         "request_digest",
-        "destination_service_id",
+        "destination_id",
         "accepted_at",
         "verification_method",
         "created_at"
@@ -1263,9 +1263,9 @@
         "source_kind",
         "source_author_profile?",
         "source_authorization_incarnation?",
-        "source_service_id",
+        "source_id",
         "source_authority_locator",
-        "destination_release_service_id",
+        "destination_release_id",
         "relayed_at",
         "expires_at",
         "verification_method",
@@ -1273,7 +1273,7 @@
       ],
       "defined_in": "zh/governance/history-visibility.md",
       "schema_ref": "schemas/history-key.schema.json#/$defs/source_relay_attestation",
-      "conditional_binding_rule": "source_kind=member requires source_author_profile and source_authorization_incarnation; organization_recovery_holder forbids both and requires source_authority_locator.authority_observation to match source_actor_id, source_service_id, service_proof.verification_method, the exact archive authorization tuple and expires_at. A ? field is included iff its closed branch admits it."
+      "conditional_binding_rule": "source_kind=member requires source_author_profile and source_authorization_incarnation; organization_recovery_holder forbids both and requires source_authority_locator.authority_observation to match source_actor_id, source_id, service_proof.verification_method, the exact archive authorization tuple and expires_at. A ? field is included iff its closed branch admits it."
     },
     {
       "context": "ak.organization_recovery_archive_replica_proof.v1",
@@ -1284,8 +1284,8 @@
         "archive",
         "container_event_ref",
         "history_traversal_retention",
-        "source_service_id",
-        "holder_service_id",
+        "source_id",
+        "holder_id",
         "replicated_at",
         "verification_method",
         "created_at"
@@ -1299,7 +1299,7 @@
       "binding_fields": [
         "payload_digest",
         "archive_replica_digest",
-        "holder_service_id",
+        "holder_id",
         "archive_sequence",
         "accepted_at",
         "verification_method",
@@ -1367,7 +1367,7 @@
       "primitive": "detached_signature",
       "binding_fields": [
         "authority_kind",
-        "authority_service_id",
+        "authority_id",
         "verification_method",
         "snapshot_digest",
         "issued_at",
@@ -1389,7 +1389,7 @@
         "verification_method",
         "producer_signer_resolution_evidence_ref",
         "producer_signer_resolution_evidence_digest",
-        "receiver_service_id"
+        "receiver_id"
       ]
     },
     {
@@ -1399,7 +1399,7 @@
       "binding_fields": [
         "domain",
         "core_digest",
-        "source_service_id",
+        "source_id",
         "verification_method",
         "issued_at",
         "expires_at",
@@ -1413,8 +1413,8 @@
       "binding_fields": [
         "operation_id",
         "direction",
-        "source_service_id",
-        "destination_service_id",
+        "source_id",
+        "destination_id",
         "idempotency_key",
         "content_digest",
         "request_digest"
@@ -1467,7 +1467,7 @@
         "status",
         "basis",
         "basis_digest",
-        "authority_service_id",
+        "authority_id",
         "verification_method",
         "issued_at",
         "expires_at"
@@ -1533,8 +1533,8 @@
         "target_uri",
         "authority",
         "content_digest",
-        "source_service_id",
-        "destination_service_id"
+        "source_id",
+        "destination_id"
       ]
     },
     {
@@ -1593,8 +1593,8 @@
         "request_digest",
         "terminal_state",
         "keypackage_refs",
-        "source_service_id",
-        "destination_service_id",
+        "source_id",
+        "destination_id",
         "terminal_at"
       ]
     },
@@ -1660,7 +1660,7 @@
         "recipient_agent_id",
         "recipient_agent_verification_method",
         "agent_key_authorize_event_id",
-        "recipient_service_id",
+        "recipient_id",
         "realm_id",
         "mls_group_id",
         "mls_epoch",
@@ -1680,7 +1680,7 @@
         "request_digest",
         "outcome",
         "result_digest",
-        "recipient_service_id",
+        "recipient_id",
         "received_at",
         "issuer"
       ]
@@ -1695,7 +1695,7 @@
         "signed_event_ref",
         "signed_event_digest",
         "outcome",
-        "recipient_service_id",
+        "recipient_id",
         "received_at",
         "issuer"
       ]

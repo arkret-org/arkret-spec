@@ -7,7 +7,7 @@
   "required": [
     "attestation_id",
     "realm_id",
-    "audit_service_actor_id",
+    "audit_actor_id",
     "service_id",
     "platform",
     "measurement",
@@ -30,7 +30,7 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_digest values across Realms do not make evidence portable."
     },
-    "audit_service_actor_id": {
+    "audit_actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Stable did_core_id of the audit release service / applet actor whose controlled output path this evidence attests. MUST match the approved_recipient_audit_actor_id derived from the accepted ak.audit.session.authorize record, or the service actor accepted by the active ak.audit.applet_binding."
     },
@@ -160,7 +160,7 @@
     "verification_method": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-      "description": "DID URL the receiving verifier uses to resolve attestation_key. MUST live under audit_service_actor_id's DID Document or a DID Document explicitly delegated by the active audit binding. Fragment characters are constrained to the ASCII set `[A-Za-z0-9._:-]` (a strict subset of RFC 3986 unreserved, excluding `~`, plus `:`) for stable byte-comparable key ids; see the Arkret verification-method DID URL profile in identity/did-usage-and-verification.md section 2.2. DID method-name normalized to lowercase per W3C DID 1.0."
+      "description": "DID URL the receiving verifier uses to resolve attestation_key. MUST live under audit_actor_id's DID Document or a DID Document explicitly delegated by the active audit binding. Fragment characters are constrained to the ASCII set `[A-Za-z0-9._:-]` (a strict subset of RFC 3986 unreserved, excluding `~`, plus `:`) for stable byte-comparable key ids; see the Arkret verification-method DID URL profile in identity/did-usage-and-verification.md section 2.2. DID method-name normalized to lowercase per W3C DID 1.0."
     },
     "validity": {
       "type": "object",
@@ -193,7 +193,7 @@
             "none_supported"
           ]
         },
-        "endpoint": {
+        "endpoint_uri": {
           "type": "string",
           "format": "uri"
         },

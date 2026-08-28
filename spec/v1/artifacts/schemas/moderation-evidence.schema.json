@@ -11,7 +11,7 @@
         "target_refs",
         "encryption",
         "recipient_public_key_ref",
-        "encrypted_to",
+        "encrypted_to_kid",
         "ciphertext",
         "ciphertext_digest",
         "reporter_signature"
@@ -33,7 +33,7 @@
         "recipient_public_key_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "encrypted_to": {
+        "encrypted_to_kid": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
         "ciphertext": {

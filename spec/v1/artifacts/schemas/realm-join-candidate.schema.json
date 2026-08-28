@@ -14,7 +14,7 @@
     "join_methods",
     "encryption_profile",
     "digest_algorithm",
-    "source",
+    "source_uri",
     "seal_basis",
     "as_of",
     "expires_at"
@@ -46,7 +46,7 @@
       ],
       "description": "The only v1 forwarding role: a Principal Server selected from a current joined-member delivery binding. This is a bounded route hint, not an authorization grant."
     },
-    "endpoint": {
+    "endpoint_uri": {
       "type": "string",
       "format": "uri",
       "description": "Optional non-authoritative endpoint hint. Callers MUST NOT route from this field or a DID Document endpoint; they MUST obtain and validate service_resolution, use its canonical base_url for first transport, and confirm capabilities through GET /_arkret/describe."
@@ -94,7 +94,7 @@
       "maximum": 1000,
       "description": "Lower values are preferred. Ties are broken deterministically by service_id."
     },
-    "source": {
+    "source_uri": {
       "type": "string",
       "enum": [
         "invite_hint",
@@ -141,12 +141,12 @@
     {
       "if": {
         "properties": {
-          "source": {
+          "source_uri": {
             "const": "invite_hint"
           }
         },
         "required": [
-          "source"
+          "source_uri"
         ]
       },
       "then": {

@@ -11,7 +11,7 @@
   "required": [
     "id",
     "schema",
-    "issuer",
+    "issuer_id",
     "issuer_principal_server_id",
     "subject",
     "actions",
@@ -30,7 +30,7 @@
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
-    "issuer": {
+    "issuer_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "issuer_principal_server_id": {

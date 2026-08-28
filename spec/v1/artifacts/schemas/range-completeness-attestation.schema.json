@@ -7,7 +7,7 @@
   "required": [
     "attestation_id",
     "schema",
-    "issuer",
+    "issuer_id",
     "issuer_role",
     "realm_id",
     "event_range",
@@ -26,7 +26,7 @@
       "const": "ak.schema.range_completeness_attestation.v1",
       "description": "Payload schema id (versioned). The owning Event kind in event-kind-registry.json is ak.attestation.range_completeness (NO .v1 suffix on the event kind)."
     },
-    "issuer": {
+    "issuer_id": {
       "$ref": "#/$defs/did_core_id"
     },
     "issuer_role": {

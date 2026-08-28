@@ -85,7 +85,7 @@
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
-        "url": {
+        "uri": {
           "type": "string",
           "format": "uri"
         }
@@ -141,7 +141,7 @@
             "boolean",
             "datetime",
             "external_ref",
-            "url",
+            "uri",
             "enum"
           ]
         }
@@ -200,14 +200,14 @@
       "description": "Body for ak.edge.applet.command.transaction.v1. Transport-layer requirements are mandatory but not body fields: RFC 9421 Signature/Signature-Input, Source-Service-ID, Destination-Service-ID, Content-Digest, Idempotency-Key, received_at audit metadata, and a persisted delivery_authentication_record. See zh/extensions/applet-integration.md section 7.3.1.",
       "required": [
         "applet_id",
-        "source_service_id"
+        "source_id"
       ],
       "properties": {
         "applet_id": {
           "$ref": "#/$defs/applet_id",
           "description": "Exact active Applet registration selected for signature and epoch verification; service_id alone is not unique."
         },
-        "source_service_id": {
+        "source_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Must exactly match the Source-Service-ID header and the signed source-service-id component. It identifies the source service only; each Event still requires independent actor/applet/capability signature verification."
         },

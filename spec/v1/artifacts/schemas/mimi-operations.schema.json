@@ -249,12 +249,12 @@
       "type": "object",
       "x-arkret-proof-context": "ak.mimi_key_material_request_proof.v1",
       "required": [
-        "requester",
+        "requester_id",
         "strand_id",
         "device_id"
       ],
       "properties": {
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "strand_id": {
@@ -431,7 +431,7 @@
           },
           "additionalProperties": false
         },
-        "origin_provider": {
+        "origin_provider_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "routing": {
@@ -440,7 +440,7 @@
             "mimi_room_uri": {
               "$ref": "#/$defs/mimi_room_uri"
             },
-            "target_providers": {
+            "target_provider_ids": {
               "type": "array",
               "items": {
                 "$ref": "#/$defs/did_core_id"
@@ -549,7 +549,7 @@
                 "rejected"
               ]
             },
-            "delivered_to": {
+            "delivered_to_ids": {
               "type": "array",
               "items": {
                 "$ref": "#/$defs/did_core_id"
@@ -844,7 +844,7 @@
           "minItems": 1,
           "maxItems": 1000
         },
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "privacy_profile": {
@@ -886,7 +886,7 @@
               "mimi_uri": {
                 "$ref": "#/$defs/mimi_uri"
               },
-              "subject": {
+              "subject_id": {
                 "$ref": "#/$defs/did_core_id"
               }
             },
@@ -911,7 +911,7 @@
       "required": [
         "strand_id",
         "target_ref",
-        "reporter",
+        "reporter_id",
         "abuse_reason_code"
       ],
       "properties": {
@@ -927,7 +927,7 @@
         "target_ref": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "reporter": {
+        "reporter_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "abuse_reason_code": {
@@ -959,7 +959,7 @@
         "status": {
           "const": "queued"
         },
-        "routed_to": {
+        "routed_to_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"
@@ -973,7 +973,7 @@
       "type": "object",
       "required": [
         "asset_ref",
-        "requester"
+        "requester_id"
       ],
       "properties": {
         "asset_ref": {
@@ -986,7 +986,7 @@
             }
           ]
         },
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "strand_id": {
@@ -1012,7 +1012,7 @@
             "request_digest": {
               "$ref": "#/$defs/digest"
             },
-            "relay_provider": {
+            "relay_provider_id": {
               "$ref": "#/$defs/did_core_id"
             },
             "encapsulated_request": {

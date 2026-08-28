@@ -57,7 +57,7 @@
         "notary",
         "policy_server",
         "principal_server",
-        "push_gateway",
+        "push_gateway_uri",
         "recovery_service",
         "search_service",
         "sfu_service",
@@ -275,7 +275,7 @@
               "items": {
                 "type": "string",
                 "enum": [
-                  "recipient_service_id",
+                  "recipient_id",
                   "principal_id",
                   "device_id",
                   "push_route_id",
@@ -313,7 +313,7 @@
           "items": {
             "type": "object",
             "properties": {
-              "endpoint": {
+              "endpoint_uri": {
                 "type": "string",
                 "minLength": 1
               },
@@ -767,7 +767,7 @@
           "verification_run_id",
           "artifact_digest",
           "artifact_ref",
-          "verifier_service_id",
+          "verifier_id",
           "signature",
           "timestamp"
         ],
@@ -797,7 +797,7 @@
             "minLength": 1,
             "description": "URI or transparency-log reference from which the verification artifact can be fetched."
           },
-          "verifier_service_id": {
+          "verifier_id": {
             "$ref": "./common-ids.schema.json#/$defs/did_core_id",
             "description": "Stable did_core_id of the Conformance Verifier that signed the artifact statement. The artifact's DID URL signing key is verified separately and its canonical bare did MUST project through the registered adapter to this value."
           },
@@ -1037,7 +1037,7 @@
       "if": {
         "properties": {
           "service_kind": {
-            "const": "push_gateway"
+            "const": "push_gateway_uri"
           }
         },
         "required": [
@@ -1180,11 +1180,11 @@
         "^x_[a-z][a-z0-9_]{0,63}$": true
       },
       "required": [
-        "origin",
+        "origin_uri",
         "gate_account_base"
       ],
       "properties": {
-        "origin": {
+        "origin_uri": {
           "type": "string",
           "format": "uri",
           "description": "Absolute origin of the client-visible Account Authority."
@@ -1215,15 +1215,15 @@
             "gnap"
           ]
         },
-        "issuer": {
+        "issuer_uri": {
           "type": "string",
           "format": "uri"
         },
-        "provider": {
+        "provider_uri": {
           "type": "string",
           "format": "uri"
         },
-        "openid_configuration": {
+        "openid_configuration_uri": {
           "type": "string",
           "format": "uri"
         },
@@ -1258,8 +1258,8 @@
           },
           "then": {
             "required": [
-              "issuer",
-              "openid_configuration"
+              "issuer_uri",
+              "openid_configuration_uri"
             ]
           }
         }
@@ -1319,14 +1319,14 @@
       "type": "object",
       "required": [
         "kind",
-        "base_url",
+        "base_uri",
         "extension_profile_required"
       ],
       "properties": {
         "kind": {
           "const": "http_json"
         },
-        "base_url": {
+        "base_uri": {
           "type": "string",
           "format": "uri"
         },
@@ -1340,7 +1340,7 @@
       "type": "object",
       "required": [
         "kind",
-        "base_url",
+        "base_uri",
         "extension_profile_required",
         "tus_version",
         "tus_extensions"
@@ -1349,7 +1349,7 @@
         "kind": {
           "const": "tus"
         },
-        "base_url": {
+        "base_uri": {
           "type": "string",
           "format": "uri"
         },
@@ -1385,7 +1385,7 @@
       "type": "object",
       "required": [
         "kind",
-        "base_url",
+        "base_uri",
         "extension_profile_required",
         "subprotocol",
         "authentication",
@@ -1396,7 +1396,7 @@
         "kind": {
           "const": "websocket"
         },
-        "base_url": {
+        "base_uri": {
           "type": "string",
           "format": "uri",
           "pattern": "^wss://[a-z0-9.-]+(?::[1-9][0-9]{0,4})?/(?:[A-Za-z0-9._~!$&'()*+,;=:@/-]|%[0-9A-F]{2})*$",

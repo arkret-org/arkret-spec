@@ -171,7 +171,7 @@
         "principal_id",
         "principal_server_id",
         "device_id",
-        "device_signing_key",
+        "device_signing_key_did",
         "hpke_key",
         "device_authorize_event_id",
         "authorized_generation_ref",
@@ -190,7 +190,7 @@
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
-        "device_signing_key": {
+        "device_signing_key_did": {
           "$ref": "#/$defs/did_key"
         },
         "hpke_key": {
@@ -417,7 +417,7 @@
           "type": "integer",
           "minimum": 0
         },
-        "supersedes": {
+        "supersedes_id": {
           "oneOf": [
             {
               "type": "null"

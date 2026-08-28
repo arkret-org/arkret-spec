@@ -1332,7 +1332,7 @@
         "applet_id",
         "service_id",
         "controller_id",
-        "base_url",
+        "base_uri",
         "bot_actor_id",
         "claimed_profiles",
         "protocols",
@@ -1360,7 +1360,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "DID of the Applet controller / external system; signs the registration."
         },
-        "base_url": {
+        "base_uri": {
           "type": "string",
           "format": "uri"
         },
@@ -2285,7 +2285,7 @@
             "$ref": "#/$defs/non_empty_string"
           }
         },
-        "participant_identity": {
+        "participant_id": {
           "$ref": "#/$defs/rtc_participant_identity",
           "description": "Required for sfu/mcu roster joins; MUST be absent for a direct p2p/mesh leg."
         },
@@ -2320,7 +2320,7 @@
       "required": [
         "call_id",
         "recording_id",
-        "recording_agent",
+        "recording_agent_id",
         "capture_kind",
         "mode",
         "visible_notice",
@@ -2336,7 +2336,7 @@
           "pattern": "^[A-Za-z0-9._-]{1,128}$",
           "description": "Stable opaque recording / transcript lifecycle handle. Canonical byte-for-byte; receivers MUST NOT normalize (case-fold, NFC/NFKC, trim, re-encode) because it is a cross-implementation key-derivation input."
         },
-        "recording_agent": {
+        "recording_agent_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "capture_kind": {
@@ -2749,7 +2749,7 @@
               "type": "object",
               "required": [
                 "op",
-                "observed_dot",
+                "observed_dot_id",
                 "actor_id",
                 "device_id"
               ],
@@ -2757,7 +2757,7 @@
                 "op": {
                   "const": "leave"
                 },
-                "observed_dot": {
+                "observed_dot_id": {
                   "$ref": "#/$defs/or_set_dot"
                 },
                 "actor_id": {
@@ -2847,7 +2847,7 @@
               "type": "object",
               "required": [
                 "op",
-                "observed_dot",
+                "observed_dot_id",
                 "actor_id",
                 "restored_by",
                 "restored_at"
@@ -2856,7 +2856,7 @@
                 "op": {
                   "const": "restore_participant"
                 },
-                "observed_dot": {
+                "observed_dot_id": {
                   "$ref": "#/$defs/or_set_dot"
                 },
                 "actor_id": {
@@ -3042,7 +3042,7 @@
           "type": "object",
           "required": [
             "schema",
-            "issuer",
+            "issuer_id",
             "subject",
             "actions",
             "resources",
@@ -3056,8 +3056,8 @@
             "realm_id": {
               "$ref": "./capability-grant.schema.json#/properties/realm_id"
             },
-            "issuer": {
-              "$ref": "./capability-grant.schema.json#/properties/issuer"
+            "issuer_id": {
+              "$ref": "./capability-grant.schema.json#/properties/issuer_id"
             },
             "subject": {
               "$ref": "./capability-grant.schema.json#/properties/subject"
@@ -3297,7 +3297,7 @@
       "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell ak:cell:ak.component.consent.grant.v1:<consent_id> (or_set lattice); ak.consent.revoke writes a remove on the same cell. Lives in the holder's Principal Control Realm (or holder-private actor stream); MUST NOT be written to a shared Collaboration Realm. Realm role taxonomy: zh/models/realm-and-space.md §2.7.",
       "required": [
         "consent_id",
-        "peer",
+        "peer_id",
         "consent_scope"
       ],
       "properties": {
@@ -3306,7 +3306,7 @@
           "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Stable identifier; used as the cell_subject of the consent cell. ak.consent.revoke MUST reference the same consent_id."
         },
-        "peer": {
+        "peer_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Counterparty DID (or pairwise DID) that this consent applies to."
         },
@@ -3351,7 +3351,7 @@
       "description": "Revoke a previously granted consent. Wire-equivalent to a Control Move whose effect is remove(tag) on the consent cell ak:cell:ak.component.consent.grant.v1:<consent_id> (the same cell written by ak.consent.grant). Payload observed_dots MUST match the Control Move effect's observed_dots so schema validation and audit can see exactly what was removed.",
       "required": [
         "consent_id",
-        "observed_dots"
+        "observed_dot_ids"
       ],
       "properties": {
         "consent_id": {
@@ -3359,7 +3359,7 @@
           "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "MUST equal the consent_id of the ak.consent.grant being revoked."
         },
-        "observed_dots": {
+        "observed_dot_ids": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
@@ -3381,7 +3381,7 @@
       "type": "object",
       "description": "Holder-signed normal Contact acceptance fact. This is version 1 of the issuer-local directional lineage. It grants only the explicit Contact scopes and neither reads nor writes Consent.",
       "required": [
-        "peer",
+        "peer_id",
         "contact_round_id",
         "version",
         "request_event_ref",
@@ -3389,7 +3389,7 @@
         "granted_to_peer_scopes"
       ],
       "properties": {
-        "peer": {
+        "peer_id": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "contact_round_id": {
@@ -3418,12 +3418,12 @@
       "type": "object",
       "description": "Holder-signed terminal rejection of one exact accepted request. It establishes no Contact round and carries no Consent or Contact round evidence fields.",
       "required": [
-        "peer",
+        "peer_id",
         "request_event_ref",
         "request_acceptance_receipt_digest"
       ],
       "properties": {
-        "peer": {
+        "peer_id": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "request_event_ref": {
@@ -3442,12 +3442,12 @@
       "type": "object",
       "description": "Requester-signed directional Contact request fact. It is created before any acceptance receipt or basis exists, so neither may appear in this payload. It grants only the requester's explicit Contact scopes and neither reads nor writes Consent.",
       "required": [
-        "peer",
+        "peer_id",
         "granted_to_peer_scopes",
         "introduction_evidence_digest"
       ],
       "properties": {
-        "peer": {
+        "peer_id": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "granted_to_peer_scopes": {
@@ -3474,13 +3474,13 @@
       "type": "object",
       "description": "Holder-signed terminal event for one issuer-local Contact lineage. The event kind itself supplies terminal semantics; the payload carries only the exact peer, basis and predecessor coordinates. It does not read, write or revoke Consent.",
       "required": [
-        "peer",
+        "peer_id",
         "contact_round_id",
         "version",
         "predecessor_event_ref"
       ],
       "properties": {
-        "peer": {
+        "peer_id": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "contact_round_id": {
@@ -4092,12 +4092,12 @@
       "anyOf": [
         {
           "required": [
-            "changed"
+            "changed_ids"
           ]
         },
         {
           "required": [
-            "left"
+            "left_ids"
           ]
         },
         {
@@ -4110,7 +4110,7 @@
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "changed": {
+        "changed_ids": {
           "type": "array",
           "minItems": 1,
           "items": {
@@ -4118,7 +4118,7 @@
           },
           "uniqueItems": true
         },
-        "left": {
+        "left_ids": {
           "type": "array",
           "minItems": 1,
           "items": {
@@ -4169,18 +4169,18 @@
     "device_push_route_active_shape": {
       "type": "object",
       "required": [
-        "recipient_service_id",
+        "recipient_id",
         "principal_id",
         "device_id",
         "push_route",
         "expected_revision",
         "push_target_id",
-        "push_gateway_service_id",
+        "push_gateway_id",
         "encryption_key",
         "capabilities"
       ],
       "properties": {
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "principal_id": {
@@ -4200,7 +4200,7 @@
         "push_target_id": {
           "$ref": "./common-ids.schema.json#/$defs/push_target_id"
         },
-        "push_gateway_service_id": {
+        "push_gateway_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "encryption_key": {
@@ -4221,7 +4221,7 @@
     "device_push_route_revoked_shape": {
       "type": "object",
       "required": [
-        "recipient_service_id",
+        "recipient_id",
         "principal_id",
         "device_id",
         "push_route",
@@ -4229,7 +4229,7 @@
         "revoked"
       ],
       "properties": {
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "principal_id": {
@@ -4487,7 +4487,7 @@
       "description": "Participant endorsement of the settled Direct Conversation coordinates and the first exact-pair state in the scope's single immutable derived MLS group. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact round may author the founding unit. Written once and never retired. binding_digest is a receiver-derived off-wire semantic digest over the closed normalized binding object defined by contact-and-direct-conversation.md section 8.3 and MUST NOT be added to this payload.",
       "required": [
         "pair_key",
-        "participants_unordered",
+        "unordered_participant_ids",
         "realm_id",
         "main_strand_id",
         "founding_unit_digest",
@@ -4501,7 +4501,7 @@
           "pattern": "^sha256:[0-9a-f]{64}$",
           "description": "Canonical unordered pair key: SHA-256(UTF8(ak.direct-conversation.pair-key.v1 followed by LF) || JCS({participants:[p0,p1],trust_domain_id})) where p0/p1 are canonical stable subject DIDs sorted by unsigned UTF-8 byte order. Receivers MUST recompute it exactly as contact-and-direct-conversation.md section 5.1 defines; handles and unresolved pairwise DIDs are forbidden inputs."
         },
-        "participants_unordered": {
+        "unordered_participant_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"
@@ -4784,13 +4784,13 @@
           "type": "object",
           "required": [
             "represented_organization_id",
-            "verifier_service_ids"
+            "verifier_ids"
           ],
           "properties": {
             "represented_organization_id": {
               "$ref": "#/$defs/did_core_id"
             },
-            "verifier_service_ids": {
+            "verifier_ids": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
@@ -5037,15 +5037,15 @@
         "value": {
           "type": "object",
           "required": [
-            "verifier_service_id",
+            "verifier_id",
             "domain",
             "challenge",
             "purpose",
-            "accepted_issuers",
+            "accepted_issuer_ids",
             "required_claims"
           ],
           "properties": {
-            "verifier_service_id": {
+            "verifier_id": {
               "$ref": "#/$defs/did_core_id"
             },
             "represented_organization_id": {
@@ -5061,7 +5061,7 @@
             "purpose": {
               "$ref": "#/$defs/non_empty_string"
             },
-            "accepted_issuers": {
+            "accepted_issuer_ids": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
@@ -5137,7 +5137,7 @@
         "value": {
           "type": "object",
           "required": [
-            "holder_subject",
+            "holder_subject_id",
             "proof_profile",
             "presentation",
             "disclosed_fields",
@@ -5145,7 +5145,7 @@
             "created_at"
           ],
           "properties": {
-            "holder_subject": {
+            "holder_subject_id": {
               "$ref": "#/$defs/did_core_id"
             },
             "proof_profile": {
@@ -5192,13 +5192,13 @@
     "invite_create_payload": {
       "type": "object",
       "required": [
-        "invitee",
+        "invitee_id",
         "invite_delivery_target",
         "introduction_evidence_digest",
         "expires_at"
       ],
       "properties": {
-        "invitee": {
+        "invitee_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Directed invite subject DID. The Invite id is derived from this Event's event_id and MUST NOT be carried in the genesis payload."
         },
@@ -5298,14 +5298,14 @@
       "type": "object",
       "required": [
         "invite_id",
-        "invitee",
+        "invitee_id",
         "target_state"
       ],
       "properties": {
         "invite_id": {
           "$ref": "#/$defs/invite_id"
         },
-        "invitee": {
+        "invitee_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "MUST equal the directed invite's stored invitee so invite.lifecycle and member.state move atomically."
         },
@@ -5340,7 +5340,7 @@
         "invite_id": {
           "$ref": "#/$defs/invite_id"
         },
-        "invitee": {
+        "invitee_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Required for a directed invite and forbidden by semantic admission for a 3PID placeholder."
         },
@@ -5401,9 +5401,9 @@
         },
         "binding_proof": {
           "type": "object",
-          "description": "Verification-service proof for ak.invite.claim. Reducers verify signature over the ak.invite.claim.binding_proof.v1 transcript against the invite's verification_public_key and current Realm verification_service_id allowlist before accepting a claimed transition.",
+          "description": "Verification-service proof for ak.invite.claim. Reducers verify signature over the ak.invite.claim.binding_proof.v1 transcript against the invite's verification_public_key and current Realm verification_id allowlist before accepting a claimed transition.",
           "required": [
-            "verification_service_id",
+            "verification_id",
             "verification_method",
             "subject_id",
             "realm_id",
@@ -5413,7 +5413,7 @@
             "signature"
           ],
           "properties": {
-            "verification_service_id": {
+            "verification_id": {
               "$ref": "#/$defs/did_core_id",
               "description": "Verification service DID. Realm reducers MUST re-check this DID against the current effective Realm allowlist and any service DID pinned by the original invite."
             },
@@ -5445,14 +5445,14 @@
             },
             "signature": {
               "$ref": "#/$defs/signature_material",
-              "description": "Signature over utf8(\"ak.invite.claim.binding_proof.v1\\n\") || canonical_json({audience, binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_id, token_commitment, verification_service_id}); unsigned_binding_proof is this object without signature."
+              "description": "Signature over utf8(\"ak.invite.claim.binding_proof.v1\\n\") || canonical_json({audience, binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_id, token_commitment, verification_id}); unsigned_binding_proof is this object without signature."
             }
           },
           "additionalProperties": false
         },
         "subject_proof": {
           "type": "object",
-          "description": "Subject DID proof over ak.invite.claim.subject_proof.v1 transcript. The transcript digest binds subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience, verification_service_id, and binding_proof_digest of the complete signed binding_proof object.",
+          "description": "Subject DID proof over ak.invite.claim.subject_proof.v1 transcript. The transcript digest binds subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience, verification_id, and binding_proof_digest of the complete signed binding_proof object.",
           "required": [
             "verification_method",
             "signature_algorithm",
@@ -5671,14 +5671,14 @@
               "type": "object",
               "required": [
                 "threshold",
-                "reviewers"
+                "reviewer_ids"
               ],
               "properties": {
                 "threshold": {
                   "type": "integer",
                   "minimum": 1
                 },
-                "reviewers": {
+                "reviewer_ids": {
                   "type": "array",
                   "items": {
                     "$ref": "#/$defs/did_core_id"
@@ -5810,8 +5810,8 @@
       "type": "object",
       "description": "Per-Realm binding of a member to a concrete delivery target service. Authoritative source for Realm-scoped event / sync / to-device / push / key-package delivery; sender MUST NOT consult the actor's DID Document service entry as an alternative resolution path when this binding is present. Pairwise / unlinkability use-cases are orthogonal — see identity-did.md and pairwise DID guidance.",
       "required": [
-        "recipient_service_id",
-        "recipient_service_kind",
+        "recipient_id",
+        "recipient_kind",
         "binding_scope",
         "binding_source",
         "delivery_modes",
@@ -5819,13 +5819,13 @@
         "resolved_at"
       ],
       "properties": {
-        "recipient_service_id": {
+        "recipient_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable did_core_id of the recipient Principal Server for this member in this Realm."
         },
-        "recipient_service_kind": {
+        "recipient_kind": {
           "const": "principal_server",
-          "description": "v1 only allows principal_server. Realm Event fanout is derived solely from effective joined-member delivery bindings and deduplicated by recipient_service_id."
+          "description": "v1 only allows principal_server. Realm Event fanout is derived solely from effective joined-member delivery bindings and deduplicated by recipient_id."
         },
         "binding_scope": {
           "const": "realm",
@@ -5873,11 +5873,11 @@
         },
         "service_acceptance_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the recipient service's prior service_acceptance / endorsement Event. Required when binding_source = explicit, invite, or organization_policy; reducer MUST verify the referenced Event is signed by recipient_service_id and its scope covers this Realm. Producers MUST NOT fabricate this ref for realm bootstrap; bootstrap without real service evidence must use another binding_source with its own evidence or remain unroutable."
+          "description": "Reference to the recipient service's prior service_acceptance / endorsement Event. Required when binding_source = explicit, invite, or organization_policy; reducer MUST verify the referenced Event is signed by recipient_id and its scope covers this Realm. Producers MUST NOT fabricate this ref for realm bootstrap; bootstrap without real service evidence must use another binding_source with its own evidence or remain unroutable."
         },
         "holder_proof_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the member's DID proof (challenge-response) that bound the DID to recipient_service_id at the auth/account layer. Required when the member did not submit the join Control Move directly from a session at recipient_service_id."
+          "description": "Reference to the member's DID proof (challenge-response) that bound the DID to recipient_id at the auth/account layer. Required when the member did not submit the join Control Move directly from a session at recipient_id."
         },
         "policy_event_ref": {
           "$ref": "#/$defs/event_ref",
@@ -6097,7 +6097,7 @@
           },
           "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join. maxItems aligns with the gates 1..16 bound in join_policy_component; see zh/conformance/scalability-constraints.md."
         },
-        "via_service_ids": {
+        "via_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"
@@ -6249,7 +6249,7 @@
       "description": "External attribution for a message Event authored and signed by a MIMI facade service. This object never transfers the attributed sender's signing authority to the facade.",
       "required": [
         "provenance",
-        "source_provider",
+        "source_provider_id",
         "attributed_sender_actor_id",
         "attributed_sender_device_id",
         "source_envelope_digest",
@@ -6259,7 +6259,7 @@
         "provenance": {
           "const": "mimi_facade"
         },
-        "source_provider": {
+        "source_provider_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "attributed_sender_actor_id": {
@@ -6357,7 +6357,7 @@
             "$ref": "#/$defs/object_ref"
           }
         },
-        "reply_to": {
+        "reply_to_id": {
           "$ref": "#/$defs/message_id",
           "description": "Optional creation convenience: the message this one replies to. The reducer records it as the message's reply linkage (lifting it onto the message content) and surfaces it as a replies_to relation in the message projection; it does not require a separate canonical ak.relation event. The materialized Message object itself carries no reply_to scalar. See strand-and-message.md §9.1."
         },
@@ -6689,7 +6689,7 @@
         "profile",
         "mimi_room_uri",
         "binding_scope",
-        "hub_provider",
+        "hub_provider_id",
         "local_provider_role",
         "status"
       ],
@@ -6719,7 +6719,7 @@
           },
           "additionalProperties": false
         },
-        "hub_provider": {
+        "hub_provider_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Service DID explicitly delegated by Realm policy, Organization DID, or participant DID to host the hub role."
         },
@@ -6731,7 +6731,7 @@
             "observer"
           ]
         },
-        "follower_providers": {
+        "follower_provider_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did_core_id"
@@ -7057,7 +7057,7 @@
       "required": [
         "recovery_key_id",
         "holder_principal_id",
-        "holder_service_id",
+        "holder_id",
         "key_agreement_ref",
         "holder_signing_ref",
         "hpke_suite",
@@ -7070,7 +7070,7 @@
         "holder_principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "holder_service_id": {
+        "holder_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "key_agreement_ref": {
@@ -7184,7 +7184,7 @@
         "transition_digest",
         "recovery_key_id",
         "holder_principal_id",
-        "holder_service_id",
+        "holder_id",
         "key_agreement_ref",
         "holder_signing_ref",
         "hpke_suite",
@@ -7216,7 +7216,7 @@
         "holder_principal_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "holder_service_id": {
+        "holder_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "key_agreement_ref": {
@@ -8161,7 +8161,7 @@
       "required": [
         "target_ref",
         "decision_ref",
-        "observed_dots"
+        "observed_dot_ids"
       ],
       "properties": {
         "target_ref": {
@@ -8172,7 +8172,7 @@
           "$ref": "#/$defs/event_ref",
           "description": "Reference to the prior ak.moderation.decision Event whose sealed tag is being removed."
         },
-        "observed_dots": {
+        "observed_dot_ids": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
@@ -8200,7 +8200,7 @@
       "required": [
         "target_ref",
         "decision",
-        "issuer",
+        "issuer_id",
         "request_canonical_digest"
       ],
       "properties": {
@@ -8218,7 +8218,7 @@
           ],
           "description": "Sealed moderation-state decision verb. dismiss only resolves a report queue item and does not loosen the target content verdict. allow and soft_deny are out-of-band runtime outcomes."
         },
-        "issuer": {
+        "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Actor or service DID issuing the sealed moderation decision. Reducers use it as part of the or_set add tag and appeal separation-of-duties check."
         },
@@ -8272,7 +8272,7 @@
         "realm_id",
         "target_ref",
         "report_reason_code",
-        "reporter"
+        "reporter_id"
       ],
       "properties": {
         "realm_id": {
@@ -8301,7 +8301,7 @@
           "$ref": "string-profiles.schema.json#/$defs/short_text",
           "maxLength": 4096
         },
-        "reporter": {
+        "reporter_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "provenance": {
@@ -8312,7 +8312,7 @@
           ],
           "description": "Admission discriminator (contract-registry admission_variants). Absent or \"self\": the reporter's own device authored the Event (self_authored_proof, actor == reporter). \"mimi_facade\": the Event is service-authored by the MIMI provider facade (service_attested); reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11, and source_provider is required."
         },
-        "source_provider": {
+        "source_provider_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Origin MIMI provider's service DID for a facade-mapped report. Required exactly when provenance is \"mimi_facade\"; forbidden otherwise."
         },
@@ -8345,13 +8345,13 @@
           },
           "then": {
             "required": [
-              "source_provider"
+              "source_provider_id"
             ]
           },
           "else": {
             "not": {
               "required": [
-                "source_provider"
+                "source_provider_id"
               ]
             }
           }
@@ -8635,7 +8635,7 @@
           "type": "object",
           "required": [
             "discoverability",
-            "directory_services"
+            "directory_ids"
           ],
           "properties": {
             "discoverability": {
@@ -8652,7 +8652,7 @@
             "profile_visibility": {
               "$ref": "#/$defs/discovery_profile_visibility"
             },
-            "directory_services": {
+            "directory_ids": {
               "type": "array",
               "maxItems": 64,
               "uniqueItems": true,
@@ -8984,7 +8984,7 @@
         "focus_id",
         "actor_id",
         "device_id",
-        "participant_identity",
+        "participant_id",
         "issued_at",
         "expires_at",
         "issuer_kid",
@@ -9018,7 +9018,7 @@
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
-        "participant_identity": {
+        "participant_id": {
           "$ref": "#/$defs/rtc_participant_identity"
         },
         "issued_at": {
@@ -9432,7 +9432,7 @@
                   "title",
                   "avatar_blob_ref",
                   "summary",
-                  "owning_organizations",
+                  "owning_organization_ids",
                   "join_rule",
                   "history_access",
                   "member_count_bucket",
@@ -9671,7 +9671,7 @@
           "type": "string",
           "enum": [
             "public",
-            "members",
+            "member_ids",
             "private"
           ]
         },
@@ -9810,7 +9810,7 @@
           "type": "boolean",
           "description": "Whether binding_source=did_document_default is permitted. When this policy event is absent, the default is true for personal / public Realms, matching allowed_binding_sources=[\"did_document_default\"]; organization / compliance Realms MUST explicitly set it to false and narrow allowed_binding_sources. This historical source name records join-time candidate provenance only: the DID Document digest is acceptance evidence, never endpoint route authority; routing still requires a verified ServiceResolutionRecord."
         },
-        "allowed_recipient_services": {
+        "allowed_recipient_ids": {
           "oneOf": [
             {
               "type": "array",
@@ -9818,7 +9818,7 @@
               "items": {
                 "$ref": "#/$defs/did_core_id"
               },
-              "description": "Closed allow-list of recipient_service_id values. Empty array [] = reject any recipient service (fail-closed): the reducer MUST reject routable joins (delivery_binding_policy_mismatch) when the recipient service is neither on this list, nor covered by the [\"*\"] sentinel, nor endorsed via required_endorsers. The empty array MUST NOT be interpreted as 'unrestricted'. Non-empty required_endorsers remains mandatory even when the service is listed here."
+              "description": "Closed allow-list of recipient_id values. Empty array [] = reject any recipient service (fail-closed): the reducer MUST reject routable joins (delivery_binding_policy_mismatch) when the recipient service is neither on this list, nor covered by the [\"*\"] sentinel, nor endorsed via required_endorsers. The empty array MUST NOT be interpreted as 'unrestricted'. Non-empty required_endorsers remains mandatory even when the service is listed here."
             },
             {
               "type": "array",
@@ -9832,13 +9832,13 @@
           ],
           "description": "Either an array of recipient service DIDs (possibly empty = fail-closed reject) or exactly the sentinel [\"*\"] for unrestricted. Defaults to [] (reject / fail-closed) when this field is omitted. See zh/governance/member-delivery-binding.md §2 / §4."
         },
-        "required_endorsers": {
+        "required_endorser_ids": {
           "type": "array",
           "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/did_core_id"
           },
-          "description": "When this array is non-empty, the recipient_service_id's service_acceptance_ref MUST be endorsed by one of these governance DIDs, regardless of allowed_recipient_services or the [\"*\"] sentinel. Empty array = no mandatory endorsement requirement."
+          "description": "When this array is non-empty, the recipient_id's service_acceptance_ref MUST be endorsed by one of these governance DIDs, regardless of allowed_recipient_services or the [\"*\"] sentinel. Empty array = no mandatory endorsement requirement."
         },
         "unroutable_membership_allowed": {
           "type": "boolean",
@@ -9860,7 +9860,7 @@
           "minimum": 0,
           "maximum": 604800,
           "default": 86400,
-          "description": "Window, in seconds, during which the previous recipient_service_id MUST keep accepting late events that precede or are concurrent with the rebind frontier. After it elapses the old service MUST reject with delivery_binding_handed_over plus new_recipient_service_id. Omitted means the 86400 default. See zh/governance/member-delivery-binding.md section 6."
+          "description": "Window, in seconds, during which the previous recipient_id MUST keep accepting late events that precede or are concurrent with the rebind frontier. After it elapses the old service MUST reject with delivery_binding_handed_over plus new_recipient_id. Omitted means the 86400 default. See zh/governance/member-delivery-binding.md section 6."
         },
         "expires_after_seconds": {
           "type": [
@@ -10192,14 +10192,14 @@
           "type": "object",
           "description": "Organization-side authorization proof. This is independent of the Realm-side ak.realm.admin authorization required to write the event into Realm history.",
           "required": [
-            "issuer",
+            "issuer_id",
             "issuer_role",
             "verification_method",
             "signed_at",
             "proof"
           ],
           "properties": {
-            "issuer": {
+            "issuer_id": {
               "$ref": "#/$defs/did_core_id",
               "description": "Organization DID or delegated service DID that issued this statement."
             },
@@ -10369,12 +10369,12 @@
           "items": {
             "type": "object",
             "required": [
-              "issuer",
+              "issuer_id",
               "authorized_handle_domains",
               "issuer_class"
             ],
             "properties": {
-              "issuer": {
+              "issuer_id": {
                 "$ref": "#/$defs/did_core_id"
               },
               "authorized_handle_domains": {
@@ -10470,7 +10470,7 @@
           },
           "additionalProperties": false
         },
-        "allowed_third_party_invite_verification_service_ids": {
+        "allowed_third_party_invite_verification_ids": {
           "type": "array",
           "maxItems": 256,
           "uniqueItems": true,
@@ -10485,11 +10485,11 @@
     "realm_policy_server_declaration": {
       "type": "object",
       "required": [
-        "policy_server_service_id",
+        "policy_server_id",
         "policy_server_url"
       ],
       "properties": {
-        "policy_server_service_id": {
+        "policy_server_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "policy_server_url": {
@@ -10497,7 +10497,7 @@
           "format": "uri",
           "pattern": "^https://[^/?#@]+/_arkret/self/policy/check$"
         },
-        "public_keys": {
+        "public_kids": {
           "type": "array",
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -10704,7 +10704,7 @@
         "successor_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "replacement_event": {
+        "replacement_event_id": {
           "$ref": "#/$defs/event_ref"
         },
         "effective_at": {
@@ -10833,7 +10833,7 @@
           "required": [
             "resource_kind",
             "discoverability",
-            "directory_services"
+            "directory_ids"
           ],
           "properties": {
             "resource_kind": {
@@ -10855,7 +10855,7 @@
                 "secret"
               ]
             },
-            "directory_services": {
+            "directory_ids": {
               "type": "array",
               "maxItems": 64,
               "uniqueItems": true,
@@ -11189,7 +11189,7 @@
           "required": [
             "default_principal_method",
             "allowed_methods",
-            "trust_roots",
+            "trust_root_ids",
             "public_resolver_allowed",
             "method_policy"
           ],
@@ -11207,7 +11207,7 @@
                 "pattern": "^did:[a-z0-9]+$"
               }
             },
-            "trust_roots": {
+            "trust_root_ids": {
               "type": "array",
               "description": "Stable did_core_id allowlist. A root is compared against project(candidate did); it is not itself resolvable and does not carry a verification method or endpoint. Verification still requires approved did/key binding/method evidence and fails closed when that evidence is unavailable.",
               "minItems": 1,
@@ -11292,10 +11292,10 @@
         "reason": {
           "type": "string"
         },
-        "replacement_space": {
+        "replacement_space_id": {
           "$ref": "#/$defs/space_id"
         },
-        "replacement_event": {
+        "replacement_event_id": {
           "$ref": "#/$defs/event_ref"
         },
         "effective_at": {
@@ -11380,11 +11380,11 @@
       "type": "object",
       "description": "Control cell bottom recovery. zh/authz/event-auth-state-resolution.md section 9.5 resolves a bottom=reject cell that has joined to Bottom back to a single legal value. The authorization and the pre-conflict anchor are not payload fields: they are refs[] entries with role=recovery_capability and role=state_witness.",
       "required": [
-        "target_cell",
+        "target_cell_id",
         "resolved_value"
       ],
       "properties": {
-        "target_cell": {
+        "target_cell_id": {
           "$ref": "./event-envelope.schema.json#/$defs/cell_ref",
           "description": "The cell being recovered. It MUST be in Bottom when the reducer applies this Event; on any other cell state the write MUST be rejected. This is the only registered kind whose write target is resolved from the payload rather than from a literal cell_family in the registry, because a recovery addresses one cell of an arbitrary family."
         },
@@ -11480,7 +11480,7 @@
         "focus_id",
         "focus_kind",
         "token_endpoint",
-        "connect_url"
+        "connect_uri"
       ],
       "properties": {
         "focus_id": {
@@ -11513,7 +11513,7 @@
           "pattern": "^https://[^\\s]+$",
           "description": "Token exchange endpoint (section 3). Shared abstraction across every backend; only backend_token differs. Part of the section 2.1 trust root, so a client MUST verify the exact cell value against the current accepted Seal view before anchoring it."
         },
-        "connect_url": {
+        "connect_uri": {
           "type": "string",
           "pattern": "^(https|wss)://[^\\s]+$",
           "description": "Backend connection entry point; the concrete protocol is fixed by the type-specific binding appendix."
@@ -11654,7 +11654,7 @@
                 "required": [
                   "selector_kind",
                   "claim_kind",
-                  "issuer"
+                  "issuer_id"
                 ],
                 "properties": {
                   "selector_kind": {
@@ -11666,14 +11666,14 @@
                   "organization_id": {
                     "$ref": "#/$defs/did_core_id"
                   },
-                  "issuer": {
+                  "issuer_id": {
                     "$ref": "#/$defs/did_core_id"
                   }
                 },
                 "additionalProperties": false
               }
             },
-            "directory_services": {
+            "directory_ids": {
               "type": "array",
               "maxItems": 64,
               "uniqueItems": true,
@@ -11770,21 +11770,21 @@
               "type": "boolean",
               "default": false
             },
-            "upload_services": {
+            "upload_ids": {
               "type": "array",
               "uniqueItems": true,
               "items": {
                 "$ref": "#/$defs/did_core_id"
               }
             },
-            "download_proxy_services": {
+            "download_proxy_ids": {
               "type": "array",
               "uniqueItems": true,
               "items": {
                 "$ref": "#/$defs/did_core_id"
               }
             },
-            "ohttp_gateway_services": {
+            "ohttp_gateway_ids": {
               "type": "array",
               "uniqueItems": true,
               "items": {

@@ -8,7 +8,7 @@
     "transaction_id",
     "kind",
     "principal_id",
-    "coordinator_service_id",
+    "coordinator_id",
     "expires_at",
     "created_at",
     "request_digest",
@@ -30,7 +30,7 @@
     "principal_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "coordinator_service_id": {
+    "coordinator_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "expires_at": {
@@ -517,7 +517,7 @@
     },
     "prepared_event_unit": {
       "type": "object",
-      "description": "Exact typed Event submit request plus its suite-bearing canonical digest. Operation, request schema, destination and audience are fixed by this unit type and the parent coordinator_service_id; canonical request bytes are RFC 8785 JCS(request), not a second wire input. A PCR recovery unit contains reanchor plus replacement authorize for the same account-local lineage/session/generation CAS; candidate possession is verified through the unit-local overlay before mutation and never by resolving current human DID.",
+      "description": "Exact typed Event submit request plus its suite-bearing canonical digest. Operation, request schema, destination and audience are fixed by this unit type and the parent coordinator_id; canonical request bytes are RFC 8785 JCS(request), not a second wire input. A PCR recovery unit contains reanchor plus replacement authorize for the same account-local lineage/session/generation CAS; candidate possession is verified through the unit-local overlay before mutation and never by resolving current human DID.",
       "required": [
         "request",
         "request_digest"

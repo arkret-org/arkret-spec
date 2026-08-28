@@ -323,7 +323,7 @@
       "schema_id": "ak.schema.principal_locator.v1",
       "file": "schemas/principal-locator.schema.json",
       "status": "active",
-      "description": "Signed online invite locator asserting subject_id and recipient_service_id for private invite delivery."
+      "description": "Signed online invite locator asserting subject_id and recipient_id for private invite delivery."
     },
     {
       "schema_id": "ak.schema.invite_delivery_request.v1",
@@ -1365,7 +1365,7 @@
       "schema_id": "ak.schema.delivery_binding_stale.v1",
       "file": "schemas/delivery-binding-stale.schema.json",
       "status": "active",
-      "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_id, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
+      "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_id, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "delivery_binding_stale federation response body",

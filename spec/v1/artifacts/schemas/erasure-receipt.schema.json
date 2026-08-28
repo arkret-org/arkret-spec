@@ -8,7 +8,7 @@
     "schema",
     "receipt_id",
     "trigger",
-    "issuer",
+    "issuer_id",
     "subject",
     "scope",
     "outcome",
@@ -29,7 +29,7 @@
       "$ref": "./erasure-verification-stub.schema.json#/$defs/trigger",
       "description": "Exact authoritative fact that created this physical-erasure execution. Account erasure uses the account_status_record branch; other Event-authorized erasure uses the event branch."
     },
-    "issuer": {
+    "issuer_id": {
       "$ref": "#/$defs/did_core_id"
     },
     "subject": {
@@ -132,11 +132,11 @@
       "items": {
         "type": "object",
         "required": [
-          "peer",
+          "peer_id",
           "status"
         ],
         "properties": {
-          "peer": {
+          "peer_id": {
             "$ref": "#/$defs/did_core_id"
           },
           "status": {

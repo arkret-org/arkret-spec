@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-08-28.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T00:18:49+08:00",
+  "generated_at": "2026-08-28T13:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2097,8 +2097,8 @@
           "cell_subject": {
             "kind": "composite",
             "components": [
-              "payload.issuer",
-              "payload.subject",
+              "payload.issuer_id",
+              "payload.subject_id",
               {
                 "kind": "string_set_digest",
                 "field": "payload.accountability_scope",
@@ -4076,7 +4076,7 @@
           "cell_family": "ak.component.agent.selector_claim.v1",
           "cell_subject": {
             "components": [
-              "payload.controller_subject",
+              "payload.controller_subject_id",
               "payload.agent_slug"
             ],
             "kind": "composite"
@@ -5012,7 +5012,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Server-revision-CAS active binding or revoked tombstone for a (recipient_service_id, principal, device, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_service_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
+      "payload": "Server-revision-CAS active binding or revoked tombstone for a (recipient_id, principal, device, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_id context.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "id_source": "not_an_object_id"
     },
@@ -6167,7 +6167,7 @@
           "cell_family": "ak.component.member.state.v1",
           "cell_subject": {
             "kind": "did",
-            "field": "payload.invitee"
+            "field": "payload.invitee_id"
           },
           "lattice": "fsm",
           "bottom": "reject",
@@ -6179,7 +6179,7 @@
           },
           "condition": {
             "kind": "field_present",
-            "field": "payload.invitee"
+            "field": "payload.invitee_id"
           }
         }
       ],
@@ -6217,7 +6217,7 @@
           "cell_family": "ak.component.member.state.v1",
           "cell_subject": {
             "kind": "did",
-            "field": "payload.invitee"
+            "field": "payload.invitee_id"
           },
           "lattice": "fsm",
           "bottom": "reject",
@@ -6229,7 +6229,7 @@
           },
           "condition": {
             "kind": "field_present",
-            "field": "payload.invitee"
+            "field": "payload.invitee_id"
           }
         }
       ],
@@ -6242,7 +6242,7 @@
           },
           "predicate": {
             "kind": "stored_field_present",
-            "field": "invitee"
+            "field": "invitee_id"
           },
           "failure": {
             "code": "failed_precondition",
@@ -6256,8 +6256,8 @@
           },
           "predicate": {
             "kind": "stored_field_equals_payload",
-            "field": "invitee",
-            "payload_field": "payload.invitee"
+            "field": "invitee_id",
+            "payload_field": "payload.invitee_id"
           },
           "failure": {
             "code": "failed_precondition",
@@ -6359,7 +6359,7 @@
       "reducer_authority": "realm",
       "reducer_effects": [
         "match pending ak.invite.third_party by invite_id and token_commitment",
-        "re-check verification_service_id against current effective Realm allowlist",
+        "re-check verification_id against current effective Realm allowlist",
         "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
         "transition invite cell pending -> claimed and materialize subject-bound membership proposal",
         "expire and clean pending invite material before claim acceptance when expires_at <= now"
@@ -6397,7 +6397,7 @@
             "kind": "composite",
             "components": [
               "payload.invite_id",
-              "payload.subject_id"
+              "payload.subject_id_id"
             ]
           },
           "lattice": "or_set",
@@ -6447,7 +6447,7 @@
           "cell_family": "ak.component.member.state.v1",
           "cell_subject": {
             "kind": "did",
-            "field": "payload.invitee"
+            "field": "payload.invitee_id"
           },
           "lattice": "fsm",
           "bottom": "reject",
@@ -6459,7 +6459,7 @@
           },
           "condition": {
             "kind": "field_present",
-            "field": "payload.invitee"
+            "field": "payload.invitee_id"
           }
         }
       ],
@@ -8174,7 +8174,7 @@
         "cell_subject": {
           "kind": "composite",
           "components": [
-            "payload.recipient_service_id",
+            "payload.recipient_id",
             "payload.principal_id",
             "payload.device_id",
             "payload.push_route"

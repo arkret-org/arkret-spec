@@ -67,7 +67,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `ak:device:<uuid>`，MUST NOT 写成局部别名如 `dev_a` 或 `a`。
 - `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；Strand 的用户可读短摘要放在 `metadata.summary` 或 `encrypted_metadata`，不得作为顶层 `summary`。原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`；Strand 使用 `metadata.title` 或 `encrypted_metadata`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Strand 等 canonical object 的显示名。
 - Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），MUST NOT 另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
-- `_id` / `_ref` / `_did` 后缀约定见 §2.1。简要规则：单一具体 protocol object kind 与 service identity 使用 `_id`；因果 / proof / schema-profile / content-addressed / polymorphic reference 使用 `_ref` / `_refs`；其它必须保留 DID ecosystem 术语的原始 material 使用 `_did`。字段后缀表达协议语义角色，不单独决定 wire value 类型，也不表达授权、同步、保留或加密是否级联；这些语义 MUST 由 role prefix、schema description 与对象专属章节定义。
+- `_id` / `_ref` / `_did` 后缀约定见 §2.1。简要规则：Arkret-owned identifier 使用“语义角色 + 表示后缀”；稳定责任主体使用 `_id`，W3C DID / URI / key selector 分别使用 `_did` / `_uri` / `_kid`。字段名不得把 `service`、`human`、`organization`、`agent` 等主体类别插入角色与表示后缀之间；因果 / proof / schema-profile / content-addressed / polymorphic reference 使用 `_ref` / `_refs`。字段后缀表达表示类别，不单独表达授权、同步、保留或加密是否级联；这些语义 MUST 由 role、schema description 与对象专属章节定义。
 - 分类字段使用以下四条互斥命名轴；机器许可与精确上下文以 [`classification-field-registry.json`](../../artifacts/registry/classification-field-registry.json) 为准：
 
   | 轴 | 规范语义 | 命名要求 |
@@ -90,7 +90,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只保留给外部协议或加密 transcript 自身的创建者 tuple，不得作为 object 创建主体字段的别名；v1 未登记任何 `creator_*` wire 字段，新增字段不得引入该形态。
 - 哈希字段命名三词词汇表：算法/函数族选择器使用 `<noun>_algorithm`（枚举字符串，例如 `digest_algorithm: "sha256"`）；任意字节的不透明哈希输出使用 `<noun>_digest`（wire 形态必须是自描述 `<alg>:<hex>`）；树状 / Merkle / 累加器的根使用 `<noun>_root`（同样是 `<alg>:<hex>`，区别在于单独验证还需配套包含证明）。**wire 字段名 MUST NOT 以"hash"结尾（不论是 `_hash` 后缀还是 `hash_profile`、`hash_algorithm` 等同义形态）**；算法选择器只能使用 `<noun>_algorithm`，字节输出只能使用 `<noun>_digest`。复合 commitment 对象（例如 `event_set_commitment`）的外层名描述语义，内部以 `algorithm` + `root` 或 `digest` 表达字节材料；外层 MUST NOT 再追加 `_digest` 后缀。Event proof 绑定 canonical Event bytes 的字段名是 `event_digest`；非 Event 通用 detached proof 使用 `payload_digest`，其说明必须写明被 digest 覆盖的 canonical payload。
 - 签名 proof 中表示签名 key DID URL 的字段统一为 `verification_method`，不得使用 `signed_by`。协议级密钥标识使用 `key_id`；JOSE/JWK 结构可保留标准 `kid` / `alg`。若 schema 显式定义紧凑 detached signature tuple `{alg,kid,sig}`，短字段 `sig` 只允许出现在该 tuple 内；协议对象的普通签名字段使用 `signature` 或带角色的 `<role>_signature`。若需要表达消息或通知中的发送主体，使用带角色的 `sender_actor_id`；展示名称使用 `sender_actor_display_name`，不得用裸 `sender` 承载 DID。
-- `recipient_service_id` 与 `audience` 不可互换：前者是物理路由目标 service DID，后者是密码学 transcript / proof 的受众绑定。即使 `audience` 只有一个 DID，也不得替代 `recipient_service_id`；反之亦然。
+- `recipient_id` 与 `audience` 不可互换：前者是物理路由目标 service DID，后者是密码学 transcript / proof 的受众绑定。即使 `audience` 只有一个 DID，也不得替代 `recipient_id`；反之亦然。
 - `scope` 命名约定：当 scope 是该对象自身的边界字段时，wire schema 使用裸 `scope`（与对象自身 `id` 的命名规则相同），例如 `ak.schema.erasure_receipt.v1.scope`、`ak.schema.erasure_verification_stub.v1.scope`、`ak.schema.event_batch_receipt.v1.scope`。当字段引用外部对象、表达子结构中的特定作用域，或同一 payload 同时出现多个 scope 语义时，必须用领域前缀说明形态与用途，例如 `read_scope`、`event_range`、`match_scope`、`claim_scope`、`agent_key_scope`、`consent_scope`、`effective_scope`、`extension_scope`、`constraint_scope`、`policy_scope`、`search_scope`、`relation_scope`。Registry 元数据若表示条目适用范围，可继续使用 `scope`。
 - 诊断命名约定：机器可枚举的失败 / 恢复 / reset 原因使用 `reason_code` 或带领域前缀的 `*_reason_code`；人类可读自由文本使用 `reason` 或 `description`。受控枚举不得命名为 `reason`。
 - ID kind 与 wire prefix 必须使用完整 snake_case 名称，不得使用缩写前缀（例如使用 `ak:notification:`、`ak:device_message:`、`ak:key_event:`、`ak:moderation_queue_item:`、`ak:request:`、`ak:transaction:`）。该要求同样适用于 special form：special form 的 wire segment MUST 由其 `wire_form` 唯一解析，且 MUST 与 snake_case `kind` 逐字相同——**不存在拼写例外**。v1 曾登记过唯一一条 kebab-case 例外（`membership_compensation_delegation`），其理由只是「它已经在那里了」；v1 未发布、该形态不来自任何外部标准，因此已收敛为 `ak:membership_compensation_delegation:`，registry 的 `wire_segment_rationale` 字段随之删除。artifact lint 对 segment ≠ kind 与残留 `wire_segment_rationale` 两种情况均直接失败。
@@ -130,7 +130,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 
 ### 2.1 Identifier 字段命名约定（normative）
 
-本节适用所有持有 protocol identifier、DID material 或 reference material 的 wire 字段。字段名只表达 **value category**，不表达"硬归属 vs 软导航"、权限传播、同步传播、retention 级联或 E2EE key 级联。后者 MUST 由 role prefix、JSON Schema `description` 和对象专属章节共同定义。
+本节适用所有持有 protocol identifier、DID material 或 reference material 的 wire 字段。Arkret-owned 字段名由**语义角色**与**表示类别后缀**共同组成；字段名不编码主体类别，也不表达"硬归属 vs 软导航"、权限传播、同步传播、retention 级联或 E2EE key 级联。后者 MUST 由 role、JSON Schema `description`、subject-class 约束和对象专属章节共同定义。
 
 **Identifier value category 表（normative，有限且互斥）**：每个 identifier 字段 MUST 恰好属于下表九类之一。类别的真源是 schema 解析后的 terminal 约束（递归展开本地与跨文件 `$ref`、`oneOf` / `anyOf` 分支与 `pattern`）；字段名只负责如实表达该类别，MUST NOT 反过来决定类别，实现也 MUST NOT 仅凭字段名推断值的种类。
 
@@ -201,7 +201,7 @@ expected_<role>_<kind>_id
 - Event Envelope、Receipt、Attestation、Key Backup、Applet 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`backup_id`、`applet_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
 - 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`default_realm_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
 - protocol responsibility subject 使用 `_id`，即使 wire value 是 DID，例如 `actor_id`、`principal_id`、`subject_id`、`agent_id`、`controller_id`、`watcher_actor_id`。角色词是限定词时不得再插入额外的 `principal` 限定词；`principal_id` 本身以 principal 为中心词，继续保留。
-- 上述稳定 principal / service identity 字段在 v1 承载 `did_core_id`：`ak:did_core:<method>:<core>`。需要实际解析 DID 时另用 `did`；不得因字段以 `_id` 结尾而把当前 DID 存入业务主键。
+- 上述稳定 responsibility identity 字段在 v1 承载 `did_core_id`：`ak:did_core:<method>:<core>`。它所要求的主体类别（service / human / organization / agent）由 schema 与操作合同独立声明，不进入字段名。需要实际解析 DID 时另用 `<role>_did`；不得因字段以 `_id` 结尾而把当前 DID 存入业务主键。
 - Event payload 若写入某个 materialized object / projection 字段的值，payload 字段名 MUST 与该物化字段同名。操作目标、CAS expected head、audit target、selector target 等事件操作角色 MAY 加 role prefix，例如 `space_id` 与 `expected_parent_space_id`。
 
 #### 2.1.2 `_ref` / `_refs`
@@ -216,13 +216,17 @@ expected_<role>_<kind>_id
 
 新增字段若只允许一个具体 canonical materialized object kind，且不是上述因果、proof、schema/profile、content-addressed 或 profile-scoped reference，MUST 使用 `_id` 而不是 `_ref`。
 
-#### 2.1.3 Service identity、DID 与 `_did`
+#### 2.1.3 角色、表示后缀与主体类别
 
-Service identity 字段统一使用 `service_id` / `<role>_service_id`；例如 `service_id`、`recipient_service_id`、`source_service_id`、`destination_service_id`、`verification_service_id`。这些稳定引用承载 service `did_core_id`，并与 `actor_id`、`principal_id`、`controller_id` 等责任主体命名保持一致。schema description MUST 明确其承载 `ak:did_core:<method>:<core>`，不得描述成可直接解析 endpoint 的 DID。
+<!-- rule_id: NC-IDROLE-001 --> **角色 + 表示后缀（normative）**：Arkret-owned identifier 字段 MUST 使用完整语义角色加表示后缀：稳定责任主体为 `<role>_id`，W3C DID 为 `<role>_did`，URI 为 `<role>_uri`，key selector 为 `<role>_kid`。`issuer`、`subject`、`audience`、`inviter`、`invitee` 等裸角色名没有 crypto / governance 例外；裸名只允许完整对象或 schema 明确闭合的 discriminated union，并且例外必须按精确 schema path 登记。`service`、`human`、`organization`、`agent` 是与字段词法正交的 `required_subject_class` 约束，MUST NOT 插入角色与表示后缀之间。因而 service-only 的稳定责任主体仍写作 `issuer_id`、`recipient_id`、`source_id`、`destination_id`、`verifier_id`，由 schema / operation contract 声明它必须属于 service class。
 
-Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`，或使用 `<role>_did` / `<role>_dids`。稳定主体引用仍使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_id`、`audit_service_actor_id` 等 `_id` 字段。`did` 与 `_did` 明确表示 W3C DID，绝不表示 `did_core_id`。
+`service_id` / `service_ids` 仅在 `service` 本身就是完整语义角色时使用；`allowed_service_ids` 是对这一完整角色的许可集合。`media_service_id` 的 `media_service` 是已登记的复合协议角色，也继续保留。相同正交规则适用于分类后缀：泛化 service 自身使用 `service_kind` / `service_kinds`，已登记复合角色可使用 `media_service_kind`；其它角色必须写作 `<role>_kind(s)`，不得写作 `<role>_service_kind(s)`。除此以外，Arkret-owned 字段 MUST NOT 写成 `<role>_service_id(s)` 或 `<role>_service_kind(s)`。若同一对象同时需要两个责任主体，必须给它们真实且不重叠的角色（例如 claim 的 `issuer_id` 与独立背书方 `vouching_id`），或设计闭合 polymorphic union；不得靠 entity-class 限定词掩盖角色冲突。
 
-公共类型与 schema 定义固定为 `Did` / `did`；不得另定义裸 DID alias。旧的“完整 ID”类型、字段、别名或双读均禁止。`principal_server_service_id` 是既有 Principal Server 专名，不作为 `service_id` 的别名，也不受 service identity 字段族规则影响。
+外部标准拥有的 literal object 只在登记的精确 owner path 保留原字段名；例外不传播到 Arkret wrapper、projection、registry 或 canonical preimage。artifact lint 必须展开本地与跨文件 `$ref` 到 terminal constraint，并在诊断中同时报告 lexical owner、role stem、terminal category、required subject class、expected suffix 与 exception reason。
+
+Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`，或使用 `<role>_did` / `<role>_dids`。稳定主体引用仍使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_id`、`audit_actor_id` 等 `_id` 字段。`did` 与 `_did` 明确表示 W3C DID，绝不表示 `did_core_id`。
+
+公共类型与 schema 定义固定为 `Did` / `did`；不得另定义裸 DID alias。旧的“完整 ID”类型、字段、别名或双读均禁止。`principal_server_id` / `policy_server_id` 的 `principal_server` / `policy_server` 是已登记协议角色，不是 entity-class 限定词；旧式 `principal_server_service_id` / `policy_server_service_id` 双重形态禁止。
 
 `did` 的存在性由对象职责决定：普通 canonical identity object、Event、membership、grant、profile 与普通主体/service 引用禁止携带 DID；registration / genesis accepted evidence、Identity/Service Resolution Record 与 DID method evidence/control proof 必须把 DID 声明为 required。不得使用通用 optional `did` 充当缓存；缺失、不可见、停用、过期或 stale 必须由对象存在性、closed discriminator/state 与 freshness evidence 表达。
 
@@ -391,19 +395,19 @@ value category，不会自动触发 DID Document 解析或在线验证。
 | `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 actor `did_core_id`；字段名必须说明角色，避免回退到模糊的 `actor_did`。 |
 | `principal_id` | Actor Profile | Profile 对应的 principal `did_core_id`；稳定权限主体引用。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing principal 语义。 |
-| `issuer` | Capability Grant、Identity Receipt、Handle Claim、Agent Selector Claim | 签发授权、receipt 或 claim 的主体 `did_core_id`；必须持有签发权限。 |
-| `subject` | Capability Grant、Handle Claim、Agent Selector Claim | 被授权 principal `did_core_id`、selector condition，或 claim 绑定的目标 `did_core_id`。claim 层 raw subject 使用 `subject`；进入具体协议 transcript / mention / delivery candidate 后才使用 `subject_id`。 |
-| `controller_subject` | Agent Selector Claim | 拥有 controller-scoped agent selector namespace 的 controller principal `did_core_id`；因处于 claim 层使用 `subject` 词汇，不使用 `controller_subject_id`。事件 mention metadata 快照才使用 `controller_subject_id`。 |
-| `subject_id` | Mention reference、Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal `did_core_id` 且进入可验证 transcript 时使用；generic / raw handle claim 和 agent selector claim subject 仍使用 `subject`。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject`。 |
-| `inviter` / `invitee` | Invite | 邀请方 / 被邀请方 `did_core_id`。 |
+| `issuer_id` | Capability Grant、Identity Receipt、Handle Claim、Agent Selector Claim、SessionGrant | 签发授权、receipt、claim 或 credential 的主体 `did_core_id`；必须持有签发权限。 |
+| `subject` | Capability Grant | 唯一登记的 closed polymorphic subject：principal `did_core_id` 或带 discriminator 的 condition selector。裸名表示整个闭合 union，不是稳定 ID 的别名。 |
+| `subject_id` | Handle / Agent Selector Claim、Mention reference、invite / delivery binding candidate、SessionGrant | 必须是具体 principal `did_core_id` 的 subject。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject_id`。 |
+| `controller_subject_id` | Agent Selector Claim、事件 mention metadata | 拥有 controller-scoped agent selector namespace 的 controller principal `did_core_id`。 |
+| `inviter_id` / `invitee_id` | Invite | 邀请方 / 被邀请方 `did_core_id`。 |
 | `accountable_principal_ids` | Actor Profile | 该 Actor Profile 声明可问责到的一组 principal `did_core_id`（每个条目须有对应 active `ak.identity.accountability_grant` 背书）。array 形态使用 `_ids` 复数，与 agent key payload 的 scalar `accountable_principal_id` 共用同一 accountability 主体词汇；责任主体一律走 `_id` / `_ids`，不使用 `_to` 介词后缀或裸关系短语。 |
-| `agent_id` / `audit_service_actor_id` | Agent key payload、Audit release evidence | agent / audit release service 作为协议责任主体时使用 `did_core_id`；承载运行或托管服务身份时另用 `service_id`。 |
+| `agent_id` / `audit_actor_id` | Agent key payload、Audit release evidence | agent / audit release service 作为协议责任主体时使用 `did_core_id`；承载运行或托管服务身份时另用 `service_id`。 |
 
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
 
 主体字段新增策略：
 
-- 既定 crypto / governance 角色名词（如 `issuer`、`inviter`、`holder`、`notary`）可保留并应在 §4.3 角色名词登记索引登记（其权威定义仍在对应对象 schema / glossary / 专属章节）。新增的普通作者 / 操作者归属字段默认使用 `<verb>_by`（例如 `approved_by`、`revoked_by`），时间点使用 `<verb>_at`。
+- 既定 crypto / governance 角色名词（如 `issuer`、`inviter`、`holder`、`notary`）登记的是语义 stem，不豁免 §2.1.3 的表示后缀；其 identifier 字段分别使用 `issuer_id`、`inviter_id`、`holder_id`、`notary_id` 等形态。新增的普通作者 / 操作者归属字段默认使用 `<verb>_by`（例如 `approved_by`、`revoked_by`），时间点使用 `<verb>_at`。
 - 过程结果词汇按对象族固定（**封闭四词**，normative）：
 
   | 词 | 语义 | 典型载体 |
@@ -425,9 +429,9 @@ value category，不会自动触发 DID Document 解析或在线验证。
 
 | 角色名词 | 类别 | 权威定义 | 角色语义 |
 | --- | --- | --- | --- |
-| `issuer` | id 字段（§4.2） | §4.1 / §4.2；[glossary `Capability Grant` / `Control Move`](../overview/glossary.md) | 签发 Capability Grant / Identity Receipt 或签署 DataEvent / Control Move 的主体 DID；必须持有对应签发权限。 |
-| `subject` / `subject_id` | id 字段（§4.2） | §4.1 / §4.2；[glossary `Subject`](../overview/glossary.md) | Capability grant 的授予对象：`subject` 为 principal `did_core_id` 或 condition selector，`subject_id` 用于必须是具体 principal `did_core_id` 且进入可验证 transcript 的场景。 |
-| `inviter` / `invitee` | id 字段（§4.2） | §4.1 / §4.2；[`governance-objects.md` §5 Invite](./governance-objects.md)；[`invite.schema.json`](../../artifacts/schemas/invite.schema.json) | 邀请方 DID / 被邀请方 DID；3PID 邀请可暂无 `invitee`，认领后必须绑定可验证主体。member 引用形态另用 `inviter_member_ref` / `invitee_member_ref`（见 [`invite-delivery-request.schema.json`](../../artifacts/schemas/invite-delivery-request.schema.json)）。 |
+| `issuer` → `issuer_id` | role stem / id 字段（§4.2） | §4.1 / §4.2；[glossary `Capability Grant` / `Control Move`](../overview/glossary.md) | 签发 Capability Grant / Identity Receipt 或签署 DataEvent / Control Move 的主体 DID；wire identifier 必须使用 `issuer_id`。 |
+| `subject` → `subject_id` | role stem / id 字段（§4.2） | §4.1 / §4.2；[glossary `Subject`](../overview/glossary.md) | 具体责任主体使用 `subject_id`；只有 CapabilityGrant 的 closed `did_core_id | condition selector` union 使用裸 `subject`。 |
+| `inviter` / `invitee` → `inviter_id` / `invitee_id` | role stem / id 字段（§4.2） | §4.1 / §4.2；[`governance-objects.md` §5 Invite](./governance-objects.md)；[`invite.schema.json`](../../artifacts/schemas/invite.schema.json) | 邀请方 / 被邀请方 DID；3PID 邀请可暂无 `invitee_id`，认领后必须绑定可验证主体。member 引用形态另用 `inviter_member_ref` / `invitee_member_ref`（见 [`invite-delivery-request.schema.json`](../../artifacts/schemas/invite-delivery-request.schema.json)）。 |
 | `holder` | 叙述性角色名词 | [`consent-model.md` §2.1](../identity/consent-model.md)；[`client-preferences.md`](../discovery/client-preferences.md)；[glossary `Consent`](../overview/glossary.md) | consent / blocklist / recovery share / pairwise 假名等 holder-private 状态的归属主体。具体 action 的写权限以 capability registry 为准；`ak.consent.grant` / `ak.consent.revoke` 要求 holder actor 与认证 holder 本身是 Principal Control Realm 当前 authority-root controller，不接受独立 managed-behalf 或 controller / agent 委派。承载该主体 `did_core_id` 的字段按 §2.1.1 使用 `holder_id`（`ak.account.blocklist`、`ak.account_data.set`、availability receipt）或 `holder_principal_id`（consent、identity disclosure receipt）；**不得**改用 `owner` 一类未登记的近义词。 |
 | `notary` | 叙述性角色名词 | [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)；[glossary `Seal` / `Notary Cell`](../overview/glossary.md)；[`capabilities.md`](../authz/capabilities.md) | Seal ordering authority：对 Move frontier 签名承诺的主体；由 `notary_cell`（`cas_register + bottom=reject`）授权，冲突时触发 Realm-wide Seal pause。 |
 | `witness` | 叙述性角色名词 | [glossary `Witness`](../overview/glossary.md)；[`federation.md`](../sync/federation.md)；[`operations-sync.md`](../sync/operations-sync.md)；[`identity-did.md`](../identity/identity-did.md) | 对 frontier、range completeness、DID key-log 头部或 handover frontier 签发 attestation / receipt 的受信背书主体；不替代 Event 自身签名、Seal finality 或 reducer 验证。 |
@@ -708,7 +712,7 @@ id_form，也不得把 Event、Realm 或 Event-derived typed ID 降级为 UUIDv7
 `ak:grant:` 是 `event_derived`，分别从 `ak.audit.applet_binding.create`、`ak.call.create` 与
 `ak.capability.grant` 的 Event ID 重类型化为相同 33-octet token。`ak:session_grant:` 则是
 `identity_authority="issuer_record"` 的 `suite_tagged_full_digest`：从 closed
-`ak.session_grant.issuance.v1` preimage 派生，并以 `(issuer_did, typed_id)` 作为 storage identity key；它
+`ak.session_grant.issuance.v1` preimage 派生，并以 `(issuer_id, typed_id)` 作为 storage identity key；它
 不是 Event ID。其首字节是完整 digest-suite wire code，不得按 Realm 的“保留零 nibble + 低 4 位
 suite”解释；具体合同见 [`../identity/key-management.md` §6.1](../identity/key-management.md)。
 

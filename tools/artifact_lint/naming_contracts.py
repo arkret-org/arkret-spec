@@ -58,6 +58,7 @@ from .naming import (
 NAMING_COVERAGE_MATRIX_PATH = TOOLS_ROOT / "naming-rule-coverage-matrix.json"
 IDENTIFIER_CLASSIFICATION_PATH = TOOLS_ROOT / "identifier-classification-registry.json"
 SLUG_FIELD_REGISTRY_PATH = TOOLS_ROOT / "slug-field-registry.json"
+ROLE_SUFFIX_REGISTRY_PATH = TOOLS_ROOT / "identifier-role-suffix-registry.json"
 NAMING_RULES_FILE = TOOLS_ROOT / "naming-convention-rules.json"
 ID_KIND_REGISTRY_PATH = ARTIFACTS / "registry" / "id-kind-registry.json"
 COMMON_FIELDS_PATH = SPEC_ROOT / "zh" / "models" / "common-fields.md"
@@ -78,6 +79,11 @@ SECTION_HEADING_SUFFIX = "[ \t　]"
 # contract (2.1.2) and are deliberately out of scope here.
 IDENTIFIER_NAME_SUFFIXES = ("_id", "_ids")
 
+# NC-IDROLE-001.  A role stem answers "what does this identity do?" while the
+# suffix answers "what representation is on the wire?".  Entity/deployment
+# classes (service, human, organization, agent) are validation facts and are
+# not inserted between those two axes.  The only retained `service` stems are
+# protocol roles in their own right rather than class qualifiers.
 # The two value categories whose values legitimately live in the `ak:` typed-ID
 # namespace. Every other category MUST stay lexically disjoint from it, which is
 # the half of 2.1 the typed-ID prefix closure cannot see: that closure only asks
@@ -627,6 +633,232 @@ def resolve_terminal_constraints(
         return out
 
     return tuple(sorted(visit(file_name, shape)))
+
+
+def _role_terminal_contract(
+    terminals: tuple[tuple[str, str], ...]
+) -> tuple[str | None, str | None]:
+    """Return a single resolved identifier category and its mandatory suffix.
+
+    The decision is terminal-driven, not a role-name allowlist: a newly coined
+    ``signer`` or ``counterparty`` must be subject to the same grammar as the
+    historically familiar issuer/subject roles.
+    """
+
+    categories: set[tuple[str, str]] = set()
+    for kind, value in terminals:
+        if kind == "pattern" and value.startswith("^ak:did_core:"):
+            categories.add(("did_core_id", "_id"))
+        elif kind == "pattern" and _AK_TYPED_PREFIX_RE.match(value):
+            categories.add(("typed_object_id", "_id"))
+        elif kind == "pattern" and value.startswith("^did:"):
+            # `did:<method>` / `did:<method>:` are method-selector tokens, not
+            # DID identifiers.  They belong to the classification grammar.
+            if value in {"^did:[a-z0-9]+$", "^did:[a-z0-9]+:$"}:
+                continue
+            if re.search(r"\][+*]\)?#|\}\+\)?#", value):
+                categories.add(("did_url", "_kid"))
+            else:
+                categories.add(("did", "_did"))
+        elif kind == "format" and value in {"uri", "uri-reference"}:
+            categories.add(("uri", "_uri"))
+    if len(categories) == 1:
+        return next(iter(categories))
+    if len(categories) > 1:
+        names = ",".join(sorted(category for category, _ in categories))
+        return f"mixed[{names}]", None
+    return None, None
+
+
+def _role_name_matches_terminal(
+    name: str, category: str, suffix: str, grammars: list[dict[str, Any]]
+) -> bool:
+    """Whether an Arkret-owned property spells the resolved representation."""
+
+    for grammar in grammars:
+        if category not in grammar.get("terminal_categories", []):
+            continue
+        if name in grammar.get("exact_names", []):
+            return True
+        if any(name.endswith(item) for item in grammar.get("suffixes", [])):
+            return True
+    return False
+
+
+def _role_stem(name: str, category: str) -> str:
+    suffixes = {
+        "did_core_id": ("_ids", "_id"),
+        "typed_object_id": ("_ids", "_id"),
+        "did": ("_dids", "_did"),
+        "did_url": ("_verification_method", "_kids", "_kid"),
+        "uri": ("_uris", "_uri"),
+    }.get(category, ())
+    for suffix in suffixes:
+        if name.endswith(suffix):
+            return name[: -len(suffix)]
+    return name
+
+
+def check_identifier_role_suffix_contracts(lint: Lint) -> None:
+    """Enforce role + representation suffixes on Arkret-owned identifiers.
+
+    Diagnostics deliberately expose the six review axes required by the
+    naming contract.  This makes a failure actionable without asking a reviewer
+    to infer lexical ownership or a service-only authorization invariant from
+    the field spelling.
+    """
+
+    registry = load_json(lint, ROLE_SUFFIX_REGISTRY_PATH)
+    if not isinstance(registry, dict):
+        return
+    grammars = registry.get("generic_grammars")
+    exception_rows = registry.get("exact_exceptions")
+    service_role_rows = registry.get("registered_service_role_fields")
+    qualified_service_rows = registry.get("registered_service_qualified_fields")
+    if not all(
+        isinstance(rows, list)
+        for rows in (grammars, exception_rows, service_role_rows, qualified_service_rows)
+    ):
+        lint.fail(
+            ROLE_SUFFIX_REGISTRY_PATH,
+            "generic_grammars, exact_exceptions and registered_service_role_fields must be arrays",
+        )
+        return
+    registered_service_roles: set[str] = set()
+    for index, row in enumerate(service_role_rows):
+        if not isinstance(row, dict) or not isinstance(row.get("field"), str) or not isinstance(row.get("reason"), str):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"registered_service_role_fields[{index}] is incomplete")
+            continue
+        registered_service_roles.add(row["field"])
+    registered_service_qualified: set[str] = set()
+    for index, row in enumerate(qualified_service_rows):
+        if not isinstance(row, dict) or not all(
+            isinstance(row.get(key), str) and row[key]
+            for key in ("field", "role_stem", "reason")
+        ):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"registered_service_qualified_fields[{index}] is incomplete")
+            continue
+        registered_service_qualified.add(row["field"])
+    exceptions: dict[tuple[str, str], str] = {}
+    for index, row in enumerate(exception_rows):
+        if not isinstance(row, dict):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"exact_exceptions[{index}] must be an object")
+            continue
+        key = (row.get("file"), row.get("pointer"))
+        reason = row.get("reason")
+        if not all(isinstance(item, str) and item for item in (*key, reason)):
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"exact_exceptions[{index}] is incomplete")
+            continue
+        if key in exceptions:
+            lint.fail(ROLE_SUFFIX_REGISTRY_PATH, f"duplicate exact exception {key}")
+            continue
+        exceptions[key] = reason
+
+    documents = _schema_documents(lint)
+    for file_name, document in documents.items():
+        external_owners = {
+            owner.pointer
+            for owner in enumerate_property_owners(file_name, document)
+            if EXTERNAL_LITERAL_OBJECT_KEYWORD in owner.node
+        }
+        for occurrence in enumerate_schema_properties(file_name, document):
+            owner_pointer = occurrence.pointer.rsplit("/properties/", 1)[0]
+            lexical_owner = (
+                "external_literal" if owner_pointer in external_owners else "arkret_owned"
+            )
+            if lexical_owner == "external_literal":
+                continue
+
+            name = occurrence.name
+            exception_reason = exceptions.get(
+                (file_name, occurrence.pointer), "none"
+            )
+
+            if (
+                (name.endswith("_service_id") or name.endswith("_service_ids"))
+                and name not in registered_service_roles
+            ):
+                role_stem = name.removesuffix("_service_ids").removesuffix("_service_id")
+                expected = f"{role_stem}_{'ids' if name.endswith('_ids') else 'id'}"
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                    f"role_stem={role_stem}; terminal_category=did_core_id; "
+                    f"required_subject_class=service; expected_suffix=_id; "
+                    f"exception_reason={exception_reason}; service is an entity-class "
+                    f"qualifier here, so rename `{name}` to `{expected}` and keep the "
+                    "service-only invariant in schema/authorization validation",
+                )
+                continue
+
+            if (
+                (name.endswith("_service_kind") or name.endswith("_service_kinds"))
+                and name not in registered_service_roles
+            ):
+                plural = name.endswith("_service_kinds")
+                role_stem = name.removesuffix("_service_kinds").removesuffix("_service_kind")
+                expected = f"{role_stem}_{'kinds' if plural else 'kind'}"
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                    f"role_stem={role_stem}; terminal_category=service_kind; "
+                    f"required_subject_class=service; expected_suffix=_kind; "
+                    f"exception_reason={exception_reason}; service is an entity-class "
+                    f"qualifier here, so rename `{name}` to `{expected}` and keep the "
+                    "service-only invariant in schema/authorization validation",
+                )
+                continue
+
+            if (
+                ("_service_" in name or name.endswith("_services"))
+                and name not in registered_service_roles
+                and name not in registered_service_qualified
+            ):
+                expected = name.replace("_service_", "_")
+                if expected.endswith("_services"):
+                    expected = expected.removesuffix("_services") + "_ids"
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                    f"role_stem={name}; terminal_category=qualified_field; "
+                    "required_subject_class=service; expected_suffix=role_specific; "
+                    f"exception_reason={exception_reason}; `{name}` inserts service as an "
+                    f"entity-class qualifier; rename it to a true protocol role such as "
+                    f"`{expected}`, or register the complete service role with an exact reason",
+                )
+                continue
+
+            terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
+            terminal_category, expected_suffix = _role_terminal_contract(terminals)
+            if terminal_category is None:
+                continue
+            if exception_reason != "none":
+                continue
+            if expected_suffix is None:
+                lint.fail(
+                    SCHEMA_DIR / file_name,
+                    f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                    f"role_stem={name}; terminal_category={terminal_category}; "
+                    "required_subject_class=unspecified; expected_suffix=none; "
+                    f"exception_reason={exception_reason}; multiple identifier terminal "
+                    "categories require a closed discriminated union and exact-path exception",
+                )
+                continue
+            if _role_name_matches_terminal(name, terminal_category, expected_suffix, grammars):
+                continue
+            description = occurrence.shape.get("description", "") if isinstance(occurrence.shape, dict) else ""
+            required_subject_class = (
+                "service" if "service" in description.lower() else "unspecified"
+            )
+            role_stem = _role_stem(name, terminal_category)
+            lint.fail(
+                SCHEMA_DIR / file_name,
+                f"NC-IDROLE-001 {occurrence.pointer}: lexical_owner={lexical_owner}; "
+                f"role_stem={role_stem}; terminal_category={terminal_category}; "
+                f"required_subject_class={required_subject_class}; "
+                f"expected_suffix={expected_suffix}; exception_reason={exception_reason}; "
+                f"Arkret-owned single identifiers must use `{name}{expected_suffix}`",
+            )
 
 
 _AK_TYPED_PREFIX_RE = re.compile(r"^\^\(?(?:\?:)?ak:([a-z0-9_]+):")

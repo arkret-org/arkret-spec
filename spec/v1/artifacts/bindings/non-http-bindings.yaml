@@ -567,8 +567,8 @@ libp2p:
     required:
       - stream_protocol
       - operation_id
-      - source_service_id
-      - target_service_id
+      - source_id
+      - target_id
       - payload
       - proof
     properties:
@@ -576,9 +576,9 @@ libp2p:
         type: string
       operation_id:
         type: string
-      source_service_id:
+      source_id:
         type: string
-      target_service_id:
+      target_id:
         type: string
       payload:
         type: object

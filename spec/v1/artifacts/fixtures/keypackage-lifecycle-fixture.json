@@ -68,8 +68,8 @@
         "required_capabilities": ["ak.content.v1"],
         "expires_at": "2026-07-31T00:05:00.000Z",
         "service_binding": {
-          "source_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
-          "destination_service_id": "ak:did_core:webvh:z6mkfixturepsexample"
+          "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "destination_id": "ak:did_core:webvh:z6mkfixturepsexample"
         },
         "requester_authorization": {
           "kind": "device",
@@ -121,8 +121,8 @@
         "expires_at": "2026-08-24T00:05:00.000Z",
         "target_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "service_binding": {
-          "source_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
-          "destination_service_id": "ak:did_core:webvh:z6mkfixturepsexample"
+          "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "destination_id": "ak:did_core:webvh:z6mkfixturepsexample"
         },
         "requester_authorization": {
           "kind": "minimal_metadata_pairwise",
@@ -192,7 +192,7 @@
           "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "recipient_principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
           "recipient_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
-          "recipient_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "recipient_id": "ak:did_core:webvh:z6mkfixturepsexample",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "mls_group_id": "fixture-group",
           "mls_epoch": 1,
@@ -218,7 +218,7 @@
           "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "recipient_principal_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
           "recipient_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
-          "recipient_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "recipient_id": "ak:did_core:webvh:z6mkfixturepsexample",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "mls_group_id": "fixture-group",
           "mls_epoch": 1,
@@ -558,8 +558,8 @@
       "name": "peer_claim_atomic_idempotency",
       "vector_id": "ak.vector.keypackage.peer_claim_atomic_idempotency.v1",
       "kind": "peer_claim_linearization_and_recovery",
-      "source_service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
-      "destination_service_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
+      "source_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+      "destination_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
       "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
       "idempotency_key": "AAAAAAAAAAAAAAAAAAAAAQ",
       "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -581,7 +581,7 @@
         "second_keypackage_claimed": false
       },
       "assertions": [
-        "claim ledger uniqueness is scoped by source_service_id and claim_request_id",
+        "claim ledger uniqueness is scoped by source_id and claim_request_id",
         "claim_envelope signing input binds claim_receipt.claim_request_id as claim_request_id without duplicating it in the envelope wire",
         "claim CAS, target portable evidence and the serialized success outcome commit at one linearization boundary",
         "an uncertain caller queries the original request instead of issuing a fresh claim",
@@ -594,7 +594,7 @@
       "name": "self_claim_authorization_idempotency",
       "vector_id": "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
       "kind": "unified_local_claim_authorization_and_linearization",
-      "authority_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+      "authority_id": "ak:did_core:webvh:z6mkfixturepsexample",
       "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
       "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
@@ -615,11 +615,11 @@
         "expires_at": "2026-07-31T00:05:00.000Z"
       },
       "service_binding": {
-        "source_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
-        "destination_service_id": "ak:did_core:webvh:z6mkfixturepsexample"
+        "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+        "destination_id": "ak:did_core:webvh:z6mkfixturepsexample"
       },
       "object_identity": {
-        "source_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
+        "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ"
       },
       "sequence": [
@@ -661,8 +661,8 @@
       "vector_id": "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
       "kind": "peer_claim_authorization_and_anti_enumeration",
       "claim_purpose": "direct_conversation",
-      "source_service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
-      "destination_service_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
+      "source_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+      "destination_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
       "source_trust_domain": "ak:trust_domain:fixture.example",
       "destination_trust_domain": "ak:trust_domain:fixture.example",
       "requester": "ak:did_core:webvh:z6mkfixture",

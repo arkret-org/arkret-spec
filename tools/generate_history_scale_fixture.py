@@ -528,7 +528,7 @@ def build_traversal_kat(schemas: SchemaSet) -> dict[str, Any]:
             "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000001",
             "key_agreement_ref": SERVICE_DID + "#x25519-1",
             "holder_principal_id": SERVICE_CORE,
-            "holder_service_id": SERVICE_CORE,
+            "holder_id": SERVICE_CORE,
             "holder_signing_ref": SERVICE_METHOD,
             "accepted_key_evidence_ref": event_id("accepted-key-evidence"),
             "holder_trusted_basis": case["trusted_history_base_basis"],
@@ -917,7 +917,7 @@ def build_rrk_registration_rotation_kat(
     register_tuple = {
         key: archive[key]
         for key in (
-            "recovery_key_id", "holder_principal_id", "holder_service_id",
+            "recovery_key_id", "holder_principal_id", "holder_id",
             "key_agreement_ref", "holder_signing_ref", "hpke_suite",
             "frozen_public_key_b64u",
         )
@@ -954,7 +954,7 @@ def build_rrk_registration_rotation_kat(
             "event_id": event_id(label),
             "kind": kind,
             "actor_id": register_tuple["holder_principal_id"],
-            "principal_server_id": register_tuple["holder_service_id"],
+            "principal_server_id": register_tuple["holder_id"],
             "actor_seq": actor_seq,
             "payload": payload,
         })
@@ -1129,7 +1129,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "transition_digest": transition_digest,
         "recovery_key_id": "ak:recovery_key:019c0000-0000-7000-8000-000000000121",
         "holder_principal_id": holder_core,
-        "holder_service_id": holder_core,
+        "holder_id": holder_core,
         "key_agreement_ref": holder_key_agreement,
         "holder_signing_ref": holder_method,
         "hpke_suite": "ak.hpke_x25519_aead_chacha20poly1305.v1",
@@ -1251,7 +1251,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
             "recovery_key_id",
             "key_agreement_ref",
             "holder_principal_id",
-            "holder_service_id",
+            "holder_id",
             "holder_signing_ref",
             "accepted_key_evidence_ref",
             "holder_trusted_basis",
@@ -1281,8 +1281,8 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "archive": archive,
         "container_event_ref": container_event_ref,
         "history_traversal_retention": traversal_retention,
-        "source_service_id": source_core,
-        "holder_service_id": holder_core,
+        "source_id": source_core,
+        "holder_id": holder_core,
         "replicated_at": replicated_at,
     }
     replica_proof, replica_proof_transcript = detached_jws(
@@ -1294,8 +1294,8 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
             "archive",
             "container_event_ref",
             "history_traversal_retention",
-            "source_service_id",
-            "holder_service_id",
+            "source_id",
+            "holder_id",
             "replicated_at",
         ],
         source_method,
@@ -1306,7 +1306,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
 
     receipt_unsigned = {
         "archive_replica_digest": archive_replica_digest,
-        "holder_service_id": holder_core,
+        "holder_id": holder_core,
         "archive_sequence": 1,
         "accepted_at": accepted_at,
     }
@@ -1314,7 +1314,7 @@ def build_rrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         holder_signing_key,
         "ak.organization_recovery_archive_replica_receipt_proof.v1",
         receipt_unsigned,
-        ["archive_replica_digest", "holder_service_id", "archive_sequence", "accepted_at"],
+        ["archive_replica_digest", "holder_id", "archive_sequence", "accepted_at"],
         holder_method,
         proof_created_at,
     )

@@ -283,11 +283,11 @@ applicant 直接提交：
     "membership": "join",
     "delivery_status": "routable",
     "delivery_binding": {
-      "recipient_service_id": "ak:did_core:webvh:zumXV7yCE8UjvfwVEcio4oN3f",
+      "recipient_id": "ak:did_core:webvh:zumXV7yCE8UjvfwVEcio4oN3f",
       "service_resolution": {
         "current_record_url": "https://principal.org-a.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3AzumXV7yCE8UjvfwVEcio4oN3f/resolution"
       },
-      "recipient_service_kind": "principal_server",
+      "recipient_kind": "principal_server",
       "binding_scope": "realm",
       "binding_source": "explicit",
       "delivery_modes": ["events", "sync", "to_device", "push", "keypackages"],
