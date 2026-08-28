@@ -1486,8 +1486,8 @@ ak.vector.circle.lifecycle_basis_and_archive_freshness.v1
 期望：
 
 - Case A：MUST `failed_precondition`，reason=`circle_not_active`；不得用 receiver 较新的 projection 改写结果。
-- Case B：窗口内 MUST 接受并进入 data-cell join 输入；超窗 MUST 拒绝或隐藏，reason=`seal_ref_stale`。后继 archive 不得被误报为基线内 `circle_not_active`。
-- Case C / D：MUST 立即拒绝或隐藏，reason=`seal_ref_stale`，`freshness_window_applies=false`；轻客户端无法验证 joined view 时只能 pending 或 fail closed。
+- Case B：窗口内 MUST 接受并进入 data-cell join 输入；超窗 MUST 拒绝或隐藏，code=`seal_ref_stale`。后继 archive 不得被误报为基线内 `circle_not_active`。
+- Case C / D：MUST 立即拒绝或隐藏，code=`seal_ref_stale`，`freshness_window_applies=false`；轻客户端无法验证 joined view 时只能 pending 或 fail closed。
 - Case E：restore MUST NOT 追溯恢复旧 `seal_ref`；producer 必须换用包含 restore 的新 active 基线。
 - Case F：admission 与 Seal 重验都只读取登记的 CBA 基线，不读取本地当前 projection。
 
@@ -5705,10 +5705,10 @@ Steps：
 Expected：
 
 - **Case A**：MUST 接受或按事件级规则返回 partial outcome，并持久化 closed `delivery_authentication_record`（绑定 operation、方向、source/destination、signature label、verification method / key digest / algorithm、registration epoch、idempotency key、content digest、ordered covered components、`created` / `expires`）、按 `ak.applet.delivery-authentication-record.v1` 重算的 digest 与幂等 outcome。
-- **Case B**：MUST fail closed，HTTP 401，reason=`http_signature_required`；纯 bearer 不满足 transaction push 的 service-to-service 来源认证。
-- **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，reason=`http_signature_invalid`；`Content-Digest` MUST 在 JSON 业务解析与验签前对 exact bytes 重算，header placement 与 wire canonical equality MUST 独立校验，source/destination service `did_core_id` mismatch 或 verification-method controller 投影不一致不得进入业务逻辑。parse-then-canonicalize、`sha256=:` alias、trailer-only digest 或 content coding 均不得通过。
-- **Case D**：完全相同的 replay MUST 重算出相同 record digest，返回原 outcome 或等价成功且不得重复副作用；同一幂等 identity 但 body digest 或重算后的 `delivery_authentication_record_digest` 不一致时 MUST fail closed，认证已通过时 reason=`duplicate_conflict`，认证未通过时使用相应认证失败 reason。
-- **Case E**：无 active install MUST fail closed，reason=`applet_registration_unauthorized`；actor / namespace / grant 混淆 MUST fail closed（`applet_namespace_mismatch`、`capability_denied` 或 `applet_registration_unauthorized`），不得把来源 service 签名当成 native actor 授权。
+- **Case B**：MUST fail closed，HTTP 401，code=`http_signature_required`；纯 bearer 不满足 transaction push 的 service-to-service 来源认证。
+- **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，code=`http_signature_invalid`；`Content-Digest` MUST 在 JSON 业务解析与验签前对 exact bytes 重算，header placement 与 wire canonical equality MUST 独立校验，source/destination service `did_core_id` mismatch 或 verification-method controller 投影不一致不得进入业务逻辑。parse-then-canonicalize、`sha256=:` alias、trailer-only digest 或 content coding 均不得通过。
+- **Case D**：完全相同的 replay MUST 重算出相同 record digest，返回原 outcome 或等价成功且不得重复副作用；同一幂等 identity 但 body digest 或重算后的 `delivery_authentication_record_digest` 不一致时 MUST fail closed，认证已通过时 code=`duplicate_conflict`，认证未通过时优先返回 §7.3.1 的对应认证失败 code。
+- **Case E**：无 active install MUST fail closed，code=`applet_registration_unauthorized`；actor / namespace / grant 混淆 MUST fail closed（`applet_namespace_mismatch`、`capability_denied` 或 `applet_registration_unauthorized`），不得把来源 service 签名当成 native actor 授权。
 
 ### 19.2 Vector: Applet-managed Actor Authority
 
@@ -6672,7 +6672,12 @@ Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行�
   `{ack_entries:[],limited:false}` 且省略 `ack_token/cursor`，不持久、不 ACK、不推进 high-water，同一 after 续读后
   可见稍后到达的 manifest；source ready-marker 崩溃后 exact bytes 重放；部分材料 attempt 完成后取得新的未覆盖
   requested epoch 会产生第二 manifest。向量还 MUST 覆盖暂时无 source 的非终态诊断、`since_join` 零 request
-  以及 requester/source 当前失权时零新写入；
+  以及 requester/source 当前失权时零新写入。向量 MUST 另外执行 [`../governance/history-visibility.md` §6.2](../governance/history-visibility.md)
+  的 send/relay 拒绝分类：attempt status 是封闭四元集 `unfinished|completed|permanently_rejected|expired`，并发上限只计
+  `unfinished`；transient code 只 exact retry 同一 attempt 且零新 manifest / 零新 response id，permanent code 与
+  `failed_precondition + reason_code=history_traversal_anchor_unreachable` 只转 `permanently_rejected` 并作者化新 manifest 且
+  绝不把旧 attempt 记为 `completed`，`request_terminal` code 同样转 `permanently_rejected` 但不作者化替代 manifest，传输失败与未登记 code 一律
+  按 `retry_same_attempt` 处理，重启后分支不变；
 - `ak.vector.history_key.frontier_traversal_split.v1`：near-current `group_security_frontier` 的 bounded stateless 完整响应，与
   bulk/old-history receipt-bound direct Seal traversal 严格分型；覆盖 `trusted_history_base_basis`、独立 anti-rollback
   `trusted_current_basis`、target dominance、完整 predecessor cut、registered dependency resolve、current ratchet/join floor、per-item RRK traversal 及 self/peer visibility 边界；

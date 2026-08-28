@@ -309,6 +309,18 @@ HTTP Message Signature profile（适用于 provider-to-provider 写入）：
 - `Signature-Input` 的 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`provider-id`；room-scoped endpoint MUST additionally cover `mimi-room-uri`。`created`、`expires`、`keyid` 和 `alg="ed25519"` 参数 MUST 存在，且 `expires-created <= 300s`、`created` 在接收方时钟 ±30s 内、`expires` 未过期。
 - `keyid` MUST 是 `Source-Service-ID` 所控制的 Ed25519 verification method；接收方 MUST 用已接受的 service key binding 或已配置信任根取得它。只有新 service / key、binding invalidation 或显式 freshness 失效时才做 DID authority resolution，普通请求不得逐次在线解析。HTTP signature 只认证 provider service source，不替代 Actor DID/device 签名、MLS transcript、capability 或 Realm policy 校验。
 
+本 profile 的失败码与 [`applet-integration.md` §7.3.1](./applet-integration.md) 的逐次投递来源签名同源，按
+[`../sync/api-conventions.md` §5](../sync/api-conventions.md) 只用 RFC 9457 Problem `type` 分派，MUST NOT
+返回通用 code 再用 `reason` / `reason_code` 二次分派：
+
+- 缺 `Signature` / 纯 bearer：`http_signature_required`（401）。
+- 签名验证失败、必需 header 缺失、`Content-Digest` 不覆盖 exact HTTP content bytes、wire 不是 canonical JSON，或 `Source-Service-ID` / `Provider-ID` / `MIMI-Room-URI` 与 transcript 不一致：`http_signature_invalid`（401）。
+- `created` / `expires` 超出上述时效窗口：`signature_window_invalid`（401）。
+
+这三个 code 已在 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 登记，并在
+[`operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 中逐条挂在要求本
+signature profile 的 MIMI 写入 operation 上；未挂载该 profile 的 read operation 不得返回它们。
+
 Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret DataEvent、Control Move 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
 
 ### 5.1 MIMI operation actor proof（normative）

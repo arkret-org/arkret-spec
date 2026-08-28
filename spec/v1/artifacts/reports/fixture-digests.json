@@ -26,7 +26,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "70ec00f9ff6ffbe311e01531e35c1417936d1edf407e8b95722193b14e7379be"
+      "sha256": "ac7ae679812d542f4305bfba966720e092067756527ea37ffd5ebd7bfe264f99"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
@@ -182,7 +182,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "a78583da90b4359ac41f0936748c916d0559e88ff278aae5b4fadeb8eeeb80a1"
+      "sha256": "7bae2d05dba06930a4cf3ce1faa60c93a0bf6251443924a260fec4861ef834f7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -414,7 +414,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
-      "sha256": "6bd889b86d2c12d0ec2d530af5a21e544cce836c3ad7c50758d1c6957bcf6971"
+      "sha256": "4e85baf7285068e27be0edf20648ffb549ee180c555b52e4a2aeb7f97d7cfa7c"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

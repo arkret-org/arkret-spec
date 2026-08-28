@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-27.5",
-  "generated_at": "2026-08-27T16:39:00+08:00",
+  "version": "2026-08-28.1",
+  "generated_at": "2026-08-28T13:00:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -274,7 +274,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A service-to-service request that MUST carry a per-delivery RFC 9421 HTTP Message Signature presented only Authorization: Bearer with no Signature. Applies to Applet transaction push in both directions (node->Applet and app/bridge->arkret edge inbound). See zh/extensions/applet-integration.md §7.3.1.",
+      "description": "A service-to-service request that MUST carry a per-delivery RFC 9421 HTTP Message Signature presented only Authorization: Bearer with no Signature. Applies to Applet transaction push in both directions (node->Applet and app/bridge->arkret edge inbound) and to MIMI provider-to-provider writes (zh/extensions/mimi-interop.md §5). See zh/extensions/applet-integration.md §7.3.1.",
       "type_uri": "https://arkret.org/problems/http_signature_required",
       "title": "Http signature required"
     },
@@ -286,7 +286,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification; the Content-Digest header profile, exact-content digest, or canonical-JSON wire check failed; or source_service_id disagreed with the Source-Service-ID header / signature transcript. See zh/extensions/applet-integration.md §7.3.1.",
+      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification; the Content-Digest header profile, exact-content digest, or canonical-JSON wire check failed; or source_service_id disagreed with the Source-Service-ID header / signature transcript. Applies to Applet transaction push and to MIMI provider-to-provider writes (zh/extensions/mimi-interop.md §5). See zh/extensions/applet-integration.md §7.3.1.",
       "type_uri": "https://arkret.org/problems/http_signature_invalid",
       "title": "Http signature invalid"
     },
@@ -298,7 +298,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A per-delivery HTTP Message Signature created/expires parameters fell outside the protocol freshness window (expires-created over 300s, created skew over +/-30s, or expires already past), including byte-identical replays after the bounded replay cache evicted the entry. Window judged per zh/sync/federation.md §3.2. See zh/extensions/applet-integration.md §7.3.1.",
+      "description": "A per-delivery HTTP Message Signature created/expires parameters fell outside the protocol freshness window (expires-created over 300s, created skew over +/-30s, or expires already past), including byte-identical replays after the bounded replay cache evicted the entry. Window judged per zh/sync/federation.md §3.2. Applies to Applet transaction push and to MIMI provider-to-provider writes (zh/extensions/mimi-interop.md §5). See zh/extensions/applet-integration.md §7.3.1.",
       "type_uri": "https://arkret.org/problems/signature_window_invalid",
       "title": "Signature window invalid"
     },

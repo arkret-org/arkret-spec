@@ -89,6 +89,7 @@ from .bindings import (
 
 from .fixtures import (
     check_account_data_key_registry,
+    check_agent_requested_scope_commitment_digest,
     check_applet_revoke_saga_contract,
     check_canonical_digest_fixtures,
     check_cba_seal_canonical_fixture,
@@ -432,6 +433,10 @@ def main(argv: list[str] | None = None) -> int:
             ("erasure_verification", lambda: check_erasure_verification_contract(lint)),
             ("producer_id_vectors", lambda: check_producer_allocated_identity_vectors(lint)),
             ("applet_revoke_saga", lambda: check_applet_revoke_saga_contract(lint)),
+            (
+                "agent_requested_scope_commitment",
+                lambda: check_agent_requested_scope_commitment_digest(lint),
+            ),
             ("snapshot_merkle", lambda: check_snapshot_merkle_fixture(lint)),
             ("fixture_runner", lambda: check_fixture_runner_contract(lint)),
             ("websocket_binding", lambda: check_websocket_binding_fixture(lint)),

@@ -53,6 +53,122 @@
         "retry_uses_exact_staged_bytes": true,
         "new_response_ids": false
       },
+      "send_rejection_disposition": {
+        "operations": [
+          "ak.self.history_key_responses.command.send.v1",
+          "ak.peer.history_key_responses.command.relay.v1"
+        ],
+        "attempt_status_closed_set": [
+          "unfinished",
+          "completed",
+          "permanently_rejected",
+          "expired"
+        ],
+        "unfinished_concurrency_counts": [
+          "unfinished"
+        ],
+        "transport_failure_disposition": "retry_same_attempt",
+        "unregistered_code_disposition": "retry_same_attempt",
+        "dispositions": {
+          "retry_same_attempt": [
+            "dependency_missing",
+            "frontier_unavailable",
+            "rate_limited",
+            "internal_error",
+            "service_unavailable",
+            "temporarily_unavailable",
+            "unauthenticated",
+            "auth_expired",
+            "soft_logged_out",
+            "did_proof_required",
+            "account_locked",
+            "account_suspended",
+            "operation_selector_required"
+          ],
+          "replace_manifest": [
+            "schema_violation",
+            "json_invalid",
+            "query_invalid",
+            "param_missing",
+            "param_invalid",
+            "too_large",
+            "limit_exceeded",
+            "signature_invalid",
+            "state_mismatch",
+            "conflict",
+            "duplicate_conflict",
+            "failed_precondition"
+          ],
+          "request_terminal": [
+            "capability_denied",
+            "history_not_visible",
+            "account_deactivated",
+            "account_erased",
+            "not_implemented",
+            "unsupported_feature",
+            "unsupported_event_kind",
+            "unsupported_protocol_version",
+            "unsupported_operation_version"
+          ]
+        },
+        "cases": [
+          {
+            "name": "transient_dependency_retries_exact_bytes",
+            "code": "dependency_missing",
+            "disposition": "retry_same_attempt",
+            "attempt_status_after": "unfinished",
+            "new_manifest_count": 0,
+            "new_response_ids": false,
+            "resends_exact_staged_bytes": true
+          },
+          {
+            "name": "permanent_rejection_replaces_manifest",
+            "code": "state_mismatch",
+            "disposition": "replace_manifest",
+            "attempt_status_after": "permanently_rejected",
+            "new_manifest_count": 1,
+            "new_response_ids": true,
+            "resends_exact_staged_bytes": false,
+            "old_attempt_marked_completed": false
+          },
+          {
+            "name": "frozen_traversal_anchor_replaces_manifest",
+            "code": "failed_precondition",
+            "reason_code": "history_traversal_anchor_unreachable",
+            "disposition": "replace_manifest",
+            "attempt_status_after": "permanently_rejected",
+            "new_manifest_count": 1,
+            "old_attempt_marked_completed": false
+          },
+          {
+            "name": "policy_terminal_stops_retry_and_replacement",
+            "code": "history_not_visible",
+            "disposition": "request_terminal",
+            "attempt_status_after": "permanently_rejected",
+            "new_manifest_count": 0,
+            "resends_exact_staged_bytes": false,
+            "old_attempt_marked_completed": false
+          },
+          {
+            "name": "restart_preserves_disposition_branch",
+            "code": "state_mismatch",
+            "disposition": "replace_manifest",
+            "restart_before_replacement": true,
+            "attempt_status_after": "permanently_rejected",
+            "reverts_to_unfinished_after_restart": false,
+            "old_attempt_marked_completed": false,
+            "new_manifest_count": 1
+          },
+          {
+            "name": "unregistered_code_does_not_churn",
+            "code": "ak_unregistered_experimental_code",
+            "disposition": "retry_same_attempt",
+            "attempt_status_after": "unfinished",
+            "new_manifest_count": 0,
+            "resends_exact_staged_bytes": true
+          }
+        ]
+      },
       "later_material": {
         "requested_epochs": [7, 8],
         "completed_attempt_coverage": [7],

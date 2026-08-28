@@ -3998,6 +3998,204 @@ def websocket_canonical_wss_errors(value: object) -> list[str]:
 
 
 
+
+
+def check_agent_requested_scope_commitment_digest(lint: Lint) -> None:
+    """Recompute the Agent requested-scope commitment digest from its preimage.
+
+    The digest is a create-locked commitment in public Agent DID history, so a
+    frozen fixture value that drifts from the normative preimage would let a
+    conforming controller and a fixture verifier derive different identities.
+    Every occurrence in the fixture is recomputed here rather than trusted.
+    """
+    path = ARTIFACTS / "fixtures" / "agent-vectors-fixture.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    def commitment_digest(agent_id: str, controller_id: str, requested_scope: Any) -> str:
+        preimage = {
+            "agent_id": agent_id,
+            "controller_id": controller_id,
+            "kind": "ak.agent.requested_scope_commitment.v1",
+            "requested_scope": requested_scope,
+        }
+        return "sha256:" + hashlib.sha256(canonical_json(preimage).encode("utf-8")).hexdigest()
+
+    cases = data.get("cases")
+    if not isinstance(cases, list):
+        lint.fail(path, "agent fixture must expose cases[]")
+        return
+    provision = next(
+        (case for case in cases if isinstance(case, dict) and case.get("name") == "agent_provision"),
+        None,
+    )
+    if not isinstance(provision, dict):
+        lint.fail(path, "agent fixture omits the agent_provision case")
+        return
+    commitment = provision.get("requested_scope_commitment")
+    if not isinstance(commitment, dict):
+        lint.fail(path, "agent_provision omits requested_scope_commitment")
+        return
+    agent_id = commitment.get("agent_id")
+    controller_id = commitment.get("controller_id")
+    requested_scope = commitment.get("requested_scope")
+    if not isinstance(agent_id, str) or not isinstance(controller_id, str) or requested_scope is None:
+        lint.fail(path, "requested_scope_commitment preimage is incomplete")
+        return
+    expected = commitment_digest(agent_id, controller_id, requested_scope)
+    if commitment.get("expected_digest") != expected:
+        lint.fail(
+            path,
+            "requested_scope_commitment.expected_digest drifted from its preimage: "
+            f"{commitment.get('expected_digest')!r} != {expected!r}",
+        )
+    endpoint = provision.get("public_did_service_endpoint")
+    if isinstance(endpoint, dict) and endpoint.get("requested_scope_digest") != expected:
+        lint.fail(
+            path,
+            "public_did_service_endpoint.requested_scope_digest must equal the recomputed commitment",
+        )
+
+    for case in data.get("schema_validation_cases", []):
+        if not isinstance(case, dict):
+            continue
+        instance = case.get("instance")
+        if not isinstance(instance, dict):
+            continue
+        stated = instance.get("requested_scope_digest")
+        if not isinstance(stated, str):
+            continue
+        scope = instance.get("requested_scope")
+        case_agent = instance.get("agent_id")
+        case_controller = instance.get("controller_id")
+        if scope is None:
+            # The instance carries only the commitment; it must reuse the case digest.
+            if stated != expected:
+                lint.fail(
+                    path,
+                    f"schema case {case.get('name')!r} pins a requested_scope_digest that no "
+                    "preimage in this fixture produces",
+                )
+            continue
+        if not isinstance(case_agent, str) or not isinstance(case_controller, str):
+            lint.fail(
+                path,
+                f"schema case {case.get('name')!r} carries requested_scope without its commitment subjects",
+            )
+            continue
+        case_expected = commitment_digest(case_agent, case_controller, scope)
+        if stated != case_expected:
+            lint.fail(
+                path,
+                f"schema case {case.get('name')!r} requested_scope_digest drifted from its own "
+                f"requested_scope: {stated!r} != {case_expected!r}",
+            )
+
+
+def check_websocket_bundle_closure_cases(lint: Lint, path: Path, data: dict[str, Any]) -> None:
+    """Execute the ServiceDescribe-level operation reachability cases.
+
+    Operation reachability is owned by `supported_operation_bundles`, not by the
+    transport descriptor, so these cases mutate a full ServiceDescribe instead of
+    the closed websocket binding object. Every declared mutation must name a
+    carrier that actually exists in the base instance; a mutation that cannot be
+    materialised is a fixture failure, never a silently skipped case.
+    """
+    cases = data.get("bundle_closure_cases")
+    if not isinstance(cases, list) or not cases:
+        lint.fail(path, "bundle_closure_cases must be a non-empty array")
+        return
+    by_name = {
+        case.get("name"): case
+        for case in cases
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    required = {
+        "advertised_bundle_closure_selects_websocket",
+        "missing_websocket_bundle_falls_back",
+        "bundle_without_websocket_transport_falls_back",
+    }
+    if set(by_name) != required:
+        lint.fail(path, f"bundle_closure_cases names drift: {sorted(set(by_name))}")
+        return
+
+    base_case = by_name["advertised_bundle_closure_selects_websocket"]
+    base = base_case.get("instance")
+    schema_ref = base_case.get("schema_ref")
+    if not isinstance(base, dict) or not isinstance(schema_ref, str):
+        lint.fail(path, "bundle closure base case requires instance and schema_ref")
+        return
+    check_json_instance_against_schema(lint, path, "bundle closure base", schema_ref, base)
+
+    required_bundle = base_case.get("required_bundle")
+    required_operations = base_case.get("required_operations")
+    if not isinstance(required_bundle, str) or not isinstance(required_operations, list):
+        lint.fail(path, "bundle closure base case requires required_bundle and required_operations")
+        return
+    if required_bundle not in base.get("supported_operation_bundles", []):
+        lint.fail(path, "bundle closure base case does not advertise its own required_bundle")
+    if not any(
+        isinstance(binding, dict) and binding.get("kind") == "websocket"
+        for binding in base.get("transport_bindings", [])
+    ):
+        lint.fail(path, "bundle closure base case does not advertise a websocket transport binding")
+
+    registry = load_json(lint, ARTIFACTS / "registry" / "operation-registry.json")
+    if not isinstance(registry, dict):
+        return
+    bundles = {
+        row.get("operation_bundle_id"): row
+        for row in registry.get("operation_bundles", [])
+        if isinstance(row, dict)
+    }
+    bundle = bundles.get(required_bundle)
+    if not isinstance(bundle, dict):
+        lint.fail(path, f"bundle closure references unregistered bundle: {required_bundle!r}")
+        return
+    websocket_members = sorted(
+        member.get("operation_id")
+        for member in bundle.get("members", [])
+        if isinstance(member, dict) and member.get("binding_kind") == "websocket"
+    )
+    if websocket_members != sorted(required_operations):
+        lint.fail(
+            path,
+            "bundle closure required_operations drift from the registered bundle: "
+            f"{websocket_members} != {sorted(required_operations)}",
+        )
+
+    removed_bundle = by_name["missing_websocket_bundle_falls_back"].get("remove_bundle")
+    if removed_bundle not in base.get("supported_operation_bundles", []):
+        lint.fail(path, f"remove_bundle names a carrier the base does not advertise: {removed_bundle!r}")
+    else:
+        mutation = copy.deepcopy(base)
+        mutation["supported_operation_bundles"] = [
+            value for value in mutation["supported_operation_bundles"] if value != removed_bundle
+        ]
+        check_json_instance_against_schema(
+            lint, path, "missing_websocket_bundle_falls_back", schema_ref, mutation
+        )
+
+    removed_kind = by_name["bundle_without_websocket_transport_falls_back"].get("remove_transport_kind")
+    bindings = base.get("transport_bindings", [])
+    if not any(isinstance(row, dict) and row.get("kind") == removed_kind for row in bindings):
+        lint.fail(
+            path,
+            f"remove_transport_kind names a carrier the base does not advertise: {removed_kind!r}",
+        )
+    else:
+        mutation = copy.deepcopy(base)
+        mutation["transport_bindings"] = [
+            row for row in bindings if not (isinstance(row, dict) and row.get("kind") == removed_kind)
+        ]
+        if not mutation["transport_bindings"]:
+            lint.fail(path, "bundle closure fallback case removed the mandatory HTTP binding")
+        check_json_instance_against_schema(
+            lint, path, "bundle_without_websocket_transport_falls_back", schema_ref, mutation
+        )
+
+
 def check_websocket_binding_fixture(lint: Lint) -> None:
     """Execute the in-tree, tool-neutral portion of the WebSocket binding suite."""
     path = ARTIFACTS / "fixtures" / "websocket-binding-fixture.json"
@@ -4016,7 +4214,6 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
     }
     required_discovery_names = {
         "closed_descriptor",
-        "partial_operations_rejected",
         "noncanonical_or_credentialed_url_rejected",
         "missing_subprotocol_or_limit_rejected",
     }
@@ -4039,20 +4236,12 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
         if canonical_errors:
             lint.fail(path, "closed_descriptor base_url is not canonical: " + "; ".join(canonical_errors))
 
-        partial = copy.deepcopy(descriptor)
-        partial["operations"] = [
-            operation
-            for operation in partial.get("operations", [])
-            if operation != "ak.self.signal.stream.subscribe.v1"
-        ]
-        check_json_instance_against_schema(
-            lint,
-            path,
-            "partial_operations_rejected",
-            descriptor_schema_ref,
-            partial,
-            expect_valid=False,
-        )
+        if "operations" in descriptor:
+            lint.fail(
+                path,
+                "websocket transport descriptor must not carry its own operations[]; "
+                "operation reachability lives in ServiceDescribe.supported_operation_bundles",
+            )
 
         missing_case = discovery_by_name.get("missing_subprotocol_or_limit_rejected") or {}
         remove_each = missing_case.get("remove_each")
@@ -4095,6 +4284,8 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
                     mutation,
                     expect_valid=False,
                 )
+
+    check_websocket_bundle_closure_cases(lint, path, data)
 
     kat = data.get("dpop_kat")
     if not isinstance(kat, dict):

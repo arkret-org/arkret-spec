@@ -39,11 +39,6 @@ dedupe、catch-up 与完成语义保持独立，不因共享连接而合并。
 {
   "kind": "websocket",
   "base_url": "wss://server.example/_arkret/ws",
-  "operations": [
-    "ak.self.account.stream.subscribe.v1",
-    "ak.self.events.stream.subscribe.v1",
-    "ak.self.signal.stream.subscribe.v1"
-  ],
   "extension_profile_required": "ak.profile.binding.websocket.v1",
   "subprotocol": "arkret.v1",
   "authentication": "challenge_dpop_session_v1",
@@ -51,6 +46,12 @@ dedupe、catch-up 与完成语义保持独立，不因共享连接而合并。
   "max_channels": 16
 }
 ```
+
+transport descriptor 只承载连接坐标与传输 limit，**MUST NOT** 携带自己的 operation 列表：
+它由 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)
+的 `transport_binding_websocket` 闭合（`additionalProperties: false`）。operation 可达性的唯一真源是
+同一 `ServiceDescribe` 的 `supported_operation_bundles` 展开后的 `(operation_id, binding_kind)` union
+（见 [`service-surface.md` §3.0](./service-surface.md)）。
 
 `base_url` **MUST** 使用下面的 canonical `wss` URI 形态：
 
@@ -63,11 +64,17 @@ dedupe、catch-up 与完成语义保持独立，不因共享连接而合并。
 
 该值不得含 bearer、session grant、proof、DID、device id、cursor 或其它 credential。客户端
 **MUST** 请求 WebSocket subprotocol `arkret.v1`，服务端未选择该 subprotocol 时客户端
-**MUST** 关闭连接。一个声明本 profile 的 descriptor 的 `operations` 必须恰好包含本文件
-登记的三个 operation；部分列表不是本 profile。
+**MUST** 关闭连接。
 
-客户端遇到未知 kind/profile、缺字段、非 `wss` URL、超出自身 limit 或声明了本 profile
-未覆盖的 operation 时，**MUST** 忽略该条 binding 并回退 HTTP；不得猜测 endpoint。
+广告本 profile 的服务 **MUST** 在同一 `ServiceDescribe` 的 `supported_operation_bundles` 中
+公告 `ak.operation_bundle.principal_server.websocket.v1`；该 bundle 在
+[`operation-registry.json`](../../artifacts/registry/operation-registry.json) 中的成员恰好是
+§1 三个 operation 与 `binding_kind=websocket` 的配对，因此"部分覆盖"没有可广告形态。
+服务不得只公告 transport descriptor 而不公告该 bundle，也不得用其它 bundle 组合等价替代。
+
+客户端遇到未知 kind/profile、缺字段、非 `wss` URL、超出自身 limit，或该 `ServiceDescribe` 的
+bundle 展开缺少上述任一 `(operation_id, websocket)` 配对时，**MUST** 忽略该条 binding 并回退
+mandatory HTTP binding；不得猜测 endpoint，也不得按 descriptor 单独推断 operation 支持集。
 
 ## 3. Origin 与认证
 
@@ -379,3 +386,9 @@ fixture 的 runner suite 固定为 `ak.suite.binding.websocket.v1`，必须执�
 三 channel trace、reauth、drain、close code 和 HTTP fallback。profile requirement 同时登记
 该 vector、fixture、runner suite、全部 frame schema 与三个 canonical payload schema；缺少
 任一 runner mapping 的实现不得声称通过。
+
+fixture 的 `discovery_cases[]` 只覆盖 transport descriptor 自身的封闭性；operation 可达性由
+`bundle_closure_cases[]` 在完整 `ServiceDescribe` 上执行：公告 bundle 与 websocket transport
+时选中 websocket，缺 bundle 或缺 websocket transport 时都必须回退 mandatory HTTP binding。
+runner **MUST** 真正 materialize 每个 case 的 mutation，mutation 指向的 carrier 不存在时
+**MUST** 判为 fixture 失败，而不是跳过该 case。

@@ -468,12 +468,24 @@ Identity Resolution Surface 是 DID method resolver、registry、witness、watch
 GET /_arkret/root/identity/describe
 ```
 
-返回：
+本 operation 是 `ak.root.identity.registry.read.describe.v1`，响应 MUST 是 §3.0 的
+canonical role-scoped `ServiceDescribe`（`service_kind=identity_registry`），schema 为
+[`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)。它与
+`server/describe` 共用同一个封闭 shape，本节不定义额外顶层字段。
 
-- `service_id`
-- `registry_mode = writer | witness | replica`
-- 支持的 receipt 类型
-- 当前软件版本与实现 profile
+因此 registry 的部署形态 MUST 通过既有 canonical 字段表达，不得新增顶层裸字段：
+
+- 可调用面：`supported_operation_bundles`。按 §3.0，该角色 MUST 至少公告
+  `ak.operation_bundle.identity_registry.describe.v1`；本 operation 自身属于
+  `ak.operation_bundle.identity_registry.http_core.v1`，因此能返回本响应的部署也 MUST 公告它；
+- 已实现能力与 conformance 立场：`supported_features` / `claimed_profiles` /
+  `verified_profiles`；
+- 协议版本与配额：`protocol_version`、`limits`。
+
+写者 / 见证者 / 副本这类运行姿态与 receipt 承载形式都不是 v1 协议决策输入：它们 MAY 作为顶层
+`x_*` 展示 metadata 出现，且按 §3.0 的 `x_*` 规则，删除全部 `x_*` 后
+operation / transport / feature / profile / 认证 / 授权 / route / 错误分类 MUST 完全不变。
+需要影响上述结果的第一方字段 MUST 先登记为 closed schema 字段，不得以本节摘要为由绕过。
 
 #### 3.1.2 获取当前 DID Document
 

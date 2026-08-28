@@ -413,11 +413,16 @@ Source MUST 先以 content-addressed staged blobs 保存 manifest、所有 seale
 marker 出现前不得发送。Retry 重发相同 bytes。Accepted chunk 是 secret release 线性化点；source 的 exact retry 只返回首次
 小型 `HistoryKeyResponseSendReceipt`，不以新 head 重验或重签；完整 record/attestation 只从 recipient response stream 读取。
 
-Attempt identity 固定为 `(request_id,source_sender_domain,manifest response_id,manifest_digest)`。只有 manifest 命名的每个
-chunk 都取得 durable send receipt 才是 `completed`；v1 不定义 abandon operation，未完成 attempt 仅在 request expiry 进入
-`expired`。Permanent chunk rejection 要求 source 建新 manifest，不能把旧 attempt 偷换为完成。`completed|expired` 后才能 GC 对应
-staged blobs/outbox，compact accepted receipt ledger 仍按下述期限保留。并发上限只计 unfinished：每 request/source-domain 4、
-每 request 8；同一 request 在 expiry 前可顺序创建任意多个满足单体上限的 manifest，不存在 lifetime split/attempt 总次数。
+Attempt identity 固定为 `(request_id,source_sender_domain,manifest response_id,manifest_digest)`。Attempt 的 source-local durable
+status 是封闭四元集 `unfinished | completed | permanently_rejected | expired`。只有 manifest 命名的每个
+chunk 都取得 durable send receipt 才是 `completed`；v1 不定义 abandon operation，未取得全部 receipt 且未被 §6.2 判为
+`replace_manifest` 的 attempt 仅在 request expiry 进入 `expired`。Permanent chunk rejection 按 §6.2 把 attempt 转入
+`permanently_rejected` 并要求 source 建新 manifest，不能把旧 attempt 偷换为完成，也不得对外呈现为已投递。
+`completed|permanently_rejected|expired` 后才能 GC 对应
+staged blobs/outbox，compact accepted receipt ledger 仍按下述期限保留。并发上限只计 `unfinished`：每 request/source-domain 4、
+每 request 8；`permanently_rejected` 不再占用该预算——它已停止重发且没有 in-flight bytes，否则若干次 permanent rejection 就能把
+同一 request 的合法 replacement 永久堵死。同一 request 在 expiry 前可顺序创建任意多个满足单体上限的 manifest，不存在
+lifetime split/attempt 总次数。
 
 Release service 必须在有效 high-water ack 前保留完整 byte-identical record 与 conditional attestation。Receiver 只有在对应
 manifest descriptor 或 chunk 结果已 durable install/reject（或取得 signed lost descriptor）后才能 ack；未 durable 处理即 ack 是
@@ -456,17 +461,56 @@ MUST 无人工操作地执行以下 crash-safe 收敛循环：
 3. 同 profile 的 current authorized endpoint MUST 持续消费它可见的 scope-private request projection。当它持有与
    request 范围交集的 `local_authoritative` material 且 T0/T1 及所有 current authorization gate 通过时，
    MUST 构造最小已持有覆盖的 manifest/chunks，在 ready marker 前耐久 staging，并按 exact bytes 重试直到
-   attempt `completed|expired`。存在 unfinished attempt 时不得为同一覆盖重签另一组 response id；既有 attempt
+   attempt `completed|permanently_rejected|expired`。存在 `unfinished` attempt 时不得为同一覆盖重签另一组 response id；既有 attempt
    completed 之后若本地又取得该 request 尚未覆盖的 requested epoch，必须创建新 manifest，不得因“已响应过”
-   永久抑制新材料。Permanent chunk rejection 继续按 §6 使用新 manifest，不得改写旧 attempt。
+   永久抑制新材料。send/relay 失败的 exact-retry / replacement / terminal 分支只按 §6.2 的封闭分类决定。
 4. 本地诊断必须至少区分 `awaiting_authorized_source_response`、`response_verification_pending`、
    `decryption_unavailable_by_policy`、`decryption_unavailable_by_profile_floor` 与 request expiry。在没有受验证证据时，
    requester 不得声称某 source 离线或材料已销毁；等待 source、T1 dependency 或短暂传输失败都不是 policy
-   terminal。只有现行 closed terminal reason 才能停止对该 request 的自动尝试。
+   terminal。只有 §6.2 `request_terminal` 行登记的 closed code，或 request expiry 本身，才能停止对该 request 的自动尝试。
 
 这些义务只保证在“至少一个符合条件的 endpoint 在 request 有效期内持有 material、可见 request 且所有安全门禁成功”
 时客户端会发起并持续尝试恢复；它不把 `all_history_for_current_members` 扩张为服务端明文托管、密钥永久存在或
 绝对可用性承诺。
+
+### 6.2 Source send/relay 拒绝的耐久处置分类 (normative)
+
+Source 对 `ak.self.history_key_responses.command.send.v1` 与
+`ak.peer.history_key_responses.command.relay.v1` 的每一次失败，MUST 只按已登记 code 机械选择下面三种
+source-local durable 处置之一：顶层 code 取自 RFC 9457 Problem `type` 的 `{code}` 尾段（见
+[`../sync/api-conventions.md` §5](../sync/api-conventions.md)），仅当该 code 需要细分时再读已登记
+`reason_code`。Source MUST NOT 依据 HTTP status 类别、`title` / `detail` 文案或本地化字符串推断处置。
+
+| 处置 | 含义 | source 耐久动作 |
+| --- | --- | --- |
+| `retry_same_attempt` | 拒绝不归因于已冻结的 exact bytes，同一 bytes 之后仍可能被接受 | attempt 保持 `unfinished`；按有界退避重发 exact staged bytes，直到取得 send receipt 或 request expiry。不新建 manifest，不新签 response id，不改写 attempt identity。 |
+| `replace_manifest` | 服务已永久拒绝这组 exact bytes，重发同一 bytes 永远不会被接受 | attempt 转入 `permanently_rejected`（既不是 `completed` 也不是 `expired`）；停止对该 attempt 的重发；在 §6 并发上限内为同一 request 作者化覆盖相同 requested ranges 的新 manifest。 |
+| `request_terminal` | 该 source 在**当前**已验证 authorization / policy 下对该 request 的任何 attempt 都不会被接受 | attempt 同样转入 `permanently_rejected` 并停止重发；MUST NOT 立即作者化替代 manifest，也 MUST NOT 用定时退避反复重试该判定；记录该 closed terminal code 作为本地诊断。只有当本 source 侧参与判定的输入实际前进（新的 accepted authorization incarnation / grant，或该 scope 的 current history-access 变化）时，§6.1 第 3 条的持续义务才重新允许作者化新 manifest。 |
+
+分类是封闭的：该 operation 的可返回 code union 等于
+[`operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 的
+`rules.universal_codes` 与本 operation `operation_specific[]` 之并，下面三行覆盖其全部成员。
+
+- `retry_same_attempt`：`dependency_missing`、`frontier_unavailable`、`rate_limited`、`internal_error`、
+  `service_unavailable`、`temporarily_unavailable`、`unauthenticated`、`auth_expired`、`soft_logged_out`、
+  `did_proof_required`、`account_locked`、`account_suspended`、`operation_selector_required`。
+- `replace_manifest`：`schema_violation`、`json_invalid`、`query_invalid`、`param_missing`、`param_invalid`、
+  `too_large`、`limit_exceeded`、`signature_invalid`、`state_mismatch`、`conflict`、`duplicate_conflict`、
+  `failed_precondition`（含 `reason_code=history_traversal_anchor_unreachable`）。
+- `request_terminal`：`capability_denied`、`history_not_visible`、`account_deactivated`、`account_erased`、
+  `not_implemented`、`unsupported_feature`、`unsupported_event_kind`、`unsupported_protocol_version`、
+  `unsupported_operation_version`。
+
+传输失败、超时、TLS 失败，以及任何没有可解析 closed Problem body 的应答，MUST 按 `retry_same_attempt`
+处理。收到不在上述 union 中的 code 是对端协议违规；source MUST 同样按 `retry_same_attempt` 处理（fail-safe：
+它不会产生 response-id / outbox churn，且仍被 request expiry 封顶），并 MUST 把该 code 记为本地诊断，
+MUST NOT 据此猜测 replacement。
+
+`permanently_rejected` 描述的是 **attempt** 的终局（这组 bytes 不会再被接受），不是对后续是否作者化
+replacement 的授权：后者只由上表第三列区分。两种处置都 MUST NOT 把旧 attempt 记为 `completed`，也不得
+对 requester 呈现为已投递；旧 attempt 的 compact `HistoryKeyResponseSendReceipt` ledger 仍按 §6 的
+request-expiry 期限保留；进程重启后 source MUST 从耐久记录恢复同一处置分支，不得因重启把
+`permanently_rejected` 退回 `unfinished` 重新 exact retry，也不得把 `retry_same_attempt` 升级成新 manifest。
 
 ## 7. History-only store 与终态
 

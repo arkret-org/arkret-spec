@@ -113,6 +113,13 @@ def check_error_code_closure(lint: Lint) -> None:
         # also rejects expired/revoked handoffs, so it would otherwise trip
         # the code-shape heuristic.
         "fresh_authentication_required",
+        # Source-local durable attempt status of the history-key response
+        # outbox (history-visibility.md 6/6.2), never a wire reason code: it is
+        # the state an attempt enters once its exact bytes are permanently
+        # unacceptable, so the source stops retrying without claiming delivery.
+        # It ends in _rejected and appears on sentences about rejected chunks,
+        # so it would otherwise trip the code-shape heuristic.
+        "permanently_rejected",
     }
 
     for path in markdown_files():

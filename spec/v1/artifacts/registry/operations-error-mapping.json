@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-27.1",
+  "version": "2026-08-28.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-27T14:00:00+08:00",
+  "generated_at": "2026-08-28T13:00:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -501,56 +501,82 @@
     {
       "operation_id": "ak.open.mimi.command.notify.v1",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/notify",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid"
+      ],
+      "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason."
     },
     {
       "operation_id": "ak.open.mimi.command.proxy_download.v1",
       "http_alias": "POST /_arkret/open/mimi/proxy-download",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid"
+      ],
+      "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason."
     },
     {
       "operation_id": "ak.open.mimi.command.report_abuse.v1",
       "http_alias": "POST /_arkret/open/mimi/report-abuse",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid"
+      ],
+      "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason."
     },
     {
       "operation_id": "ak.open.mimi.command.request_consent.v1",
       "http_alias": "POST /_arkret/open/mimi/consent/request",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid"
+      ],
+      "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason."
     },
     {
       "operation_id": "ak.open.mimi.command.submit_message.v1",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/messages",
       "operation_specific": [
-        "mimi_e2ee_boundary_unmarked"
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid",        "mimi_e2ee_boundary_unmarked"
       ],
-      "description": "Rejects an E2EE MIMI plaintext projection without transcript_binding or an explicit e2ee_downgrade marker with HTTP 400 mimi_e2ee_boundary_unmarked."
+      "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason. Rejects an E2EE MIMI plaintext projection without transcript_binding or an explicit e2ee_downgrade marker with HTTP 400 mimi_e2ee_boundary_unmarked."
     },
     {
       "operation_id": "ak.open.mimi.command.update_consent.v1",
       "http_alias": "POST /_arkret/open/mimi/consent/update",
       "operation_specific": [
-        "not_found"
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid",        "not_found"
       ],
-      "description": "Unknown, expired, source-mismatched and holder-invisible private correlations deliberately share the same not_found shape."
+      "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason. Unknown, expired, source-mismatched and holder-invisible private correlations deliberately share the same not_found shape."
     },
     {
       "operation_id": "ak.open.mimi.command.update_room.v1",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/update",
       "operation_specific": [
-        "mimi_room_binding_event_invalid"
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid",        "mimi_room_binding_event_invalid"
       ],
-      "description": "Missing, unexpected, kind-inconsistent and binding-mismatched room_binding_event inputs share one pre-admission failure envelope; the exact reason is audit-only."
+      "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason. Missing, unexpected, kind-inconsistent and binding-mismatched room_binding_event inputs share one pre-admission failure envelope; the exact reason is audit-only."
     },
     {
       "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
       "http_alias": "POST /_arkret/open/mimi/key-material",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid"
+      ],
+      "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason."
     },
     {
       "operation_id": "ak.open.mimi.read.group_info.v1",
