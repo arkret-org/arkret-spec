@@ -196,6 +196,8 @@ from .recovery_transcripts import (
 
 from .schema_roots import check_schema_root_reachability
 
+from .psi_class_b import check_psi_class_b_artifact_closure
+
 
 
 def run_lint_phase(
@@ -527,6 +529,7 @@ def main(argv: list[str] | None = None) -> int:
         [
             ("error_uniqueness", lambda: check_error_code_registry_uniqueness(lint)),
             ("error_mapping", lambda: check_operations_error_mapping_closure(lint)),
+            ("psi_class_b", lambda: check_psi_class_b_artifact_closure(lint)),
             ("fixture_reasons", lambda: check_fixture_reject_reason_closure(lint)),
             ("error_closure", lambda: check_error_code_closure(lint)),
             ("redactable_fields", lambda: check_redactable_field_registry(lint)),

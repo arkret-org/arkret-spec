@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-29.11",
+  "version": "2026-08-29.12",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -84,7 +84,7 @@
     },
     {
       "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
-      "sha256": "sha256:a591ae701e080535468927926db46e694dfde0f13a67f3b9cc5bf0ebb84b7b9a"
+      "sha256": "sha256:c5d42739c0f11e6dd697cbc185d7b30dfa4aeb328f65f131d577eb880c25a257"
     },
     {
       "operation_id": "ak.find.directory.read.resolve_agent_selector.v1",

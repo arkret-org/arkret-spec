@@ -5,7 +5,7 @@
   },
   "suite": "privacy_security",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-07-30",
+  "version": "2026-08-29",
   "conformance_vectors": [
     "ak.vector.directory.public_realm_search.v1",
     "ak.vector.directory.organization_search.v1",
@@ -322,12 +322,85 @@
         "denial_phase": "blind",
         "http_status": 429,
         "error_code": "psi_quota_exhausted",
-        "body_shape": [
-          "ok",
-          "error.code",
-          "error.message",
-          "request_id",
-          "padding"
+        "class_b_problem_schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
+        "class_b_problem_maximal_string_projection": {
+          "detail_code_point": "U+0001",
+          "detail_length": 256,
+          "instance_prefix": "ak:request:",
+          "instance_fill": "a",
+          "instance_length": 128,
+          "padding": ""
+        },
+        "class_b_problem_projections": [
+          {
+            "phase": "blind",
+            "error_code": "psi_quota_exhausted",
+            "type": "https://arkret.org/problems/psi_quota_exhausted",
+            "title": "Psi quota exhausted",
+            "status": 429,
+            "response_bucket_field": "blind_response_bucket_bytes",
+            "minimal_bucket_bytes": 4096,
+            "retry_after_required": true
+          },
+          {
+            "phase": "blind",
+            "error_code": "policy_denied",
+            "type": "https://arkret.org/problems/policy_denied",
+            "title": "Policy denied",
+            "status": 403,
+            "response_bucket_field": "blind_response_bucket_bytes",
+            "minimal_bucket_bytes": 4096,
+            "retry_after_required": false
+          },
+          {
+            "phase": "blind",
+            "error_code": "duplicate_conflict",
+            "type": "https://arkret.org/problems/duplicate_conflict",
+            "title": "Duplicate conflict",
+            "status": 409,
+            "response_bucket_field": "blind_response_bucket_bytes",
+            "minimal_bucket_bytes": 4096,
+            "retry_after_required": false
+          },
+          {
+            "phase": "match",
+            "error_code": "policy_denied",
+            "type": "https://arkret.org/problems/policy_denied",
+            "title": "Policy denied",
+            "status": 403,
+            "response_bucket_field": "match_response_bucket_bytes",
+            "minimal_bucket_bytes": 4096,
+            "retry_after_required": false
+          },
+          {
+            "phase": "match",
+            "error_code": "duplicate_conflict",
+            "type": "https://arkret.org/problems/duplicate_conflict",
+            "title": "Duplicate conflict",
+            "status": 409,
+            "response_bucket_field": "match_response_bucket_bytes",
+            "minimal_bucket_bytes": 4096,
+            "retry_after_required": false
+          },
+          {
+            "phase": "match",
+            "error_code": "psi_batch_unavailable",
+            "type": "https://arkret.org/problems/psi_batch_unavailable",
+            "title": "Psi batch unavailable",
+            "status": 410,
+            "response_bucket_field": "match_response_bucket_bytes",
+            "minimal_bucket_bytes": 4096,
+            "retry_after_required": false
+          }
+        ],
+        "class_b_problem_negative_schema_mutations": [
+          "additional_extension",
+          "missing_padding",
+          "non_space_padding",
+          "wrong_type_status_pair",
+          "wrong_title",
+          "overlong_detail",
+          "overlong_instance"
         ],
         "retry_after_seconds": 3300,
         "retry_after_quantum_seconds": 300,

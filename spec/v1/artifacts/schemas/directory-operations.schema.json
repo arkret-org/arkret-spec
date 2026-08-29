@@ -1156,6 +1156,116 @@
       "pattern": "^ *$",
       "maxLength": 262144
     },
+    "psi_padded_problem": {
+      "type": "object",
+      "description": "Closed RFC 9457 Problem Details shape for private-contact-discovery Class B failures. padding is the only extension member. The selected type, title, and status triple is canonical and must match error-code-registry.json.",
+      "x-arkret-external-literal-object": {
+        "specification": "RFC 9457 Problem Details for HTTP APIs",
+        "anchor": "https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1",
+        "reason": "The closed PSI projection preserves the RFC literal member vocabulary; instance remains the RFC URI-reference member rather than an Arkret-owned identifier role."
+      },
+      "required": [
+        "type",
+        "title",
+        "status",
+        "detail",
+        "instance",
+        "padding"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "pattern": "^https://arkret\\.org/problems/(psi_quota_exhausted|policy_denied|duplicate_conflict|psi_batch_unavailable)$"
+        },
+        "title": {
+          "type": "string",
+          "enum": [
+            "Psi quota exhausted",
+            "Policy denied",
+            "Duplicate conflict",
+            "Psi batch unavailable"
+          ]
+        },
+        "status": {
+          "type": "integer",
+          "enum": [
+            403,
+            409,
+            410,
+            429
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "instance": {
+          "type": "string",
+          "format": "uri-reference",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "padding": {
+          "$ref": "#/$defs/psi_response_padding"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "https://arkret.org/problems/psi_quota_exhausted"
+            },
+            "title": {
+              "const": "Psi quota exhausted"
+            },
+            "status": {
+              "const": 429
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "https://arkret.org/problems/policy_denied"
+            },
+            "title": {
+              "const": "Policy denied"
+            },
+            "status": {
+              "const": 403
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "https://arkret.org/problems/duplicate_conflict"
+            },
+            "title": {
+              "const": "Duplicate conflict"
+            },
+            "status": {
+              "const": 409
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "https://arkret.org/problems/psi_batch_unavailable"
+            },
+            "title": {
+              "const": "Psi batch unavailable"
+            },
+            "status": {
+              "const": 410
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
     "psi_batch_id": {
       "type": "string",
       "description": "Client-generated UUIDv7 typed batch id correlating the blind and match rounds of one logical PSI query. It is unique within the authenticated device credential and is bound to canonical request digests for replay-safe quota charging.",

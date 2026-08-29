@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-08-29.1",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
@@ -15,6 +15,51 @@
       "external_standard": "RFC 9457 Problem Details",
       "external_field_path": "Problem Details type",
       "round_trip_requirement": "Preserve the absolute problem type URI and dispatch on the complete URI; unknown values remain forward-compatible failures.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/directory-operations.schema.json",
+      "json_pointer": "/$defs/psi_padded_problem/properties/type",
+      "external_standard": "RFC 9457 Problem Details",
+      "external_field_path": "Problem Details type",
+      "round_trip_requirement": "Preserve the canonical absolute PSI problem type URI and dispatch on the complete URI.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/directory-operations.schema.json",
+      "json_pointer": "/$defs/psi_padded_problem/oneOf/0/properties/type",
+      "external_standard": "RFC 9457 Problem Details",
+      "external_field_path": "Problem Details type",
+      "round_trip_requirement": "Bind the canonical psi_quota_exhausted absolute type URI to its RFC 9457 response projection.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/directory-operations.schema.json",
+      "json_pointer": "/$defs/psi_padded_problem/oneOf/1/properties/type",
+      "external_standard": "RFC 9457 Problem Details",
+      "external_field_path": "Problem Details type",
+      "round_trip_requirement": "Bind the canonical policy_denied absolute type URI to its RFC 9457 response projection.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/directory-operations.schema.json",
+      "json_pointer": "/$defs/psi_padded_problem/oneOf/2/properties/type",
+      "external_standard": "RFC 9457 Problem Details",
+      "external_field_path": "Problem Details type",
+      "round_trip_requirement": "Bind the canonical duplicate_conflict absolute type URI to its RFC 9457 response projection.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/directory-operations.schema.json",
+      "json_pointer": "/$defs/psi_padded_problem/oneOf/3/properties/type",
+      "external_standard": "RFC 9457 Problem Details",
+      "external_field_path": "Problem Details type",
+      "round_trip_requirement": "Bind the canonical psi_batch_unavailable absolute type URI to its RFC 9457 response projection.",
       "dispatch_authority": "external_standard",
       "arkret_extensions_allowed": false
     },

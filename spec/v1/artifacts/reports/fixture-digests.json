@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "c328abd26d38ea912433d5104a57d71350c00c2d1587964f877d348d8c72d853"
+      "sha256": "abb8b8ce6e1c3f0dd5dba2bb2e511665d9a54a0c576f033e118fc718a3e2a900"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
@@ -342,7 +342,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "39d5adf8d2df0d903cedc012ad50880b3be492dfbaec5f4b959cbe825f6cfc93"
+      "sha256": "9012eaf9522667427217327a54ce3736b183095910132b7de26e478b85babd2b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

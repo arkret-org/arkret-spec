@@ -1657,39 +1657,7 @@ components:
         updated_at:
           $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
     PsiPaddedProblem:
-      type: object
-      description: >-
-        Closed RFC 9457 Problem Details shape for PSI Class B failures. padding is an RFC
-        9457 extension member and the only extension allowed on this surface.
-      required: [type, title, status, detail, instance, padding]
-      additionalProperties: false
-      properties:
-        type:
-          type: string
-          maxLength: 128
-        title:
-          type: string
-          maxLength: 128
-        status:
-          type: integer
-          enum: [403, 409, 410, 429]
-        detail:
-          type: string
-          maxLength: 256
-        instance:
-          type: string
-          minLength: 1
-          maxLength: 128
-        padding:
-          $ref: '#/components/schemas/PsiResponsePadding'
-    PsiResponsePadding:
-      type: string
-      pattern: '^ *$'
-      maxLength: 262144
-      description: >-
-        ASCII-SP padding chosen so the RFC 8785 JCS UTF-8 JSON HTTP entity body
-        has exactly the phase Content-Length bucket advertised by
-        ServiceDescribe.private_contact_discovery.
+      $ref: ../schemas/directory-operations.schema.json#/$defs/psi_padded_problem
     PushNotifyOutcome:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_notify_outcome
     PushNotifyRequestBody:
