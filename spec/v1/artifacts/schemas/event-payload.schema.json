@@ -10133,7 +10133,7 @@
     },
     "realm_organization_payload": {
       "type": "object",
-      "description": "Organization-side endorsement or revocation for a Realm relationship. Reducer validation MUST require realm_id to match the top-level Event.realm_id, organization_id to resolve to an Organization principal, the Realm-side writer to hold ak.realm.admin, and authorization to verify against the organization DID control state or a delegated service whose purpose covers this relationship and control_scopes.",
+      "description": "Organization-side endorsement or revocation for a Realm relationship. Reducer validation MUST require realm_id to match the top-level Event.realm_id, organization_id to identify an Organization principal in accepted registration state, the Realm-side writer to hold ak.realm.admin, and authorization to verify against current organization DID control evidence or a delegated service whose purpose covers this relationship and control_scopes. The stable organization_id is not itself resolvable DID material.",
       "required": [
         "statement_id",
         "realm_id",
@@ -10162,7 +10162,7 @@
         },
         "organization_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Organization principal DID that endorses, governs, sponsors, certifies, or revokes the Realm relationship."
+          "description": "Stable Organization principal identity that endorses, governs, sponsors, certifies, or revokes the Realm relationship. This did_core_id is bound to current Organization DID evidence through accepted registration/resolution state; it is not itself resolvable."
         },
         "relationship": {
           "type": "string",
@@ -10253,7 +10253,7 @@
           "properties": {
             "issuer_id": {
               "$ref": "#/$defs/did_core_id",
-              "description": "Organization DID or delegated service DID that issued this statement."
+              "description": "Stable Organization or delegated-service principal identity that issued this statement. The issuer_id is a did_core_id; verification_method and accepted registration/delegation state carry the DID evidence required to verify the issuer."
             },
             "issuer_role": {
               "type": "string",

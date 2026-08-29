@@ -71,7 +71,7 @@
       "items": {
         "$ref": "#/$defs/did_core_id"
       },
-      "description": "Declared or projected organization principals associated with this Realm. Each DID MUST resolve to an Organization principal. This field alone is not a verified ownership/governance endorsement; clients and directories MUST require an active ak.realm.organization statement for verified badges or organization-controlled semantics."
+      "description": "Declared or projected stable Organization principal identities associated with this Realm. Each value is a did_core_id and is not itself resolvable DID material; Organization classification and current DID evidence are established by accepted registration/resolution state. This field alone is not a verified ownership/governance endorsement; clients and directories MUST require an active ak.realm.organization statement for verified badges or organization-controlled semantics."
     },
     "schema_refs": {
       "type": "array",

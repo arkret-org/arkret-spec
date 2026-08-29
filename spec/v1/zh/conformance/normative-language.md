@@ -72,7 +72,7 @@ see_also:
 
 ## 7. 命名约定：单复数
 
-Schema 字段、event kind 与 map / 集合字段使用复数（`tracks`、`refs`、`proofs`、`schema_refs`、`prev_refs`、`owning_organizations`）；单值 scalar 字段使用单数，并显式标明 value category（例如 `track_name`、`actor_id`、`realm_id`、`schema`）。
+Schema 字段、event kind 与 map / 集合字段使用复数（`tracks`、`refs`、`proofs`、`schema_refs`、`prev_refs`、`owning_organization_ids`）；单值 scalar 字段使用单数，并显式标明 value category（例如 `track_name`、`actor_id`、`realm_id`、`schema`）。
 
 - **单 / 复数由 cardinality 决定（normative）**：字段的单数 / 复数形态 MUST 由其 wire cardinality 唯一决定——承载单一引用用单数（`schema`、`seal_ref`、`policy_event_ref`），承载多引用用复数 / 数组形态（`schema_refs`、`prev_refs`、`proofs`）。单数与复数形态**不可互改、不可互换**：`schema` 与 `schema_refs` 是 cardinality 不同的两个字段，MUST NOT 被实现当作同义可替换字段读写。权威命名与 cardinality 判定规则以 [`../models/common-fields.md` §2.1](../models/common-fields.md) 为单一真源。
 - 复数 ↔ 单数不互改。当前 candidate v1 的 canonical schema / registry 必须在发布前直接归一到本规则；不得以历史命名为由保留 rename alias、双读字段或迁移例外。

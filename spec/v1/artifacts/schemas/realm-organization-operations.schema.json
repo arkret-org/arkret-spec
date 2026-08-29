@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-organization-operations.schema.json",
   "title": "Arkret Realm Organization-Relationship Read Operation DTOs",
-  "description": "Closed response DTO for the self-surface Realm organization-relationship read operation (ak.self.realm_organization.read.list.v1). Returns the projected ak.realm.organization statements (active / revoked / expired) for a Realm plus the declared owning_organizations hints that have no verified statement. The verified rows mirror the canonical realm_organization_payload field order; lifecycle_phase is reducer-derived. A row here is a projection only: an organization relationship is only verified when lifecycle_phase=verified_active, and actual Realm control still requires the corresponding Realm policy / notary / capability / service-binding event. See spec/v1/zh/models/realm-and-space.md §2.3.0 and schemas/event-payload.schema.json#/$defs/realm_organization_payload.",
+  "description": "Closed response DTO for the self-surface Realm organization-relationship read operation (ak.self.realm_organization.read.list.v1). Returns the projected ak.realm.organization statements (active / revoked / expired) for a Realm plus the declared owning_organization_ids hints that have no verified statement. The verified rows mirror the canonical realm_organization_payload field order; lifecycle_phase is reducer-derived. A row here is a projection only: an organization relationship is only verified when lifecycle_phase=verified_active, and actual Realm control still requires the corresponding Realm policy / notary / capability / service-binding event. See spec/v1/zh/models/realm-and-space.md §2.3.0 and schemas/event-payload.schema.json#/$defs/realm_organization_payload.",
   "anyOf": [
     {
       "$ref": "#/$defs/realm_organization_relationship_list"
@@ -70,7 +70,7 @@
         "verified_active",
         "revoked_or_expired"
       ],
-      "description": "Reducer-derived lifecycle phase of the projected statement. verified_active = latest accepted statement for (organization_id, relationship) is status=active and within its validity window. revoked_or_expired = the relationship has been revoked or is outside its not_before/expires_at window. Declared-only organization hints with no statement are carried in declared_organization_hints, not as rows."
+      "description": "Reducer-derived lifecycle phase of the projected statement. verified_active = latest accepted statement for (organization_id, relationship) is status=active and within its validity window. revoked_or_expired = the relationship has been revoked or is outside its not_before/expires_at window. Declared-only organization hints with no statement are carried in declared_organization_hint_ids, not as rows."
     },
     "realm_organization_relationship_row": {
       "type": "object",
@@ -184,7 +184,7 @@
             "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true,
-          "description": "owning_organizations declared hints (realm-and-space.md §2.3.0) that have NO verified ak.realm.organization statement. These are unverified claims and MUST NOT be rendered as official / governed / endorsed."
+          "description": "owning_organization_ids declared hints (realm-and-space.md §2.3.0) that have NO verified ak.realm.organization statement. These are unverified claims and MUST NOT be rendered as official / governed / endorsed."
         }
       },
       "additionalProperties": false

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.2",
+  "version": "2026-08-29.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T07:10:52+08:00",
+  "generated_at": "2026-08-29T08:00:18+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4327,7 +4327,7 @@
       "http": "GET /_arkret/self/realms/{realm_id}/organizations",
       "grpc": "SelfRealmOrganization/List",
       "mq": "self.realm_organization.query.list",
-      "notes": "Returns the projected ak.realm.organization relationship statements for the Realm (active / revoked / expired, latest-per-(organization_id, relationship)) plus declared owning_organizations hints with no verified statement. The caller must be authorized to read the Realm. A relationship is only verified when lifecycle_phase=verified_active; declared_organization_hints are unverified claims and MUST NOT be rendered as official / governed / endorsed.",
+      "notes": "Returns the projected ak.realm.organization relationship statements for the Realm (active / revoked / expired, latest-per-(organization_id, relationship)) plus declared owning_organization_ids hints with no verified statement. The caller must be authorized to read the Realm. A relationship is only verified when lifecycle_phase=verified_active; declared_organization_hint_ids are unverified claims and MUST NOT be rendered as official / governed / endorsed.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list"

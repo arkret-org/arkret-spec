@@ -75,9 +75,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-08-29.2",
-      "generated_at": "2026-08-29T07:10:52+08:00",
-      "content_digest": "sha256:4efbc79e93db7554b0b0f23fd36acf49f97ed33377841c4ddf4e23852e2dabd4"
+      "version": "2026-08-29.3",
+      "generated_at": "2026-08-29T08:00:18+08:00",
+      "content_digest": "sha256:5978d5b621348178670f0a1c82d41d7ce05ec0ef11410fc62e67efe75207aa90"
     },
     {
       "path": "spec/v1/artifacts/registry/did-document-contract-registry.json",
@@ -147,9 +147,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 28,
+      "version": 29,
       "generated_at": null,
-      "content_digest": "sha256:8acaa5414e42646cb75ffad75f3bbcd8d815691e1ab45015c700fc007e9a5a4e"
+      "content_digest": "sha256:430190e49ce482be9b698345b8b04ba7fdeac82b830e42f335327411d06a126f"
     },
     {
       "path": "spec/v1/artifacts/registry/history-key-canonical-binding-registry.json",
@@ -231,15 +231,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-08-28.15",
+      "version": "2026-08-28.17",
       "generated_at": null,
-      "content_digest": "sha256:3fe0d40011f7b6f1527d56c26954ad12dd58dca31e15598b3d8d8815a2a1c868"
+      "content_digest": "sha256:fdcfc5dfb4944f43165b5270c057e25e1c444ccf6456021bdf0dc499d9240faf"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-08-29.2",
-      "generated_at": "2026-08-29T07:10:52+08:00",
-      "content_digest": "sha256:85e60206777ab660e5263a43dd1aaa3b5abd5205478f39b14c3d70bd3df401db"
+      "version": "2026-08-29.3",
+      "generated_at": "2026-08-29T08:00:18+08:00",
+      "content_digest": "sha256:810455a8591a4fb067028d4edcc601408679086d02b33e2cadfee3767b391eb1"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",

@@ -74,7 +74,7 @@ Schema id: `ak.schema.realm.v1`
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`。 | 安全等级标签。 |
 | `trust_domain` | yes | `id:trust_domain` | create-locked；必须匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context。 | 跨 deployment replay boundary。 |
-| `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal；仅是 create/update 中的声明或投影，已验证归属必须有 active `ak.realm.organization`。 | 官方或治理组织。 |
+| `owning_organization_ids` | no | `array<did_core_id>` | 每项是 Organization Principal 的稳定身份；仅是 create/update 中的声明或投影，已验证归属必须有 active `ak.realm.organization`。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 `ak.schema.realm.v1`；除 genesis 封闭 allowlist 内的结构角色 profile 外，只允许 `ak.schema.*.vN`。 | 启用 schema，并在 genesis 中承载封闭的结构角色判别式；不是通用 conformance / policy profile 激活面。 |
 | `relation_profiles` | no | `array<RelationProfile>` | 同一 `(relation_kind, from_kind, to_kind, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
 | `policy_id` | no | `id:policy` | reducer 派生。 | 当前 Realm access policy 引用。 |
@@ -129,13 +129,13 @@ Realm 结构角色 profile 只允许出现在 `ak.realm.create.payload.object.sc
 v1 不定义 monolithic `ak.realm.update` 或 `ak.component.realm.metadata.v1`。实现 MUST 拒绝这些形态，
 不得建立双写/双读路径，也不得把完整 Realm create object 缓存为第二真相源。
 
-`owning_organizations`、`fields`、`relation_profiles`、`policy_id`、`preview_policy_id`、`default_strand_id` 与 `retention_policy_id` 不构成遗漏的自由写入面：它们分别由已接受的 `ak.realm.organization` 关系、registered extension/relation projection、`ak.policy.set`、`ak.realm.preview_policy`、`ak.realm.set_default_strand` 与 retention Policy 投影。producer MUST NOT 在 profile 或 policy bundle 中重复声明这些 query 字段。
+`owning_organization_ids`、`fields`、`relation_profiles`、`policy_id`、`preview_policy_id`、`default_strand_id` 与 `retention_policy_id` 不构成遗漏的自由写入面：它们分别由已接受的 `ak.realm.organization` 关系、registered extension/relation projection、`ak.policy.set`、`ak.realm.preview_policy`、`ak.realm.set_default_strand` 与 retention Policy 投影。producer MUST NOT 在 profile 或 policy bundle 中重复声明这些 query 字段。
 
 跨字段约束（normative）：`history_access` 只有 `since_join` 与 `all_history_for_current_members`。effective `content_scheme=mls_rfc9420` 时 effective `history_access` MUST 为 `since_join`；plaintext 与 `mls_exporter_aead_v1` 可使用二态之一。任何 create/bootstrap 或 facet update 造成其它组合时，reducer MUST `failed_precondition`，reason=`history_access_requires_history_capable_scheme`。
 
 ### 2.3.0 Realm 组织归属与治理同意（normative）
 
-`owning_organizations` 是 Realm metadata 中的声明 / 投影字段，不单独产生"官方 Realm"、"组织治理 Realm"或"组织控制 Realm"语义。客户端、Directory、搜索索引和管理 UI MUST NOT 仅凭该数组展示 verified badge、组织官方背书、组织治理归属或组织控制权。
+`owning_organization_ids` 是 Realm metadata 中的声明 / 投影字段，不单独产生"官方 Realm"、"组织治理 Realm"或"组织控制 Realm"语义。客户端、Directory、搜索索引和管理 UI MUST NOT 仅凭该数组展示 verified badge、组织官方背书、组织治理归属或组织控制权。
 
 已验证的组织关系 MUST 由 active `ak.realm.organization` 表示。该事件有两层独立授权：
 
@@ -148,10 +148,10 @@ v1 不定义 monolithic `ak.realm.update` 或 `ak.component.realm.metadata.v1`�
 
 - `relationship="owner"` 或 `control_scopes` 包含 `official_badge` 只表示组织背书该 Realm 的身份归属；不自动授予组织管理员 capability。
 - 组织能否管理成员、policy、retention、moderation 或明文可见服务，仍由 `ak.realm.admin` capability、Realm policy facet、service binding 或对应控制事件决定。
-- 组织作为 notary、notary controller、RRK 接收方或 delivery binding authority，必须分别由 `notary` / notary control move、`durability_policy`、`ak.realm.delivery_binding_policy` 等字段和事件明确表示；不得从 `owning_organizations` 或 `ak.realm.organization` 自动继承。
-- Realm admin 单方面把某个组织 DID 写入 `owning_organizations`，如果没有对应 active `ak.realm.organization` 组织侧证明，接收方 MUST 把它视为未验证声明。
+- 组织作为 notary、notary controller、RRK 接收方或 delivery binding authority，必须分别由 `notary` / notary control move、`durability_policy`、`ak.realm.delivery_binding_policy` 等字段和事件明确表示；不得从 `owning_organization_ids` 或 `ak.realm.organization` 自动继承。
+- Realm admin 单方面把某个稳定 Organization principal id 写入 `owning_organization_ids`，如果没有对应 active `ak.realm.organization` 组织侧证明，接收方 MUST 把它视为未验证声明。
 
-被授权读取 Realm 的客户端通过 self-surface 操作 `ak.self.realm_organization.read.list.v1`（`GET /_arkret/self/realms/{realm_id}/organizations`，response schema `schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list`）取回该 Realm 的 `ak.realm.organization` 关系投影（active / revoked / expired，latest-per-`(organization_id, relationship)`，由 reducer 派生 `lifecycle_phase`）以及无验证语句的 `declared_organization_hints`。客户端 MUST 仅在 `lifecycle_phase=verified_active` 时显示官方 / 治理 / 背书状态，并 MUST 把 `declared_organization_hints` 渲染为未验证声明。public discovery 路径（Directory Service 的 `ak.find.directory.read.resolve_realm.v1` / `resolve_organization`）受 anti-enumeration 约束，不替代成员 / admin 侧的本操作。
+被授权读取 Realm 的客户端通过 self-surface 操作 `ak.self.realm_organization.read.list.v1`（`GET /_arkret/self/realms/{realm_id}/organizations`，response schema `schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list`）取回该 Realm 的 `ak.realm.organization` 关系投影（active / revoked / expired，latest-per-`(organization_id, relationship)`，由 reducer 派生 `lifecycle_phase`）以及无验证语句的 `declared_organization_hint_ids`。客户端 MUST 仅在 `lifecycle_phase=verified_active` 时显示官方 / 治理 / 背书状态，并 MUST 把 `declared_organization_hint_ids` 渲染为未验证声明。public discovery 路径（Directory Service 的 `ak.find.directory.read.resolve_realm.v1` / `resolve_organization`）受 anti-enumeration 约束，不替代成员 / admin 侧的本操作。
 
 ### 2.3.1 `durability_policy`（normative）
 

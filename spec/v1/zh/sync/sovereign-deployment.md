@@ -218,8 +218,8 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       "title": "External Collaboration",
       "created_by": "ak:did_core:webvh:zGsmzvyUSDby8As5bHG3kAtWL",
       "trust_domain": "ak:trust_domain:did.webvh.defense.example",
-      "owning_organizations": [
-        "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example"
+      "owning_organization_ids": [
+        "ak:did_core:webvh:zGsmzvyUSDby8As5bHG3kAtWL"
       ],
       "schema_refs": [
         "ak.schema.realm.v1"

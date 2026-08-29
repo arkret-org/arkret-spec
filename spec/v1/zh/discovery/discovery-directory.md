@@ -944,7 +944,7 @@ Result：
       "discoverability": "listed",
       "join_rule": "knock_restricted",
       "history_access": "since_join",
-      "owning_organizations": [
+      "owning_organization_ids": [
         "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv"
       ],
       "preview_ref": "ak:event:AYemPz_ISC7Yf4ytl7vB21-c37l_4W9dmtZFF_yWUcq9",
