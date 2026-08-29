@@ -18,9 +18,9 @@
     "total_properties": 10215,
     "total_schema_documents": 167,
     "by_presence_class": {
-      "optional": 2799,
+      "optional": 2798,
       "optional_defaulted": 68,
-      "required": 7000,
+      "required": 7001,
       "required_nullable": 140,
       "tristate": 208
     },
@@ -3328,7 +3328,7 @@
         "/$defs/applet_install_outcome/properties/install_id": "required",
         "/$defs/applet_install_outcome/properties/registration_epoch": "required",
         "/$defs/applet_install_outcome/properties/registration_event_ref": "required",
-        "/$defs/applet_install_outcome/properties/rejections": "optional",
+        "/$defs/applet_install_outcome/properties/rejections": "required",
         "/$defs/applet_install_outcome/properties/widget_policy_ref": "required_nullable",
         "/$defs/applet_install_preview_request_body/properties/applet_package": "required",
         "/$defs/applet_install_preview_request_body/properties/authoring_request_basis": "required",

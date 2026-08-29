@@ -41,6 +41,7 @@ from .schemas import (
     check_circle_lifecycle_basis_vector,
     check_circle_membership_enum_single_source,
     check_classification_context_paths,
+    check_closed_object_required_declared,
     check_device_reanchor_payload_receipt_binding,
     check_derived_signature_projection_closure,
     check_did_and_device_constraints,
@@ -332,6 +333,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
             ("event_id_digest_mirrors", lambda: check_event_id_digest_mirror_removals(lint)),
             ("wire_scope", lambda: check_wire_schema_no_bare_scope(lint)),
+            ("closed_object_required", lambda: check_closed_object_required_declared(lint)),
             (
                 "preimage_event_identity",
                 lambda: check_preimage_event_identity_commitments(lint),

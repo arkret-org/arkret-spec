@@ -807,9 +807,9 @@
           }
         ]
       },
-      "issuer": "ak:did_core:web:issuer.example",
+      "issuer_id": "ak:did_core:web:issuer.example",
       "principal_server_id": "ak:did_core:web:principal.example",
-      "subject": "ak:did_core:web:subject.example",
+      "subject_id": "ak:did_core:web:subject.example",
       "positive_cases": [
         {
           "name": "singleton_string",

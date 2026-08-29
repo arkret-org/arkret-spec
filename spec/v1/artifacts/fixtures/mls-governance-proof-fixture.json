@@ -52,12 +52,12 @@
       "query_digest": "sha256:de214b77f8e178d415b065d42d9118338afa2d44d294bb87d7d05844d38fbd62",
       "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
+          "frontier_registry_digest": "sha256:96c04e026cbb8bb85e191c829118afea89fae02a7024fbdfcffb256fe162ee3d",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101",
               "state_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-              "entries": [],
+              "cells": [],
               "range_witnesses": [
                 {
                   "cell_family": "ak.component.mls.epoch.v1",
@@ -93,12 +93,12 @@
       "outcome": {
         "query_digest": "sha256:de214b77f8e178d415b065d42d9118338afa2d44d294bb87d7d05844d38fbd62",
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
+          "frontier_registry_digest": "sha256:96c04e026cbb8bb85e191c829118afea89fae02a7024fbdfcffb256fe162ee3d",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101",
               "state_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-              "entries": [],
+              "cells": [],
               "range_witnesses": [
                 {
                   "cell_family": "ak.component.mls.epoch.v1",
@@ -130,9 +130,9 @@
           "seal_predecessor_edges": [],
           "event_ids": []
         },
-        "page_digest": "sha256:8b7430443c4c53174a533b2a8cb6b38354adbcba2bc989de6ca43dc996969dee"
+        "page_digest": "sha256:c72adf63ba66648c2e0c74413e710cb55474d896100c00685137d1866033c234"
       },
-      "expected_page_digest": "sha256:8b7430443c4c53174a533b2a8cb6b38354adbcba2bc989de6ca43dc996969dee",
+      "expected_page_digest": "sha256:c72adf63ba66648c2e0c74413e710cb55474d896100c00685137d1866033c234",
       "expected_relation": "equal_antichain"
     },
     {
@@ -171,12 +171,12 @@
       "query_digest": "sha256:486043e6fb8b6b3cea61620e31b63ff3248e93050b481f92428b47cb6c542b9e",
       "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
+          "frontier_registry_digest": "sha256:96c04e026cbb8bb85e191c829118afea89fae02a7024fbdfcffb256fe162ee3d",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101",
               "state_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-              "entries": [],
+              "cells": [],
               "range_witnesses": [
                 {
                   "cell_family": "ak.component.mls.epoch.v1",
@@ -212,12 +212,12 @@
       "outcome": {
         "query_digest": "sha256:486043e6fb8b6b3cea61620e31b63ff3248e93050b481f92428b47cb6c542b9e",
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
+          "frontier_registry_digest": "sha256:96c04e026cbb8bb85e191c829118afea89fae02a7024fbdfcffb256fe162ee3d",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101",
               "state_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-              "entries": [],
+              "cells": [],
               "range_witnesses": [
                 {
                   "cell_family": "ak.component.mls.epoch.v1",
@@ -249,9 +249,9 @@
           "seal_predecessor_edges": [],
           "event_ids": []
         },
-        "page_digest": "sha256:3b33df0e4f0d87dc05b712c35b680cb554cc3a33bf785d4f64d4ed843248737d"
+        "page_digest": "sha256:595618a2cd8d348667ee4d208a66978ed5ea845792be96a963933a8040739fd1"
       },
-      "expected_page_digest": "sha256:3b33df0e4f0d87dc05b712c35b680cb554cc3a33bf785d4f64d4ed843248737d",
+      "expected_page_digest": "sha256:595618a2cd8d348667ee4d208a66978ed5ea845792be96a963933a8040739fd1",
       "expected_relation": "equal_antichain"
     },
     {
@@ -290,12 +290,12 @@
       "query_digest": "sha256:b49d4223fde932428d8d4ce8fe5057d5734e6ea508bf01b301eec8460e331d5c",
       "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
+          "frontier_registry_digest": "sha256:96c04e026cbb8bb85e191c829118afea89fae02a7024fbdfcffb256fe162ee3d",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0202020202020202020202020202020202020202020202020202020202020202",
               "state_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-              "entries": [],
+              "cells": [],
               "range_witnesses": [
                 {
                   "cell_family": "ak.component.mls.epoch.v1",
@@ -340,12 +340,12 @@
       "outcome": {
         "query_digest": "sha256:b49d4223fde932428d8d4ce8fe5057d5734e6ea508bf01b301eec8460e331d5c",
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
+          "frontier_registry_digest": "sha256:96c04e026cbb8bb85e191c829118afea89fae02a7024fbdfcffb256fe162ee3d",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0202020202020202020202020202020202020202020202020202020202020202",
               "state_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-              "entries": [],
+              "cells": [],
               "range_witnesses": [
                 {
                   "cell_family": "ak.component.mls.epoch.v1",
@@ -386,9 +386,9 @@
           ],
           "event_ids": []
         },
-        "page_digest": "sha256:3a6c8bf11abe312e30f49288bf89d4ffcc296ff80f62dcc1f27987c769c0cf0d"
+        "page_digest": "sha256:139c671028365d80e1ec4a725dd118da64a5337bd786e6e3f13644ae257c883e"
       },
-      "expected_page_digest": "sha256:3a6c8bf11abe312e30f49288bf89d4ffcc296ff80f62dcc1f27987c769c0cf0d",
+      "expected_page_digest": "sha256:139c671028365d80e1ec4a725dd118da64a5337bd786e6e3f13644ae257c883e",
       "expected_relation": "strict_descendant_antichain"
     },
     {
@@ -429,14 +429,14 @@
       "query_digest": "sha256:431b8c7fb3c3f3cd3bf00fad03a588fa77bfa17d4ae935d0968ff9bfa7cfaa9e",
       "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
+          "frontier_registry_digest": "sha256:96c04e026cbb8bb85e191c829118afea89fae02a7024fbdfcffb256fe162ee3d",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0303030303030303030303030303030303030303030303030303030303030303",
               "state_root": "sha256:84b4e77e477b2c36c354f7a0a2135e7b2d56baef20c4fd661d7481ab8abc3d5b",
-              "entries": [
+              "cells": [
                 {
-                  "cell": "ak:cell:ak.component.member.state.v1:did.web.member-0.example",
+                  "cell_id": "ak:cell:ak.component.member.state.v1:did.web.member-0.example",
                   "value_digest": "sha256:be44bec1b9b85a79799441eb69585de18b56c8043a7d52ad76c51dac2060c4d9",
                   "provenance_event_refs": [
                     "ak:event:AfvrAq1HpvtWnJUdItm-GuA1K2J_x5KVF7DAoTlvG8Q3"
@@ -478,9 +478,9 @@
             {
               "target_seal_ref": "ak:seal:sha256:0404040404040404040404040404040404040404040404040404040404040404",
               "state_root": "sha256:9d2613f745429302f4ee219faf3abccd96aae8110e4c4422d19dc5663de71eec",
-              "entries": [
+              "cells": [
                 {
-                  "cell": "ak:cell:ak.component.member.state.v1:did.web.member-1.example",
+                  "cell_id": "ak:cell:ak.component.member.state.v1:did.web.member-1.example",
                   "value_digest": "sha256:3866fc7fd988d77fed44d91b5c4145595a26dc8922439cad4a7ce16ebb86c3a8",
                   "provenance_event_refs": [
                     "ak:event:AcbSV9RYrFdGJivoqWVfbsL0H7U9qXdzrsD6MPMwX6BA"
@@ -559,14 +559,14 @@
       "outcome": {
         "query_digest": "sha256:431b8c7fb3c3f3cd3bf00fad03a588fa77bfa17d4ae935d0968ff9bfa7cfaa9e",
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:cbbd40c62d09aef8491c572f7a575e94af19b7468bcd7057bfbee4fe7185038a",
+          "frontier_registry_digest": "sha256:96c04e026cbb8bb85e191c829118afea89fae02a7024fbdfcffb256fe162ee3d",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0303030303030303030303030303030303030303030303030303030303030303",
               "state_root": "sha256:84b4e77e477b2c36c354f7a0a2135e7b2d56baef20c4fd661d7481ab8abc3d5b",
-              "entries": [
+              "cells": [
                 {
-                  "cell": "ak:cell:ak.component.member.state.v1:did.web.member-0.example",
+                  "cell_id": "ak:cell:ak.component.member.state.v1:did.web.member-0.example",
                   "value_digest": "sha256:be44bec1b9b85a79799441eb69585de18b56c8043a7d52ad76c51dac2060c4d9",
                   "provenance_event_refs": [
                     "ak:event:AfvrAq1HpvtWnJUdItm-GuA1K2J_x5KVF7DAoTlvG8Q3"
@@ -608,9 +608,9 @@
             {
               "target_seal_ref": "ak:seal:sha256:0404040404040404040404040404040404040404040404040404040404040404",
               "state_root": "sha256:9d2613f745429302f4ee219faf3abccd96aae8110e4c4422d19dc5663de71eec",
-              "entries": [
+              "cells": [
                 {
-                  "cell": "ak:cell:ak.component.member.state.v1:did.web.member-1.example",
+                  "cell_id": "ak:cell:ak.component.member.state.v1:did.web.member-1.example",
                   "value_digest": "sha256:3866fc7fd988d77fed44d91b5c4145595a26dc8922439cad4a7ce16ebb86c3a8",
                   "provenance_event_refs": [
                     "ak:event:AcbSV9RYrFdGJivoqWVfbsL0H7U9qXdzrsD6MPMwX6BA"
@@ -685,9 +685,9 @@
             "ak:event:AfvrAq1HpvtWnJUdItm-GuA1K2J_x5KVF7DAoTlvG8Q3"
           ]
         },
-        "page_digest": "sha256:7eec08ca99789fa3050bb456050b9e0b878d7f2bbc66b05caa8a6ee7ae168a67"
+        "page_digest": "sha256:3987f70c67defc338c340692dd9f7b37de7e0b81871b599e2a2a6cab271b56d6"
       },
-      "expected_page_digest": "sha256:7eec08ca99789fa3050bb456050b9e0b878d7f2bbc66b05caa8a6ee7ae168a67",
+      "expected_page_digest": "sha256:3987f70c67defc338c340692dd9f7b37de7e0b81871b599e2a2a6cab271b56d6",
       "expected_relation": "strict_descendant_antichain"
     }
   ],

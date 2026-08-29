@@ -91,7 +91,7 @@ def frontier_entry(target_ref: str, index: int) -> tuple[dict[str, Any], str, st
     preimage = jcs({"cell": cell, "state": {"value": value}})
     leaf_digest = sha(ZERO + preimage)
     entry = {
-        "cell": cell,
+        "cell_id": cell,
         "value_digest": sha(jcs(value)),
         "provenance_event_refs": [event_id],
         "inclusion_witness": {
@@ -163,7 +163,7 @@ def body(refs: list[str], target_refs: list[str], edges: list[tuple[str, str]]) 
             {
                 "target_seal_ref": target_ref,
                 "state_root": state_root,
-                "entries": entries,
+                "cells": entries,
                 "range_witnesses": ranges,
             }
         )

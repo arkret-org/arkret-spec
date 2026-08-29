@@ -2882,6 +2882,35 @@ def check_wire_schema_no_bare_scope(lint: Lint) -> None:
 
 
 
+def check_closed_object_required_declared(lint: Lint) -> None:
+    """A closed object may not require a member it does not declare.
+
+    `additionalProperties: false` plus a `required` name absent from
+    `properties` makes the node unsatisfiable: no document can carry the
+    required member without being rejected as an undeclared one. This is what a
+    field rename looks like when it reaches `properties` but not `required`, and
+    it is invisible until a conformance run tries to build a valid instance.
+    """
+    for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
+        data = load_json(lint, path)
+        if not isinstance(data, dict):
+            continue
+        for json_path, value, _key in walk_json(data):
+            if not isinstance(value, dict) or value.get("additionalProperties") is not False:
+                continue
+            required = value.get("required")
+            properties = value.get("properties")
+            if not isinstance(required, list) or not isinstance(properties, dict):
+                continue
+            undeclared = [name for name in required if name not in properties]
+            if undeclared:
+                lint.fail(
+                    path,
+                    f"{json_path} is unsatisfiable: required {sorted(undeclared)} "
+                    "absent from properties under additionalProperties:false",
+                )
+
+
 def check_reducer_payload_closure(lint: Lint) -> None:
     """Standard reducer-input payloads must reject undeclared top-level fields."""
     event_envelope_path = ARTIFACTS / "schemas" / "event-envelope.schema.json"

@@ -5747,7 +5747,7 @@
           "e2ee_authorization_refs",
           "widget_policy_ref",
           "effective_status",
-          "rejected"
+          "rejections"
         ],
         "properties": [
           "install_id",

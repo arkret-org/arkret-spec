@@ -138,7 +138,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "8346d52e2852a16b402da9446e3c426323dc62c8f62e5b3df38b30a8f5fb3fd8"
+      "sha256": "a99cbe3da5390934dd1c87318dfca46355fd921770df54536c94fbbbb9ce5242"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -238,7 +238,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
-      "sha256": "073280ff0468b86b04750fd5147322dfb7d689335018e8b2553c549b6396c0d8"
+      "sha256": "05d7dbb612b84e336e80da956a30d0be3e7c711a80c0dca29b9a885dbceb8aed"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",

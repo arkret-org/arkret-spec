@@ -12,6 +12,8 @@ P0/P1 checks aligned with `_improve.md`:
   in body text flagged as warnings.
 - Mixed half-width punctuation in Chinese-language paragraphs (`,` `;`
   surrounded by CJK chars) reported.
+- Operation-table response fields must exist in the row's own
+  `response_schema_ref` schema (SB001).
 
 Usage:
 
@@ -26,6 +28,7 @@ gaps and unknown status values are errors.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from collections import Counter
@@ -42,6 +45,7 @@ except ImportError:  # pragma: no cover - CI installs the dependency.
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_ZH = ROOT / "spec" / "v1" / "zh"
 PROPOSALS = ROOT / "spec" / "v1" / "proposals"
+SCHEMAS = ROOT / "spec" / "v1" / "artifacts" / "schemas"
 OPENAPI = ROOT / "spec" / "v1" / "artifacts" / "openapi" / "arkret-service-api.openapi.yaml"
 
 REQUIRED_FRONTMATTER = {"title", "status", "normative", "stability", "updated"}
@@ -97,6 +101,11 @@ SECTION_REF_RE = re.compile(r"§\s*(\d+(?:\.\d+)*)")
 NUMBERED_HEADING_RE = re.compile(r"^#{1,6}\s+(\d+(?:\.\d+)*)(?:[.．]\s+|\s+|$)")
 TABLE_ROW_RE = re.compile(r"^\|.*\|$")
 TABLE_DELIMITER_CELL_RE = re.compile(r"^:?-{3,}:?$")
+RESPONSE_SCHEMA_REF_RE = re.compile(
+    r"response_schema_ref=([A-Za-z0-9_./-]+\.schema\.json)#/\$defs/([A-Za-z0-9_]+)"
+)
+FIELD_NAME_RE = re.compile(r"`([a-z_][a-z0-9_]*)\s*:")
+_SCHEMA_CACHE: dict[str, dict | None] = {}
 
 FRONTMATTER_RE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.DOTALL)
 PROPOSAL_FILE_RE = re.compile(r"^(?P<num>[0-9]{4})-[A-Za-z0-9_.-]+\.md$")
@@ -277,6 +286,119 @@ def lint_table_blocks(path: Path, text: str, body_offset: int) -> list[Finding]:
                     start + 1,
                     "MD001",
                     "table-like row block lacks a header delimiter; a preceding paragraph or blank line may have split the table",
+                    "error",
+                )
+            )
+    return findings
+
+
+def _schema_document(name: str) -> dict | None:
+    if name not in _SCHEMA_CACHE:
+        schema_path = SCHEMAS / name
+        _SCHEMA_CACHE[name] = (
+            json.loads(schema_path.read_text(encoding="utf-8")) if schema_path.is_file() else None
+        )
+    return _SCHEMA_CACHE[name]
+
+
+def _resolve_pointer(document: dict, fragment: str):
+    node = document
+    for part in (segment for segment in fragment.split("/") if segment):
+        if not isinstance(node, dict):
+            return None
+        node = node.get(part.replace("~1", "/").replace("~0", "~"))
+        if node is None:
+            return None
+    return node
+
+
+def schema_property_names(file_name: str, def_name: str) -> set[str] | None:
+    """Property keys reachable from one `$defs` node, following `$ref` across files.
+
+    The prose lists a response's top-level fields, but rows routinely name a
+    nested field too, so membership anywhere in the closure is what makes a
+    prose name sound. A name absent from the whole closure is a rename the
+    prose never picked up.
+    """
+    document = _schema_document(file_name)
+    if document is None:
+        return None
+    root = (document.get("$defs") or {}).get(def_name)
+    if root is None:
+        return None
+    names: set[str] = set()
+    visited: set[tuple[str, int]] = set()
+    stack: list[tuple[str, object]] = [(file_name, root)]
+    while stack:
+        current_file, node = stack.pop()
+        if isinstance(node, list):
+            stack.extend((current_file, item) for item in node)
+            continue
+        if not isinstance(node, dict):
+            continue
+        key = (current_file, id(node))
+        if key in visited:
+            continue
+        visited.add(key)
+        ref = node.get("$ref")
+        if isinstance(ref, str):
+            target_name, _, fragment = ref.partition("#")
+            target_file = Path(target_name).name or current_file
+            target_document = _schema_document(target_file)
+            if target_document is not None:
+                target = _resolve_pointer(target_document, fragment)
+                if target is not None:
+                    stack.append((target_file, target))
+        properties = node.get("properties")
+        if isinstance(properties, dict):
+            names.update(properties.keys())
+        for value in node.values():
+            if isinstance(value, (dict, list)):
+                stack.append((current_file, value))
+    return names
+
+
+def lint_binding_response_fields(path: Path, text: str, body_offset: int) -> list[Finding]:
+    """SB001 — every response field the prose names must exist in its schema.
+
+    Operation rows carry `response_schema_ref=<file>#/$defs/<name>`, which makes
+    the schema the checkable half of the row. Renames landed in the schemas
+    without the prose following, so implementations and conformance tests that
+    read the table wrote fields the server never returns.
+    """
+    findings: list[Finding] = []
+    for offset, raw in enumerate(text.splitlines()[body_offset:], start=body_offset):
+        if not raw.startswith("|") or "response_schema_ref=" not in raw:
+            continue
+        cells = [cell.strip() for cell in raw.strip().strip("|").split("|")]
+        if len(cells) < 5:
+            continue
+        match = RESPONSE_SCHEMA_REF_RE.search(cells[-1])
+        if not match:
+            continue
+        schema_file = Path(match.group(1)).name
+        names = schema_property_names(schema_file, match.group(2))
+        if names is None:
+            findings.append(
+                Finding(
+                    path,
+                    offset + 1,
+                    "SB001",
+                    f"response_schema_ref points at {schema_file}#/$defs/{match.group(2)}, "
+                    "which does not resolve",
+                    "error",
+                )
+            )
+            continue
+        unknown = sorted({name for name in FIELD_NAME_RE.findall(cells[-2]) if name not in names})
+        if unknown:
+            findings.append(
+                Finding(
+                    path,
+                    offset + 1,
+                    "SB001",
+                    f"response fields {', '.join(unknown)} are absent from "
+                    f"{schema_file}#/$defs/{match.group(2)}",
                     "error",
                 )
             )
@@ -472,6 +594,7 @@ def lint_file(path: Path) -> list[Finding]:
                 )
 
     findings.extend(lint_table_blocks(path, text, body_offset))
+    findings.extend(lint_binding_response_fields(path, text, body_offset))
     findings.extend(lint_control_plane_receipt(path, text, body_offset))
 
     all_lines = text.splitlines()
