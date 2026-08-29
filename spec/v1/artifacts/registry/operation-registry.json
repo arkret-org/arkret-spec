@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.6",
+  "version": "2026-08-29.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T13:08:00+08:00",
+  "generated_at": "2026-08-29T14:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4592,6 +4592,7 @@
         "agent_runtime",
         "applet",
         "candidate_join_policy",
+        "history_key_recovery",
         "mimi_interop",
         "push",
         "tus_upload",
@@ -5404,6 +5405,59 @@
         },
         {
           "operation_id": "ak.self.realm.join_application.resource.get.v1",
+          "binding_kind": "http_json"
+        }
+      ]
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.principal_server.history_key_recovery.v1",
+      "service_kind": "principal_server",
+      "deployment_evidence": [
+        "ak.deployment_prototype.soland_principal_server.v1#history_key_recovery"
+      ],
+      "members": [
+        {
+          "operation_id": "ak.peer.history_key_requests.command.replicate.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.history_key_responses.command.relay.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.organization_recovery_archives.command.replicate.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.history_key_requests.command.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.history_key_requests.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.history_key_responses.command.ack.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.history_key_responses.command.send.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.history_key_responses.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.organization_recovery_archives.read.list.v1",
           "binding_kind": "http_json"
         }
       ]

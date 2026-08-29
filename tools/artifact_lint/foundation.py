@@ -2419,8 +2419,8 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         if canonical_members != sorted(set(canonical_members)):
             lint.fail(operation_path, f"{bundle_id}.members must be unique and canonical-sorted")
 
-    if len(bundle_ids) != 39:
-        lint.fail(operation_path, f"operation_bundles must contain the 39 evidenced v1 bundles, got {len(bundle_ids)}")
+    if len(bundle_ids) != 40:
+        lint.fail(operation_path, f"operation_bundles must contain the 40 evidenced v1 bundles, got {len(bundle_ids)}")
     describe_pair = ("ak.server.read.describe.v1", "http_json")
     for service_kind in sorted(service_kinds):
         describe_bundle_id = f"ak.operation_bundle.{service_kind}.describe.v1"
@@ -2541,6 +2541,15 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
             operation_path,
             "principal_server.http_core leaks identity/directory role operations: "
             f"{leaked_role_operations}",
+        )
+
+    history_key_recovery = exact_http_members(
+        "ak.operation_bundle.principal_server.history_key_recovery.v1"
+    )
+    if history_key_recovery != surface_operations.get("history_key_recovery", set()):
+        lint.fail(
+            operation_path,
+            "principal_server.history_key_recovery must exactly project the complete history_key_recovery surface",
         )
 
     migration_path = ROOT / "tools" / "operation-id-v1-migration.json"

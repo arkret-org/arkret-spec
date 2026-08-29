@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.6",
+  "version": "2026-08-29.8",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T13:08:00+08:00",
+  "generated_at": "2026-08-29T14:45:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -15883,8 +15883,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-29.4",
-    "generated_at": "2026-08-29T12:15:56+08:00",
+    "version": "2026-08-29.5",
+    "generated_at": "2026-08-29T14:40:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_principal_server.v1",
@@ -15895,6 +15895,7 @@
           "agent_runtime",
           "applet",
           "candidate_join_policy",
+          "history_key_recovery",
           "mimi_interop",
           "push",
           "tus_upload",
@@ -16513,6 +16514,59 @@
           },
           {
             "operation_id": "ak.self.realm.join_application.resource.get.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.principal_server.history_key_recovery.v1",
+        "service_kind": "principal_server",
+        "deployment_evidence": [
+          "ak.deployment_prototype.soland_principal_server.v1#history_key_recovery"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.peer.history_key_requests.command.replicate.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.history_key_responses.command.relay.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.organization_recovery_archives.command.replicate.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.history_key_requests.command.create.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.history_key_requests.read.list.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.history_key_responses.command.ack.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.history_key_responses.command.send.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.history_key_responses.read.list.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.organization_recovery_archives.read.list.v1",
             "binding_kind": "http_json"
           }
         ]
@@ -20238,7 +20292,52 @@
         "status": "active",
         "defined_in": "zh/governance/history-visibility.md",
         "service_kinds": [],
-        "required_operation_pairs": [],
+        "required_operation_pairs": [
+          {
+            "operation_id": "ak.peer.history_key_requests.command.replicate.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.history_key_responses.command.relay.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.organization_recovery_archives.command.replicate.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.history_key_requests.command.create.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.history_key_requests.read.list.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.history_key_responses.command.ack.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.history_key_responses.command.send.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.history_key_responses.read.list.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.organization_recovery_archives.read.list.v1",
+            "binding_kind": "http_json"
+          }
+        ],
         "required_profiles": [],
         "required_limits": [],
         "semantic_guarantees": [
@@ -20403,7 +20502,7 @@
         "conflicts": []
       }
     ],
-    "version": "2026-08-29.1",
-    "generated_at": "2026-08-29T00:00:00+08:00"
+    "version": "2026-08-29.2",
+    "generated_at": "2026-08-29T14:40:00+08:00"
   }
 }

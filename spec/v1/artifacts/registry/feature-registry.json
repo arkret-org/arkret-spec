@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.3",
+  "version": "2026-08-29.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T09:00:00+08:00",
+  "generated_at": "2026-08-29T14:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical exact feature identities advertised only through ServiceDescribe.supported_features.",
@@ -153,7 +153,52 @@
       "status": "active",
       "defined_in": "zh/governance/history-visibility.md",
       "service_kinds": [],
-      "required_operation_pairs": [],
+      "required_operation_pairs": [
+        {
+          "operation_id": "ak.peer.history_key_requests.command.replicate.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.history_key_responses.command.relay.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.organization_recovery_archives.command.replicate.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.history_key_requests.command.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.history_key_requests.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.history_key_responses.command.ack.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.history_key_responses.command.send.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.history_key_responses.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.organization_recovery_archives.read.list.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "required_profiles": [],
       "required_limits": [],
       "semantic_guarantees": [
