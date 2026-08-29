@@ -1022,18 +1022,6 @@ class IdentifierRoleSuffixTest(MutationHarness):
         )
         self.assertTrue(any("registered network locator `source_url`" in error for error in errors), errors)
 
-    def test_object_terminal_cannot_claim_uri_representation(self) -> None:
-        def mutate(document):
-            shape = document["$defs"]["PolicyCheckRequestBody"]
-            shape["properties"]["source_url"] = shape["properties"].pop("source")
-
-        errors = self.lint_with_file(
-            SCHEMA_DIR / "service-operation-dtos.schema.json",
-            mutate,
-            check=check_identifier_role_suffix_contracts,
-        )
-        self.assertTrue(any("registered network locator `source_url`" in error for error in errors), errors)
-
     def test_duplicate_representation_suffix_fails_in_registry(self) -> None:
         def mutate(document):
             document["event_kinds"][0]["payload_schema_ref"] = "payload.subject_id_id"

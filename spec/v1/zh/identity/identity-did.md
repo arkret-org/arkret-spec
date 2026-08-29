@@ -878,7 +878,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 - Organization principal MUST 由其 DID Document / method history 中的密钥或委托服务控制。
 - 高风险治理动作 SHOULD 使用阈值签名、多签 approval 或 governance service attestation。
-- 组织可委派 service DID 代表其运行 Principal Server、Policy Server、Applet、Directory 或受托 search / projection 扩展，但该委派 MUST 明确 purpose、scope 和有效期。
+- 组织可委派 service DID 代表其运行 Principal Server、Applet、Directory 或受托 search / projection 扩展，但该委派 MUST 明确 purpose、scope 和有效期。
 - 组织 DID 的密钥轮换、恢复和停用 MUST 进入 DID method 的可验证历史。
 - 组织所有权转移 MUST 由原控制状态授权，并生成可验证 transfer / recovery 记录；实现 MUST NOT 因域名、商标或 UI 文案变化自动认定组织所有权转移。
 
@@ -934,7 +934,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 1. 发起者构造 rotation proposal，绑定 organization DID、当前 history head、待撤销 key、待加入 key、目的、有效期和 rollback plan。
 2. 收集满足 threshold 的 method-native signature、multi-proof 或 governance service attestation。
 3. 提交 DID method operation；`did:webvh` 场景写入新的 DID log entry，并由 watcher / witness 见证。
-4. 发布或更新 Arkret governance / service delegation state，使 Principal Server、Policy Server 和 Realm endorsement 使用新 key set。
+4. 发布或更新 Arkret governance / service delegation state，使 Principal Server 和 Realm endorsement 使用新 key set。
 5. 客户端验证旧 history head、quorum proof、新 key 生效时间和被撤销 key 不再授权后，才接受高风险组织写入。
 
 若 3 个 governance key 中 1 个泄露，且 policy 为 2-of-3，两个未泄露 key 可以签发 rotation，移除泄露 key 并加入新 key；泄露 key 单独不能完成 rotation。若剩余可用 key 少于 threshold，必须走 policy 中预先声明的 emergency recovery，而不是临时降低 threshold。

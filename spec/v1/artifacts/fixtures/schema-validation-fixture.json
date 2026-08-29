@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-08-23.1",
+  "version": "2026-08-29.2",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -921,50 +921,6 @@
       "first_expected_error": "contains:is not valid under any of the given schemas",
       "instance": {
         "alias": "general"
-      }
-    },
-    {
-      "name": "policy_check_request_valid_bound_context",
-      "schema_ref": "openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody",
-      "expect_valid": true,
-      "instance": {
-        "request_id": "polreq_01",
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "action": "ak.message.create",
-        "actor_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
-        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "source": {
-          "service_id": "ak:did_core:webvh:z6mkfixtureserverexample",
-          "service_kind": "principal_server",
-          "source_ip_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "signed_transport": true
-        },
-        "event_preview": {
-          "kind": "ak.message.create",
-          "content_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-        },
-        "auth_context": {
-          "membership": "join",
-          "origin_service": "ak:did_core:webvh:z6mkfixtureserverexample"
-        }
-      }
-    },
-    {
-      "name": "policy_check_request_missing_realm_id_rejected",
-      "schema_ref": "openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody",
-      "expect_valid": false,
-      "first_expected_error": "$: 'realm_id' is a required property",
-      "instance": {
-        "request_id": "polreq_01",
-        "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "action": "ak.message.create",
-        "actor_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
-        "source": {
-          "service_id": "ak:did_core:webvh:z6mkfixtureserverexample",
-          "service_kind": "principal_server",
-          "signed_transport": true
-        }
       }
     },
     {

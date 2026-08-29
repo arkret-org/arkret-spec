@@ -1623,9 +1623,6 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
             if STABLE_SECTION_PLACEHOLDER_RE.search(line):
                 lint.fail(path, f"line {line_no}: placeholder section reference must be replaced with a stable heading or real section number")
 
-            if "/arkret/v1/check" in line:
-                lint.fail(path, f"line {line_no}: legacy policy path /arkret/v1/check must be replaced with /_arkret/self/policy/check")
-
             if TRUST_DOMAIN_JSON_DID_RE.search(line):
                 lint.fail(path, f"line {line_no}: trust_domain must use ak:trust_domain:<scope>, not a raw DID")
 

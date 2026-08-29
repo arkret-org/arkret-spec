@@ -83,7 +83,6 @@ from .bindings import (
     check_operation_durable_effect_contract,
     check_operation_field_table_schema_refs,
     check_operation_surfaces,
-    check_policy_check_alignment,
     check_request_material_supply_closure,
     check_service_describe_alignment,
 )
@@ -381,7 +380,6 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_operation_durable_effect_contract(lint),
             ),
             ("service_describe", lambda: check_service_describe_alignment(lint)),
-            ("policy_check", lambda: check_policy_check_alignment(lint)),
             ("dedicated_schemas", lambda: check_openapi_dedicated_operation_schemas(lint)),
             ("core_selectors", lambda: check_openapi_core_selector_constraints(lint)),
             ("openapi_auth", lambda: check_openapi_auth_semantics(lint)),

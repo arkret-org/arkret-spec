@@ -456,7 +456,6 @@ Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered cell proj
 | `ak.component.realm.history_access.v1` | `ak.realm.history_access` | MIMI 若能表达等价的 current-member history range 则映射；否则 fail closed，不臆造旧五档 visibility |
 | `ak.component.realm.discovery.v1` | `ak.realm.discovery` | `participation` 中 `discoverability` 子字段 |
 | `ak.component.realm.alias.v1` | `ak.realm.alias` | （Arkret 专属；MIMI 的 room URI / hub-local name 不是可映射 policy component） |
-| `ak.component.realm.policy_server.v1` | `ak.realm.policy_server` | （Arkret 专属，与 MIMI hub provider 概念解耦） |
 | `ak.component.realm.policy_bundle.v1` | `ak.realm.policy_bundle` | 没有独立 facet event kind 的 Realm policy 组件集合（`join_policy` / `agent_participation` / `account_deactivation` / `availability_policy` / `audit_policy` / `preauth` / 加密 floor 与 scheme 等）；对应 MIMI 的 `participation.join_policy`、`preauth` 与 `bot` 子字段 |
 | `ak.component.realm.asset_privacy_policy.v1` | `ak.realm.asset_privacy_policy` | `asset` |
 | `ak.component.realm.moderation_policy.v1` | `ak.realm.moderation_policy` | `logging` 的 abuse-report 子字段 + 自定义 `moderation` extension |
@@ -571,6 +570,6 @@ Arkret v1 的 MIMI 支持固定为 facade profile：
 - 不把 MIMI hub 变成 Arkret 的唯一 truth source。
 - 不用 MIMI room id 替代 `realm_id`。
 - 不用 MIMI user identifier 替代 DID。
-- 不绕过 Arkret capability Control Move refs / Policy Server。
+- 不绕过 Arkret capability Control Move refs 与本地授权检查。
 - 不把 MIMI provider accepted timestamp 替代 Arkret HLC / event hash。
 - 支持 MIMI 草案版本 pinning，并允许未来 profile 处理草案变化。

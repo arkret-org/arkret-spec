@@ -202,7 +202,7 @@ phase 只保留注册 root-control，普通 operational/grant/member/policy/term
 
 ## 4. Resource Selector
 
-Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 与 [`policy-server.md` §7.0](./policy-server.md) 为准）：
+Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 为准）：
 
 - `realm`
 - `space`
@@ -430,7 +430,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.member.rejoin.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_repair.v1`；scope_suffix_variant，target=`ak.member.state`；Direct Conversation exact-pair self-rejoin 专用，只允许 `actor_id == payload.actor_id` 的 `leave → join`，不得承载首次 join、第三 participant 或代对方 join，也不得取得 grant/policy/admin/Strand/binding 变更权）
 - Candidate join-policy 不登记专用 capability action。current-v1 的 reviewer 资格固定使用覆盖目标 Realm 的现有 `ak.realm.admin` grant；profile claim、ServiceDescribe、membership 与实现配置均不得扩大 issuer authority。review 结果仍承载为 signed receipt（`review_receipt_digest`），并由 `ak.invite.create.refs[role='join_authorised_by']` 引用（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）。
 - `ak.approval.vote`
-- `ak.moderation.decision`（写入 sealed moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
+- `ak.moderation.decision`（写入 sealed moderation state cell；详见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）
 - `ak.moderation.decision.lift`（解除已 sealed 的 moderation 决策）
 - `ak.moderation.appeal.submit`（risk_tier=low；提交对 moderation 决策的申诉，target=`ak.moderation.appeal.submit`）
 - `ak.moderation.appeal.review`（risk_tier=medium；审理申诉，aggregate admin action，target=`{ak.moderation.appeal.review, ak.moderation.appeal.decision, ak.moderation.appeal.close}`）
@@ -722,7 +722,7 @@ grant SHOULD 同时记录签发时点的 `auth_state_digest` / `auth_frontier`�
 
 解析 `issuer_authority_refs[]` 时，reducer MUST 主动查询本地已 accepted 的 grant / revoke index。若任一 `kind="grant"` ancestor 在本地已知为 revoked、superseded、expired 或 tombstoned：高风险 action 的 child grant 及依赖它的 Event MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`；中低风险 DataEvent 则 MUST 按 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的 causal distance window 判定，在窗口内接受时标记 `authorization_freshness="stale"`，越窗后拒绝。若本地无法确认 freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
-`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ak:grant:<44-char-event-token>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `ak.self.policy.read.check.v1`（默认 path `/_arkret/self/policy/check`）decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
+`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ak:grant:<44-char-event-token>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次临时 policy decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
 
 1. 该 grant 直接授权的 pending Event MUST fail closed；
 2. 以它为 ref 的 grant MUST 标记 `revoked_upstream`。child grant 的有效性 MUST 取其**所有** ref path freshness 的最严格值（min over paths）：只要有**任一**关键 ancestor 在某条 path 上为 `revoked` / `superseded` / `expired` / `tombstoned` / freshness `unknown`，整个 child grant 即 MUST 降级 fail-closed，MUST NOT 因为存在另一条"仍有效的 alternate path"而保持有效。实现 MUST NOT 把多 ref 当作可漂白单条 path 撤销的冗余授权；多 ref 只增加约束、不放宽约束。child grant 仅当其**每一条** path 上的全部关键 ancestor 都仍有效时才保持有效；
@@ -776,7 +776,7 @@ capability 授权状态投影到 cell family `ak.component.capability.grant.v1`�
 
 - **grant** = 对该 grant cell 的 or_set **add**：add dot = 该 `ak.capability.grant` 事件的 `ak:event:<event_id>:<write_index>`（dot 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value = grant 的 canonical 快照。
 - **revoke** = 对**同一** grant cell 的 or_set **remove**，observe 该 grant 的 add dot（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dot_ids` 语义一致）。`ak.capability.revoke` 以顶层 `grant_id` 定位目标 cell；reducer **MUST** 在该 revoke Control Move 的 `seal_basis` view 下把目标 grant 的 add dot 解析为合法 add op 后再 supersede。已被 observe-remove 的 add **MUST NOT** 因同 `grant_id` 的后续 re-add / 重放而复活（remove-after-observed-add 为终态）；多 issuer 并发 revoke 同一 grant 收敛于 or_set 的去重语义。
-- **有效性** = 该 grant cell or_set join 后仍存活（未被 observed-remove）的 add 所对应的 grant 快照。对 `ak.component.capability.grant.v1` 这一 grant cell 而言，`bottom` 对 or_set **inert**：or_set join 永不产生 ⊥，[`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中该 cell 明确登记 `bottom = inert`，reducer **MUST NOT** 据其产生任何 reject 语义（与 [`../identity/consent-model.md`](../identity/consent-model.md) 对 consent or_set `bottom` 的 inert 处理一致）；有效权限集合始终由 or_set join 决定。该 inert 规则只适用于 capability / consent 这类普通 observed-remove 集合；`ak.component.moderation_state.v1` 的 `bottom=expose` 是显式领域冲突处理，按 [`policy-server.md` §7.2](./policy-server.md) 的 `moderation_control_split` 规则 fail closed 并暴露冲突状态。
+- **有效性** = 该 grant cell or_set join 后仍存活（未被 observed-remove）的 add 所对应的 grant 快照。对 `ak.component.capability.grant.v1` 这一 grant cell 而言，`bottom` 对 or_set **inert**：or_set join 永不产生 ⊥，[`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中该 cell 明确登记 `bottom = inert`，reducer **MUST NOT** 据其产生任何 reject 语义（与 [`../identity/consent-model.md`](../identity/consent-model.md) 对 consent or_set `bottom` 的 inert 处理一致）；有效权限集合始终由 or_set join 决定。该 inert 规则只适用于 capability / consent 这类普通 observed-remove 集合；`ak.component.moderation_state.v1` 的 `bottom=expose` 是显式领域冲突处理，按 [`../governance/content-moderation.md`](../governance/content-moderation.md) 的 `moderation_control_split` 规则 fail closed 并暴露冲突状态。
 - **GC / tombstone**：已被 sealed 的 grant / revoke 历史保留审计事实（§10.3 第 4 点）；GC 后 cell **MUST** 保留足以判定"该 `grant_id` 当前是否仍授权"的 tombstone，snapshot / range completeness / export **MUST NOT** 把已 revoke 的 grant 再计为"当前仍授权"。
 
 conformance：[`capability-fixture.json`](../../artifacts/fixtures/capability-fixture.json) **MUST** 覆盖 (a) grant → use → revoke → deny 序列、(b) 同一 grant 重复 / 并发 revoke 的幂等去重收敛、(c) revoke 后以同 `grant_id` re-add 仍保持已撤销（终态不复活）。freshness `unknown` 下高风险 action fail-closed 由 §18.2 风险表规范并据其验证。
@@ -880,7 +880,7 @@ Facets 不属于独立授权输入。算法 MUST NOT 在上述步骤之外读取
 - `ak.strand.move`
 - `ak.strand.reorder`
 
-Fast path 只能缓存基础 capability 是否允许。Moderation / Policy Server 的 `deny`、`quarantine`、`require_review`、rate limit、legal hold 和 abuse policy 仍 MUST 在写入接收、分发和查询返回前执行。
+Fast path 只能缓存基础 capability 是否允许。Moderation 的 `deny`、`quarantine`、`require_review`、rate limit、legal hold 和 abuse policy 仍 MUST 在写入接收、分发和查询返回前执行。
 
 Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定 subject/action/resource 三元组。每个 cache entry 至少包含：
 
@@ -894,7 +894,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 规则：
 
 - 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点接受 DataEvent 或确认控制面 Seal 并更新相关 cell 的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**MUST NOT** 作为延迟标记 stale 的理由。**Reducer-derived membership cascade** 也 MUST 触发 cache stale：典型场景是 Realm leave/ban 触发各 Circle membership 自动收敛（见 [`circle.md` §9.1](../models/circle.md)），以及 Circle tombstone 触发对象 scope 失效。这些 cascade 不一定发出独立 `ak.member.state` event，但产生的 cell 变化同样属于"membership 变化"，MUST 触发 cache invalidation。
-- **Moderation state cell 与 cache 的关系**：sealed moderation decision（写入 `ak.component.moderation_state.v1`，见 [`policy-server.md` §7.1](./policy-server.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation cell 标记的 actor 不在其中），则该 cell 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
+- **Moderation state cell 与 cache 的关系**：sealed moderation decision（写入 `ak.component.moderation_state.v1`，见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation cell 标记的 actor 不在其中），则该 cell 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
   - **静态 lint 规则（MUST，reducer / schema 强制）**：为防止 silently-stale grant，grant 在写入 / accept 时若满足下列任一条件，`constraints[]` 中 **MUST 显式包含** `depends_on_moderation_state=true`，缺失即 `schema_violation`：
     1. `subject` 是 condition selector 且引用任何 moderation state 字段（例如 `not_in_moderation_set`、`moderation_role_in`、`moderation_status_*`）；
     2. `actions[]` 包含 `ak.moderation.decision` / `ak.moderation.decision.lift` / `ak.realm.moderation_policy` 中的任一项（moderator role grant 几乎总是依赖 moderation cell 决定谁是 moderator）；

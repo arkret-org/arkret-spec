@@ -2,7 +2,7 @@
 # v1 core 互操作锁定 HTTP/JSON binding (artifacts/openapi/arkret-service-api.openapi.yaml)。
 # 本文件描述 WebSocket / SSE / gRPC / message queue / libp2p binding 的 frame / topic 形态，
 # 仅在显式声明对应 binding profile 的部署中适用；v1 core 实现不要求实现这些 binding。
-version: "2026-08-20"
+version: "2026-08-29"
 operation_registry: ../registry/operation-registry.json
 coverage: complete_except_http_only
 coverage_contract: >-
@@ -123,10 +123,6 @@ grpc:
       EffectivePolicy: ak.self.realm_link.read.effective_policy.v1
     SelfRealmOrganization:
       List: ak.self.realm_organization.read.list.v1
-    SelfRealmPolicyServer:
-      Get: ak.self.realm_policy_server.resource.get.v1
-      Replace: ak.self.realm_policy_server.resource.replace.v1
-      Delete: ak.self.realm_policy_server.resource.delete.v1
     SelfRealm:
       Get: ak.self.realm.resource.get.v1
       Export: ak.self.realm.read.export.v1
@@ -329,8 +325,6 @@ grpc:
     SelfModeration:
       FrankingSealObservation: ak.self.moderation.read.franking_seal_observation.v1
       Report: ak.self.moderation.command.report.v1
-    SelfPolicy:
-      Check: ak.self.policy.read.check.v1
     SelfSpace:
       List: ak.self.space.read.list.v1
     SelfStrand:
@@ -467,9 +461,6 @@ mq:
     self.realm_link.resource.delete: ak.self.realm_link.resource.delete.v1
     self.realm_link.query.effective_policy: ak.self.realm_link.read.effective_policy.v1
     self.realm_organization.query.list: ak.self.realm_organization.read.list.v1
-    self.realm_policy_server.resource.get: ak.self.realm_policy_server.resource.get.v1
-    self.realm_policy_server.resource.replace: ak.self.realm_policy_server.resource.replace.v1
-    self.realm_policy_server.resource.delete: ak.self.realm_policy_server.resource.delete.v1
     self.realm.resource.get: ak.self.realm.resource.get.v1
     self.realm.query.export: ak.self.realm.read.export.v1
     self.realm.moderation_policy.query.effective: ak.self.realm.moderation_policy.read.effective.v1

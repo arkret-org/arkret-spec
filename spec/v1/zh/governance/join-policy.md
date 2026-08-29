@@ -52,7 +52,7 @@ updated: 2026-07-13
 3. **审核决策必须有稳定审计材料。** 实现声明 `ak.profile.candidate.join_policy.v1` 时，所有审核接受 / 拒绝 MUST 是签名且被 accepted Seal 覆盖的 Control Move、profile-private Event 或 signed receipt，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §5.5](./content-moderation.md) 申诉流程与 [`./content-moderation.md` §10](./content-moderation.md) 审计要求）依赖该 trail。
 4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：candidate profile 下随后的 `ak.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
 5. **自动解析路径不强制走人工。** 当所有 gate 都可自动解析（claim presentation 验证、challenge proof 验证），applicant 可直接提交 `ak.member.state{membership=join}` Control Move，由 reducer 内联校验，无需 application / review Control Move。这条路径替代既有 `restricted` 入口模式的实质语义。
-6. **Capability 仍是 allow 唯一来源。** Join Policy gate 通过即"可以提议加入"，但 reducer 仍按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 校验 join Control Move 的 capability。Policy Server `obligations[]`（§12）只能在 capability 之上叠加额外要求（如 challenge），不能凭空创造权限。
+6. **Capability 仍是 allow 唯一来源。** Join Policy gate 通过即"可以提议加入"，但 reducer 仍按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 校验 join Control Move 的 capability。
 
 ## 3. Cell Family 与 State Event
 
@@ -68,7 +68,7 @@ value shape := JoinPolicy（见下；机器真源
 
 Join policy **没有**独立 Event kind，也**没有**独立 cell family：它是 `ak.realm.policy_bundle` payload 的 `join_policy` 组件，随整个 bundle 一起写入 per-Realm 单例 `ak.component.realm.policy_bundle.v1` cell，因此也随 `policy_revision` 单调推进、被同一 cas_register 语义整体替换（每次 revision 重述完整启用组件集）。这与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ak.component.realm.delivery_binding_policy.v1` 形成对照：后者有自己的 facet event 与独立 cell，前者没有。两个 cell 的 `cell_subject` 都为 `null`，都由 Event envelope `realm_id` 定位。null subject 的 canonical wire 形态（字面 ASCII `null`）及"不得把 `realm_id`、Realm 角色分类或任何 payload 派生值编码进 subject 段"的禁令是全协议规则，canonical 定义在 [`../conformance/encoding.md` §4](../conformance/encoding.md)；本节不再重复承载该规则。
 
-写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ak.policy.manage` capability（与 `ak.realm.policy_server` / `ak.realm.policy_bundle` 同等级）。`ak.realm.create` 时 SHOULD 通过 `ak.realm.policy_bundle` 一并提供 join policy 初值；bundle 内省略 `join_policy` 组件即表示未声明 join policy，行为退化为"`default_join_rule` 单独决定"。
+写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ak.policy.manage` capability（与 `ak.realm.policy_bundle` 同等级）。`ak.realm.create` 时 SHOULD 通过 `ak.realm.policy_bundle` 一并提供 join policy 初值；bundle 内省略 `join_policy` 组件即表示未声明 join policy，行为退化为"`default_join_rule` 单独决定"。
 
 JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
@@ -546,41 +546,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 - E2EE 场景下 reviewer sub-group MLS commit 通过既有 `ak.mls.*` 联邦机制传播；envelope encryption 由 origin Principal Server 投递到目标 reviewer 的 device list（参见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md)）。
 - `parent_membership` gate 评估需要其它 Realm 的成员 snapshot；origin reducer MAY 通过 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的 verified snapshot 接口或直接 backfill；snapshot 不可达时 fail closed。
 
-## 11. Policy Server 运行时挑战
-
-Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ak.member.state{join}` Control Move 以及 `member.application` signed receipt / private record 调用 `ak.self.policy.read.check.v1` operation（默认 HTTP binding 为 `POST /_arkret/self/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
-
-```json
-{
-  "obligations": [
-    {
-      "type": "challenge",
-      "challenge_id": "chg_01HXY9PM0AB6Y7VN2C7M4WG5KQ",
-      "kinds": ["captcha", "pow"],
-      "issuer": "did:webvh:zaeuR1WGwz5pkZueKCmyqGFqu:captcha.example",
-      "endpoint": "https://captcha.example/challenge/01HXY9PM0AB6Y7VN2C7M4WG5KQ",
-      "max_proof_age": "PT5M",
-      "must_satisfy_before_resubmit": true,
-      "bound_to": {
-        "actor_id": "ak:did_core:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x",
-        "action": "member.application",
-        "request_canonical_digest": "sha256:...",
-        "device_id": "ak:device:01964137-0000-7000-8000-000000000000"
-      }
-    }
-  ]
-}
-```
-
-applicant 完成挑战后，重新提交 join / application Control Move，在 `gate_proofs[]` 中追加 `{gate_id: "runtime:<challenge_id>", challenge_proof: {...}}`。`challenge_proof.challenge_id` 是 runtime challenge 的唯一匹配键；verifier MUST 仅按该键选择 challenge proof。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 `challenge_id` proof 的重提。
-
-`bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Control Move。重提 Control Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `ak.self.policy.read.check.v1` 并获取新的 challenge。
-
-**`max_proof_age` 过期后的重发流程（normative）**：applicant 拿到 challenge obligation 后未在 `max_proof_age` 内完成、或提交了一个 issued 时刻已超 `max_proof_age` 的 `challenge_proof` 时，reducer / Policy Server MUST 以 `failed_precondition` + `reason_code="challenge_expired"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）拒绝该重提，MUST NOT 把过期 proof 当作满足 obligation。被拒后 applicant MUST 重新提交原始 join / application Control Move 走一次 `ak.self.policy.read.check.v1`，由 Policy Server 签发**新的** `challenge_id`（旧 `challenge_id` 不得复用满足新一轮 obligation）；applicant 对新 challenge 完成后按上文在 `gate_proofs[]` 追加对应新 `challenge_id` 的 proof。reducer MUST NOT 自动续期或自动重发 challenge——challenge 的签发权属 Policy Server，过期即作废、由 applicant 重新发起请求获取。
-
-`obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `ak.message.create`）若使用 `challenge` 必须遵循同一 envelope。
-
-## 12. 反滥用约束
+## 11. 反滥用约束
 
 | 控制项 | 默认 | 强制要求 |
 | --- | --- | --- |
@@ -588,13 +554,12 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 | `cooldown_after_reject` | PT72H | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `member.application`。`request_changes` 不触发 cooldown。 |
 | `max_open_applications_per_actor` | 1 | reducer 校验 actor 当前 pending 数；超出 `failed_precondition`。 |
 | Quota constraint | 由 Realm `ak.realm.policy_bundle` 声明 | 推荐对 `ak.member.state{knock}` 配置 `quota.constraint_subkind=rate`（如 `max_operations=5/day` + `constraint_scope`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
-| Policy Server `challenge` | 高风险 Realm 推荐 | Principal Server sync surface 面对突发 knock 流量时 SHOULD 通过 Policy Server 注入 challenge obligation。 |
 
-## 13. 与 MIMI 的映射
+## 12. 与 MIMI 的映射
 
 [`../extensions/mimi-interop.md` §9.1](../extensions/mimi-interop.md) `participation` 中 `join_policy` 子字段 SHOULD 由 facade 在 Arkret `realm.join_policy` component 与 MIMI room policy 之间双向归约；MIMI 侧暂未规范的 gate 类型作为 Arkret 专属 component 标记 `application/vnd.arkret.component+json`。MIMI facade 接收外部 join 请求时 SHOULD 至少强制执行 `claim_required` 与 `parent_membership` gate；`application_form` / `manual_review` / `challenge_response` 在 MIMI 客户端不支持 inline 表达时，facade SHOULD 拒绝跨域请求并指引 applicant 通过 Arkret 原生客户端完成。
 
-## 14. 完整示例
+## 13. 完整示例
 
 公开知识社群，凭证持有者直通、否则走 5 道问卷 + CAPTCHA：
 
@@ -661,7 +626,6 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 
 - Realm 对象模型：[`../models/realm-and-space.md`](../models/realm-and-space.md)
 - Capability 与 `ak.realm.admin`：[`../authz/capabilities.md`](../authz/capabilities.md)
-- Policy Server 与 obligation：[`../authz/policy-server.md`](../authz/policy-server.md)
 - Claim 与 constraint：[`../authz/constraint-schema.md`](../authz/constraint-schema.md)
 - Federation 跨域加入：[`../sync/federation.md` §5.2](../sync/federation.md)
 - Discovery Directory：[`../discovery/discovery-directory.md`](../discovery/discovery-directory.md)

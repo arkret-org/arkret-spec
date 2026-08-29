@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.2",
-  "generated_at": "2026-08-29T14:01:21+08:00",
+  "version": "2026-08-29.3",
+  "generated_at": "2026-08-29T18:45:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2997,7 +2997,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A Policy Server challenge obligation was not satisfied within `max_proof_age`, or a challenge_proof was submitted whose issuance is older than `max_proof_age`. The reducer / Policy Server MUST reject with failed_precondition and MUST NOT auto-renew; the applicant must re-run ak.self.policy.read.check.v1 to obtain a fresh challenge_id. See zh/governance/join-policy.md §11."
+      "description": "A challenge proof was submitted whose issuance is older than `max_proof_age`. The reducer MUST reject with failed_precondition and MUST NOT auto-renew; the applicant must obtain a fresh challenge_id. See zh/governance/join-policy.md §11."
     },
     {
       "code": "challenge_failed",
@@ -3013,7 +3013,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A runtime challenge proof attached to `ak.member.state{join}.gate_proofs[]` or `member.application.gate_proofs[]` (candidate kind, no `ak.*` prefix) fails verification (signature / freshness / verifier domain). See zh/authz/policy-server.md §4."
+      "description": "A runtime challenge proof attached to `ak.member.state{join}.gate_proofs[]` or `member.application.gate_proofs[]` (candidate kind, no `ak.*` prefix) fails verification (signature / freshness / verifier domain)."
     },
     {
       "code": "circle_already_terminal",
@@ -3827,7 +3827,7 @@
         "identity_creation",
         "service_call"
       ],
-      "description": "The persisted identity-binding challenge expired before first successful consumption. The Account Authority MUST reject before publishing the DID operation or relaying PCR genesis, and the client must obtain a fresh challenge for the same frozen draft. This code is distinct from the Policy Server challenge_expired reason."
+      "description": "The persisted identity-binding challenge expired before first successful consumption. The Account Authority MUST reject before publishing the DID operation or relaying PCR genesis, and the client must obtain a fresh challenge for the same frozen draft."
     },
     {
       "code": "identity_creation_lease_fenced",
@@ -4374,7 +4374,7 @@
         "client_sync",
         "policy_decision"
       ],
-      "description": "A fast-path moderation quarantine signal was recorded but its sealed Control Move has not yet arrived; clients MAY temporarily hide the target and MUST switch display once the sealed decision lands (policy-server.md §7.2)."
+      "description": "A fast-path moderation quarantine signal was recorded but its sealed Control Move has not yet arrived; clients MAY temporarily hide the target and MUST switch display once the sealed decision lands."
     },
     {
       "code": "moderation_control_split",
@@ -4382,7 +4382,7 @@
         "policy_decision",
         "state_resolution"
       ],
-      "description": "A moderation control cell resolved to bottom under conflicting sealed Control Moves; downstream decisions depending on the cell fail closed until the split is resolved (policy-server.md §7.2)."
+      "description": "A moderation control cell resolved to bottom under conflicting sealed Control Moves; downstream decisions depending on the cell fail closed until the split is resolved."
     },
     {
       "code": "moderation_state_conflict",
@@ -4390,7 +4390,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "The referenced moderation state cell is in bottom / exposed multi-head conflict. Read, write, distribute, and policy-check paths MUST fail closed rather than selecting a temporary winner. See zh/authz/policy-server.md §7.2."
+      "description": "The referenced moderation state cell is in bottom / exposed multi-head conflict. Read, write, and distribute paths MUST fail closed rather than selecting a temporary winner. See zh/governance/content-moderation.md."
     },
     {
       "code": "morph_already_terminal",
@@ -4592,15 +4592,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A Realm, organization, account, holder-disclosure, agent, or deployment policy explicitly denied the requested operation after syntactic validation and authentication succeeded. Use a narrower code when a more specific registry entry applies. See zh/authz/policy-server.md, zh/crypto-media/device-lifecycle.md, and zh/identity/identity-handles.md."
-    },
-    {
-      "code": "policy_recall",
-      "applies_to": [
-        "moderation_decision",
-        "auth_decision"
-      ],
-      "description": "A policy-server-issued recall of a previous allow decision; corresponding action MUST be reversed if still reversible."
+      "description": "A Realm, organization, account, holder-disclosure, agent, or deployment policy explicitly denied the requested operation after syntactic validation and authentication succeeded. Use a narrower code when a more specific registry entry applies. See zh/crypto-media/device-lifecycle.md and zh/identity/identity-handles.md."
     },
     {
       "code": "policy_revision_gap",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-28.3",
+  "version": "2026-08-29.10",
   "source_of_truth": false,
-  "generated_at": "2026-08-28T13:30:00+08:00",
+  "generated_at": "2026-08-29T17:54:23+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -982,34 +982,6 @@
             "kind": "set",
             "value": {
               "field": "payload.to_digest_algorithm"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "security_barrier"
-    },
-    {
-      "event_kind": "ak.realm.policy_server",
-      "category": "realm",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Realm Policy Server direct binding or durable value tombstone. Declaration payloads and {tombstone:true} both set ak.component.realm.policy_server.v1 through the registered cas_register effect; effective queries treat the tombstone as absence of a direct binding and resume governed_by fallback.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_server_payload",
-      "id_source": "not_an_object_id",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.realm.policy_server.v1",
-          "cell_subject": null,
-          "lattice": "cas_register",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
             }
           }
         }

@@ -40,7 +40,6 @@ Realm 之间只允许显式 link graph（governance / discoverability / import-e
 - federation policy
 - retention / legal hold
 - plaintext-visible service
-- Policy Server
 - event frontier / Seal pipeline
 
 `Realm` 的语义接近“保护域”或“治理域”，不是“项目文件夹”。一个组织通常会拥有多个 Realm：公开项目、普通内部项目、机密项目、HR 项目、法务项目可以位于同一 Organization / Space tree 下，但落到不同 Realm。
@@ -334,7 +333,7 @@ Realm bootstrap event set 以 create 开始。创建时没有 accepted Seal，�
 Authz 含义：
 
 - 同批 facet 在 creator member slot 生效前依赖 staged authority-root proof，而不是 create 隐式 membership。批次外的授权不得回退到 envelope actor、create author 或服务本地 owner mirror。
-- `ak.realm.policy_bundle` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST 拒绝：回退用顶层 code=`policy_revision_rollback`，跳号用 code=`failed_precondition` 且 reason_code=`policy_revision_gap`。任何用于缓存、Policy Server decision 或 identity_link 的 `policy_frontier_digest` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合；MLS security frontier 则只投影 key-access 字段，MUST NOT 因无关 revision 前进而变化。
+- `ak.realm.policy_bundle` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST 拒绝：回退用顶层 code=`policy_revision_rollback`，跳号用 code=`failed_precondition` 且 reason_code=`policy_revision_gap`。任何用于缓存或 identity_link 的 `policy_frontier_digest` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合；MLS security frontier 则只投影 key-access 字段，MUST NOT 因无关 revision 前进而变化。
 - **加密 floor 单向 ratchet（normative）**：Realm 的 effective `content_encryption_floor` 与 effective `metadata_encryption_floor` MUST 随时间单调非降。`ak.realm.policy_bundle` 若把 `content_encryption_floor` 从 `e2ee_required` 降回 `allow_plaintext`，reducer MUST `failed_precondition`，reason=`content_encryption_floor_downgrade`；若把 `metadata_encryption_floor` 降到更低等级（比较序 `allow_plaintext < e2ee_required`），reducer MUST `failed_precondition`，reason=`metadata_encryption_floor_downgrade`。收紧（抬高 floor）永远允许，只有降低被拒。该 ratchet 使"加密一旦开启不可撤销"成为治理层硬约束，并消除静默 downgrade 攻击面；Circle 级同一规则与 effective floor 计算见 [`circle.md` §7](./circle.md)。
 - 同一 submit 批次内 reducer MUST 按 wire 顺序处理。普通 Realm：create 第一，其后是白名单内的 follow-up；human PCR：root-anchored create 第一、founding-device-signed authorize 第二且 unit 到此结束。顺序或形态不符以 `pcr_genesis_unit_invalid` 原子拒绝。
 - byte-identical unit retry 返回原 accepted identity/receipt，不产生第二个 Realm 或副作用；不同 canonical bytes 声称同一 Realm id 时 MUST `realm_already_exists` 或 collision quarantine。
@@ -565,10 +564,10 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 
 - **授权**：任何对 Space 的写入（`ak.space.create` / `ak.space.update` / `ak.space.archive` / `ak.space.restore` / `ak.space.tombstone` / `ak.space.parent`）都在 `realm_id` 指向的 home Realm 内授权。
 - **同步与联邦**：Space metadata 跟随 home Realm 同步。跨 Realm parent 只是可验证引用，不把 child metadata 合并到 source Realm 的 event frontier。
-- **加密 / scope**：Space 没有自己的 membership、Policy Server 或 MLS group。Space metadata 默认取决于 home Realm 的 scope、`encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing scope，并继承该 Circle 的投递 / 查询裁剪与 encryption profile。
+- **加密 / scope**：Space 没有自己的 membership 或 MLS group。Space metadata 默认取决于 home Realm 的 scope、`encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing scope，并继承该 Circle 的投递 / 查询裁剪与 encryption profile。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
 - **默认资源边界**：创建 Strand / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id` 与需要的 `scope_circle_id`；`default_realm_id` 只提供 Realm 初值。若 Space tree 的 home Realm 与默认子资源 Realm 不同，不能用 home Realm 的 Circle 作为子资源 scope。
-- **子边界升级**：若 Space subtree 或单个 Strand 只需要 Realm 内的子事件 / 子消息边界，创建 Circle，并让子资源显式写入 `scope_circle_id`，必要时用 `child_scope_policy` 强制指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation / Policy Server / capability registry 时才创建新的 Realm。
+- **子边界升级**：若 Space subtree 或单个 Strand 只需要 Realm 内的子事件 / 子消息边界，创建 Circle，并让子资源显式写入 `scope_circle_id`，必要时用 `child_scope_policy` 强制指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation 或 capability registry 时才创建新的 Realm。
 
 Space 自身 `scope_circle_id` 与子资源 `child_scope_policy` 的区别及 reducer 责任以
 [`circle.md` §6.3](./circle.md) 为唯一规范来源；二者不可互相替代。

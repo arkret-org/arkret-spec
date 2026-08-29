@@ -183,7 +183,6 @@ see_also:
 | `authz/constraint-schema.md` | Capability / policy 约束表达式、条件字段和组合语义。 |
 | `authz/resource-selector-grammar.md` | Resource selector 的语法、匹配范围和解析规则。 |
 | `authz/event-auth-state-resolution.md` | Move、Seal、Lattice、bottom diagnostics、auth refs、membership、policy cells、history sharing 与 E2EE covered Seals。 |
-| `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
 | `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
 | `governance/member-delivery-binding.md` | 成员 effective delivery binding：接受准则、`binding_source`、`ak.realm.delivery_binding_policy`、路由不可降级、rebind 过渡、单 binding + 多设备策略与隐私边界（与 join gate 正交）。 |
 | `governance/history-visibility.md` | `since_join` / `all_history_for_current_members` 二态、当前成员 gate、private history-key request/response stream/relay 与 organization-recovery archive。 |

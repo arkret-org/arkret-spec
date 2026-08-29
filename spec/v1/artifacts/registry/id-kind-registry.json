@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.1",
+  "version": "2026-08-29.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T00:00:00+08:00",
+  "generated_at": "2026-08-29T18:45:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -472,7 +472,7 @@
       "referenceability": [
         "read_cursor_scope_ref"
       ],
-      "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md.",
+      "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or capability registry — those remain on the parent Realm. See zh/models/circle.md.",
       "id_form": "event_derived",
       "identity_authority": "event",
       "genesis_event_kinds": [

@@ -15,7 +15,7 @@ sidebar:
 ## 1. 目标
 
 本文件给出服务端可直接落地的威胁与防护。
-所有条目均按 Arkret 的 Events API / Principal Server sync surface / Directory / Policy Server / Identity 平面映射到协议规则。
+所有条目均按 Arkret 的 Events API / Principal Server sync surface / Directory / Identity 平面映射到协议规则。
 
 ## 2. 服务端攻击面
 
@@ -98,7 +98,7 @@ sidebar:
     即使 Event body、MLS payload 与 service signatures 都正确，联邦 peer、网络运营方或受托 relay 仍可能通过 fanout 时间、batch 大小、重试节奏、provider 组合和跨 Realm burst 关联组织活动。base v1 不提供针对该侧信道的直接防御。高隐私部署 SHOULD 声明 `ak.profile.traffic_metadata_hardened.v1`（profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)）；一旦声明，该部署 MUST 使用 OHTTP / relay indirection / decoy traffic 之一，并对批处理 padding、发送延迟抖动、固定大小 federation batch、retry cadence padding 和 blind / batch wakeup 执行该 profile 的可测试参数。未声明该 profile 时，不得把 E2EE 误表述为隐藏 federation traffic metadata。
 
 24. **出站 URL / SSRF（Server-Side Request Forgery）**
-    攻击者通过 DID Document serviceEndpoint、媒体 URL、snapshot chunk、Policy Server endpoint、Webhook、Applet/Agent endpoint 或联邦 peer discovery 引导服务访问 loopback、私网、link-local、metadata endpoint 或内部控制面。
+    攻击者通过 DID Document serviceEndpoint、媒体 URL、snapshot chunk、Webhook、Applet/Agent endpoint 或联邦 peer discovery 引导服务访问 loopback、私网、link-local、metadata endpoint 或内部控制面。
 
 25. **Directory ingest 写路径滥用（Directory Ingest Abuse）**
     攻击者污染 Directory 的发现 / 投影 ingest 写路径（与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md) 交叉引用）。具体向量:**announce replay**(重放过期 announce 让陈旧条目复活)、**`as_of` skew**(伪造 `as_of` 时间使旧状态看似最新)、**policy_revision rollback**(回退 policy_revision 绕过更严策略)、**DID hijack**(劫持 announce 来源 DID 冒名注入条目)、**source-ref 伪造**(伪造来源引用让未授权条目进入 directory)、**takedown spoofing**(伪造下架 / takedown 让合法条目被移除)。防护以 discovery-directory §8.10 / §11 的来源 DID 验签、`as_of` 单调 / 时间锚校验、policy_revision 单调、announce 一次性 / 过期窗口、source-ref 授权核验与 takedown 授权链为权威。
@@ -139,7 +139,7 @@ sidebar:
 ### 2.3 通用防护手段
 
 - **身份与来源前置验签**：服务来源先做服务 DID 绑定、签名验证、trust policy 检查，再执行业务授权。
-- **分层限速与退避**：按来源、source service、realm、keyed IP digest（不可链接派生规则见 [`../authz/policy-server.md` §3.1](../authz/policy-server.md)）、tenant、endpoint 限速，超过阈值退避或拒绝。
+- **分层限速与退避**：按来源、source service、realm、keyed IP digest、tenant、endpoint 限速，超过阈值退避或拒绝。
 
   > **不可链接限速配套方向（informative，路线图注记，2026-06 评审采纳；不落地 v1）**：现状反滥用主要依赖按来源 / IP hash 限速，而协议在多处推动 OHTTP / relay 路由的不可链接化（见 §2.1 #23、`conformance/conformance-profiles.md` §11.1 的 `ak.profile.traffic_metadata_hardened.v1`，以及 push / preview / blob 下载等 relay 化入口）。流量越走 relay，IP 维度限速越失效，运营方被迫在「放松限速」与「破坏不可链接性」之间二选一。作为该张力的配套方向，本注记登记 **Privacy Pass**（RFC 9576 架构 / RFC 9577 HTTP 认证 scheme `PrivateToken` / RFC 9578 token 签发协议；rate-limited issuance 见 draft-ietf-privacypass-rate-limit-tokens）作为 relay 化 pre-auth 面（OHTTP blob 下载、匿名 preview / peek、3PID claim 等）的**不可链接限速**配套路线。客户端可在不暴露稳定 IP / 身份的前提下向 origin 出示匿名 token，使 origin 在保持来源不可链接的同时仍能限速。本注记**不预注册 token type 或 profile id**；落地需先设计 issuer / attester 信任模型（谁签发、谁背书、何种 attestation），故 v1 仅作占位登记、不落地，不引入新 normative 规则。
 - **幂等与重放防护**：`request_id`、`Idempotency-Key`、`event_id` 与 canonical hash 绑定；`event_id` 重复但内容不一致 MUST reject。
@@ -162,7 +162,7 @@ sidebar:
 | --- | --- | --- |
 | 开放联邦滥用 | 是 | `federation`/`service-surface` 的 Federation Allow List，`server ACL`，未签名来源走 `soft_deny`/`rate_limited`。 |
 | 认证与凭证爆破 | 是 | `account-lifecycle` 与 auth 入口开启失败风控；`session/device token` 撤销与短TTL。 |
-| 写入泛滥 | 是 | Policy Server 风险码 + `rate_limit`，`per-source` 与 `per-realm` 队列保护。 |
+| 写入泛滥 | 是 | `rate_limit`，`per-source` 与 `per-realm` 队列保护。 |
 | 重试放大 | 是 | 窗口退避、批次阈值、失败率熔断，优先使用 `Retry-After`，并在 body 中提供 `retry_after_ms`。 |
 | 来源身份伪造 | 是 | source DID / message-signature / service signature 验签链。 |
 | 钓鱼 | 是/部分 | 需要可验证展示（service DID 与 policy 来源）与用户告警策略。 |
@@ -184,7 +184,7 @@ sidebar:
 | URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`ak.self.blob.command.presign.v1` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
 | 媒体侧信道探测 | 是 | 私有 blob 的 HEAD/Range/redirect 统一授权；不可见资源不返回大小、MIME、文件名或 Range header。 |
 | 实时媒体 / SFU 滥用 | 是 | participant binding + membership/account/device/capability 分层 admission；`media_service_decrypts` 三层 governance gate；sender-bound exporter key；TURN credential call/focus/audience 绑定；backend artifact 强制 Arkret encrypted-blob pipeline（§2.1 #27）。 |
-| 出站 URL / SSRF | 是 | [`sync/api-conventions.md`](../sync/api-conventions.md) §11.2 的出站网络目标策略；DID、联邦、媒体、snapshot、Policy Server、Webhook、Applet/Agent endpoint 统一做私网/metadata 地址拒绝、DNS rebind 防护和 redirect 复核。 |
+| 出站 URL / SSRF | 是 | [`sync/api-conventions.md`](../sync/api-conventions.md) §11.2 的出站网络目标策略；DID、联邦、媒体、snapshot、Webhook、Applet/Agent endpoint 统一做私网/metadata 地址拒绝、DNS rebind 防护和 redirect 复核。 |
 
 ## 4. 协议规则完善（落地要求）
 
@@ -196,10 +196,9 @@ sidebar:
 - `request_id`、`request_canonical_digest`、`Idempotency-Key` 必须参与防重放判定；不同内容不得复用同一签名或请求键。
 - 受保护 endpoint 不得接受 URL 中的认证材料；反向代理、应用日志和安全审计日志必须对敏感 query 做脱敏或拒绝记录。
 
-### 4.2 Policy Server 侧
+### 4.2 风险与 moderation 求值
 
-- Policy Server 风险 `reason_code` 的单点承载是 [`../authz/policy-server.md` §4](../authz/policy-server.md)；
-  取值以
+- 风险 `reason_code` 的取值以
   [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 为机器真源。
 - `quarantine` / `require_review` 事件须保留 `request_id`、`canonical hash` 与决策签名，进入审查队列。
 - 对 `push`/`join`/`directory` 的高风险 source 应触发 `rate_limit` + 侧信道统一返回策略。
@@ -232,7 +231,6 @@ sidebar:
 
 ## 5. 相关文档
 
-- `../authz/policy-server.md`（风险决策与 `reason_code`）
 - `../governance/content-moderation.md`（blocklist / allowlist / quarantine）
 - `../sync/federation.md`（联邦放行与签名验证）
 - `../sync/api-conventions.md`（统一错误码、重放控制与出站网络目标策略）

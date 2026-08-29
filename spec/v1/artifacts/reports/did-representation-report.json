@@ -4699,26 +4699,6 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/realm_policy_server_declaration/properties/policy_server_id",
-      "property_name": "policy_server_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/realm_policy_server_declaration/properties/public_kids",
-      "property_name": "public_kids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
       "schema_path": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/allowed_service_ids",
       "property_name": "allowed_service_ids",
       "semantic_category": "responsibility_identity_material",
@@ -7179,16 +7159,6 @@
       ]
     },
     {
-      "schema_path": "realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view/properties/policy_server_id",
-      "property_name": "policy_server_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy/properties/inheritance_chain_ids",
       "property_name": "inheritance_chain_ids",
       "semantic_category": "responsibility_identity_material",
@@ -8451,56 +8421,6 @@
     {
       "schema_path": "service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody/properties/actor_id",
       "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome/properties/bound_to/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome/properties/bound_to/properties/policy_server_id",
-      "property_name": "policy_server_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome/properties/signature/properties/kid",
-      "property_name": "kid",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody/properties/source/properties/service_id",
-      "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

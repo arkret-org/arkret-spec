@@ -171,7 +171,6 @@
     {"field": "gate_account_base_url", "schemes": ["https"], "reason": "dereferenceable Account Authority base locator"},
     {"field": "inclusion_proof_url", "schemes": ["https"], "reason": "dereferenceable inclusion-proof locator"},
     {"field": "openid_configuration_url", "schemes": ["https"], "reason": "dereferenceable OpenID Provider metadata locator"},
-    {"field": "policy_server_url", "schemes": ["https"], "reason": "dereferenceable Realm policy-server endpoint locator"},
     {"field": "public_base_url", "schemes": ["http", "https"], "reason": "dereferenceable public service base locator; HTTP is restricted to explicit development deployments"},
     {"field": "push_gateway_url", "schemes": ["https"], "reason": "dereferenceable push-gateway locator"},
     {"field": "retrieval_url", "schemes": ["https"], "reason": "dereferenceable registry-content retrieval hint"},

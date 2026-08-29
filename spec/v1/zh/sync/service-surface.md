@@ -102,7 +102,7 @@ DID Document SHOULD 只负责：
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
 | Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
 | Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
-| Authz / Policy Server | 个人可内置；共享 Realm 和组织治理建议独立 | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
+| Authz | 可内置于 Principal Server，也可独立部署 | effective grants、invite 查询、capability precheck。 |
 | Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
 | Applet Server | 集成/桥接/自动化可选 | applet describe、transaction、Ghost Actor、portal Realm、third-party lookup。 |
 | MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、notary service 或 Applet Bridge 承载 | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
@@ -422,7 +422,7 @@ operation/schema/fixture closure 时才可独立声明它，缺少其中任一 o
   并在 discovery 面上把它暗示为 canonical path 的 fallback。
   item 对象是封闭的（`additionalProperties: false`），扩展键不能用作绕过路径。
 - `development_mode: boolean` — 必填；为 `true` 时 `verified_profiles` MUST 为空。省略不是 false，SDK / conformance tooling MUST 把缺失视为 invalid describe。
-- `egress_network_policy` — 可选的出站网络策略摘要。会解析 DID、联邦 peer、媒体、snapshot、Policy Server、Webhook、Applet 或 Agent endpoint 的服务 SHOULD 暴露粗粒度策略；完整 SSRF 防护语义见 [`api-conventions.md`](./api-conventions.md) §11.2。
+- `egress_network_policy` — 可选的出站网络策略摘要。会解析 DID、联邦 peer、媒体、snapshot、Webhook、Applet 或 Agent endpoint 的服务 SHOULD 暴露粗粒度策略；完整 SSRF 防护语义见 [`api-conventions.md`](./api-conventions.md) §11.2。
 - `receive_policy_constraints` — Principal Server 可选的部署 / 管理员级接收策略上限。它约束 `ak.peer.invites.command.submit.v1` 与 `ak.peer.contacts.command.submit.v1` 对 `locator_ref`、`handle_claim`、`explicit_address` 等 introduction evidence 的处理；客户端 MUST 把它渲染为“服务器约束”，不得把它当作 subject 自愿公开。语义见 [`invite-addressing.md`](./invite-addressing.md) §5.2。
 
 实现 MUST 明确区分 endpoint 可达性、feature 实现、profile claim 与 conformance verification：

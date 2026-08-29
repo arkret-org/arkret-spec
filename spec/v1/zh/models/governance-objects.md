@@ -19,7 +19,7 @@ updated: 2026-07-02
 - **Capability Grant**（`ak:grant:`）：授权委派。
 - **Invite**（`ak:invite:`）：Realm 加入引导。
 
-这些对象都不直接承载协作内容，但决定了协作内容的合法范围、可见性和权限路径。完整 capability 模型、Policy Server 决策、seal finality profile 等运行时语义在 `authz/`、`governance/` 和 `security/` 章节展开；本文聚焦对象级 schema、字段和生命周期。
+这些对象都不直接承载协作内容，但决定了协作内容的合法范围、可见性和权限路径。完整 capability 模型、policy 求值、seal finality profile 等运行时语义在 `authz/`、`governance/` 和 `security/` 章节展开；本文聚焦对象级 schema、字段和生命周期。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
@@ -125,7 +125,7 @@ root；v1 没有第三个 policy family，也不通过随机 `policy_id` 查询�
 `policy_id` 与 generic Policy 的 `value.id`、或 RecoveryPolicy 的 `value.policy_id` 逐字相等。`state` /
 `reason` 不是该 Event 的 wire 字段。
 
-**`rules[]` 求值与同 `priority` 冲突的确定性裁决（normative）**：reducer / Policy Server 求值 `rules[]` 时 MUST 按 `priority` 降序（数值大者先）评估；命中规则的 `effect` 即裁决结果，未命中任何规则时取 `default_effect`。当两条或多条规则同时命中目标、`priority` 相等、但 `effect` 不一致时，MUST 按以下确定性顺序裁决，**MUST NOT** 依赖 `rules[]` 数组顺序或本地求值顺序（否则跨实现结果分歧）：
+**`rules[]` 求值与同 `priority` 冲突的确定性裁决（normative）**：reducer 求值 `rules[]` 时 MUST 按 `priority` 降序（数值大者先）评估；命中规则的 `effect` 即裁决结果，未命中任何规则时取 `default_effect`。当两条或多条规则同时命中目标、`priority` 相等、但 `effect` 不一致时，MUST 按以下确定性顺序裁决，**MUST NOT** 依赖 `rules[]` 数组顺序或本地求值顺序（否则跨实现结果分歧）：
 
 1. **deny-overrides**：命中的同 `priority` 规则中只要有一条 `effect=deny`，结果 MUST 为 `deny`；
 2. 否则若有 `effect=quarantine`，结果 MUST 为 `quarantine`；
@@ -134,9 +134,9 @@ root；v1 没有第三个 policy family，也不通过随机 `policy_id` 查询�
 
 即同 `priority` 命中规则的 `effect` 按 `deny ≻ quarantine ≻ require_review ≻ allow` 的固定优先序合并，取最严结果。该裁决与 [`../authz/capabilities.md` §20](../authz/capabilities.md)「约束按最严格规则相交」的整体取严姿态一致。
 
-### 3.3 Policy Server 与决策
+### 3.3 Policy 与 capability 决策
 
-Policy Server 风险判断与签名决策见 [`../authz/policy-server.md`](../authz/policy-server.md)；moderation policy（举报、franking、审核流程）见 [`../governance/content-moderation.md`](../governance/content-moderation.md)。Policy 决策与 capability 决策的关系：capability 决定基础动作权限，policy 可以 deny / quarantine / require review，但**不能授予权限**。
+Moderation policy（举报、franking、审核流程）见 [`../governance/content-moderation.md`](../governance/content-moderation.md)。Policy 决策与 capability 决策的关系：capability 决定基础动作权限，policy 可以 deny / quarantine / require review，但**不能授予权限**。
 
 ### 3.4 Policy Action Log
 
@@ -254,7 +254,6 @@ Schema id: `ak.schema.invite.v1`
 - 公共字段：[common-fields.md](./common-fields.md)。
 - Capability 详细模型：[`../authz/capabilities.md`](../authz/capabilities.md)。
 - Constraint schema：[`../authz/constraint-schema.md`](../authz/constraint-schema.md)。
-- Policy Server 决策：[`../authz/policy-server.md`](../authz/policy-server.md)。
 - Moderation policy：[`../governance/content-moderation.md`](../governance/content-moderation.md)。
 - Realm-Realm 继承：[`realm-links.md`](./realm-links.md)。
 - Schema registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。

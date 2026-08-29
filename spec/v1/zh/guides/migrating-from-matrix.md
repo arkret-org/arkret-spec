@@ -209,7 +209,7 @@ Arkret capability 更适合细粒度协作系统：
 
 - 可以限定 Realm、Space、Strand、Message、Morph、Relation，以及 `space.kind`、字段、时间、设备、速率、审批条件。
 - 可以委托给 agent、Applet、设备、组织角色或外部服务。
-- 可撤销、可审计，并与 policy server 风险决策分离。
+- 可撤销、可审计，并与持久治理策略分离。
 
 ### 5.3 Homeserver 与 Principal Server
 
@@ -297,7 +297,7 @@ Arkret 可以继续吸收 Matrix 的成熟经验：
 - Matrix room federation、state resolution、E2EE 客户端实现、bridge 生态有多年生产经验。
 - Matrix 对聊天、公开房间、桥接传统 IM 网络仍是强参考。
 
-因此 Arkret 应继续吸收 Matrix 的稳定经验，尤其是 room version / auth rules、device trust、client sync、policy server、appservice transaction、authenticated media 等，但不继承 Matrix 的抽象根或 state winner 算法。
+因此 Arkret 应继续吸收 Matrix 的稳定经验，尤其是 room version / auth rules、device trust、client sync、appservice transaction、authenticated media 等，但不继承 Matrix 的抽象根或 state winner 算法。
 
 ## 8. 相关文档
 

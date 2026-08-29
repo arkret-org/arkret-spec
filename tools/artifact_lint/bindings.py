@@ -588,50 +588,6 @@ def check_service_describe_alignment(lint: Lint) -> None:
 
 
 
-def check_policy_check_alignment(lint: Lint) -> None:
-    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
-    openapi = load_yaml(lint, openapi_path)
-    if not isinstance(openapi, dict):
-        return
-    paths = openapi.get("paths")
-    components = openapi.get("components", {}).get("schemas", {})
-    if not isinstance(paths, dict) or not isinstance(components, dict):
-        return
-    if "/arkret/v1/check" in paths:
-        lint.fail(openapi_path, "legacy /arkret/v1/check policy path must not be present; use /_arkret/self/policy/check")
-
-    policy_path = paths.get("/_arkret/self/policy/check", {}).get("post", {})
-    request_schema = (
-        policy_path.get("requestBody", {})
-        .get("content", {})
-        .get("application/json", {})
-        .get("schema")
-    )
-    response_schema = (
-        policy_path.get("responses", {})
-        .get("200", {})
-        .get("content", {})
-        .get("application/json", {})
-        .get("schema")
-    )
-    if request_schema != {"$ref": "#/components/schemas/PolicyCheckRequestBody"}:
-        lint.fail(openapi_path, "/_arkret/self/policy/check requestBody must reference PolicyCheckRequestBody")
-    if response_schema != {"$ref": "#/components/schemas/PolicyCheckOutcome"}:
-        lint.fail(openapi_path, "/_arkret/self/policy/check 200 response must reference PolicyCheckOutcome")
-
-    request_component = resolve_openapi_component_schema(lint, openapi_path, components, "PolicyCheckRequestBody")
-    response_component = resolve_openapi_component_schema(lint, openapi_path, components, "PolicyCheckOutcome")
-    if not isinstance(request_component, dict):
-        lint.fail(openapi_path, "components.schemas.PolicyCheckRequestBody missing")
-    elif "realm_id" not in set(request_component.get("required") or []):
-        lint.fail(openapi_path, "PolicyCheckRequestBody.required must include realm_id")
-    if not isinstance(response_component, dict):
-        lint.fail(openapi_path, "components.schemas.PolicyCheckOutcome missing")
-    elif "bound_to" not in set(response_component.get("required") or []):
-        lint.fail(openapi_path, "PolicyCheckOutcome.required must include bound_to")
-
-
-
 def openapi_operations_by_id(openapi: dict[str, Any]) -> dict[str, dict[str, Any]]:
     paths = openapi.get("paths")
     if not isinstance(paths, dict):

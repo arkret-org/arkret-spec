@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.9",
+  "version": "2026-08-29.11",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T17:36:21+08:00",
+  "generated_at": "2026-08-29T17:54:23+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -8786,65 +8786,6 @@
       }
     },
     {
-      "operation_id": "ak.self.policy.read.check.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "realm_id",
-          "request_canonical_digest",
-          "action",
-          "actor_id",
-          "source"
-        ],
-        "properties": [
-          "request_id",
-          "realm_id",
-          "request_canonical_digest",
-          "action",
-          "actor_id",
-          "device_id",
-          "source",
-          "event_preview",
-          "auth_context"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "bound_to",
-          "decision",
-          "reason_code",
-          "freshness_state",
-          "expires_at",
-          "auth_state_digest",
-          "policy_frontier_digest",
-          "membership_frontier_digest",
-          "signature"
-        ],
-        "properties": [
-          "request_id",
-          "bound_to",
-          "decision",
-          "reason_code",
-          "freshness_state",
-          "expires_at",
-          "auth_state_digest",
-          "policy_frontier_digest",
-          "membership_frontier_digest",
-          "next_retry_at",
-          "obligations",
-          "signature"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.read_cursor.command.advance.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -9271,90 +9212,6 @@
           "realm_id",
           "relationships",
           "declared_organization_hint_ids"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.realm_policy_server.resource.delete.v1",
-      "success_shape_kind": "empty_response",
-      "request": {
-        "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_delete_request_body",
-        "schema_kind": "object",
-        "required": [
-          "policy_server_event"
-        ],
-        "properties": [
-          "policy_server_event"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.realm_policy_server.resource.get.v1",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "policy_server_id",
-          "policy_server_url",
-          "cache_ttl_seconds",
-          "timeout_ms",
-          "on_timeout",
-          "updated_at",
-          "from_organization_fallback"
-        ],
-        "properties": [
-          "realm_id",
-          "policy_server_id",
-          "policy_server_url",
-          "cache_ttl_seconds",
-          "timeout_ms",
-          "on_timeout",
-          "updated_at",
-          "from_organization_fallback"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.realm_policy_server.resource.replace.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
-        "schema_kind": "object",
-        "required": [
-          "policy_server_event"
-        ],
-        "properties": [
-          "policy_server_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "policy_server_id",
-          "policy_server_url",
-          "cache_ttl_seconds",
-          "timeout_ms",
-          "on_timeout",
-          "updated_at",
-          "from_organization_fallback"
-        ],
-        "properties": [
-          "realm_id",
-          "policy_server_id",
-          "policy_server_url",
-          "cache_ttl_seconds",
-          "timeout_ms",
-          "on_timeout",
-          "updated_at",
-          "from_organization_fallback"
         ],
         "closed": true
       }

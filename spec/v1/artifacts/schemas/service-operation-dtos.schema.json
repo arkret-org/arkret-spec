@@ -230,12 +230,6 @@
       "$ref": "#/$defs/MlsGroupStateMaterialOutcome"
     },
     {
-      "$ref": "#/$defs/PolicyCheckRequestBody"
-    },
-    {
-      "$ref": "#/$defs/PolicyCheckOutcome"
-    },
-    {
       "$ref": "#/$defs/ProjectionStrandList"
     },
     {
@@ -863,7 +857,7 @@
     },
     "AuthzCheckOutcome": {
       "type": "object",
-      "description": "ak.self.authz.read.check.v1 diagnostic/preflight decision. See zh/authz/capabilities.md §18. This shape may include freshness and obligation hints, but any obligation that affects reducer admission or external state MUST be re-issued and signed through PolicyCheckOutcome.",
+      "description": "ak.self.authz.read.check.v1 diagnostic/preflight decision. See zh/authz/capabilities.md §18. This response is advisory; canonical Event admission remains authoritative.",
       "required": [
         "decision"
       ],
@@ -877,7 +871,7 @@
             "quarantine",
             "require_review"
           ],
-          "description": "`allow` / `hard_deny` are terminal decisions. `soft_deny` is an evaluated policy soft refusal. `quarantine` / `require_review` are Policy Server-mediated soft outcomes (the request enters async review). Transient dependency or freshness failures are reported through `freshness_state`, `reason_code`, and `retry_after_ms`, not as policy decision values.\n"
+          "description": "`allow` / `hard_deny` are terminal decisions. `soft_deny` is an evaluated policy soft refusal. `quarantine` / `require_review` are local moderation outcomes. Transient dependency or freshness failures are reported through `freshness_state`, `reason_code`, and `retry_after_ms`, not as policy decision values.\n"
         },
         "matched_grants": {
           "type": "array",
@@ -945,7 +939,7 @@
         },
         "obligations": {
           "type": "array",
-          "description": "Policy server obligations (challenge / rate_limit / drop_attachment) the caller MUST satisfy before the action proceeds.",
+          "description": "Additional local preflight obligations the caller MUST satisfy before the action proceeds.",
           "items": {
             "type": "object"
           }
@@ -955,7 +949,7 @@
     },
     "AuthzCheckRequestBody": {
       "type": "object",
-      "description": "ak.self.authz.read.check.v1 input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ak.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ak.self.policy.read.check.v1.\n",
+      "description": "ak.self.authz.read.check.v1 input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ak.realm.create`, identity-scoped actions) have no Realm-bound target. The result is advisory and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact.\n",
       "required": [
         "actor_id",
         "action"
@@ -4478,198 +4472,6 @@
           ]
         }
       ],
-      "additionalProperties": false
-    },
-    "PolicyCheckOutcome": {
-      "type": "object",
-      "description": "Result of ak.self.policy.read.check.v1 — signed decision bound to authorization, policy, and membership frontier hashes.",
-      "required": [
-        "request_id",
-        "bound_to",
-        "decision",
-        "reason_code",
-        "freshness_state",
-        "expires_at",
-        "auth_state_digest",
-        "policy_frontier_digest",
-        "membership_frontier_digest",
-        "signature"
-      ],
-      "properties": {
-        "request_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)"
-        },
-        "bound_to": {
-          "type": "object",
-          "description": "Request context covered by the policy decision signature. Allows receivers to verify a forwarded decision without guessing transcript fields.",
-          "required": [
-            "realm_id",
-            "actor_id",
-            "action",
-            "request_canonical_digest",
-            "policy_server_id"
-          ],
-          "properties": {
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            },
-            "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            "action": {
-              "type": "string"
-            },
-            "request_canonical_digest": {
-              "type": "string",
-              "pattern": "^sha256:[0-9a-f]{64}$"
-            },
-            "policy_server_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        "decision": {
-          "type": "string",
-          "enum": [
-            "allow",
-            "soft_deny",
-            "hard_deny",
-            "quarantine",
-            "require_review"
-          ]
-        },
-        "reason_code": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
-        },
-        "freshness_state": {
-          "type": "string",
-          "enum": [
-            "fresh",
-            "stale",
-            "unknown"
-          ],
-          "description": "Frontier freshness classification signed into the policy decision transcript."
-        },
-        "expires_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "auth_state_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Accepted authorization state hash used when producing the decision."
-        },
-        "policy_frontier_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Policy source frontier / digest used when producing the decision."
-        },
-        "membership_frontier_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Membership, role, account-lifecycle, and device-authorization frontier digest used when producing the decision."
-        },
-        "next_retry_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "obligations": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": true
-          }
-        },
-        "signature": {
-          "type": "object",
-          "required": [
-            "kid",
-            "sig"
-          ],
-          "properties": {
-            "kid": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-              "description": "DID URL of the Policy Server verification method."
-            },
-            "sig": {
-              "type": "string",
-              "description": "Detached signature over the policy decision transcript."
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "PolicyCheckRequestBody": {
-      "type": "object",
-      "description": "ak.self.policy.read.check.v1 input bound to a Realm authorization context.",
-      "required": [
-        "request_id",
-        "realm_id",
-        "request_canonical_digest",
-        "action",
-        "actor_id",
-        "source"
-      ],
-      "properties": {
-        "request_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "request_canonical_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
-        },
-        "action": {
-          "type": "string"
-        },
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "device_id": {
-          "type": "string",
-          "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "source": {
-          "type": "object",
-          "required": [
-            "service_id",
-            "service_kind",
-            "signed_transport"
-          ],
-          "properties": {
-            "service_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            "service_kind": {
-              "type": "string"
-            },
-            "source_ip_digest": {
-              "type": "string",
-              "pattern": "^sha256:[0-9a-f]{64}$",
-              "description": "Keyed, unlinkable derivation of the request source IP (e.g. HMAC-SHA256 under a service-private, salt-epoch-rotated secret bound to the calling service_id), encoded as sha256:<64 hex>. The sha256: prefix denotes the 32-byte digest container, NOT a bare SHA-256 of the IP address; unkeyed IP hashes are forbidden. Derivation, rotation and namespace rules: zh/authz/policy-server.md §3.1. High-privacy (relay/OHTTP) deployments MAY omit this field."
-            },
-            "signed_transport": {
-              "type": "boolean"
-            }
-          },
-          "additionalProperties": true
-        },
-        "event_preview": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "auth_context": {
-          "type": "object",
-          "additionalProperties": true
-        }
-      },
       "additionalProperties": false
     },
     "ProjectionAssignedToRelation": {

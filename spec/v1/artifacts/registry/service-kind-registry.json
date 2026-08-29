@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-27.2",
+  "version": "2026-08-29.3",
   "source_of_truth": true,
   "description": "Canonical service_kind vocabulary. A service_kind names one deployed wire role. This registry is the single source of valid values and per-context eligibility for Service Describe, Realm join candidates, ServiceRegistrationKey, and the MIMI provider directory. Consumers MUST derive their closed value space from active rows whose valid_in includes the applicable context.",
   "registry_rules": [
@@ -173,14 +173,6 @@
         "service_describe"
       ],
       "description": "Authorization evaluation surface."
-    },
-    {
-      "canonical_id": "policy_server",
-      "status": "active",
-      "valid_in": [
-        "service_describe"
-      ],
-      "description": "Policy distribution and evaluation surface."
     },
     {
       "canonical_id": "moderation_service",

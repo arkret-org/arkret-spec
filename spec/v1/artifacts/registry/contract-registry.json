@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.9",
+  "version": "2026-08-29.11",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T17:36:21+08:00",
+  "generated_at": "2026-08-29T17:54:23+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -4629,25 +4629,6 @@
         ],
         "concurrency_class": "security_barrier"
       },
-      "ak.realm.policy_server": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.realm.policy_server.v1",
-            "cell_subject": null,
-            "lattice": "cas_register",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "set",
-              "value": {
-                "field": "payload"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "security_barrier"
-      },
       "ak.realm.preview_policy": {
         "plane": "control",
         "sealed": true,
@@ -5902,17 +5883,6 @@
         "reducer_input": true,
         "payload": "Profile-gated transition from the Realm's current digest suite to a stronger active suite, bound to a transition snapshot and dual-root Seal under ak.profile.hash_transition.v1.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_digest_suite_transition_payload",
-        "id_source": "not_an_object_id"
-      },
-      {
-        "event_kind": "ak.realm.policy_server",
-        "category": "realm",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Realm Policy Server direct binding or durable value tombstone. Declaration payloads and {tombstone:true} both set ak.component.realm.policy_server.v1 through the registered cas_register effect; effective queries treat the tombstone as absence of a direct binding and resume governed_by fallback.",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_server_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -9036,7 +9006,7 @@
       {
         "schema_id": "ak.schema.circle.v1",
         "file": "schemas/circle.schema.json",
-        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. see zh/models/circle.md."
+        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity. see zh/models/circle.md."
       },
       {
         "schema_id": "ak.schema.agent_sidecar.v1",
@@ -9388,12 +9358,6 @@
         "file": "schemas/realm-organization-operations.schema.json",
         "status": "active",
         "description": "Closed response DTO bundle for self-surface Realm organization relationship reads (ak.self.realm_organization.*); see zh/models/realm-and-space.md."
-      },
-      {
-        "schema_id": "ak.schema.realm_policy_server_operations.v1",
-        "file": "schemas/realm-policy-server-operations.schema.json",
-        "status": "active",
-        "description": "Closed request/response DTO bundle for self-surface Realm policy-server config operations (ak.self.realm_policy_server.*); see zh/authz/policy-server.md."
       },
       {
         "schema_id": "ak.schema.realm_read_operations.v1",
@@ -10347,8 +10311,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-29.1",
-    "generated_at": "2026-08-29T00:00:00+08:00"
+    "version": "2026-08-29.3",
+    "generated_at": "2026-08-29T17:54:23+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -10819,7 +10783,7 @@
         "referenceability": [
           "read_cursor_scope_ref"
         ],
-        "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md.",
+        "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or capability registry — those remain on the parent Realm. See zh/models/circle.md.",
         "id_form": "event_derived",
         "identity_authority": "event",
         "genesis_event_kinds": [
@@ -11301,8 +11265,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-29.1",
-    "generated_at": "2026-08-29T00:00:00+08:00"
+    "version": "2026-08-29.2",
+    "generated_at": "2026-08-29T18:45:00+08:00"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -11541,10 +11505,7 @@
           "ak.self.realm_link.command.create.v1",
           "ak.self.realm_link.resource.delete.v1",
           "ak.self.realm_link.read.effective_policy.v1",
-          "ak.self.realm_organization.read.list.v1",
-          "ak.self.realm_policy_server.resource.get.v1",
-          "ak.self.realm_policy_server.resource.replace.v1",
-          "ak.self.realm_policy_server.resource.delete.v1"
+          "ak.self.realm_organization.read.list.v1"
         ],
         "surface_class": "extension"
       },
@@ -11624,8 +11585,7 @@
         "operations": [
           "ak.self.authz.read.check.v1",
           "ak.self.authz.grants.read.effective.v1",
-          "ak.self.authz.invites.read.list.v1",
-          "ak.self.policy.read.check.v1"
+          "ak.self.authz.invites.read.list.v1"
         ],
         "surface_class": "extension"
       },
@@ -15140,17 +15100,6 @@
         "response_schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome"
       },
       {
-        "operation_id": "ak.self.policy.read.check.v1",
-        "http": "POST /_arkret/self/policy/check",
-        "grpc": "SelfPolicy/Check",
-        "mq": "self.policy.query.check",
-        "notes": "Canonical HTTP binding is POST /_arkret/self/policy/check. Paths carry no version segment; protocol version and exact carrier support are discovered via *.describe / supported_operation_bundles (see sync/api-conventions.md).",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome"
-      },
-      {
         "operation_id": "ak.self.read_cursor.command.advance.v1",
         "http": "POST /_arkret/self/read-cursors",
         "grpc": "SelfReadCursor/Advance",
@@ -15378,53 +15327,6 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list"
-      },
-      {
-        "operation_id": "ak.self.realm_policy_server.resource.delete.v1",
-        "http": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
-        "grpc": "SelfRealmPolicyServer/Delete",
-        "mq": "self.realm_policy_server.resource.delete",
-        "notes": "After ak.policy.manage admission, a settled direct declaration is deleted by the caller-signed durable ak.realm.policy_server Move with the exact payload {\"tombstone\":true} and head_eq for the complete declaration; the service MUST NOT co-sign, rebuild or synthesize it, which is why this DELETE carries a request body the way ak.self.keys.backups.resource.delete.v1 already does. The registered cas_register effect sets that value in the per-Realm cell; effective reads then ignore the direct binding and resume governed_by fallback or local-only capability evaluation. Repeating DELETE against a settled tombstone is an idempotent empty success and MUST NOT change the cell or state_root. A never-written or inherited-only direct cell returns not_found and MUST NOT mutate an ancestor.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "empty_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_delete_request_body",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.realm.policy_server"
-          ]
-        }
-      },
-      {
-        "operation_id": "ak.self.realm_policy_server.resource.get.v1",
-        "http": "GET /_arkret/self/realms/{realm_id}/policy-server",
-        "grpc": "SelfRealmPolicyServer/Get",
-        "mq": "self.realm_policy_server.resource.get",
-        "notes": "Reads the projected ak.realm.policy_server config. Returns not_found when neither the Realm nor its governed_by ancestor chain declared one. from_organization_fallback=true marks an inherited config.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view"
-      },
-      {
-        "operation_id": "ak.self.realm_policy_server.resource.replace.v1",
-        "http": "PUT /_arkret/self/realms/{realm_id}/policy-server",
-        "grpc": "SelfRealmPolicyServer/Replace",
-        "mq": "self.realm_policy_server.resource.replace",
-        "notes": "Submits the caller-signed durable ak.realm.policy_server declaration Move (admission capability ak.policy.manage); the service MUST NOT co-sign, rebuild or synthesize it. The declaration is event.payload and the Realm is event.realm_id, which MUST equal the path realm_id. Reducer validates the DID, canonical HTTPS policy-check URL and on_timeout enum. When the direct cell already has a settled declaration or tombstone, the Move MUST carry head_eq for that complete value and the caller attaches it, because preconditions are inside the signed bytes; an absent direct cell is the only initial write.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
-        "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.realm.policy_server"
-          ]
-        }
       },
       {
         "operation_id": "ak.self.security_transaction.command.continue.v1",
@@ -15732,8 +15634,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-29.6",
-    "generated_at": "2026-08-29T17:36:21+08:00",
+    "version": "2026-08-29.8",
+    "generated_at": "2026-08-29T17:54:23+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_principal_server.v1",
@@ -15866,12 +15768,6 @@
       {
         "operation_bundle_id": "ak.operation_bundle.notary.describe.v1",
         "service_kind": "notary",
-        "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
-        "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
-      },
-      {
-        "operation_bundle_id": "ak.operation_bundle.policy_server.describe.v1",
-        "service_kind": "policy_server",
         "deployment_evidence": ["normative:zh/sync/service-http-binding.md#role-scoped-service-describe"],
         "members": [{"operation_id": "ak.server.read.describe.v1", "binding_kind": "http_json"}]
       },
@@ -16013,10 +15909,6 @@
           },
           {
             "operation_id": "ak.root.identity.registry.read.describe.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.policy.read.check.v1",
             "binding_kind": "http_json"
           }
         ]
@@ -16836,10 +16728,6 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.self.policy.read.check.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.self.read_cursor.command.advance.v1",
             "binding_kind": "http_json"
           },
@@ -16881,18 +16769,6 @@
           },
           {
             "operation_id": "ak.self.realm_organization.read.list.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm_policy_server.resource.delete.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm_policy_server.resource.get.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm_policy_server.resource.replace.v1",
             "binding_kind": "http_json"
           },
           {
@@ -18137,7 +18013,6 @@
           "ak.policy.rule",
           "ak.policy.action",
           "ak.realm.policy",
-          "ak.realm.policy_server",
           "ak.realm.policy_bundle",
           "ak.realm.delivery_binding_policy",
           "ak.realm.asset_privacy_policy",
@@ -18233,7 +18108,6 @@
           "ak.realm.digest_suite_transition",
           "ak.realm.notary",
           "ak.realm.preview_policy",
-          "ak.realm.policy_server",
           "ak.realm.policy_bundle",
           "ak.realm.delivery_binding_policy",
           "ak.realm.asset_privacy_policy",
@@ -18459,7 +18333,6 @@
           "ak.realm.plaintext_visible_services",
           "ak.realm.policy",
           "ak.realm.policy_bundle",
-          "ak.realm.policy_server",
           "ak.realm.preview_policy",
           "ak.realm.profile",
           "ak.realm.read_receipt_policy",
@@ -20279,7 +20152,7 @@
         "conflicts": []
       }
     ],
-    "version": "2026-08-29.2",
-    "generated_at": "2026-08-29T14:40:00+08:00"
+    "version": "2026-08-29.3",
+    "generated_at": "2026-08-29T17:54:23+08:00"
   }
 }

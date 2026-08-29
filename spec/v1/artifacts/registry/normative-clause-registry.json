@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.2",
+  "version": "2026-08-29.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T13:08:00+08:00",
+  "generated_at": "2026-08-29T18:45:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -126,7 +126,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:3e6d62e010c2415f3db3e8525301256e344b79a773e27a12e2f5704b32dba10e",
+      "section_digest": "sha256:b2d7b03c127e0ea09db674511c1cfdfb6aa3d47964dd5814e14560c0411bb3a8",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -232,7 +232,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:2f14ddb79582042d4637ab2caf188bf4cbc1ab28ffa9857a0d37210fc111d3f8",
+      "section_digest": "sha256:f705c91aebc95c503554ef42ea39d50fe8cc0b3e9b2517a0e81672bbe8fa5d7f",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest. Availability admission is authorized only by the joined predecessor state: genesis has no such authority, commits no AvailabilityReceipt, and materializes policy only for successor Seals.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -250,7 +250,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:ace1289f6b25a3f4bcee86322a7850f30b2879e94627ce9449a6e323bdb508a5",
+      "section_digest": "sha256:9135f16aadb5a21a4ec6d8f9698db4008a0146a01b54385ccd96e53f17c39a9a",
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. The reducer derives issuer_principal_server_id from the accepted carrier Event, and a grant ref supplies issuer authority only when its complete subject authority pair equals the child issuer pair; cycles, inactive refs and same-DID cross-Principal-Server replay MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -266,7 +266,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:e2bee2b83ae4702e85b68b68810e07da7021d5c231665a9c8ad44dc11dfa58aa",
+      "section_digest": "sha256:e83da4029f25d76af9feb3302e35a99b910bfae9c7b5f48ee76f9850143632b5",
       "requirement": "Revocation rolls back downstream grants and forces a re-check of dependent decisions; a revoked grant MUST NOT keep authorizing pending or cached writes.",
       "testability_grade": "vector",
       "evidence_refs": [

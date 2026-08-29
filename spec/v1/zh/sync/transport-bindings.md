@@ -110,7 +110,6 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.edge.push.command.register_device.v1` | 注册推送设备和推送网关。 |
 | `ak.edge.push.command.notify.v1` | 投递脱敏唤醒。 |
 | `ak.self.authz.read.check.v1` | 检查 capability / policy 是否允许动作。 |
-| `ak.self.policy.read.check.v1` | 调用 Policy Server 获取签名决策。 |
 | `ak.self.moderation.command.report.v1` | 提交 direct-holder signed `ak.self.moderation.report` DataEvent；服务端只做 exact validate-and-forward，不代签或重建举报。 |
 | `ak.edge.applet.command.transaction.v1` | 向 Applet 推送事件批次。 |
 | `ak.edge.applet.read.describe.v1` | 查询 Applet profile、namespace 与限制。 |

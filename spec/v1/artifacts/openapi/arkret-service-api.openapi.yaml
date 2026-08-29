@@ -1409,10 +1409,6 @@ components:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body
     PeerKeyPackagesClaimRequestBody:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body
-    PolicyCheckOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
-    PolicyCheckRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody
     PrincipalLocator:
       $ref: ../schemas/principal-locator.schema.json
     PrincipalLocatorResolveRequestBody:
@@ -1766,12 +1762,6 @@ components:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body
     RealmOrganizationRelationshipList:
       $ref: ../schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list
-    RealmPolicyServerDeleteRequestBody:
-      $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_delete_request_body
-    RealmPolicyServerReplaceRequestBody:
-      $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body
-    RealmPolicyServerView:
-      $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view
     RealmSealFrontierView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmSealFrontierView
     RecoveryCompletionGrantOutcome:
@@ -9026,41 +9016,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AppletRevokePreviewRequestBody'
-  /_arkret/self/policy/check:
-    post:
-      operationId: ak.self.policy.read.check
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.policy.read.check.v1
-      summary: Signed policy decision.
-      description: |
-        Canonical HTTP binding for `ak.self.policy.read.check.v1`. The Policy Server returns
-        a signed allow/deny/quarantine/require_review decision.
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Signed policy decision
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PolicyCheckOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PolicyCheckRequestBody'
   /_arkret/self/realms/{realm_id}/links:
     get:
       operationId: ak.self.realm_link.read.list
@@ -9236,99 +9191,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmOrganizationRelationshipList'
-  /_arkret/self/realms/{realm_id}/policy-server:
-    get:
-      operationId: ak.self.realm_policy_server.resource.get
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read the projected ak.realm.policy_server config.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm_policy_server.resource.get.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Realm policy-server config.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmPolicyServerView'
-    put:
-      operationId: ak.self.realm_policy_server.resource.replace
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit a ak.realm.policy_server Move.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm_policy_server.resource.replace.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmPolicyServerReplaceRequestBody'
-      responses:
-        '200':
-          description: Realm policy-server config set.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmPolicyServerView'
-    delete:
-      operationId: ak.self.realm_policy_server.resource.delete
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit a durable ak.realm.policy_server Move with payload {tombstone:true}.
-      description: |
-        The removal is a signed Event, so this DELETE carries a request body the
-        way ak.self.keys.backups.resource.delete.v1 already does. The caller
-        attaches the head_eq precondition naming the settled declaration.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm_policy_server.resource.delete.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmPolicyServerDeleteRequestBody'
-      responses:
-        '200':
-          description: Realm policy-server direct config tombstoned, or an existing tombstone replayed idempotently (empty body).
-        '404':
-          description: The Realm direct cell has never been written or is inherited-only; no ancestor cell is mutated.
   /_arkret/self/realms/{realm_id}:
     get:
       operationId: ak.self.realm.resource.get

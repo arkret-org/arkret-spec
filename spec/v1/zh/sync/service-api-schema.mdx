@@ -81,7 +81,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | Blob / media | `ak.self.blob.*` | `/_arkret/self/blob/*` |
 | 推送 | `ak.edge.push.*` | `/_arkret/edge/push/*` |
 | 设备加密 | `ak.self.device_messages.*`、`ak.self.keys.*` | `/_arkret/self/device_messages/*`、`/_arkret/self/keys/*` |
-| 授权与策略 | `ak.self.authz.*`、`ak.self.policy.*` | `/_arkret/self/authz/*`、`/_arkret/self/policy/check` |
+| 授权 | `ak.self.authz.*` | `/_arkret/self/authz/*` |
 | 媒体服务 | `ak.self.media.*`、`ak.self.call.media.exchange.issue_token.v1` | `/_arkret/self/rtc/ice-config`、`/_arkret/self/rtc/token` |
 | 审核 | `ak.self.moderation.*` | `/_arkret/self/moderation/*` |
 | Applet | `ak.edge.applet.*` | `/_arkret/edge/applet/*` |
@@ -330,9 +330,6 @@ paths:
   /_arkret/self/authz/invites:
     get:
       operationId: ak.self.authz.invites.read.list
-  /_arkret/self/policy/check:
-    post:
-      operationId: ak.self.policy.read.check
   /_arkret/self/rtc/ice-config:
     post:
       operationId: ak.self.media.read.ice_config
@@ -405,7 +402,6 @@ paths:
 | `ak.self.keys.upload.create.v1` / `ak.self.keys.read.lookup.v1` / `ak.self.keys.command.claim.v1` | `POST /_arkret/self/keys/upload`, `POST /_arkret/self/keys/query`, `POST /_arkret/self/keys/claim` | E2EE key service binding |
 | `ak.self.keys.backups.resource.replace.v1` / `ak.self.keys.backups.read.list.v1` / `ak.self.keys.backups.command.unlock.v1` / `ak.self.keys.backups.resource.delete.v1` | `PUT /_arkret/self/keys/backups/{backup_id}`, `GET /_arkret/self/keys/backups`, `POST /_arkret/self/keys/backups/{backup_id}/unlock`, `DELETE /_arkret/self/keys/backups/{backup_id}` | Encrypted key backup storage binding |
 | `ak.self.authz.read.check.v1` / `ak.self.authz.grants.read.effective.v1` / `ak.self.authz.invites.read.list.v1` | `POST /_arkret/self/authz/check`, `GET /_arkret/self/authz/effective-grants`, `GET /_arkret/self/authz/invites` | gRPC / policy 插件回调 |
-| `ak.self.policy.read.check.v1` | `POST /_arkret/self/policy/check` | policy 本地调用 |
 | `ak.self.media.read.ice_config.v1` | `POST /_arkret/self/rtc/ice-config` | Realtime Media Server / TURN credential adapter |
 | `ak.self.call.media.exchange.issue_token.v1` | `POST /_arkret/self/rtc/token` | Realtime Media Server token 兑换 / gRPC `Call/MediaTokenExchange` |
 | `ak.self.moderation.command.report.v1` | `POST /_arkret/self/moderation/report` | Closed `{report_event}`；direct-holder signed DataEvent，Event-derived report ID，exact-replay moderation queue workflow |

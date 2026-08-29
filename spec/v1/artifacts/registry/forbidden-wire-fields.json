@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 29,
+  "version": 30,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -780,18 +780,6 @@
         "negative_test"
       ],
       "notes": "Removed from current v1 by the PCR genesis clean cut."
-    },
-    {
-      "id": "bound_to.actor",
-      "context": "policy_check_bound_to",
-      "since_revision": "2026-06-10",
-      "rejection_level": "hard_reject",
-      "replacement": "bound_to.actor_id",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Policy check chain bare `actor` renamed to actor_id (did_id_suffix rule). Applies to PolicyCheckRequestBody.actor, PolicyCheckOutcome bound_to.actor, challenge obligation bound_to.actor and capability vector request.actor. Registered under the dotted bound_to.actor path because the bare token `actor` remains a legitimate enum value (resource selector kind, target.kind) and prose noun — literal scanners MUST NOT flag every `actor` token."
     },
     {
       "id": "branch",
@@ -2221,18 +2209,6 @@
         "negative_test"
       ],
       "notes": "member_delivery_binding references the policy revision Event that authorized a delivery binding, not a Policy object. The field therefore carries explicit event-reference semantics as policy_event_ref."
-    },
-    {
-      "id": "policy_server",
-      "context": "space_payload",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "ak.realm.policy_server",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Policy server attachment is Realm-scoped. Space payloads MUST NOT carry policy_server."
     },
     {
       "id": "policy_type",

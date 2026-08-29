@@ -187,7 +187,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - `DELETE`：删除一个已知 URI 表示的资源、binding 或 slot；重复删除必须有定义良好的幂等结果。
 - `PATCH`：仅在规范显式定义 patch document 语义、冲突检测和幂等边界时使用；否则 partial update 使用 `POST` command 或 `PUT` slot replacement。
 
-因此，`ak.self.device_messages.command.send.v1` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_arkret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ak.self.device_messages.command.ack.v1` 触发。相反，`ak.self.keys.backups.resource.replace.v1`、`ak.self.realm_policy_server.resource.replace.v1`、`ak.self.account_data.resource.replace.v1` 和 `ak.self.agent.participation.resource.replace.v1` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
+因此，`ak.self.device_messages.command.send.v1` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_arkret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ak.self.device_messages.command.ack.v1` 触发。相反，`ak.self.keys.backups.resource.replace.v1`、`ak.self.account_data.resource.replace.v1` 和 `ak.self.agent.participation.resource.replace.v1` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
 
 ## 3. 认证
 
@@ -668,7 +668,7 @@ bootstrap hint MAY 按 HTTP cache header 缓存；signed record 的可用期只�
 
 ### 11.2 出站网络目标策略与 SSRF 防护
 
-任何服务在访问由用户、远端 peer、DID Document、Directory、Policy Server、Blob/Media metadata、Snapshot manifest、Applet/Agent endpoint、Webhook 或 service discovery 返回的 URL 之前，MUST 执行出站网络目标策略。该规则覆盖 DID resolution、联邦 push/pull/frontier probe、媒体抓取、thumbnail 生成、policy check、snapshot/chunk fetch、webhook、agent/applet handoff 以及等价的非 HTTP binding。
+任何服务在访问由用户、远端 peer、DID Document、Directory、Blob/Media metadata、Snapshot manifest、Applet/Agent endpoint、Webhook 或 service discovery 返回的 URL 之前，MUST 执行出站网络目标策略。该规则覆盖 DID resolution、联邦 push/pull/frontier probe、媒体抓取、thumbnail 生成、snapshot/chunk fetch、webhook、agent/applet handoff 以及等价的非 HTTP binding。
 
 **Scheme allowlist（normative）**：出站网络目标策略 MUST 先按 **scheme 白名单** fail-closed。默认允许集**只含** `https`（`http` 仅在 §2.1 允许明文的本地开发 / 测试 / 受控内网场景下 MAY 加入），任何其它 scheme（`file`、`gopher`、`ftp`、`data`、`blob`、`dict`、`ldap`、`ws`、`wss` 以及任意未登记 scheme）MUST 直接拒绝（`policy_denied`），不得进入后续 host / IP 分类。理由：IP 分类只对基于网络 host 的 scheme 有意义；非网络 scheme 会整体旁路下面的 host/IP 判定，把 URL 解析变成本地文件读取或协议走私向量。scheme 判定 MUST 在 host 解析之前执行，并在每次 redirect / Alt-Svc / 协议升级改变 scheme 时重新判定。
 

@@ -8209,7 +8209,7 @@
     },
     "moderation_decision_lift_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision.lift. Writes an or_set remove effect on the same ak.component.moderation_state.v1 cell, removing exactly the dots enumerated in observed_dot_ids, which MUST belong to the decision identified by decision_ref. See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §5.5.2 (appeal verdict=overturn MUST pair a lift whose target equals decision_ref in the same ordered submit batch or equivalent control transaction).",
+      "description": "Payload for ak.moderation.decision.lift. Writes an or_set remove effect on the same ak.component.moderation_state.v1 cell, removing exactly the dots enumerated in observed_dot_ids, which MUST belong to the decision identified by decision_ref. See zh/governance/content-moderation.md §5.5.2 (appeal verdict=overturn MUST pair a lift whose target equals decision_ref in the same ordered submit batch or equivalent control transaction).",
       "required": [
         "target_ref",
         "decision_ref",
@@ -8276,7 +8276,7 @@
         },
         "request_canonical_digest": {
           "$ref": "#/$defs/digest",
-          "description": "JCS SHA-256 digest of the moderated request or event preview bound to the Policy Server decision. Part of the moderation_state or_set add tag."
+          "description": "JCS SHA-256 digest of the moderated request or Event preview. Part of the moderation_state or_set add tag."
         },
         "action": {
           "type": "string",
@@ -8300,10 +8300,6 @@
         },
         "reason": {
           "type": "string"
-        },
-        "policy_decision_ref": {
-          "$ref": "#/$defs/event_ref",
-          "description": "Reference to the Policy Server signed decision used as risk evidence. Audit / replay only; not a capability source."
         },
         "modify_decision_ref": {
           "$ref": "#/$defs/event_ref",
@@ -10191,7 +10187,6 @@
               "official_badge",
               "realm_admin",
               "notary_control",
-              "policy_server",
               "delivery_binding_policy",
               "durability_policy",
               "moderation_policy",
@@ -10530,115 +10525,6 @@
             "$ref": "#/$defs/did_core_id"
           },
           "description": "Complete current allow-set of service DIDs trusted to attest 3PID ownership for ak.invite.third_party / ak.invite.claim. The array is whole-value replacement state in this policy-bundle revision, not an incremental patch. Absence and [] both deny every third-party invite verification service. Removing a DID in a later policy_revision revokes it for every later claim re-check; no separate tombstone exists. Reducers MUST evaluate the current accepted bundle cell on a fresh basis before accepting ak.invite.claim."
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_policy_server_declaration": {
-      "type": "object",
-      "required": [
-        "policy_server_id",
-        "policy_server_url"
-      ],
-      "properties": {
-        "policy_server_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "policy_server_url": {
-          "type": "string",
-          "format": "uri",
-          "pattern": "^https://[^/?#@]+/_arkret/self/policy/check$"
-        },
-        "public_kids": {
-          "type": "array",
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_url"
-          },
-          "uniqueItems": true
-        },
-        "applies_to": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "join",
-              "invite",
-              "message",
-              "media",
-              "applet",
-              "directory",
-              "call",
-              "federation"
-            ]
-          },
-          "uniqueItems": true
-        },
-        "policy_sources": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "kind"
-            ],
-            "properties": {
-              "kind": {
-                "type": "string",
-                "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-              }
-            },
-            "additionalProperties": false
-          },
-          "uniqueItems": true
-        },
-        "abuse_profile_ref": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "fail_mode": {
-          "type": "string",
-          "enum": [
-            "open",
-            "soft_deny",
-            "quarantine",
-            "closed"
-          ]
-        },
-        "cache_ttl_seconds": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "timeout_ms": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "on_timeout": {
-          "type": "string",
-          "enum": [
-            "fail_closed",
-            "deny"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_policy_server_payload": {
-      "description": "Closed payload for ak.realm.policy_server. A declaration writes the complete direct Realm binding; {tombstone:true} is a durable value tombstone that removes the direct binding from effective queries without erasing the cell history.",
-      "oneOf": [
-        {
-          "$ref": "#/$defs/realm_policy_server_declaration"
-        },
-        {
-          "$ref": "#/$defs/realm_policy_server_tombstone"
-        }
-      ]
-    },
-    "realm_policy_server_tombstone": {
-      "type": "object",
-      "required": [
-        "tombstone"
-      ],
-      "properties": {
-        "tombstone": {
-          "const": true
         }
       },
       "additionalProperties": false

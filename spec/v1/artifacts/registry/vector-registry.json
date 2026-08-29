@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.2",
+  "version": "2026-08-29.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T14:22:43+08:00",
+  "generated_at": "2026-08-29T18:45:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4627,71 +4627,6 @@
         "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.policy_server.binding_tombstone.v1",
-      "status": "active",
-      "domain": "policy_server",
-      "applies_to_fixtures": [
-        "policy-server-fixture.json"
-      ],
-      "description": "DELETE maps to a sealed ak.realm.policy_server value tombstone after ak.policy.manage admission; effective queries resume governed_by fallback, repeated DELETE is state-root-idempotent, and inherited-only state is not deleted.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/policy-server-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.policy_server.decision_replay_rejected.v1",
-      "status": "active",
-      "domain": "policy_server",
-      "applies_to_fixtures": [
-        "policy-server-fixture.json"
-      ],
-      "description": "Expired policy decisions and decisions bound to an older auth/policy/membership frontier MUST be rejected on replay; receivers fail closed and re-request the policy check.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/policy-server-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.policy_server.replace_delete_conflict.v1",
-      "status": "active",
-      "domain": "policy_server",
-      "applies_to_fixtures": [
-        "policy-server-fixture.json"
-      ],
-      "description": "Concurrent replace and delete siblings based on the same policy-server cell head join to bottom under cas_register/reject; readers fail closed and do not skip to organization fallback.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/policy-server-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.policy_server.request_digest_recompute.v1",
-      "status": "active",
-      "domain": "policy_server",
-      "applies_to_fixtures": [
-        "policy-server-fixture.json"
-      ],
-      "description": "Receivers recompute the RFC 8785 JCS request_canonical_digest of the presented request body; mismatch with the signed bound_to transcript MUST reject the decision.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/policy-server-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.policy_server.tombstone_federation_replay.v1",
-      "status": "active",
-      "domain": "policy_server",
-      "applies_to_fixtures": [
-        "policy-server-fixture.json"
-      ],
-      "description": "Federated tombstone Event and Seal delivery orders, duplicates and restart replay converge to the same explicit tombstone cell value and state_root without reviving the direct policy-server config.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/policy-server-fixture.json"
       ]
     },
     {

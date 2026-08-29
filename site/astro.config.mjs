@@ -290,7 +290,6 @@ document.addEventListener("astro:after-swap", boot);
                 "constraint-schema",
                 "resource-selector-grammar",
                 "event-auth-state-resolution",
-                "policy-server",
               ]),
             },
             {

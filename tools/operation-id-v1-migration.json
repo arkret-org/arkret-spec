@@ -856,10 +856,6 @@
       "new": "ak.self.organization_recovery_archives.read.list.v1"
     },
     {
-      "old": "ak.self.policy.read.check",
-      "new": "ak.self.policy.read.check.v1"
-    },
-    {
       "old": "ak.self.read_cursor.command.advance",
       "new": "ak.self.read_cursor.command.advance.v1"
     },
@@ -926,18 +922,6 @@
     {
       "old": "ak.self.realm_organization.read.list",
       "new": "ak.self.realm_organization.read.list.v1"
-    },
-    {
-      "old": "ak.self.realm_policy_server.resource.delete",
-      "new": "ak.self.realm_policy_server.resource.delete.v1"
-    },
-    {
-      "old": "ak.self.realm_policy_server.resource.get",
-      "new": "ak.self.realm_policy_server.resource.get.v1"
-    },
-    {
-      "old": "ak.self.realm_policy_server.resource.replace",
-      "new": "ak.self.realm_policy_server.resource.replace.v1"
     },
     {
       "old": "ak.self.seals.command.issue_availability_receipts",

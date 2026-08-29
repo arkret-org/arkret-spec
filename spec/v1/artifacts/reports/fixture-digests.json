@@ -265,10 +265,6 @@
       "sha256": "715e56ef1bde8770c2c84e7daa049a6cfc51f6f710ba8715eeba445a76d181ea"
     },
     {
-      "path": "spec/v1/artifacts/fixtures/policy-server-fixture.json",
-      "sha256": "cda6c30d756fb1903945463c26890c41c8cef94c779f427746424e01f4dc632e"
-    },
-    {
       "path": "spec/v1/artifacts/fixtures/poll-reducer-fixture.json",
       "sha256": "8d7dfdc206650372fbb3970785432f98fb9fa7c446879cd9de62de988b67c79c"
     },
@@ -318,7 +314,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-organization-fixture.json",
-      "sha256": "f4c674534db99f5425756abe7a5dba4c581cb33dc6eff7583d0f34c632733488"
+      "sha256": "44d543e4843aee80a5550c3520c1f2a91bf9d02fe90fc8eb280a68c5bb352ec5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-policy-fixture.json",
@@ -346,7 +342,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "1c6a28ee26c5fea1f7524e6cfc3f18da3eaed7fecf402f00e8f8c119b3231b33"
+      "sha256": "39d5adf8d2df0d903cedc012ad50880b3be492dfbaec5f4b959cbe825f6cfc93"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

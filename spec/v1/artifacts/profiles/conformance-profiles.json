@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.2",
-  "generated_at": "2026-08-29T14:22:43+08:00",
+  "version": "2026-08-29.3",
+  "generated_at": "2026-08-29T15:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3162,7 +3162,7 @@
       }
     },
     "ak.profile.auth_server.v1": {
-      "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ak.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ak.self.policy.read.check.v1` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ak.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
+      "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ak.session.grant` artefacts, and expose session-grant introspection / revocation. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ak.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
       "enforcement_phases": [
         "conformance",
         "startup_claim_guard"
@@ -3221,7 +3221,6 @@
         "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
         "ak.gate.account.command.abandon_identity_creation.v1",
         "ak.gate.account.command.register.v1",
-        "ak.self.policy.read.check.v1",
         "session_grant_introspection",
         "session_grant_revocation",
         "oidc",

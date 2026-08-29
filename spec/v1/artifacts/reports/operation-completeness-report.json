@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.9",
+  "version": "2026-08-29.11",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T17:36:21+08:00",
+  "generated_at": "2026-08-29T17:54:23+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 249,
+    "total_operations": 245,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 247
+      "typed_schema": 243
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 161
+        "typed_schema": 157
       },
       "interop_bridge": {
         "typed_schema": 22
@@ -2964,20 +2964,6 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.self.policy.read.check.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/policy/check",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/PolicyCheckRequestBody",
-        "response": "#/components/schemas/PolicyCheckOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
       "operation_id": "ak.self.read_cursor.command.advance.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/self/read-cursors",
@@ -3204,46 +3190,6 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ak.self.realm_policy_server.resource.delete.v1",
-      "surface_class": "extension",
-      "http": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
-      "success_shape_kind": "empty_response",
-      "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_delete_request_body",
-      "response_schema_ref": null,
-      "openapi_component_refs": {
-        "request": "#/components/schemas/RealmPolicyServerDeleteRequestBody"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request."
-    },
-    {
-      "operation_id": "ak.self.realm_policy_server.resource.get.v1",
-      "surface_class": "extension",
-      "http": "GET /_arkret/self/realms/{realm_id}/policy-server",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/RealmPolicyServerView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ak.self.realm_policy_server.resource.replace.v1",
-      "surface_class": "extension",
-      "http": "PUT /_arkret/self/realms/{realm_id}/policy-server",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
-      "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/RealmPolicyServerReplaceRequestBody",
-        "response": "#/components/schemas/RealmPolicyServerView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.seals.command.issue_availability_receipts.v1",

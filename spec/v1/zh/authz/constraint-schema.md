@@ -20,9 +20,9 @@ updated: 2026-07-30
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
 - **Control Move precondition** 只表达 cell 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。DataEvent 不携带 `preconditions[]`，其数据面约束由 causal refs、`seal_ref` 与 Lattice 规则表达。
-- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `ak.self.policy.read.check.v1`（默认 path `/_arkret/self/policy/check`）obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / DataEvent 或 Control Move canonical hash 绑定一致。
+- **可验证证据** 是运行时 claim / approval / challenge 的动态评估输入。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 由 accepted approval Event 或 reducer 可验证的、绑定原始 request / DataEvent / Control Move canonical hash 的 evidence 满足。
 
-因此，`claim_based` constraint 中的 `required_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有对应 Policy Server proof / accepted approval Event / reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
+因此，`claim_based` constraint 中的 `required_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有 accepted approval Event 或 reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
 
 ## 2. 约束结构
 
@@ -478,7 +478,7 @@ quota authority MUST 同时满足：
 
 ### 9.3 Approval signature replay protection（normative）
 
-本节的 **approval signature** 与 [`policy-server.md` §5](./policy-server.md) 的 **policy decision signature** 是两套独立的 replay 防护证据，各有独立的 nonce 命名空间与绑定字段，MUST NOT 互相替代或共享 nonce：approval signature 由 approver DID 签发、绑定 `(grant_id 或 proposal_id, nonce, ...)`，证明"某 approver 批准了该 Move"；policy decision signature 由 Policy Server 签发、绑定 `(request_id, request_canonical_digest, auth_state_digest, ...)`，证明"Policy Server 对该请求给出了某 decision"。一次授权可同时需要两者。
+**Approval signature** 是独立的 replay 防护证据。它由 approver DID 签发并绑定 `(grant_id 或 proposal_id, nonce, ...)`，证明“某 approver 批准了该 Move”；其 nonce 命名空间不得与其它 challenge 或签名证据共享。
 
 无论是 §9.1 预审批还是 §9.2 提案模式，每个 approval signature 都是 reducer 在判定"目标 Move 是否被批准"时直接消费的密码学证据。为防止同一个 approver 的同一份签名被跨 grant、跨 proposal、跨 request body 重放，approval signature 的 canonical signing input **MUST** 绑定下列字段（缺一即 `signature_invalid`）：
 
@@ -931,7 +931,7 @@ function matches_field_access(operation, constraint):
 
 #### 18.1.1 `depends_on_moderation_state`（缓存依赖标记，非求值约束）
 
-`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `ak.component.moderation_state.v1` cell（见 [`policy-server.md` §7.1](./policy-server.md)）”，从而决定该 cell 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
+`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `ak.component.moderation_state.v1` cell”，从而决定该 cell 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
 
 - 默认 `false`：普通 grant（`ak.strand.update` / `ak.message.create` / 组织成员 grant 等）不因每次 moderation 决策抖动失效。
 - 当满足 [`capabilities.md` §18.1](./capabilities.md) 列出的三类触发条件之一（moderator-role grant、condition-selector subject 引用 moderation state、constraint 引用 moderation queue / cell）时，`constraints[]` 中 MUST 显式包含 `depends_on_moderation_state=true`，缺失即 `schema_violation`。其中“条件 (2)（`actions[]` 含 moderation 写入动作）”由 [`capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json) 的 `if/then` 静态强制；条件 (1)、(3) 为 reducer-side lint。

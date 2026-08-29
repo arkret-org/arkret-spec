@@ -35,7 +35,6 @@ Sovereign deployment 是由单一组织或联盟控制的 Arkret 服务域。它
 - Principal Server / Principal Server sync surface
 - Directory
 - Blob Store
-- Policy Server
 - Push Gateway
 - TURN / SFU / Realtime Media Server
 - Applet / Agent Runtime allowlist
@@ -106,7 +105,7 @@ flowchart TB
 - 主网络保持 closed federation，不向外部主体暴露内部 Directory 或服务拓扑。
 - Controlled Collaboration Enclave 是独立协作边界，只承载被批准的 Realm。
 - 外部主体通过 DID / VC / authority chain / invite / restricted join 进入 enclave Realm。
-- 外部组织可以保留自己的 Principal Server / Events API，但写入必须经过 enclave Principal Server / Principal Server sync surface、Policy Server 和本地授权验证。
+- 外部组织可以保留自己的 Principal Server / Events API，但写入必须经过 enclave Principal Server / Principal Server sync surface 和本地授权验证。
 - 主网络与 enclave 之间没有默认桥接；资料进出必须经过 export / import review。
 
 ## 2.2 Sovereign Client
@@ -145,7 +144,7 @@ Sovereign client(在 `ak.profile.sovereign_deployment.v1` 语境下)逐条强制
 - 外部 Applet、Agent handoff、TSP/A2A/ACP transport 默认关闭，按 Realm 明确开启(MUST)。
 - Realm 默认 `discoverability=unlisted` 或 `invite_only`(SHOULD；与 §7 的 sovereign profile 声明一致)。
 - Realm 默认 `join_rule=invite` 或 `restricted`(SHOULD)。
-- Policy Server 默认 `closed` 或 `quarantine` fail mode(SHOULD)。
+- policy 与 moderation 检查默认 fail closed 或进入 quarantine(SHOULD)。
 - PQ-hybrid TLS：sovereign / 高安全 profile 的 client-service、service-to-service 与 federation peer 连接 MUST 遵守 [`transport-bindings.md` §5](./transport-bindings.md) 的 canonical 握手义务。该要求零 wire 字段成本，与 §3.2 / federation §3.2 的 RFC 9421 请求签名正交；conformance 使用 §11 的 deployment-profile 握手探针，而非 object-model vector。完整威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。
 
 ## 3.1 DID Policy
@@ -196,7 +195,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 - 跨 epoch 的 membership key（即作为 `ak.member.state` 的长期 `actor_id` 跨越 MLS epoch rotation 或 Seal epoch 持续有效）；
 - 任何长期身份锚点（DID resolver / witness / OOBI 解析意义上的持久主体）。
 
-`ephemeral_only` DID **只能**作为 per-session / per-device 的 ephemeral binding 出现（一次会话或一台设备生命周期内的临时凭据 / 临时签名 key），其有效期不得跨越所绑定 session / device 的生命周期。reducer / Policy Server 收到以 `ephemeral_only` DID 为 principal-level grant subject 或跨 epoch membership key 的写入时 MUST fail closed。
+`ephemeral_only` DID **只能**作为 per-session / per-device 的 ephemeral binding 出现（一次会话或一台设备生命周期内的临时凭据 / 临时签名 key），其有效期不得跨越所绑定 session / device 的生命周期。reducer 收到以 `ephemeral_only` DID 为 principal-level grant subject 或跨 epoch membership key 的写入时 MUST fail closed。
 
 这与 [`client-sync.md` §8.1](./client-sync.md) 中"高隐私 Realm MAY 用 Realm-scoped pairwise `did:key` 作 `actor_id`"协调：作为**长期 membership key 的 pairwise DID** 不属于 `ephemeral_only`，MUST 由 `did:webvh` 派生（可持久解析、可轮换、可撤销），或在 `method_policy` 中对该用途**显式豁免**（例如把承载长期 pairwise membership 的 method 标为 `allowlist` 而非 `ephemeral_only`）。纯 per-session 或按单一 device scope 派生的临时 pairwise **principal DID** 不需要该豁免；这不会使设备自身成为 DID 主体。
 
@@ -266,7 +265,7 @@ Sovereign 部署默认采用 **`notary.kind=single_signer`**：每个 Realm crea
 
 1. 外部主体提供 DID、Organization DID、service DID 或 verifiable credential。
 2. 主组织验证 DID control、handle binding、organization authority chain。
-3. Policy Server 检查 allowlist、risk score、clearance claim、contract claim、device posture。
+3. 接收服务根据 accepted policy state 检查 allowlist、risk score、clearance claim、contract claim、device posture。
 4. Realm admin 或 delegated approval actor 发出 invite。
 5. 外部主体接受 invite，并提交 `ak.member.state` join event。
 6. 对 E2EE Realm，管理员客户端或 key service 只向该主体授权设备发 MLS Welcome。
@@ -316,7 +315,7 @@ Sovereign 部署默认采用 **`notary.kind=single_signer`**：每个 Realm crea
 - 主网络保持 closed federation。
 - 创建独立的 collaboration enclave。
 - 外部主体只被邀请到 enclave Realm。
-- enclave Realm 使用独立 Principal Server / Blob / Policy Server。
+- enclave Realm 使用独立 Principal Server / Blob。
 - 从主网络复制到 enclave 的资料必须经 redaction / export review / declassification policy。
 - 从 enclave 回流主网络的资料必须经 import review / malware scan / policy approval。
 
@@ -384,7 +383,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 - service DID allowlist
 - External Collaboration Realm 的创建流程
 - restricted 外部加入流程
-- Policy Server 的 closed fail 模式
+- policy 与 moderation 检查的 fail-closed 模式
 - 仅向受批准的外部设备发送 MLS Welcome
 - 目录对非成员的不可见性
 - 跨域事件审计

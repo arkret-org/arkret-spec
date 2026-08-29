@@ -20,7 +20,7 @@ sidebar:
 - reducer 一致性（特别是 auth/state 重算）
 - redaction 与隐私字段保留规则
 - capability 与授权派生规则
-- Principal Server Events API / Principal Server sync surface / E2EE / applet / Policy Server 关键接口
+- Principal Server Events API / Principal Server sync surface / E2EE / applet 关键接口
 
 Schema 依赖由 Event Envelope 的 `requirements.schema[]` 声明；Realm reducer 版本由 reducer-profile singleton control cell 决定，并且只通过 `ak.realm.create` / `ak.realm.upgrade` 写入。v1 不使用顶层 `space_version` wire 字段。
 
@@ -172,7 +172,6 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 | E2EE Client | epoch 回填、to-device、removed 成员 fail-closed | 本地 search 协调 |
 | Applet Bridge | 注册签名、transaction 幂等、namespace 冲突、未授权写入拒绝 | portal realm 映射 |
 | MIMI Provider Facade | draft pinning、room binding、KeyPackage claim、message/content roundtrip、policy mapping、identifier privacy、consent isolation、proxy download、unsupported draft fail-closed | MIMI content extension lossless preservation |
-| Policy Server | decision 签名、replay 保护、hard_deny / quarantine 语义、rate_limit / spam 风险码 | federation 再检 |
 | Identity Registry | DID log 一致性、witness receipt、method adapter | witness-only、read-replica |
 | Moderation | report / queue item schema、E2EE evidence package、franking、operator ACL | appeal / audit trail |
 | Agent Runtime | capability grant 解释、knowledge source 声明、owner presence policy、join policy、capability revoke | approval UX、tool call audit |

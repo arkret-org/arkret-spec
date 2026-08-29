@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.1",
+  "version": "2026-08-29.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T00:00:00+08:00",
+  "generated_at": "2026-08-29T17:54:23+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -141,7 +141,7 @@
     {
       "schema_id": "ak.schema.circle.v1",
       "file": "schemas/circle.schema.json",
-      "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. see zh/models/circle.md."
+      "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity. see zh/models/circle.md."
     },
     {
       "schema_id": "ak.schema.agent_sidecar.v1",
@@ -493,12 +493,6 @@
       "file": "schemas/realm-organization-operations.schema.json",
       "status": "active",
       "description": "Closed response DTO bundle for self-surface Realm organization relationship reads (ak.self.realm_organization.*); see zh/models/realm-and-space.md."
-    },
-    {
-      "schema_id": "ak.schema.realm_policy_server_operations.v1",
-      "file": "schemas/realm-policy-server-operations.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface Realm policy-server config operations (ak.self.realm_policy_server.*); see zh/authz/policy-server.md."
     },
     {
       "schema_id": "ak.schema.realm_read_operations.v1",

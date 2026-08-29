@@ -24,7 +24,7 @@ updated: 2026-08-11
 12. Media Service Binding
 13. History Visibility / Preview / History Sharing
 14. Encryption Floor Ratchet
-15. Moderation / Policy Server / Key Backup / Federation Ingress
+15. Moderation / Key Backup / Federation Ingress
 
 MIMI Provider Facade 的 active interop vector 集合与数量以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中 active 的 `ak.vector.mimi.*` 登记为唯一权威；详细语义见 [`mimi-interop.md`](../extensions/mimi-interop.md)，可执行数据见 [`mimi-interop-fixture.json`](../../artifacts/fixtures/mimi-interop-fixture.json)。
 
@@ -1617,7 +1617,7 @@ ak.vector.redaction.preserve_fields.v1
 ```json schema=schemas/event-payload.schema.json#/$defs/message_redact_payload
 {
   "message_id": "ak:message:ASwq0QFg8faJScGgZD2ETHGz8WhBMT09jmLQI16Q3Z-U",
-  "reason": "policy_recall"
+  "reason": "moderation_recall"
 }
 ```
 
@@ -1653,7 +1653,7 @@ ak.vector.redaction.preserve_fields.v1
     "or_set_members": [
       {
         "actor_id": "ak:did_core:webvh:z6mkfixtureAlice",
-        "reason": "policy_recall"
+        "reason": "moderation_recall"
       }
     ]
   }
@@ -1923,7 +1923,7 @@ ak.vector.redaction.policy_scope.v1
 ```json schema=schemas/event-payload.schema.json#/$defs/message_redact_payload
 {
   "message_id": "ak:message:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u",
-  "reason": "policy_recall"
+  "reason": "moderation_recall"
 }
 ```
 
@@ -5227,9 +5227,9 @@ Expected:
 - reducer MUST `failed_precondition`，reason=`circle_encryption_below_realm_floor`。
 - Circle floor 只能在父 Realm floor 之上收紧；`none` scope 无 MLS-backed effective_scope 可承载密文，故不得声明 `e2ee_required`。
 
-## 15. Moderation / Policy Server / Key Backup / Federation Ingress Vectors
+## 15. Moderation / Key Backup / Federation Ingress Vectors
 
-本节收拢治理域（content moderation、policy server、key backup）与 federation ingress 的 conformance 向量。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
+本节收拢治理域（content moderation、key backup）与 federation ingress 的 conformance 向量。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
 
 ### 15.1 Vector: E2EE Franking Roundtrip
 
@@ -5286,7 +5286,7 @@ Expected：
 
 `vector_id`: `ak.vector.moderation.review_resolution_fold.v1`
 
-本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §2.6 与 [`policy-server.md`](../authz/policy-server.md) §7.1：active moderation decisions 是可 join 的 OR-Set，普通多 entry 必须按 `hard_deny > quarantine > require_review > none` 取最严格 effective decision；active `require_review` add 是 pending-review 的 canonical carrier，解除必须原子 lift 全部适用 review gates，并在 allow 路径重新执行当前 authz。
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §2.6：active moderation decisions 是可 join 的 OR-Set，普通多 entry 必须按 `hard_deny > quarantine > require_review > none` 取最严格 effective decision；active `require_review` add 是 pending-review 的 canonical carrier，解除必须原子 lift 全部适用 review gates，并在 allow 路径重新执行当前 authz。
 
 Cases / Expected：
 
@@ -5295,86 +5295,7 @@ Cases / Expected：
 - hard-deny / quarantine resolution 必须把 review lifts 与 replacement decision 原子提交；不得留下“review 已解除但 replacement 未写入”的窗口。
 - 只有同一 add identity 对应不同 canonical bytes、remove provenance 不可验证等真正非 joinable 状态才返回 `moderation_control_split` / `moderation_state_conflict`。
 
-### 15.3 Vector: Policy Decision 重放拒绝
-
-`vector_id`: `ak.vector.policy_server.decision_replay_rejected.v1`
-
-本向量固化 [`policy-server.md`](../authz/policy-server.md) §5 的反重放 / freshness MUST：“节点 MUST 拒绝过期 decision”；frontier 比较中“若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier……receiver MUST fail closed 并重新请求 `/_arkret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state”。
-
-Steps：
-
-- **Case A — 过期 decision 重放**：一份签名有效的 allow decision 在 `expires_at` 之后被原样重放给 receiver。
-- **Case B — auth state 前进后复用**：decision 签发后，本地 accepted auth state 观察到相关 grant revoke / membership 变化（`auth_state_digest` 与 decision 绑定值不再一致，且本地 frontier 严格晚于 decision frontier）；调用方尝试复用缓存中的该 decision（cache key 含 `auth_state_digest` 五元组，见 §5）。
-
-Expected：
-
-- **Case A**：receiver MUST 拒绝（`expires_at > now` 校验失败），不得以任何 TTL 宽限接受。
-- **Case B**：cache hit 时 `auth_state_digest` constant-time 比较不一致 MUST 回退完整授权判定；本地 frontier 严格晚于 decision frontier 时 MUST fail closed 并重新请求 policy check，MUST NOT 把旧 allow decision 复用到更新后的 auth state。
-- 两个 case 的拒绝 MUST NOT 推进任何依赖该 decision 的写入。
-
-### 15.4 Vector: Request Canonical Digest 重算不符拒绝
-
-`vector_id`: `ak.vector.policy_server.request_digest_recompute.v1`
-
-本向量固化 [`policy-server.md`](../authz/policy-server.md) §5 的 transcript 绑定 MUST：“`request_canonical_digest` MUST 是 RFC 8785 JCS 在该请求 body 上的 SHA-256 digest”；接收方 MUST 校验 “`bound_to` 必须存在，且 `bound_to.realm_id` / `bound_to.actor_id` / `bound_to.action` / `bound_to.request_canonical_digest` 与本次 request 完全一致”。
-
-Steps：
-
-- **Case A — digest 不符**：调用方拿到一份对请求 body `B1` 签发的 decision（`bound_to.request_canonical_digest = JCS-SHA256(B1)`），将其附在内容已被修改的请求 body `B2` 上提交；receiver 对 `B2` 重算 JCS canonical digest。
-- **Case B — control 正路径**：decision 的 `bound_to` 四元组与本次 request 重算结果完全一致，signature / `expires_at` / frontier 校验全部通过。
-
-Expected：
-
-- **Case A**：重算 digest ≠ `bound_to.request_canonical_digest`，receiver MUST 拒绝该 decision，不得信任 decision 自带的 digest 字段而跳过本地重算；按 service-private 算法（非 JCS）计算 canonical hash 的实现 MUST NOT 声明通过 v1 conformance。
-- **Case B**：decision 接受（对照正样本）。
-- `bound_to.realm_id` / `actor_id` / `action` 任一与本次 request 不一致时同样 MUST 拒绝（防止 allow decision 跨 (realm, actor) 上下文泄漏）。
-
-### 15.4.1 Vector: Realm Policy Server 持久删除与重复删除
-
-`vector_id`: `ak.vector.policy_server.binding_tombstone.v1`
-
-本向量固定 [`policy-server.md`](../authz/policy-server.md) §2.2 的 DELETE 映射。具备
-`ak.policy.manage` 的 actor 删除一个有 direct declaration、同时通过 `governed_by` 可继承
-组织声明的 Realm；receiver 必须从 DELETE 构造 payload 精确为 `{"tombstone":true}` 的
-`ak.realm.policy_server` Control Move，并将 `set(value=payload, from=<被删除的完整
-declaration>)` 纳入 Seal 与 `state_root`（`from` 由 projector 按
-[`event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md) 从
-whole-value `head_eq` 复制，declaration → tombstone 因此按取代链 join 到 tombstone）。
-
-Expected：
-
-- Seal 接受前 effective state 不变；接受后 direct cell 的 settled value 是显式 tombstone，
-  GET 返回组织声明并标记 `from_organization_fallback=true`；
-- 对 settled tombstone 重复 DELETE 返回幂等空成功，cell value 与 `state_root` 不变；
-- 从未有 direct declaration / tombstone 时 DELETE 返回 `not_found`；仅继承到的配置不构成
-  direct declaration，删除不得改写祖先 Realm cell；
-- tombstone payload 必须精确为 `{"tombstone":true}`；`tombstone=false`、`null`、空 object 或
-  与任一 declaration 字段混合都必须在 reducer 前以 `schema_violation` 拒绝；
-- 缺 `ak.policy.manage` 时必须在构造 / 接受 Control Move 前拒绝，不能先写 tombstone 再补审计。
-
-### 15.4.2 Vector: Realm Policy Server Replace/Delete 并发
-
-`vector_id`: `ak.vector.policy_server.replace_delete_conflict.v1`
-
-从同一 frozen declaration head 分别构造一个 replacement 与一个 tombstone sibling；两者都带
-命中旧完整 value 的 `head_eq`，并被同一 predecessor view 的并发 Seal 分支接受。
-
-Expected：不同 `set` value 的 `cas_register` join 为 `⊥`、`bottom=reject`；GET、Policy Server
-调用和依赖该 cell 的写入均 `failed_bottom`。实现不得按 HLC / 到达顺序选择 replacement 或
-tombstone，也不得在本级 `⊥` 时跳过到组织 fallback。仅 `ak.conflict.recovery` 可恢复。
-
-### 15.4.3 Vector: Realm Policy Server Tombstone 联邦回放与 Seal
-
-`vector_id`: `ak.vector.policy_server.tombstone_federation_replay.v1`
-
-对端分别按 Event→Seal、Seal→Event、含 Event / Seal 重复的顺序接收同一 tombstone。依赖未齐时
-保持 pending；Event、Seal 与 predecessor 全部可用后，receiver 必须从 registry 重算
-`ak.component.realm.policy_server.v1:null` 的 `set({"tombstone":true})`。
-
-Expected：全部顺序收敛为相同 cell value 与 `state_root`；重复传输幂等；Event 保留在 canonical
-log 并参与后续 federation / snapshot；重启回放或从 sealed cell store hydrate 后 direct config
-仍为 tombstone，不得因结构化缓存重建遗漏而复活。
-### 15.5 Vector: Key Backup Unlock Proof 校验
+### 15.3 Vector: Key Backup Unlock Proof 校验
 
 `vector_id`: `ak.vector.key_backup.unlock_proof.v1`
 
@@ -6427,7 +6348,7 @@ runner MUST 执行 `privacy-security-fixture.json` 的 Actor Profile accountabil
 Runner MUST 覆盖：
 
 1. 顺序治理生命周期 declaration → whole-value `head_eq` tombstone → 再 declaration 的三个
-   set op join 到单一终值，不落 `⊥`（policy-server §2.2 标准流程即正例）；
+   set op join 到单一终值，不落 `⊥`；
 2. 同一前驱（相同 `from`）上的两个不同值 set 形成两条极大链，join 为 `⊥`，`bottom=reject`
    cell 物化 `failed_bottom`；
 3. 非链首 op 的 `from` 不匹配集合内任何 op 的 value（悬空取代）时 join 为 `⊥` fail closed；

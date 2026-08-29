@@ -346,7 +346,6 @@ SHOULD 支持：
 
 - `ak.gate.account.command.issue_session_grant.v1` 规范化 HTTP binding
 - 采用 account-first onboarding 时，完整实现 `ak.gate.account.exchange.create_handoff.v1` → `ak.gate.account.command.issue_identity_binding_challenge.v1` → `ak.gate.account.command.register.v1`；不得以私有 endpoint、普通 OAuth bearer 或进程内 challenge store 替代
-- `ak.self.policy.read.check.v1`（`PolicyCheckOutcome`）
 - 多 principal-server delegation target 配置
 - DID binding / claim attestation
 
@@ -497,7 +496,7 @@ MUST 支持：
 - 默认私有目录
 - 在 sovereign deployment 下 External Collaboration Realm 的强制 policy（见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md) 与 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)）
 - restricted 或 invite-only 外部加入
-- Policy Server `closed` 或 `quarantine` 失败模式
+- policy 与 moderation 检查默认 fail closed 或进入 quarantine
 - sovereign deployment 下 External Collaboration Realm 默认 E2EE
 - MLS Welcome 只发给已批准的外部设备
 - 外部 Applet / Agent / transport allowlist
