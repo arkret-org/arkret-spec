@@ -36,7 +36,7 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned`、`
 
 **架构取舍（normative）**：v1 不引入开放 `stamped` 容器，Event 顶层 exclusion set 固定为 `actor_kind`。新增 reducer-stamped 顶层字段会在 producer 签名之外创造新事实来源，v1 MUST NOT 接受。低层 canonicalizer 必须从 Event schema 消费该单元素 exclusion set，不得自行维护另一份业务字段列表。
 
-生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何进入签名 / canonical wire bytes 的 v1 schema MUST NOT 出现 `type: number`（非整数）字段；该约束在 OpenAPI 镜像上由 lint 强制。唯一例外是**派生的 read / projection 响应**中承载「被投影字段运行时类型」的 filter 值（例如 `view.schema.json#/$defs/collection_projection_view` 分组 source 的 `value`、OpenAPI `CollectionFieldValueGroupSource.value`）：它们不进入 canonical Event bytes、不参与签名，MAY 保留 `type: number`，且在 OpenAPI 镜像中 MUST 以 `# lint-waiver(type:number): <理由>` 标注；后续 wire 修订可将需要小数的字段类型迁移为 `{integer, scale}` 信封。
+生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何进入签名 / canonical wire bytes 的 v1 schema MUST NOT 出现 `type: number`（非整数）字段；该约束在 OpenAPI 镜像上由 lint 强制。唯一例外是**非 canonical、非签名的查询时注解**（例如 OpenAPI `SearchMatch.score`）：它们 MAY 保留 `type: number`，且在 OpenAPI 镜像中 MUST 以 `# lint-waiver(type:number): <理由>` 标注；任何需要进入签名材料的同类值仍必须使用 `{integer, scale}` 信封。
 
 ### 2.1 时间语义 inventory 与最小例外表
 

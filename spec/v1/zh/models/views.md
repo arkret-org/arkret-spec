@@ -257,7 +257,7 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
 
 | Core kind | 常用 renderer | 必填配置 | 标准投影响应 |
 | --- | --- | --- | --- |
-| `collection` | `board`, `list`, `table`, `calendar`, `gantt`, `custom` | `collection` | `CollectionProjectionView` |
+| `collection` | `board`, `list`, `table`, `calendar`, `gantt`, `custom` | `collection` | 客户端本地派生结果（非 v1 wire response） |
 | `timeline` | `timeline`, `chat`, `thread`, `forum`, `custom` | `timeline` | `TimelineProjectionView` |
 | `graph` | `graph`, `tree`, `custom` | `graph` | `GraphProjectionView` |
 | `document` | `document`, `custom` | `document` | `DocumentProjectionView` |
@@ -355,54 +355,9 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Strand。实现 MUST �
 4. 按 actor 的 Realm membership、capability 和 `allowed_tracks` action scope 裁剪不可见对象和字段。track scope 只缩小已授权动作范围，不授予独立 track-level ACL。
 5. 按 List/Strand rank 和稳定 tie-break 排序。
 
-### 6.3 Board Projection Response
+### 6.3 Board 本地派生边界
 
-客户端、SDK 或可选受托 projection 扩展 MAY 为 `View{kind="collection", renderer="board"}` 生成已经物化的 `CollectionProjectionView`。响应是派生结果，不是真相源。
-
-```json
-{
-  "projection": "collection",
-  "renderer": "board",
-  "view_id": "ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem",
-  "frontier": {
-    "state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "event_ids": ["ak:event:AXwng-3vLj-z3_-67errHE5HBB9YT0a7gKGanmTg6vIk"]
-  },
-  "groups": [
-    {
-      "key": "ak:space:AUN0Iz6xJMZJX5AOvIXKM2Ayq0Qa5m8xybogwxSPdxpS",
-      "title": "Review",
-      "rank": "mV",
-      "limited": false,
-      "items": [
-        {
-          "object": {
-            "id": "ak:strand:ATFOTQ67EuMWGb8uu8VejrvkcjhmtL20pi7W5Zpv7gbn",
-            "type": "strand",
-            "title": "Legal review"
-          },
-          "position": {
-            "model": "derived_relation",
-            "scope_container_id": "ak:space:ASr12ACZ8H3vqMXwTyuR7CusgUHyeCODljAcLlc7h2kG",
-            "container_id": "ak:space:AUN0Iz6xJMZJX5AOvIXKM2Ayq0Qa5m8xybogwxSPdxpS",
-            "relation_kind": "contains",
-            "source_cell_id": "ak:cell:ak.component.strand.position.v1:ak:space:ASr12ACZ8H3vqMXwTyuR7CusgUHyeCODljAcLlc7h2kG:ak:strand:ATFOTQ67EuMWGb8uu8VejrvkcjhmtL20pi7W5Zpv7gbn",
-            "rank": "mV"
-          },
-          "state": {
-            "discussion": {
-              "enabled": true,
-              "reference_projection": "lazy_link"
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-```
-
-可选受托 projection 服务若声明 `ak.self.views.collection_projection.command.materialize.v1`，MUST 以 `POST /_arkret/self/views/{view_id}/projection` 暴露上面的 `CollectionProjectionView` 形态，request body 只承载分页参数（`schemas/view.schema.json#/$defs/view_projection_request_body`）。该 operation 只物化 `View{kind="collection"}`，其它 View projection 仍可由客户端本地或未来 profile 定义的受托面计算。
+Board 展示由客户端按 §6.2 从已授权对象图本地派生，不登记独立的 v1 wire response 类型，也不要求服务端提供 View projection HTTP 入口。
 
 单个 document Morph 的受托读取面是 `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ak.self.morph.resource.get.v1`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations`、`comments` 与 `cursor_presence` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史和返回的 projection frontier 做校验。
 

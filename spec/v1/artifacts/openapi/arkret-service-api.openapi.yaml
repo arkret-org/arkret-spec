@@ -548,23 +548,6 @@ components:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_tombstone_request_body
     CircleView:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
-    CollectionCrosstabGroupSource:
-      type: object
-      required:
-      - model
-      - row_key
-      - column_key
-      properties:
-        model:
-          type: string
-          const: crosstab_cell
-        row_key:
-          type: string
-          minLength: 1
-        column_key:
-          type: string
-          minLength: 1
-      additionalProperties: false
     CollectionCrosstabPosition:
       type: object
       required:
@@ -586,29 +569,6 @@ components:
           type: string
           minLength: 1
       additionalProperties: false
-    CollectionFieldValueGroupSource:
-      type: object
-      required:
-      - model
-      - field
-      - value
-      properties:
-        model:
-          type: string
-          const: field_value
-        field:
-          type: string
-          pattern: ^[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*$
-        value:
-          oneOf:
-          - type: string
-          # lint-waiver(type:number): CollectionFieldValueGroupSource.value is a UI/query
-          # filter parameter accepting whatever the projected field's runtime type is. It
-          # does not enter canonical Event bytes. Runtime values remain JSON numbers on
-          # this query-only surface; canonical decimal fields use their own typed schema.
-          - type: number
-          - type: boolean
-      additionalProperties: false
     CollectionFieldValuePosition:
       type: object
       required:
@@ -625,169 +585,6 @@ components:
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
-      additionalProperties: false
-    CollectionGroupSource:
-      oneOf:
-      - $ref: '#/components/schemas/CollectionFieldValueGroupSource'
-      - $ref: '#/components/schemas/CollectionRelationGroupSource'
-      - $ref: '#/components/schemas/CollectionTimeBucketGroupSource'
-      - $ref: '#/components/schemas/CollectionCrosstabGroupSource'
-    CollectionProjectionGroup:
-      type: object
-      required:
-      - key
-      - title
-      - source
-      - items
-      - limited
-      properties:
-        key:
-          type: string
-          minLength: 1
-        title:
-          type: string
-          minLength: 1
-        rank:
-          type: string
-          pattern: ^[0-9A-Za-z]{1,128}$
-        source:
-          $ref: '#/components/schemas/CollectionGroupSource'
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProjectionRow'
-        next_cursor:
-          oneOf:
-          - type: string
-            pattern: ^ak:cursor:[A-Za-z0-9_-]+$
-          - type: 'null'
-        limited:
-          type: boolean
-        wip_state:
-          type: string
-          enum:
-          - ok
-          - over_limit
-          - unknown
-        total_estimate:
-          type: integer
-          minimum: 0
-      allOf:
-      - if:
-          properties:
-            source:
-              properties:
-                model:
-                  const: field_value
-              required:
-              - model
-          required:
-          - source
-        then:
-          properties:
-            items:
-              type: array
-              items:
-                allOf:
-                - $ref: '#/components/schemas/ProjectionRow'
-                - type: object
-                  required:
-                  - position
-                  properties:
-                    position:
-                      $ref: '#/components/schemas/CollectionFieldValuePosition'
-      - if:
-          properties:
-            source:
-              properties:
-                model:
-                  const: relation_container
-              required:
-              - model
-          required:
-          - source
-        then:
-          properties:
-            items:
-              type: array
-              items:
-                allOf:
-                - $ref: '#/components/schemas/ProjectionRow'
-                - type: object
-                  required:
-                  - position
-                  properties:
-                    position:
-                      $ref: '#/components/schemas/CollectionRelationPosition'
-      - if:
-          properties:
-            source:
-              properties:
-                model:
-                  const: time_bucket
-              required:
-              - model
-          required:
-          - source
-        then:
-          properties:
-            items:
-              type: array
-              items:
-                allOf:
-                - $ref: '#/components/schemas/ProjectionRow'
-                - type: object
-                  required:
-                  - position
-                  properties:
-                    position:
-                      $ref: '#/components/schemas/CollectionTimeWindowPosition'
-      - if:
-          properties:
-            source:
-              properties:
-                model:
-                  const: crosstab_cell
-              required:
-              - model
-          required:
-          - source
-        then:
-          properties:
-            items:
-              type: array
-              items:
-                allOf:
-                - $ref: '#/components/schemas/ProjectionRow'
-                - type: object
-                  required:
-                  - position
-                  properties:
-                    position:
-                      $ref: '#/components/schemas/CollectionCrosstabPosition'
-      additionalProperties: false
-    CollectionProjectionView:
-      $ref: ../schemas/view.schema.json#/$defs/collection_projection_view
-    CollectionRelationGroupSource:
-      type: object
-      required:
-      - model
-      - scope_container_id
-      - container_id
-      - relation_kind
-      properties:
-        model:
-          type: string
-          const: relation_container
-        scope_container_id:
-          type: string
-          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[A-Za-z0-9_-]{44}$
-        container_id:
-          type: string
-          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[A-Za-z0-9_-]{44}$
-        relation_kind:
-          type: string
-          minLength: 1
       additionalProperties: false
     CollectionRelationPosition:
       type: object
@@ -817,25 +614,6 @@ components:
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
-      additionalProperties: false
-    CollectionTimeBucketGroupSource:
-      type: object
-      required:
-      - model
-      - start
-      - end
-      - timezone
-      properties:
-        model:
-          type: string
-          const: time_bucket
-        start:
-          $ref: ../schemas/time.schema.json#/$defs/timestamp
-        end:
-          $ref: ../schemas/time.schema.json#/$defs/timestamp
-        timezone:
-          type: string
-          minLength: 1
       additionalProperties: false
     CollectionTimeWindowPosition:
       type: object
@@ -1985,18 +1763,12 @@ components:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome
     RealmActorFrontierView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmActorFrontierView
-    RealmArchiveRequestBody:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_archive_request_body
-    RealmDestroyRequestBody:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_destroy_request_body
     RealmEffectiveModerationPolicy:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy
     RealmEffectivePolicyOutcome:
       $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome
     RealmExport:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_export
-    RealmFreezeRequestBody:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_freeze_request_body
     RealmId:
       type: string
       pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
@@ -2024,8 +1796,6 @@ components:
       $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view
     RealmSealFrontierView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmSealFrontierView
-    RealmTombstoneRequestBody:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_tombstone_request_body
     RecoveryCompletionGrantOutcome:
       $ref: ../schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_outcome
     RecoveryCompletionGrantRequestBody:
@@ -2386,8 +2156,6 @@ components:
         stale:
           type: boolean
       additionalProperties: false
-    ViewProjectionRequestBody:
-      $ref: ../schemas/view.schema.json#/$defs/view_projection_request_body
     ViewRenderer:
       type: string
       enum:
@@ -6445,48 +6213,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectionMorphList'
-  /_arkret/self/views/{view_id}/projection:
-    post:
-      operationId: ak.self.views.collection_projection.command.materialize
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      summary: Materialize a collection View projection.
-      description: |
-        Optional extension read surface for View{kind=collection}. The response
-        is a derived projection computed from signed Events, reducer profile,
-        View definition, and the returned frontier; it is not a canonical truth
-        source.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.views.collection_projection.command.materialize.v1
-      - name: view_id
-        in: path
-        required: true
-        schema:
-          type: string
-          pattern: ^ak:view:[A-Za-z0-9_-]{44}$
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ViewProjectionRequestBody'
-      responses:
-        '200':
-          description: Collection projection visible to the caller.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CollectionProjectionView'
   /_arkret/self/realms/{realm_id}/morphs/{morph_id}:
     get:
       operationId: ak.self.morph.resource.get
@@ -9744,138 +9470,6 @@ paths:
         required: true
         schema:
           type: string
-      responses:
-        '200':
-          description: Realm lifecycle projection.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmLifecycleView'
-  /_arkret/self/realms/{realm_id}/archive:
-    post:
-      operationId: ak.self.realm.command.archive
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit a ak.realm.archive lifecycle Move.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.command.archive.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmArchiveRequestBody'
-      responses:
-        '200':
-          description: Realm lifecycle projection.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmLifecycleView'
-  /_arkret/self/realms/{realm_id}/freeze:
-    post:
-      operationId: ak.self.realm.command.freeze
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit a ak.realm.freeze lifecycle Move.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.command.freeze.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmFreezeRequestBody'
-      responses:
-        '200':
-          description: Realm lifecycle projection.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmLifecycleView'
-  /_arkret/self/realms/{realm_id}/tombstone:
-    post:
-      operationId: ak.self.realm.command.tombstone
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit a ak.realm.tombstone lifecycle Move.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.command.tombstone.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmTombstoneRequestBody'
-      responses:
-        '200':
-          description: Realm lifecycle projection.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmLifecycleView'
-  /_arkret/self/realms/{realm_id}/destroy:
-    post:
-      operationId: ak.self.realm.command.destroy
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit a ak.realm.destroy lifecycle Move.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.command.destroy.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmDestroyRequestBody'
       responses:
         '200':
           description: Realm lifecycle projection.

@@ -136,10 +136,6 @@ grpc:
       Delete: ak.self.realm_policy_server.resource.delete.v1
     SelfRealm:
       Get: ak.self.realm.resource.get.v1
-      Archive: ak.self.realm.command.archive.v1
-      Freeze: ak.self.realm.command.freeze.v1
-      Tombstone: ak.self.realm.command.tombstone.v1
-      Destroy: ak.self.realm.command.destroy.v1
       Export: ak.self.realm.read.export.v1
       ModerationPolicyEffective: ak.self.realm.moderation_policy.read.effective.v1
       ModerationPolicySet: ak.self.realm.moderation_policy.resource.replace.v1
@@ -349,8 +345,6 @@ grpc:
     SelfMorph:
       List: ak.self.morph.read.list.v1
       Get: ak.self.morph.resource.get.v1
-    SelfViews:
-      CollectionProjection: ak.self.views.collection_projection.command.materialize.v1
     EdgePush:
       Notify: ak.edge.push.command.notify.v1
       RegisterDevice: ak.edge.push.command.register_device.v1
@@ -491,10 +485,6 @@ mq:
     self.realm_policy_server.resource.replace: ak.self.realm_policy_server.resource.replace.v1
     self.realm_policy_server.resource.delete: ak.self.realm_policy_server.resource.delete.v1
     self.realm.resource.get: ak.self.realm.resource.get.v1
-    self.realm.command.archive: ak.self.realm.command.archive.v1
-    self.realm.command.freeze: ak.self.realm.command.freeze.v1
-    self.realm.command.tombstone: ak.self.realm.command.tombstone.v1
-    self.realm.command.destroy: ak.self.realm.command.destroy.v1
     self.realm.query.export: ak.self.realm.read.export.v1
     self.realm.moderation_policy.query.effective: ak.self.realm.moderation_policy.read.effective.v1
     self.realm.moderation_policy.resource.replace: ak.self.realm.moderation_policy.resource.replace.v1
@@ -537,7 +527,6 @@ mq:
     self.strand.query.list: ak.self.strand.read.list.v1
     self.morph.query.list: ak.self.morph.read.list.v1
     self.morph.resource.get: ak.self.morph.resource.get.v1
-    self.views.collection_projection.command.materialize: ak.self.views.collection_projection.command.materialize.v1
     open.mimi.query.provider_directory: ak.open.mimi.read.provider_directory.v1
     open.mimi.exchange.request_key_material: ak.open.mimi.exchange.request_key_material.v1
     open.mimi.command.update_room: ak.open.mimi.command.update_room.v1

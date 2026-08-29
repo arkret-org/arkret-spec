@@ -896,22 +896,6 @@
       "new": "ak.self.read_cursor.read.list.v1"
     },
     {
-      "old": "ak.self.realm.command.archive",
-      "new": "ak.self.realm.command.archive.v1"
-    },
-    {
-      "old": "ak.self.realm.command.destroy",
-      "new": "ak.self.realm.command.destroy.v1"
-    },
-    {
-      "old": "ak.self.realm.command.freeze",
-      "new": "ak.self.realm.command.freeze.v1"
-    },
-    {
-      "old": "ak.self.realm.command.tombstone",
-      "new": "ak.self.realm.command.tombstone.v1"
-    },
-    {
       "old": "ak.self.realm.join_application.audit.read.list",
       "new": "ak.self.realm.join_application.audit.read.list.v1"
     },
@@ -1038,10 +1022,6 @@
     {
       "old": "ak.self.strand.read.list",
       "new": "ak.self.strand.read.list.v1"
-    },
-    {
-      "old": "ak.self.views.collection_projection.command.materialize",
-      "new": "ak.self.views.collection_projection.command.materialize.v1"
     },
     {
       "old": "ak.server.read.describe",

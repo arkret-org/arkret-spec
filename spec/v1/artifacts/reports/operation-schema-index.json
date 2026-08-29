@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.4",
+  "version": "2026-08-29.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T12:15:56+08:00",
+  "generated_at": "2026-08-29T13:08:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9233,154 +9233,6 @@
       }
     },
     {
-      "operation_id": "ak.self.realm.command.archive.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_archive_request_body",
-        "schema_kind": "object",
-        "required": [
-          "lifecycle_event"
-        ],
-        "properties": [
-          "lifecycle_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "owner_id",
-          "member_ids",
-          "deleted"
-        ],
-        "properties": [
-          "realm_id",
-          "owner_id",
-          "member_ids",
-          "deleted",
-          "archived",
-          "frozen",
-          "terminal_state",
-          "successor_realm_id",
-          "freeze_expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.realm.command.destroy.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_destroy_request_body",
-        "schema_kind": "object",
-        "required": [
-          "lifecycle_event"
-        ],
-        "properties": [
-          "lifecycle_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "owner_id",
-          "member_ids",
-          "deleted"
-        ],
-        "properties": [
-          "realm_id",
-          "owner_id",
-          "member_ids",
-          "deleted",
-          "archived",
-          "frozen",
-          "terminal_state",
-          "successor_realm_id",
-          "freeze_expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.realm.command.freeze.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_freeze_request_body",
-        "schema_kind": "object",
-        "required": [
-          "lifecycle_event"
-        ],
-        "properties": [
-          "lifecycle_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "owner_id",
-          "member_ids",
-          "deleted"
-        ],
-        "properties": [
-          "realm_id",
-          "owner_id",
-          "member_ids",
-          "deleted",
-          "archived",
-          "frozen",
-          "terminal_state",
-          "successor_realm_id",
-          "freeze_expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.realm.command.tombstone.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_tombstone_request_body",
-        "schema_kind": "object",
-        "required": [
-          "lifecycle_event"
-        ],
-        "properties": [
-          "lifecycle_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "owner_id",
-          "member_ids",
-          "deleted"
-        ],
-        "properties": [
-          "realm_id",
-          "owner_id",
-          "member_ids",
-          "deleted",
-          "archived",
-          "frozen",
-          "terminal_state",
-          "successor_realm_id",
-          "freeze_expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.realm.join_application.audit.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
@@ -10220,42 +10072,6 @@
           "total",
           "next_cursor",
           "has_more"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.views.collection_projection.command.materialize.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
-        "schema_kind": "object",
-        "required": [],
-        "properties": [
-          "cursor",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view",
-        "schema_kind": "object",
-        "required": [
-          "projection",
-          "view_id",
-          "frontier"
-        ],
-        "properties": [
-          "projection",
-          "renderer",
-          "view_id",
-          "realm_id",
-          "frontier",
-          "groups",
-          "items",
-          "next_cursor",
-          "total_estimate",
-          "stale"
         ],
         "closed": true
       }

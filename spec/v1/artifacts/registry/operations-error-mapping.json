@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-28.2",
+  "version": "2026-08-29.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-28T13:30:00+08:00",
+  "generated_at": "2026-08-29T13:08:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -2002,38 +2002,6 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm.command.archive.v1",
-      "http_alias": "POST /_arkret/self/realms/{realm_id}/archive",
-      "operation_specific": [
-        "failed_precondition"
-      ],
-      "description": "Archives a Realm. failed_precondition (carrying a reason in the realm-state family) when the Realm is already archived or in a terminal (frozen/tombstoned) state from which archive is not a legal transition. See zh/models/realm-and-space.md §2."
-    },
-    {
-      "operation_id": "ak.self.realm.command.destroy.v1",
-      "http_alias": "POST /_arkret/self/realms/{realm_id}/destroy",
-      "operation_specific": [
-        "failed_precondition"
-      ],
-      "description": "Destroys a Realm's residual storage after tombstone (irreversible). failed_precondition when the Realm has not first reached the tombstoned precursor state, or when a legal hold blocks erasure. See zh/models/realm-and-space.md §2 and zh/identity/account-lifecycle.md §8."
-    },
-    {
-      "operation_id": "ak.self.realm.command.freeze.v1",
-      "http_alias": "POST /_arkret/self/realms/{realm_id}/freeze",
-      "operation_specific": [
-        "failed_precondition"
-      ],
-      "description": "Freezes a Realm (suspends writes while preserving state). failed_precondition when the Realm is already frozen or in a terminal (tombstoned) state. See zh/models/realm-and-space.md §2."
-    },
-    {
-      "operation_id": "ak.self.realm.command.tombstone.v1",
-      "http_alias": "POST /_arkret/self/realms/{realm_id}/tombstone",
-      "operation_specific": [
-        "failed_precondition"
-      ],
-      "description": "Tombstones a Realm (irreversible terminal state). failed_precondition when the Realm is already in a terminal state, or when an open legal hold / erasure obligation blocks the transition. See zh/models/realm-and-space.md §2 and zh/identity/account-lifecycle.md §8."
-    },
-    {
       "operation_id": "ak.self.realm.join_application.audit.read.list.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
       "operation_specific": [
@@ -2285,12 +2253,6 @@
       "http_alias": "GET /_arkret/self/realms/{realm_id}/strands",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
-      "operation_id": "ak.self.views.collection_projection.command.materialize.v1",
-      "http_alias": "POST /_arkret/self/views/{view_id}/projection",
-      "operation_specific": [],
-      "description": "Optional extension read surface that materializes a View{kind=collection} projection bound to the returned frontier; it is a derived read model, not a canonical truth source, and carries no domain-specific reply shape beyond the universal failure surface."
     },
     {
       "operation_id": "ak.server.read.describe.v1",

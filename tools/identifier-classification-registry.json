@@ -28,7 +28,7 @@
   ],
   "type_derived_summary": {
     "responsibility_identity_material": 665,
-    "typed_object_id": 937,
+    "typed_object_id": 933,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -271,22 +271,6 @@
       "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
     },
     {
-      "name": "container_id",
-      "terminal_signature": "[[\"pattern\", \"^(ak:(realm|space|circle|strand|message|morph|relation|event|view):[A-Za-z0-9_-]{44}|did:.+)$\"]]",
-      "category": "typed_object_id",
-      "occurrences": 3,
-      "example_path": "view.schema.json#/$defs/collection_group_source/oneOf/1/properties/container_id",
-      "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
-    },
-    {
-      "name": "container_id",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "view.schema.json#/$defs/collection_position/oneOf/0/properties/container_id",
-      "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
-    },
-    {
       "name": "context_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
@@ -472,14 +456,6 @@
       "occurrences": 1,
       "example_path": "event-payload.schema.json#/$defs/join_policy_component/properties/gates/items/properties/questions/items/properties/choices/items/properties/id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
-    },
-    {
-      "name": "id",
-      "terminal_signature": "[[\"pattern\", \"^ak:(realm|space|circle|strand|message|morph):[A-Za-z0-9_-]{44}$\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "view.schema.json#/$defs/projection_object/properties/id",
-      "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
     },
     {
       "name": "id",
@@ -861,14 +837,6 @@
       "occurrences": 1,
       "example_path": "service-describe.schema.json#/properties/privacy_derivation/properties/push_target_id/properties/salt_epoch_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
-      "name": "scope_container_id",
-      "terminal_signature": "[[\"pattern\", \"^(ak:(realm|space|circle|strand|message|morph|relation|event|view):[A-Za-z0-9_-]{44}|did:.+)$\"]]",
-      "category": "typed_object_id",
-      "occurrences": 3,
-      "example_path": "view.schema.json#/$defs/collection_group_source/oneOf/1/properties/scope_container_id",
-      "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
     },
     {
       "name": "secret_id",

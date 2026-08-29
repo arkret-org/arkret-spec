@@ -281,20 +281,6 @@
       "collection_field": "strands",
       "companion_fields": ["has_more", "next_cursor"],
       "reason": "projection strand list paginates strands"
-    },
-    {
-      "file": "view.schema.json",
-      "pointer": "/$defs/collection_projection_group",
-      "collection_field": "items",
-      "companion_fields": ["limited", "next_cursor"],
-      "reason": "collection projection group paginates its items"
-    },
-    {
-      "file": "view.schema.json",
-      "pointer": "/$defs/collection_projection_view",
-      "collection_field": "items",
-      "companion_fields": ["next_cursor"],
-      "reason": "next_cursor advances the projection item stream; groups are an alternate grouping of the same projected content"
     }
   ]
 }

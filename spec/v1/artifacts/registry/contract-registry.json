@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.4",
+  "version": "2026-08-29.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T12:15:56+08:00",
+  "generated_at": "2026-08-29T13:08:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -11555,10 +11555,6 @@
         "surface": "realm_read",
         "operations": [
           "ak.self.realm.resource.get.v1",
-          "ak.self.realm.command.archive.v1",
-          "ak.self.realm.command.freeze.v1",
-          "ak.self.realm.command.tombstone.v1",
-          "ak.self.realm.command.destroy.v1",
           "ak.self.realm.read.export.v1",
           "ak.self.realm.moderation_policy.read.effective.v1",
           "ak.self.realm.moderation_policy.resource.replace.v1"
@@ -11683,13 +11679,6 @@
           "ak.self.strand.read.list.v1",
           "ak.self.morph.read.list.v1",
           "ak.self.morph.resource.get.v1"
-        ],
-        "surface_class": "extension"
-      },
-      {
-        "surface": "view_projection",
-        "operations": [
-          "ak.self.views.collection_projection.command.materialize.v1"
         ],
         "surface_class": "extension"
       },
@@ -15340,98 +15329,6 @@
         "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list"
       },
       {
-        "operation_id": "ak.self.realm.command.archive.v1",
-        "http": "POST /_arkret/self/realms/{realm_id}/archive",
-        "grpc": "SelfRealm/Archive",
-        "mq": "self.realm.command.archive",
-        "notes": "Submits the caller-signed ak.realm.archive Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id. The archived facet changes when the lifecycle event is accepted into the Realm event log; archived=false clears the archived facet unless a terminal lifecycle state already applies. The service MUST NOT co-sign, rebuild or synthesize the Event.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.realm.resource.get.v1"
-        },
-        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_archive_request_body",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.realm.archive"
-          ]
-        }
-      },
-      {
-        "operation_id": "ak.self.realm.command.destroy.v1",
-        "http": "POST /_arkret/self/realms/{realm_id}/destroy",
-        "grpc": "SelfRealm/Destroy",
-        "mq": "self.realm.command.destroy",
-        "notes": "Submits the caller-signed terminal ak.realm.destroy Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id. The destroyed state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state. The service MUST NOT co-sign, rebuild or synthesize the Event.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.realm.resource.get.v1"
-        },
-        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_destroy_request_body",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.realm.destroy"
-          ]
-        }
-      },
-      {
-        "operation_id": "ak.self.realm.command.freeze.v1",
-        "http": "POST /_arkret/self/realms/{realm_id}/freeze",
-        "grpc": "SelfRealm/Freeze",
-        "mq": "self.realm.command.freeze",
-        "notes": "Submits the caller-signed ak.realm.freeze Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id. The frozen facet changes when the lifecycle event is accepted into the Realm event log; frozen=true rejects ordinary non-exempt writes with realm_frozen and frozen=false clears the freeze facet unless a terminal lifecycle state already applies. The service MUST NOT co-sign, rebuild or synthesize the Event.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.realm.resource.get.v1"
-        },
-        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_freeze_request_body",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.realm.freeze"
-          ]
-        }
-      },
-      {
-        "operation_id": "ak.self.realm.command.tombstone.v1",
-        "http": "POST /_arkret/self/realms/{realm_id}/tombstone",
-        "grpc": "SelfRealm/Tombstone",
-        "mq": "self.realm.command.tombstone",
-        "notes": "Submits the caller-signed terminal ak.realm.tombstone Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id and payload.successor_realm_id is required. The tombstoned state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state. The service MUST NOT co-sign, rebuild or synthesize the Event.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.realm.resource.get.v1"
-        },
-        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_tombstone_request_body",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.realm.tombstone"
-          ]
-        }
-      },
-      {
         "operation_id": "ak.self.realm.join_application.audit.read.list.v1",
         "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
         "grpc": "SelfRealmJoinApplication/ListAudit",
@@ -15783,23 +15680,6 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList"
-      },
-      {
-        "operation_id": "ak.self.views.collection_projection.command.materialize.v1",
-        "http": "POST /_arkret/self/views/{view_id}/projection",
-        "grpc": "SelfViews/CollectionProjection",
-        "mq": "self.views.collection_projection.command.materialize",
-        "notes": "Optional extension read surface that materializes a View{kind=collection} projection such as board/list/table/calendar. The response is a derived read model computed from signed Events, reducer profile, View definition, and the returned frontier; it is not a canonical truth source.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "none",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
-        "response_schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-        }
       },
       {
         "operation_id": "ak.self.history_key_requests.command.create.v1",
@@ -17090,22 +16970,6 @@
           },
           {
             "operation_id": "ak.self.read_cursor.read.list.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm.command.archive.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm.command.destroy.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm.command.freeze.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm.command.tombstone.v1",
             "binding_kind": "http_json"
           },
           {

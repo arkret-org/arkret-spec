@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.4",
+  "version": "2026-08-29.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T12:15:56+08:00",
+  "generated_at": "2026-08-29T13:08:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 261,
+    "total_operations": 256,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 259
+      "typed_schema": 254
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 173
+        "typed_schema": 168
       },
       "interop_bridge": {
         "typed_schema": 22
@@ -3103,62 +3103,6 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ak.self.realm.command.archive.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/realms/{realm_id}/archive",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_archive_request_body",
-      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/RealmArchiveRequestBody",
-        "response": "#/components/schemas/RealmLifecycleView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.realm.command.destroy.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/realms/{realm_id}/destroy",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_destroy_request_body",
-      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/RealmDestroyRequestBody",
-        "response": "#/components/schemas/RealmLifecycleView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.realm.command.freeze.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/realms/{realm_id}/freeze",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_freeze_request_body",
-      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/RealmFreezeRequestBody",
-        "response": "#/components/schemas/RealmLifecycleView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.realm.command.tombstone.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/realms/{realm_id}/tombstone",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_tombstone_request_body",
-      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/RealmTombstoneRequestBody",
-        "response": "#/components/schemas/RealmLifecycleView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
       "operation_id": "ak.self.realm.join_application.audit.read.list.v1",
       "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
@@ -3587,20 +3531,6 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ak.self.views.collection_projection.command.materialize.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/views/{view_id}/projection",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
-      "response_schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/ViewProjectionRequestBody",
-        "response": "#/components/schemas/CollectionProjectionView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.server.read.describe.v1",

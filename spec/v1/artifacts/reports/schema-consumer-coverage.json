@@ -45,7 +45,7 @@
     "by_consumer": {
       "declared_wire": 56,
       "event_kind": 4,
-      "inbound": 49,
+      "inbound": 48,
       "outbound": 55,
       "prose": 113,
       "prose_only": 2,
@@ -3106,10 +3106,6 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.self.realm.command.archive.v1",
-          "ak.self.realm.command.destroy.v1",
-          "ak.self.realm.command.freeze.v1",
-          "ak.self.realm.command.tombstone.v1",
           "ak.self.realm.moderation_policy.read.effective.v1",
           "ak.self.realm.moderation_policy.resource.replace.v1",
           "ak.self.realm.read.export.v1",
@@ -3751,7 +3747,6 @@
       "schema_id": "ak.schema.view.v1",
       "file": "schemas/view.schema.json",
       "consumers": {
-        "inbound": "fragment",
         "outbound": "fragment",
         "prose": "normative_text",
         "schema_reference": "exact",
