@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.4",
+  "version": "2026-08-29.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T20:50:00+08:00",
+  "generated_at": "2026-08-29T22:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -630,19 +630,6 @@
         "spec/v1/artifacts/fixtures/authorization-lease-issuance-fixture.json"
       ],
       "description": "Authority lease issuance, ordered batch delivery, exact idempotent refresh, founding anchor basis, stale/quorum failure and cache-clearing boundaries."
-    },
-    {
-      "vector_id": "ak.vector.authz.reviewer_authority_pair.v1",
-      "status": "active",
-      "domain": "authz",
-      "applies_to_fixtures": [
-        "reviewer-authority-pair-fixture.json"
-      ],
-      "description": "Effective-grant queries select an exact principal authority pair; join review receipts bind grant, receipt and verification-method controller to that pair, while quorum eligibility is pair-verified and votes are deterministically deduplicated by reviewer actor DID.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/reviewer-authority-pair-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
     },
     {
       "vector_id": "ak.vector.binding.websocket.v1",
@@ -5347,54 +5334,9 @@
       "vector_id": "ak.vector.proof_context.transcript.ingress_receipt.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.ingress_receipt_proof.v1: the six-field receipt digest projection deletes `proofs`, authority_set_ref is supplied only by the exact companion AuthorizationLease outside the receipt body, canonical binding bytes and detached JWS are frozen, and replay under ak.join_application_cancel_receipt_proof.v1 is rejected.",
+      "description": "Transcript KAT for ak.ingress_receipt_proof.v1: the six-field receipt digest projection deletes `proofs`, authority_set_ref is supplied only by the exact companion AuthorizationLease outside the receipt body, and canonical binding bytes plus detached JWS are frozen.",
       "covers_proof_contexts": [
         "ak.ingress_receipt_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.join_application_cancel_receipt.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.join_application_cancel_receipt_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.join_application_receipt_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.join_application_cancel_receipt_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.join_application_receipt.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.join_application_receipt_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.join_application_review_receipt_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.join_application_receipt_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.join_application_review_receipt.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.join_application_review_receipt_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.key_backup_delete_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.join_application_review_receipt_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"

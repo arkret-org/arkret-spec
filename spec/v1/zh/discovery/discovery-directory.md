@@ -598,7 +598,7 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 
 任一步失败 MUST 拒绝并返回对应错误码；Directory MUST NOT 部分接受或"先索引后审核"。
 
-**DID authority call site（normative）**：第 2 步验证的是 service / organization 的**治理签名方**，不是 human principal 的操作，因此它落在 [`../identity/did-usage-and-verification.md` §5.4](../identity/did-usage-and-verification.md) 的 `ongoing_governance` evidence class 内，并已按该文 §4 结尾的硬约束登记为**真实调用点**：`ak.find.directory.command.announce.v1`、`ak.find.directory.command.withdraw.v1` 与 `ak.find.directory.command.takedown_appeal.v1` 三条 operation 在 `contract-registry.json` 中携带 `did_authority`（`freshness_profile_id = ak.did_freshness.ongoing_governance.v1`），并在 `did-freshness-profile-registry.json` 的 `call_sites[]` 中逐字登记。announce admission 内为解析 principal server endpoint 而发起的 DID 解析属于该 operation 的组成部分，**MUST NOT** 另立 call site。
+**DID authority call site（normative）**：第 2 步验证的是 service / organization 的**治理签名方**，不是 human principal 的操作，因此它落在 [`../identity/did-usage-and-verification.md` §5.4](../identity/did-usage-and-verification.md) 的 `ongoing_governance` evidence class 内，并已按该文 §4 结尾的硬约束登记为**真实调用点**：`ak.find.directory.command.announce.v1` 与 `ak.find.directory.command.withdraw.v1` 两条 operation 在 `contract-registry.json` 中携带 `did_authority`（`freshness_profile_id = ak.did_freshness.ongoing_governance.v1`），并在 `did-freshness-profile-registry.json` 的 `call_sites[]` 中逐字登记。announce admission 内为解析 principal server endpoint 而发起的 DID 解析属于该 operation 的组成部分，**MUST NOT** 另立 call site。
 
 未登记 `did_authority` 的 Directory operation **MUST NOT** 调用 authority resolver。因此全部 `ak.find.directory.read.*` 查询 / filter 面是**零网络**的：它们只消费已接受 binding，实现 MUST 在类型层把已接受 binding 存储与网络 resolver 隔离，使查询路径结构上无法发起解析。`DirectoryIssuer` 用途的 binding 由 ingest acceptance 镜像得到，**MUST NOT** 自行发起解析。
 
@@ -629,25 +629,18 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
    - 通过 `ak.find.directory.read.describe.v1.takedown_contact` 暴露的入口或 DID document `service` entry 中声明的 governance contact 通知资源端；
    - 不得伪装为"资源主动撤销"——audit log 与资源端通知 MUST 标记为 `operator_takedown`。
 
-Operator takedown 的申诉 / 恢复 MUST 形成可验证闭环：
-
-`ak.find.directory.command.takedown_appeal.v1` 是该闭环的标准协议 operation，但它是 **operator takedown 能力的声明式子面**，不是每个 directory service 的无条件必选端点。Directory 只有在 `ak.find.directory.read.describe.v1.supported_operation_bundles` 中声明 `ak.find.directory.command.takedown_appeal.v1` 的精确 carrier/schema 行，或在 `takedown_contact` / takedown notice 中给出该 HTTP endpoint 时，才 MUST 路由并实现 `POST /_arkret/find/directory/takedown/appeal`。未提供 operator takedown 或只提供离线 / 私有治理联系通道的 Directory MUST 从 `supported_operation_bundles` 省略该 operation；省略本身不构成 catalog-completeness 违规。若服务声明了该 operation 却未挂载，或 notice 给出 endpoint 但返回 `unrecognized_endpoint`，则为不合规。
-
-1. takedown notice MUST 向资源 governance contact 提供 `takedown_id`、resource id、policy reason code、evidence digest、effective_at、appeal endpoint / contact 和 Directory service DID signature；
-2. 资源端提交 appeal 时，appeal packet MUST 绑定 `takedown_id`、resource id、appellant DID、argument / evidence digest、requested_outcome 和 created_at，并由资源 governance key 或授权 advocate 签名；
-3. Directory 审核结果 MUST 写入内部 audit log，并返回 signed decision receipt；若 overturned，Directory MUST 在下一次 ingest 或 ≤1h 内解除 `takedown_in_force`，并接受资源端最新 signed discovery state；
-4. 若该资源同时处于 Realm moderation / organization policy 管辖范围，Directory SHOULD 引用 `ak.moderation.appeal.*` 的 appeal id / decision receipt，避免发现层与协作层出现两个互相矛盾的申诉结果。
+v1 core 只规定 operator takedown、不可篡改审计和资源通知，不定义公开的 Directory appeal HTTP operation。takedown notice SHOULD 提供 `takedown_id`、resource id、policy reason code、evidence digest、effective_at、治理联系通道与 Directory service DID signature。部署可通过离线或私有治理通道复核并恢复条目；若未来标准化公开申诉，必须作为包含提交、状态读取、裁决、恢复、签名回执、权限和隐私模型的完整扩展落地，不能只增加一个 submit endpoint。
 
 撤销后，Directory MUST 对该 `resource_id` 的精确 resolve 返回与 `unlisted` / `not_found` 不可区分的响应（参见 §3 防枚举）；对正在分页的 search 响应，MUST 在下一次 cursor 推进时停止披露。
 
-#### 8.7.1 Governance proof wire 形态与绑定（normative）
+#### 8.7.1 Withdraw governance proof wire 形态与绑定（normative）
 
-`withdraw` 与 `takedown_appeal` 的 `governance_proof` MUST 验证
+`withdraw` 的 `governance_proof` MUST 验证
 `service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof`：复用通用非 Event
 detached-JWS proof 叶，并对本对象族封闭三个选择——`proof_purpose` MUST 为
 `governance_authorization`，`audience` MUST 为目标 Directory 的 service DID（单值），
 `domain` MUST 缺席。proof 对象开放、出现未声明成员、purpose / audience 不符，MUST 在
-执行任何撤销或申诉动作前拒绝。
+执行撤销动作前拒绝。
 
 绑定按 `device-lifecycle.md` §9.0.1 同一形态构造：先从闭合 request body 删除顶层
 `governance_proof` 成员（不是置为 `null`），保留所有实际存在的 optional 字段，计算
@@ -659,7 +652,7 @@ detached-JWS proof 叶，并对本对象族封闭三个选择——`proof_purpos
 {
   "context": "ak.directory_governance_request_proof.v1",
   "payload_digest": "<proof.payload_digest>",
-  "operation_id": "<ak.find.directory.command.withdraw.v1 | ak.find.directory.command.takedown_appeal.v1>",
+  "operation_id": "ak.find.directory.command.withdraw.v1",
   "resource_id": "<request.resource_id>",
   "verification_method": "<proof.verification_method>",
   "created_at": "<proof.created_at>",
@@ -675,11 +668,9 @@ detached-JWS proof 叶，并对本对象族封闭三个选择——`proof_purpos
 `service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof` 的 `audience` 约束拒绝其它形态，
 MUST NOT 为兼容而同时接受两种形态。
 
-`operation_id` 进入 binding object，阻断同一签名跨 withdraw / appeal 重放。签名者授权
+`operation_id` 进入 binding object，阻断签名跨 operation 重放。签名者授权
 沿用既有规则：`verification_method` MUST 解析为该资源当前 DID document epoch 内的
-governance key（§8.1 / §8.5，失败返回 `governance_key_invalid`）；`takedown_appeal`
-额外允许资源 governance 明确授权的 advocate key，授权关系 MUST 可由 Directory 从资源
-DID document 或 takedown notice 声明的治理通道验证。**新鲜度**：Directory MUST 拒绝
+governance key（§8.1 / §8.5，失败返回 `governance_key_invalid`）。**新鲜度**：Directory MUST 拒绝
 `proof.created_at` 与接收时刻偏差超过 300 秒的 proof；需要更长窗口的调用方 MUST 重新
 签发，部署 MUST NOT 放宽该常量。
 

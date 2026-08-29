@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-29.7",
+  "version": "2026-08-29.9",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T20:50:00+08:00",
+  "generated_at": "2026-08-29T22:30:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -122,19 +122,6 @@
         "takedown_in_force",
         "policy_revision_rollback"
       ]
-    },
-    {
-      "operation_id": "ak.find.directory.command.takedown_appeal.v1",
-      "http_alias": "POST /_arkret/find/directory/takedown/appeal",
-      "operation_specific": [
-        "not_found",
-        "directory_unauthorized",
-        "directory_governance_proof_signature_invalid",
-        "signature_stale",
-        "governance_key_invalid",
-        "takedown_in_force"
-      ],
-      "description": "Resource-side appeal against an operator takedown (discovery-directory.md §8.7). not_found covers an unknown takedown_id; directory_unauthorized / governance_key_invalid / directory_governance_proof_signature_invalid / signature_stale cover an appellant whose governance key or authorized-advocate signature does not validate against the resource the takedown targets; takedown_in_force is returned while the takedown remains effective and the appeal has not been overturned. The Directory returns a signed decision receipt on success."
     },
     {
       "operation_id": "ak.find.directory.command.withdraw.v1",
@@ -735,12 +722,6 @@
       "description": "Federated Event submission uses only registered Event kinds. Direct Conversations have one scope-derived MLS group and ordinary same-group Commit repair; no dedicated repair carrier or candidate-fanout error exists."
     },
     {
-      "operation_id": "ak.peer.events.read.describe.v1",
-      "http_alias": "QUERY /_arkret/peer/events/describe",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
       "operation_id": "ak.peer.events.read.frontier.v1",
       "http_alias": "QUERY /_arkret/peer/events/frontier",
       "operation_specific": [
@@ -915,12 +896,6 @@
       "http_alias": "POST /_arkret/peer/signal",
       "operation_specific": [],
       "description": "Optional encrypted-only single-hop Signal peer relay. Only outer peer authentication, trust-domain/destination-endpoint checks, cross-Realm batches and malformed/oversized requests use the universal minimally disclosing failure surface. Per-item unknown Realm/scope/sender, producer-proof, current member delivery-binding, TTL, action-gate, visibility, duplication and recipient failures are silently dropped behind the opaque accepted=true request outcome."
-    },
-    {
-      "operation_id": "ak.peer.snapshot.read.manifest_head.v1",
-      "http_alias": "GET /_arkret/peer/snapshot/head",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
       "operation_id": "ak.root.identity.command.submit_did_operation.v1",
@@ -1975,78 +1950,6 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm.join_application.audit.read.list.v1",
-      "http_alias": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
-      "operation_specific": [
-        "not_found"
-      ],
-      "description": "Unknown and unauthorized application audit refs are both returned as not_found; the response never includes another application's body."
-    },
-    {
-      "operation_id": "ak.self.realm.join_application.command.cancel.v1",
-      "http_alias": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel",
-      "operation_specific": [
-        "proof_invalid",
-        "duplicate_conflict",
-        "failed_precondition"
-      ],
-      "description": "proof_invalid covers signer/session/applicant mismatch; failed_precondition covers a terminal, consumed or otherwise non-cancellable application."
-    },
-    {
-      "operation_id": "ak.self.realm.join_application.command.review.v1",
-      "http_alias": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews",
-      "operation_specific": [
-        "proof_invalid",
-        "duplicate_conflict",
-        "failed_precondition",
-        "ttl_expired",
-        "reviewer_capability_revoked"
-      ],
-      "description": "Review receipt signatures and exact revision binding fail as proof_invalid/failed_precondition; expired applications use ttl_expired; a stale reviewer/device capability binding uses reviewer_capability_revoked."
-    },
-    {
-      "operation_id": "ak.self.realm.join_application.command.submit.v1",
-      "http_alias": "POST /_arkret/self/realms/{realm_id}/join-applications",
-      "operation_specific": [
-        "proof_invalid",
-        "duplicate_conflict",
-        "failed_precondition",
-        "gate_check_failed"
-      ],
-      "description": "proof_invalid covers a bad applicant receipt digest/signature or signer/session mismatch; duplicate_conflict binds Idempotency-Key to the first canonical request; failed_precondition covers absent/stale knock, cooldown, max-open or policy mismatch; gate_check_failed is the intentionally non-enumerating external gate failure."
-    },
-    {
-      "operation_id": "ak.self.realm.join_application.read.list.v1",
-      "http_alias": "GET /_arkret/self/realms/{realm_id}/join-applications",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface; unauthorized bodies are redacted rather than leaked through distinguishable errors."
-    },
-    {
-      "operation_id": "ak.self.realm.join_application.resource.get.v1",
-      "http_alias": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}",
-      "operation_specific": [
-        "not_found"
-      ],
-      "description": "Unknown and unauthorized application refs are both returned as not_found to avoid applicant/reviewer enumeration."
-    },
-    {
-      "operation_id": "ak.self.realm.moderation_policy.read.effective.v1",
-      "http_alias": "GET /_arkret/self/realms/{realm_id}/moderation-policy/effective",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
-      "operation_id": "ak.self.realm.moderation_policy.resource.replace.v1",
-      "http_alias": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
-      "operation_specific": [
-        "requires_organization_approval",
-        "failed_precondition",
-        "failed_bottom",
-        "duplicate_conflict"
-      ],
-      "description": "A policy override that relaxes an action forbidden by inherited organization policy returns top-level failed_precondition with reason_code=requires_organization_approval unless the document embeds a valid organization approval. A false signed head_eq returns failed_precondition, a Bottom moderation-policy cell returns failed_bottom, and replaying the same Event identity with different bytes returns duplicate_conflict."
-    },
-    {
       "operation_id": "ak.self.realm.read.export.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/export",
       "operation_specific": [],
@@ -2059,12 +1962,6 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realm_link.command.create.v1",
-      "http_alias": "POST /_arkret/self/realms/{realm_id}/links",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
       "operation_id": "ak.self.realm_link.read.effective_policy.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/effective-policy",
       "operation_specific": [],
@@ -2073,12 +1970,6 @@
     {
       "operation_id": "ak.self.realm_link.read.list.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/links",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
-      "operation_id": "ak.self.realm_link.resource.delete.v1",
-      "http_alias": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },

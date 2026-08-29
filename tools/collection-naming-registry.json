@@ -213,13 +213,6 @@
       "reason": "has_more describes the successor-record continuation set"
     },
     {
-      "file": "join-policy-operations.schema.json",
-      "pointer": "/$defs/application_list_outcome",
-      "collection_field": "applications",
-      "companion_fields": ["next_cursor"],
-      "reason": "application list paginates applications"
-    },
-    {
       "file": "keys-operations.schema.json",
       "pointer": "/$defs/keys_backups_list",
       "collection_field": "backups",

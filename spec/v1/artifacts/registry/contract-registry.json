@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.12",
+  "version": "2026-08-29.14",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T20:50:00+08:00",
+  "generated_at": "2026-08-29T22:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -4471,25 +4471,6 @@
         ],
         "concurrency_class": "security_barrier"
       },
-      "ak.realm.moderation_policy": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.realm.moderation_policy.v1",
-            "cell_subject": null,
-            "lattice": "cas_register",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "set",
-              "value": {
-                "field": "payload"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "security_barrier"
-      },
       "ak.realm.notary": {
         "plane": "control",
         "sealed": true,
@@ -5927,17 +5908,6 @@
         "reducer_input": true,
         "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / child_privacy_tightening_against_required); see zh/discovery/read-receipts.md §2.5",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
-        "id_source": "not_an_object_id"
-      },
-      {
-        "event_kind": "ak.realm.moderation_policy",
-        "category": "realm",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Realm moderation policy (blocklists, allowlists, content filters)",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_moderation_policy_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -9878,12 +9848,6 @@
         "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision.v1 (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
       },
       {
-        "schema_id": "ak.schema.join_policy_operations.v1",
-        "file": "schemas/join-policy-operations.schema.json",
-        "status": "active",
-        "description": "Closed profile-private request/response and signed receipt DTO bundle for ak.profile.candidate.join_policy.v1. Candidate receipts never become Event.kind values or shared Realm history."
-      },
-      {
         "schema_id": "ak.schema.audit_ryw_receipt.v1",
         "file": "schemas/audit-ryw-receipt.schema.json",
         "consumer_binding": {
@@ -10312,7 +10276,7 @@
       }
     ],
     "version": "2026-08-29.3",
-    "generated_at": "2026-08-29T17:54:23+08:00"
+    "generated_at": "2026-08-29T22:30:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -11420,7 +11384,6 @@
         "surface": "peer_federation",
         "operations": [
           "ak.peer.device_revocations.command.check.v1",
-          "ak.peer.events.read.describe.v1",
           "ak.peer.events.command.submit.v1",
           "ak.peer.account_status.read.resolve.v1",
           "ak.peer.account_status.command.submit.v1",
@@ -11436,7 +11399,6 @@
           "ak.peer.contacts.command.submit.v1",
           "ak.peer.keys.keypackages.command.claim.v1",
           "ak.peer.keys.keypackages.read.claim.v1",
-          "ak.peer.snapshot.read.manifest_head.v1",
           "ak.peer.service_resolution.command.publish.v1",
           "ak.peer.service_resolution.read.resolve.v1",
           "ak.peer.signal.command.relay.v1",
@@ -11461,7 +11423,6 @@
           "ak.find.directory.read.private_contact_discovery.v1",
           "ak.find.directory.command.announce.v1",
           "ak.find.directory.command.withdraw.v1",
-          "ak.find.directory.command.takedown_appeal.v1",
           "ak.find.directory.push.command.register.v1"
         ],
         "surface_class": "extension"
@@ -11502,8 +11463,6 @@
         "surface": "realm_governance_links",
         "operations": [
           "ak.self.realm_link.read.list.v1",
-          "ak.self.realm_link.command.create.v1",
-          "ak.self.realm_link.resource.delete.v1",
           "ak.self.realm_link.read.effective_policy.v1",
           "ak.self.realm_organization.read.list.v1"
         ],
@@ -11513,21 +11472,7 @@
         "surface": "realm_read",
         "operations": [
           "ak.self.realm.resource.get.v1",
-          "ak.self.realm.read.export.v1",
-          "ak.self.realm.moderation_policy.read.effective.v1",
-          "ak.self.realm.moderation_policy.resource.replace.v1"
-        ],
-        "surface_class": "extension"
-      },
-      {
-        "surface": "candidate_join_policy",
-        "operations": [
-          "ak.self.realm.join_application.command.submit.v1",
-          "ak.self.realm.join_application.command.review.v1",
-          "ak.self.realm.join_application.command.cancel.v1",
-          "ak.self.realm.join_application.read.list.v1",
-          "ak.self.realm.join_application.resource.get.v1",
-          "ak.self.realm.join_application.audit.read.list.v1"
+          "ak.self.realm.read.export.v1"
         ],
         "surface_class": "extension"
       },
@@ -11986,31 +11931,6 @@
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-        }
-      },
-      {
-        "operation_id": "ak.find.directory.command.takedown_appeal.v1",
-        "did_authority": {
-          "evidence_class": "ongoing_governance",
-          "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
-          "purpose": "Verify the appellant governance signature on a takedown appeal packet before the Directory issues a decision receipt."
-        },
-        "http": "POST /_arkret/find/directory/takedown/appeal",
-        "grpc": "FindDirectory/TakedownAppeal",
-        "mq": "find.directory.command.takedown_appeal",
-        "notes": "Resource-side appeal against an operator takedown. The appeal packet MUST bind takedown_id, resource id, appellant DID, argument/evidence digest, requested_outcome and created_at, signed by the resource governance key or an authorized advocate; the Directory returns a signed decision receipt. See discovery-directory.md §8.7.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "none",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "manual_confirmation"
-        },
-        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome",
         "durable_effect": {
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -12971,17 +12891,6 @@
         }
       },
       {
-        "operation_id": "ak.peer.events.read.describe.v1",
-        "http": "QUERY /_arkret/peer/events/describe",
-        "grpc": "PeerEvents/Describe",
-        "mq": "peer.events.read.describe",
-        "notes": "Federation peer Events surface describe. This endpoint describes the server-to-server peer event bindings; it is not a client self/events binding.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "service_describe",
-        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody",
-        "response_schema_ref": "schemas/service-describe.schema.json"
-      },
-      {
         "operation_id": "ak.peer.events.read.frontier.v1",
         "http": "QUERY /_arkret/peer/events/frontier",
         "grpc": "PeerEvents/Frontier",
@@ -13186,16 +13095,6 @@
           "kind": "none",
           "rationale": "ephemeral_signal_must_not_be_durable_event"
         }
-      },
-      {
-        "operation_id": "ak.peer.snapshot.read.manifest_head.v1",
-        "http": "GET /_arkret/peer/snapshot/head",
-        "grpc": "PeerSnapshot/Head",
-        "mq": "peer.snapshot.query.manifest_head",
-        "notes": "Federation peer snapshot manifest head for snapshot-assisted bootstrap. Requires service-to-service authentication and Realm federation_peer authorization.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "schema_resource",
-        "response_schema_ref": "schemas/snapshot.schema.json"
       },
       {
         "operation_id": "ak.root.identity.command.submit_did_operation.v1",
@@ -15114,116 +15013,6 @@
         "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list"
       },
       {
-        "operation_id": "ak.self.realm.join_application.audit.read.list.v1",
-        "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
-        "grpc": "SelfRealmJoinApplication/ListAudit",
-        "mq": "self.realm.join_application.audit.query.list",
-        "notes": "Reads only the profile-private submit/read/review/cancel/invite-consume audit trail for one application. Applicant, eligible reviewer, or explicitly authorized Realm auditor only.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_audit_outcome"
-      },
-      {
-        "operation_id": "ak.self.realm.join_application.command.cancel.v1",
-        "http": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel",
-        "grpc": "SelfRealmJoinApplication/Cancel",
-        "mq": "self.realm.join_application.command.cancel",
-        "notes": "Candidate-profile private applicant cancellation. The caller and detached receipt signer must both be the original applicant.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "idempotency_key",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_cancel_request",
-        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-        }
-      },
-      {
-        "operation_id": "ak.self.realm.join_application.command.review.v1",
-        "http": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews",
-        "grpc": "SelfRealmJoinApplication/Review",
-        "mq": "self.realm.join_application.command.review",
-        "notes": "Candidate-profile private reviewer decision. The reviewer-signed receipt binds the exact application revision and a capability grant/frontier proof; stale, expired or unauthorized decisions fail closed.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "idempotency_key",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_review_request",
-        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-        }
-      },
-      {
-        "operation_id": "ak.self.realm.join_application.command.submit.v1",
-        "http": "POST /_arkret/self/realms/{realm_id}/join-applications",
-        "grpc": "SelfRealmJoinApplication/Submit",
-        "mq": "self.realm.join_application.command.submit",
-        "notes": "Candidate-profile private application intake. The applicant-signed receipt binds the accepted knock, policy/revision/private-body digests and applicant DID. The receipt and private body commit atomically and never enter shared Realm history.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "idempotency_key",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_submit_request",
-        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-        }
-      },
-      {
-        "operation_id": "ak.self.realm.join_application.read.list.v1",
-        "http": "GET /_arkret/self/realms/{realm_id}/join-applications",
-        "grpc": "SelfRealmJoinApplication/List",
-        "mq": "self.realm.join_application.query.list",
-        "notes": "Lists candidate application metadata. Reviewers and each matching applicant receive the protected body; other Realm members receive only application_pending placeholders.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_list_outcome"
-      },
-      {
-        "operation_id": "ak.self.realm.join_application.resource.get.v1",
-        "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}",
-        "grpc": "SelfRealmJoinApplication/Get",
-        "mq": "self.realm.join_application.resource.get",
-        "notes": "Reads one candidate application for its applicant or an eligible reviewer. Every successful private-body read emits ak.audit.accessed.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_get_outcome"
-      },
-      {
-        "operation_id": "ak.self.realm.moderation_policy.read.effective.v1",
-        "http": "GET /_arkret/self/realms/{realm_id}/moderation-policy/effective",
-        "grpc": "SelfRealm/ModerationPolicyEffective",
-        "mq": "self.realm.moderation_policy.query.effective",
-        "notes": "Returns the organization-inherited effective moderation policy view: inheritance chain, organization policy layers, the Realm's own override, and merged effective rules.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy"
-      },
-      {
-        "operation_id": "ak.self.realm.moderation_policy.resource.replace.v1",
-        "http": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
-        "grpc": "SelfRealm/ModerationPolicyReplace",
-        "mq": "self.realm.moderation_policy.resource.replace",
-        "notes": "Carries exactly one caller-signed ak.realm.moderation_policy EventInitialSubmission. The request contains moderation_policy_event and no unsigned policy projection; the closed Event payload contains only value, whose value is the complete policy object. event.realm_id must equal the path Realm, event.actor_id must equal the authenticated session actor, and the exact submitted bytes pass ordinary Event admission without service authorship, rebuilding, co-signing or precondition injection. The Event carries exactly one signed head_eq against ak:cell:ak.component.realm.moderation_policy.v1:null naming the complete settled value or null when absent. Admission follows the capability registry and accepts ak.realm.moderation_policy or ak.policy.manage; Realm ownership alone grants no write authority. Organization-approval constraints and any extra action capability required by policy contents are evaluated during admission. Exact byte replay of an accepted Event returns the byte-identical stored outcome; identity/body conflict, stale head, Bottom or multiple applicable CAS guards fails closed with zero additional writes.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.realm.moderation_policy"
-          ]
-        }
-      },
-      {
         "operation_id": "ak.self.realm.read.export.v1",
         "http": "GET /_arkret/self/realms/{realm_id}/export",
         "grpc": "SelfRealm/Export",
@@ -15244,29 +15033,6 @@
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
       },
       {
-        "operation_id": "ak.self.realm_link.command.create.v1",
-        "http": "POST /_arkret/self/realms/{realm_id}/links",
-        "grpc": "SelfRealmLink/Create",
-        "mq": "self.realm_link.command.create",
-        "notes": "Submits the caller-signed ak.realm.link Control Move from realm_id -> target_realm_id; the service MUST NOT co-sign, rebuild or synthesize it. The edge is event.payload and the source Realm is event.realm_id, which MUST equal the path realm_id. General directed cycles are valid and traversal uses a visited set; admission rejects only self-reference, invalid kind, invalid payload, or an illegal FSM transition. Self-reference returns schema_violation with reason_code realm_link_self_reference; an illegal transition returns failed_precondition with reason_code realm_link_invalid_transition.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.realm_link.read.list.v1"
-        },
-        "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
-        "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.realm.link"
-          ]
-        }
-      },
-      {
         "operation_id": "ak.self.realm_link.read.effective_policy.v1",
         "http": "GET /_arkret/self/realms/{realm_id}/effective-policy",
         "grpc": "SelfRealmLink/EffectivePolicy",
@@ -15285,25 +15051,6 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list"
-      },
-      {
-        "operation_id": "ak.self.realm_link.resource.delete.v1",
-        "http": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
-        "grpc": "SelfRealmLink/Delete",
-        "mq": "self.realm_link.resource.delete",
-        "notes": "Submits the caller-signed tombstoning ak.realm.link Move (payload.status=tombstoned) for the (realm_id, target_realm_id, link_kind) triple; the service MUST NOT co-sign, rebuild or synthesize it. link_kind is named in the signed payload rather than a query parameter, because a query parameter is outside the bytes the caller signs; payload.target_realm_id MUST equal the path target_realm_id. Removing an edge is the same durable Event kind as creating one, so this operation keeps its event_log effect.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_delete_request_body",
-        "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.realm.link"
-          ]
-        }
       },
       {
         "operation_id": "ak.self.realm_organization.read.list.v1",
@@ -15621,8 +15368,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-29.8",
-    "generated_at": "2026-08-29T20:50:00+08:00",
+    "version": "2026-08-29.14",
+    "generated_at": "2026-08-29T22:30:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_principal_server.v1",
@@ -15632,7 +15379,6 @@
         "independent_gates": [
           "agent_runtime",
           "applet",
-          "candidate_join_policy",
           "history_key_recovery",
           "mimi_interop",
           "push",
@@ -15667,8 +15413,7 @@
         "evidence_kind": "reference_implementation",
         "evidence_ref": "teabay:crates/server/src/kinds.rs#SUPPORTED_OPERATIONS",
         "independent_gates": [
-          "private_contact_discovery",
-          "takedown_appeal"
+          "private_contact_discovery"
         ]
       },
       {
@@ -15989,19 +15734,6 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.directory_service.takedown_appeal.v1",
-        "service_kind": "directory_service",
-        "deployment_evidence": [
-          "ak.deployment_prototype.teabay_directory_service.v1#takedown_appeal"
-        ],
-        "members": [
-          {
-            "operation_id": "ak.find.directory.command.takedown_appeal.v1",
-            "binding_kind": "http_json"
-          }
-        ]
-      },
-      {
         "operation_bundle_id": "ak.operation_bundle.identity_registry.http_core.v1",
         "service_kind": "identity_registry",
         "deployment_evidence": [
@@ -16198,39 +15930,6 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.principal_server.candidate_join_policy.v1",
-        "service_kind": "principal_server",
-        "deployment_evidence": [
-          "ak.deployment_prototype.soland_principal_server.v1#candidate_join_policy"
-        ],
-        "members": [
-          {
-            "operation_id": "ak.self.realm.join_application.audit.read.list.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm.join_application.command.cancel.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm.join_application.command.review.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm.join_application.command.submit.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm.join_application.read.list.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm.join_application.resource.get.v1",
-            "binding_kind": "http_json"
-          }
-        ]
-      },
-      {
         "operation_bundle_id": "ak.operation_bundle.principal_server.history_key_recovery.v1",
         "service_kind": "principal_server",
         "deployment_evidence": [
@@ -16343,10 +16042,6 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.peer.events.read.describe.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.peer.events.read.frontier.v1",
             "binding_kind": "http_json"
           },
@@ -16396,10 +16091,6 @@
           },
           {
             "operation_id": "ak.peer.signal.command.relay.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.peer.snapshot.read.manifest_head.v1",
             "binding_kind": "http_json"
           },
           {
@@ -16723,14 +16414,6 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.self.realm.moderation_policy.read.effective.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm.moderation_policy.resource.replace.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.self.realm.read.export.v1",
             "binding_kind": "http_json"
           },
@@ -16739,19 +16422,11 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.self.realm_link.command.create.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.self.realm_link.read.effective_policy.v1",
             "binding_kind": "http_json"
           },
           {
             "operation_id": "ak.self.realm_link.read.list.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.realm_link.resource.delete.v1",
             "binding_kind": "http_json"
           },
           {
@@ -18001,7 +17676,6 @@
           "ak.realm.asset_privacy_policy",
           "ak.realm.read_receipt_policy",
           "ak.realm.preview_policy",
-          "ak.realm.moderation_policy",
           "ak.realm.search_policy",
           "ak.organization.moderation_policy",
           "ak.mimi.room_binding"
@@ -18095,7 +17769,6 @@
           "ak.realm.delivery_binding_policy",
           "ak.realm.asset_privacy_policy",
           "ak.realm.read_receipt_policy",
-          "ak.realm.moderation_policy",
           "ak.realm.media_service",
           "ak.realm.schema",
           "ak.realm.inheritance_policy",
@@ -18211,17 +17884,6 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ak.realm.moderation_policy",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.realm.moderation_policy"
-        ],
-        "profile": null,
-        "event_mapping_kind": "same_name"
-      },
-      {
         "action": "ak.realm.notification.audit",
         "category": "governance",
         "risk_tier": "high",
@@ -18308,7 +17970,6 @@
           "ak.realm.join_rule",
           "ak.realm.link",
           "ak.realm.media_service",
-          "ak.realm.moderation_policy",
           "ak.realm.notary",
           "ak.realm.organization",
           "ak.realm.organization_recovery_key.register",
@@ -18425,7 +18086,6 @@
           "ak.realm.freeze",
           "ak.realm.link",
           "ak.realm.media_service",
-          "ak.realm.moderation_policy",
           "ak.realm.notification.audit",
           "ak.realm.owner",
           "ak.realm.plaintext_visible_services",

@@ -37,7 +37,6 @@ info:
     read.scan, read.frontier}`, `ak.peer.events.{command.submit, read.resolve, read.scan,
     read.frontier}`, `ak.self.account.{read.viewer, stream.subscribe,
     command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.snapshot.read.manifest_head.v1`,
-    `ak.peer.snapshot.read.manifest_head.v1`,
 
     `ak.root.identity.{read.resolve, document.resource.get, receipts.read.list, command.submit_did_operation}`, `ak.self.authz.{read.check,
 
@@ -834,10 +833,6 @@ components:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body
     DirectorySubjectHandleList:
       $ref: ../schemas/list-handles-for-subject-response.schema.json
-    DirectoryTakedownAppealOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome
-    DirectoryTakedownAppealRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody
     DirectoryTargetResolutionOutcome:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome
     DirectoryUserSearchOutcome:
@@ -1212,20 +1207,6 @@ components:
       $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body
     InviteReceivePolicy:
       $ref: ../schemas/invite-receive-policy.schema.json
-    JoinApplicationAuditOutcome:
-      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_audit_outcome
-    JoinApplicationCancelRequestBody:
-      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_cancel_request
-    JoinApplicationGetOutcome:
-      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_get_outcome
-    JoinApplicationListOutcome:
-      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_list_outcome
-    JoinApplicationMutationOutcome:
-      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome
-    JoinApplicationReviewRequestBody:
-      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_review_request
-    JoinApplicationSubmitRequestBody:
-      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_submit_request
     KeyPackagesClaimOutcome:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome
     KeyPackagesClaimRequestBody:
@@ -1703,8 +1684,6 @@ components:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome
     RealmActorFrontierView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmActorFrontierView
-    RealmEffectiveModerationPolicy:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy
     RealmEffectivePolicyOutcome:
       $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome
     RealmExport:
@@ -1714,18 +1693,8 @@ components:
       pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
     RealmLifecycleView:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
-    RealmLinkCreateRequestBody:
-      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body
-    RealmLinkDeleteRequestBody:
-      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_delete_request_body
     RealmLinkList:
       $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_list
-    RealmLinkMutationOutcome:
-      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome
-    RealmModerationPolicyDocument:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document
-    RealmModerationPolicyReplaceRequestBody:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body
     RealmOrganizationRelationshipList:
       $ref: ../schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list
     RealmSealFrontierView:
@@ -4200,31 +4169,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceRevocationGateCheckOutcome'
-  /_arkret/peer/events/describe:
-    query:
-      operationId: ak.peer.events.read.describe
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.events.read.describe.v1
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody
-      responses:
-        '200':
-          description: Federation peer Events API capabilities
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/peer/events:
     query:
       operationId: ak.peer.events.read.scan
@@ -5845,39 +5789,6 @@ paths:
             produce a fully signed manifest MUST NOT advertise this operation
             and MUST respond not_implemented; fabricated signature material
             MUST NOT be served.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/snapshot.schema.json
-  /_arkret/peer/snapshot/head:
-    get:
-      operationId: ak.peer.snapshot.read.manifest_head
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.snapshot.read.manifest_head.v1
-      - name: realm_id
-        in: query
-        required: true
-        schema:
-          $ref: '#/components/schemas/RealmId'
-      responses:
-        '200':
-          description: |
-            The current recommended Snapshot manifest visible to an authorized
-            federation peer for snapshot-assisted bootstrap. Same manifest
-            shape, verification, and not_implemented rules as
-            ak.self.snapshot.read.manifest_head.v1.
           content:
             application/json:
               schema:
@@ -8094,36 +8005,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryWithdrawRequestBody'
-  /_arkret/find/directory/takedown/appeal:
-    post:
-      operationId: ak.find.directory.command.takedown_appeal
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.command.takedown_appeal.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Signed decision receipt acknowledging the takedown appeal
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryTakedownAppealOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryTakedownAppealRequestBody'
   /_arkret/find/directory/search-realms:
     post:
       operationId: ak.find.directory.read.search_realms
@@ -8985,86 +8866,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmLinkList'
-    post:
-      operationId: ak.self.realm_link.command.create
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit a ak.realm.link Move.
-      description: |
-        Submits the caller-signed ak.realm.link from realm_id to
-        target_realm_id; the service MUST NOT co-sign or rebuild it. The reducer
-        runs realm_link_* validators (cycle detection, self-reference, kind
-        validation); a rejected payload returns 422 with the canonical reason
-        code.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm_link.command.create.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmLinkCreateRequestBody'
-      responses:
-        '200':
-          description: Realm link written.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmLinkMutationOutcome'
-  /_arkret/self/realms/{realm_id}/links/{target_realm_id}:
-    delete:
-      operationId: ak.self.realm_link.resource.delete
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Tombstone a ak.realm.link.
-      description: |
-        Submits the caller-signed tombstoning Move (payload.status=tombstoned).
-        link_kind is named in the signed payload, not a query parameter: a query
-        parameter is outside the bytes the caller signs.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm_link.resource.delete.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: target_realm_id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmLinkDeleteRequestBody'
-      responses:
-        '200':
-          description: Realm link tombstoned.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmLinkMutationOutcome'
   /_arkret/self/realms/{realm_id}/effective-policy:
     get:
       operationId: ak.self.realm_link.read.effective_policy
@@ -9173,311 +8974,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmExport'
-  /_arkret/self/realms/{realm_id}/moderation-policy/effective:
-    get:
-      operationId: ak.self.realm.moderation_policy.read.effective
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read the organization-inherited effective moderation policy.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.moderation_policy.read.effective.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Effective moderation policy view.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmEffectiveModerationPolicy'
-  /_arkret/self/realms/{realm_id}/moderation-policy:
-    put:
-      operationId: ak.self.realm.moderation_policy.resource.replace
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Set a Realm moderation-policy override.
-      description: |
-        Carries exactly one caller-signed ak.realm.moderation_policy EventInitialSubmission
-        in moderation_policy_event. The Event realm_id equals the path Realm, actor_id equals
-        the authenticated session actor, payload contains only the object-valued value field,
-        and exactly one signed head_eq compares the complete moderation-policy cell value or
-        null when absent. Ordinary Event admission requires ak.realm.moderation_policy or
-        ak.policy.manage according to the capability registry; Realm ownership alone grants
-        no write authority. The service forwards the exact bytes without authoring, rebuilding,
-        co-signing, or appending CAS. Exact accepted replay returns the byte-identical outcome.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.moderation_policy.resource.replace.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmModerationPolicyReplaceRequestBody'
-      responses:
-        '200':
-          description: Realm moderation policy stored.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmModerationPolicyDocument'
-  /_arkret/self/realms/{realm_id}/join-applications:
-    post:
-      operationId: ak.self.realm.join_application.command.submit
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit a profile-private signed join application.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.join_application.command.submit.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      - in: header
-        name: Idempotency-Key
-        required: true
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 255
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JoinApplicationSubmitRequestBody'
-      responses:
-        '200':
-          description: Application receipt durably accepted or replayed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JoinApplicationMutationOutcome'
-    get:
-      operationId: ak.self.realm.join_application.read.list
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: List viewer-scoped profile-private join applications.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.join_application.read.list.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      - in: query
-        name: cursor
-        required: false
-        schema:
-          type: string
-      - in: query
-        name: limit
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 200
-      responses:
-        '200':
-          description: Viewer-scoped application metadata and authorized private bodies.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JoinApplicationListOutcome'
-  /_arkret/self/realms/{realm_id}/join-applications/{application_ref}:
-    get:
-      operationId: ak.self.realm.join_application.resource.get
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read one authorized profile-private join application.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.join_application.resource.get.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: application_ref
-        required: true
-        schema:
-          type: string
-          pattern: ^sha256:[0-9a-f]{64}$
-      responses:
-        '200':
-          description: Authorized application view; a private-body read is audited.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JoinApplicationGetOutcome'
-  /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews:
-    post:
-      operationId: ak.self.realm.join_application.command.review
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit a reviewer-signed profile-private decision receipt.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.join_application.command.review.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: application_ref
-        required: true
-        schema:
-          type: string
-          pattern: ^sha256:[0-9a-f]{64}$
-      - in: header
-        name: Idempotency-Key
-        required: true
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 255
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JoinApplicationReviewRequestBody'
-      responses:
-        '200':
-          description: Review receipt durably accepted or replayed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JoinApplicationMutationOutcome'
-  /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel:
-    post:
-      operationId: ak.self.realm.join_application.command.cancel
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit an applicant-signed cancellation receipt.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.join_application.command.cancel.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: application_ref
-        required: true
-        schema:
-          type: string
-          pattern: ^sha256:[0-9a-f]{64}$
-      - in: header
-        name: Idempotency-Key
-        required: true
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 255
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JoinApplicationCancelRequestBody'
-      responses:
-        '200':
-          description: Cancellation receipt durably accepted or replayed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JoinApplicationMutationOutcome'
-  /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit:
-    get:
-      operationId: ak.self.realm.join_application.audit.read.list
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read the authorized audit trail for one join application.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm.join_application.audit.read.list.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: application_ref
-        required: true
-        schema:
-          type: string
-          pattern: ^sha256:[0-9a-f]{64}$
-      responses:
-        '200':
-          description: Submit/read/review/cancel/invite-consume audit entries.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JoinApplicationAuditOutcome'
   /_arkret/self/consent/cells:
     get:
       operationId: ak.self.consent.read.list

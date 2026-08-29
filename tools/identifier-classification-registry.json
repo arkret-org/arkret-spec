@@ -27,8 +27,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 654,
-    "typed_object_id": 920,
+    "responsibility_identity_material": 645,
+    "typed_object_id": 906,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -113,15 +113,6 @@
       "occurrences": 4,
       "example_path": "agent-operations.schema.json#/$defs/device_metadata/properties/app_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
-    },
-    {
-      "name": "appeal_id",
-      "terminal_signature": "[[\"pattern\", \"^appeal:[A-Za-z0-9._-]{1,128}$\"]]",
-      "category": "unregistered_object_identifier",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome/properties/appeal_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
     },
     {
       "name": "approval_id",
@@ -405,7 +396,7 @@
       "name": "gate_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,64}$\"]]",
       "category": "document_local_symbol",
-      "occurrences": 2,
+      "occurrences": 1,
       "example_path": "event-payload.schema.json#/$defs/join_policy_component/properties/gates/items/properties/gate_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     },
@@ -439,14 +430,6 @@
       "category": "document_local_symbol",
       "occurrences": 1,
       "example_path": "content-block-poll.schema.json#/$defs/poll_answer/properties/id",
-      "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
-    },
-    {
-      "name": "id",
-      "terminal_signature": "[[\"pattern\", \"^[a-z0-9][a-z0-9_-]{0,63}$\"]]",
-      "category": "document_local_symbol",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/join_policy_component/properties/gates/items/properties/questions/items/properties/choices/items/properties/id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     },
     {
@@ -675,14 +658,6 @@
       "reason": "MIMI / Matrix interop identifier retained verbatim from the external provider surface."
     },
     {
-      "name": "question_id",
-      "terminal_signature": "[[\"pattern\", \"^[a-z][a-z0-9_-]{0,63}$\"]]",
-      "category": "document_local_symbol",
-      "occurrences": 2,
-      "example_path": "event-payload.schema.json#/$defs/join_policy_component/properties/gates/items/properties/questions/items/properties/question_id",
-      "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
-    },
-    {
       "name": "rate_limit_policy_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "unregistered_object_identifier",
@@ -760,7 +735,7 @@
       "name": "resource_id",
       "terminal_signature": "[[\"pattern\", \"^(?:ak:(realm):[A-Za-z0-9_-]{44}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$\"], [\"pattern\", \"^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$\"], [\"pattern\", \"^ak:did_core:[a-z0-9]+:[^\\\\s/?#]+$\"]]",
       "category": "typed_object_id",
-      "occurrences": 2,
+      "occurrences": 1,
       "example_path": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody/properties/resource_id",
       "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
     },
@@ -893,15 +868,6 @@
       "category": "unregistered_object_identifier",
       "occurrences": 2,
       "example_path": "event-payload.schema.json#/$defs/realm_organization_payload/properties/supersedes_statement_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
-    },
-    {
-      "name": "takedown_id",
-      "terminal_signature": "[[\"pattern\", \"^takedown:[A-Za-z0-9._-]{1,128}$\"]]",
-      "category": "unregistered_object_identifier",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody/properties/takedown_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
     },

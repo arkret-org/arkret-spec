@@ -1,23 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-read-operations.schema.json",
-  "title": "Arkret Realm Read + Moderation-Policy Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface Realm read operations and moderation-policy management (ak.self.realm.*). Realm read returns the lifecycle projection; export returns a full event-log + operation dump; effective moderation-policy returns the organization-inherited merged view; the moderation-policy override write carries the caller-signed ak.realm.moderation_policy Event. See spec/v1/zh/models/realm-and-space.md and spec/v1/zh/governance/content-moderation.md.",
+  "title": "Arkret Realm Read Operation DTOs",
+  "description": "Closed response DTOs for the self-surface Realm read operations (ak.self.realm.*). Realm read returns the lifecycle projection and export returns a full event-log + operation dump. See spec/v1/zh/models/realm-and-space.md.",
   "anyOf": [
     {
       "$ref": "#/$defs/realm_lifecycle_view"
     },
     {
       "$ref": "#/$defs/realm_export"
-    },
-    {
-      "$ref": "#/$defs/realm_effective_moderation_policy"
-    },
-    {
-      "$ref": "#/$defs/realm_moderation_policy_replace_request_body"
-    },
-    {
-      "$ref": "#/$defs/realm_moderation_policy_document"
     }
   ],
   "$defs": {
@@ -108,154 +99,6 @@
             "type": "object"
           },
           "description": "Event-log dump rows {event_id, realm_id, event_kind, operation_type, operation_id, sender, payload, created_at}."
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_effective_moderation_policy": {
-      "type": "object",
-      "$comment": "Open extension surface: the merged moderation-policy view carries deployment-defined organization/realm policy layers and fanout metadata; additionalProperties intentionally true so servers may surface implementation-specific layer detail without a wire-breaking change.",
-      "required": [
-        "realm_id",
-        "inheritance_mode",
-        "inheritance_chain_ids",
-        "organization_policy_layers",
-        "effective_rules"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "inheritance_mode": {
-          "type": "string",
-          "enum": [
-            "none",
-            "organization"
-          ]
-        },
-        "inheritance_chain_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did_core_id"
-          },
-          "description": "Organization DIDs (or deployment-local organization identifiers) contributing policy layers, parent-first."
-        },
-        "organization_policy_layers": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        },
-        "realm_policy": {
-          "type": [
-            "object",
-            "null"
-          ]
-        },
-        "effective_rules": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        },
-        "override_organization_approval_required": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": true
-    },
-    "realm_moderation_policy_event_submission": {
-      "allOf": [
-        {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
-        },
-        {
-          "properties": {
-            "event": {
-              "properties": {
-                "kind": {
-                  "const": "ak.realm.moderation_policy"
-                },
-                "preconditions": {
-                  "minItems": 1,
-                  "maxItems": 1,
-                  "items": {
-                    "properties": {
-                      "cell": {
-                        "const": "ak:cell:ak.component.realm.moderation_policy.v1:null"
-                      },
-                      "predicate": {
-                        "properties": {
-                          "op": {
-                            "const": "head_eq"
-                          }
-                        },
-                        "required": [
-                          "op",
-                          "value"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "cell",
-                      "predicate"
-                    ]
-                  }
-                }
-              },
-              "required": [
-                "kind",
-                "realm_id",
-                "payload",
-                "preconditions"
-              ]
-            }
-          },
-          "required": [
-            "event"
-          ]
-        }
-      ],
-      "description": "Caller-signed ak.realm.moderation_policy Control Move. event.realm_id MUST equal the path Realm and event.actor_id MUST equal the authenticated session actor. The service forwards the exact submission through ordinary Event admission and MUST NOT author, rebuild, co-sign or append a precondition. Admission requires ak.realm.moderation_policy or ak.policy.manage according to the capability registry; Realm ownership alone is not an authorization rule. The Event MUST contain exactly one signed head_eq precondition for ak:cell:ak.component.realm.moderation_policy.v1:null, comparing the complete settled cell value or null when absent. The payload is the closed realm_moderation_policy_state_payload and carries the policy document only as payload.value. Exact byte replay of an accepted Event returns the byte-identical stored outcome; the same event identity with different bytes, a stale head, a Bottom cell or a second applicable CAS guard fails closed without another write."
-    },
-    "realm_moderation_policy_replace_request_body": {
-      "type": "object",
-      "description": "Carries the caller-signed ak.realm.moderation_policy Event and no unsigned policy fields.",
-      "required": [
-        "moderation_policy_event"
-      ],
-      "properties": {
-        "moderation_policy_event": {
-          "$ref": "#/$defs/realm_moderation_policy_event_submission"
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_moderation_policy_document": {
-      "type": "object",
-      "description": "Projection of the accepted moderation-policy Event: realm_id is event.realm_id, policy is event.payload.value, updated_by is event.actor_id, and updated_at is event.created_at.",
-      "required": [
-        "kind",
-        "realm_id",
-        "policy",
-        "updated_by",
-        "updated_at"
-      ],
-      "properties": {
-        "kind": {
-          "const": "ak.realm.moderation_policy"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "policy": {
-          "type": "object"
-        },
-        "updated_by": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "updated_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false

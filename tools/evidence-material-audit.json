@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 389,
+  "audited_occurrence_count": 380,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -373,7 +373,7 @@
     {
       "file": "contract-registry.json",
       "key": "evidence_class",
-      "occurrences": 18,
+      "occurrences": 17,
       "disposition": "registry_contract",
       "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
     },
@@ -451,7 +451,7 @@
     {
       "file": "did-freshness-profile-registry.json",
       "key": "evidence_class",
-      "occurrences": 24,
+      "occurrences": 23,
       "disposition": "registry_contract",
       "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
     },
@@ -934,18 +934,6 @@
       "reason": "Names a digest of the heterogeneous introduction evidence container, not a material instance."
     },
     {
-      "file": "join-policy-operations.schema.json",
-      "key": "evidence_refs",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt"
-      ],
-      "reason": "A review receipt may cite proofs, third-party attestations, and prior receipts."
-    },
-    {
       "file": "mimi-operations.schema.json",
       "key": "evidence_package",
       "occurrences": 1,
@@ -1019,7 +1007,7 @@
     {
       "file": "operation-registry.json",
       "key": "evidence_class",
-      "occurrences": 14,
+      "occurrences": 13,
       "disposition": "registry_contract",
       "reason": "Generated exact DID-authority call-site classification for registered operations."
     },
@@ -1161,7 +1149,7 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 39,
+      "occurrences": 37,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
@@ -1182,7 +1170,7 @@
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 39,
+      "occurrences": 37,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },

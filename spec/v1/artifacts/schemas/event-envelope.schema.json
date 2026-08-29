@@ -1686,25 +1686,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.realm.moderation_policy"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_moderation_policy_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.realm.policy_bundle"
           }
         },

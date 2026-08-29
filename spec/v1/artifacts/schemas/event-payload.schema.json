@@ -1515,7 +1515,6 @@
             "watch_set_others",
             "watch_audit_read",
             "e2ee_late_recovery",
-            "join_application_review",
             "policy_audit_read",
             "other"
           ]
@@ -5517,9 +5516,7 @@
                 "type": "string",
                 "enum": [
                   "claim_required",
-                  "application_form",
                   "challenge_response",
-                  "manual_review",
                   "parent_membership",
                   "principal_admission",
                   "cooldown"
@@ -5552,97 +5549,6 @@
                 "items": {
                   "$ref": "#/$defs/did_core_id"
                 }
-              },
-              "questions": {
-                "type": "array",
-                "minItems": 1,
-                "maxItems": 64,
-                "items": {
-                  "type": "object",
-                  "required": [
-                    "question_id",
-                    "prompt_canonical",
-                    "answer_kind",
-                    "required"
-                  ],
-                  "properties": {
-                    "question_id": {
-                      "$ref": "#/$defs/join_policy_question_id"
-                    },
-                    "prompt_canonical": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 2000
-                    },
-                    "prompt_locales": {
-                      "type": "object",
-                      "maxProperties": 32,
-                      "additionalProperties": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 2000
-                      }
-                    },
-                    "answer_kind": {
-                      "type": "string",
-                      "enum": [
-                        "text",
-                        "single_choice",
-                        "multi_choice",
-                        "boolean"
-                      ]
-                    },
-                    "required": {
-                      "type": "boolean"
-                    },
-                    "min_chars": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 10000
-                    },
-                    "max_chars": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 10000
-                    },
-                    "choices": {
-                      "type": "array",
-                      "minItems": 1,
-                      "maxItems": 64,
-                      "uniqueItems": true,
-                      "items": {
-                        "type": "object",
-                        "required": [
-                          "id",
-                          "label"
-                        ],
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
-                          },
-                          "label": {
-                            "$ref": "string-profiles.schema.json#/$defs/display_text_256"
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    },
-                    "auto_reject_if_choice_in": {
-                      "type": "array",
-                      "maxItems": 64,
-                      "uniqueItems": true,
-                      "items": {
-                        "type": "string",
-                        "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
-                      }
-                    },
-                    "disclosed_in_directory": {
-                      "type": "boolean"
-                    }
-                  },
-                  "additionalProperties": false
-                }
               }
             },
             "additionalProperties": true
@@ -5655,66 +5561,6 @@
             "any"
           ]
         },
-        "review_capability": {
-          "const": "ak.realm.admin"
-        },
-        "reviewer_quorum": {
-          "oneOf": [
-            {
-              "type": "string",
-              "enum": [
-                "any",
-                "majority",
-                "all"
-              ]
-            },
-            {
-              "type": "object",
-              "required": [
-                "threshold",
-                "reviewer_ids"
-              ],
-              "properties": {
-                "threshold": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "reviewer_ids": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/$defs/did_core_id"
-                  },
-                  "minItems": 1,
-                  "uniqueItems": true
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
-        },
-        "application_ttl": {
-          "type": "string",
-          "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
-          "description": "Join application pending lifetime as an ISO 8601 duration, e.g. PT168H."
-        },
-        "cooldown_after_reject": {
-          "type": "string",
-          "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
-          "description": "Minimum interval before the same actor may reapply after rejection, as an ISO 8601 duration, e.g. PT72H."
-        },
-        "max_open_applications_per_actor": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 5
-        },
-        "applicant_visibility": {
-          "type": "string",
-          "enum": [
-            "reviewer_only",
-            "members_after_join",
-            "public"
-          ]
-        },
         "directory_hint": {
           "type": "object",
           "properties": {
@@ -5722,13 +5568,6 @@
               "$ref": "string-profiles.schema.json#/$defs/short_text",
               "minLength": 1,
               "maxLength": 512
-            },
-            "expected_review_time": {
-              "type": "string",
-              "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
-            },
-            "human_review_required": {
-              "type": "boolean"
             },
             "challenge_kinds_displayed": {
               "type": "array",
@@ -5748,46 +5587,12 @@
           "additionalProperties": false
         }
       },
-      "additionalProperties": true,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "gates": {
-                "contains": {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "enum": [
-                        "application_form",
-                        "manual_review"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "review_capability"
-            ]
-          }
-        }
-      ]
+      "additionalProperties": true
     },
     "join_policy_gate_id": {
       "type": "string",
       "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,64}$",
       "description": "Stable gate identifier, unique within one join policy gates[]. Both the definition site and every reference site (gate_proofs[].gate_id, Answer.gate_id) MUST use this one definition so the two lexical spaces cannot drift. The pattern is the document_local_symbol floor of common-fields.md 2.1: it mechanically excludes the ak: namespace that typed_object_id and responsibility_did own exclusively, and it admits the runtime:<challenge_id> spelling used by challenge gate proofs. See zh/governance/join-policy.md 3.1."
-    },
-    "join_policy_question_id": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9_-]{0,63}$",
-      "description": "Application-form question identifier, unique within one application_form gate. It is gate-scoped, so a reference is only unambiguous as the pair (gate_id, question_id). Both the definition site and Answer MUST use this one definition. See zh/governance/join-policy.md 3.3."
     },
     "key_backup_active_series_payload": {
       "description": "Payload for ak.key_backup.active_series. The standalone ak.schema.key_backup_active_series.v1 schema carries the authoritative signed active-series record shape.",
@@ -10365,7 +10170,7 @@
     },
     "realm_policy_bundle_payload": {
       "type": "object",
-      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state wrapper); event-envelope.schema.json dispatches the kind directly to this def. The closed property set is the complete set of Realm policy components that have no independent facet Event kind. Components that DO have their own kind and cell (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.delivery_binding_policy, ak.realm.moderation_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) are written by those events and are already covered by policy_root's ak.component.realm.*policy* leaf filter; they MUST NOT be echoed here. ak.realm.policy is not a third inline carrier: it only selects an independently defined Policy object by policy_id.",
+      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state wrapper); event-envelope.schema.json dispatches the kind directly to this def. The closed property set is the complete set of Realm policy components that have no independent facet Event kind. Components that DO have their own kind and cell (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.delivery_binding_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) are written by those events and are already covered by policy_root's ak.component.realm.*policy* leaf filter; they MUST NOT be echoed here. ak.realm.policy is not a third inline carrier: it only selects an independently defined Policy object by policy_id.",
       "description": "Enabled Realm policy component set, written wholesale into the ak.component.realm.policy_bundle.v1 cas_register cell: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision is strictly monotonic; the reducer rejects rollback or gaps, and policy_frontier_digest MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md section 2.3).",
       "required": [
         "policy_revision"
@@ -11471,19 +11276,6 @@
         "cascade_group": {
           "$ref": "#/$defs/non_empty_string",
           "description": "Backend cluster this focus belongs to, for user-visible disclosure that a cross-region conference is cascaded inside the backend. The protocol does not standardize SFU-to-SFU cascading."
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_moderation_policy_state_payload": {
-      "type": "object",
-      "description": "Closed payload for ak.realm.moderation_policy. The complete moderation-policy document is carried only in value; state and reason are not policy carriers.",
-      "required": [
-        "value"
-      ],
-      "properties": {
-        "value": {
-          "type": "object"
         }
       },
       "additionalProperties": false

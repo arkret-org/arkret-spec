@@ -146,7 +146,6 @@
   ],
   "registered_provenance_byline_fields": [
     {"field": "approved_by", "terminal_categories": ["did_core_id"], "reason": "complete approval provenance role"},
-    {"field": "cancelled_by", "terminal_categories": ["did_core_id"], "reason": "complete cancellation provenance role"},
     {"field": "changed_by", "terminal_categories": ["did_core_id"], "reason": "complete change provenance role"},
     {"field": "created_by", "terminal_categories": ["did_core_id"], "reason": "complete creation byline role"},
     {"field": "executed_by", "terminal_categories": ["did_core_id"], "reason": "complete delegated-execution provenance role"},

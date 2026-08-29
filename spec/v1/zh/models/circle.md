@@ -268,7 +268,7 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时，actor 同时属于多个 Circle 即可。
 4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_ids` selector 的 capability grant 表达；v1 不注册单独的 `ak.circle.admin` action。Realm admin transfer 不改变本条不变量：接手者不是自动 Circle member，也不是自动 Circle-local manager。
 
-Circle membership 使用 [`common-fields.md` §4.5](./common-fields.md#45-参数化-membership-fsmnormative) 的共享 membership FSM，实例参数为 `scope_kind=circle`、`delivery_binding_rebind=false`；writer/guard 以该表 Circle 列为准。申请正文 MUST NOT 进入 member-state Move，沿用 [`../governance/join-policy.md` §8](../governance/join-policy.md) 的加密 envelope 约定。
+Circle membership 使用 [`common-fields.md` §4.5](./common-fields.md#45-参数化-membership-fsmnormative) 的共享 membership FSM，实例参数为 `scope_kind=circle`、`delivery_binding_rebind=false`；writer/guard 以该表 Circle 列为准。申请正文 MUST NOT 进入 member-state Move；v1 base 不定义独立 application 对象，部署若需附加私密材料，必须通过独立的加密扩展通道传输。
 
 Circle 与 Realm 共用 `$defs/membership_state` 单一枚举真源和同一 transition graph；差异由实例参数与 guard 列表达，不再维护第二张转换表。Circle 不承载成员级 delivery binding，因此 `join -> join` 与其余 same-state transition 一样非法。membership 与物理 lifecycle state 正交，不受 [`common-fields.md` §5.1](./common-fields.md) 的 lifecycle same-state 规则覆盖。需要幂等重试的 producer MUST 基于当前 membership state 重新提交合法 transition，而非重放 same-state 写入。
 

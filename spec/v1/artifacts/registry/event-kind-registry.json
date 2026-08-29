@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.10",
+  "version": "2026-08-29.13",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T17:54:23+08:00",
+  "generated_at": "2026-08-29T21:42:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1087,34 +1087,6 @@
       "cell_writes": [
         {
           "cell_family": "ak.component.realm.read_receipt_policy.v1",
-          "cell_subject": null,
-          "lattice": "cas_register",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "security_barrier"
-    },
-    {
-      "event_kind": "ak.realm.moderation_policy",
-      "category": "realm",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Realm moderation policy (blocklists, allowlists, content filters)",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_moderation_policy_state_payload",
-      "id_source": "not_an_object_id",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.realm.moderation_policy.v1",
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",

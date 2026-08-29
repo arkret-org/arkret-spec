@@ -118,23 +118,13 @@ grpc:
       ScopeRotate: ak.self.circle.command.rotate_scope.v1
     SelfRealmLink:
       List: ak.self.realm_link.read.list.v1
-      Create: ak.self.realm_link.command.create.v1
-      Delete: ak.self.realm_link.resource.delete.v1
       EffectivePolicy: ak.self.realm_link.read.effective_policy.v1
     SelfRealmOrganization:
       List: ak.self.realm_organization.read.list.v1
     SelfRealm:
       Get: ak.self.realm.resource.get.v1
       Export: ak.self.realm.read.export.v1
-      ModerationPolicyEffective: ak.self.realm.moderation_policy.read.effective.v1
-      ModerationPolicySet: ak.self.realm.moderation_policy.resource.replace.v1
     SelfRealmJoinApplication:
-      Submit: ak.self.realm.join_application.command.submit.v1
-      Review: ak.self.realm.join_application.command.review.v1
-      Cancel: ak.self.realm.join_application.command.cancel.v1
-      List: ak.self.realm.join_application.read.list.v1
-      Get: ak.self.realm.join_application.resource.get.v1
-      ListAudit: ak.self.realm.join_application.audit.read.list.v1
     SelfConsent:
       List: ak.self.consent.read.list.v1
       Get: ak.self.consent.resource.get.v1
@@ -170,7 +160,6 @@ grpc:
       SearchUsers: ak.find.directory.read.search_users.v1
       PushRegister: ak.find.directory.push.command.register.v1
       Withdraw: ak.find.directory.command.withdraw.v1
-      TakedownAppeal: ak.find.directory.command.takedown_appeal.v1
     SelfAuthorizationLeases:
       Issue: ak.self.authorization_leases.command.issue.v1
     SelfControlProposalAcks:
@@ -202,7 +191,6 @@ grpc:
       ResponseSend: ak.self.history_key_responses.command.send.v1
       OrganizationRecoveryArchiveList: ak.self.organization_recovery_archives.read.list.v1
     PeerEvents:
-      Describe: ak.peer.events.read.describe.v1
       Frontier: ak.peer.events.read.frontier.v1
       Query: ak.peer.events.read.scan.v1
       Resolve: ak.peer.events.read.resolve.v1
@@ -233,8 +221,6 @@ grpc:
     PeerKeys:
       KeyPackagesClaim: ak.peer.keys.keypackages.command.claim.v1
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.read.claim.v1
-    PeerSnapshot:
-      Head: ak.peer.snapshot.read.manifest_head.v1
     PeerServiceResolution:
       Publish: ak.peer.service_resolution.command.publish.v1
       Resolve: ak.peer.service_resolution.read.resolve.v1
@@ -393,7 +379,6 @@ mq:
     self.events.read.scan: ak.self.events.read.scan.v1
     self.events.stream.subscribe: ak.self.events.stream.subscribe.v1
     self.keys.backup_series.command.erase: ak.self.keys.backup_series.command.erase.v1
-    peer.events.read.scan.describe: ak.peer.events.read.describe.v1
     peer.events.command.submit: ak.peer.events.command.submit.v1
     peer.device_revocations.command.check: ak.peer.device_revocations.command.check.v1
     peer.events.read.scan.resolve: ak.peer.events.read.resolve.v1
@@ -412,7 +397,6 @@ mq:
     peer.contacts.command.submit: ak.peer.contacts.command.submit.v1
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim.v1
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.read.claim.v1
-    peer.snapshot.query.manifest_head: ak.peer.snapshot.read.manifest_head.v1
     peer.service_resolution.command.publish: ak.peer.service_resolution.command.publish.v1
     peer.service_resolution.query.resolve: ak.peer.service_resolution.read.resolve.v1
     peer.signal.command.relay: ak.peer.signal.command.relay.v1
@@ -456,20 +440,10 @@ mq:
     self.circle.member.resource.delete: ak.self.circle.member.resource.delete.v1
     self.circle.command.rotate_scope: ak.self.circle.command.rotate_scope.v1
     self.realm_link.query.list: ak.self.realm_link.read.list.v1
-    self.realm_link.command.create: ak.self.realm_link.command.create.v1
-    self.realm_link.resource.delete: ak.self.realm_link.resource.delete.v1
     self.realm_link.query.effective_policy: ak.self.realm_link.read.effective_policy.v1
     self.realm_organization.query.list: ak.self.realm_organization.read.list.v1
     self.realm.resource.get: ak.self.realm.resource.get.v1
     self.realm.query.export: ak.self.realm.read.export.v1
-    self.realm.moderation_policy.query.effective: ak.self.realm.moderation_policy.read.effective.v1
-    self.realm.moderation_policy.resource.replace: ak.self.realm.moderation_policy.resource.replace.v1
-    self.realm.join_application.command.submit: ak.self.realm.join_application.command.submit.v1
-    self.realm.join_application.command.review: ak.self.realm.join_application.command.review.v1
-    self.realm.join_application.command.cancel: ak.self.realm.join_application.command.cancel.v1
-    self.realm.join_application.query.list: ak.self.realm.join_application.read.list.v1
-    self.realm.join_application.resource.get: ak.self.realm.join_application.resource.get.v1
-    self.realm.join_application.audit.query.list: ak.self.realm.join_application.audit.read.list.v1
     self.consent.query.list: ak.self.consent.read.list.v1
     self.consent.resource.get: ak.self.consent.resource.get.v1
     self.consent.command.grant: ak.self.consent.command.grant.v1
@@ -486,7 +460,6 @@ mq:
     find.directory.query.list_handles_for_subject: ak.find.directory.read.list_handles_for_subject.v1
     find.directory.command.announce: ak.find.directory.command.announce.v1
     find.directory.command.withdraw: ak.find.directory.command.withdraw.v1
-    find.directory.command.takedown_appeal: ak.find.directory.command.takedown_appeal.v1
     find.directory.push.command.register: ak.find.directory.push.command.register.v1
     self.keys.keypackages.upload.create: ak.self.keys.keypackages.upload.create.v1
     self.keys.keypackages.command.claim: ak.self.keys.keypackages.command.claim.v1
@@ -553,6 +526,6 @@ libp2p:
   suggested_protocols:
     - /arkret/sync/1.0.0
     - /arkret/blob/1.0.0
-  # Federation API 使用 peer events operations 与 ak.peer.snapshot.read.manifest_head.v1。
+  # Federation API 使用 peer events 与 peer seals operations。
   # libp2p binding 使用 /arkret/sync/1.0.0 + service-signature envelope，
   # 不另设独立 /arkret/federation/1.0.0 protocol multiplexer。

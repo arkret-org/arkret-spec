@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.2",
+  "version": "2026-08-29.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T17:54:23+08:00",
+  "generated_at": "2026-08-29T22:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1011,12 +1011,6 @@
       "file": "schemas/applet-ghost-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision.v1 (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
-    },
-    {
-      "schema_id": "ak.schema.join_policy_operations.v1",
-      "file": "schemas/join-policy-operations.schema.json",
-      "status": "active",
-      "description": "Closed profile-private request/response and signed receipt DTO bundle for ak.profile.candidate.join_policy.v1. Candidate receipts never become Event.kind values or shared Realm history."
     },
     {
       "schema_id": "ak.schema.audit_ryw_receipt.v1",

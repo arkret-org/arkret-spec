@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.3",
-  "generated_at": "2026-08-29T18:45:00+08:00",
+  "version": "2026-08-29.4",
+  "generated_at": "2026-08-29T22:30:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1679,17 +1679,6 @@
       "title": "Session revoke selector conflict"
     },
     {
-      "code": "reviewer_capability_revoked",
-      "http_status": 403,
-      "scope": "delivery",
-      "description": "Recipient device no longer holds the review capability required for member application review delivery.",
-      "applies_to": [
-        "ak.member.application.review"
-      ],
-      "type_uri": "https://arkret.org/problems/reviewer_capability_revoked",
-      "title": "Reviewer capability revoked"
-    },
-    {
       "code": "not_member",
       "http_status": 403,
       "scope": "both",
@@ -2208,14 +2197,6 @@
       "description": "The realm federation policy restricts this peer.",
       "type_uri": "https://arkret.org/problems/realm_federation_policy_restricted",
       "title": "Realm federation policy restricted"
-    },
-    {
-      "code": "realm_moderation_policy_denied",
-      "http_status": 403,
-      "scope": "service_call",
-      "description": "The realm moderation policy denied the federated action.",
-      "type_uri": "https://arkret.org/problems/realm_moderation_policy_denied",
-      "title": "Realm moderation policy denied"
     },
     {
       "code": "mimi_e2ee_boundary_unmarked",
@@ -4009,36 +3990,12 @@
       "description": "A `ak.member.state{membership=join}` event's `join_authorisation` proof (the equivalent of Matrix `join_authorised_via_users_server`) does not verify against the cited reviewer's capability state at the citing frontier. See zh/governance/join-policy.md §6."
     },
     {
-      "code": "join_policy_duplicate_answer_reference",
-      "applies_to": [
-        "schema_validation",
-        "state_resolution"
-      ],
-      "description": "Sub-reason for a schema_violation on a join-policy application whose answers[] repeats a (gate_id, question_id) reference. question_id is only unique within one application_form gate, so the reference key is the pair; a repeated pair leaves the reviewer with two answers for one question and no rule to choose between them. Wire response uses code=schema_violation with reason_code=join_policy_duplicate_answer_reference. See zh/governance/join-policy.md 3.3."
-    },
-    {
       "code": "join_policy_duplicate_gate_id",
       "applies_to": [
         "schema_validation",
         "state_resolution"
       ],
       "description": "Sub-reason for a schema_violation on ak.realm.join_policy where gates[] contains duplicate gate_id values. gate_id MUST be stable and unique within the policy so that audit refs in ak.member.state{gate_proofs[gate_id=…]} are unambiguous. Wire response uses code=schema_violation with reason_code=join_policy_duplicate_gate_id. See zh/governance/join-policy.md §3.1."
-    },
-    {
-      "code": "join_policy_question_budget_exceeded",
-      "applies_to": [
-        "schema_validation",
-        "state_resolution"
-      ],
-      "description": "Sub-reason for a schema_violation on ak.realm.join_policy whose application_form gates declare more questions[] in total than one application can carry in answers[]. Under combinator=all such a policy has no satisfiable application at all, so it MUST be rejected at the policy rather than discovered at submit time. The budget is the same machine constant as the answers[] cap. Wire response uses code=schema_violation with reason_code=join_policy_question_budget_exceeded. See zh/governance/join-policy.md 3.3."
-    },
-    {
-      "code": "join_policy_unknown_answer_reference",
-      "applies_to": [
-        "schema_validation",
-        "state_resolution"
-      ],
-      "description": "Sub-reason for a schema_violation on a join-policy application whose answers[] names a (gate_id, question_id) pair the referenced policy version does not define, or names a gate that is not an application_form gate. Lexical validity of both slugs is not existence: the reducer MUST resolve the pair against the policy version pinned by policy_version_digest. Wire response uses code=schema_violation with reason_code=join_policy_unknown_answer_reference. See zh/governance/join-policy.md 3.3."
     },
     {
       "code": "join_rule_policy_mismatch",
@@ -4793,7 +4750,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A member application under an object-form `reviewer_quorum` {threshold, reviewers} can no longer reach `threshold`: the count of reviewers still holding `review_capability` at the evaluation frontier dropped below `threshold`. The reducer / review service MUST terminate the application as a reject with reason_code=quorum_unreachable rather than letting it hang until application_ttl, and SHOULD trigger join-policy re-evaluation. See zh/governance/join-policy.md §3."
+      "description": "A threshold-governed control proposal can no longer collect the required independent acknowledgements before its deadline. The receiver MUST fail closed with reason_code=quorum_unreachable rather than guessing authority."
     },
     {
       "code": "range_completeness_actor_seq_gap",
@@ -5195,14 +5152,6 @@
         "state_resolution"
       ],
       "description": "A ak.realm.policy_bundle write under ak.profile.e2ee_relaxed.v1 declared relaxed_window_max_ms greater than the spec hard ceiling (300000 ms / 5 min). Reducer MUST reject the policy update and receivers MUST NOT silently clamp; otherwise visible policy state splits across implementations. See artifacts/profiles/conformance-profiles.json#ak.profile.e2ee_relaxed.v1.downgrade_window_constraint."
-    },
-    {
-      "code": "requires_organization_approval",
-      "applies_to": [
-        "auth_decision",
-        "service_call"
-      ],
-      "description": "Sub-reason for failed_precondition when a Realm moderation-policy override would relax an action forbidden by inherited organization policy without embedding a valid organization approval. See zh/sync/service-http-binding.md §2.3."
     },
     {
       "code": "resolution_history_ancestor_unknown",

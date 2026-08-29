@@ -220,8 +220,7 @@
               "type": "string",
               "enum": [
                 "ak.moderation.decision",
-                "ak.moderation.decision.lift",
-                "ak.realm.moderation_policy"
+                "ak.moderation.decision.lift"
               ]
             }
           }

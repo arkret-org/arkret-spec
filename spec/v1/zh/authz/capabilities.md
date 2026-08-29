@@ -392,7 +392,6 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.realm.link`（管理 Realm 间关系图，target=`ak.realm.link`）
 - `ak.realm.alias`（high risk；占用、改名或 tombstone Realm 的人类可读 alias，target=`ak.realm.alias`；alias 是用户会键入和转发的地址，夺取或改指它是钓鱼 / 冒名原语，见 [`../discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）
 - `ak.realm.upgrade`
-- `ak.realm.moderation_policy`（管理 Realm 审核策略，target=`ak.realm.moderation_policy`）
 - `ak.realm.plaintext_visible_services`（high risk；修改 E2EE 边界外可见明文的服务声明，target=`ak.realm.plaintext_visible_services`）
 - `ak.realm.preview_policy`（high risk；修改加入前 / token-scoped preview 可披露字段、历史 stub 或明文 snippet 的策略，target=`ak.realm.preview_policy`）
 - `ak.strand.admin`
@@ -428,7 +427,6 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.invite.revoke`
 - `ak.member.leave.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_realm.v1`；scope_suffix_variant，target=`ak.member.state`；只允许 `actor_id == payload.actor_id` 的 `join → leave`，不得 leave/ban 对方或执行 join）
 - `ak.member.rejoin.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_repair.v1`；scope_suffix_variant，target=`ak.member.state`；Direct Conversation exact-pair self-rejoin 专用，只允许 `actor_id == payload.actor_id` 的 `leave → join`，不得承载首次 join、第三 participant 或代对方 join，也不得取得 grant/policy/admin/Strand/binding 变更权）
-- Candidate join-policy 不登记专用 capability action。current-v1 的 reviewer 资格固定使用覆盖目标 Realm 的现有 `ak.realm.admin` grant；profile claim、ServiceDescribe、membership 与实现配置均不得扩大 issuer authority。review 结果仍承载为 signed receipt（`review_receipt_digest`），并由 `ak.invite.create.refs[role='join_authorised_by']` 引用（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）。
 - `ak.approval.vote`
 - `ak.moderation.decision`（写入 sealed moderation state cell；详见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）
 - `ak.moderation.decision.lift`（解除已 sealed 的 moderation 决策）
@@ -897,7 +895,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - **Moderation state cell 与 cache 的关系**：sealed moderation decision（写入 `ak.component.moderation_state.v1`，见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation cell 标记的 actor 不在其中），则该 cell 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
   - **静态 lint 规则（MUST，reducer / schema 强制）**：为防止 silently-stale grant，grant 在写入 / accept 时若满足下列任一条件，`constraints[]` 中 **MUST 显式包含** `depends_on_moderation_state=true`，缺失即 `schema_violation`：
     1. `subject` 是 condition selector 且引用任何 moderation state 字段（例如 `not_in_moderation_set`、`moderation_role_in`、`moderation_status_*`）；
-    2. `actions[]` 包含 `ak.moderation.decision` / `ak.moderation.decision.lift` / `ak.realm.moderation_policy` 中的任一项（moderator role grant 几乎总是依赖 moderation cell 决定谁是 moderator）；
+    2. `actions[]` 包含 `ak.moderation.decision` / `ak.moderation.decision.lift` 中的任一项（moderator role grant 通常依赖 moderation cell 决定谁是 moderator）；
     3. `constraints[]` 中存在任何 typed constraint 引用 moderation state cell、moderation queue、moderation report 或 moderation tag。
   - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；实现 MUST NOT 接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
   - 不在上述条件内的普通 grant（典型如 `ak.strand.update`、`ak.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation cell 失效抖动影响，符合本节"moderation 是后置层"的设计。

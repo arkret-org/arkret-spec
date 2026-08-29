@@ -56,10 +56,6 @@
       "new": "ak.find.directory.command.announce.v1"
     },
     {
-      "old": "ak.find.directory.command.takedown_appeal",
-      "new": "ak.find.directory.command.takedown_appeal.v1"
-    },
-    {
       "old": "ak.find.directory.command.withdraw",
       "new": "ak.find.directory.command.withdraw.v1"
     },
@@ -292,10 +288,6 @@
       "new": "ak.peer.events.command.submit.v1"
     },
     {
-      "old": "ak.peer.events.read.describe",
-      "new": "ak.peer.events.read.describe.v1"
-    },
-    {
       "old": "ak.peer.events.read.frontier",
       "new": "ak.peer.events.read.frontier.v1"
     },
@@ -366,10 +358,6 @@
     {
       "old": "ak.peer.signal.command.relay",
       "new": "ak.peer.signal.command.relay.v1"
-    },
-    {
-      "old": "ak.peer.snapshot.read.manifest_head",
-      "new": "ak.peer.snapshot.read.manifest_head.v1"
     },
     {
       "old": "ak.root.identity.command.submit_did_operation",
@@ -860,38 +848,6 @@
       "new": "ak.self.read_cursor.read.list.v1"
     },
     {
-      "old": "ak.self.realm.join_application.audit.read.list",
-      "new": "ak.self.realm.join_application.audit.read.list.v1"
-    },
-    {
-      "old": "ak.self.realm.join_application.command.cancel",
-      "new": "ak.self.realm.join_application.command.cancel.v1"
-    },
-    {
-      "old": "ak.self.realm.join_application.command.review",
-      "new": "ak.self.realm.join_application.command.review.v1"
-    },
-    {
-      "old": "ak.self.realm.join_application.command.submit",
-      "new": "ak.self.realm.join_application.command.submit.v1"
-    },
-    {
-      "old": "ak.self.realm.join_application.read.list",
-      "new": "ak.self.realm.join_application.read.list.v1"
-    },
-    {
-      "old": "ak.self.realm.join_application.resource.get",
-      "new": "ak.self.realm.join_application.resource.get.v1"
-    },
-    {
-      "old": "ak.self.realm.moderation_policy.read.effective",
-      "new": "ak.self.realm.moderation_policy.read.effective.v1"
-    },
-    {
-      "old": "ak.self.realm.moderation_policy.resource.replace",
-      "new": "ak.self.realm.moderation_policy.resource.replace.v1"
-    },
-    {
       "old": "ak.self.realm.read.export",
       "new": "ak.self.realm.read.export.v1"
     },
@@ -900,20 +856,12 @@
       "new": "ak.self.realm.resource.get.v1"
     },
     {
-      "old": "ak.self.realm_link.command.create",
-      "new": "ak.self.realm_link.command.create.v1"
-    },
-    {
       "old": "ak.self.realm_link.read.effective_policy",
       "new": "ak.self.realm_link.read.effective_policy.v1"
     },
     {
       "old": "ak.self.realm_link.read.list",
       "new": "ak.self.realm_link.read.list.v1"
-    },
-    {
-      "old": "ak.self.realm_link.resource.delete",
-      "new": "ak.self.realm_link.resource.delete.v1"
     },
     {
       "old": "ak.self.realm_organization.read.list",

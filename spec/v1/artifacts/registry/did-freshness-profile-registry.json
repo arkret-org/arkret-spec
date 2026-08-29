@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-27.1",
+  "version": "2026-08-29.1",
   "source_of_truth": true,
   "description": "Canonical registry of the did-usage-and-verification.md section 5.4 freshness profile ids a DID authority call site may reference. Registration fixes the id and its risk_tier; the numeric windows are declared per deployment and enter profile_policy of the section 5.3 resolver policy snapshot, so no network-wide minute count is implied.",
   "registry_rules": [
@@ -124,13 +124,6 @@
       "evidence_class": "ongoing_governance",
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
       "purpose": "Verify the announce governance proof of the announcing service or organization, and resolve the principal server endpoint inside the same first-ingest admission."
-    },
-    {
-      "site_kind": "operation",
-      "site_id": "ak.find.directory.command.takedown_appeal.v1",
-      "evidence_class": "ongoing_governance",
-      "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
-      "purpose": "Verify the appellant governance signature on a takedown appeal packet before the Directory issues a decision receipt."
     },
     {
       "site_kind": "operation",

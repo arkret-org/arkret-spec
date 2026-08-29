@@ -290,7 +290,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "a8b78b1c0856ea6cd319a0880f0dbe654116c01c15be4a61f05ce1ef4c8a3a1f"
+      "sha256": "8865f9c7a819e3339469f567bb7c5f770231add0784bde8d7b542c7c303bd8e0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -327,10 +327,6 @@
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
       "sha256": "0678497dada4a43105ae5fa9323f8e4041b5128eaf0de4f3c5a8d95240e4f93d"
-    },
-    {
-      "path": "spec/v1/artifacts/fixtures/reviewer-authority-pair-fixture.json",
-      "sha256": "f031c3944d4b467b11c199bf8c8f4b3c04efd86a98f7cd62a7535e1943f0fa39"
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",

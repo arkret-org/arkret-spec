@@ -6547,20 +6547,6 @@ effect，不能把另一个管理员或服务当成同一 saga owner。
 裸 typed-ID lookup 失败，以及 accepted proof signer 不是登记 mint authority 时失败。新增 producer-allocated
 kind 若未自动进入本 suite，release gate MUST 失败。
 
-## Reviewer authority pair 与 quorum 去重
-
-`ak.vector.authz.reviewer_authority_pair.v1` MUST 加载
-[`reviewer-authority-pair-fixture.json`](../../artifacts/fixtures/reviewer-authority-pair-fixture.json)，并执行
-`ak.suite.authz.reviewer_authority_pair.v1`。Runner 必须证明 effective-grants 查询以
-`(subject, subject_principal_server_id)` exact pair 选择，缺失或错误 Principal Server selector 不得回退到本机、
-bearer authority、DID Document 默认服务或 member delivery binding。
-
-Review receipt 的 digest 与 proof transcript 必须覆盖 `reviewer_principal_server_id`；referenced grant subject pair、
-receipt reviewer pair 与 verification-method controller 投影必须逐字一致。资格与验签按 exact pair，quorum 计票按
-`reviewer_actor_id` 去重；同一 DID 在多个 Principal Server 上的多张 accepted receipt 只计一票，并按
-`encoding.md` §4.2 canonical tie-break 选择 winner，输入排列不得改变结果。跨 pair grant、错误 signer controller、
-缺失 Principal Server、same-DID/different-PS replay 与按到达顺序选票均必须 fail closed。
-
 ## MLS 历史恢复闭合向量
 
 Runner MUST 加载新的 `history-key-recovery-fixture.json`，并至少执行四个 closed suite：

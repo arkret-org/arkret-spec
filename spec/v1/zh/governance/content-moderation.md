@@ -16,7 +16,7 @@ updated: 2026-07-02
 
 - 用户举报不当内容
 - 忽略/屏蔽其他用户
-- Realm 级别的审核策略
+- Realm 级别的审核动作与可审计决策
 - 组织级别的准入黑名单、允许列表和风险策略
 - 服务器级别的访问控制
 
@@ -26,7 +26,7 @@ updated: 2026-07-02
 
 去中心化环境中没有"全网管理员"。内容审核的权限由 Realm / Circle 的 Capability 体系决定：
 
-- Realm-default 内容由持有 `ak.realm.moderation_policy` 或等价 Realm-scoped moderation grant 的 Actor 处理。
+- Realm-default 内容由持有对应 `ak.moderation.decision`、`ak.moderation.decision.lift`、`ak.message.redact` 或成员治理 grant 的 Actor 处理。
 - Circle-scoped 内容由该 Circle 的管理员 / moderator 处理；Realm 管理员只有在 grant 明确覆盖目标 Circle 时才可以处理该 Circle 的举报。
 - 普通用户举报不会触发合规审计、历史 key release 或外部审查方密钥访问。
 
@@ -345,7 +345,7 @@ Franking 信任链：
 ### 5.1 内容删除
 
 管理员可以通过 `ak.message.redact` 操作撤回任意成员的消息：
-- 需要 `ak.message.redact` capability（撤回他人消息的非 `.own` 形态；`ak.realm.moderation_policy` 仅管理审核策略事件本身，**不**隐含该撤回权，若要并入审核员 bundle 须在 grant 的 `actions[]` 中显式并列 `ak.message.redact`）
+- 需要 `ak.message.redact` capability（撤回他人消息的非 `.own` 形态；moderator 身份本身**不**隐含该撤回权，审核员 bundle 必须在 grant 的 `actions[]` 中显式列出 `ak.message.redact`）
 - 撤回会产生 tombstone，不可逆
 - 审计视图中仍可看到撤回记录
 
@@ -357,101 +357,11 @@ Franking 信任链：
 - 其未来的 Operation 提交将被 Principal Server sync surface 拒绝
 - 是否对其隐藏**已可见**历史内容由 Realm Policy 决定；但 ban 后的 **key share 与 server-mediated backfill MUST fail closed**，其 fail-closed 真相源为 [`history-visibility.md` §6](./history-visibility.md) 与 [`../crypto-media/device-lifecycle.md` §13](../crypto-media/device-lifecycle.md)（把“接收 principal / device 已处于 ban / leave / removed”列为主体级拒绝终态）。Realm policy 只能在此基础上**更严**，MUST NOT 放宽该 fail-closed 边界向被封禁主体继续交付 key / 历史。
 
-### 5.3 Realm Blocklist / Filter Policy
+### 5.3 Realm 内审核状态边界
 
-Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允许列表、内容过滤和风险处理策略。
+v1 不定义可复制的 Realm 级 blocklist、server ACL 或 content-filter policy Event。Realm 内持久化治理动作由既有原语直接表达：成员封禁使用 `ak.member.state{membership=ban}`，内容撤回使用 `ak.message.redact`，隔离、复核及其解除使用 sealed `ak.moderation.decision` / `ak.moderation.decision.lift`。
 
-```json
-{
-  "kind": "ak.realm.moderation_policy",
-  "payload": {
-    "value": {
-      "version": 1,
-      "targets": [
-        {
-          "target": {
-            "kind": "actor",
-            "actor_id": "ak:did_core:webvh:zGMfBAbnRTYqW4943CVr9Dcii"
-          },
-          "action": "deny_join",
-          "reason_code": "spam",
-          "created_by": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
-          "created_at": "2026-04-26T00:00:00.000Z",
-          "expires_at": null
-        },
-        {
-          "target": {
-            "kind": "domain",
-            "domain": "malicious.example"
-          },
-          "action": "quarantine_message",
-          "reason_code": "abuse_cluster"
-        }
-      ],
-      "content_filters": [
-        {
-          "filter_id": "ak:filter:3655021a-cf20-7000-8000-000000000000",
-          "match": {
-            "kind": "url_domain",
-            "pattern_digest": "sha256:..."
-          },
-          "action": "require_review"
-        }
-      ],
-      "appeal": {
-        "enabled": true,
-        "endpoint": "ak:strand:AVJXk6oAyn0y1KTd0hdGIZQYhpTQR2lTDsGRVSzvQJg7"
-      }
-    }
-  }
-}
-```
-
-`action` 取值：
-
-| `action` | 行为（normative） |
-| --- | --- |
-| `deny_join` | 拒绝该 target 的 `ak.member.state{join}`。 |
-| `deny_restricted_join` | 拒绝该 target 走 `restricted` / `knock_restricted` 的 gate 解析路径，普通 invite 路径不受影响。 |
-| `deny_invite` | 拒绝以该 target 为 inviter 或 invitee 的 `ak.invite.create` / `ak.invite.third_party`。 |
-| `deny_write` | 拒绝该 target 的全部 durable write（DataEvent 与 Control Move）。 |
-| `deny_federation` | 拒绝以该 target 为 `Source-Service-ID` 的 peer 请求。 |
-| `quarantine_message` | 目标 Message 进入 quarantine：仍在 timeline 上，但默认投影不展示内容。 |
-| `require_review` | 目标写入进入 review 队列，accepted 前不进入 effective state。 |
-| `redact_on_accept` | review accept 时**同时**提交一条指向该目标的 redaction（Message 走 `ak.message.redact`，其它对象走 `ak.redaction`）。 |
-| `shadow_collapse` | **仅影响默认投影排序，不改变 accepted state**：命中的对象在默认 timeline / roster 中折叠为单条可展开的摘要项，作者自己的视图不变（作者 MUST NOT 从可见性差异推断自己被折叠）。它不是 deny，也不是 redaction：对象仍完整存在、仍可被显式展开、仍进入审计视图与 `state_root`。实现 MUST NOT 用它静默删除内容或改变任何 cell 值。 |
-
-`target.kind` 取值至少包括：
-
-| kind | 标识字段 | 语义 |
-| --- | --- | --- |
-| `actor` | `actor_id` | 单个 Actor / Principal 的稳定业务身份。 |
-| `device` | `device_id` | 单个设备身份。 |
-| `service` | `service_id` | 单个 Principal Server、Principal Server sync surface、Federation peer 或其他 service 的稳定业务身份。 |
-| `domain` | `domain`，可选 `match_subdomains` | 规范化 DNS A-label domain；只按 label 边界匹配。 |
-| `trust_domain` | `trust_domain` | 部署级 trust domain。 |
-| `organization` | `organization_id` | Organization 的稳定业务身份或其签发的治理链。 |
-| `claim_selector` | `claim_kind` / `issuer_id` | 由声明、VC 或组织关系选择一组主体。 |
-| `media_digest` | `digest` | 媒体或 blob 内容 digest。 |
-| `content_label` | `label` | 分类器或审核标签。 |
-
-Realm 级 server ACL 等价规则 MUST 使用 `service_id`、`domain` 或 `trust_domain` target 表达。`deny_write` / `deny_federation` 命中这些 target 时，接收方 MUST 拒绝该 peer 后续 service-to-service 写入、backfill push、完整 frontier probe 和默认 fanout；`quarantine_message` 命中时，事件不得进入普通用户可见视图，直到 sealed moderation decision 解除。`deny_join` 命中 server target 时，MUST 拒绝通过该 service DID 或 domain 发起的新 join / invite acceptance，但不会自动清扫已经 accepted 的成员；`deny_restricted_join` 只作用于 `default_join_rule=restricted` / `default_join_rule=knock_restricted` 或等价 restricted admission profile 的申请、knock、invite acceptance（术语以 [`join-policy.md` §4](./join-policy.md) 的 `default_join_rule` 枚举为准）。`history_access` 只控制正文历史范围，不是 join gate。命中时 MUST fail closed，不得回退到普通 `deny_join` 之外的宽松路径。清扫既有成员必须通过 `ak.member.state{membership="ban"}`、grant revoke、MLS epoch rotation 或明确的 moderation decision 完成。
-
-Domain target 的匹配必须基于已验证 service `did_core_id` / current `ServiceResolutionRecord.base_url` / member delivery binding 的规范化结果。实现 MUST NOT 对未经验证的裸字符串、display name、handle 后缀或用户输入 URL 做后缀封禁推断。
-
-规则：
-
-- 修改 `ak.realm.moderation_policy` MUST 持有 `ak.realm.moderation_policy` 或 `ak.policy.manage` capability。
-- `ak.self.realm.moderation_policy.resource.replace.v1` MUST 只接受 closed `{moderation_policy_event: EventInitialSubmission}`。该 Event 的 `kind` 必须逐字为 `ak.realm.moderation_policy`，`realm_id` 必须逐字等于 path Realm，`actor_id` 必须逐字等于认证 session actor；payload 必须且只能为 `{value: object}`，不得把 policy 放入 `state`、`reason` 或 unsigned request 字段。服务端 MUST 将 exact caller-signed bytes 送入 ordinary Event admission，MUST NOT 重建、代签、共同签名或在签名后补 CAS。
-- 每次 moderation-policy replace MUST 在 Event 签名内恰好携带一条目标为 `ak:cell:ak.component.realm.moderation_policy.v1:null` 的 `head_eq`，其 value 是调用方观察到的完整 settled cell value；cell 缺失时使用 `null`。stale、Bottom、缺失或多条适用 CAS 均 MUST fail closed。相同 Event identity 与 exact bytes 的已接受重放 MUST 返回 byte-identical outcome；相同 identity 异 bytes 必须零新增写入拒绝。
-- capability 判定只按 registry：`ak.realm.moderation_policy` 或 `ak.policy.manage`。Realm owner 不具有 owner-only 特例；没有上述 capability 时同样 `capability_denied`。
-- Realm blocklist MUST 在 signature / DID 基础校验之后、事件进入用户可见 reducer 状态之前进行评估。
-- `deny_join` / `deny_write` SHOULD 产出已签名的 moderation decision 或 audit record。
-- `quarantine_message` MUST 在审核通过前阻止事件进入普通用户可见视图。
-- 内容过滤 SHOULD 优先使用 hash、label 或本地分类；E2EE Realm MUST NOT 要求向服务端过滤器上传明文。
-- Realm blocklist MUST NOT 静默覆盖密码学历史。要改变已 accepted 事件的呈现，需通过 redaction / tombstone / quarantine 事件实现。
-- **`redact_on_accept` 的 redact capability 前提（normative）**：`redact_on_accept` 在 review / accept 阶段自动产生对目标消息的 redaction，等价于代表 policy 作者行使 `ak.message.redact`。与 §5.1 "`ak.realm.moderation_policy` 不隐含撤回他人消息的 `ak.message.redact` 权"口径一致：声明含 `redact_on_accept` action 的 `ak.realm.moderation_policy` 的 policy 作者 MUST 同时持有 `ak.message.redact` capability（撤回他人消息的非 `.own` 形态）。reducer 在接受携带 `redact_on_accept` 的 policy 写入、以及在 accept 阶段执行该自动 redaction 时 MUST 校验该 capability；policy 作者不持有时 MUST 拒绝该 action（`capability_denied`），不得仅凭 `ak.realm.moderation_policy` 隐式获得 redact 权。
-
+服务端 MAY 配置部署本地的风险信号、过滤器与 ACL，但这些配置不是 Realm 共享状态，不得伪装成标准 Event，也不得赋予 capability。Organization 明确适用于某 Realm 的 `ak.organization.moderation_policy` 可作为额外 deny 层；Realm 不存在独立 override cell。
 ### 5.4 消息审核队列
 
 Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集用户举报记录与 §2.6 active `require_review` decision。举报 item 的 `status={submitted,resolved}` 只描述 report lifecycle；policy review item 的 pending / resolved 由对应 decision add 是否仍 active 派生，不得为后者伪造 `moderation-queue-item.status` 新枚举。建议使用标准 View 机制：
@@ -559,50 +469,11 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
 
 规则评估顺序：先检查 `deny` 列表，再检查 `allow` 列表。支持 glob 通配符时，通配符只允许覆盖完整 DNS label；`*.example.com` 不得匹配 `example.com` 或 `badexample.com`。推荐实现同时支持 exact `service_id`、`trust_domain` 与 DNS domain 规则，并优先使用已验证 service DID。
 
-### 6.2 Realm 级 server ACL 的权威路径
+### 6.2 Realm 级 peer 限制
 
-需要让参与该 Realm 的 peer 以可验证、可复制方式看到 server ACL 时，MUST 使用已注册的 `ak.realm.moderation_policy`：
+v1 不提供可复制的 Realm 级 server ACL。接收方以 §6.1 的部署本地 ACL 拒绝 peer；由 Organization 治理的部署还可应用明确覆盖目标 Realm / service 的 `ak.organization.moderation_policy`。两者都是 capability 之后的 deny 层，不得授予权限，也不得静默改写已接受历史。
 
-```json
-{
-  "kind": "ak.realm.moderation_policy",
-  "payload": {
-    "value": {
-      "version": 1,
-      "targets": [
-        {
-          "target": {
-            "kind": "service",
-            "service_id": "ak:did_core:webvh:z5GPnjxXzWM85J3Kw6iMV4Tj2"
-          },
-          "action": "deny_federation",
-          "reason_code": "abuse_network"
-        },
-        {
-          "target": {
-            "kind": "domain",
-            "domain": "malicious.example.net",
-            "match_subdomains": true
-          },
-          "action": "deny_write",
-          "reason_code": "abuse_network"
-        }
-      ]
-    }
-  }
-}
-```
-
-> `targets[]` 条目的 `target` / `action` / `reason_code` 为核心字段，`created_by` / `created_at` / `expires_at` 为可选 audit 字段（取值与 §5.3 一致）；本节示例为聚焦 server ACL 而省略可选 audit 字段，并非表示其不可携带。该 policy 文档只存在于 signed `ak.realm.moderation_policy.payload.value`；moderation report operation schema 不承载或定义 policy target。
-
-`ak.realm.moderation_policy` server target 的生效规则：
-
-- 接收方在完成请求签名、DID、trust domain 和 endpoint digest 识别后，MUST 在接受 Event 进入普通 reducer 前评估 Realm policy。
-- 命中 `deny_federation` 或 `deny_write` 的入站 service-to-service 写入 MUST fail closed；批量请求中可逐项拒绝，也可在请求级拒绝，取决于被拒绝规则是否影响整批认证上下文。
-- 命中出站 deny 的 peer MUST 从该 Realm 的 fanout 目标集中移除；该抑制不是临时网络失败，不应进入无限重试队列。
-- 命中 `quarantine_message` 的 Event MUST 进入 quarantine，不得作为 accepted state 推进普通用户可见 frontier。
-- 这些规则只影响未来接收、投递和呈现。它们 MUST NOT 静默改写、删除或重新解释已经 accepted 的密码学历史。
-
+需要跨独立 peer 协调 Realm 级 ACL 时，必须另行定义完整扩展（包括 Event kind、合并语义、授权、SDK 与 conformance），不得提交未注册的 `ak.realm.server_acl`、`ak.server.acl` 或其他临时 Realm policy Event。
 ### 6.3 与联邦协议的关系
 
 Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md) §3.4）起作用。当 Principal Server 收到来自被 deny 的 peer 的 `ak.peer.events.command.submit.v1`（`/_arkret/peer/events`，`Source-Service-ID`、source trust domain 或已验证 endpoint domain 命中 deny list）请求时，MUST fail closed，SHOULD 返回 `403 policy_denied` 或 `403 capability_denied`，并保持错误最小披露。
@@ -665,14 +536,14 @@ bytes，只会多出一条可漂移的第二真相源。
 规则：
 
 - 组织策略只对显式引用它的 Realm / 服务有权威；对官方 Realm 也仅当其 `ak.realm.organization` 背书声明组织策略适用时才生效。
-- 仅当组织策略允许覆盖时，Realm MAY 覆盖组织默认值。
-- 组织级 deny SHOULD 由 Principal Server ACL、Directory 过滤与 Realm moderation policy 共同执行。
+- v1 不定义 Realm 级 override；组织策略是否适用完全由已接受的 Organization / Realm 关联与 `policy_scope` 决定。
+- 组织级 deny SHOULD 由 Principal Server ACL、Directory 过滤与直接治理 Event 共同执行。
 - 组织策略 MUST 由 Organization DID 或受授权的 governance service DID 签名。
 - 组织策略 MUST NOT 暴露用户私有 blocklist、私有 handle 或未披露的组织成员关系。
 
 ## 8. 运行时 moderation 求值
 
-Realm 与 Organization 的审核策略 MUST 由接收请求的服务根据 accepted policy state 在本地求值，覆盖以下场景：
+Organization 审核策略与部署本地审核配置由接收请求的服务根据 accepted policy state 在本地求值，可覆盖以下场景：
 
 - invite / join request
 - knock request
@@ -685,20 +556,9 @@ Realm 与 Organization 的审核策略 MUST 由接收请求的服务根据 accep
 
 运行时求值 MAY 得到 `hard_deny`、`quarantine`、`require_review` 或 `soft_deny`，但 policy MUST NOT 自行授予 capability。
 
-### 8.1 Decision verb 与 §5.3 policy action 家族映射
+### 8.1 Runtime decision
 
-本文存在两套相关但不同前缀 / 粒度的词汇，易混淆，这里统一登记其关系。**Decision verb**（§2.5 判定流程图与 §8 运行时求值结果）是 *runtime 判定结果*，集合为 `allow` / `soft_deny` / `hard_deny` / `quarantine` / `require_review`（全小写、无 `deny_` 前缀）。**§5.3 `moderation_policy` action 家族**是 *持久化 Realm policy 规则的 effect*，集合为 `deny_join` / `deny_restricted_join` / `deny_invite` / `deny_write` / `deny_federation` / `quarantine_message` / `require_review` / `redact_on_accept` / `shadow_collapse`（`deny_*` 前缀 + 作用对象后缀）。二者映射：
-
-| Decision verb（runtime） | 对应 §5.3 policy action 家族 | 说明 |
-| --- | --- | --- |
-| `allow` | （无对应 deny action） | 放行，写入 canonical 历史。 |
-| `hard_deny` | `deny_join` / `deny_restricted_join` / `deny_invite` / `deny_write` / `deny_federation` 中按动作类型取一 | `deny_*` 是 hard_deny 按被拒动作维度的细分；命中即 fail closed。 |
-| `soft_deny` | （无持久化 action；仅 runtime 降级 / 限流上下文，常与 `rate_limit` obligation 同用） | 不写入 `moderation_state` cell。 |
-| `quarantine` | `quarantine_message` | 事件进 quarantine，不进 effective state。 |
-| `require_review` | `require_review` | 同名；进 review 队列。 |
-
-`redact_on_accept` / `shadow_collapse` 是 §5.3 特有的后处理 effect，不由 decision verb 直接表达；它们在 review / accept 阶段叠加，不属于上表的一对一 runtime verb。大小写约定：decision verb 与 policy action **均为全小写 snake_case**，实现 MUST NOT 引入大写或驼峰变体。
-
+运行时判定结果为 `allow`、`soft_deny`、`hard_deny`、`quarantine` 或 `require_review`。Organization policy 的 `deny_*` 规则按被拒动作映射为 `hard_deny`；`quarantine_message` 与 `require_review` 分别映射为同名运行时结果。部署本地过滤器 MAY 产生更严格的结果，但不得把本地结果写成不存在的 Realm policy 状态。
 ## 9. 服务端威胁借鉴
 
 服务端抗滥用经验（入口源身份强制、多级限速、批量事件反滥用、最小可观察性差异、可疑媒体隔离、

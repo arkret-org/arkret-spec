@@ -866,7 +866,6 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
     public_metadata_operations = {
         "ak.server.read.describe.v1",
         "ak.self.events.read.describe.v1",
-        "ak.peer.events.read.describe.v1",
         "ak.open.mimi.read.provider_directory.v1",
         "ak.root.identity.registry.read.describe.v1",
         "ak.self.account.read.describe.v1",

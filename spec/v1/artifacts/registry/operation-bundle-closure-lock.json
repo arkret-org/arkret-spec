@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-29.11",
+  "version": "2026-08-29.14",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -61,10 +61,6 @@
       "sha256": "sha256:9002daf6db340492917b6cdb20cc8c1651a3c99d2085373bc2a4a50ae496ba4b"
     },
     {
-      "operation_bundle_id": "ak.operation_bundle.directory_service.takedown_appeal.v1",
-      "sha256": "sha256:3723b320dc38c62f54d935558c0d01b2084072da70eb747197648ffc75f61c16"
-    },
-    {
       "operation_bundle_id": "ak.operation_bundle.identity_registry.describe.v1",
       "sha256": "sha256:7f4b5a41bbee3be186bbb4d03c2e8bd2cd2e37587dc33e49065976e12af98440"
     },
@@ -109,10 +105,6 @@
       "sha256": "sha256:5de18c973b691b05ca189676ca590e2e5d5dea8411c16edd515ef3186ea5c496"
     },
     {
-      "operation_bundle_id": "ak.operation_bundle.principal_server.candidate_join_policy.v1",
-      "sha256": "sha256:536212ab0a9ad43cc0734b319c63f856d36654f3b355f9d8d0b555bf1cc83c3a"
-    },
-    {
       "operation_bundle_id": "ak.operation_bundle.principal_server.describe.v1",
       "sha256": "sha256:daf76086b60162714664af3a3a5567a51645c02efee630ba1003e4a5dc37e08e"
     },
@@ -122,7 +114,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.principal_server.http_core.v1",
-      "sha256": "sha256:6235ee38fdfb7c4624b8846c62ee6cdad8c8b1529ead11329acab1996271b5da"
+      "sha256": "sha256:cb7468392d49bcfd161b872358566618e791b91e337f5524844bfa1b85066154"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.principal_server.mimi_interop.v1",

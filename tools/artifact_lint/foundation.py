@@ -2419,8 +2419,8 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         if canonical_members != sorted(set(canonical_members)):
             lint.fail(operation_path, f"{bundle_id}.members must be unique and canonical-sorted")
 
-    if len(bundle_ids) != 39:
-        lint.fail(operation_path, f"operation_bundles must contain the 39 evidenced v1 bundles, got {len(bundle_ids)}")
+    if len(bundle_ids) != 37:
+        lint.fail(operation_path, f"operation_bundles must contain the 37 evidenced v1 bundles, got {len(bundle_ids)}")
     describe_pair = ("ak.server.read.describe.v1", "http_json")
     for service_kind in sorted(service_kinds):
         describe_bundle_id = f"ak.operation_bundle.{service_kind}.describe.v1"
@@ -2492,7 +2492,6 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
     directory_optional = {
         "ak.find.directory.read.private_contact_discovery.v1",
         "ak.find.directory.read.resolve_agent_selector.v1",
-        "ak.find.directory.command.takedown_appeal.v1",
     }
     directory_core = exact_http_members("ak.operation_bundle.directory_service.http_core.v1")
     if directory_core != directory_surface - directory_optional:
@@ -2508,10 +2507,6 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         (
             "ak.operation_bundle.directory_service.resolve_agent_selector.v1",
             "ak.find.directory.read.resolve_agent_selector.v1",
-        ),
-        (
-            "ak.operation_bundle.directory_service.takedown_appeal.v1",
-            "ak.find.directory.command.takedown_appeal.v1",
         ),
     ):
         if exact_http_members(bundle_id) != {operation_id}:

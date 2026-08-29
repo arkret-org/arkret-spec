@@ -92,7 +92,7 @@ DID Document 仍负责 control key / delegation 证明，但不再充当从 `ser
 - `@method`
 - `@target-uri`
 - `@authority`
-- `content-digest`（仅针对有 body 的请求；编码遵循 RFC 9530。无 body 的请求 MUST NOT 携带 `Content-Digest`，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。v1 的 peer surface 中，只有 `GET /_arkret/peer/snapshot/head` 是无 body 请求；`QUERY /_arkret/peer/events` 等一律带 JSON body 并 MUST 绑定 `content-digest`）
+- `content-digest`（仅针对有 body 的请求；编码遵循 RFC 9530。无 body 的请求 MUST NOT 携带 `Content-Digest`，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。`QUERY /_arkret/peer/events` 等带 JSON body 的请求 MUST 绑定 `content-digest`）
 - `source-service-id`（自定义 header `Source-Service-ID`）
 - `destination-service-id`（自定义 header `Destination-Service-ID`）
 - `destination-service-endpoint-digest`（自定义 header `Destination-Service-Endpoint-Digest`；shared ingress / 多租户 / allowlist endpoint 场景必填）
@@ -145,7 +145,7 @@ Arkret 不要求全局信任列表。每个节点维护自己的**联邦许可�
 - 出站被本地 peer policy 拒绝的 peer MUST 从 fanout、frontier probe、backfill、push、to-device、key-package 和 media/snapshot fetch 目标集中移除。该状态是 policy-suppressed，不是临时网络失败；发送方不得无限重试，直到 policy version 改变或 operator 解除规则。
 - 若 operator 执行整机级 defederation，入站和出站规则 MUST 同时生效：既拒收该 peer 的联邦写入 / backfill / probe，也不得向该 peer 投递新事件、推送或补发历史。
 
-Realm 级 server ACL 的权威表达是 `ak.realm.moderation_policy` 中的 server target（见 [`../governance/content-moderation.md`](../governance/content-moderation.md) §5.3 与 §6），而不是新的 `ak.realm.server_acl` Event kind。`server_acl` 可以作为本地部署配置名存在，但它不得被实现当作可复制的 Realm 状态对象，也不得绕过 `ak.realm.moderation_policy` 和 capability 检查。
+v1 不定义可复制的 Realm 级 server ACL。`server_acl` 只能作为本地部署配置名存在；Organization 明确适用于目标 Realm / service 的 `ak.organization.moderation_policy` 可作为额外 deny 层。实现不得接受 `ak.realm.server_acl` 或其他未注册 kind，也不得绕过 capability 检查。
 
 出站解析任意 peer endpoint 前，发送方还 MUST 执行 [`api-conventions.md`](./api-conventions.md) §11.2 的出站网络目标策略；DNS、redirect 或 service discovery 把目标解析到被禁止地址类别时，联邦请求必须 fail closed。
 
@@ -252,7 +252,7 @@ Realm 在接收方 accepted 后，该 pair 的后续 Event 立即回落普通 fe
 
 ### 4.1 推送模式 (Push)
 
-> **v1 联邦使用专用 peer HTTP API surface**。跨域 Event 推送、拉取、补洞、frontier probe 与 snapshot bootstrap 必须使用 `/_arkret/peer/*` 路径和 `ak.peer.*` operation_id。`/_arkret/self/*` 是当前 principal / 自服务会话攻击面，不承接 federation server-to-server wire。本节描述的所有规则适用于 `ak.peer.events.*` / `ak.peer.snapshot.read.manifest_head.v1` 调用。
+> **v1 联邦使用专用 peer HTTP API surface**。跨域 Event 推送、拉取、补洞与 frontier probe 必须使用 `/_arkret/peer/*` 路径和 `ak.peer.*` operation_id。`/_arkret/self/*` 是当前 principal / 自服务会话攻击面，不承接 federation server-to-server wire。本节描述的所有规则适用于 `ak.peer.events.*` 与 `ak.peer.seals.*` 调用。
 
 本文件中的联邦载荷项是 v1 规范性 Event Envelope。请求与响应体中的共享事实字段使用 `events[]`，不引入第二套 Operation wire object。
 
@@ -576,7 +576,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 6. Bob 提交 `ak.invite.accept`；reducer 校验 join_authorisation 链有效后收敛 `membership=join`
 7. 若 Realm 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob
 
-> 申请正文 MUST NOT 出现在公开可见的 `ak.member.state{knock}` payload 中（参见 [`../governance/join-policy.md` §8](../governance/join-policy.md)）；只能进入受加密保护的 `member.application`。这避免 Matrix `m.room.member{knock}.reason` 因默认可见而成为外部 spam 通道的设计缺陷。
+> 申请正文 MUST NOT 出现在公开可见的 `ak.member.state{knock}` payload 中。v1 base 不定义独立 `member.application` 对象；部署若需申请正文，必须通过独立的加密扩展通道传输，不能把 Matrix `m.room.member{knock}.reason` 一类默认可见字段变成外部 spam 通道。
 
 ## 6. 联邦级服务发现
 
@@ -675,7 +675,6 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 | Account status issuer-ledger resolve | `POST /_arkret/peer/account-status/resolve`（`ak.peer.account_status.read.resolve.v1`） | 完整 service signature + Content-Digest；Account Authority 仅向持有 exact account/principal 状态的服务返回 bounded contiguous original records。 |
 | 获取 MLS epoch-0 public group state | `POST /_arkret/peer/mls/group-state-material`（`ak.peer.mls.read.group_state_material.v1`） | 完整 service signature + Content-Digest；调用方须获目标 Realm 授权，provider 必须按 accepted genesis 验证 selector、content-addressed refs、raw-byte digests 与 RFC 9420 GroupInfo/tree 一致性。 |
 | 跨域 Realm 成员视图 | `QUERY /_arkret/peer/events`（`ak.peer.events.read.scan.v1`）+ `ak.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
-| 跨域 snapshot-assisted bootstrap | `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.read.manifest_head.v1`） | 同上；manifest 必须签名并绑定 authority_binding。 |
 | 跨域 actor / DID 验证 | `POST /_arkret/root/identity/resolve`（`ak.root.identity.read.resolve.v1`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
 
 ### 7.1 跨域 Event 推送 / Backfill / 成员视图
@@ -845,22 +844,11 @@ managed/native Agent Event 与其它普通 Event 使用相同 in-envelope Princi
 
 这类方向并非都属于第一版互操作要求。按“安全完整性 → 可交付性 → 优化性”分层如下。
 
-### 9.1 联邦级 Snapshot 同步与校验（必须项）
+### 9.1 联邦级 Snapshot（未来扩展）
 
-联邦场景下，Principal Server 之间应支持基于快照的快速恢复（snapshot-assisted bootstrap），否则首次加入或大范围缺失时会退化为全量历史回放，影响可用性。实现层面：
+v1 core 的联邦恢复只依赖已注册的 Event push/pull、Event frontier、Seal frontier 与精确 resolve 操作，不定义独立 peer snapshot manifest endpoint。首次加入或大范围缺失可能退化为分段历史回放，这是当前互操作 floor 的明确取舍。
 
-在 `QUERY /_arkret/peer/events`（JSON content 携带 `before`，`ak.peer.events.read.scan.v1`）响应中，服务端 SHOULD 在可用时提供 `snapshot_bootstrap`（可选字段）；需要单独读取 manifest head 时使用 `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.read.manifest_head.v1`）：
-
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `snapshot_bootstrap` | `object` | optional | 字段形态以 §4.2 与 `EventsQueryOutcome` schema 为唯一权威；可选入口不改变操作集合语义。 |
-
-校验规则：
-
-- 客户端在接收到 `snapshot_bootstrap` 时，MUST 按 [`snapshot-schema.md` §5](../conformance/snapshot-schema.md) 的唯一通用校验清单验证 manifest 与 chunks。
-- 接受快照后，增量回放起点必须以 `snapshot_frontier` 为锚点，不得把 snapshot 当成无因果前沿的新 genesis。
-- 快照校验失败时，必须退回到纯 Event 增量回放，并将该来源记入 `quarantine` 或 `rate_limited` 分支进行观察。
-
+未来若增加 snapshot-assisted bootstrap，必须作为完整扩展 profile 同时定义 manifest 签名、authority binding、chunk 获取、frontier 锚定、失败回退、SDK 与 conformance；实现不得把本地 `/_soland/` 快照或 `ak.self.snapshot.read.manifest_head.v1` 直接暴露为 peer 协议。
 ### 9.2 多 Principal Server 的 Gossip / 批量同步（增强项）
 
 该方向用于性能和可靠性提升，不是签名真实性的前提条件。最小实现可直接使用本文件 4/7 节的 push + pull。实现支持时应遵循：

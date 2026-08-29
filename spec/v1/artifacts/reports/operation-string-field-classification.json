@@ -8,10 +8,10 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 77,
+    "total_fields": 73,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 36,
+      "closed_enum": 32,
       "closed_literal": 16,
       "validated_open_reason_code": 18
     },
@@ -284,30 +284,6 @@
       "basis": "JSON Schema enum"
     },
     {
-      "schema_file": "join-policy-operations.schema.json",
-      "shape": "application_entry",
-      "field": "status",
-      "pointer": "#/$defs/application_entry/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "join-policy-operations.schema.json",
-      "shape": "application_mutation_outcome",
-      "field": "status",
-      "pointer": "#/$defs/application_mutation_outcome/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "join-policy-operations.schema.json",
-      "shape": "review_receipt",
-      "field": "reason_code",
-      "pointer": "#/$defs/review_receipt/properties/reason_code",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
       "schema_file": "keypackage-operations.schema.json",
       "shape": "failure",
       "field": "reason_code",
@@ -440,14 +416,6 @@
       "shape": "realm_link_entry",
       "field": "status",
       "pointer": "#/$defs/realm_link_entry/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "realm-link-operations.schema.json",
-      "shape": "realm_link_mutation_outcome",
-      "field": "status",
-      "pointer": "#/$defs/realm_link_mutation_outcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },

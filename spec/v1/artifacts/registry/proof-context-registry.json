@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.4",
+  "version": "2026-08-29.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T20:50:00+08:00",
+  "generated_at": "2026-08-29T22:30:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -551,49 +551,6 @@
       ],
       "defined_in": "zh/authz/offline-publication.md",
       "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt"
-    },
-    {
-      "context": "ak.join_application_cancel_receipt_proof.v1",
-      "object_family": "join_application_cancel_receipt",
-      "binding_fields": [
-        "receipt_digest",
-        "realm_id",
-        "application_ref",
-        "actor_id",
-        "verification_method",
-        "created_at"
-      ],
-      "defined_in": "zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative",
-      "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/cancel_receipt"
-    },
-    {
-      "context": "ak.join_application_receipt_proof.v1",
-      "object_family": "join_application_receipt",
-      "binding_fields": [
-        "receipt_digest",
-        "realm_id",
-        "actor_id",
-        "verification_method",
-        "created_at"
-      ],
-      "defined_in": "zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative",
-      "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_receipt"
-    },
-    {
-      "context": "ak.join_application_review_receipt_proof.v1",
-      "object_family": "join_application_review_receipt",
-      "binding_fields": [
-        "receipt_digest",
-        "realm_id",
-        "application_ref",
-        "application_revision_digest",
-        "actor_id",
-        "principal_server_id",
-        "verification_method",
-        "created_at"
-      ],
-      "defined_in": "zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative",
-      "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/review_receipt"
     },
     {
       "context": "ak.key_backup_delete_proof.v1",

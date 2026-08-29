@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.4",
-  "generated_at": "2026-08-29T20:50:00+08:00",
+  "version": "2026-08-29.5",
+  "generated_at": "2026-08-29T22:30:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -558,7 +558,6 @@
     "ak.profile.mls_ciphersuite.pq_auth.v1"
   ],
   "candidate_profiles": [
-    "ak.profile.candidate.join_policy.v1",
     "ak.profile.ucan_interop.v1",
     "ak.profile.federation.rbsr.negentropy.v1",
     "ak.profile.binding.websocket.v1"
@@ -643,7 +642,6 @@
     "ak.profile.crdt.text.v1": "interop",
     "ak.profile.mls_ciphersuite.chacha20poly1305.v1": "interop",
     "ak.profile.mls_ciphersuite.pq_auth.v1": "interop",
-    "ak.profile.candidate.join_policy.v1": "admin",
     "ak.profile.ucan_interop.v1": "interop",
     "ak.profile.mls_governance_binding.full.v1": "admin",
     "ak.profile.attested_audit.e2ee.v1": "admin",
@@ -5146,8 +5144,7 @@
       ],
       "required_event_kinds": [
         "ak.device.revoke",
-        "ak.mls.commit",
-        "ak.realm.moderation_policy"
+        "ak.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -5837,68 +5834,6 @@
         ],
         "unsupported_optional": "omit profile claim"
       }
-    },
-    "ak.profile.candidate.join_policy.v1": {
-      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the existing exact-Realm `ak.realm.admin` capability. These bare names remain forbidden as v1 wire Event.kind values. Claiming this profile commits the implementation to the complete profile-private HTTP receipt carrier in governance/join-policy.md §7.1.1; partial intake/review/read surfaces are non-conformant. The profile introduces no capability action and does not expand the Realm owner grant ceiling.",
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.realm.join_application.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.realm.join_application.command.review.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.realm.join_application.command.cancel.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.realm.join_application.read.list.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.realm.join_application.resource.get.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.realm.join_application.audit.read.list.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [],
-      "status": "candidate",
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.join_policy_operations.v1"
-      ],
-      "required_fixtures": [
-        "websocket-binding-fixture.json"
-      ],
-      "optional_extensions": [],
-      "required_capability_actions": [
-        "ak.realm.admin"
-      ],
-      "feature_discovery": {
-        "required": [
-          "candidate_join_policy_reviewer",
-          "candidate_member_application_intake",
-          "profile_private_http_receipt_v1"
-        ],
-        "unsupported_optional": "omit profile claim (and reject member.application.* events as unknown)"
-      },
-      "profile_set": "candidate"
     },
     "ak.profile.binding.websocket.v1": {
       "description": "Optional multiplexed WebSocket binding for the three registered self subscribe operations. It preserves each operation's independent authorization, frame schema, cursor and recovery semantics and never replaces the mandatory HTTP/JSON binding.",

@@ -948,7 +948,7 @@ join**，而是该 or_set 之上的**默认视图投影**。cell 的 join 仍是
 
 #### 9.8.5 与 redaction / moderation 的关系
 
-- **annotation 是用户内容**：admission 时 MUST 受 `ak.realm.moderation_policy` 的 `content_filters` 约束（命中可 `quarantine` / `require_review`），与 Message content 同级（见 [`../governance/content-moderation.md` §5.3](../governance/content-moderation.md)）。
+- **annotation 是用户内容**：admission 与展示时 MUST 与 Message content 接受同级的部署本地过滤、Organization deny 层和 sealed moderation decision；命中可 `quarantine` / `require_review`（见 [`../governance/content-moderation.md` §5.3](../governance/content-moderation.md)）。
 - **目标撤回级联**：目标 Message redact 后其 reaction 一并从默认视图消失（§9.8.3）；不需要逐条 remove。
 - **清除他人滥用表态**：v1 无跨 actor reaction 删除 action。可用手段是（a）moderator redact 目标 Message（级联清除其全部 reaction），（b）`ak.capability.revoke` 撤销滥用者的 `ak.reaction.add` 阻止后续表态，（c）profile 注册的 moderation action。跨 actor 的细粒度 reaction 治理是已知 extension point，v1 core 不发明新 action。
 

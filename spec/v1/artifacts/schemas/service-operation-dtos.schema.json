@@ -179,9 +179,6 @@
       "$ref": "#/$defs/EventsFrontierRequestBody"
     },
     {
-      "$ref": "#/$defs/PeerEventsDescribeRequestBody"
-    },
-    {
       "$ref": "#/$defs/PeerEventsFrontierRequestBody"
     },
     {
@@ -1880,7 +1877,7 @@
       }
     },
     "DirectoryGovernanceProof": {
-      "description": "Single resource-governance authorization proof for directory write surfaces (withdraw, takedown_appeal). Reuses the generic non-Event detached-JWS wire leaf while closing audience, purpose, and domain choices for this object family; canonical binding, signer authority, and freshness rules are defined in discovery-directory.md section 8.7.1.",
+      "description": "Single resource-governance authorization proof for directory withdrawal. Reuses the generic non-Event detached-JWS wire leaf while closing audience, purpose, and domain choices for this object family; canonical binding, signer authority, and freshness rules are defined in discovery-directory.md section 8.7.1.",
       "allOf": [
         {
           "$ref": "./event-envelope.schema.json#/$defs/proof"
@@ -1964,90 +1961,6 @@
         "supersedes_announce_id": {
           "type": "string",
           "pattern": "^ak:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        }
-      }
-    },
-    "DirectoryTakedownAppealOutcome": {
-      "type": "object",
-      "description": "Signed decision receipt acknowledging an appeal submission per discovery-directory.md §8.7 step 3.",
-      "additionalProperties": false,
-      "required": [
-        "appeal_id",
-        "received_at",
-        "decision_receipt"
-      ],
-      "properties": {
-        "appeal_id": {
-          "type": "string",
-          "description": "Directory-local audit reference for the appeal; not a registered ak:<kind> typed ID. The payload segment excludes `:` so the value can neither begin with nor embed the ak: typed-ID namespace before the kind is registered.",
-          "pattern": "^appeal:[A-Za-z0-9._-]{1,128}$"
-        },
-        "received_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "decision_receipt": {
-          "type": "object",
-          "description": "Signed Directory decision receipt; status pending until adjudicated.",
-          "additionalProperties": true
-        }
-      }
-    },
-    "DirectoryTakedownAppealRequestBody": {
-      "type": "object",
-      "description": "Resource-side appeal packet against an operator takedown; the bound fields and governance signature are normative per discovery-directory.md §8.7.",
-      "additionalProperties": false,
-      "required": [
-        "takedown_id",
-        "resource_id",
-        "appellant_actor_id",
-        "argument_digest",
-        "requested_outcome",
-        "created_at",
-        "governance_proof"
-      ],
-      "properties": {
-        "takedown_id": {
-          "type": "string",
-          "description": "The operator takedown_id from the takedown notice. The payload segment excludes `:` so the value can neither begin with nor embed the ak: typed-ID namespace before the kind is registered.",
-          "pattern": "^takedown:[A-Za-z0-9._-]{1,128}$"
-        },
-        "resource_id": {
-          "oneOf": [
-            {
-              "type": "string",
-              "pattern": "^(?:ak:(realm):[A-Za-z0-9_-]{44}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
-            },
-            {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            {
-              "type": "string",
-              "pattern": "^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$"
-            }
-          ]
-        },
-        "appellant_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "argument_digest": {
-          "type": "string",
-          "description": "Digest of the appeal argument / evidence bundle (sha256:<hex>).",
-          "pattern": "^sha256:[0-9a-f]{64}$"
-        },
-        "requested_outcome": {
-          "type": "string",
-          "enum": [
-            "overturn",
-            "reduce_scope",
-            "reinstate"
-          ]
-        },
-        "created_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "governance_proof": {
-          "$ref": "#/$defs/DirectoryGovernanceProof",
-          "description": "Signature by the resource governance key or an authorized advocate, equivalent strength to withdraw.governance_proof; wire form and binding per discovery-directory.md section 8.7.1."
         }
       }
     },
@@ -4352,16 +4265,6 @@
         "organization_service_delegate"
       ],
       "description": "Closed set of local administrative scopes a registration may delegate. organization_profile_manage covers this deployment's local organization profile and display; organization_realm_endorse permits issuing ak.realm.organization statements on the organization's behalf; organization_service_delegate permits declaring organization-to-service delegations locally. The set is closed because an open scope vocabulary would let a deployment mint authority the organization never consented to. Holding a scope is a permission to act later, not an action: registration by itself creates no Realm, membership, notary, capability or service delegation."
-    },
-    "PeerEventsDescribeRequestBody": {
-      "type": "object",
-      "description": "Canonical QUERY content for ak.peer.events.read.describe.v1.",
-      "properties": {
-        "realm_id": {
-          "$ref": "#/$defs/RealmId"
-        }
-      },
-      "additionalProperties": false
     },
     "PeerEventsFrontierRequestBody": {
       "type": "object",
