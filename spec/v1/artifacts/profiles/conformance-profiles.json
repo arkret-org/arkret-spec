@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.3",
-  "generated_at": "2026-08-29T15:00:00+08:00",
+  "version": "2026-08-29.4",
+  "generated_at": "2026-08-29T20:50:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4413,11 +4413,6 @@
         {
           "direction": "provide",
           "operation_id": "ak.open.mimi.command.submit_message.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.open.mimi.read.group_info.v1",
           "binding_kind": "http_json"
         }
       ],

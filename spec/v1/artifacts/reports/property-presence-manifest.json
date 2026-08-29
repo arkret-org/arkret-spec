@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10033,
+    "total_properties": 10030,
     "total_schema_documents": 166,
     "by_presence_class": {
-      "optional": 2773,
+      "optional": 2771,
       "optional_defaulted": 68,
-      "required": 6864,
+      "required": 6863,
       "required_nullable": 123,
       "tristate": 205
     },
@@ -9814,9 +9814,6 @@
         "/$defs/keypackage/properties/device_id": "required",
         "/$defs/keypackage/properties/keypackage_ref": "optional",
         "/$defs/keypackage/properties/mls_keypackage": "required",
-        "/$defs/mimi_group_info_outcome/properties/group_info": "required",
-        "/$defs/mimi_group_info_outcome/properties/proofs": "optional",
-        "/$defs/mimi_group_info_outcome/properties/room_binding_ref": "optional",
         "/$defs/mimi_identifier_query_outcome/properties/has_more": "required",
         "/$defs/mimi_identifier_query_outcome/properties/matches": "required",
         "/$defs/mimi_identifier_query_outcome/properties/matches/items/properties/identifier_commitment": "required",

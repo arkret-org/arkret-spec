@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.3",
+  "version": "2026-08-29.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T18:45:00+08:00",
+  "generated_at": "2026-08-29T20:50:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -633,21 +633,6 @@
       ],
       "defined_in": "zh/governance/member-delivery-binding.md",
       "schema_ref": "schemas/member-delivery-binding-candidate.schema.json"
-    },
-    {
-      "context": "ak.mimi_group_info_outcome_proof.v1",
-      "object_family": "mimi_group_info_outcome",
-      "binding_fields": [
-        "payload_digest",
-        "operation_id",
-        "room_binding_ref?",
-        "verification_method",
-        "created_at",
-        "domain",
-        "audience"
-      ],
-      "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
-      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome"
     },
     {
       "context": "ak.mimi_identifier_query_outcome_proof.v1",

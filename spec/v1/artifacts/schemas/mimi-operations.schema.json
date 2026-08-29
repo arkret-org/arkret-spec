@@ -29,9 +29,6 @@
       "$ref": "#/$defs/mimi_submit_message_outcome"
     },
     {
-      "$ref": "#/$defs/mimi_group_info_outcome"
-    },
-    {
       "$ref": "#/$defs/mimi_request_consent_request_body"
     },
     {
@@ -564,29 +561,6 @@
           "items": {
             "$ref": "#/$defs/failure"
           }
-        }
-      },
-      "additionalProperties": false
-    },
-    "mimi_group_info_outcome": {
-      "type": "object",
-      "x-arkret-proof-context": "ak.mimi_group_info_outcome_proof.v1",
-      "required": [
-        "group_info"
-      ],
-      "properties": {
-        "group_info": {
-          "$ref": "#/$defs/group_info"
-        },
-        "room_binding_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "proofs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/proof"
-          },
-          "minItems": 1
         }
       },
       "additionalProperties": false

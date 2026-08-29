@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-08-29.3",
-      "generated_at": "2026-08-29T15:00:00+08:00",
-      "content_digest": "sha256:cb3af8d147c37a5a818edcb44d26f2ae9da116639ccdf0aba22abf60868e9f1d"
+      "version": "2026-08-29.4",
+      "generated_at": "2026-08-29T20:50:00+08:00",
+      "content_digest": "sha256:bb0ab27b98bf6590d66d2eb213a392f95d3fd7037401fb0eafbf6d7b3e95c986"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -75,9 +75,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-08-29.11",
-      "generated_at": "2026-08-29T17:54:23+08:00",
-      "content_digest": "sha256:d753c38e31b3de2accac4417501b064634e47a904298408d3b7d977bca07ef5e"
+      "version": "2026-08-29.12",
+      "generated_at": "2026-08-29T20:50:00+08:00",
+      "content_digest": "sha256:6e08ec8d817a1565b6fc955b811c2993b7a47f2f15820a938de873f14b0aa840"
     },
     {
       "path": "spec/v1/artifacts/registry/did-document-contract-registry.json",
@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
-      "version": "2026-08-29.10",
+      "version": "2026-08-29.11",
       "generated_at": null,
-      "content_digest": "sha256:ab1e60e2cfef8ab1295f6e253fc08df190886e9568fb7977a3a7738b423873d7"
+      "content_digest": "sha256:fce6f4c3dc41f9db7fd0f4d388845d8795744c9d5ec395631ae00e28b8a6f71e"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -231,21 +231,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-08-29.12",
+      "version": "2026-08-29.14",
       "generated_at": null,
-      "content_digest": "sha256:07f9427c568a6144168a1cbc3efbff89e139b2c2136bec1418cd38f5d8c53bdb"
+      "content_digest": "sha256:d3499795fb2b9d4cc006280d316f0c4914c81333733788c5a45fe51ded59e593"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-08-29.7",
-      "generated_at": "2026-08-29T17:54:23+08:00",
-      "content_digest": "sha256:ddbededd3e72ed02c02204e0b360329797aa608006f49f778fa252b5971a3cb7"
+      "version": "2026-08-29.8",
+      "generated_at": "2026-08-29T20:50:00+08:00",
+      "content_digest": "sha256:56412a24b6cc9ff4a25698f8e2e6a51221eec12e625ab963cbdcb763b25dfbb2"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-08-29.6",
-      "generated_at": "2026-08-29T20:29:00+08:00",
-      "content_digest": "sha256:bc565334a127a7e1ca93ec5f4ea09e995c2797973032809ec555be50fd27d0f6"
+      "version": "2026-08-29.7",
+      "generated_at": "2026-08-29T20:50:00+08:00",
+      "content_digest": "sha256:3b164b1fc10e70e7d51dba57d77c5f5bfec9ea1db3954f13bdc1f620db9e563b"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",
@@ -279,9 +279,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-08-29.3",
-      "generated_at": "2026-08-29T18:45:00+08:00",
-      "content_digest": "sha256:858949aeb64dc2085999f894b906d6d9876b8037bb43c6fc6cdde1ceb83d8e5c"
+      "version": "2026-08-29.4",
+      "generated_at": "2026-08-29T20:50:00+08:00",
+      "content_digest": "sha256:fe86f692f5531847f88e6406708858ef8fbcba05e33cb3a39b1511e05d440e98"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -363,9 +363,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-08-29.3",
-      "generated_at": "2026-08-29T18:45:00+08:00",
-      "content_digest": "sha256:1a3ccd3800d031cf1ea25abfca1cd2a72537f62655af45bc1908c17fbb93d0be"
+      "version": "2026-08-29.4",
+      "generated_at": "2026-08-29T20:50:00+08:00",
+      "content_digest": "sha256:2ab33756d191745aa75dafc228460c5c8f534c17d2ad9fc687751e961caa2b77"
     }
   ]
 }

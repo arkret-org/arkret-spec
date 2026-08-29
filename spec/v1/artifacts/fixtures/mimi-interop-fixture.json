@@ -49,10 +49,6 @@
               "relative_path": "/consent"
             },
             {
-              "endpoint_id": "group_info",
-              "relative_path": "/group-info"
-            },
-            {
               "endpoint_id": "identifier_query",
               "relative_path": "/identifier-query"
             },
@@ -76,7 +72,6 @@
           "features": [
             "key_material",
             "submit_message",
-            "group_info",
             "consent",
             "identifier_query",
             "report_abuse",
@@ -249,9 +244,8 @@
           "psi_evaluated": false
         },
         {
-          "name": "group_info_and_directory_do_not_inherit_profile",
+          "name": "directory_does_not_inherit_profile",
           "operation_ids": [
-            "ak.open.mimi.read.group_info.v1",
             "ak.open.mimi.read.provider_directory.v1"
           ],
           "expected": "no_http_signature_required_error_from_this_profile"

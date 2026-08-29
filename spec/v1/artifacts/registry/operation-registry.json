@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.7",
+  "version": "2026-08-29.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T17:54:23+08:00",
+  "generated_at": "2026-08-29T20:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -411,7 +411,6 @@
       "surface": "mimi_interop",
       "operations": [
         "ak.open.mimi.read.provider_directory.v1",
-        "ak.open.mimi.read.group_info.v1",
         "ak.open.mimi.exchange.request_key_material.v1",
         "ak.open.mimi.command.submit_message.v1",
         "ak.open.mimi.command.update_room.v1",
@@ -1484,8 +1483,7 @@
       "idempotency_mechanism": "none",
       "retry_safe": false,
       "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.open.mimi.read.group_info.v1"
+        "strategy": "manual_confirmation"
       },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome",
@@ -1522,8 +1520,7 @@
       "idempotency_mechanism": "none",
       "retry_safe": false,
       "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.open.mimi.read.group_info.v1"
+        "strategy": "manual_confirmation"
       },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome",
@@ -1564,8 +1561,7 @@
       "idempotency_mechanism": "none",
       "retry_safe": false,
       "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.open.mimi.read.group_info.v1"
+        "strategy": "manual_confirmation"
       },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome",
@@ -1573,15 +1569,6 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       }
-    },
-    {
-      "operation_id": "ak.open.mimi.read.group_info.v1",
-      "http": "GET /_arkret/open/mimi/strands/{strand_id}/group-info",
-      "grpc": "OpenMimi/GroupInfo",
-      "mq": "open.mimi.query.group_info",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome"
     },
     {
       "operation_id": "ak.open.mimi.read.identifiers.v1",
@@ -5774,10 +5761,6 @@
         },
         {
           "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.open.mimi.read.group_info.v1",
           "binding_kind": "http_json"
         },
         {

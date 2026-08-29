@@ -329,7 +329,7 @@
     },
     {
       "name": "endpoint_id",
-      "terminal_signature": "[[\"enum\", \"consent|group_info|identifier_query|key_material|notify|proxy_download|report_abuse|room_update|submit_message\"]]",
+      "terminal_signature": "[[\"enum\", \"consent|identifier_query|key_material|notify|proxy_download|report_abuse|room_update|submit_message\"]]",
       "category": "external_system_identifier",
       "occurrences": 1,
       "example_path": "mimi-interop.schema.json#/$defs/provider_directory_endpoint/properties/endpoint_id",

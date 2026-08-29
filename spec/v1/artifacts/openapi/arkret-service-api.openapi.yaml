@@ -1272,8 +1272,6 @@ components:
       $ref: ../schemas/ice-config-response.schema.json
     MediaIceConfigRequestBody:
       $ref: ../schemas/media-operations.schema.json#/$defs/media_ice_config_request_body
-    MimiGroupInfoOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome
     MimiIdentifierQueryOutcome:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome
     MimiIdentifierQueryRequestBody:
@@ -7834,44 +7832,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiSubmitMessageRequestBody'
-  /_arkret/open/mimi/strands/{strand_id}/group-info:
-    get:
-      operationId: ak.open.mimi.read.group_info
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.open.mimi.read.group_info.v1
-      - in: path
-        name: strand_id
-        required: true
-        schema:
-          type: string
-      - in: query
-        name: epoch
-        required: false
-        schema:
-          type: integer
-          minimum: 0
-      - in: query
-        name: include_proof
-        required: false
-        schema:
-          type: boolean
-      responses:
-        '200':
-          description: MIMI groupInfo projection
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MimiGroupInfoOutcome'
   /_arkret/open/mimi/consent/request:
     post:
       operationId: ak.open.mimi.command.request_consent

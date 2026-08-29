@@ -291,7 +291,6 @@ grpc:
     SelfMedia:
       IceConfig: ak.self.media.read.ice_config.v1
     OpenMimi:
-      GroupInfo: ak.open.mimi.read.group_info.v1
       IdentifierQuery: ak.open.mimi.read.identifiers.v1
       KeyMaterial: ak.open.mimi.exchange.request_key_material.v1
       Notify: ak.open.mimi.command.notify.v1
@@ -509,7 +508,6 @@ mq:
     open.mimi.command.update_room: ak.open.mimi.command.update_room.v1
     open.mimi.command.notify: ak.open.mimi.command.notify.v1
     open.mimi.command.submit_message: ak.open.mimi.command.submit_message.v1
-    open.mimi.query.group_info: ak.open.mimi.read.group_info.v1
     open.mimi.command.request_consent: ak.open.mimi.command.request_consent.v1
     open.mimi.command.update_consent: ak.open.mimi.command.update_consent.v1
     open.mimi.query.identifiers: ak.open.mimi.read.identifiers.v1

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-29.6",
+  "version": "2026-08-29.7",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T20:29:00+08:00",
+  "generated_at": "2026-08-29T20:50:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -629,12 +629,6 @@
       "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason."
     },
     {
-      "operation_id": "ak.open.mimi.read.group_info.v1",
-      "http_alias": "GET /_arkret/open/mimi/strands/{strand_id}/group-info",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
       "operation_id": "ak.open.mimi.read.identifiers.v1",
       "http_alias": "POST /_arkret/open/mimi/identifiers/query",
       "operation_specific": [
@@ -642,7 +636,7 @@
         "http_signature_invalid",
         "signature_window_invalid"
       ],
-      "description": "The PSI identifier query requires a per-request RFC 9421 provider-source signature despite being classified as read: unsigned, invalid and stale-window requests fail before PSI evaluation so an unauthenticated caller cannot probe the anti-enumeration surface. group_info and provider_directory remain outside this profile."
+      "description": "The PSI identifier query requires a per-request RFC 9421 provider-source signature despite being classified as read: unsigned, invalid and stale-window requests fail before PSI evaluation so an unauthenticated caller cannot probe the anti-enumeration surface. provider_directory remains outside this profile."
     },
     {
       "operation_id": "ak.open.mimi.read.provider_directory.v1",

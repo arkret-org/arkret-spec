@@ -5008,10 +5008,7 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
             f"missing={sorted(expected_mimi_signature_operations - actual_mimi_signature_operations)!r}, "
             f"stale={sorted(actual_mimi_signature_operations - expected_mimi_signature_operations)!r}",
         )
-    for unsigned_read in (
-        "ak.open.mimi.read.group_info.v1",
-        "ak.open.mimi.read.provider_directory.v1",
-    ):
+    for unsigned_read in ("ak.open.mimi.read.provider_directory.v1",):
         if mapped_codes.get(unsigned_read, set()) & mimi_signature_codes:
             lint.fail(
                 ARTIFACTS / "registry" / "operations-error-mapping.json",

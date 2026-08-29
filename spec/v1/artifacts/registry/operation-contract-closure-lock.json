@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-29.12",
+  "version": "2026-08-29.14",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -244,7 +244,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.submit_message.v1",
-      "sha256": "sha256:cf8cf4ff278ad31e2ee4ad214f4849ff34c5e5704dfa3400ff9d71532216d029"
+      "sha256": "sha256:715252d1bb49fcab70f53a8b796d02f723228e705bcff4447ebd13c6d457ac2a"
     },
     {
       "operation_id": "ak.open.mimi.command.update_consent.v1",
@@ -252,23 +252,19 @@
     },
     {
       "operation_id": "ak.open.mimi.command.update_room.v1",
-      "sha256": "sha256:b73e4c3328bd6e40c1bc48874bc4f53529935b55545f256157d8365c4de58c1d"
+      "sha256": "sha256:b23f39b053edcba1bff1b2b20e3e174f0803ad9dbd2a4caf58bc624a68cffa40"
     },
     {
       "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
-      "sha256": "sha256:17b51345b84a774c6827d85f200ed1df931d4264afd8408014b595a766dc30a3"
-    },
-    {
-      "operation_id": "ak.open.mimi.read.group_info.v1",
-      "sha256": "sha256:9bc7b8178f16d548d6a675a68ff586fdb805cf8a8ff3da2f972606a917402306"
+      "sha256": "sha256:8c23a3a42ddca14f524d910d4e7fd81c3cd77582b95382d4be5b7100536f2533"
     },
     {
       "operation_id": "ak.open.mimi.read.identifiers.v1",
-      "sha256": "sha256:8af36da05db60ef51b2d9dbe65c50b440f16c7059e9cc2258836f33583fbb92d"
+      "sha256": "sha256:0a069c6b5ea158652c2b756cad8e09755869157d270005f7db01cdccf5ed4172"
     },
     {
       "operation_id": "ak.open.mimi.read.provider_directory.v1",
-      "sha256": "sha256:2aed4b02bf12e77185d8e16e6725ee94f9e55be380167675385cce27c87dd6d2"
+      "sha256": "sha256:27ca2719a226897ba6a0382c168f816b747f2b603d1d8866236384ea62d2e464"
     },
     {
       "operation_id": "ak.open.service.read.resolution.v1",

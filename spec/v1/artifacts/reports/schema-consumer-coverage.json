@@ -2527,7 +2527,6 @@
           "ak.open.mimi.command.update_consent.v1",
           "ak.open.mimi.command.update_room.v1",
           "ak.open.mimi.exchange.request_key_material.v1",
-          "ak.open.mimi.read.group_info.v1",
           "ak.open.mimi.read.identifiers.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."

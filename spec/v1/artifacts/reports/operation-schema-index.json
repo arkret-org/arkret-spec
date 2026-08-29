@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.11",
+  "version": "2026-08-29.12",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T17:54:23+08:00",
+  "generated_at": "2026-08-29T20:50:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2533,23 +2533,6 @@
           "group_info",
           "failures",
           "signature"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.open.mimi.read.group_info.v1",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome",
-        "schema_kind": "object",
-        "required": [
-          "group_info"
-        ],
-        "properties": [
-          "group_info",
-          "room_binding_ref",
-          "proofs"
         ],
         "closed": true
       }

@@ -234,7 +234,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-      "sha256": "93b9015d1ff6618989844f7a6ddae9815c0065b362767b18689ae6c98c6b201f"
+      "sha256": "dc19c0df119041c884bee806fd610a19fb3f027586298fa7039b6da1212511d3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
@@ -290,7 +290,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "f37f3a33833c1eae45036922f48cb97ff76ef177c4a28ad694d2bfb58017dfe7"
+      "sha256": "a8b78b1c0856ea6cd319a0880f0dbe654116c01c15be4a61f05ce1ef4c8a3a1f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

@@ -65,7 +65,6 @@ MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 sig
       "room_update",
       "notify",
       "submit_message",
-      "group_info",
       "consent",
       "identifier_query",
       "report_abuse",
@@ -272,7 +271,6 @@ MIMI facade 至少定义以下 canonical operation：
 | `ak.open.mimi.command.update_room.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/update` | 提交或转发 room state / MLS update。 |
 | `ak.open.mimi.command.notify.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
 | `ak.open.mimi.command.submit_message.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
-| `ak.open.mimi.read.group_info.v1` | `GET /_arkret/open/mimi/strands/{strand_id}/group-info` | 获取 MLS groupInfo / room projection。 |
 | `ak.open.mimi.command.request_consent.v1` | `POST /_arkret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
 | `ak.open.mimi.command.update_consent.v1` | `POST /_arkret/open/mimi/consent/update` | 提交调用方已签名的 `ak.consent.grant` / `ak.consent.revoke` Event。 |
 | `ak.open.mimi.read.identifiers.v1` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
@@ -306,8 +304,8 @@ decoded kind 不一致或 Event 绑定不一致，MUST 对外合并为同一个
 - `ak.open.mimi.read.identifiers.v1`
 
 其中 identifiers PSI query 虽分类为 read，仍承载反枚举边界，必须逐次认证 provider 来源。
-`ak.open.mimi.read.group_info.v1` 与 `ak.open.mimi.read.provider_directory.v1` 明确不要求本 profile，
-也不得返回本 profile 的三个错误码。要求签名的请求绑定：
+`ak.open.mimi.read.provider_directory.v1` 明确不要求本 profile，也不得返回本 profile 的三个错误码。
+要求签名的请求绑定：
 
 - source service DID
 - destination service DID
@@ -334,8 +332,8 @@ HTTP Message Signature profile（仅适用于上述逐条登记的 provider-to-p
 
 这三个 code 已在 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 登记，并在
 [`operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 中逐条挂在要求本
-signature profile 的 MIMI operation 上；`read.identifiers` 必须挂载，`read.group_info` 与
-`read.provider_directory` 必须不挂载。operation id 与 error mapping 的双向闭包是机器判据。
+signature profile 的 MIMI operation 上；`read.identifiers` 必须挂载，`read.provider_directory` 必须不挂载。
+operation id 与 error mapping 的双向闭包是机器判据。
 负向 conformance vector 为 `ak.vector.mimi.identifier_query_source_signature.v1`：缺失/无效来源签名
 必须在 PSI 求值前拒绝，并断言另外两个 read operation 不继承该 profile。
 
@@ -362,7 +360,7 @@ MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对�
 }
 ```
 
-transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`：`issuer` 只在该对象族的 wire 形态定义了发起方字段时出现（`mimi_key_material_request_body.requester`、`mimi_request_consent_request_body.requester_id`、`mimi_update_consent_request_body.actor_id` MUST 出现；`mimi_identifier_query_request_body.requester` 可缺席，缺席时 transcript MUST 同时省略 `issuer`），outcome 族的签发方身份只由 `verification_method` 承载。除公共字段外还 MUST 逐字加入该族的目标标识：`mimi_key_material_request_body` 加 `strand_id` 与 `device_id`；`mimi_request_consent_request_body` 加 `target` 与 `purpose`；`mimi_update_consent_request_body` 加 `consent_id` 与 `decision`；`mimi_group_info_outcome` 在 `room_binding_ref` 存在时加该字段。
+transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`：`issuer` 只在该对象族的 wire 形态定义了发起方字段时出现（`mimi_key_material_request_body.requester`、`mimi_request_consent_request_body.requester_id`、`mimi_update_consent_request_body.actor_id` MUST 出现；`mimi_identifier_query_request_body.requester` 可缺席，缺席时 transcript MUST 同时省略 `issuer`），outcome 族的签发方身份只由 `verification_method` 承载。除公共字段外还 MUST 逐字加入该族的目标标识：`mimi_key_material_request_body` 加 `strand_id` 与 `device_id`；`mimi_request_consent_request_body` 加 `target` 与 `purpose`；`mimi_update_consent_request_body` 加 `consent_id` 与 `decision`。
 
 字段顺序不影响 canonical JSON；`audience` 也可为至少覆盖目标 service DID 的非空无重复字符串数组。接收方 MUST 重算 unsigned body digest，验证 `issuer` 等于该族的发起方字段、当前 DID Document 授权的 `verification_method`、`kind=detached_jws`、`alg=Ed25519`、精确的 context/operation/domain/audience 绑定和 JWS。**接收方 MUST 拒绝 context 与本 operation 对象族不一致的 proof**：在一个族下有效的签名不得被另一个族接受，跨 operation 与 request/outcome 方向的重放由 context 本身阻断，不依赖 `operation_id` 是否被某个实现纳入 transcript。`created_at` MUST 位于接收方当前时钟前后 300 秒内。proof 失败 MUST 在写 consent state 之前拒绝；同一 proof 只能随其已绑定的完整 body 使用。相同 `consent_event.event.event_id` 与 byte-identical Event 的请求重放是 §10 定义的 retry-safe 例外，MUST 返回原 accepted Event ref；相同 Event ID 携不同 canonical Event bytes MUST `duplicate_conflict`，不得被 proof replay 检查改写成另一种成功或提前泄露 holder state。
 
