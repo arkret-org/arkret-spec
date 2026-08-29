@@ -3160,6 +3160,7 @@
       "declared_binding_fields": [
         "challenge_id",
         "organization_id",
+        "organization_did",
         "local_admin_subject",
         "version_id",
         "log_head_digest",
@@ -3181,16 +3182,17 @@
         "context": "ak.organization_registration_control_proof.v1",
         "challenge_id": "ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "organization_did": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
         "created_at": "2026-05-02T00:00:00.000Z"
       },
-      "binding_jcs": "{\"challenge_id\":\"ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001\",\"context\":\"ak.organization_registration_control_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"local_admin_subject\":\"ak:did_core:webvh:z6mkfixtureadminexample\",\"log_head_digest\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"organization_id\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\",\"version_id\":\"3-zFixtureVersionThree\"}",
-      "signing_input_ascii": "eyJhbGciOiJFZDI1NTE5In0.eyJjaGFsbGVuZ2VfaWQiOiJhazpvcmdhbml6YXRpb25fcmVnaXN0cmF0aW9uX2NoYWxsZW5nZTowMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwiY29udGV4dCI6ImFrLm9yZ2FuaXphdGlvbl9yZWdpc3RyYXRpb25fY29udHJvbF9wcm9vZi52MSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA1LTAyVDAwOjAwOjAwLjAwMFoiLCJsb2NhbF9hZG1pbl9zdWJqZWN0IjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVhZG1pbmV4YW1wbGUiLCJsb2dfaGVhZF9kaWdlc3QiOiJzaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsIm9yZ2FuaXphdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlYWNtZWV4YW1wbGUiLCJ2ZXJpZmljYXRpb25fbWV0aG9kIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUiLCJ2ZXJzaW9uX2lkIjoiMy16Rml4dHVyZVZlcnNpb25UaHJlZSJ9",
-      "signature": "qzMGhi7R2Xxokz2LrcbS9nava8iDeNkq5UoJBBerLMVzCHvSQiHDysGobmEbc8544t0v-NQiB2OzrFo97cuXDg",
-      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..qzMGhi7R2Xxokz2LrcbS9nava8iDeNkq5UoJBBerLMVzCHvSQiHDysGobmEbc8544t0v-NQiB2OzrFo97cuXDg",
+      "binding_jcs": "{\"challenge_id\":\"ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001\",\"context\":\"ak.organization_registration_control_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"local_admin_subject\":\"ak:did_core:webvh:z6mkfixtureadminexample\",\"log_head_digest\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"organization_did\":\"did:webvh:z6mkfixtureacmeexample:acme.example\",\"organization_id\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\",\"version_id\":\"3-zFixtureVersionThree\"}",
+      "signing_input_ascii": "eyJhbGciOiJFZDI1NTE5In0.eyJjaGFsbGVuZ2VfaWQiOiJhazpvcmdhbml6YXRpb25fcmVnaXN0cmF0aW9uX2NoYWxsZW5nZTowMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwiY29udGV4dCI6ImFrLm9yZ2FuaXphdGlvbl9yZWdpc3RyYXRpb25fY29udHJvbF9wcm9vZi52MSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA1LTAyVDAwOjAwOjAwLjAwMFoiLCJsb2NhbF9hZG1pbl9zdWJqZWN0IjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVhZG1pbmV4YW1wbGUiLCJsb2dfaGVhZF9kaWdlc3QiOiJzaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsIm9yZ2FuaXphdGlvbl9kaWQiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVhY21lZXhhbXBsZTphY21lLmV4YW1wbGUiLCJvcmdhbml6YXRpb25faWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZWFjbWVleGFtcGxlIiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIiwidmVyc2lvbl9pZCI6IjMtekZpeHR1cmVWZXJzaW9uVGhyZWUifQ",
+      "signature": "QvWh0iBlvd-fqt8nfHFeJEkYWdS3JJFZfQz9iTGfCPu1vuP3gfNzOEHDaltO1KeG5JVq7SaMcIuYuQWaNZt5Cw",
+      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..QvWh0iBlvd-fqt8nfHFeJEkYWdS3JJFZfQz9iTGfCPu1vuP3gfNzOEHDaltO1KeG5JVq7SaMcIuYuQWaNZt5Cw",
       "expected_result": "accept"
     },
     {
@@ -3204,6 +3206,7 @@
         "issuer_id",
         "registration_receipt_id",
         "organization_id",
+        "organization_did",
         "verification_method",
         "created_at",
         "domain?",
@@ -3229,20 +3232,20 @@
         "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
         "control_proof_kind": "resolved_verification_method",
         "delegated_scopes": [],
-        "did": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "expires_at": "2026-08-16T00:05:00.000Z",
         "issued_at": "2026-05-01T00:00:00.000Z",
         "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "local_admin_subject_id": "local_admin_subject_id-fixture-value",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "organization_did": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "registration_generation": 1,
         "registration_receipt_id": "ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
         "status": "active",
         "version_id": "3-zFixtureVersionThree"
       },
-      "unsigned_jcs": "{\"control_key_digest\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"control_proof_kind\":\"resolved_verification_method\",\"delegated_scopes\":[],\"did\":\"did:webvh:z6mkfixtureacmeexample:acme.example\",\"expires_at\":\"2026-08-16T00:05:00.000Z\",\"issued_at\":\"2026-05-01T00:00:00.000Z\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureregistryexample\",\"local_admin_subject_id\":\"local_admin_subject_id-fixture-value\",\"log_head_digest\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"organization_id\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"registration_generation\":1,\"registration_receipt_id\":\"ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19\",\"status\":\"active\",\"version_id\":\"3-zFixtureVersionThree\"}",
-      "unsigned_digest": "sha256:adc88f76875772b278217723dfd0660d808df9ea763975c3adeb3e4464e78459",
+      "unsigned_jcs": "{\"control_key_digest\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"control_proof_kind\":\"resolved_verification_method\",\"delegated_scopes\":[],\"expires_at\":\"2026-08-16T00:05:00.000Z\",\"issued_at\":\"2026-05-01T00:00:00.000Z\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureregistryexample\",\"local_admin_subject_id\":\"local_admin_subject_id-fixture-value\",\"log_head_digest\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"organization_did\":\"did:webvh:z6mkfixtureacmeexample:acme.example\",\"organization_id\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"registration_generation\":1,\"registration_receipt_id\":\"ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19\",\"status\":\"active\",\"version_id\":\"3-zFixtureVersionThree\"}",
+      "unsigned_digest": "sha256:15ecb732c95d9227fda3103cc7559dddcbc1e76efcf8bdc588e8f00665136246",
       "digest_binding_field": "payload_digest",
       "protected_header": {
         "alg": "Ed25519"
@@ -3250,10 +3253,11 @@
       "protected_header_jcs": "{\"alg\":\"Ed25519\"}",
       "binding_object": {
         "context": "ak.organization_registration_receipt_proof.v1",
-        "payload_digest": "sha256:adc88f76875772b278217723dfd0660d808df9ea763975c3adeb3e4464e78459",
+        "payload_digest": "sha256:15ecb732c95d9227fda3103cc7559dddcbc1e76efcf8bdc588e8f00665136246",
         "issuer_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "registration_receipt_id": "ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "organization_did": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
         "created_at": "2026-05-02T00:00:00.000Z",
         "audience": [
@@ -3261,10 +3265,10 @@
           "ak:did_core:webvh:z6mkfixtureprincipalacmeexample"
         ]
       },
-      "binding_jcs": "{\"audience\":[\"ak:did_core:webvh:z6mkfixturepairexample\",\"ak:did_core:webvh:z6mkfixtureprincipalacmeexample\"],\"context\":\"ak.organization_registration_receipt_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureregistryexample\",\"organization_id\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"payload_digest\":\"sha256:adc88f76875772b278217723dfd0660d808df9ea763975c3adeb3e4464e78459\",\"registration_receipt_id\":\"ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
-      "signing_input_ascii": "eyJhbGciOiJFZDI1NTE5In0.eyJhdWRpZW5jZSI6WyJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXBhaXJleGFtcGxlIiwiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVwcmluY2lwYWxhY21lZXhhbXBsZSJdLCJjb250ZXh0IjoiYWsub3JnYW5pemF0aW9uX3JlZ2lzdHJhdGlvbl9yZWNlaXB0X3Byb29mLnYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDAuMDAwWiIsImlzc3Vlcl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlcmVnaXN0cnlleGFtcGxlIiwib3JnYW5pemF0aW9uX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVhY21lZXhhbXBsZSIsInBheWxvYWRfZGlnZXN0Ijoic2hhMjU2OmFkYzg4Zjc2ODc1NzcyYjI3ODIxNzcyM2RmZDA2NjBkODA4ZGY5ZWE3NjM5NzVjM2FkZWIzZTQ0NjRlNzg0NTkiLCJyZWdpc3RyYXRpb25fcmVjZWlwdF9pZCI6ImFrOm9yZ2FuaXphdGlvbl9yZWdpc3RyYXRpb25fcmVjZWlwdDo3ODAzZmNjMzVhZTA2ODNjZTEzY2JkYmZlZDliMzA4NjRlNTY3MWY5NmJmN2Y3YTE2ZjYzODdkN2RmMzIxZDE5IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0",
-      "signature": "h4dN_VNvPQ3P8JKKmMYDd8w3et5yCy3OhrSUIAWjpbWIOvvdTcmq38ivvAyFPIg7yDtMB1nMxWr7mOo2G0gMBQ",
-      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..h4dN_VNvPQ3P8JKKmMYDd8w3et5yCy3OhrSUIAWjpbWIOvvdTcmq38ivvAyFPIg7yDtMB1nMxWr7mOo2G0gMBQ",
+      "binding_jcs": "{\"audience\":[\"ak:did_core:webvh:z6mkfixturepairexample\",\"ak:did_core:webvh:z6mkfixtureprincipalacmeexample\"],\"context\":\"ak.organization_registration_receipt_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureregistryexample\",\"organization_did\":\"did:webvh:z6mkfixtureacmeexample:acme.example\",\"organization_id\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"payload_digest\":\"sha256:15ecb732c95d9227fda3103cc7559dddcbc1e76efcf8bdc588e8f00665136246\",\"registration_receipt_id\":\"ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
+      "signing_input_ascii": "eyJhbGciOiJFZDI1NTE5In0.eyJhdWRpZW5jZSI6WyJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXBhaXJleGFtcGxlIiwiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVwcmluY2lwYWxhY21lZXhhbXBsZSJdLCJjb250ZXh0IjoiYWsub3JnYW5pemF0aW9uX3JlZ2lzdHJhdGlvbl9yZWNlaXB0X3Byb29mLnYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDAuMDAwWiIsImlzc3Vlcl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlcmVnaXN0cnlleGFtcGxlIiwib3JnYW5pemF0aW9uX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZWFjbWVleGFtcGxlOmFjbWUuZXhhbXBsZSIsIm9yZ2FuaXphdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlYWNtZWV4YW1wbGUiLCJwYXlsb2FkX2RpZ2VzdCI6InNoYTI1NjoxNWVjYjczMmM5NWQ5MjI3ZmRhMzEwM2NjNzU1OWRkZGNiYzFlNzZlZmNmOGJkYzU4OGU4ZjAwNjY1MTM2MjQ2IiwicmVnaXN0cmF0aW9uX3JlY2VpcHRfaWQiOiJhazpvcmdhbml6YXRpb25fcmVnaXN0cmF0aW9uX3JlY2VpcHQ6NzgwM2ZjYzM1YWUwNjgzY2UxM2NiZGJmZWQ5YjMwODY0ZTU2NzFmOTZiZjdmN2ExNmY2Mzg3ZDdkZjMyMWQxOSIsInZlcmlmaWNhdGlvbl9tZXRob2QiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmU6YWxpY2UuZXhhbXBsZSNlZDI1NTE5LTIwMjYtMDUtZml4dHVyZSJ9",
+      "signature": "p7QjIIo0vj1BrVlBTAqKQ-4IdC_-CPv0xLRQT_p5ySgF7Q8LtEd8K7ybtTxdqlmh4FyX8FS_A48HWaoCACEqAg",
+      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..p7QjIIo0vj1BrVlBTAqKQ-4IdC_-CPv0xLRQT_p5ySgF7Q8LtEd8K7ybtTxdqlmh4FyX8FS_A48HWaoCACEqAg",
       "expected_result": "accept"
     },
     {
@@ -6058,9 +6062,9 @@
       "registered_context": "ak.organization_registration_control_proof.v1",
       "substituted_context": "ak.organization_registration_receipt_proof.v1",
       "substituted_object_family": "organization_registration_receipt",
-      "signed_binding_jcs": "{\"challenge_id\":\"ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001\",\"context\":\"ak.organization_registration_receipt_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"local_admin_subject\":\"ak:did_core:webvh:z6mkfixtureadminexample\",\"log_head_digest\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"organization_id\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\",\"version_id\":\"3-zFixtureVersionThree\"}",
-      "signature": "Mc3VJr-yQzR2yDluQ0NpmpZstHX149T9qfc2eziOWXhLKHoGiVzfq7mT_3_jF_hIcKbhXALro31zdrUnHqLBDQ",
-      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..Mc3VJr-yQzR2yDluQ0NpmpZstHX149T9qfc2eziOWXhLKHoGiVzfq7mT_3_jF_hIcKbhXALro31zdrUnHqLBDQ",
+      "signed_binding_jcs": "{\"challenge_id\":\"ak:organization_registration_challenge:0000000000000000000000000000000000000000000000000000000000000001\",\"context\":\"ak.organization_registration_receipt_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"local_admin_subject\":\"ak:did_core:webvh:z6mkfixtureadminexample\",\"log_head_digest\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"organization_did\":\"did:webvh:z6mkfixtureacmeexample:acme.example\",\"organization_id\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\",\"version_id\":\"3-zFixtureVersionThree\"}",
+      "signature": "Xfh6CuJPmsqysgUjzVwqyvRa01pCgtQWR-YYHQxUT8BkqzQv9wmxUIiqt4KmU7STynpbUBLgEa3S28yjbr9oBA",
+      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..Xfh6CuJPmsqysgUjzVwqyvRa01pCgtQWR-YYHQxUT8BkqzQv9wmxUIiqt4KmU7STynpbUBLgEa3S28yjbr9oBA",
       "expected_result": "reject",
       "expected_reason": "signature_invalid"
     },
@@ -6071,9 +6075,9 @@
       "registered_context": "ak.organization_registration_receipt_proof.v1",
       "substituted_context": "ak.device_projection_attestation_proof.v1",
       "substituted_object_family": "device_projection_attestation",
-      "signed_binding_jcs": "{\"audience\":[\"ak:did_core:webvh:z6mkfixturepairexample\",\"ak:did_core:webvh:z6mkfixtureprincipalacmeexample\"],\"context\":\"ak.device_projection_attestation_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureregistryexample\",\"organization_id\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"payload_digest\":\"sha256:adc88f76875772b278217723dfd0660d808df9ea763975c3adeb3e4464e78459\",\"registration_receipt_id\":\"ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
-      "signature": "Orn5bZuPn3TlrKivYMp2Ri7EPWQc7u2KlQ1kxhgc2ByJrIpu1vy_YcgmMJAA5H2XN6ashEB_uYxAiTgx_y5kBw",
-      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..Orn5bZuPn3TlrKivYMp2Ri7EPWQc7u2KlQ1kxhgc2ByJrIpu1vy_YcgmMJAA5H2XN6ashEB_uYxAiTgx_y5kBw",
+      "signed_binding_jcs": "{\"audience\":[\"ak:did_core:webvh:z6mkfixturepairexample\",\"ak:did_core:webvh:z6mkfixtureprincipalacmeexample\"],\"context\":\"ak.device_projection_attestation_proof.v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureregistryexample\",\"organization_did\":\"did:webvh:z6mkfixtureacmeexample:acme.example\",\"organization_id\":\"ak:did_core:webvh:z6mkfixtureacmeexample\",\"payload_digest\":\"sha256:15ecb732c95d9227fda3103cc7559dddcbc1e76efcf8bdc588e8f00665136246\",\"registration_receipt_id\":\"ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
+      "signature": "a87-aDKXCvqQGsZW7lw_B_1THSo5YzhMyYwEOA4qPP9acUWviQOSfUtvzyf60c9Q9ufj-jwyjN9-5HDdfJGnAg",
+      "detached_jws": "eyJhbGciOiJFZDI1NTE5In0..a87-aDKXCvqQGsZW7lw_B_1THSo5YzhMyYwEOA4qPP9acUWviQOSfUtvzyf60c9Q9ufj-jwyjN9-5HDdfJGnAg",
       "expected_result": "reject",
       "expected_reason": "signature_invalid"
     },

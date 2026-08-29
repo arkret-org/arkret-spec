@@ -200,6 +200,7 @@ VALUE_TABLE: dict[str, Any] = {
     "operation": "security_closure.evaluate",
     "operation_id": "ak.peer.events.command.submit.v1",
     "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+    "organization_did": "did:webvh:z6mkfixtureacmeexample:acme.example",
     "origin": "https://alice.example.net",
     "pairing_code": "Q7m2Kf9T3vN8xL4pR6sW1a",
     "pcr_realm_id": "ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8",

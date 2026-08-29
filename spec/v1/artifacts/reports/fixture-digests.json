@@ -254,7 +254,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/organization-registration-fixture.json",
-      "sha256": "b797f2f3f4ec93a73612b32ecc6bc543daa6499cede18024ac0ece45db07db06"
+      "sha256": "eb292736f967cdfb70f0c5b2c5e97d0d6c64b07eeddbc958f527102a13134be5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
@@ -294,7 +294,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "61e14db14e2e46241add1bc65377699edf46834f311e565b503b4fe775f30223"
+      "sha256": "f37f3a33833c1eae45036922f48cb97ff76ef177c4a28ad694d2bfb58017dfe7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

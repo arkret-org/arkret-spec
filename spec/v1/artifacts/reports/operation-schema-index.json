@@ -4036,7 +4036,7 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
-          "did",
+          "organization_did",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -4046,7 +4046,7 @@
         ],
         "properties": [
           "organization_id",
-          "did",
+          "organization_did",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -4079,13 +4079,13 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
-          "did",
+          "organization_did",
           "local_admin_subject_id",
           "requested_scopes"
         ],
         "properties": [
           "organization_id",
-          "did",
+          "organization_did",
           "local_admin_subject_id",
           "requested_scopes"
         ],
@@ -4097,7 +4097,7 @@
         "required": [
           "challenge_id",
           "organization_id",
-          "did",
+          "organization_did",
           "purpose",
           "nonce",
           "audience_id",
@@ -4111,7 +4111,7 @@
         "properties": [
           "challenge_id",
           "organization_id",
-          "did",
+          "organization_did",
           "purpose",
           "nonce",
           "audience_id",
@@ -4133,7 +4133,7 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
-          "did",
+          "organization_did",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -4141,7 +4141,7 @@
         ],
         "properties": [
           "organization_id",
-          "did",
+          "organization_did",
           "challenge_id",
           "version_id",
           "log_head_digest",

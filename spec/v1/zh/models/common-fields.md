@@ -231,7 +231,7 @@ Web Origin 的完整角色名不等于宽松字符串：所有真实 Web Origin 
 
 外部标准拥有的 literal object 只在登记的精确 owner path 保留原字段名；例外不传播到 Arkret wrapper、projection、registry 或 canonical preimage。artifact lint 必须展开本地与跨文件 `$ref` 到 terminal constraint，并在诊断中同时报告 lexical owner、role stem、terminal category、required subject class、expected suffix 与 exception reason。
 
-Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`，或使用 `<role>_did` / `<role>_dids`。稳定主体引用仍使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_id`、`audit_actor_id` 等 `_id` 字段。`did` 与 `_did` 明确表示 W3C DID，绝不表示 `did_core_id`。
+Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`，或使用 `<role>_did` / `<role>_dids`。Organization registration / principal-control accepted-evidence 对象同时携带稳定 `organization_id` 与 exact Organization DID 时，二者是同一语义角色的两种表示，MUST 使用逐字配对的 `organization_id` + `organization_did`，不得用裸 `did` 依赖容器类型隐式补全角色。稳定主体引用仍使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_id`、`audit_actor_id` 等 `_id` 字段。`did` 与 `_did` 明确表示 W3C DID，绝不表示 `did_core_id`。
 
 公共类型与 schema 定义固定为 `Did` / `did`；不得另定义裸 DID alias。旧的“完整 ID”类型、字段、别名或双读均禁止。`principal_server_id` / `policy_server_id` 的 `principal_server` / `policy_server` 是已登记协议角色，不是 entity-class 限定词；旧式 `principal_server_service_id` / `policy_server_service_id` 双重形态禁止。
 

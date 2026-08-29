@@ -172,23 +172,23 @@
       "category": "resolution_or_did_document"
     },
     {
-      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge/properties/did/$ref",
+      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge/properties/organization_did/$ref",
       "category": "registration_or_binding"
     },
     {
-      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallengeRequestBody/properties/did/$ref",
+      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallengeRequestBody/properties/organization_did/$ref",
       "category": "registration_or_binding"
     },
     {
-      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody/properties/did/$ref",
+      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody/properties/organization_did/$ref",
       "category": "registration_or_binding"
     },
     {
-      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt/properties/did/$ref",
+      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt/properties/organization_did/$ref",
       "category": "registration_or_binding"
     },
     {
-      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRefreshRequestBody/properties/did/$ref",
+      "pointer": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRefreshRequestBody/properties/organization_did/$ref",
       "category": "registration_or_binding"
     },
     {

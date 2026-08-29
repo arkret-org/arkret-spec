@@ -1015,8 +1015,8 @@ service type/endpoint 校验、`service_id` 主体名、Provider 默认托管 se
 
 **两阶段是裁决结果，不是可选项。** `prepare` 由 registry 签发并记住 single-use challenge，
 绑定 `purpose` / `audience` / `origin` / `trust_domain` / `nonce` / `organization_id: did_core_id` /
-`did` / `requested_scopes` / `local_admin_subject` 与 ≤300 秒窗口；registry 在签发前 MUST 独立验证
-`did` 并要求 `project(did) == organization_id`，首次使用即消费；`ensure` 才提交 proof。
+`organization_did` / `requested_scopes` / `local_admin_subject` 与 ≤300 秒窗口；registry 在签发前 MUST 独立验证
+`organization_did` 并要求 `project(organization_did) == organization_id`，首次使用即消费；`ensure` 才提交 proof。
 若把 challenge 折叠进 ensure，challenge 就由调用方自报，接收方既无法确定 freshness
 也无法保证单次消费。`prepare` 刻意不幂等：每次调用铸新 nonce。
 
@@ -1028,9 +1028,9 @@ service type/endpoint 校验、`service_id` 主体名、Provider 默认托管 se
 
 **proof MUST 绑定受益管理员。** control proof 的签名 transcript 是
 `canonical_json({context:'ak.organization_registration_control_proof.v1', challenge_id,
-organization_id, did, local_admin_subject, version_id, log_head_digest, verification_method, created_at})`。
-其中 `organization_id` 是稳定 `did_core_id`，`did` 是当前 published bare DID；`ensure.did` MUST
-逐字等于 challenge 所载值，且 verifier MUST 独立要求 `project(did) == organization_id`。
+organization_id, organization_did, local_admin_subject, version_id, log_head_digest, verification_method, created_at})`。
+其中 `organization_id` 是稳定 `did_core_id`，`organization_did` 是当前 published Organization DID；`ensure.organization_did` MUST
+逐字等于 challenge 所载值，且 verifier MUST 独立要求 `project(organization_did) == organization_id`。
 `local_admin_subject` 必须同时出现在 challenge 与 proof 中，且 `ensure` MUST 拒绝与所引用 challenge
 不一致的值（`organization_registration_challenge_invalid`）。
 **只绑定 organization 与 version 的 proof 不说明谁受益**：任何拿到该 proof 的人都能提交 `ensure`
@@ -1060,7 +1060,7 @@ organization_id, did, local_admin_subject, version_id, log_head_digest, verifica
 不得把自身包含进输入：
 
 1. `receipt_claims` 精确为不含 `registration_receipt_id` 与 `proof` 的对象
-   `{organization_id, did, registration_generation, version_id, log_head_digest, control_proof_kind,
+   `{organization_id, organization_did, registration_generation, version_id, log_head_digest, control_proof_kind,
    control_key_digest, local_admin_subject, delegated_scopes, status, issued_at, expires_at,
    issuer_id}`；`registration_receipt_id = "ak:organization_registration_receipt:" ||
    hex(SHA-256(canonical_json(receipt_claims)))`。
@@ -1068,7 +1068,7 @@ organization_id, did, local_admin_subject, version_id, log_head_digest, verifica
    `proof.payload_digest = "sha256:" || hex(SHA-256(canonical_json(document)))`。
 3. detached JWS MUST 签
    `canonical_json({context:"ak.organization_registration_receipt_proof.v1", payload_digest,
-   issuer_id, registration_receipt_id, organization_id, did, verification_method, created_at,
+   issuer_id, registration_receipt_id, organization_id, organization_did, verification_method, created_at,
    domain?, audience?})`；`created_at` MUST 等于 `issued_at`。任何实现把 receipt id 或 proof
    递归放回各自摘要输入都会得到不可构造的自引用合同，MUST 拒绝。
 
@@ -1090,10 +1090,10 @@ organization_id, did, local_admin_subject, version_id, log_head_digest, verifica
   refresh 永远不可能成功，因此不能停留在可刷新的 `stale`。重建关系只能走新的 `ensure`。
 
 `prepare`、`ensure` 与 `refresh` 请求都 MUST 携带 `organization_id: did_core_id` 和 current published
-`did`，并在接受前满足 `project(did) == organization_id`；outcome 与 receipt 同时记录两者。
-`refresh` 可在同一 core 下更新 `did` / `version_id`，不创建新 organization identity。
-`revoke` 请求则是 core-only：只用 `organization_id` 定址且禁止调用方提交 `did`；其 outcome / receipt
-回显既有 binding 记录的 `did`。`revoke` 只撤销本地 binding，不修改、不停用、不批注外部 DID 的
+`organization_did`，并在接受前满足 `project(organization_did) == organization_id`；outcome 与 receipt 同时记录两者。
+`refresh` 可在同一 core 下更新 `organization_did` / `version_id`，不创建新 organization identity。
+`revoke` 请求则是 core-only：只用 `organization_id` 定址且禁止调用方提交 `organization_did`；其 outcome / receipt
+回显既有 binding 记录的 `organization_did`。`revoke` 只撤销本地 binding，不修改、不停用、不批注外部 DID 的
 method history——本部署不控制它。
 
 **scope 闭合。** `delegated_scopes` 取自封闭集合

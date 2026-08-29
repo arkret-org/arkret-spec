@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-28.17",
+  "version": "2026-08-29.2",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -396,23 +396,23 @@
     },
     {
       "operation_id": "ak.root.identity.organization_registration.command.ensure.v1",
-      "sha256": "sha256:82f91106354420a48e29280a0dddd3bc8eeafa5114630a27cfc82a2653b2d18d"
+      "sha256": "sha256:ec4608a40df85e265236846cac756e4e77f4e52c7615b9af7e16c9ef2f0cef32"
     },
     {
       "operation_id": "ak.root.identity.organization_registration.command.prepare.v1",
-      "sha256": "sha256:296650683607164345b04c1b4af75909634752f5126125a0088e0331bd39e517"
+      "sha256": "sha256:579f518ed36eaecb8fb9e293c323eea66d8c44098cfcd61f8289efc390d2505f"
     },
     {
       "operation_id": "ak.root.identity.organization_registration.command.refresh.v1",
-      "sha256": "sha256:5236aba3fd0f9bf2a948afd5eae412db36380d31b3f450532685ce61f056fe21"
+      "sha256": "sha256:fbc348802dfd158ee8d41426d85d648fd20e13df1fbbe41a4db4edd10de2079a"
     },
     {
       "operation_id": "ak.root.identity.organization_registration.command.revoke.v1",
-      "sha256": "sha256:495c874584ba804a8388a2e42959066193d82212d596ad8330f69b2c2d62c236"
+      "sha256": "sha256:c36a3c634bcc7a28afb203a6c1cf2cf2076833c56efc015f6785fe3279340b22"
     },
     {
       "operation_id": "ak.root.identity.organization_registration.resource.get.v1",
-      "sha256": "sha256:579cc4190cdf777eb1fd7d0f92c670beb50e0df53a708ef7cfbfece3ba47f8be"
+      "sha256": "sha256:a1a3c02260ee64fb039914a15dd2898d653a9bafd83637ad08dfe646d32649a2"
     },
     {
       "operation_id": "ak.root.identity.read.resolve.v1",

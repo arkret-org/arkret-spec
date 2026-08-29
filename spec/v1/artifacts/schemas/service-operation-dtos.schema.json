@@ -3949,7 +3949,7 @@
           "items": {
             "$ref": "./event-envelope.schema.json#/$defs/proof"
           },
-          "description": "Detached proofs over canonical_json({context:'ak.organization_registration_control_proof.v1', challenge_id, organization_id, did, local_admin_subject, version_id, log_head_digest, verification_method, created_at}). The verifier independently validates the published did and requires project(did)=organization_id before checking the DID URL verification_method. Binding the challenge, stable core, DID, beneficiary admin and exact version together prevents replay across deployments, resolutions or beneficiaries."
+          "description": "Detached proofs over canonical_json({context:'ak.organization_registration_control_proof.v1', challenge_id, organization_id, organization_did, local_admin_subject, version_id, log_head_digest, verification_method, created_at}). The verifier independently validates the published organization_did and requires project(organization_did)=organization_id before checking the DID URL verification_method. Binding the challenge, stable core, DID, beneficiary admin and exact version together prevents replay across deployments, resolutions or beneficiaries."
         }
       },
       "allOf": [
@@ -3986,7 +3986,7 @@
       "required": [
         "challenge_id",
         "organization_id",
-        "did",
+        "organization_did",
         "purpose",
         "nonce",
         "audience_id",
@@ -4005,7 +4005,7 @@
         "organization_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "did": {
+        "organization_did": {
           "$ref": "./common-ids.schema.json#/$defs/did",
           "description": "Current published bare DID for the external organization. The registry MUST independently validate it and require the registered method adapter to project it to organization_id before issuing the challenge."
         },
@@ -4054,7 +4054,7 @@
       "description": "Request a single-use control challenge for an external Organization DID. Two phases are mandatory: the registry issues the challenge and remembers it, then the caller proves control against it. Folding this into ensure would let the caller supply its own challenge, at which point neither freshness nor single use can be established by the receiver.",
       "required": [
         "organization_id",
-        "did",
+        "organization_did",
         "local_admin_subject_id",
         "requested_scopes"
       ],
@@ -4063,9 +4063,9 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Stable did_core_id of the external Organization to be registered. Resolvability alone confers nothing; this request only opens a proof window."
         },
-        "did": {
+        "organization_did": {
           "$ref": "./common-ids.schema.json#/$defs/did",
-          "description": "Current published bare DID submitted for first registration. The registry MUST independently resolve and validate it and require project(did)=organization_id."
+          "description": "Current published Organization DID submitted for first registration. The registry MUST independently resolve and validate it and require project(organization_did)=organization_id."
         },
         "local_admin_subject_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -4084,10 +4084,10 @@
     "OrganizationRegistrationEnsureRequestBody": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Register an external Organization identity with this deployment by submitting both its stable organization_id core and current published did. Idempotent on organization_id: replaying the same registration returns the existing binding with created=false. This operation registers a reference and a local administrative binding; it does not host the DID's method history, does not make this deployment its controller, and does not create Realm state.",
+      "description": "Register an external Organization identity with this deployment by submitting both its stable organization_id core and current published organization_did. Idempotent on organization_id: replaying the same registration returns the existing binding with created=false. This operation registers a reference and a local administrative binding; it does not host the DID's method history, does not make this deployment its controller, and does not create Realm state.",
       "required": [
         "organization_id",
-        "did",
+        "organization_did",
         "challenge_id",
         "version_id",
         "log_head_digest",
@@ -4099,9 +4099,9 @@
         "organization_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "did": {
+        "organization_did": {
           "$ref": "./common-ids.schema.json#/$defs/did",
-          "description": "Current published bare DID whose method history and control proof are pinned by this request. MUST equal the did bound into the referenced challenge and project to organization_id."
+          "description": "Current published Organization DID whose method history and control proof are pinned by this request. MUST equal the organization_did bound into the referenced challenge and project to organization_id."
         },
         "challenge_id": {
           "type": "string",
@@ -4201,7 +4201,7 @@
       "required": [
         "registration_receipt_id",
         "organization_id",
-        "did",
+        "organization_did",
         "registration_generation",
         "version_id",
         "log_head_digest",
@@ -4224,9 +4224,9 @@
         "organization_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "did": {
+        "organization_did": {
           "$ref": "./common-ids.schema.json#/$defs/did",
-          "description": "Published bare DID whose pinned version and control proof were accepted for this receipt. Consumers MUST independently validate it and require project(did)=organization_id."
+          "description": "Published Organization DID whose pinned version and control proof were accepted for this receipt. Consumers MUST independently validate it and require project(organization_did)=organization_id."
         },
         "registration_generation": {
           "type": "integer",
@@ -4287,7 +4287,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization_registration_receipt_proof.v1', payload_digest, issuer_id, registration_receipt_id, organization_id, did, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers validate the registered organization's did and project it to organization_id, then independently obtain the issuer service's verified resolution, require its did to project to issuer_id, and verify verification_method as a signing-time assertionMethod."
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization_registration_receipt_proof.v1', payload_digest, issuer_id, registration_receipt_id, organization_id, organization_did, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers validate the registered organization's organization_did and project it to organization_id, then independently obtain the issuer service's verified resolution, require its service_did to project to issuer_id, and verify verification_method as a signing-time assertionMethod."
         }
       }
     },
@@ -4297,7 +4297,7 @@
       "description": "Re-prove control at a newer resolved version and re-issue the receipt. Scopes are not re-negotiated here; a scope change is a new ensure. Refresh exists because a binding pinned to one version stops proving current control the moment the organization rotates its controller.",
       "required": [
         "organization_id",
-        "did",
+        "organization_did",
         "challenge_id",
         "version_id",
         "log_head_digest",
@@ -4307,9 +4307,9 @@
         "organization_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "did": {
+        "organization_did": {
           "$ref": "./common-ids.schema.json#/$defs/did",
-          "description": "Current published bare DID at the refreshed version. MUST project to organization_id before the refreshed proof is accepted."
+          "description": "Current published Organization DID at the refreshed version. MUST project to organization_id before the refreshed proof is accepted."
         },
         "challenge_id": {
           "type": "string",

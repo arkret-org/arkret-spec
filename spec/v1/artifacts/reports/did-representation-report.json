@@ -8319,16 +8319,6 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge/properties/did",
-      "property_name": "did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did"
-      ]
-    },
-    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge/properties/local_admin_subject_id",
       "property_name": "local_admin_subject_id",
       "semantic_category": "responsibility_identity_material",
@@ -8336,6 +8326,16 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge/properties/organization_did",
+      "property_name": "organization_did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
       ]
     },
     {
@@ -8349,16 +8349,6 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallengeRequestBody/properties/did",
-      "property_name": "did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did"
-      ]
-    },
-    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallengeRequestBody/properties/local_admin_subject_id",
       "property_name": "local_admin_subject_id",
       "semantic_category": "responsibility_identity_material",
@@ -8369,6 +8359,16 @@
       ]
     },
     {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallengeRequestBody/properties/organization_did",
+      "property_name": "organization_did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
+      ]
+    },
+    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallengeRequestBody/properties/organization_id",
       "property_name": "organization_id",
       "semantic_category": "responsibility_identity_material",
@@ -8376,16 +8376,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody/properties/did",
-      "property_name": "did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did"
       ]
     },
     {
@@ -8419,6 +8409,16 @@
       ]
     },
     {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody/properties/organization_did",
+      "property_name": "organization_did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
+      ]
+    },
+    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody/properties/organization_id",
       "property_name": "organization_id",
       "semantic_category": "responsibility_identity_material",
@@ -8426,16 +8426,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt/properties/did",
-      "property_name": "did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did"
       ]
     },
     {
@@ -8459,6 +8449,16 @@
       ]
     },
     {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt/properties/organization_did",
+      "property_name": "organization_did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
+      ]
+    },
+    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt/properties/organization_id",
       "property_name": "organization_id",
       "semantic_category": "responsibility_identity_material",
@@ -8469,8 +8469,8 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRefreshRequestBody/properties/did",
-      "property_name": "did",
+      "schema_path": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRefreshRequestBody/properties/organization_did",
+      "property_name": "organization_did",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did",
       "external_literal_owner": false,
