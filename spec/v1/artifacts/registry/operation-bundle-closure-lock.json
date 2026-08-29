@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-27.3",
+  "version": "2026-08-27.4",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -30,7 +30,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.auth_server.http_core.v1",
-      "sha256": "sha256:ebc6761fc15415d116056d697c8cade742528d994d084b94913757683690f816"
+      "sha256": "sha256:ae4accfa6455cd15fc40a5f8f77ea0232b6838bb5be775c31fab88fe467f5148"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.authz_service.describe.v1",

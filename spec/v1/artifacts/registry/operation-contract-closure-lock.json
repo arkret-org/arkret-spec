@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-29.2",
+  "version": "2026-08-29.3",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -564,7 +564,7 @@
     },
     {
       "operation_id": "ak.self.applet.command.install.v1",
-      "sha256": "sha256:9013d19b3677ec79a63d7b3566db15fac4dbb6af44ab9599d71865fa6e55df15"
+      "sha256": "sha256:6a79b4ad3395d6f4c23d68803c304ed3f3a63d15baad547418036cf98271fac8"
     },
     {
       "operation_id": "ak.self.applet.command.revoke.v1",

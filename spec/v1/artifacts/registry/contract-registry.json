@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.3",
+  "version": "2026-08-29.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T08:00:18+08:00",
+  "generated_at": "2026-08-29T12:15:56+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -16003,8 +16003,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-29.1",
-    "generated_at": "2026-08-29T00:00:00+08:00",
+    "version": "2026-08-29.4",
+    "generated_at": "2026-08-29T12:15:56+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_principal_server.v1",
@@ -16263,6 +16263,10 @@
           },
           {
             "operation_id": "ak.gate.account.exchange.create_handoff.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.open.service.read.resolution.v1",
             "binding_kind": "http_json"
           },
           {
