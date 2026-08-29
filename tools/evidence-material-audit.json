@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 380,
+  "audited_occurrence_count": 381,
   "registrations": [
     {
       "file": "account-operations.schema.json",
