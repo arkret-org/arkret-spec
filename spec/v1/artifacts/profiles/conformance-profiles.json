@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.1",
-  "generated_at": "2026-08-29T00:00:00+08:00",
+  "version": "2026-08-29.2",
+  "generated_at": "2026-08-29T14:22:43+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3955,16 +3955,6 @@
         {
           "direction": "provide",
           "operation_id": "ak.self.agent.command.provision.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.agent.command.abandon_provisioning.v1",
           "binding_kind": "http_json"
         },
         {

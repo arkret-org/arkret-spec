@@ -27,8 +27,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 665,
-    "typed_object_id": 933,
+    "responsibility_identity_material": 660,
+    "typed_object_id": 924,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -155,14 +155,6 @@
       "occurrences": 1,
       "example_path": "history-key.schema.json#/$defs/history_candidate_origin_attribution/oneOf/2/properties/origin_ref/properties/backup_origin_id",
       "reason": "Stable backup-origin quota-domain correlation value; the backup: envelope is not itself an Arkret typed object identity."
-    },
-    {
-      "name": "challenge_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 2,
-      "example_path": "agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome/properties/challenge_id",
-      "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
     {
       "name": "challenge_id",

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-29.2",
+  "version": "2026-08-29.4",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T13:08:00+08:00",
+  "generated_at": "2026-08-29T14:22:43+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -1118,18 +1118,6 @@
       "description": "No operation-specific error codes. Per-actor outcomes are carried in the response failures array with the single value profile_unavailable; unknown actor, missing profile, non-member actor and unauthorized caller are indistinguishable. A caller that is not an effective joined member of realm_id receives not_found for the whole request."
     },
     {
-      "operation_id": "ak.self.agent.command.abandon_provisioning.v1",
-      "http_alias": "POST /_arkret/self/agent-provisioning-abandonments",
-      "operation_specific": [
-        "failed_precondition",
-        "duplicate_conflict",
-        "agent_provisioning_challenge_expired",
-        "agent_provisioning_challenge_already_consumed",
-        "agent_pcr_genesis_already_accepted"
-      ],
-      "description": "Consumes the abandonment challenge and releases the slug and realm-id claims in one transaction. failed_precondition covers an unknown challenge, a challenge bound to another controller, agent, allocation or realm id, credentials replayed from the challenge-issuing call, and a confirmation that pins different values; duplicate_conflict covers the same request_id with different canonical intent; the two agent_provisioning_challenge_* codes keep expiry and prior consumption distinct, while an exact replay of the same request_id returns the recorded outcome instead of an error; agent_pcr_genesis_already_accepted is the stable terminal for a genesis accepted after the challenge was issued and never abandons anything."
-    },
-    {
       "operation_id": "ak.self.agent.command.deactivate.v1",
       "http_alias": "POST /_arkret/self/agents/{agent_id}/deactivate",
       "operation_specific": [
@@ -1138,16 +1126,6 @@
         "controller_signed_event_required"
       ],
       "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal Agent. Missing or invalid proof on the sole controller-authored lifecycle Event returns controller_signed_event_required. Once that Event is accepted, the terminal parent lifecycle gate immediately makes every child authorization ineffective; client-supplied key/grant revoke bundles are schema-invalid and asynchronous cleanup failure cannot roll back deactivation."
-    },
-    {
-      "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
-      "http_alias": "POST /_arkret/self/agent-provisioning-abandonment-challenges",
-      "operation_specific": [
-        "failed_precondition",
-        "duplicate_conflict",
-        "agent_pcr_genesis_already_accepted"
-      ],
-      "description": "Issues the durable single-use challenge that makes abandoning an accepted-but-never-genesised Agent provisioning explicit. failed_precondition covers an agent_id, principal_control_realm_id or allocation_handle that is not the authenticated controller's accepted provisioning; duplicate_conflict covers the same request_id with different canonical intent; agent_pcr_genesis_already_accepted covers a managed Agent PCR genesis that is already accepted, for which no abandonment challenge may be issued."
     },
     {
       "operation_id": "ak.self.agent.command.pause.v1",
@@ -1192,27 +1170,6 @@
         "controller_signed_event_required"
       ],
       "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar desired membership is re-derived after admission and is not a request precondition. A lifecycle Event without its required controller proof returns controller_signed_event_required."
-    },
-    {
-      "operation_id": "ak.self.agent.grant.command.attach.v1",
-      "http_alias": "POST /_arkret/self/agents/{agent_id}/grants",
-      "operation_specific": [
-        "agent_paused",
-        "agent_deactivated",
-        "failed_precondition",
-        "agent_grant_exceeds_requested_scope",
-        "agent_requested_scope_commitment_invalid"
-      ],
-      "description": "Accepts a complete controller-authored ak.capability.grant EventInitialSubmission for the agent. The Event envelope proof is the sole durable issuer signature; the CapabilityGrantBody has no inner proof, and the service cannot synthesize or sign the Event. capability_denied surfaces controller-side delegation refusal; agent_paused / agent_deactivated guard the lifecycle gate. An action/resource outside the immutable provision ceiling, or removal/relaxation of a mandatory provision constraint, returns failed_precondition with reason=`agent_grant_exceeds_requested_scope`."
-    },
-    {
-      "operation_id": "ak.self.agent.grant.resource.delete.v1",
-      "http_alias": "DELETE /_arkret/self/agents/{agent_id}/grants/{grant_id}",
-      "operation_specific": [
-        "not_found",
-        "agent_deactivated"
-      ],
-      "description": "not_found is returned for nonexistent grant_id and for grants not attached to this agent (uniform failure surface)."
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get.v1",
@@ -1425,34 +1382,14 @@
       "description": "Media service token exchange (zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS media security-frontier freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[]."
     },
     {
-      "operation_id": "ak.self.circle.command.archive.v1",
-      "http_alias": "POST /_arkret/self/circles/{circle_id}/archive",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
       "operation_id": "ak.self.circle.command.create.v1",
       "http_alias": "POST /_arkret/self/circles",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.circle.command.restore.v1",
-      "http_alias": "POST /_arkret/self/circles/{circle_id}/restore",
-      "operation_specific": [
-        "failed_precondition"
-      ],
-      "description": "Restores an archived Circle. failed_precondition (carrying a reason in the *_not_archived family) when the target Circle is not in an archived state, or is in a terminal (tombstoned/deleted) state from which restore is illegal. See zh/models/circle.md §9."
-    },
-    {
       "operation_id": "ak.self.circle.command.rotate_scope.v1",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
-      "operation_id": "ak.self.circle.command.tombstone.v1",
-      "http_alias": "POST /_arkret/self/circles/{circle_id}/tombstone",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },

@@ -463,30 +463,10 @@ Server** 承载。genesis admission 的反查是一次本地投影查询，跨�
 （即 Agent DID），transition 为 `uninitialized -> active`。非 `managed_agent_control` 的 create MUST NOT 触发
 该写入。服务私有 row、FSM 默认值或 organization-governed PCR 都不能合成首次 active witness。
 
-**显式放弃（normative）**：genesis 可能永远不来（controller 放弃、客户端丢失冻结的 create bytes）。此时
-provision 事实已经 durable accepted，slug 与该 realm id claim 被占住，而柜子永远不会建起来。协议 MUST
-提供显式收场，且 MUST NOT 用 lease 过期、垃圾回收或超时静默释放。承载它的是封闭的两步 operation 对，
-形状对位 §5.0.2 的 provisional identity abandonment：
-`ak.self.agent.command.issue_provisioning_abandonment_challenge.v1` 取 challenge，
-`ak.self.agent.command.abandon_provisioning.v1` 确认。
-
-- challenge 单次使用、`<=300` 秒、保存在 shared durable state（不是进程内存），并钉死要放弃的
-  `agent_id`、该 provision 声明的 `principal_control_realm_id`、`allocation_handle`、`agent_slug`、
-  controller `account_subject` 与 holder key、必须向用户展示的封闭后果集合 `consequence_disclosure`、
-  audience、origin、trust domain、purpose 与 expiry；重复同一 `request_id` 返回同一未消费 challenge，
-  expiry 与已消费是不同终态。
-- 确认调用 MUST 出示一份新鲜凭据，MUST NOT 复用签发 challenge 时那一份。重认证强度、风险检查项与
-  冷却期时长属**部署治理**，本规范不规定。
-- **原子边界**：消费 challenge、释放 `agent_slug` selector claim 与 `principal_control_realm_id` claim、
-  写 tombstone / audit reservation、抑制该 allocation 的全部 holder 可读痕迹，MUST 在一个事务内完成，
-  任一步失败零写入。同 `request_id` 重放 MUST 返回同一终态，MUST NOT 产生第二条 tombstone。
-- **并发**：challenge 签发与确认之间 genesis 已被接纳时，确认 MUST 以稳定终态 `agent_pcr_genesis_already_accepted`
-  失败且 MUST NOT 放弃任何东西——Agent 既已成立，该走的是 `ak.self.agent.command.deactivate.v1`。判定依据是
-  challenge 钉死的 `principal_control_realm_id` 与 allocation，不是本地推断。
-
-被放弃的 provision Event 本身仍是 controller PCR 中一条 accepted 的历史事实，MUST NOT 被删除或重写；
-放弃只释放 slug 与 realm id claim 并写下 tombstone。被放弃的 `principal_control_realm_id` MUST NOT 被后续
-provision 复用。
+**未完成 provision 不可撤销（normative）**：`ak.agent.provision` 一旦 accepted 就是 controller PCR 中不可删除、
+不可重写的历史事实，其 `agent_slug` 与 `principal_control_realm_id` claim 也不得通过服务私有清理、超时或垃圾回收
+释放。controller 必须持久化并恢复冻结的 genesis bytes，继续完成同一 provisioning；协议不提供第二条 HTTP
+放弃通道。客户端若在 provision accepted 前放弃，只需丢弃尚未提交的本地 intent。
 
 ### 3.7 MLS KeyPackage Key
 

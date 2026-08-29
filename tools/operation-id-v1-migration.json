@@ -488,16 +488,8 @@
       "new": "ak.self.actor_profile.read.resolve.v1"
     },
     {
-      "old": "ak.self.agent.command.abandon_provisioning",
-      "new": "ak.self.agent.command.abandon_provisioning.v1"
-    },
-    {
       "old": "ak.self.agent.command.deactivate",
       "new": "ak.self.agent.command.deactivate.v1"
-    },
-    {
-      "old": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
-      "new": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1"
     },
     {
       "old": "ak.self.agent.command.pause",
@@ -514,14 +506,6 @@
     {
       "old": "ak.self.agent.command.resume",
       "new": "ak.self.agent.command.resume.v1"
-    },
-    {
-      "old": "ak.self.agent.grant.command.attach",
-      "new": "ak.self.agent.grant.command.attach.v1"
-    },
-    {
-      "old": "ak.self.agent.grant.resource.delete",
-      "new": "ak.self.agent.grant.resource.delete.v1"
     },
     {
       "old": "ak.self.agent.participation.resource.get",
@@ -616,24 +600,12 @@
       "new": "ak.self.call.media.exchange.issue_token.v1"
     },
     {
-      "old": "ak.self.circle.command.archive",
-      "new": "ak.self.circle.command.archive.v1"
-    },
-    {
       "old": "ak.self.circle.command.create",
       "new": "ak.self.circle.command.create.v1"
     },
     {
-      "old": "ak.self.circle.command.restore",
-      "new": "ak.self.circle.command.restore.v1"
-    },
-    {
       "old": "ak.self.circle.command.rotate_scope",
       "new": "ak.self.circle.command.rotate_scope.v1"
-    },
-    {
-      "old": "ak.self.circle.command.tombstone",
-      "new": "ak.self.circle.command.tombstone.v1"
     },
     {
       "old": "ak.self.circle.member.command.add",

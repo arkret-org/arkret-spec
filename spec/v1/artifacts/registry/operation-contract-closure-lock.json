@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-29.5",
+  "version": "2026-08-29.7",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -495,16 +495,8 @@
       "sha256": "sha256:a9f9c776d6c3c7fa8741123fa7570b855a10c9143f5b274700ce12023b026c22"
     },
     {
-      "operation_id": "ak.self.agent.command.abandon_provisioning.v1",
-      "sha256": "sha256:54fd1a75d9e293629550853e51eabe03f9b102a04ae707e815134be91e9cea3a"
-    },
-    {
       "operation_id": "ak.self.agent.command.deactivate.v1",
       "sha256": "sha256:d390c2f670ca72dda0c86e780a98d6cdc73872368c6f942782eeea01a7fc29cc"
-    },
-    {
-      "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
-      "sha256": "sha256:ac5a34a51f2c40a5e268262e71ca606b3aa1e4a81cd3b50b15535f9222516aec"
     },
     {
       "operation_id": "ak.self.agent.command.pause.v1",
@@ -521,14 +513,6 @@
     {
       "operation_id": "ak.self.agent.command.resume.v1",
       "sha256": "sha256:e3a959016d6e9a04c2d8a5ae01b4673609543336b0839082c1c2b2d9068e2194"
-    },
-    {
-      "operation_id": "ak.self.agent.grant.command.attach.v1",
-      "sha256": "sha256:55831f7d1e8f33efcd348125ae661e72251be573e12413fef4a7720812454d46"
-    },
-    {
-      "operation_id": "ak.self.agent.grant.resource.delete.v1",
-      "sha256": "sha256:b7ca51c9b8eefa4327ee9140a218d0e5ba3e77a81f5d1671556c0959e4f6eaa9"
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get.v1",
@@ -623,24 +607,12 @@
       "sha256": "sha256:d8a492b747bdb896cda3afa8cd68751c1aa86eace7b7fb97997923091e81a608"
     },
     {
-      "operation_id": "ak.self.circle.command.archive.v1",
-      "sha256": "sha256:0710ae982f688d933f48b43a56fa142b78abd159f54881665bfd3205919d44ad"
-    },
-    {
       "operation_id": "ak.self.circle.command.create.v1",
       "sha256": "sha256:2bb2f839bdb03a0bd6e190cf50e81a516c9ea42284053c046b37fdcd73492f1c"
     },
     {
-      "operation_id": "ak.self.circle.command.restore.v1",
-      "sha256": "sha256:58db19046f703369a4c57555e9a62865311cb0800864ef362906c5e834986063"
-    },
-    {
       "operation_id": "ak.self.circle.command.rotate_scope.v1",
       "sha256": "sha256:0bff5cbe0275905756399e2198c1546a9b0a508d9e25ad1a9a5144aa9ff25fd1"
-    },
-    {
-      "operation_id": "ak.self.circle.command.tombstone.v1",
-      "sha256": "sha256:40c777689a3724477a95575a352d7cb969c0b08ae778182d816185185a46ea11"
     },
     {
       "operation_id": "ak.self.circle.member.command.add.v1",

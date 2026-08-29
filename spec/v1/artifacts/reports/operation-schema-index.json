@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.8",
+  "version": "2026-08-29.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T14:45:00+08:00",
+  "generated_at": "2026-08-29T17:36:21+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4939,50 +4939,6 @@
       }
     },
     {
-      "operation_id": "ak.self.agent.command.abandon_provisioning.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "challenge_id",
-          "challenge",
-          "agent_id",
-          "principal_control_realm_id",
-          "allocation_handle"
-        ],
-        "properties": [
-          "request_id",
-          "challenge_id",
-          "challenge",
-          "agent_id",
-          "principal_control_realm_id",
-          "allocation_handle"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "status",
-          "agent_id",
-          "principal_control_realm_id",
-          "abandoned_at"
-        ],
-        "properties": [
-          "request_id",
-          "status",
-          "agent_id",
-          "principal_control_realm_id",
-          "abandoned_at"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.agent.command.deactivate.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -5005,68 +4961,6 @@
         ],
         "properties": [
           "status"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "agent_id",
-          "principal_control_realm_id",
-          "allocation_handle"
-        ],
-        "properties": [
-          "request_id",
-          "agent_id",
-          "principal_control_realm_id",
-          "allocation_handle"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "challenge_id",
-          "challenge",
-          "purpose",
-          "account_subject",
-          "agent_id",
-          "agent_slug",
-          "principal_control_realm_id",
-          "allocation_handle",
-          "consequence_disclosure",
-          "dpop_jkt",
-          "audience_id",
-          "origin",
-          "trust_domain",
-          "issued_at",
-          "expires_at"
-        ],
-        "properties": [
-          "request_id",
-          "challenge_id",
-          "challenge",
-          "purpose",
-          "account_subject",
-          "agent_id",
-          "agent_slug",
-          "principal_control_realm_id",
-          "allocation_handle",
-          "consequence_disclosure",
-          "dpop_jkt",
-          "audience_id",
-          "origin",
-          "trust_domain",
-          "issued_at",
-          "expires_at"
         ],
         "closed": true
       }
@@ -5258,60 +5152,6 @@
         ],
         "properties": [
           "status"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.agent.grant.command.attach.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
-        "schema_kind": "object",
-        "required": [
-          "grant_event",
-          "requested_scope_disclosure"
-        ],
-        "properties": [
-          "grant_event",
-          "requested_scope_disclosure"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome",
-        "schema_kind": "object",
-        "required": [
-          "grant_id"
-        ],
-        "properties": [
-          "grant_id"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.agent.grant.resource.delete.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_request_body",
-        "schema_kind": "object",
-        "required": [
-          "revoke_event"
-        ],
-        "properties": [
-          "revoke_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
-        "schema_kind": "object",
-        "required": [
-          "revoked_at"
-        ],
-        "properties": [
-          "revoked_at"
         ],
         "closed": true
       }
@@ -6207,65 +6047,6 @@
       }
     },
     {
-      "operation_id": "ak.self.circle.command.archive.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_archive_request_body",
-        "schema_kind": "object",
-        "required": [
-          "lifecycle_event"
-        ],
-        "properties": [
-          "lifecycle_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-        "schema_kind": "object",
-        "required": [
-          "circle_id",
-          "realm_id",
-          "title",
-          "display",
-          "directory_visibility",
-          "join_rule",
-          "history_access",
-          "encryption_profile",
-          "state",
-          "member_ids",
-          "created_by",
-          "created_at"
-        ],
-        "properties": [
-          "circle_id",
-          "realm_id",
-          "profile_ref",
-          "title",
-          "summary",
-          "display",
-          "directory_visibility",
-          "join_rule",
-          "history_access",
-          "content_encryption_floor",
-          "metadata_encryption_floor",
-          "encryption_profile",
-          "content_scheme",
-          "mls_group_id",
-          "durability_policy",
-          "state",
-          "member_count",
-          "viewer_membership",
-          "member_ids",
-          "created_by",
-          "created_at",
-          "updated_by",
-          "updated_at"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.circle.command.create.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -6276,65 +6057,6 @@
         ],
         "properties": [
           "create_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-        "schema_kind": "object",
-        "required": [
-          "circle_id",
-          "realm_id",
-          "title",
-          "display",
-          "directory_visibility",
-          "join_rule",
-          "history_access",
-          "encryption_profile",
-          "state",
-          "member_ids",
-          "created_by",
-          "created_at"
-        ],
-        "properties": [
-          "circle_id",
-          "realm_id",
-          "profile_ref",
-          "title",
-          "summary",
-          "display",
-          "directory_visibility",
-          "join_rule",
-          "history_access",
-          "content_encryption_floor",
-          "metadata_encryption_floor",
-          "encryption_profile",
-          "content_scheme",
-          "mls_group_id",
-          "durability_policy",
-          "state",
-          "member_count",
-          "viewer_membership",
-          "member_ids",
-          "created_by",
-          "created_at",
-          "updated_by",
-          "updated_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.circle.command.restore.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_restore_request_body",
-        "schema_kind": "object",
-        "required": [
-          "lifecycle_event"
-        ],
-        "properties": [
-          "lifecycle_event"
         ],
         "closed": true
       },
@@ -6396,65 +6118,6 @@
           "circle_id",
           "mls_group_id",
           "note"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.circle.command.tombstone.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_tombstone_request_body",
-        "schema_kind": "object",
-        "required": [
-          "lifecycle_event"
-        ],
-        "properties": [
-          "lifecycle_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-        "schema_kind": "object",
-        "required": [
-          "circle_id",
-          "realm_id",
-          "title",
-          "display",
-          "directory_visibility",
-          "join_rule",
-          "history_access",
-          "encryption_profile",
-          "state",
-          "member_ids",
-          "created_by",
-          "created_at"
-        ],
-        "properties": [
-          "circle_id",
-          "realm_id",
-          "profile_ref",
-          "title",
-          "summary",
-          "display",
-          "directory_visibility",
-          "join_rule",
-          "history_access",
-          "content_encryption_floor",
-          "metadata_encryption_floor",
-          "encryption_profile",
-          "content_scheme",
-          "mls_group_id",
-          "durability_policy",
-          "state",
-          "member_count",
-          "viewer_membership",
-          "member_ids",
-          "created_by",
-          "created_at",
-          "updated_by",
-          "updated_at"
         ],
         "closed": true
       }

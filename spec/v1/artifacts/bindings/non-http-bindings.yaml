@@ -58,16 +58,12 @@ grpc:
       RequestErasure: ak.gate.account.command.request_erasure.v1
     SelfAgent:
       Provision: ak.self.agent.command.provision.v1
-      IssueProvisioningAbandonmentChallenge: ak.self.agent.command.issue_provisioning_abandonment_challenge.v1
-      AbandonProvisioning: ak.self.agent.command.abandon_provisioning.v1
       RenewPairing: ak.self.agent.command.renew_pairing.v1
       List: ak.self.agent.read.list.v1
       Get: ak.self.agent.resource.get.v1
       Pause: ak.self.agent.command.pause.v1
       Resume: ak.self.agent.command.resume.v1
       Deactivate: ak.self.agent.command.deactivate.v1
-      GrantAttach: ak.self.agent.grant.command.attach.v1
-      GrantDetach: ak.self.agent.grant.resource.delete.v1
       SidecarEnsure: ak.self.agent.sidecar.command.ensure.v1
       SidecarGet: ak.self.agent.sidecar.resource.get.v1
       SidecarList: ak.self.agent.sidecar.read.list.v1
@@ -120,9 +116,6 @@ grpc:
       MemberAdd: ak.self.circle.member.command.add.v1
       MemberRemove: ak.self.circle.member.resource.delete.v1
       ScopeRotate: ak.self.circle.command.rotate_scope.v1
-      Archive: ak.self.circle.command.archive.v1
-      Restore: ak.self.circle.command.restore.v1
-      Tombstone: ak.self.circle.command.tombstone.v1
     SelfRealmLink:
       List: ak.self.realm_link.read.list.v1
       Create: ak.self.realm_link.command.create.v1
@@ -442,16 +435,12 @@ mq:
     gate.account.command.revoke_session: ak.gate.account.command.revoke_session.v1
     gate.account.command.pair_agent_key: ak.gate.account.command.pair_agent_key.v1
     self.agent.command.provision: ak.self.agent.command.provision.v1
-    self.agent.command.issue_provisioning_abandonment_challenge: ak.self.agent.command.issue_provisioning_abandonment_challenge.v1
-    self.agent.command.abandon_provisioning: ak.self.agent.command.abandon_provisioning.v1
     self.agent.command.renew_pairing: ak.self.agent.command.renew_pairing.v1
     self.agent.query.list: ak.self.agent.read.list.v1
     self.agent.resource.get: ak.self.agent.resource.get.v1
     self.agent.command.pause: ak.self.agent.command.pause.v1
     self.agent.command.resume: ak.self.agent.command.resume.v1
     self.agent.command.deactivate: ak.self.agent.command.deactivate.v1
-    self.agent.grant.command.attach: ak.self.agent.grant.command.attach.v1
-    self.agent.grant.resource.delete: ak.self.agent.grant.resource.delete.v1
     self.agent.sidecar.command.ensure: ak.self.agent.sidecar.command.ensure.v1
     self.agent.sidecar.resource.get: ak.self.agent.sidecar.resource.get.v1
     self.agent.sidecar.query.list: ak.self.agent.sidecar.read.list.v1
@@ -473,9 +462,6 @@ mq:
     self.circle.member.command.add: ak.self.circle.member.command.add.v1
     self.circle.member.resource.delete: ak.self.circle.member.resource.delete.v1
     self.circle.command.rotate_scope: ak.self.circle.command.rotate_scope.v1
-    self.circle.command.archive: ak.self.circle.command.archive.v1
-    self.circle.command.restore: ak.self.circle.command.restore.v1
-    self.circle.command.tombstone: ak.self.circle.command.tombstone.v1
     self.realm_link.query.list: ak.self.realm_link.read.list.v1
     self.realm_link.command.create: ak.self.realm_link.command.create.v1
     self.realm_link.resource.delete: ak.self.realm_link.resource.delete.v1

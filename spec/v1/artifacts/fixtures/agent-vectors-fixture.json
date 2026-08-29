@@ -9,7 +9,6 @@
   "covers_vectors": [
     "ak.vector.agent.provision.v1",
     "ak.vector.agent.pcr_genesis_declaration.v1",
-    "ak.vector.agent.provisioning_abandonment.v1",
     "ak.vector.agent.requested_scope_privacy.v1",
     "ak.vector.agent.pairing_expiry.v1",
     "ak.vector.agent.runtime_key_binding.v1",
@@ -451,105 +450,6 @@
         "reason_code": "agent_pcr_genesis_declaration_conflict",
         "existing_claim_unchanged": true,
         "writes": 0
-      }
-    },
-    {
-      "name": "agent_provisioning_abandonment",
-      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
-      "runner": "cotest::conformance::agent_vectors::run_agent_provisioning_abandonment_vector",
-      "challenge": {
-        "purpose": "agent_provisioning_abandonment",
-        "single_use": true,
-        "max_lifetime_seconds": 300,
-        "storage": "shared_durable_state",
-        "pins": [
-          "account_subject",
-          "dpop_jkt",
-          "agent_id",
-          "agent_slug",
-          "principal_control_realm_id",
-          "allocation_handle",
-          "consequence_disclosure",
-          "audience",
-          "origin",
-          "trust_domain",
-          "expires_at"
-        ]
-      },
-      "assertions": [
-        "the challenge is only issuable while the provision is accepted and its declared managed Agent PCR genesis is not",
-        "the confirmation presents fresh credentials and rejects the ones presented when the challenge was issued",
-        "one transaction consumes the challenge, releases the agent_slug selector claim and the principal_control_realm_id claim and records the tombstone / audit reservation; any step failing means zero writes",
-        "after release the same agent_slug is claimable again by a new provision from the same controller",
-        "the abandoned principal_control_realm_id is never reused by a later provision",
-        "the accepted ak.agent.provision Event stays in the controller PCR history and is neither deleted nor rewritten",
-        "replaying the same request_id returns a byte-identical terminal outcome and exactly one tombstone exists"
-      ]
-    },
-    {
-      "name": "agent_provisioning_abandonment_without_challenge_rejected",
-      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
-      "submission": "abandon_provisioning with no previously issued challenge",
-      "expected": {
-        "outcome": "rejected",
-        "error": "failed_precondition",
-        "writes": 0
-      }
-    },
-    {
-      "name": "agent_provisioning_abandonment_replayed_credentials_rejected",
-      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
-      "submission": "abandon_provisioning presenting the same credentials used to issue the challenge",
-      "expected": {
-        "outcome": "rejected",
-        "error": "failed_precondition",
-        "writes": 0
-      }
-    },
-    {
-      "name": "agent_provisioning_abandonment_expired_challenge_rejected",
-      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
-      "submission": "abandon_provisioning after the challenge expired",
-      "expected": {
-        "outcome": "rejected",
-        "error": "failed_precondition",
-        "reason_code": "agent_provisioning_challenge_expired",
-        "writes": 0
-      }
-    },
-    {
-      "name": "agent_provisioning_abandonment_consumed_challenge_rejected",
-      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
-      "submission": "abandon_provisioning reusing a consumed challenge with different canonical intent",
-      "expected": {
-        "outcome": "rejected",
-        "error": "failed_precondition",
-        "reason_code": "agent_provisioning_challenge_already_consumed",
-        "writes": 0
-      }
-    },
-    {
-      "name": "agent_provisioning_abandonment_after_genesis_rejected",
-      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
-      "submission": "abandon_provisioning after the managed Agent PCR genesis was accepted between issuance and confirmation",
-      "expected": {
-        "outcome": "rejected",
-        "error": "failed_precondition",
-        "reason_code": "agent_pcr_genesis_already_accepted",
-        "abandoned": false,
-        "challenge_consumed": false,
-        "tombstone_count": 0,
-        "remediation_operation": "ak.self.agent.command.deactivate.v1"
-      }
-    },
-    {
-      "name": "agent_provisioning_abandonment_replay_has_one_tombstone",
-      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
-      "submission": "abandon_provisioning replayed with the same request_id after success",
-      "expected": {
-        "outcome": "accepted",
-        "byte_identical_outcome": true,
-        "tombstone_count": 1
       }
     },
     {

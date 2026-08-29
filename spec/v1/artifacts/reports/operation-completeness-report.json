@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.8",
+  "version": "2026-08-29.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T14:45:00+08:00",
+  "generated_at": "2026-08-29T17:36:21+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 256,
+    "total_operations": 249,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 254
+      "typed_schema": 247
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 168
+        "typed_schema": 161
       },
       "interop_bridge": {
         "typed_schema": 22
@@ -1704,20 +1704,6 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.self.agent.command.abandon_provisioning.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/agent-provisioning-abandonments",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AgentProvisioningAbandonmentRequestBody",
-        "response": "#/components/schemas/AgentProvisioningAbandonmentOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
       "operation_id": "ak.self.agent.command.deactivate.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
@@ -1727,20 +1713,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentDeactivateRequestBody",
         "response": "#/components/schemas/AgentLifecycleState"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/agent-provisioning-abandonment-challenges",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AgentProvisioningAbandonmentChallengeRequestBody",
-        "response": "#/components/schemas/AgentProvisioningAbandonmentChallengeOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1797,34 +1769,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentResumeRequestBody",
         "response": "#/components/schemas/AgentLifecycleState"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.agent.grant.command.attach.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/agents/{agent_id}/grants",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AgentGrantAttachRequestBody",
-        "response": "#/components/schemas/AgentGrantAttachOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.agent.grant.resource.delete.v1",
-      "surface_class": "extension",
-      "http": "DELETE /_arkret/self/agents/{agent_id}/grants/{grant_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AgentGrantDetachRequestBody",
-        "response": "#/components/schemas/AgentGrantDetachOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2139,20 +2083,6 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.self.circle.command.archive.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/circles/{circle_id}/archive",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_archive_request_body",
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/CircleArchiveRequestBody",
-        "response": "#/components/schemas/CircleView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
       "operation_id": "ak.self.circle.command.create.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/self/circles",
@@ -2161,20 +2091,6 @@
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
       "openapi_component_refs": {
         "request": "#/components/schemas/CircleCreateRequestBody",
-        "response": "#/components/schemas/CircleView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.circle.command.restore.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/circles/{circle_id}/restore",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_restore_request_body",
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/CircleRestoreRequestBody",
         "response": "#/components/schemas/CircleView"
       },
       "completeness_class": "typed_schema",
@@ -2192,20 +2108,6 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ak.self.circle.command.tombstone.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/circles/{circle_id}/tombstone",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_tombstone_request_body",
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/CircleTombstoneRequestBody",
-        "response": "#/components/schemas/CircleView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.circle.member.command.add.v1",

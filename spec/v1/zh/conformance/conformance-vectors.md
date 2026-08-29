@@ -4141,26 +4141,6 @@ Expected:
 - 变体 A、B、H MUST 在相应 DID/prepare admission fail closed；变体 I MUST 在普通 Event policy 与 delegated envelope 两条 create admission 路径都零写入拒绝，不能因其自身格式正确而接受；变体 C MUST 以 `event_id_digest_mismatch` 拒绝；变体 D MUST 以 `agent_pcr_genesis_declaration_missing` 零写入拒绝；变体 E MUST 以 `agent_pcr_genesis_declaration_conflict` 零写入拒绝且不改动既有 claim；变体 F、G MUST fail closed。
 - `purpose != "managed_agent_control"` 的 `ak.realm.create` MUST NOT 触发 agent-status 写入，也不做该反查。
 
-### 11.1.3 Vector: Agent Provisioning 显式放弃
-
-`vector_id`: `ak.vector.agent.provisioning_abandonment.v1`
-
-Steps:
-
-1. 在 §11.1.2 第 2 步之后（provision accepted、genesis 未提交），controller 调用 `ak.self.agent.command.issue_provisioning_abandonment_challenge.v1`，取得钉死 `agent_id` / `agent_slug` / `principal_control_realm_id` / `allocation_handle` 与封闭后果集合的一次性 challenge。
-2. controller 出示新鲜凭据调用 `ak.self.agent.command.abandon_provisioning.v1`，在一个事务内消费 challenge、释放 slug selector claim 与 realm id claim、写 tombstone/audit reservation。
-3. 同 `request_id` 重放确认。
-4. 变体 A：不取 challenge 直接确认；变体 B：复用签发 challenge 时那一份凭据；变体 C：challenge 过期后确认；变体 D：challenge 已消费后以不同 canonical intent 再确认；变体 E：challenge 签发与确认之间 genesis 已被接纳。
-
-Expected:
-
-- 第 2 步之后同一 `agent_slug` 可被同一 controller 的新 provision 重新占用；被放弃的 `principal_control_realm_id` MUST NOT 被任何后续 provision 复用。
-- 被放弃的 `ak.agent.provision` Event 仍留在 controller PCR history 中，MUST NOT 被删除或重写；放弃只释放 claim 并写 tombstone。
-- 第 3 步返回与第 2 步 byte-identical 的终态，且系统中只有**一条** tombstone。
-- 变体 A、B MUST 以 `failed_precondition` 拒绝；变体 C MUST 以 `agent_provisioning_challenge_expired`、变体 D MUST 以 `agent_provisioning_challenge_already_consumed` 拒绝；四者均零写入。
-- 变体 E MUST 以稳定终态 `agent_pcr_genesis_already_accepted` 失败，MUST NOT 放弃任何东西、MUST NOT 消费 challenge，并提示改走 `ak.self.agent.command.deactivate.v1`。
-
-
 ### 11.2 Vector: Pairing Expiry Auto-Revoke
 
 `vector_id`: `ak.vector.agent.pairing_expiry.v1`

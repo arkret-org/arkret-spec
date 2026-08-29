@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.1",
-  "generated_at": "2026-08-29T00:00:00+08:00",
+  "version": "2026-08-29.2",
+  "generated_at": "2026-08-29T14:01:21+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2534,14 +2534,6 @@
       "description": "A request targeted an agent principal whose current `ak.component.agent.status.v1` cell is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ak.self.agent.command.resume.v1` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md §3.6 §4.11."
     },
     {
-      "code": "agent_pcr_genesis_already_accepted",
-      "applies_to": [
-        "service_call",
-        "pcr_genesis"
-      ],
-      "description": "The managed Agent PCR genesis for the declared principal_control_realm_id was accepted between abandonment-challenge issuance and the abandonment confirmation, so the Agent now exists and its provisioning MUST NOT be abandoned. The service decides this from the principal_control_realm_id and allocation pinned by the challenge, MUST return this stable terminal outcome with zero writes, and MUST NOT release the slug or realm-id claim, record a tombstone or consume the challenge. Retiring an established Agent is ak.self.agent.command.deactivate.v1. See zh/identity/key-management.md §3.6.3."
-    },
-    {
       "code": "agent_pcr_genesis_declaration_conflict",
       "applies_to": [
         "service_call",
@@ -2556,20 +2548,6 @@
         "event_envelope"
       ],
       "description": "A managed_agent_control ak.realm.create was submitted without an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). The genesis carries no ref to its provision, so this reverse look-up is the whole binding: no match MUST fail closed with zero writes, and the receiver MUST NOT materialize the Realm, the agent-status transition or any partial projection. See zh/identity/key-management.md §3.6.3."
-    },
-    {
-      "code": "agent_provisioning_challenge_already_consumed",
-      "applies_to": [
-        "service_call"
-      ],
-      "description": "The agent-provisioning abandonment challenge was already consumed and the request is not a replay of the same request_id whose canonical intent matches the stored successful outcome. The service MUST reject it before any state transition; an exact replay returns the recorded terminal outcome and never produces a second tombstone. See zh/identity/key-management.md §3.6.3."
-    },
-    {
-      "code": "agent_provisioning_challenge_expired",
-      "applies_to": [
-        "service_call"
-      ],
-      "description": "The persisted agent-provisioning abandonment challenge expired before first successful consumption. The service MUST reject before releasing any claim, and the controller must obtain a fresh challenge for the same provisioning. Distinct from prior consumption, which is a different terminal state. See zh/identity/key-management.md §3.6.3."
     },
     {
       "code": "agent_provision_scope_migration_required",

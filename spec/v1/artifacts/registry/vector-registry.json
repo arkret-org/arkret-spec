@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.1",
+  "version": "2026-08-29.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T00:00:00+08:00",
+  "generated_at": "2026-08-29T14:22:43+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -333,19 +333,6 @@
       "status": "active",
       "domain": "agent",
       "description": "Provision requested_scope is a required immutable global ceiling rather than a grant; narrower key scopes and Realm grants are accepted, while action/resource/mandatory-constraint widening fails closed and provisioning emits no Realm grant.",
-      "applies_to_fixtures": [
-        "agent-vectors-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
-      "status": "active",
-      "domain": "agent",
-      "description": "Explicit two-step abandonment of an accepted ak.agent.provision whose managed Agent PCR genesis will never arrive: a single-use challenge pins the agent, slug, declared realm id and allocation, and one transaction consumes it, releases both claims and records exactly one tombstone. Covers slug reuse after release, the permanently unusable realm-id claim, replay returning one terminal outcome, and rejection without a challenge, with replayed credentials, after expiry, after consumption, and once the genesis is accepted.",
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],

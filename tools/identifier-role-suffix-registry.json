@@ -195,7 +195,6 @@
     {"file": "account-operations.schema.json", "pointer": "/$defs/identity_creation_control_proof/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
     {"file": "account-operations.schema.json", "pointer": "/$defs/did_binding_challenge_outcome/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
     {"file": "account-operations.schema.json", "pointer": "/$defs/identity_abandonment_challenge_outcome/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
-    {"file": "agent-operations.schema.json", "pointer": "/$defs/agent_provisioning_abandonment_challenge_outcome/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
     {"file": "applet-widget-declaration.schema.json", "pointer": "/properties/widget_origin", "schemes": ["https"], "reason": "complete HTTPS Web Origin role for an isolated applet widget"},
     {"file": "service-describe.schema.json", "pointer": "/$defs/account_authority/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"},
     {"file": "service-operation-dtos.schema.json", "pointer": "/$defs/OrganizationRegistrationChallenge/properties/origin", "reason": "complete Web Origin role defined by scheme, host and port"}

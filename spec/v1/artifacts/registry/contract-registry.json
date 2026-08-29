@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.8",
+  "version": "2026-08-29.9",
   "source_of_truth": true,
-  "generated_at": "2026-08-29T14:45:00+08:00",
+  "generated_at": "2026-08-29T17:36:21+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -11530,10 +11530,7 @@
           "ak.self.circle.resource.get.v1",
           "ak.self.circle.member.command.add.v1",
           "ak.self.circle.member.resource.delete.v1",
-          "ak.self.circle.command.rotate_scope.v1",
-          "ak.self.circle.command.archive.v1",
-          "ak.self.circle.command.restore.v1",
-          "ak.self.circle.command.tombstone.v1"
+          "ak.self.circle.command.rotate_scope.v1"
         ],
         "surface_class": "extension"
       },
@@ -11794,16 +11791,12 @@
         "operations": [
           "ak.gate.account.command.pair_agent_key.v1",
           "ak.self.agent.command.provision.v1",
-          "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
-          "ak.self.agent.command.abandon_provisioning.v1",
           "ak.self.agent.command.renew_pairing.v1",
           "ak.self.agent.read.list.v1",
           "ak.self.agent.resource.get.v1",
           "ak.self.agent.command.pause.v1",
           "ak.self.agent.command.resume.v1",
           "ak.self.agent.command.deactivate.v1",
-          "ak.self.agent.grant.command.attach.v1",
-          "ak.self.agent.grant.resource.delete.v1",
           "ak.self.agent.sidecar.command.ensure.v1",
           "ak.self.agent.sidecar.resource.get.v1",
           "ak.self.agent.sidecar.read.list.v1",
@@ -13666,23 +13659,6 @@
         }
       },
       {
-        "operation_id": "ak.self.agent.command.abandon_provisioning.v1",
-        "http": "POST /_arkret/self/agent-provisioning-abandonments",
-        "grpc": "SelfAgent/AbandonProvisioning",
-        "mq": "self.agent.command.abandon_provisioning",
-        "notes": "Consume an agent-provisioning abandonment challenge and explicitly give up an accepted ak.agent.provision whose declared managed Agent PCR genesis will never be submitted (zh/identity/key-management.md section 3.6.3). Authenticated by the controller user_session; the presented credentials MUST be fresh and MUST NOT be the ones presented when the challenge was issued, while re-authentication strength, risk checks and cooldown are deployment governance. One transaction consumes the challenge, releases the agent_slug selector claim and the principal_control_realm_id claim, records the tombstone / audit reservation and suppresses every holder-readable trace of the allocation; any step failing means zero writes. If the genesis was accepted between issuance and confirmation the request MUST fail with agent_pcr_genesis_already_accepted and MUST NOT abandon anything, because an established Agent is retired through ak.self.agent.command.deactivate.v1. Replaying the same request_id returns the same terminal outcome and MUST NOT produce a second tombstone. The accepted provision Event stays in the controller PCR history and the abandoned realm id MUST NOT be reused.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "request_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_outcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "releases_only_service_local_slug_and_realm_id_claims_and_records_a_tombstone_audit_reservation_no_event_is_authored"
-        }
-      },
-      {
         "operation_id": "ak.self.agent.command.deactivate.v1",
         "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
         "grpc": "SelfAgent/Deactivate",
@@ -13702,23 +13678,6 @@
           "event_kinds": [
             "ak.self.agent.deactivate"
           ]
-        }
-      },
-      {
-        "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
-        "http": "POST /_arkret/self/agent-provisioning-abandonment-challenges",
-        "grpc": "SelfAgent/IssueProvisioningAbandonmentChallenge",
-        "mq": "self.agent.command.issue_provisioning_abandonment_challenge",
-        "notes": "Issue the single-use challenge that authorizes explicitly abandoning an accepted ak.agent.provision whose declared managed Agent PCR genesis was never accepted (zh/identity/key-management.md section 3.6.3). Authenticated by the controller user_session. The service requires agent_id, principal_control_realm_id and allocation_handle to equal the authenticated controller's accepted provision, and MUST refuse to issue a challenge once that genesis is accepted. The <=300s single-use challenge is bound to the controller account_subject, holder key, agent_id, agent_slug, the declared principal_control_realm_id, the allocation, the closed consequence disclosure, audience, origin, trust domain, purpose and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states. This operation abandons nothing by itself and MUST NOT be reachable from lease expiry, garbage collection or any automated flow.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "request_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "persists_only_a_service_local_single_use_challenge_no_event_is_authored"
         }
       },
       {
@@ -13800,47 +13759,6 @@
           "kind": "event_log",
           "event_kinds": [
             "ak.self.agent.resume"
-          ]
-        }
-      },
-      {
-        "operation_id": "ak.self.agent.grant.command.attach.v1",
-        "http": "POST /_arkret/self/agents/{agent_id}/grants",
-        "grpc": "SelfAgent/GrantAttach",
-        "mq": "self.agent.grant.command.attach",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "none",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.authz.grants.read.effective.v1"
-        },
-        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.capability.grant"
-          ]
-        }
-      },
-      {
-        "operation_id": "ak.self.agent.grant.resource.delete.v1",
-        "http": "DELETE /_arkret/self/agents/{agent_id}/grants/{grant_id}",
-        "grpc": "SelfAgent/GrantDetach",
-        "mq": "self.agent.grant.resource.delete",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": true,
-        "notes": "Controller-only caller-signed ak.capability.revoke Control Move. Path grant_id, payload grant_id/grant_ref, path Agent subject, target Realm, authenticated actor, the exact account-local lineage selected by the session, and the sole signed head_eq guard on the complete grant-cell head are all admission invariants. The service never authors the Event or appends CAS after signing; exact replay returns event.created_at as revoked_at.",
-        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.capability.revoke"
           ]
         }
       },
@@ -14226,29 +14144,6 @@
         }
       },
       {
-        "operation_id": "ak.self.circle.command.archive.v1",
-        "http": "POST /_arkret/self/circles/{circle_id}/archive",
-        "grpc": "SelfCircle/Archive",
-        "mq": "self.circle.command.archive",
-        "notes": "Submits the caller-signed ak.circle.archive Event carried in lifecycle_event through ordinary Event admission; payload.target_ref MUST name the path Circle. Transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active). The service MUST NOT co-sign, rebuild or synthesize the Event.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.circle.resource.get.v1"
-        },
-        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_archive_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.circle.archive"
-          ]
-        }
-      },
-      {
         "operation_id": "ak.self.circle.command.create.v1",
         "http": "POST /_arkret/self/circles",
         "grpc": "SelfCircle/Create",
@@ -14272,29 +14167,6 @@
         }
       },
       {
-        "operation_id": "ak.self.circle.command.restore.v1",
-        "http": "POST /_arkret/self/circles/{circle_id}/restore",
-        "grpc": "SelfCircle/Restore",
-        "mq": "self.circle.command.restore",
-        "notes": "Submits the caller-signed ak.circle.restore Event carried in lifecycle_event through ordinary Event admission; payload.target_ref MUST name the path Circle. Transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_archived). Restore re-enables new writes after pending MLS membership removals are settled. The service MUST NOT co-sign, rebuild or synthesize the Event.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.circle.resource.get.v1"
-        },
-        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_restore_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.circle.restore"
-          ]
-        }
-      },
-      {
         "operation_id": "ak.self.circle.command.rotate_scope.v1",
         "http": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
         "grpc": "SelfCircle/ScopeRotate",
@@ -14312,29 +14184,6 @@
         "durable_effect": {
           "kind": "none",
           "rationale": "v1_surface_is_declared_but_always_returns_unsupported_feature_until_a_signed_event_submission_request_contract_is_registered"
-        }
-      },
-      {
-        "operation_id": "ak.self.circle.command.tombstone.v1",
-        "http": "POST /_arkret/self/circles/{circle_id}/tombstone",
-        "grpc": "SelfCircle/Tombstone",
-        "mq": "self.circle.command.tombstone",
-        "notes": "Submits the caller-signed ak.circle.tombstone Event carried in lifecycle_event through ordinary Event admission; payload.target_ref MUST name the path Circle. Terminal: the lifecycle matrix admits no transition out, so the signed Event is the whole record of who ended the Circle. Response surfaces the terminal state with empty members. The service MUST NOT co-sign, rebuild or synthesize the Event.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.circle.resource.get.v1"
-        },
-        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_tombstone_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.circle.tombstone"
-          ]
         }
       },
       {
@@ -15883,8 +15732,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-29.5",
-    "generated_at": "2026-08-29T14:40:00+08:00",
+    "version": "2026-08-29.6",
+    "generated_at": "2026-08-29T17:36:21+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_principal_server.v1",
@@ -16333,15 +16182,7 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.self.agent.command.abandon_provisioning.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.self.agent.command.deactivate.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
             "binding_kind": "http_json"
           },
           {
@@ -16358,14 +16199,6 @@
           },
           {
             "operation_id": "ak.self.agent.command.resume.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.agent.grant.command.attach.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.agent.grant.resource.delete.v1",
             "binding_kind": "http_json"
           },
           {
@@ -16771,23 +16604,11 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.self.circle.command.archive.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.self.circle.command.create.v1",
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.self.circle.command.restore.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.self.circle.command.rotate_scope.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.circle.command.tombstone.v1",
             "binding_kind": "http_json"
           },
           {
@@ -19008,16 +18829,6 @@
         "event_mapping_kind": "non_event_surface"
       },
       {
-        "action": "ak.self.agent.command.abandon_provisioning.v1",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
-        "migration_group": "ak._0008_agent_provisioning",
-        "event_mapping_kind": "non_event_surface"
-      },
-      {
         "action": "ak.self.agent.command.deactivate.v1",
         "category": "management",
         "risk_tier": "high",
@@ -19027,16 +18838,6 @@
         ],
         "profile": "ak.profile.personal_agent_provisioning.v1",
         "event_mapping_kind": "operation_verb"
-      },
-      {
-        "action": "ak.self.agent.command.issue_provisioning_abandonment_challenge.v1",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "target_event_kinds": [],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
-        "migration_group": "ak._0008_agent_provisioning",
-        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "ak.self.agent.command.pause.v1",
@@ -19081,30 +18882,6 @@
         ],
         "profile": "ak.profile.personal_agent_provisioning.v1",
         "event_mapping_kind": "operation_verb"
-      },
-      {
-        "action": "ak.self.agent.grant.command.attach.v1",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.capability.grant"
-        ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
-        "migration_group": "ak._0008_agent_provisioning",
-        "event_mapping_kind": "aggregate_admin"
-      },
-      {
-        "action": "ak.self.agent.grant.resource.delete.v1",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.capability.revoke"
-        ],
-        "profile": "ak.profile.personal_agent_provisioning.v1",
-        "migration_group": "ak._0008_agent_provisioning",
-        "event_mapping_kind": "aggregate_admin"
       },
       {
         "action": "ak.self.agent.participation.resource.replace.v1",

@@ -26,7 +26,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "d0d1bc08fc711a409477f441afb6218112eb43e3dfa3b0fc500142ffa0496925"
+      "sha256": "c957e43c9718ba0e99ba4c8d79b978e49d1fa16e24ef7d33218ed22e70670316"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "23c5ded7d73eca764ec4518aaedb0be41b1092e996466a717f244c3ffb44b77a"
+      "sha256": "1c6a28ee26c5fea1f7524e6cfc3f18da3eaed7fecf402f00e8f8c119b3231b33"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
