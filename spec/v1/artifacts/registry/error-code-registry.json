@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.4",
-  "generated_at": "2026-08-29T22:30:00+08:00",
+  "version": "2026-08-29.5",
+  "generated_at": "2026-08-29T22:45:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2986,7 +2986,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A join-policy challenge gate answer (e.g. CAPTCHA / proof-of-work / knowledge challenge) submitted with a member application failed verification. Used as a `reason_code` in member.application.review reject decisions. See zh/governance/join-policy.md §7.3."
+      "description": "A join-policy challenge gate answer (e.g. CAPTCHA / proof-of-work / knowledge challenge) carried by a membership admission request failed verification."
     },
     {
       "code": "challenge_proof_invalid",
@@ -2994,7 +2994,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A runtime challenge proof attached to `ak.member.state{join}.gate_proofs[]` or `member.application.gate_proofs[]` (candidate kind, no `ak.*` prefix) fails verification (signature / freshness / verifier domain)."
+      "description": "A runtime challenge proof attached to `ak.member.state{join}.gate_proofs[]` fails verification (signature / freshness / verifier domain)."
     },
     {
       "code": "circle_already_terminal",
@@ -3070,7 +3070,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A claim, attestation, or invite / binding proof submitted with a member application is malformed, unverifiable, or fails policy checks. Used as a `reason_code` in member.application.review reject decisions. See zh/governance/join-policy.md §7.3."
+      "description": "A claim, attestation, or invite / binding proof submitted for membership or invitation admission is malformed, unverifiable, or fails policy checks."
     },
     {
       "code": "claim_rate_limited",
