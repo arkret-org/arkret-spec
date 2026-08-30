@@ -2002,6 +2002,8 @@ def check_station_role_clean_break(lint: Lint) -> None:
         "principal-server": "retired Station file/id stem",
         "auth_server": "retired public Auth Server wire stem",
         "PrincipalAuthorityKey": "retired authority-named account identity",
+        "ServiceAccountId": "retired generic service-account identity type",
+        "service_account_id": "retired generic service-account identity field",
         "Device / Key Server": "retired Station-internal role",
         "Sync / Federation Server": "retired Station-internal role",
         "Blob / Media Server": "retired compound role",
