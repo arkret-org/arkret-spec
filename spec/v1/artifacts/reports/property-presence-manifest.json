@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9821,
+    "total_properties": 9822,
     "total_schema_documents": 163,
     "by_presence_class": {
       "optional": 2705,
       "optional_defaulted": 67,
-      "required": 6729,
+      "required": 6730,
       "required_nullable": 117,
       "tristate": 203
     },
@@ -2222,8 +2222,9 @@
         "/$defs/realm_sync_entry/properties/timeline": "optional",
         "/$defs/realm_sync_entry/properties/unread_notifications": "optional",
         "/$defs/state_at_window_start/properties/actor_profiles": "required",
-        "/$defs/state_at_window_start/properties/actor_profiles/patternProperties/^ak:did_core:[a-z0-9]+:[^\\s/?#]+$/properties/avatar_blob_ref": "optional",
-        "/$defs/state_at_window_start/properties/actor_profiles/patternProperties/^ak:did_core:[a-z0-9]+:[^\\s/?#]+$/properties/display_name": "optional",
+        "/$defs/state_at_window_start/properties/actor_profiles/items/properties/actor_id": "required",
+        "/$defs/state_at_window_start/properties/actor_profiles/items/properties/avatar_blob_ref": "optional",
+        "/$defs/state_at_window_start/properties/actor_profiles/items/properties/display_name": "optional",
         "/$defs/state_at_window_start/properties/e2ee_epoch": "required_nullable",
         "/$defs/state_at_window_start/properties/e2ee_epoch/oneOf/1/properties/epoch": "required",
         "/$defs/state_at_window_start/properties/e2ee_epoch/oneOf/1/properties/key_ref": "required",

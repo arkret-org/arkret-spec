@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-30.6",
-  "generated_at": "2026-08-31T00:10:00+08:00",
+  "version": "2026-08-31.1",
+  "generated_at": "2026-08-31T01:00:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1566,7 +1566,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "An Applet registration or transaction attempted to enter a Realm without an explicit grant from the Realm owner, Realm admin, or Realm-policy-authorized registry/authz service. Namespace claims and self-signed applet registration are insufficient. See zh/extensions/applet-integration.md §4.",
+      "description": "An Applet registration or transaction attempted to enter a Realm without an explicit grant from the Realm owner, Realm admin, or Realm-policy-authorized administrator actor, as checked by the Station authorization capability. Namespace claims and self-signed applet registration are insufficient. See zh/extensions/applet-integration.md §4.",
       "type_uri": "https://arkret.org/problems/applet_registration_unauthorized",
       "title": "Applet registration unauthorized"
     },

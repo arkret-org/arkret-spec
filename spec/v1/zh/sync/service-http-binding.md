@@ -1140,7 +1140,7 @@ joined-member ActorId 时出现，否则省略。target 状态封闭为：
 - `pending_delivery`：authority 与 route 可用，尚未收到 peer 成功响应（包括 transport/semantic retry）；
 - `delivered`：peer 已成功接受；
 - `cancelled_authority_lost`：发送前复校验发现全部 frozen exact member/binding witness 已失效，永久终止；
-  后续 rejoin/rebind 不得复活旧 target。
+  后续 rejoin 或新账号加入不得复活旧 target。
 
 pending intent 必须跨重启恢复且在 authority 持续有效时无限期保留；尝试次数或运维阈值只能触发告警，不能
 dead-letter 或静默删除。每次发送前必须重新读取当前 accepted Realm view 并逐字比较 frozen member、membership

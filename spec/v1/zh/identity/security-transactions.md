@@ -10,8 +10,8 @@ updated: 2026-08-24
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-Arkret v1 只定义两个跨服务安全事务：`RecoveryTransaction` 与
-`SecurityRotationTransaction`。不得把它们泛化为可执行 Saga/Plan DSL。
+Arkret v1 只定义两个 Station 内安全事务：`RecoveryTransaction` 与
+`SecurityRotationTransaction`。它们是 Station 内的 durable orchestration，不得泛化为可执行 Saga/Plan DSL。
 
 ## 1. 共享合同
 
@@ -37,6 +37,13 @@ SecurityTransaction {
 phase/state。客户端是否需要设备签名必须由 `terminal_result` 缺省且
 `steps(kind)[accepted_steps.length]` 为 client-attested step 纯函数计算，禁止把该 readiness 再序列化或
 持久化为协议状态。
+
+`principal_id` 与 `coordinator_id` 唯一确定执行事务的 Station-local `AccountId`：
+`{principal_id, station_id: coordinator_id}`。`coordinator_id` MUST 是该 Station 的 service core identity，
+不得指向任意外部协调者。部署可以把步骤执行拆为多个进程，但不得由此产生独立的公开 coordinator role。
+事务中的 Event 与备份对象的完整 `ActorId` MUST 等于该 `AccountId` 对应的 account actor；只比较
+`principal_id` 不足以验证归属，同一主体在另一 Station 的 Event、备份、PCR、设备与 session 均不得混入。
+
 `prepared_plan` 是按 kind/model 判别的 closed typed public plan，也是 intent 与 reserved material 的唯一
 canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 的 reserved binding view 由
 `revoke_unit` 与两项 `backup_rotations[].binding` 等字段纯函数投影，不能使用任意键值或通用步骤 DSL。
@@ -74,7 +81,7 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 
 ### 1.1 标准操作面
 
-协调服务必须暴露同一套闭合资源操作：
+执行 Station 必须暴露同一套闭合资源操作：
 
 | operation | HTTP | body/outcome |
 | --- | --- | --- |
@@ -84,9 +91,9 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 
 两种 `create` 都只接受完整 typed plan；coordinator 必须在一个 durable transaction 中保存 canonical request
 bytes/digest、typed prepared plan、自己重算的 plan digest、全部 reserved ids 与初始 resource，然后才能执行第一个副作用。
-Recovery create 还必须只接受属于同一 principal、已 verified 且尚未绑定其它 transaction 的
+Recovery create 还必须只接受属于同一 Station-local AccountId、已 verified 且尚未绑定其它 transaction 的
 recovery session，并在同一 durable commit 中 CAS 绑定该 session；SecurityRotation create
-不依赖 recovery session，必须验证当前 principal 的 high-risk action authority。`continue` 的 `request_digest`、
+不依赖 recovery session，必须验证当前 AccountId 的 high-risk action authority。`continue` 的 `request_digest`、
 `prepared_plan_digest` 必须与当前 resource 精确相等，`expected_accepted_step_count` 必须等于当前
 `accepted_steps.length`，否则
 `duplicate_conflict` /

@@ -3448,7 +3448,7 @@ Steps：
 Expected：
 
 - 全链不得创建或要求 account、Device、PCR 或 Native-Agent authorization；真实 transport identity 不得进入 pairwise durable Event。
-- 对 A/M multibase 不一致、wrong Realm、wrong current delivery service、混入 device/Agent 字段、Leaf credential/key 属于另一 endpoint、claim/Welcome/receipt 坐标交叉拼接、membership leave/rebind/revoke 后继续 publish/claim/Welcome/consume 的每个单点变异都必须在状态改变前 fail closed。
+- 对 A/M multibase 不一致、wrong Realm、wrong current delivery service、混入 device/Agent 字段、Leaf credential/key 属于另一 endpoint、claim/Welcome/receipt 坐标交叉拼接、membership leave/revoke 后或使用不同 ActorId 继续 publish/claim/Welcome/consume 的每个单点变异都必须在状态改变前 fail closed。
 - source/destination relay 必须验证 service receipt controller、durable claim ledger 与 exact request digest；普通本地 Welcome 不得绕过同一 ledger admission。
 - consume request 和 outcome 采用 singular claim 模型；exact replay 返回原 receipt，任何 request 或 nested durable receipt 漂移均为 conflict。
 
@@ -6234,8 +6234,8 @@ Runner MUST 加载
 10. route cache 必须同时保留 target-signed `expires_at` 与本地 `cache_expires_at`，且本地值不得晚于 signed
     expiry；任一边界到达即 hard miss。`now == cache_expires_at` 或 `now == expires_at` 均不得继续路由，
     不得丢弃 signed expiry、以新本地 TTL 延长它、跳过 describe 或把 future notice candidate 当 current route。
-11. same-core 的 DID / URL successor 只推进 route floor 与 cache，不写 Realm member rebind；candidate
-   改为新 core 必须由新的 ActorId change 授权，不能被 notice、mirror 或 cache 接受。
+11. same-core 的 DID / URL successor 只推进 route floor 与 cache，不写 Realm membership；candidate
+   指向不同 Station core 时必须作为新 AccountId 独立加入，不能被 notice、mirror 或 cache 当作旧账号接受。
 12. 1:1 双方计划同时迁移时，只有 A durable ack B 的 exact notice 且 B durable ack A 的 exact notice 后，
     才可报告 cross-ack preannouncement complete 并按共同 cutover/grace 关闭旧入口；任一 ack 缺失、仅内存、
     digest 不一致或响应不确定时必须保留旧入口或其它已确认恢复面。
@@ -6247,7 +6247,7 @@ Runner MUST 加载
 Runner MUST 加载
 [`fanout-route-miss-fixture.json`](../../artifacts/fixtures/fanout-route-miss-fixture.json) 并执行
 `ak.suite.fanout.route_miss.v1`。测试至少使用两个 Station 与一个含多个 joined member 的 Realm，
-覆盖缺 route、后补 verified route、进程重启、共享 service 的多 member witness、leave/ban/rebind、rejoin 与最终
+覆盖缺 route、后补 verified route、进程重启、共享 service 的多 member witness、leave/ban、新 AccountId 独立加入、rejoin 与最终
 peer acceptance。仅对 schema 做枚举校验不构成通过：
 
 1. 本地 Event、按 service DID 去重后的完整 frozen target set 与所有 intents 必须同事务；第二个 target 写入
@@ -6259,7 +6259,7 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 4. route 恢复后必须先复校验 frozen exact member、membership Event ref、membership ActorId frontier 与 service。
    至少一个 witness 仍成立才可按原 idempotency key 发送并推进 delivered。
 5. 全部 witness 失效时必须在网络发送前 terminal CAS 为 `cancelled_authority_lost`；后来相同 member/service 的
-   新 join/rebind 不能复活旧 intent。
+   新 join 或新账号加入不能复活旧 intent。
 6. 长期离线 target 不阻塞同 Realm 后续合法 Event；每个 Event 冻结自己的 authority generation 和独立 intent。
 7. `ak.self.events.read.delivery_status.v1` 对可见 Event 返回按 opaque target_id 排序的完整 target set；service_id
    只在 caller 当前可读对应 joined-member ActorId routing projection 时出现。unknown 与不可见 Event 统一 `not_found`，query

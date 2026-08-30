@@ -133,11 +133,11 @@ Native personal AI agent(由 controller 通过 `ak.self.agent.command.provision.
 
 ## 4. Applet Registration
 
-Applet MUST 有签名 registration。它可以由 Realm owner、组织管理员、registry 或 authz service 接受。
+Applet MUST 有签名 registration。注册材料 MAY 由 Realm owner、组织管理员或 registry 验证；formal Realm Event 的准入与 capability 判定由 controlling Station 负责。
 
-Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin 或 Realm policy 明确授权的 registry/authz service 签发。仅凭 Applet 自签 registration、namespace claim 或外部 registry 收录不得写入 Realm；缺少该 grant 时，任何 Applet 通过 transaction push、Event submit 或 delegated signing 引入的 Realm 写入 MUST 拒绝，code=`applet_registration_unauthorized`。
+Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin 或 Realm policy 明确授权的 administrator actor 签发，并由 controlling Station 的 authorization capability 校验。仅凭 Applet 自签 registration、namespace claim 或外部 registry 收录不得写入 Realm；缺少该 grant 时，任何 Applet 通过 transaction push、Event submit 或 delegated signing 引入的 Realm 写入 MUST 拒绝，code=`applet_registration_unauthorized`。
 
-**机读授权门(normative)**：上述"由 Realm owner/admin/authz 授权 install / grant"绑定到机读 capability gate——`ak.applet.registration` 是 `ak.realm.admin` capability action 的目标 event kind(见 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `ak.realm.admin.target_event_kinds`)。提交 formal fixed set 的 admin actor MUST 持有覆盖目标 Realm 的 active `ak.realm.admin` grant(或 Realm policy 明确授权的 authz service 等价授权);reducer 校验失败时整个本地事务 MUST 拒绝，code=`applet_registration_unauthorized`。`ak.applet.registration` 在数据面仍是 `service_attested`(注册载体真实性),`ak.realm.admin` 门控的是"谁有权安装"，二者并存:注册被服务背书不等于被授权安装。
+**机读授权门(normative)**：上述"由 Realm owner/admin 授权 install / grant"绑定到机读 capability gate——`ak.applet.registration` 是 `ak.realm.admin` capability action 的目标 event kind(见 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `ak.realm.admin.target_event_kinds`)。提交 formal fixed set 的 admin actor MUST 持有覆盖目标 Realm 的 active `ak.realm.admin` grant；Station 的 authorization capability 负责校验该授权，内部 worker 不产生独立 wire role 或替代授权门。reducer 校验失败时整个本地事务 MUST 拒绝，code=`applet_registration_unauthorized`。`ak.applet.registration` 在数据面仍是 `service_attested`(注册载体真实性),`ak.realm.admin` 门控的是"谁有权安装"，二者并存:注册被服务背书不等于被授权安装。
 
 示例：
 
@@ -220,7 +220,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   `ak.profile.applet_service.v1`；profile-bound authority 只读取 accepted Event，不得读取
   preview/package cache。
 - `namespaces` MUST 明确声明，不能默认为全网。
-- exclusive namespace 冲突时，registry / authz service MUST 拒绝后注册者。
+- exclusive namespace 冲突时，registry 与执行安装准入的 Station MUST 拒绝后注册者。
 - `requested_scopes` 只是请求权限，不是实际授权。
 - 实际权限 MUST 通过 capability grant 授予。
 - `registration_epoch` MUST 进入 payload required 字段，并严格按 [`applet-schema.md` §1.0.1](./applet-schema.md#101-registration_epoch-transcript-与计算算法normative) 的 closed transcript、集合排序、JCS、域分离与 SHA-256 步骤覆盖 canonical derived registration、service DID Document digest/version evidence、accepted signing key set、endpoint/auth material。grant 存储与匹配只绑定该 epoch；reducer/verifier 仍 MUST 展开 epoch evidence，校验当前 DID Document digest / signing key 与 epoch 捕获值一致。
@@ -228,7 +228,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 
 ## 4a. Applet Package 与安装聚合操作
 
-开发者发布 Applet 时 SHOULD 发布 controller-signed **Applet Package**。Package 是分发对象，不是 Realm history event；进入协议事实前 MUST 派生为 `ak.applet.registration` payload，并由 Realm owner/admin/authz service 通过安装聚合操作签发实际 grant。
+开发者发布 Applet 时 SHOULD 发布 controller-signed **Applet Package**。Package 是分发对象，不是 Realm history event；进入协议事实前 MUST 派生为 `ak.applet.registration` payload，并由获授权的 Realm administrator actor 通过 Station 的安装聚合操作签发实际 grant。
 
 Package 最小字段以 [`applet-schema.md` §1a](./applet-schema.md#1a-applet-package-schema) 的字段参考表为唯一规范源；本节不重复维护字段表。Package MUST NOT 自行授权写入 Realm。Package 接受、registry 收录、namespace claim 或 `requested_scopes[]` 出现某 action 都不得被 reducer 解释为 grant。`registration_epoch` MUST 随 claimed profiles、namespace、base URL、webhook auth、endpoint key、requested scopes、widget origin、E2EE request、receive/rate-limit 行为或 DID/key evidence 改变而改变。
 
@@ -262,8 +262,8 @@ registration/grant，任一失败整个单元不可见。membership、E2EE 与 w
   同一 `applet_id` 的不同 scope install 必须复用首次 accepted managed-Bot anchors，但各自保存 registration、grant、
   install outcome、幂等与 revoke saga 状态。实现不得以单独 `applet_id` 作为安装唯一键，也不得把首个 scope 的
   registration/grant 镜像成后续 scope 的 authority。
-- install preview/commit MUST 由目标 Realm 的 controlling Station 或 Realm policy 明确授权的 authz service 承载；Bot authority 固定集合跨 portal lineage 与新建 PCR，只允许 `actor_id.station_id` 导出的同一 Station 在本地 closed aggregate 中接受，既不把 install operation 变成跨 server 分布式事务，也不得把固定集合拆成逐 Event peer federation。安装后的普通 Collaboration Realm Event 才按各自 federation 规则传播。
-- install commit 的授权门是机读 `ak.realm.admin` capability(§4)：commit 提交的 admin actor MUST 持有覆盖目标 Realm 的 active `ak.realm.admin` grant(或 Realm policy 授权的等价 authz service)；fixed set 中的 `ak.applet.registration` 是该 capability action 的目标 event kind。reduce-time 缺少该授权时 MUST fail closed,code=`applet_registration_unauthorized`，且整个本地事务零写。
+- install preview/commit MUST 由目标 Realm 的 controlling Station 承载；内部 authorization worker 不产生独立 discovery target。Bot authority 固定集合跨 portal lineage 与新建 PCR，只允许 `actor_id.station_id` 导出的同一 Station 在本地 closed aggregate 中接受，既不把 install operation 变成跨 server 分布式事务，也不得把固定集合拆成逐 Event peer federation。安装后的普通 Collaboration Realm Event 才按各自 federation 规则传播。
+- install commit 的授权门是机读 `ak.realm.admin` capability(§4)：commit 提交的 admin actor MUST 持有覆盖目标 Realm 的 active `ak.realm.admin` grant；fixed set 中的 `ak.applet.registration` 是该 capability action 的目标 event kind。Station authorization capability 的 reduce-time 校验缺少该授权时 MUST fail closed,code=`applet_registration_unauthorized`，且整个本地事务零写。
 - `authoring_request.basis.registration_event` 与同一 basis 中每条 `capability_grant_events[]` MUST 是该 admin caller
   已完成签名、可直接进入通用 Event admission 的 formal Event；服务端 MUST NOT 重建 Event、
   改写 event id/frontier/seal basis、以 service notary 代签 Event，或替 grant issuer 生成
@@ -928,7 +928,7 @@ Applet 参与 E2EE Realm 时有三种模式：
 
 **E2EE 加入授权（normative）**：Bot Actor 或 Applet-managed Ghost Actor 加入 E2EE Realm 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `ak.strand.create` / `ak.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
 
-- 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 authz service 签发（参照 §4 的 `applet_registration_unauthorized` 门槛），并落为携带 applet provenance 的可审计 Arkret Event（例如 `ak.member.state`，其 membership write 由 registry 派生），不得仅凭 Applet 自身 Welcome 入组。
+- 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 administrator actor 签发，并经 Station authorization capability 校验（参照 §4 的 `applet_registration_unauthorized` 门槛），再落为携带 applet provenance 的可审计 Arkret Event（例如 `ak.member.state`，其 membership write 由 registry 派生），不得仅凭 Applet 自身 Welcome 入组。
 - 缺少该独立 E2EE 加入授权时，Arkret 客户端 MUST NOT 把 applet / ghost 成员加入 MLS group，并 MUST 以 `applet_e2ee_join_unauthorized` 拒绝该加入。
 - 成员加入后，客户端在 MLS group 的成员 roster（成员列表 UI 与 audit 视图）中 MUST 显式标注该成员为 **applet-managed**（区别于 native 人类成员），不得让 applet / ghost 成员在 roster 中表现为普通 native 成员。该标注与 §9 的 Ghost Actor 协议层可区分要求一致。
 

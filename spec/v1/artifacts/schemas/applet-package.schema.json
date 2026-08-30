@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-package.schema.json",
   "title": "Arkret Applet Package",
-  "description": "Controller-signed package used to install an Applet. The package is a distribution object, not Realm history truth and not a grant. Station / authz service derives ak.applet.registration and capability grants during ak.applet.install.",
+  "description": "Controller-signed package used to install an Applet. The package is a distribution object, not Realm history truth and not a grant. The Station authorization capability derives ak.applet.registration and capability grants during ak.applet.install.",
   "type": "object",
   "required": [
     "schema",

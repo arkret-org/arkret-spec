@@ -226,7 +226,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
   "state": {"events": []},
   "state_after": {"events": []},
   "state_at_window_start": {
-    "actor_profiles": {},
+    "actor_profiles": [],
     "realm_metadata": {},
     "e2ee_epoch": null
   },
@@ -282,7 +282,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
     "prev_cursor": "ak:cursor:..."
   },
   "state_at_window_start": {
-    "actor_profiles": {"did:webvh:...": {"display_name": "...", "avatar_blob_ref": "..."}},
+    "actor_profiles": [{"actor_id": {"kind": "account", "account_id": {"principal_id": "ak:did_core:web:alice.example", "station_id": "ak:did_core:web:station.example"}}, "display_name": "...", "avatar_blob_ref": "..."}],
     "realm_metadata": {"title": "...", "summary": "...", "join_rule": "...", "collaboration_role": "direct_conversation"},
     "e2ee_epoch": {"epoch": 17, "key_ref": "ak:mls:..."}
   }
@@ -291,7 +291,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 
 - 该字段是 **派生 projection-only 字段**，不参与 state hash / frontier 计算，不进入因果图。
 - 字段范围仅限三类 context：`actor_profiles`（window 内出现的 actor）、`realm_metadata`（Realm-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
-- 三个字段都必须出现；`actor_profiles` 只允许 `display_name` / `avatar_blob_ref`，`realm_metadata` 只允许 `title` / `summary` / `join_rule` / `collaboration_role`。`collaboration_role` 仅在服务端已验证注册 profile 与 Realm genesis discriminator 后输出，v1 唯一值为 `direct_conversation`；客户端不得从 title、category、tag 或成员数重建该字段。`e2ee_epoch` 必须为 `null` 或 `{epoch: non-negative integer, key_ref: non-empty string}`。各层对象均为 closed DTO，未知字段必须按 `schema_violation` 拒绝。
+- 三个字段都必须出现；`actor_profiles` 是显式行列表，每行必须携完整 `actor_id: ActorId`，其余只允许 `display_name` / `avatar_blob_ref`。它不是以 principal DID 为 key 的 map；同一 principal 在两个 Station 上的 account 必须保留各自 ActorId 和显示投影，客户端不得合并。`realm_metadata` 只允许 `title` / `summary` / `join_rule` / `collaboration_role`。`collaboration_role` 仅在服务端已验证注册 profile 与 Realm genesis discriminator 后输出，v1 唯一值为 `direct_conversation`；客户端不得从 title、category、tag 或成员数重建该字段。`e2ee_epoch` 必须为 `null` 或 `{epoch: non-negative integer, key_ref: non-empty string}`。各层对象均为 closed DTO，未知字段必须按 `schema_violation` 拒绝。
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前查询 basis"。
 - 服务端可以沿 Seal DAG 回溯控制面 basis，并按 DataEvent 因果闭包或观察性 `data_event_set_root` 定位 window 起点，再按各 Lattice 的 deterministic join 取 cell value 派生该状态；不可用时退路径 (b)。HLC 只能作为定位候选历史 view 的非权威索引 hint，MUST NOT 作为 cell value 选择键或状态判断依据。
 - **单一 canonical 定位规则（normative）**：上一条提到 window 起点可由 DataEvent 因果闭包或观察性 `data_event_set_root` 定位，但这两条路径对同一 limited timeline 的 window 起点**可能定位到不同的 cell view**（渲染层 display name / `realm_metadata` / `e2ee_epoch` 错位），"是否分歧"本身没有确定判据。为消除双路径歧义，凡实现选择给出 `state_at_window_start` 确定值，**MUST**（不再是 SHOULD）使用唯一 canonical 定位规则：**以该 limited timeline 首事件逐字携带的 `seal_ref` 为唯一 control basis，并对该事件 `prev_refs` 因果闭包做 deterministic join 取 cell value**；不得在 Seal DAG leaf 中另选“最近”Seal。首事件缺少可验证 `seal_ref` 或因果闭包时必须走下述回退路径。该规则对同一输入跨实现产出同一渲染投影，因此不存在"两条路径产出不同 cell view"的合法分歧。由于本字段是 projection-only、不入协议状态，实现仍 MUST NOT 把它当作权威 cell value 对外承诺。

@@ -341,15 +341,15 @@ flowchart LR
     subgraph "Station / Station sync surfaces"
         PS1["Station A"]
         PS2["Station B"]
+        AUTHZ["Station A authorization capability"]
     end
 
     subgraph "Directory Services"
         DIR["Directory"]
     end
 
-    subgraph "Content / Policy Services"
+    subgraph "Content / Push Services"
         BLOB["Blob Store"]
-        AUTHZ["Authz Service"]
         PUSH["Push Gateway"]
     end
 

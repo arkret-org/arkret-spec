@@ -655,7 +655,7 @@ resolve 的失败必须外部 blinded：未认证或未通过统一 peer/Realm a
 
 实现 route mirror 的 service MUST 在 `ServiceDescribe.supported_operation_bundles` 同时声明上述两个 operation 的精确 carrier/schema 行；未声明的 service 不得被当作 mirror。该能力是可选可用性增强：未实现时，current record、invite carrier 与已 durable ack 的直接 1:1 planned handover 仍须互操作，不得把某个 mirror provider 设为 v1 隐式必选真相源。是否另设 conformance profile 只能约束部署承诺，不能改变本节逐请求授权。
 
-这两项是非 Event 的路由材料交换 rail：它们不写 Realm Event、member cell、capability 或 PCR，也不能绕过 joined-member ActorId routing projection。same-core route recovery 只推进本地 durable route state；target service core 改变时，本 rail MUST 拒绝，必须走 member rebind 或其它显式 service binding 流程。
+这两项是非 Event 的路由材料交换 rail：它们不写 Realm Event、member cell、capability 或 PCR，也不能绕过 joined-member ActorId routing projection。same-core route recovery 只推进本地 durable route state；target service core 改变时，本 rail MUST 拒绝。不同 Station core 意味着不同 AccountId，必须以新账号建立独立 membership，不得改写或接管原账号、member 或数据谱系；其它独立 service 的替换须按其显式委托 contract 建立新绑定。
 
 ## 7. 联邦请求 vs 单域 client 请求
 

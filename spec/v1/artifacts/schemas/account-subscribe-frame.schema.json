@@ -502,24 +502,28 @@
       ],
       "properties": {
         "actor_profiles": {
-          "type": "object",
-          "patternProperties": {
-            "^ak:did_core:[a-z0-9]+:[^\\s/?#]+$": {
-              "type": "object",
-              "properties": {
-                "display_name": {
-                  "$ref": "string-profiles.schema.json#/$defs/display_text_256"
-                },
-                "avatar_blob_ref": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 2048
-                }
+          "type": "array",
+          "description": "Window-start profile rows keyed semantically by the complete ActorId. A principal DID alone is not a key: accounts on distinct Stations remain distinct rows.",
+          "items": {
+            "type": "object",
+            "required": [
+              "actor_id"
+            ],
+            "properties": {
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/actor_id"
               },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
+              "display_name": {
+                "$ref": "string-profiles.schema.json#/$defs/display_text_256"
+              },
+              "avatar_blob_ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              }
+            },
+            "additionalProperties": false
+          }
         },
         "realm_metadata": {
           "type": "object",

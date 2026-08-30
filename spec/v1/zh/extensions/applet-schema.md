@@ -91,7 +91,7 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 
 ## 1a. Applet Package Schema
 
-`ak.schema.applet_package.v1` 是开发者/供应商发布的可安装 package；它不进入 Realm history，不授权写入。安装时 Station / authz service MUST 从 package 派生 canonical `ak.applet.registration` payload，再根据管理员批准生成 grant。
+`ak.schema.applet_package.v1` 是开发者/供应商发布的可安装 package；它不进入 Realm history，不授权写入。安装时 Station 的 authorization capability MUST 从 package 派生 canonical `ak.applet.registration` payload，再根据管理员批准生成 grant。
 
 `registration_epoch_evidence` **不是 AppletPackage 字段**。它是安装时验证 DID resolution 与重算
 `registration_epoch` 的 authority input，唯一 wire 载体是 §1b caller-signed

@@ -997,7 +997,10 @@
         "components": [
           "payload.event_ref",
           "payload.occurrence",
-          "envelope.actor_id"
+          {
+            "kind": "canonical_json",
+            "field": "envelope.actor_id"
+          }
         ]
       },
       "positive_cases": [
@@ -1006,29 +1009,40 @@
           "components_array": [
             "ak:strand:AQN06JbCzCiTJapT_QplYfovK3NG6pdAjNyF23YePDuc",
             "2026-07-26T09:00:00[Asia/Shanghai]",
-            "did:webvh:z6mkfixture:alice.example"
+            "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"}"
           ],
-          "expected_canonical_bytes_utf8": "[\"ak:strand:AQN06JbCzCiTJapT_QplYfovK3NG6pdAjNyF23YePDuc\",\"2026-07-26T09:00:00[Asia/Shanghai]\",\"did:webvh:z6mkfixture:alice.example\"]",
-          "expected_subject": "CTnwVCtdTH_ekHBrZy2eBf-o7eiIrzCgQNMbFqDQMMw"
+          "expected_canonical_bytes_utf8": "[\"ak:strand:AQN06JbCzCiTJapT_QplYfovK3NG6pdAjNyF23YePDuc\",\"2026-07-26T09:00:00[Asia/Shanghai]\",\"{\\\"account_id\\\":{\\\"principal_id\\\":\\\"ak:did_core:webvh:z6mkfixture\\\",\\\"station_id\\\":\\\"ak:did_core:webvh:z6mkfixturestationexample\\\"},\\\"kind\\\":\\\"account\\\"}\"]",
+          "expected_subject": "g-ToIV8lLkj2UcmcMBP5h6JnjdjCia7vIGAZYyQUtCo"
         },
         {
           "name": "series_occurrence_preserves_json_null",
           "components_array": [
             "ak:strand:AQN06JbCzCiTJapT_QplYfovK3NG6pdAjNyF23YePDuc",
             null,
-            "did:webvh:z6mkfixture:alice.example"
+            "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"}"
           ],
-          "expected_canonical_bytes_utf8": "[\"ak:strand:AQN06JbCzCiTJapT_QplYfovK3NG6pdAjNyF23YePDuc\",null,\"did:webvh:z6mkfixture:alice.example\"]",
-          "expected_subject": "P5Hde-erKlJ1qu5kaNoyf89o3Iz1vt5JW2r525ZJyKM"
+          "expected_canonical_bytes_utf8": "[\"ak:strand:AQN06JbCzCiTJapT_QplYfovK3NG6pdAjNyF23YePDuc\",null,\"{\\\"account_id\\\":{\\\"principal_id\\\":\\\"ak:did_core:webvh:z6mkfixture\\\",\\\"station_id\\\":\\\"ak:did_core:webvh:z6mkfixturestationexample\\\"},\\\"kind\\\":\\\"account\\\"}\"]",
+          "expected_subject": "24jyY8ehxgxbtkdA9kPzXC0bN7-ld9wwdu2zQWaInJk"
         },
         {
           "name": "reordered_components_diverge",
           "components_array": [
-            "did:webvh:z6mkfixture:alice.example",
+            "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"}",
             null,
             "ak:strand:AQN06JbCzCiTJapT_QplYfovK3NG6pdAjNyF23YePDuc"
           ],
-          "expected_subject": "W0L__BApDoh0d4vXpR4c4KtekyYTiVirIx44axKLL-w",
+          "expected_subject": "LuudNeLx-hfZIvZcl9CiMDbFTZv3Vox3KXjiqT-dwoA",
+          "must_differ_from": "series_occurrence_preserves_json_null"
+        },
+        {
+          "name": "same_principal_different_station_diverges",
+          "components_array": [
+            "ak:strand:AQN06JbCzCiTJapT_QplYfovK3NG6pdAjNyF23YePDuc",
+            null,
+            "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureotherstationexample\"},\"kind\":\"account\"}"
+          ],
+          "expected_canonical_bytes_utf8": "[\"ak:strand:AQN06JbCzCiTJapT_QplYfovK3NG6pdAjNyF23YePDuc\",null,\"{\\\"account_id\\\":{\\\"principal_id\\\":\\\"ak:did_core:webvh:z6mkfixture\\\",\\\"station_id\\\":\\\"ak:did_core:webvh:z6mkfixtureotherstationexample\\\"},\\\"kind\\\":\\\"account\\\"}\"]",
+          "expected_subject": "VwKBYWEV4H2lF-m7wJZUKJJhko0P81GEoZOZwNJ-PRw",
           "must_differ_from": "series_occurrence_preserves_json_null"
         }
       ],
@@ -1057,7 +1071,7 @@
             "kind": "service",
             "service_id": "ak:did_core:webvh:z6mkfixture"
           },
-          "expected_component": "ak:did_core:webvh:z6mkfixture"
+          "expected_component": "{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"}"
         },
         {
           "name": "object_component",

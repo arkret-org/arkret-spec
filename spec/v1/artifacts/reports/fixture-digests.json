@@ -138,7 +138,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "f4894de34373324162a1879278e6b44a32d98ec33aeebb9e75934da351c9caa5"
+      "sha256": "e3784dab8e2f8afe7d5dfb4ac6dd3dfcc86fdebcd9726aa1bd666d08f7786428"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -362,7 +362,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",
-      "sha256": "7f83d4cfcf0ef5f00d799d78d885f50385d1184b6910342d7af26f67123b55f7"
+      "sha256": "e0603a599ca4cdf33dc8a83870a2b9df4154375d3e1b1b09976ed2edb21d9661"
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
@@ -394,7 +394,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "abfd04154bbd225839b41426a4b2567f2a9d6c8a437dff2e9a2b36a1ad9137e2"
+      "sha256": "622754208a4c036b69e2021dc2a96bcb70bf6d509017b6d8a24d4e981aa4c31d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

@@ -88,12 +88,15 @@
         "kind": "realm_actor",
         "realm_id": "ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
         "actor_id": {
-          "kind": "service",
-          "service_id": "ak:did_core:web:alice.example"
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
         },
         "next_actor_seq": 0,
         "frontier_event_ids": [],
-        "frontier_digest": "sha256:5e859d398cbda1eb78f6a4836e0ff5c2feb345b325d9d710183589264d01bec5"
+        "frontier_digest": "sha256:943ff299208a78567e2dfeb4c3fc22d51ba75e52e02be3cebf31dd753f6187ae"
       }
     },
     {
@@ -104,15 +107,18 @@
         "kind": "realm_actor",
         "realm_id": "ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
         "actor_id": {
-          "kind": "service",
-          "service_id": "ak:did_core:web:alice.example"
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
         },
         "next_actor_seq": 43,
         "frontier_event_ids": [
           "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
           "ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe"
         ],
-        "frontier_digest": "sha256:74ed4adca3a3448eef744d447cbaeacb7c371c98ff2409e90ce357edc83dd84b"
+        "frontier_digest": "sha256:99d56e542d9b45ea99e607b0bf5481070d6ee2cd532b3d7354768e92f48e2808"
       }
     },
     {
@@ -1517,11 +1523,28 @@
         "realms": {
           "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
             "state_at_window_start": {
-              "actor_profiles": {
-                "ak:did_core:webvh:z6mkfixture": {
+              "actor_profiles": [
+                {
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixture",
+                      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                    }
+                  },
                   "display_name": "Alice"
+                },
+                {
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixture",
+                      "station_id": "ak:did_core:webvh:z6mkfixtureotherstationexample"
+                    }
+                  },
+                  "display_name": "Alice at another Station"
                 }
-              },
+              ],
               "realm_metadata": {
                 "title": "Example",
                 "join_rule": "invite"
@@ -1537,6 +1560,50 @@
             "unread_notifications": {
               "notification_count": 0,
               "highlight_count": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "window_start_principal_keyed_profile_map_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
+            "state_at_window_start": {
+              "actor_profiles": {
+                "ak:did_core:webvh:z6mkfixture": {
+                  "display_name": "Alice"
+                }
+              },
+              "realm_metadata": {},
+              "e2ee_epoch": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "window_start_profile_without_actor_id_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
+            "state_at_window_start": {
+              "actor_profiles": [
+                {
+                  "display_name": "Alice"
+                }
+              ],
+              "realm_metadata": {},
+              "e2ee_epoch": null
             }
           }
         }
@@ -1563,8 +1630,8 @@
     "vector_id": "ak.vector.actor_frontier.realm_scoped.v1",
     "transcript_label_utf8_nul": "ak-realm-actor-frontier-v1\u0000",
     "digest_algorithm": "sha256",
-    "canonical_json": "{\"actor_id\":\"ak:did_core:web:alice.example\",\"frontier_event_ids\":[\"ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\",\"ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\"}",
-    "expected_digest": "sha256:74ed4adca3a3448eef744d447cbaeacb7c371c98ff2409e90ce357edc83dd84b"
+    "canonical_json": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:web:alice.example\",\"station_id\":\"ak:did_core:web:station.example\"},\"kind\":\"account\"},\"frontier_event_ids\":[\"ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\",\"ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\"}",
+    "expected_digest": "sha256:99d56e542d9b45ea99e607b0bf5481070d6ee2cd532b3d7354768e92f48e2808"
   },
   "e2ee_decryption_pending": {
     "event_id": "ak:event:AY4rjZ5eX4tirzUMKIQZ0K26SIcvduWsg-p90KQ2PMVZ",
