@@ -2108,10 +2108,12 @@ def check_composite_subject_terminal_types(
                     and component.get("kind") == "canonical_json"
                 ):
                     source = component.get("field")
+                    if source == "envelope.actor_id":
+                        continue
                     if not isinstance(source, str) or not source.startswith("payload."):
                         lint.fail(
                             event_registry_path,
-                            f"{component_ref} canonical_json component must name one payload field",
+                            f"{component_ref} canonical_json component must name one payload field or envelope.actor_id",
                         )
                         continue
                     resolved, resolved_types = resolved_terminal_types(kind, source)

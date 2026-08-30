@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.9",
+  "version": "2026-08-31.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T00:10:00+08:00",
+  "generated_at": "2026-08-31T14:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -740,8 +740,13 @@
           {
             "cell_family": "ak.component.applet.managed_actor_provision.v1",
             "cell_subject": {
-              "field": "payload.actor_id",
-              "kind": "canonical_json"
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "payload.actor_id"
+                }
+              ]
             },
             "lattice": "cas_register",
             "bottom": "reject",
@@ -2299,8 +2304,13 @@
           {
             "cell_family": "ak.component.member.state.v1",
             "cell_subject": {
-              "kind": "did",
-              "field": "envelope.actor_id"
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "envelope.actor_id"
+                }
+              ]
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -2560,8 +2570,13 @@
           {
             "cell_family": "ak.component.member.state.v1",
             "cell_subject": {
-              "field": "payload.member_id",
-              "kind": "canonical_json"
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "payload.member_id"
+                }
+              ]
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -4072,8 +4087,13 @@
           {
             "cell_family": "ak.component.agent.status.v1",
             "cell_subject": {
-              "field": "envelope.actor_id",
-              "kind": "did"
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "envelope.actor_id"
+                }
+              ]
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -4771,7 +4791,10 @@
               "components": [
                 "payload.event_ref",
                 "payload.occurrence",
-                "envelope.actor_id"
+                {
+                  "kind": "canonical_json",
+                  "field": "envelope.actor_id"
+                }
               ]
             },
             "lattice": "mv_register",
@@ -8629,8 +8652,13 @@
         "ak.account.blocklist": {
           "cell_family": "ak.private.account.blocklist.v1",
           "cell_subject": {
-            "field": "envelope.actor_id",
-            "kind": "did"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              }
+            ]
           },
           "effect_projection": {
             "kind": "set",
@@ -8644,7 +8672,10 @@
           "cell_subject": {
             "kind": "composite",
             "components": [
-              "envelope.actor_id",
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              },
               "payload.key"
             ]
           },
@@ -8677,7 +8708,10 @@
           "cell_subject": {
             "kind": "composite",
             "components": [
-              "envelope.actor_id",
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              },
               "payload.realm_id",
               "payload.read_scope"
             ]
