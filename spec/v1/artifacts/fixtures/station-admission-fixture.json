@@ -12,7 +12,7 @@
   "spec_anchor": "spec/v1/zh/models/event-and-patch.md#31-station-authority-与准入证明normative",
   "semantic_cases": [
     {
-      "name": "authority_pair_is_complete_external_identity",
+      "name": "account_id_is_complete_external_identity",
       "given": "the same principal_id exists on two Stations",
       "action": "compare accounts, memberships, Contacts or grants",
       "expected": "equal_only_when_principal_id_and_station_id_both_match",
@@ -75,7 +75,7 @@
       "action": "complete recovery grant issuance",
       "expected": "reactivate_original_account_and_issue_new_generation_grant",
       "invariants": [
-        "the original account_id, authority pair and PCR lineage are unchanged",
+        "the original AccountId components and PCR lineage are unchanged",
         "the Account Authority appends exactly one deactivated-to-active successor",
         "the Standard grant binds the exact replacement device authorization Event and new generation",
         "old sessions, devices, KeyPackages, delegations, push routes and pending deliveries remain terminal"
@@ -84,7 +84,7 @@
     {
       "name": "deactivated_principal_may_onboard_at_another_station",
       "given": "an account is deactivated on Station A",
-      "action": "create a service account for the same principal_id on Station B",
+      "action": "create an account for the same principal_id on Station B",
       "expected": "accept_after_full_onboarding",
       "invariants": [
         "the new account has a distinct station_id and account_id",

@@ -386,7 +386,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/station-admission-fixture.json",
-      "sha256": "f013ac7e501baf6e2586146b13843f3b3e06c11b9382c2071c56859049069728"
+      "sha256": "91668f586a7c6a6bf28cb5e12c730413c19102565b8c1cd876db88fada5f956d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/string-profile-fixture.json",

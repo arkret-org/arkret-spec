@@ -174,9 +174,9 @@ issuer record 的 row 注入 ledger。失效处理只能删除 session credentia
 principal 私钥、Recovery Key、DID/PCR/MLS 与 secret-storage 数据；这是 auth session fence，不是
 principal identity migration。
 
-当 service account 已绑定到某个 `account authority pair` 时，账号访问可由 account auth、passkey、
+当登录账号已绑定到某个 exact `AccountId` 时，账号访问可由 account auth、passkey、
 已授权 device 或 accepted PCR recovery policy 分别恢复。只有账号 recovery policy 显式登记 DID-root
-factor 时，current DID control proof 才可作为附加分支；该分支必须指向同一 account authority pair，不能因 `principal_id` 相同选择另一服务账号。
+factor 时，current DID control proof 才可作为附加分支；该分支必须指向同一 `AccountId`，不能因 `principal_id` 相同选择另一 Station 上的账号。
 
 密码找回或邮箱验证码重置只允许恢复 service account 访问。除非同时满足 DID recovery policy，服务端 MUST NOT 因密码重置而：
 
@@ -451,7 +451,7 @@ to-device queue），其失败与重试沿用 `deactivation_partial` 语义。Re
 
 **执行状态机（normative）**：接收方接受一条 `status=erasure_pending` 的 `AccountStatusRecord` 时，必须为每个适用 storage boundary 建立一个可恢复的 durable execution，唯一键为 `(receiver_id,account_id,triggering_status_record_id,storage_boundary)`。接收 operation 只有在 execution intent 已持久后才可返回 `accepted | duplicate`；若 replica store 与 job store 不能共享物理事务，实现必须在启动与周期 reconciliation 中从已接受 record 重新派生缺失 intent，并在修复前保持 fail closed。worker 复用同一 typed erasure service 执行删除；不得在 account-status HTTP 事务内同步做物理擦除，也不得把 receipt submit 当作执行命令。精确重试、进程崩溃与 lease 过期都继续同一个 job；同 key 异 account/record/boundary 内容为永久冲突。`completed`、`partially_completed` 与 `blocked_by_legal_hold` 都是该 job 的 terminal receipt outcome，只有 transport/infrastructure failure 可重试。
 
-Account Authority 不新增第二条私有 peer erase command。它发布 `erasure_pending` record 后只追踪上述确定性 execution，并通过既有 erasure receipt submit/get 轨道取得结果。Account Authority 只有在验证 receipt package、issuer proof、subject/scope、closed trigger 的 `account_status_record_id` 逐字等于本次 record，以及现行 `(principal_id,station_id)` authority pair 全部一致后，才可把物理擦除标为完成；收到 account-status `accepted`、HTTP 2xx、空返回或 connector 本地 no-op 都不构成完成证据。
+Account Authority 不新增第二条私有 peer erase command。它发布 `erasure_pending` record 后只追踪上述确定性 execution，并通过既有 erasure receipt submit/get 轨道取得结果。Account Authority 只有在验证 receipt package、issuer proof、subject/scope、closed trigger 的 `account_status_record_id` 逐字等于本次 record，以及现行 `AccountId {principal_id,station_id}` 全部一致后，才可把物理擦除标为完成；收到 account-status `accepted`、HTTP 2xx、空返回或 connector 本地 no-op 都不构成完成证据。
 
 擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `ak.schema.erasure_receipt.v1` payload，并可通过 `ak.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定 closed `trigger`、`subject`、`scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_digest`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`；retained stub 必须逐字绑定同一个 trigger。账号物理擦除时 trigger MUST 是 exact `erasure_pending` AccountStatusRecord id；其他擦除类型绑定各自授权 Event 的 event 分支。`proofs[]` MUST 至少包含 1 条，且其中至少一条由 `issuer` 当前有效的 verification method 签名；空 `proofs[]` MUST 触发下文 fail-closed 校验（等同 `proofs[]` 校验失败）。`retained_stub_digest` MUST 等于 `hash(canonical_json(retained_stub))`；stub 可内联在 receipt，也可通过 erasure receipt endpoint 获取，但两者 canonical bytes 必须一致。Stub 只保留 typed trigger/reference 结构、冗余 digest 一致性、receipt/stub binding，以及连接仍存在的 signature、redaction authorization 与 legal-hold evidence 所需最小字段，MUST NOT 保留已擦除明文或裸明文 digest。原 canonical bytes 已擦除时，stub 与 receipt 均不能独立重算或证明其 hash preimage。Receipt 只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
 
