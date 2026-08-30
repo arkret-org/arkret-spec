@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-29.18",
+  "version": "2026-08-30.1",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -152,11 +152,11 @@
     },
     {
       "operation_id": "ak.gate.account.command.logout.v1",
-      "sha256": "sha256:3a3c92fdcef8ac280d7106190a6d6863e3af106551acff9d7d9f7b41e225e350"
+      "sha256": "sha256:b9f81aa5d9de7a2d35903351c8011590f18bb68dffb2b98f30c21b0fb3f984c3"
     },
     {
       "operation_id": "ak.gate.account.command.logout_auth_session.v1",
-      "sha256": "sha256:7cbe10b3ca8612d1e31ff969b8eb68f6016d3f0568f57ee6e999e53a06451266"
+      "sha256": "sha256:4813e4a22ad19373d3165446f7d7a6b026297e7a7b4f08376f4a39432c6bf5ab"
     },
     {
       "operation_id": "ak.gate.account.command.pair_agent_key.v1",

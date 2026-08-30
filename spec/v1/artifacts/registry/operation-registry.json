@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.14",
+  "version": "2026-08-30.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T22:30:00+08:00",
+  "generated_at": "2026-08-30T09:45:15+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1008,14 +1008,18 @@
       "operation_id": "ak.gate.account.command.logout.v1",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/logout",
-      "notes": "Account Authority ordinary hard logout (account-lifecycle §4.1): single client-visible logout entry. The handler validates the current ak.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain through ak.gate.account.command.logout_auth_session.v1 when Auth-side is split out, and completes or durably schedules the Principal-side local account session + device session cleanup and to-device/push removal. Distinct from revoke_session (targeted session-grant revoke). HTTP-only Account Authority op; not exposed over gRPC/MQ.",
+      "notes": "Account Authority ordinary hard logout (account-lifecycle §4.1): single client-visible logout entry. The presented grant chain is the stable protocol-sequence identity. The handler validates the ak.session.grant + DPoP when metadata remains, idempotently terminates the Auth-side auth session / complete grant rotation chain through ak.gate.account.command.logout_auth_session.v1 when Auth-side is split out, and completes or durably schedules the Principal-side local account session + device session cleanup and to-device/push removal. Exact retries on an already terminal or pruned chain return an equivalent successful no-op; audience mismatch still fails closed. Distinct from revoke_session (targeted session-grant revoke). HTTP-only Account Authority op; not exposed over gRPC/MQ.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.gate.account.command.introspect_session_grant.v1"
+        "strategy": "replay_same_operation",
+        "operation_id": "ak.gate.account.command.logout.v1",
+        "requires_same_request_identity_and_canonical_intent": true,
+        "terminal_outcomes": [
+          "session_grant_replay_indeterminate"
+        ]
       },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome",
@@ -1045,14 +1049,18 @@
       "operation_id": "ak.gate.account.command.logout_auth_session.v1",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/auth-sessions/logout",
-      "notes": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): the Account Authority has already validated the client-visible ak.gate.account.command.logout.v1 request, then calls this operation with service-to-service authentication to log out the Auth-side browser/auth session owning the presented ak.session.grant and terminate that session's grant rotation chain. Ordinary clients MUST NOT call this operation; they only call ak.gate.account.command.logout.v1. HTTP-only S2S op; not exposed over gRPC/MQ.",
+      "notes": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): the presented grant chain is the stable protocol-sequence identity. The Account Authority has already validated the client-visible ak.gate.account.command.logout.v1 request, then calls this operation with service-to-service authentication to log out the Auth-side browser/auth session owning the presented ak.session.grant and terminate that session's complete grant rotation chain. Exact retries, including an already logged-out, revoked, unknown or pruned chain, return an equivalent successful terminal outcome without a second side effect. Ordinary clients MUST NOT call this operation; they only call ak.gate.account.command.logout.v1. HTTP-only S2S op; not exposed over gRPC/MQ.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.gate.account.command.introspect_session_grant.v1"
+        "strategy": "replay_same_operation",
+        "operation_id": "ak.gate.account.command.logout_auth_session.v1",
+        "requires_same_request_identity_and_canonical_intent": true,
+        "terminal_outcomes": [
+          "session_grant_replay_indeterminate"
+        ]
       },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome",
