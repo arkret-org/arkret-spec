@@ -298,8 +298,8 @@ Realm link 写入使用 `POST /_arkret/self/events`（`ak.self.events.command.su
 | `POST /_arkret/self/seals/availability-receipts` | body `SealAvailabilityReceiptIssueRequest {realm_id,predecessor_refs[],event_digests[]}`；两个数组均 canonical byte-wise 升序、去重且非空，predecessor 必须逐字等于 current complete accepted antichain，Event 必须已 accepted、同 Realm、未被 predecessor closure 覆盖 | 绑定 human PCR notary device 或 managed Agent PCR delegated controller device 的 `user_session`；服务端从 exact predecessor closure 独立重建 effective availability policy 与 eligible holder，不接受 caller 自报 holder、retention、key 或时间。只有本服务是该 PCR create-locked `principal_server_id` 且 policy `min_holders=1` 时才能签发；否则 fail closed。 | `SealAvailabilityReceiptIssueOutcome {realm_id,predecessor_refs[],event_digests[],sealed_at,availability_receipt_digests[],governance_dependencies[]}`；服务端选择 `sealed_at`，receipt retention 下限取 effective policy 与请求级幂等 24 小时保留下限的较大者；返回前 durable 保存 every-and-only receipt 与 historical signer evidence object。相同 canonical exact request 在该至少 24 小时的 preparation 有效窗口内 MUST 返回 byte-identical 的首次 outcome（含相同 `sealed_at` 与 dependency bytes），不得重签出 sibling preparation；客户端必须验证 dependencies，并把同一 `sealed_at` 与 digest list 写入随后签名的 Seal。 |
 | `GET /_arkret/self/events/{event_id}` | path `{event_id: id}` query `{include_payload?: boolean}` | Event 可见性按 Realm policy / history visibility / E2EE envelope 判断；不可见时返回 `not_found`。 | `{event, visibility?, receipts?}` |
 | `QUERY /_arkret/self/events/resolve` | JSON content `{event_ids?: id[], event_digests?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Realm policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
-| `QUERY /_arkret/self/events` | JSON content `{realms?: id[], actors?: did_core_id[], before?: cursor, after?: cursor, order?: enum(default, ascending, descending), limit?: int, filters?: object, include_completeness?: boolean}` | `ak.self.events.read.scan.v1` 的 canonical binding。`realms[]` ∪ 内部、`actors[]` ∪ 内部、二者组合为交集。授权按 [§3.3.1.1](#3311-actors-selector-授权normative) 判定：`realms[]` 存在时 `actors[]` 只是已授权 Realm 内的过滤器；`realms[]` 缺省时 `actors[]` MUST 只含 holder 自有 actor。realm scope 走 membership frontier + history visibility + E2EE epoch policy。 | `{events[], next_cursor?, prev_cursor?, has_more, range_completeness?}` |
-| `GET /_arkret/self/events/subscribe` | query `{realms?: id[], actors?: did_core_id[], after?: cursor, catchup?: boolean}` | 同 `ak.self.events.read.scan.v1` 的逐 selector 授权检查，含 [§3.3.1.1](#3311-actors-selector-授权normative) 的 `actors[]` 规则（`realms` 缺省时只允许 holder 自有 actor，违反 MUST 在建立订阅前拒绝）；非 principal recipient（service delegation）必须满足明文可见性边界。订阅建立后中途丢失授权通过 per-realm `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, realm_id?: id, cursor?: cursor, payload?: object, reconnect_after_ms?: int}` |
+| `QUERY /_arkret/self/events` | JSON content `{realm_ids?: id[], actor_ids?: did_core_id[], before?: cursor, after?: cursor, order?: enum(default, ascending, descending), limit?: int, filters?: object, include_completeness?: boolean}` | `ak.self.events.read.scan.v1` 的 canonical binding。`realm_ids[]` ∪ 内部、`actor_ids[]` ∪ 内部、二者组合为交集。授权按 [§3.3.1.1](#3311-actor_ids-selector-授权normative) 判定：`realm_ids[]` 存在时 `actor_ids[]` 只是已授权 Realm 内的过滤器；`realm_ids[]` 缺省时 `actor_ids[]` MUST 只含 holder 自有 actor。realm scope 走 membership frontier + history visibility + E2EE epoch policy。 | `{events[], next_cursor?, prev_cursor?, has_more, range_completeness?}` |
+| `GET /_arkret/self/events/subscribe` | query `{realms?: id[], actors?: did_core_id[], after?: cursor, catchup?: boolean}` | 同 `ak.self.events.read.scan.v1` 的逐 selector 授权检查，含 [§3.3.1.1](#3311-actor_ids-selector-授权normative) 的 `actors[]` 规则（`realms` 缺省时只允许 holder 自有 actor，违反 MUST 在建立订阅前拒绝）；非 principal recipient（service delegation）必须满足明文可见性边界。订阅建立后中途丢失授权通过 per-realm `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, realm_id?: id, cursor?: cursor, payload?: object, reconnect_after_ms?: int}` |
 | `QUERY /_arkret/self/events/frontier` | JSON content 恰为 `{actor_id, realm_id}` 或 `{actor_id}` | 只返回调用方可见的 actor/data Event causal frontier；不得返回或替代 Realm Seal leaves，也不得泄露不可见 Realm 或 private DID。 | `EventsFrontierState` |
 | `QUERY /_arkret/self/seals/frontier` | JSON content 恰为 `{realm_id}` | 返回调用方可见 Realm 的完整 current Seal antichain；open-set governance 不得截断 leaves。 | `SealFrontierState` |
 | `POST /_arkret/self/seals/mls-governance-proof` | JSON content `mls-governance-proof-bundle.schema.json#/$defs/read_request`；仅 near-current `group_security_frontier`，显式带调用方本机已验证的 `local_mls_leaves[]`、base/target Seal antichains 与 exact selector；完整 canonical request 上限为 8 MiB | 返回一个 stateless deterministic 完整 frontier response；服务把 every-and-only leaves 与治理重放交叉验证；响应只回 `query_digest`，不重复 leaves；超界整体拒绝，无 cursor/result-set。 | `mls-governance-proof-bundle.schema.json#/$defs/read_outcome` |
@@ -525,7 +525,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 }
 ```
 
-**示例 B — `QUERY /_arkret/self/events`（JSON content 携带 `realms` / `after` / `limit`；分页响应中含一条 `ak.message.create`）**:
+**示例 B — `QUERY /_arkret/self/events`（JSON content 携带 `realm_ids` / `after` / `limit`；分页响应中含一条 `ak.message.create`）**:
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
@@ -1163,25 +1163,33 @@ QUERY /_arkret/self/events/resolve
 QUERY /_arkret/self/events
 Content-Type: application/json
 
-{"realms":["ak:realm:..."],"after":"ak:cursor:...","limit":500}
+{"realm_ids":["ak:realm:..."],"after":"ak:cursor:...","limit":500}
 ```
 
 `QUERY` 是本 operation 的唯一 HTTP binding。查询选择器与 cursor 由 JSON content 定义。
 
 #### 3.3.1 Selector
 
-`realms` / `actors` 都是 JSON 数组；同一字段的多个值之间是 union，跨字段（realms × actors）是 intersection。
+`realm_ids` / `actor_ids` 都是 JSON 数组；同一字段的多个值之间是 union，跨字段（realm_ids × actor_ids）是 intersection。
 
-##### 3.3.1.1 `actors[]` selector 授权（normative）
+##### 3.3.1.1 `actor_ids[]` selector 授权（normative）
 
-`actors[]` 是**过滤器，不是授权凭据**。它不引入独立的 actor 维度可见性判定，v1 也不存在这样的判定：
+`actor_ids[]` 是**过滤器，不是授权凭据**。它不引入独立的 actor 维度可见性判定，v1 也不存在这样的判定：
 
-- `realms[]` 非空时，结果集先由每个 `realms[]` 元素的 membership frontier、history visibility 与 E2EE epoch policy 裁剪，`actors[]` 只在该已授权集合内进一步收窄。此时 `actors[]` MAY 含任意 actor，因为它不能扩大可见范围。
-- `realms[]` 缺省时，`actors[]` MUST 只含 **holder 自有 actor**：已认证 principal 本身，或 controller binding 当前有效的 managed Agent principal。出现其它 actor 时整个请求 MUST `unauthorized`，MUST NOT 静默丢弃该元素后返回部分结果——静默丢弃会把授权失败伪装成"该 actor 无事件"。
+- `realm_ids[]` 非空时，结果集先由每个 `realm_ids[]` 元素的 membership frontier、history visibility 与 E2EE epoch policy 裁剪，`actor_ids[]` 只在该已授权集合内进一步收窄。此时 `actor_ids[]` MAY 含任意 actor，因为它不能扩大可见范围。
+- `realm_ids[]` 缺省时，`actor_ids[]` MUST 只含 **holder 自有 actor**：已认证 principal 本身，或 controller binding 当前有效的 managed Agent principal。出现其它 actor 时整个请求 MUST `unauthorized`，MUST NOT 静默丢弃该元素后返回部分结果——静默丢弃会把授权失败伪装成"该 actor 无事件"。
 
-因此本 operation 永远不会成为跨 principal 的 Principal Control Realm 读取面：PCR 的 membership 是其 owner 自己的设备，非 owner 无法通过 `realms[]` 进入，也无法通过 `actors[]` 绕开。owner PCR 内需要对外披露的事实各有专用面，登记在 [`pcr-exposure-registry.json`](../../artifacts/registry/pcr-exposure-registry.json)；例如其他参与者读取某 actor 的全局 Profile MUST 使用 `ak.self.actor_profile.read.resolve.v1`，而不是对该 actor 做 actor-scoped scan。
+因此本 operation 永远不会成为跨 principal 的 Principal Control Realm 读取面：PCR 的 membership 是其 owner 自己的设备，非 owner 无法通过 `realm_ids[]` 进入，也无法通过 `actor_ids[]` 绕开。owner PCR 内需要对外披露的事实各有专用面，登记在 [`pcr-exposure-registry.json`](../../artifacts/registry/pcr-exposure-registry.json)；例如其他参与者读取某 actor 的全局 Profile MUST 使用 `ak.self.actor_profile.read.resolve.v1`，而不是对该 actor 做 actor-scoped scan。
 
 `ak.self.events.stream.subscribe.v1` 的 `actors` 适用同一规则；授权不满足时 MUST 在建立订阅前拒绝，不得先建流再逐 realm 发 `unauthorized` 帧掩盖。
+
+为 human self-principal 或 controller-bound managed Agent 构造、续签或校验 PCR Seal 时，客户端 MUST 以
+`actor_ids=[<exact principal actor>]` 且省略 `realm_ids` 的 actor-only selector 完整分页读取 accepted durable
+Event history，再在本地只保留 exact PCR `realm_id`。这类累计控制历史不得从 Realm selector、Realm
+projection、account aggregate 或当前 materialized state 反推；任一页读取失败、返回非完整 Event row，或无法把
+predecessor 的 every covered Event digest 在该 actor history 中逐一复现时，客户端 MUST fail closed，且不得对截短
+history 签发 successor Seal。managed Agent 分支的 controller binding 授权仍按本节上方规则独立验证；actor-only
+读取本身不授予 controller 任何新的 notary authority。
 
 #### 3.3.2 边界参数 `before` / `after`（v1 wire 形态）
 
