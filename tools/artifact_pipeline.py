@@ -41,8 +41,10 @@ from typing import Any
 
 try:
     from .release_metadata import current_release_tag as read_current_release_tag
+    from .check_artifact_versions import semantic_content_digest, transition_errors
 except ImportError:  # Direct script execution: python tools/artifact_pipeline.py
     from release_metadata import current_release_tag as read_current_release_tag
+    from check_artifact_versions import semantic_content_digest, transition_errors
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_ROOT = ROOT / "spec" / "v1"
@@ -95,6 +97,15 @@ def dump_json(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
 
 
+@lru_cache(maxsize=1)
+def artifact_metadata_references() -> dict[str, dict[str, Any]]:
+    """Read the last validated metadata baseline, not another semantic source."""
+    path = ARTIFACTS / "reports" / "artifact-version-digests.json"
+    if not path.exists():
+        return {}
+    return {row["path"]: row for row in load_json(path).get("artifacts", [])}
+
+
 def preserve_artifact_metadata_when_semantics_match(
     path: Path, payload: dict[str, Any]
 ) -> dict[str, Any]:
@@ -113,6 +124,20 @@ def preserve_artifact_metadata_when_semantics_match(
     }
     if existing_semantics != payload_semantics:
         return payload
+    if path.is_relative_to(ROOT):
+        reference = artifact_metadata_references().get(path.relative_to(ROOT).as_posix())
+        if reference is not None:
+            current = {
+                "path": reference["path"],
+                "version": existing.get("version"),
+                "generated_at": existing.get("generated_at"),
+                "content_digest": semantic_content_digest(existing),
+            }
+            if transition_errors(reference, current):
+                # A prior generation may have written new content before the
+                # author advanced its canonical metadata. Do not pin that
+                # intermediate state merely because the next run is byte-stable.
+                return payload
     version = existing.get("version")
     generated_at = existing.get("generated_at")
     if not isinstance(version, (str, int)) or isinstance(version, bool):

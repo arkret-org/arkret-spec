@@ -3048,6 +3048,57 @@ REANCHOR_SCOPE_LOCAL_FIELDS = (
 )
 
 
+def check_account_identity_carrier_closure(lint: Lint) -> None:
+    """Prevent known account/actor carriers from falling back to bare DID keys."""
+    targets = (
+        ("websocket-frame", "/$defs/events_open_parameters/properties/actor_ids/items", "actor_id"),
+        ("service-operation-dtos", "/$defs/EventsQueryPostRequestBody/properties/actor_ids/items", "actor_id"),
+        ("actor-profile-operations", "/$defs/resolve_request/properties/actor_ids/items", "actor_id"),
+        ("account-subscribe-frame", "/$defs/realm_summary/properties/hero_ids/items", "actor_id"),
+        ("agent-membership-cascade", "/$defs/agent_cleanup_record/properties/expected_agent_ids/items", "actor_id"),
+        ("invite-receive-policy", "/properties/account_id", "account_id"),
+        ("invite-quarantine", "/$defs/quarantine_entry/properties/account_id", "account_id"),
+        ("keys-operations", "/$defs/device_projection_attestation_core/properties/account_id", "account_id"),
+    )
+    for name, pointer, role in targets:
+        path = ARTIFACTS / "schemas" / f"{name}.schema.json"
+        node = load_json(lint, path)
+        for part in pointer.strip("/").split("/"):
+            node = node.get(part, {}) if isinstance(node, dict) else {}
+        if node.get("$ref") != f"./common-ids.schema.json#/$defs/{role}":
+            lint.fail(path, f"{pointer} must reference canonical {role}")
+
+    collections = (
+        ("keys-operations", "/$defs/query_account_device_selectors", "account_id"),
+        ("keys-operations", "/$defs/query_account_device_entries", "account_id"),
+        ("keys-operations", "/$defs/account_device_generation_entries", "account_id"),
+        ("keys-operations", "/$defs/account_device_algorithm_entries", "account_id"),
+        ("keys-operations", "/$defs/account_device_key_entries", "account_id"),
+        ("account-subscribe-frame", "/$defs/state_at_window_start/properties/actor_profiles", "actor_id"),
+    )
+    for name, pointer, role in collections:
+        path = ARTIFACTS / "schemas" / f"{name}.schema.json"
+        node = load_json(lint, path)
+        for part in pointer.strip("/").split("/"):
+            node = node.get(part, {}) if isinstance(node, dict) else {}
+        item = node.get("items", {})
+        if (
+            node.get("type") != "array"
+            or node.get("uniqueItems") is not True
+            or item.get("type") != "object"
+            or item.get("additionalProperties") is not False
+            or role not in item.get("required", [])
+            or item.get("properties", {}).get(role, {}).get("$ref") != f"./common-ids.schema.json#/$defs/{role}"
+        ):
+            lint.fail(path, f"{pointer} must use closed entries keyed by canonical {role}")
+
+    payload_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
+    payload = load_json(lint, payload_path)
+    props = payload.get("$defs", {}).get("membership_payload", {}).get("properties", {})
+    if "via" in props or "via_ids" in props:
+        lint.fail(payload_path, "membership_payload must not restore a routing carrier")
+
+
 def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
     """The re-anchor receipt scope and its payload must select the same authority."""
     payload_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
@@ -3094,7 +3145,7 @@ def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
             lint.fail(
                 payload_path,
                 f"$defs.device_reanchor_payload.{name} restores a retired DID-version authority field; "
-                "the base re-anchor branch selects authority only through principal_id plus station_id and the "
+                "the base re-anchor branch selects authority only through exact AccountId and the "
                 "PCR-local device generation CAS",
             )
         if name in scope_props:
@@ -3103,6 +3154,12 @@ def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
                 f"$defs.device_reanchor_scope.{name} restores a retired DID-version authority field; "
                 "the receipt scope MUST mirror the payload authority selection",
             )
+
+    for path, props, required in ((payload_path, payload_props, payload_required), (receipt_path, scope_props, scope_required)):
+        if "account_id" not in required or props.get("account_id", {}).get("$ref") != "./common-ids.schema.json#/$defs/account_id":
+            lint.fail(path, "device re-anchor authority must require canonical AccountId")
+        if "principal_id" in props or "station_id" in props:
+            lint.fail(path, "device re-anchor authority must not restore a split account pair")
 
     shared = [name for name in scope_props if name not in REANCHOR_SCOPE_LOCAL_FIELDS]
     for name in sorted(shared):
@@ -3126,7 +3183,7 @@ def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
                 "for the same authority field allows silent substitution",
             )
 
-    for name in ("principal_id", "station_id", "previous_device_generation", "new_device_generation"):
+    for name in ("account_id", "previous_device_generation", "new_device_generation"):
         if name not in scope_required:
             lint.fail(
                 receipt_path,

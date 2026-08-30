@@ -503,7 +503,7 @@
       "properties": {
         "actor_profiles": {
           "type": "array",
-          "description": "Window-start profile rows keyed semantically by the complete ActorId. A principal DID alone is not a key: accounts on distinct Stations remain distinct rows.",
+          "uniqueItems": true,
           "items": {
             "type": "object",
             "required": [
@@ -523,7 +523,8 @@
               }
             },
             "additionalProperties": false
-          }
+          },
+          "description": "Window-start profile rows keyed semantically by the complete ActorId. Entries MUST be sorted by unsigned UTF-8 bytes of RFC 8785 JCS(actor_id), and duplicate ActorIds MUST be rejected even if display fields differ. A principal DID alone is not a key: accounts on distinct Stations remain distinct rows with their own display projections."
         },
         "realm_metadata": {
           "type": "object",
@@ -593,7 +594,7 @@
         "hero_ids": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
           "uniqueItems": true,
           "maxItems": 20

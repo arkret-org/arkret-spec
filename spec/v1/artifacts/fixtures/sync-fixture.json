@@ -149,7 +149,7 @@
         },
         "next_actor_seq": 1,
         "frontier_event_ids": [],
-        "frontier_digest": "sha256:4e14285bf450dff49220316ffa2ef2258c2be1a389e09aae86d26a797d894233"
+        "frontier_digest": "sha256:b7f809febc010d09395e32891785c6d174805d31c5cb7d3df1531849c2db1a73"
       }
     }
   ],
@@ -1547,20 +1547,20 @@
                     "kind": "account",
                     "account_id": {
                       "principal_id": "ak:did_core:webvh:z6mkfixture",
-                      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      "station_id": "ak:did_core:webvh:z6mkfixtureotherstationexample"
                     }
                   },
-                  "display_name": "Alice"
+                  "display_name": "Alice at another Station"
                 },
                 {
                   "actor_id": {
                     "kind": "account",
                     "account_id": {
                       "principal_id": "ak:did_core:webvh:z6mkfixture",
-                      "station_id": "ak:did_core:webvh:z6mkfixtureotherstationexample"
+                      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
                     }
                   },
-                  "display_name": "Alice at another Station"
+                  "display_name": "Alice"
                 }
               ],
               "realm_metadata": {

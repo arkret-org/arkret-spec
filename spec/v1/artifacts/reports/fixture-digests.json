@@ -162,7 +162,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
-      "sha256": "1090dbccfbe420da59cca080347f2dc5ef6b7e357b61f7fff19041c2e918c1e6"
+      "sha256": "7a58cefcb0e852bcb84b4221e34fd7b74c43f348c427bf54f7954db0a296cf48"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
@@ -282,7 +282,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "489dc8a9d1ab985820596b913790de1310f5af32b7d04e15a447ef0014e89516"
+      "sha256": "9174f557595ff3cb624cebd9c074436c4d3d40eb4c3ea70ccc1cba8681a7da82"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -330,7 +330,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "0ca09c91bdbac697e0826318c7312ffe95d2bf847bb57e1621a1e85f04c56713"
+      "sha256": "379ccf00f2830f65cc45090828f31dbaf9c4c8dea0f653e0d922b23a5a38d74f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -370,7 +370,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
-      "sha256": "56ecb68342efb9f6beee5a9cff4a8ee614483e1c7a3b139474aab10020e5688e"
+      "sha256": "d03a0d62b2b895904a8306bc16a79379d2693073afde54e38d605fc1f27f605f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",
@@ -378,7 +378,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-sequence-high-water-fixture.json",
-      "sha256": "7340e3fd5cbb69357a69c485e1989111e6c5e07aaf89cca28a5fed6272ed74fd"
+      "sha256": "0191fcb8ba48846cd609997ccb0afbad4b55681676e88afccdff4b47bb8d5ef5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
@@ -394,7 +394,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "fa0cbe5cce736c46b148d94366b664088104e9d74096a5d53198ab4f9ba51e80"
+      "sha256": "e60064495daf8386eb994e7123d43e1ce9e8d0d26bbe0ade2c9310874b457611"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

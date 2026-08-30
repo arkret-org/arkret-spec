@@ -36,6 +36,7 @@ from .foundation import (
 )
 
 from .schemas import (
+    check_account_identity_carrier_closure,
     check_agent_runtime_scope_registry,
     check_canonical_wire_source_closure,
     check_circle_lifecycle_basis_vector,
@@ -347,6 +348,7 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_derived_signature_projection_closure(lint),
             ),
             ("reducer_payloads", lambda: check_reducer_payload_closure(lint)),
+            ("account_identity_carriers", lambda: check_account_identity_carrier_closure(lint)),
             (
                 "device_reanchor_binding",
                 lambda: check_device_reanchor_payload_receipt_binding(lint),

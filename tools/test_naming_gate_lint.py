@@ -834,7 +834,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
             mutate,
             check=check_identifier_role_suffix_contracts,
         )
-        self.assertTrue(any("terminal_category=did_core_id" in error for error in errors), errors)
+        self.assertTrue(any("terminal_category=composite_identifier" in error for error in errors), errors)
         self.assertTrue(any("expected_suffix=_ids" in error for error in errors), errors)
 
     def test_object_array_cannot_claim_ids_representation(self) -> None:

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.2",
+  "version": "2026-08-31.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T00:10:00+08:00",
+  "generated_at": "2026-08-31T04:30:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -724,10 +724,9 @@
       "object_family": "device_projection_attestation",
       "binding_fields": [
         "payload_digest",
-        "principal_id",
-        "station_id",
+        "account_id",
         "device_id",
-        "device_signing_key",
+        "device_signing_key_did",
         "hpke_key",
         "device_authorize_event_id",
         "authorized_generation_ref",
@@ -745,8 +744,7 @@
       "object_family": "principal_locator",
       "binding_fields": [
         "payload_digest",
-        "subject_id",
-        "recipient_id",
+        "account_id",
         "verification_method",
         "created_at",
         "domain?",

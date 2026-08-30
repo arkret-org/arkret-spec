@@ -812,11 +812,22 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
 
     expect_any_of("ak.self.events.stream.subscribe.v1", [["realm_ids"], ["actor_ids"]])
     expect_array_param("ak.self.events.stream.subscribe.v1", "realm_ids", "#/components/schemas/RealmId")
-    expect_array_param(
-        "ak.self.events.stream.subscribe.v1",
-        "actor_ids",
-        "../schemas/common-ids.schema.json#/$defs/did_core_id",
-    )
+    subscribe = op("ak.self.events.stream.subscribe.v1")
+    if subscribe is not None:
+        actor_param = next((p for p in subscribe.get("parameters", []) if p.get("name") == "actor_ids"), {})
+        actor_schema = actor_param.get("schema", {})
+        if (
+            actor_schema.get("type") != "array"
+            or actor_schema.get("minItems") != 1
+            or actor_schema.get("maxItems") != 256
+            or actor_schema.get("uniqueItems") is not True
+            or actor_schema.get("items") != {"type": "string", "minLength": 1}
+            or actor_param.get("style") != "form"
+            or actor_param.get("explode") is not True
+            or "RFC 8785 JCS" not in actor_param.get("description", "")
+            or "ActorId" not in actor_param.get("description", "")
+        ):
+            lint.fail(openapi_path, "events subscribe actor_ids must use repeated percent-encoded JCS ActorId values")
     expect_param_ref("ak.self.events.stream.subscribe.v1", "after", "#/components/schemas/Cursor")
     expect_param_ref("ak.self.events.resource.get.v1", "event_id", "#/components/schemas/EventId")
     expect_param_ref("ak.self.snapshot.read.manifest_head.v1", "realm_id", "#/components/schemas/RealmId")
@@ -836,7 +847,7 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
             else:
                 for name, ref in (
                     ("realm_ids", "#/components/schemas/RealmId"),
-                    ("actor_ids", "../schemas/common-ids.schema.json#/$defs/did_core_id"),
+                    ("actor_ids", "../schemas/common-ids.schema.json#/$defs/actor_id"),
                 ):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict):

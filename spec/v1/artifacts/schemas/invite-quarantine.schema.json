@@ -73,7 +73,7 @@
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact holder of this account-data cell. Both principal and Station must match the authenticated account; the same principal at another Station has an independent quarantine inbox."
+          "description": "Exact holder of this account-data cell and recipient of the quarantined invite. The sole CAS writer is account_id.station_id; another account with the same principal core is a different holder."
         },
         "source_peer_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",

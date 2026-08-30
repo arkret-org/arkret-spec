@@ -113,7 +113,7 @@
         "locator_token": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{22,512}$",
-          "description": "Opaque base64url locator token with at least 128 bits of entropy. It SHOULD be a server-side handle and MUST NOT plaintext-encode subject_id, recipient_id, expiry, policy state, or other invitee-identifying material. It MUST be sent in the JSON body, never in URL path or query string."
+          "description": "Opaque base64url locator token with at least 128 bits of entropy. It SHOULD be a server-side handle and MUST NOT plaintext-encode account_id, expiry, policy state, or other invitee-identifying material. It MUST be sent in the JSON body, never in URL path or query string."
         }
       },
       "additionalProperties": false

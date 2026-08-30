@@ -490,7 +490,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 跨桶累计超过 64 时，上述“整桶”扩展为同一 `(realm_id, actor_id, actor_seq)` 的全部 sibling。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 digest 与确定性 reducer 输出 MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move仍按上段移除。
 
-`ak.device.reanchor` 使用 account-local 冲突槽 `(principal_id, station_id, new_device_generation)`。Station 的 create-once 合同保证该 pair 只有一条 PCR lineage；同槽 re-anchor 与 replacement-authorize digest 全同才是幂等重试，任一不同则 quarantine 全部候选及后继 generation Seal。该槽不暴露 PCR digest 为第二套身份，也不能用 first-seen 或数据库唯一约束丢弃冲突证据。
+`ak.device.reanchor` 使用 account-local 冲突槽 `(account_id, new_device_generation)`。Station 的 create-once 合同保证该 pair 只有一条 PCR lineage；同槽 re-anchor 与 replacement-authorize digest 全同才是幂等重试，任一不同则 quarantine 全部候选及后继 generation Seal。该槽不暴露 PCR digest 为第二套身份，也不能用 first-seen 或数据库唯一约束丢弃冲突证据。
 
 上述独立冲突槽、到达顺序无关性与解除路径由 `ak.vector.identity.device_reanchor.v1` 执行验证。
 

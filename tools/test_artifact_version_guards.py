@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from artifact_pipeline import preserve_artifact_metadata_when_semantics_match
@@ -127,6 +128,34 @@ class ArtifactVersionGuardTest(unittest.TestCase):
             self.assertEqual(
                 preserve_artifact_metadata_when_semantics_match(path, candidate), candidate
             )
+
+    def test_repeated_generation_does_not_pin_unvalidated_old_metadata(self) -> None:
+        import artifact_pipeline
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "derived.json"
+            existing = {
+                "version": "2026-08-26.1",
+                "generated_at": "2026-08-26T10:00:00+08:00",
+                "rows": ["new"],
+            }
+            path.write_text(json.dumps(existing), encoding="utf-8")
+            baseline = {
+                "path": "derived.json",
+                "version": existing["version"],
+                "generated_at": existing["generated_at"],
+                "content_digest": semantic_content_digest({**existing, "rows": ["old"]}),
+            }
+            candidate = {
+                **existing,
+                "version": "2026-08-26.2",
+                "generated_at": "2026-08-26T11:00:00+08:00",
+            }
+            with patch.object(artifact_pipeline, "ROOT", root), patch.object(
+                artifact_pipeline, "artifact_metadata_references", return_value={"derived.json": baseline}
+            ):
+                self.assertEqual(preserve_artifact_metadata_when_semantics_match(path, candidate), candidate)
 
 
 if __name__ == "__main__":

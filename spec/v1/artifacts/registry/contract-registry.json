@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.4",
+  "version": "2026-08-31.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T18:00:00+08:00",
+  "generated_at": "2026-08-31T18:00:01+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -1987,8 +1987,8 @@
           {
             "cell_family": "ak.component.device.reanchor.v1",
             "cell_subject": {
-              "field": "payload.principal_id",
-              "kind": "did"
+              "field": "payload.account_id",
+              "kind": "canonical_json"
             },
             "lattice": "ordered_log",
             "bottom": "reject",
@@ -7469,7 +7469,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Invite create. Directed v1 genesis payloads omit invite/invite_id and carry invitee plus invite_delivery_target, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event.",
+        "payload": "Invite create. Directed v1 genesis payloads carry the exact invitee_account_id, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Delivery resolves invitee_account_id.station_id outside durable Realm state. Raw locator tokens, route material and invite_receive_policy state MUST NOT enter the durable Realm event.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_create_payload",
         "id_source": "event_derived",
         "id_kind": "invite"
@@ -9023,7 +9023,7 @@
         "schema_id": "ak.schema.principal_locator.v1",
         "file": "schemas/principal-locator.schema.json",
         "status": "active",
-        "description": "Signed online invite locator asserting subject_id and recipient_id for private invite delivery."
+        "description": "Signed online invite locator asserting an exact AccountId for private invite delivery."
       },
       {
         "schema_id": "ak.schema.invite_delivery_request.v1",
@@ -10123,8 +10123,8 @@
         "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-30.1",
-    "generated_at": "2026-08-30T23:30:00+08:00"
+    "version": "2026-08-31.1",
+    "generated_at": "2026-08-31T04:30:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -12805,7 +12805,7 @@
         "http": "POST /_arkret/peer/invites",
         "grpc": "PeerInvites/Submit",
         "mq": "peer.invites.command.submit",
-        "notes": "Private Station to Station invite delivery. Requires service-to-service authentication, Destination-Service-ID equal to invite_address.recipient_id, a ak.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
+        "notes": "Private Station to Station invite delivery. Requires service-to-service authentication, Destination-Service-ID equal to invite_address.account_id.station_id, a ak.invite.create event whose invitee_account_id equals invite_address.account_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -14456,7 +14456,7 @@
         "http": "POST /_arkret/self/invite-locators",
         "grpc": "SelfInviteLocator/Issue",
         "mq": "self.invite_locator.command.issue",
-        "notes": "Issues a fresh opaque locator for the authenticated principal. subject_id and recipient_id are server-derived; the raw bearer token is returned exactly once and MUST NOT be persisted.",
+        "notes": "Issues a fresh opaque locator for the authenticated principal. account_id is server-derived; the raw bearer token is returned exactly once and MUST NOT be persisted.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
@@ -15224,8 +15224,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-30.2",
-    "generated_at": "2026-08-30T23:50:00+08:00",
+    "version": "2026-08-31.5",
+    "generated_at": "2026-08-31T18:00:01+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

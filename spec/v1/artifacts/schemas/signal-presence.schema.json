@@ -19,7 +19,7 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 18446744073709551615,
-      "description": "Strictly increasing but non-contiguous u64 within (sender_device_id, canonical scope_ref). Multi-device presence accepts arbitrary forward gaps and only considers signals that advance the device/scope high-water."
+      "description": "Strictly increasing but non-contiguous u64 within (sender_actor_id, sender_device_id, canonical scope_ref), including the complete ActorId. Multi-device presence accepts arbitrary forward gaps and only considers signals that advance the Actor/device/scope high-water."
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",

@@ -36,7 +36,7 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 18446744073709551615,
-          "description": "Sender-device sequence within the signed Signal scope. It is independent of the per-stream seq and participates in generic Signal replay handling."
+          "description": "Strictly increasing but non-contiguous sequence within (sender_actor_id, sender_device_id, canonical scope_ref), including the complete ActorId. It is independent of the per-stream seq and participates in generic Signal replay handling."
         },
         "strand_id": {
           "$ref": "#/$defs/strand_id"

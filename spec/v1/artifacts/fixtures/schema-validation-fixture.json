@@ -14,6 +14,716 @@
   },
   "schema_validation_cases": [
     {
+      "name": "account_identity_closure_event_query_same_core_distinct_stations_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
+      "expect_valid": true,
+      "instance": {
+        "actor_ids": [
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:web:ps.example"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:web:ps2.example"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "account_identity_closure_event_query_bare_did_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
+      "expect_valid": false,
+      "instance": {
+        "actor_ids": [
+          "ak:did_core:webvh:z6mkfixture"
+        ]
+      },
+      "first_expected_error": "contains:not valid under"
+    },
+    {
+      "name": "account_identity_closure_websocket_filter_same_core_distinct_stations_valid",
+      "schema_ref": "schemas/websocket-frame.schema.json#/$defs/events_open_parameters",
+      "expect_valid": true,
+      "instance": {
+        "actor_ids": [
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:web:ps.example"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:web:ps2.example"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "account_identity_closure_websocket_filter_bare_did_rejected",
+      "schema_ref": "schemas/websocket-frame.schema.json#/$defs/events_open_parameters",
+      "expect_valid": false,
+      "instance": {
+        "actor_ids": [
+          "ak:did_core:webvh:z6mkfixture"
+        ]
+      },
+      "first_expected_error": "contains:not valid under"
+    },
+    {
+      "name": "account_identity_closure_actor_profile_same_core_distinct_stations_valid",
+      "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_request",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+        "actor_ids": [
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:web:ps.example"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:web:ps2.example"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "account_identity_closure_actor_profile_bare_did_rejected",
+      "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_request",
+      "expect_valid": false,
+      "instance": {
+        "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+        "actor_ids": [
+          "ak:did_core:webvh:z6mkfixture"
+        ]
+      },
+      "first_expected_error": "contains:not valid under"
+    },
+    {
+      "name": "account_identity_closure_hero_exact_actor_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/realm_summary",
+      "expect_valid": true,
+      "instance": {
+        "hero_ids": [
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:web:ps.example"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:web:ps2.example"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "account_identity_closure_hero_bare_did_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/realm_summary",
+      "expect_valid": false,
+      "instance": {
+        "hero_ids": [
+          "ak:did_core:webvh:z6mkfixture"
+        ]
+      },
+      "first_expected_error": "contains:not valid under"
+    },
+    {
+      "name": "account_identity_closure_profile_entries_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/state_at_window_start",
+      "expect_valid": true,
+      "instance": {
+        "actor_profiles": [
+          {
+            "actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:web:ps.example"
+              }
+            },
+            "display_name": "Alice"
+          },
+          {
+            "actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:web:ps2.example"
+              }
+            },
+            "display_name": "Alice elsewhere"
+          }
+        ],
+        "realm_metadata": {},
+        "e2ee_epoch": null
+      }
+    },
+    {
+      "name": "account_identity_closure_profile_bare_did_map_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/state_at_window_start",
+      "expect_valid": false,
+      "instance": {
+        "actor_profiles": {
+          "ak:did_core:webvh:z6mkfixture": {
+            "display_name": "Alice"
+          }
+        },
+        "realm_metadata": {},
+        "e2ee_epoch": null
+      },
+      "first_expected_error": "contains:not of type"
+    },
+    {
+      "name": "account_identity_closure_key_query_same_core_distinct_stations_valid",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/query_account_device_selectors",
+      "expect_valid": true,
+      "instance": [
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_ids": [
+            "ak:device:019a6aa0-0000-7000-8000-000000000001"
+          ]
+        },
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps2.example"
+          },
+          "device_ids": [
+            "ak:device:019a6aa0-0000-7000-8000-000000000001"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "account_identity_closure_key_query_bare_did_map_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/query_account_device_selectors",
+      "expect_valid": false,
+      "instance": {
+        "ak:did_core:webvh:z6mkfixture": [
+          "ak:device:019a6aa0-0000-7000-8000-000000000001"
+        ]
+      },
+      "first_expected_error": "contains:not of type"
+    },
+    {
+      "name": "account_identity_closure_key_query_duplicate_entry_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/query_account_device_selectors",
+      "expect_valid": false,
+      "instance": [
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_ids": [
+            "ak:device:019a6aa0-0000-7000-8000-000000000001"
+          ]
+        },
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_ids": [
+            "ak:device:019a6aa0-0000-7000-8000-000000000001"
+          ]
+        }
+      ],
+      "first_expected_error": "contains:non-unique elements"
+    },
+    {
+      "name": "account_identity_closure_key_rows_same_core_distinct_stations_valid",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/query_account_device_entries",
+      "expect_valid": true,
+      "instance": [
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_keys": {}
+        },
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps2.example"
+          },
+          "device_keys": {}
+        }
+      ]
+    },
+    {
+      "name": "account_identity_closure_key_rows_bare_did_map_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/query_account_device_entries",
+      "expect_valid": false,
+      "instance": {
+        "ak:did_core:webvh:z6mkfixture": {}
+      },
+      "first_expected_error": "contains:not of type"
+    },
+    {
+      "name": "account_identity_closure_key_rows_duplicate_entry_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/query_account_device_entries",
+      "expect_valid": false,
+      "instance": [
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_keys": {}
+        },
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_keys": {}
+        }
+      ],
+      "first_expected_error": "contains:non-unique elements"
+    },
+    {
+      "name": "account_identity_closure_key_claim_same_core_distinct_stations_valid",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/account_device_algorithm_entries",
+      "expect_valid": true,
+      "instance": [
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_algorithms": {}
+        },
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps2.example"
+          },
+          "device_algorithms": {}
+        }
+      ]
+    },
+    {
+      "name": "account_identity_closure_key_claim_bare_did_map_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/account_device_algorithm_entries",
+      "expect_valid": false,
+      "instance": {
+        "ak:did_core:webvh:z6mkfixture": {}
+      },
+      "first_expected_error": "contains:not of type"
+    },
+    {
+      "name": "account_identity_closure_key_claim_duplicate_entry_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/account_device_algorithm_entries",
+      "expect_valid": false,
+      "instance": [
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_algorithms": {}
+        },
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_algorithms": {}
+        }
+      ],
+      "first_expected_error": "contains:non-unique elements"
+    },
+    {
+      "name": "account_identity_closure_claimed_keys_same_core_distinct_stations_valid",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/account_device_key_entries",
+      "expect_valid": true,
+      "instance": [
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_keys": {}
+        },
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps2.example"
+          },
+          "device_keys": {}
+        }
+      ]
+    },
+    {
+      "name": "account_identity_closure_claimed_keys_bare_did_map_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/account_device_key_entries",
+      "expect_valid": false,
+      "instance": {
+        "ak:did_core:webvh:z6mkfixture": {}
+      },
+      "first_expected_error": "contains:not of type"
+    },
+    {
+      "name": "account_identity_closure_claimed_keys_duplicate_entry_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/account_device_key_entries",
+      "expect_valid": false,
+      "instance": [
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_keys": {}
+        },
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "device_keys": {}
+        }
+      ],
+      "first_expected_error": "contains:non-unique elements"
+    },
+    {
+      "name": "account_identity_closure_key_generations_same_core_distinct_stations_valid",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/account_device_generation_entries",
+      "expect_valid": true,
+      "instance": [
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "generation_state": {
+            "current_device_generation_ref": 1,
+            "device_generation_status": "active"
+          }
+        },
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps2.example"
+          },
+          "generation_state": {
+            "current_device_generation_ref": 1,
+            "device_generation_status": "active"
+          }
+        }
+      ]
+    },
+    {
+      "name": "account_identity_closure_key_generations_bare_did_map_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/account_device_generation_entries",
+      "expect_valid": false,
+      "instance": {
+        "ak:did_core:webvh:z6mkfixture": {
+          "current_device_generation_ref": 1,
+          "device_generation_status": "active"
+        }
+      },
+      "first_expected_error": "contains:not of type"
+    },
+    {
+      "name": "account_identity_closure_key_generations_duplicate_entry_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/account_device_generation_entries",
+      "expect_valid": false,
+      "instance": [
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "generation_state": {
+            "current_device_generation_ref": 1,
+            "device_generation_status": "active"
+          }
+        },
+        {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          },
+          "generation_state": {
+            "current_device_generation_ref": 1,
+            "device_generation_status": "active"
+          }
+        }
+      ],
+      "first_expected_error": "contains:non-unique elements"
+    },
+    {
+      "name": "account_identity_closure_receive_policy_valid",
+      "schema_ref": "schemas/invite-receive-policy.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.invite_receive_policy.v1",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "holder_allowed_introduction_kinds": [],
+        "explicit_address_behavior": "quarantine",
+        "unknown_invites": "quarantine"
+      }
+    },
+    {
+      "name": "account_identity_closure_receive_policy_bare_holder_rejected",
+      "schema_ref": "schemas/invite-receive-policy.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.invite_receive_policy.v1",
+        "holder_allowed_introduction_kinds": [],
+        "explicit_address_behavior": "quarantine",
+        "unknown_invites": "quarantine",
+        "subject_id": "ak:did_core:webvh:z6mkfixture"
+      },
+      "first_expected_error": "contains:'account_id' is a required property"
+    },
+    {
+      "name": "account_identity_closure_quarantine_exact_holder_valid",
+      "schema_ref": "schemas/invite-quarantine.schema.json#/$defs/quarantine_entry",
+      "expect_valid": true,
+      "instance": {
+        "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "status": "pending_review",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
+        "source_id": "ak:did_core:web:sender.example",
+        "consent_scope": "invite",
+        "introduction_kind": "explicit_address",
+        "effective_kind": "explicit_address",
+        "trust_tier": "low",
+        "invite_event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "idempotency_key_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "received_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z"
+      }
+    },
+    {
+      "name": "account_identity_closure_quarantine_recipient_mirror_rejected",
+      "schema_ref": "schemas/invite-quarantine.schema.json#/$defs/quarantine_entry",
+      "expect_valid": false,
+      "instance": {
+        "entry_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "status": "pending_review",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
+        "source_id": "ak:did_core:web:sender.example",
+        "consent_scope": "invite",
+        "introduction_kind": "explicit_address",
+        "effective_kind": "explicit_address",
+        "trust_tier": "low",
+        "invite_event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "idempotency_key_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "received_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z",
+        "recipient_id": "ak:did_core:web:ps.example"
+      },
+      "first_expected_error": "contains:Additional properties"
+    },
+    {
+      "name": "account_identity_closure_reanchor_scope_valid",
+      "schema_ref": "schemas/event-batch-receipt.schema.json#/$defs/device_reanchor_scope",
+      "expect_valid": true,
+      "instance": {
+        "kind": "device_reanchor_unit",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+        "previous_device_generation": 1,
+        "new_device_generation": 2
+      }
+    },
+    {
+      "name": "account_identity_closure_reanchor_split_pair_rejected",
+      "schema_ref": "schemas/event-batch-receipt.schema.json#/$defs/device_reanchor_scope",
+      "expect_valid": false,
+      "instance": {
+        "kind": "device_reanchor_unit",
+        "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+        "previous_device_generation": 1,
+        "new_device_generation": 2,
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "station_id": "ak:did_core:web:ps.example"
+      },
+      "first_expected_error": "contains:'account_id' is a required property"
+    },
+    {
+      "name": "account_identity_closure_membership_without_route_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+        "member_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          }
+        },
+        "membership": "join"
+      }
+    },
+    {
+      "name": "account_identity_closure_membership_via_ids_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
+      "expect_valid": false,
+      "instance": {
+        "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+        "member_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          }
+        },
+        "membership": "join",
+        "via_ids": [
+          "ak:did_core:web:ps.example"
+        ]
+      },
+      "first_expected_error": "contains:Additional properties"
+    },
+    {
+      "name": "account_identity_closure_cleanup_exact_actor_valid",
+      "schema_ref": "schemas/agent-membership-cascade.schema.json#/$defs/agent_cleanup_record",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.agent_membership_cascade.v1",
+        "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "controller_membership_generation_ref": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
+        "initiator_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          }
+        },
+        "controller_terminal_event_id": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
+        "expected_agent_ids": [
+          {
+            "kind": "hosted_principal",
+            "principal_id": "ak:did_core:webvh:z6mkagent",
+            "station_id": "ak:did_core:web:ps.example"
+          }
+        ],
+        "cleanup_intent_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "accepted_at": "2026-08-31T00:00:00.000Z",
+        "cleanup_due_at": "2026-08-31T01:00:00.000Z"
+      }
+    },
+    {
+      "name": "account_identity_closure_cleanup_bare_did_rejected",
+      "schema_ref": "schemas/agent-membership-cascade.schema.json#/$defs/agent_cleanup_record",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.agent_membership_cascade.v1",
+        "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "controller_membership_generation_ref": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
+        "initiator_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:ps.example"
+          }
+        },
+        "controller_terminal_event_id": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
+        "expected_agent_ids": [
+          "ak:did_core:webvh:z6mkagent"
+        ],
+        "cleanup_intent_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "accepted_at": "2026-08-31T00:00:00.000Z",
+        "cleanup_due_at": "2026-08-31T01:00:00.000Z"
+      },
+      "first_expected_error": "contains:not valid under"
+    },
+    {
+      "name": "account_identity_closure_device_attestation_valid",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/device_projection_attestation_core",
+      "expect_valid": true,
+      "instance": {
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
+        "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000001",
+        "device_signing_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+        "hpke_key": "fixture-key",
+        "device_authorize_event_id": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
+        "authorized_generation_ref": 1,
+        "device_status": "active",
+        "attested_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z"
+      }
+    },
+    {
+      "name": "account_identity_closure_device_attestation_split_pair_rejected",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/device_projection_attestation_core",
+      "expect_valid": false,
+      "instance": {
+        "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000001",
+        "device_signing_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+        "hpke_key": "fixture-key",
+        "device_authorize_event_id": "ak:event:AU4U_cVyICYyIsqKFr9sNp6_FozG2hx-1gpvo4HZae6x",
+        "authorized_generation_ref": 1,
+        "device_status": "active",
+        "attested_at": "2026-08-31T00:00:00.000Z",
+        "expires_at": "2026-08-31T01:00:00.000Z",
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "station_id": "ak:did_core:web:ps.example"
+      },
+      "first_expected_error": "contains:'account_id' is a required property"
+    },
+    {
       "name": "audit_release_payload_seal_ref_valid",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/audit_release_payload",
       "expect_valid": true,
@@ -3578,8 +4288,10 @@
       "name": "device_reanchor_payload_non_null_pre_fence_seal_frontier_valid",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "station_id": "ak:did_core:web:ps.example",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
@@ -3602,8 +4314,10 @@
       "name": "device_reanchor_payload_pre_fence_seal_frontier_leaves_only_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "station_id": "ak:did_core:web:ps.example",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
@@ -3624,8 +4338,10 @@
       "name": "device_reanchor_payload_pre_fence_seal_frontier_missing_control_event_set_root_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "station_id": "ak:did_core:web:ps.example",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
@@ -3648,8 +4364,10 @@
       "name": "device_reanchor_payload_pre_fence_seal_frontier_missing_state_root_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "station_id": "ak:did_core:web:ps.example",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:ps.example"
+        },
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
