@@ -182,7 +182,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-      "sha256": "89b4b441d184fdbb162e7fddffcbdfb8f13dd0c6b462f252383b804d781a6504"
+      "sha256": "2a698ed40d0a199eba75cb892924accdd65d1df0215867b44653877b7950b122"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",

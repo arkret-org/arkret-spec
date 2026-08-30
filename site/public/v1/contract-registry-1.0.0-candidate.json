@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.2",
+  "version": "2026-08-31.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-31T16:30:00+08:00",
+  "generated_at": "2026-08-31T17:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -8651,7 +8651,10 @@
           "cell_subject": {
             "kind": "composite",
             "components": [
-              "payload.account_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.account_id"
+              },
               "payload.device_id",
               "payload.push_route"
             ]

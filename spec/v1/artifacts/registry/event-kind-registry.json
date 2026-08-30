@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.2",
+  "version": "2026-08-31.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T16:30:00+08:00",
+  "generated_at": "2026-08-31T17:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -7984,7 +7984,10 @@
         "cell_subject": {
           "kind": "composite",
           "components": [
-            "payload.account_id",
+            {
+              "kind": "canonical_json",
+              "field": "payload.account_id"
+            },
             "payload.device_id",
             "payload.push_route"
           ]
