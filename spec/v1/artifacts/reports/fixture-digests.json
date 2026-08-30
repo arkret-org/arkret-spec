@@ -82,7 +82,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "0eee94cfcbcbafcd42959db3ae18cf6942943b5e0ffb736d1f32789a71b973f7"
+      "sha256": "00cd717735ee76c7ca0acfd9bb519853e9ca756be80bb25f196a22b107f739eb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
@@ -146,7 +146,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
-      "sha256": "3a20682463fc9140ff3a22674ff6d388ce28c773f1f62f5038fc6250d5830793"
+      "sha256": "9baed0e9b7a6842a9f9329f8a11d688c5fa59b9274599c55d278ade43236e0d7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-lattice-dispatch-fixture.json",
@@ -394,7 +394,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "622754208a4c036b69e2021dc2a96bcb70bf6d509017b6d8a24d4e981aa4c31d"
+      "sha256": "fa0cbe5cce736c46b148d94366b664088104e9d74096a5d53198ab4f9ba51e80"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

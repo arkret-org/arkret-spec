@@ -5,7 +5,7 @@
   },
   "suite": "event_envelope_negative",
   "profile": "ak.profile.core_event_store.v1",
-  "version": "2026-07-03",
+  "version": "2026-08-31.1",
   "covers_vectors": [
     "ak.vector.envelope.negative_admission.v1"
   ],
@@ -38,8 +38,7 @@
               "body": "hello"
             }
           },
-          "proofs": [],
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          "proofs": []
         }
       },
       "expected": {
@@ -92,8 +91,7 @@
                 "fail_closed": true
               }
             ]
-          },
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
         },
         "supported_features": [
           "ak.feature.detached_jws.v1"
@@ -149,8 +147,7 @@
               "domain": "arkret-event-v1",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
-          ],
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          ]
         }
       },
       "expected": {
@@ -202,8 +199,7 @@
               "body": "rollback"
             }
           },
-          "proofs": [],
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          "proofs": []
         }
       },
       "expected": {
@@ -375,8 +371,7 @@
               "body": "too many prev refs"
             }
           },
-          "proofs": [],
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          "proofs": []
         }
       },
       "expected": {
@@ -415,8 +410,7 @@
               "body": "missing auth refs"
             }
           },
-          "proofs": [],
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          "proofs": []
         }
       },
       "expected": {
@@ -460,8 +454,7 @@
               "body": "self ref"
             }
           },
-          "proofs": [],
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          "proofs": []
         }
       },
       "expected": {
@@ -520,8 +513,7 @@
           "payload": {
             "event_id": "ak:event:AfJRB2whShXS-ghpXQhgN5u_MsXwor5nNWDxQ6YCfvce"
           },
-          "proofs": [],
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          "proofs": []
         }
       },
       "expected": {
@@ -563,8 +555,7 @@
             "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
             "typing": true
           },
-          "proofs": [],
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          "proofs": []
         }
       },
       "expected": {
@@ -614,8 +605,7 @@
                 "body": ""
               }
             },
-            "proofs": [],
-            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            "proofs": []
           }
         }
       },
@@ -668,8 +658,7 @@
                 "body": "oversized key host"
               }
             },
-            "proofs": [],
-            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            "proofs": []
           }
         }
       },
@@ -722,8 +711,7 @@
                 "body": ""
               }
             },
-            "proofs": [],
-            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            "proofs": []
           }
         }
       },

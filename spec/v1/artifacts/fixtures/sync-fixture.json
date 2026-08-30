@@ -1187,7 +1187,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1197,7 +1197,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
-              "payload_digest": "sha256:3d4d0dbc6317fe753b4b072193e081053610fe3872e14a2392799b3f856c8c76",
+              "payload_digest": "sha256:069066b85592f2622acacf47aa2880e1fc1f0ecc29957aeac785630415ac77c2",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1227,7 +1227,13 @@
         "root": "sha256:3712b0de544873450e9f546f4cdbba233b71b15e37ad427a8c1f2da02d7f5630",
         "covered_event_count": 20
       },
-      "issuer": "ak:did_core:webvh:z6mkfixture",
+      "issuer": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        }
+      },
       "authority_kind": "witness_quorum",
       "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "auth_frontier": [
@@ -1235,7 +1241,7 @@
       ],
       "snapshot_created_at": "2026-04-26T00:00:00.000Z"
     },
-    "expected_digest": "sha256:6898fe5b58cb90bab677a549094e31d5079703b6b11475d38230f6bcfb622adb",
+    "expected_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
     "cases": [
       {
         "name": "valid_quorum_accepted",
@@ -1245,7 +1251,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1255,7 +1261,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
-              "payload_digest": "sha256:3d4d0dbc6317fe753b4b072193e081053610fe3872e14a2392799b3f856c8c76",
+              "payload_digest": "sha256:069066b85592f2622acacf47aa2880e1fc1f0ecc29957aeac785630415ac77c2",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1277,7 +1283,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1287,7 +1293,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-2",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1305,7 +1311,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1315,7 +1321,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessd:witness-d.example#snapshot-witness-1",
-              "payload_digest": "sha256:f79921bfdb208794cc9c462a96a9e41201c51ad4dab54b230fa69881a96ea4b8",
+              "payload_digest": "sha256:7b63d015b61dc0193d2f56ad41a5e881cd076dabbd31a2fe6430ada826bb9141",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1332,7 +1338,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1342,7 +1348,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessc:witness-c.example#snapshot-witness-1",
-              "payload_digest": "sha256:71f9918f7aa8be8a2602ba371696cdd9e7dec925e04ac9a59a211d14dcd477e9",
+              "payload_digest": "sha256:fd2e835b5102e2775c5c2b805654d940e29ba842091dd9d2e7b1f9524b66c180",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1360,7 +1366,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:bfbcf9b40da42171e5af2936d4cd8bcb48ac2109b8cb6a7460958ddf9bafea32",
+              "payload_digest": "sha256:d2e4f2a9d2310e993e78aded043065cf21a747e31b86f2950d53f3e1d9c3e294",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1393,7 +1399,13 @@
             "root": "sha256:3712b0de544873450e9f546f4cdbba233b71b15e37ad427a8c1f2da02d7f5630",
             "covered_event_count": 20
           },
-          "issuer": "ak:did_core:webvh:z6mkfixture",
+          "issuer": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
           "authority_kind": "witness_quorum",
           "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "auth_frontier": [
@@ -1401,7 +1413,7 @@
           ],
           "snapshot_created_at": "2026-04-26T00:00:00.000Z"
         },
-        "expected_digest": "sha256:90f9688a7b15832e5ed1bacf031210624feeebc2ef9dbeffe85e769441037c34",
+        "expected_digest": "sha256:08fc2aa7473e4d25e6fc23096d1bdc6a27383c21f4fefe88ac302d5951d522fb",
         "expected_error": "signature_invalid",
         "note": "reusing the manifest context yields a different transcript digest and MUST be rejected even when the JWS verifies"
       },
@@ -1429,7 +1441,13 @@
             "root": "sha256:3712b0de544873450e9f546f4cdbba233b71b15e37ad427a8c1f2da02d7f5630",
             "covered_event_count": 20
           },
-          "issuer": "ak:did_core:webvh:z6mkfixture",
+          "issuer": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
           "authority_kind": "witness_quorum",
           "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "auth_frontier": [
@@ -1437,7 +1455,7 @@
           ],
           "snapshot_created_at": "2026-04-26T00:00:00.000Z"
         },
-        "expected_digest": "sha256:dbfa98c69869f1a73b069673a2eafeb1ac5160b8b37caec021c0875df7393ea3",
+        "expected_digest": "sha256:e99bf7dd566f28177aa2ee902759142d583000eb72a430b4ccb1395e7f58902e",
         "expected_error": "signature_invalid"
       },
       {

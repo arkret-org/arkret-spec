@@ -105,6 +105,26 @@ def update_direct_conversation_vectors(data: dict[str, Any]) -> int:
     return updates
 
 
+def update_snapshot_witness_quorum(data: dict[str, Any]) -> int:
+    """Bind every witness proof to the complete Actor issuer projection."""
+    fixture = data.get("snapshot_witness_quorum")
+    if not isinstance(fixture, dict):
+        return 0
+    canonical_input = fixture.get("canonical_input")
+    if not isinstance(canonical_input, dict):
+        return 0
+    updates = 0
+    for node in iter_dict_nodes(fixture):
+        witness_id = node.get("witness_id")
+        proof = node.get("proof")
+        if not isinstance(witness_id, str) or not isinstance(proof, dict):
+            continue
+        transcript = {**canonical_input, "witness_id": witness_id}
+        digest = "sha256:" + hashlib.sha256(canonical_json(transcript).encode("utf-8")).hexdigest()
+        updates += replace(proof, "payload_digest", digest)
+    return updates
+
+
 def update_file(path: Path) -> int:
     data = json.loads(path.read_text(encoding="utf-8"))
     updates = 0
@@ -133,6 +153,8 @@ def update_file(path: Path) -> int:
                     updates += 1
     if path.name == "encoding-fixture.json" and isinstance(data, dict):
         updates += update_direct_conversation_vectors(data)
+    if path.name == "sync-fixture.json" and isinstance(data, dict):
+        updates += update_snapshot_witness_quorum(data)
     if updates:
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return updates
