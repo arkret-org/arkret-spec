@@ -6,7 +6,7 @@
   "type": "object",
   "required": [
     "schema",
-    "subject_id",
+    "account_id",
     "holder_allowed_introduction_kinds",
     "explicit_address_behavior",
     "unknown_invites"
@@ -15,9 +15,9 @@
     "schema": {
       "const": "ak.schema.invite_receive_policy.v1"
     },
-    "subject_id": {
-      "$ref": "#/$defs/did_core_id",
-      "description": "Stable principal did_core_id whose private invite receive policy this object configures. A human anchor may originate from the registered did:webvh, did:web or did:key adapter; the separate ak.profile.ephemeral_pairwise_principal.v1 did:key role remains Realm-local and has no account/PCR/device directory."
+    "account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id",
+      "description": "Exact holder account whose private receive policy this object configures. The authenticated holder and stored cell must bind this full AccountId; another Station account of the same principal neither inherits nor updates this policy."
     },
     "holder_allowed_introduction_kinds": {
       "type": "array",

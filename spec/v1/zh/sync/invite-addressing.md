@@ -28,8 +28,10 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle.v1(int
 
 ```json
 {
-  "subject_id": "ak:did_core:webvh:z2dmjBobExample",
-  "recipient_id": "ak:did_core:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc",
+  "account_id": {
+    "principal_id": "ak:did_core:webvh:z2dmjBobExample",
+    "station_id": "ak:did_core:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc"
+  },
   "service_resolution": {
     "current_record_url": "https://ps.bob.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3AzGiUQcWG9yy3Z9pMs15w7JHgc/resolution"
   }
@@ -38,14 +40,13 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle.v1(int
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `subject_id` | `did_core_id` | MUST | 被邀请 principal / holder 的稳定业务身份；不是可直接解析的 DID。 |
-| `recipient_id` | `did_core_id` | MUST | 接收 invite delivery 的 Station 稳定 service identity。 |
-| `service_resolution` | `service_resolution_carrier` | MUST | `recipient_id` 的首跳路由材料；形态必须是完整 signed record 的 `inline`，或 `current_record_url` 加可选 `pinned_record_digest`。 |
-| `recipient_kind` | const | MAY | 若出现，MUST 等于 `station`；默认省略。 |
+| `account_id` | `AccountId` | MUST | 被邀请 holder 的完整账号；`principal_id` 与 `station_id` 均属于身份，不能从 handle、DID Document 或当前连接补齐。 |
+| `service_resolution` | `service_resolution_carrier` | MUST | `account_id.station_id` 的首跳路由材料；形态必须是完整 signed record 的 `inline`，或 `current_record_url` 加可选 `pinned_record_digest`。 |
+| `route_assistance` | `route_assistance` | MAY | 有界、仅用于 transport 的同一 Station 路由恢复提示。 |
 
-`recipient_id` 在 v1 中只表示 Station。它 **MUST NOT** 指向 notary、shared Station sync surface、push gateway、Directory 或任意第三方服务。将来如果需要组织、群组或其它接收服务形态，必须定义独立 locator / delivery schema，不得把 `recipient_kind` 扩成宽枚举后复用本 schema。
+`account_id.station_id` 在 v1 中只定位该账号所属 Station；notary、push gateway、Directory 或任意第三方服务不能替代它。地址没有独立 `subject_id`、`recipient_id`、`recipient_kind` 或 `delivery_modes` 字段；组织、群组等其它接收对象必须使用独立的已登记 schema，不能扩展本账号地址的身份语义。
 
-invite/locator 的权威首跳仍是必填 current `service_resolution`；它不得只携 future notice 或 mirror hint。schema MAY 允许一个可选、transport-only 的 `route_assistance`：其中 `handover_notice` 最多一份，必须是该 `recipient_id` 的完整 target-signed active `ServiceRouteHandoverNotice`；`mirror_hints[]` 最多四项，每项只含 mirror service `did_core_id` 及其独立 `service_resolution_carrier`，不得含 mirror 自签的 target URL。该对象不进入 `ak.invite.create` 的授权语义，不替代 `invite_delivery_target`，接收方 MAY 忽略。
+invite/locator 的权威首跳仍是必填 current `service_resolution`；它不得只携 future notice 或 mirror hint。可选、transport-only 的 `route_assistance` 中，`handover_notice` 最多一份，必须是 `account_id.station_id` 的完整 target-signed active `ServiceRouteHandoverNotice`；`mirror_hints[]` 最多四项，每项只含 mirror service `did_core_id` 及其独立 `service_resolution_carrier`，不得含 mirror 自签的 target URL。该对象不进入 `ak.invite.create` 的授权语义，不改变 AccountId，接收方 MAY 忽略。
 
 使用 `route_assistance` 时仍必须执行 [`service-surface.md` §2.6](./service-surface.md) 与 [`federation.md` §6.4](./federation.md)：notice 只能在 basis/time window 匹配时引导取得正式 successor；mirror hint 只有在 requester/target 的 Realm-scoped 授权独立成立时才能查询。该有界 hint 是 v1 唯一的 mirror bootstrap 来源；它不授予权限、不进入 owner handover 的必要通知集合，也不得被通用 resolver 持久化成部署级 mirror 列表。invite/locator token 的到期时间不能延长 record、notice 或 mirror carrier 的有效期，notice 或 mirror 也不能延长 token；任一组成部分到期都按自己的边界 fail closed。为避免披露 Realm topology，producer 只能列出 signed invite 与 inviter 当前 joined-member ActorId routing projection 已向 invitee Station 授权的有界路由提示，不得附完整成员列表。
 
@@ -60,15 +61,15 @@ invite/locator 的权威首跳仍是必填 current `service_resolution`；它不
 | `shared_realm` | 高 | 邀请者与被邀请者已经同在某个 Realm；接收方按本地 policy 判断该 Realm 是否可信。 |
 | `handle_claim` | 发现信任 | 邀请者通过 verified handle claim 找到 `subject_id`。它证明 holder 或受信 issuer 将某 handle 披露为可解析入口，但**不**证明 holder 已同意该邀请者联系自己。默认 SHOULD quarantine 或 drop；只有 subject policy 与部署约束都允许时才可 notify。 |
 | `same_station` | 中 / 部署相关 | 双方由同一个 Station 承载；适合组织或个人同域场景。 |
-| `explicit_address` | 弱 | 邀请者只提供 `subject_id + recipient_id + service_resolution`；等价于“我知道或猜测这个地址及其可验证首跳材料”。默认 SHOULD quarantine 或 drop。 |
+| `explicit_address` | 弱 | 邀请者只提供 `account_id + service_resolution`；等价于“我知道或猜测这个账号及其可验证首跳材料”。默认 SHOULD quarantine 或 drop。 |
 
 `explicit_address` 是合法但最低信任 evidence。接收方 **MUST NOT** 因为请求格式正确就通知用户；必须先应用 subject 私有 `invite_receive_policy`。
 
 引入信任分档(normative):**高信任档** = `{locator_ref, consent_grant, shared_realm}`;**发现信任档** = `{handle_claim}`;**低信任档** = `{same_station, explicit_address, 无 / 非法 evidence}`。该分档同时决定 §5 的分级披露行为。
 
-`consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.grant` 在被邀请方(`invite_address.subject_id`)的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
+`consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.grant` 在被邀请方完整 `invite_address.account_id` 的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
 
-`InviteAddress` 的收件 AccountId 唯一派生为 `{principal_id: invite_address.subject_id, station_id: invite_address.recipient_id}`；地址本身不携带并行 `account_id` 字段。`handle_claim` evidence 的接收方验证：`handle_claim.handle == evidence.handle`，`handle_claim.subject_account_id` MUST 精确等于该完整派生 pair，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，且 issuer / Directory / visibility / audience 满足 subject policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
+`InviteAddress` 唯一收件身份是 `account_id`。`handle_claim` evidence 的接收方验证：`handle_claim.handle == evidence.handle`，`handle_claim.subject_account_id` MUST 精确等于 `invite_address.account_id`，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，且 issuer / Directory / visibility / audience 满足该账号的 policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
 
 ## 3. 在线 Principal Locator
 
@@ -132,8 +133,10 @@ token 要求：
 ```json
 {
   "schema": "ak.schema.principal_locator.v1",
-  "subject_id": "ak:did_core:webvh:z2dmjBobExample",
-  "recipient_id": "ak:did_core:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc",
+  "account_id": {
+    "principal_id": "ak:did_core:webvh:z2dmjBobExample",
+    "station_id": "ak:did_core:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc"
+  },
   "service_resolution": {
     "current_record_url": "https://ps.bob.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3AzGiUQcWG9yy3Z9pMs15w7JHgc/resolution"
   },
@@ -157,12 +160,12 @@ token 要求：
 
 验证规则：
 
-1. `subject_id` 是被邀请主体的 `did_core_id`；`recipient_id` 是接收 invite delivery 的 Station service `did_core_id`；`service_resolution` 是与后者匹配的首跳 carrier。
-2. `recipient_kind` 若出现 MUST 等于 `station`。
+1. `account_id` 是被邀请主体的完整账号；`service_resolution` 是与 `account_id.station_id` 匹配的首跳 carrier。
+2. 验证器 MUST 拒绝拆分身份字段 `subject_id`、`recipient_id` 以及 `recipient_kind`、`delivery_modes`；它们不是本 closed schema 的成员。
 3. `locator_ref_digest` 绑定私有 locator ref material；raw token 不得写入 Realm durable event。
 4. `proof.payload_digest` MUST 覆盖 `canonical_json(principal_locator_without_proofs)`。
 5. `proofs[]` MUST 至少包含 `recipient_service_acceptance`；高安全 / audited / enterprise 部署 SHOULD 同时要求 `subject_locator_authorization`。
-6. verifier MUST 验证 `service_resolution` 得到当前 signed `ServiceResolutionRecord`，确认 `record.service_id == recipient_id`、`project(record.did) == recipient_id`、freshness 与 endpoint binding；若缺少 `subject_locator_authorization`，还 MUST 通过 account binding 或 service delegation 证明该 service `did_core_id` 有权代表 `subject_id` 发布 locator。
+6. verifier MUST 验证 `service_resolution` 得到当前 signed `ServiceResolutionRecord`，确认 `record.service_id == account_id.station_id`、`project(record.did) == account_id.station_id`、freshness 与 endpoint binding；若缺少 `subject_locator_authorization`，还 MUST 通过该 exact account 的有效接受/委托证明该 Station 有权代表 `account_id.principal_id` 发布 locator。不能使用同 principal 在另一 Station 的证明。
 
 `principal_locator` 不是 membership grant，也不是 invite accept proof。它只证明该 exact AccountId 与 Station service resolution 的寻址关系。
 
@@ -173,7 +176,10 @@ token 要求：
 ```json
 {
   "schema": "ak.schema.invite_receive_policy.v1",
-  "subject_id": "ak:did_core:webvh:z2dmjBobExample",
+  "account_id": {
+    "principal_id": "ak:did_core:webvh:z2dmjBobExample",
+    "station_id": "ak:did_core:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc"
+  },
   "holder_allowed_introduction_kinds": [
     "locator_ref",
     "consent_grant",
@@ -210,7 +216,7 @@ token 要求：
 - `denied_handle_domains` 先于 allowlist 生效，命中时 MUST 按策略拒绝处理。`allowed_handle_domains` 若非空，`handle_claim.handle` 的 domain MUST 是列表中的 canonical IDNA A-label 精确域名；子域名不自动继承，必须显式列出。`trusted_handle_issuers` / `trusted_directory_services` 若非空，issuer 或 `resolved_by` MUST 命中对应 allowlist。
 - `unknown_invites` 取值为 `drop | quarantine`；无 evidence 或不合规 evidence 不得默认 notify。
 - `denied_subjects` 是按 peer subject DID 的黑名单(对等 `denied_principal_services` 的服务粒度)。inviter 命中时，delivery MUST `drop`，且 §5.1 披露 MUST 强制为 `opaque`，以免黑名单经回包侧信道泄露。
-- policy 是 subject/private state，不得写入目标 Realm event log。
+- policy 是 exact AccountId 的私有 state，不得写入目标 Realm event log。`policy.account_id` MUST 等于认证 holder 的完整 AccountId；同 principal 在另一 Station 的 policy、consent、quarantine、设备与通知不得继承或合并。
 
 ### 5.1 分级披露(graded disclosure，normative)
 
@@ -274,17 +280,13 @@ effective_receive_policy =
 
 ## 6. Durable Event Boundary
 
-`ak.invite.create` 是 Realm durable event。它可以携带可公开审计的 delivery target 与 evidence digest，但不得携带 locator token、raw `introduction_evidence` 或 `invite_receive_policy`。
+`ak.invite.create` 是 Realm durable event。它携带完整 `invitee_account_id` 与 evidence digest，但不得携带 locator token、raw `introduction_evidence`、`invite_receive_policy` 或任何 transport 路由 carrier。InviteId 唯一由生产 EventId 派生，不在 create payload 重复携带。
 
 ```json
 {
-  "invite_id": "ak:invite:Abj5gHx39exHIgzuk86fNT8bpu2gCRDb7GNYroQrpLi_",
-  "invitee": "ak:did_core:webvh:z2dmjBobExample",
-  "invite_delivery_target": {
-    "recipient_id": "ak:did_core:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc",
-    "service_resolution": {
-      "current_record_url": "https://ps.bob.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3AzGiUQcWG9yy3Z9pMs15w7JHgc/resolution"
-    }
+  "invitee_account_id": {
+    "principal_id": "ak:did_core:webvh:z2dmjBobExample",
+    "station_id": "ak:did_core:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc"
   },
   "introduction_evidence_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "expires_at": "2026-06-14T10:00:00Z"
@@ -293,10 +295,8 @@ effective_receive_policy =
 
 Rules:
 
-- `payload.invitee_account_id` MUST 精确等于 `{principal_id: invite_address.subject_id, station_id: invite_address.recipient_id}`，不得只比较 principal。
-- `payload.invite_delivery_target.recipient_id` MUST equal `invite_address.recipient_id`.
-- `payload.invite_delivery_target.service_resolution` MUST 与 `invite_address.service_resolution` 逐字节相等；接收方仍须独立验证其指向或内联的 signed record，不得把 carrier 当作授权。
-- `payload.invite_delivery_target.recipient_kind` MAY appear; if present, it MUST be `station`.
+- `payload.invitee_account_id` MUST 精确等于 `invite_address.account_id`，不得只比较 principal。
+- `service_resolution` 与 `route_assistance` 只存在于私有 transport。接收方独立验证其定位的 Station，不得要求它们写入 durable Event；`invite_delivery_target` 不是 create payload 的合法字段。
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
 - 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel`，payload 使用 `invite_cancel_payload`：`invite_id`、与目标 invite 逐字节相等的 `invitee`、`target_state`，以及可选 `reason`。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。reducer MUST 先从持久化 Invite 前态确认 `invitee` 存在；第三方/token invite 或无 `invitee` 前态必须以 `failed_precondition` / `invite_kind_requires_revoke` 拒绝，不能信任请求补出的 `invitee`。同一 Move 的 registered reducer contract MUST 同时投影 `member.state:<invitee>` 的 `invite -> leave`，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)。
 - `ak.invite.revoke` MUST 用于第三方/token invite 的撤销或等价高风险撤销路径，payload 使用同一引用形态；指向定向 DID invite 时 `invitee` 必填并原子写入 `invite -> leave`，指向尚无 DID 主体的 3PID placeholder 时不得携带 `invitee`、也不得写 member cell。reducer MUST 将 live invite 写入对应终态，并清除可认领 token material。直接 DID 邀请不需要通过 `ak.invite.revoke` 才能从成员管理 UI 撤销。
@@ -339,13 +339,12 @@ operation_id = ak.peer.invites.command.submit.v1
 request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST：
 
 1. 验证 service-to-service authentication，绑定 Source/Destination service `did_core_id`、trust domain、Content-Digest 与 idempotency key；接收方从已验证的 exact canonical body bytes 内部计算 request digest。
-2. 验证 `Destination-Service-ID == invite_address.recipient_id`。
-3. 验证 `invite_address.service_resolution`，要求 signed record 的 `service_id` 等于 `recipient_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
+2. 验证 `Destination-Service-ID == invite_address.account_id.station_id`。
+3. 验证 `invite_address.service_resolution`，要求 signed record 的 `service_id` 与 adapter 投影 `project(did)` 均等于 `invite_address.account_id.station_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
 4. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
-5. 验证 `invite_event.payload.invitee_account_id` 精确等于由 `invite_address.subject_id + invite_address.recipient_id` 派生的完整 AccountId。
-6. 验证 `invite_event.payload.invite_delivery_target.recipient_id == invite_address.recipient_id`，且两处 `service_resolution` 逐字节相等。
-   可选 `route_assistance` 只存在于 delivery transport；不得要求它写入或匹配 durable invite Event，也不得把它当作本步骤的授权证据。
-7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定由 `invite_address.subject_id + invite_address.recipient_id` 派生的完整 AccountId、issuer / Directory trust、domain allowlist、expiry 与 audience。失败时降级为低信任 `explicit_address`，不得直接通知或物化 membership。
+5. 验证 `invite_event.payload.invitee_account_id == invite_address.account_id`，以完整对象相等定位被邀请账号。
+6. 验证 Event 不携带 `invite_delivery_target`、`service_resolution` 或 `route_assistance`；transport-only carrier 不能成为 Realm 成员事实，也不能替代本步骤的身份绑定。
+7. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。`consent_grant` 必须是 exact invitee AccountId 给 inviter 的 active `invite` / `any` grant dot；`handle_claim` 必须逐字绑定 `invite_address.account_id`、issuer / Directory trust、domain allowlist、expiry 与 audience。失败时降级为低信任 `explicit_address`，不得直接通知或物化 membership。
 8. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `denied_subjects`(命中 inviter 即 `drop` 且强制 opaque)与 `denied_principal_services`；再按 effective `holder_allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
 9. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `denied_subjects` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与“限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny”落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）。
 
