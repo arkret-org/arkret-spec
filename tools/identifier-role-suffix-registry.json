@@ -279,6 +279,12 @@
       "reason": "closed, lexically disjoint authorization reference union governed by the independent _ref grammar"
     },
     {
+      "file": "service-operation-dtos.schema.json",
+      "pointer": "/$defs/MembershipCompensationDelegationCore/properties/authorization_ref",
+      "terminal_categories": ["mixed[did_url,typed_object_id]"],
+      "reason": "exact copy of the accepted join Event authorization_ref; the closed, lexically disjoint union is governed by the independent _ref grammar"
+    },
+    {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/device_authorize_payload/properties/authorized_by",
       "terminal_categories": ["mixed[did_core_id,typed_object_id]"],

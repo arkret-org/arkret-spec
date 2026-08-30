@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-30.2",
+  "version": "2026-08-30.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-30T09:45:15+08:00",
+  "generated_at": "2026-08-30T18:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -311,17 +311,17 @@
         "activation_checks": [
           "delegation_core_digest_exact",
           "actual_join_authoring_signer_exact",
-          "admission_and_membership_incarnation_exact",
+          "admission_and_join_event_exact",
           "executor_did_and_proof_key_exact",
           "action_branch_closed",
           "destination_single_use_cas",
-          "current_positive_provenance_is_original_j1_or_signed_no_write"
+          "current_positive_provenance_is_original_join_event"
         ],
-        "revocation_model": "accepted_at_single_use_until_signed_terminal_outcome",
+        "revocation_model": "accepted_at_single_use_until_consumed_or_conflict",
         "authority_generation_independent": true,
         "grantable": false,
         "delegated_event_rule": "fixed_join_actor_executed_by_registered_executor",
-        "failure_mode": "fail_closed_or_signed_no_write"
+        "failure_mode": "fail_closed_no_write"
       },
       {
         "authority_source_id": "ak.authority.sidecar_parent_bootstrap.v1",
@@ -12881,7 +12881,7 @@
         "http": "POST /_arkret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event. Ordinary online publication omits AuthorizationLease and uses an empty ingress_receipts array; explicit delayed/offline publication carries the lease and at least one original lease-bound IngressReceipt. An ak.member.state compensation publication additionally carries the unchanged transport-only membership_compensation_evidence and the receiver applies the same exact admission/incarnation/action/executor/single-use evaluator as initial submission. Request-level CbaProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, optional lease, receipt threshold, compensation evidence, bundle object and reducer result. Ordinary missing dependencies use HTTP 200 partial items with reason_code=dependency_missing and non-empty typed missing sets; registered atomic units use top-level HTTP 409 dependency_missing with EventsDependencyMissingProblem and zero writes. A received response terminates that Idempotency-Key; a post-backfill submit uses a fresh key. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer. The request union additionally registers the discriminated direct_conversation_founding branch for the Direct Conversation founding exception of zh/sync/federation.md section 4.0.4: it carries exactly four ordered EventFederationSubmission items (Realm create, peer membership join, main Strand create, founder membership join), the source DirectConversationFoundingAcceptanceReceipt and bounded dependencies, and it omits service_binding_ref because the Realm does not yet exist at the receiver. The receiver freshly verifies transport source authority over founder_id, cutover/fence continuity when the receipt came from a pre-migration service, destination binding to the local participant, body closure, recomputed founding_unit_digest and coordinates, and the full direct_conversation_genesis admission before admitting the unit at one atomic boundary. The agent_membership_cascade branch preserves the origin-signed controller terminal Event and Agent transitions and applies the same exact controller pair/generation, pre-state exact-set, signer and atomicity rules as self submission. A missing dependency for either registered unit is a retryable top-level HTTP 409 dependency_missing with zero writes, never a per-item partial and never a permanent rejection.",
+        "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event. Ordinary online publication omits AuthorizationLease and uses an empty ingress_receipts array; explicit delayed/offline publication carries the lease and at least one original lease-bound IngressReceipt. An ak.member.state compensation publication additionally carries the unchanged transport-only membership_compensation_evidence and the receiver applies the same exact admission/join/action/executor/single-use evaluator as initial submission. Request-level CbaProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, optional lease, receipt threshold, compensation evidence, bundle object and reducer result. Ordinary missing dependencies use HTTP 200 partial items with reason_code=dependency_missing and non-empty typed missing sets; registered atomic units use top-level HTTP 409 dependency_missing with EventsDependencyMissingProblem and zero writes. A received response terminates that Idempotency-Key; a post-backfill submit uses a fresh key. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer. The request union additionally registers the discriminated direct_conversation_founding branch for the Direct Conversation founding exception of zh/sync/federation.md section 4.0.4: it carries exactly four ordered EventFederationSubmission items (Realm create, peer membership join, main Strand create, founder membership join), the source DirectConversationFoundingAcceptanceReceipt and bounded dependencies, and it omits service_binding_ref because the Realm does not yet exist at the receiver. The receiver freshly verifies transport source authority over founder_id, cutover/fence continuity when the receipt came from a pre-migration service, destination binding to the local participant, body closure, recomputed founding_unit_digest and coordinates, and the full direct_conversation_genesis admission before admitting the unit at one atomic boundary. The agent_membership_cascade branch preserves the origin-signed controller terminal Event and Agent transitions and applies the same exact controller pair/generation, pre-state exact-set, signer and atomicity rules as self submission. A missing dependency for either registered unit is a retryable top-level HTTP 409 dependency_missing with zero writes, never a per-item partial and never a permanent rejection.",
         "body_class": "non_streaming_json",
         "max_items": 500,
         "success_shape_kind": "typed_response",
@@ -17201,7 +17201,7 @@
         "required_constraints": [],
         "required_evaluator_checks": [
           "membership_compensation_delegation_exact",
-          "membership_incarnation_is_original_j1",
+          "accepted_join_event_is_current_membership_head",
           "destination_single_use_cas"
         ],
         "target_event_kinds": [
@@ -17218,7 +17218,7 @@
         "required_constraints": [],
         "required_evaluator_checks": [
           "membership_compensation_delegation_exact",
-          "membership_incarnation_is_original_j1",
+          "accepted_join_event_is_current_membership_head",
           "destination_single_use_cas"
         ],
         "target_event_kinds": [

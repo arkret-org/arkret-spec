@@ -8089,6 +8089,106 @@
       ]
     },
     {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationCasToken/properties/destination_id",
+      "property_name": "destination_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationCasToken/properties/issuer_id",
+      "property_name": "issuer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/executed_by",
+      "property_name": "executed_by",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/executor_id",
+      "property_name": "executor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/executor_proof_key_kid",
+      "property_name": "executor_proof_key_kid",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/join_actor_id",
+      "property_name": "join_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/subject_id",
+      "property_name": "subject_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationTerminalCertificate/properties/issuer_id",
+      "property_name": "issuer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipJoinAcceptedProof/properties/issuer_id",
+      "property_name": "issuer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/ModerationReportOutcome/properties/routed_to_ids",
       "property_name": "routed_to_ids",
       "semantic_category": "responsibility_identity_material",

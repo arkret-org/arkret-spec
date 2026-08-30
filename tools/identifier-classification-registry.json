@@ -27,8 +27,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 645,
-    "typed_object_id": 906,
+    "responsibility_identity_material": 652,
+    "typed_object_id": 911,
     "registry_catalog_symbol": 19
   },
   "pending_rename_convergence": [],
@@ -57,6 +57,14 @@
       "example_path": "event-payload.schema.json#/$defs/policy_action_state_payload/properties/action_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
+    },
+    {
+      "name": "admission_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 4,
+      "example_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/admission_id",
+      "reason": "Opaque correlation minted for one admission saga; the exact accepted join Event, not this coordinate, carries membership authority."
     },
     {
       "name": "addressed_agent_ids",
@@ -512,6 +520,14 @@
       "occurrences": 1,
       "example_path": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/mapped_operation_id",
       "reason": "Registry catalog symbol naming a registered entry, not an instance of a protocol object."
+    },
+    {
+      "name": "membership_cell_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 1,
+      "example_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/membership_cell_id",
+      "reason": "Opaque destination-local cell coordinate; the current join Event identifies the authoritative membership incarnation."
     },
     {
       "name": "mimi_message_id",

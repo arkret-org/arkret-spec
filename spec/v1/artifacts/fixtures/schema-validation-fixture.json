@@ -4025,14 +4025,12 @@
             "join_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
             "join_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
             "membership_cell_id": "membership-cell-1",
-            "membership_incarnation": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-            "membership_head_at_acceptance": "ak:event:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
             "subject_id": "ak:did_core:webvh:z6mkfixturesubject",
             "join_actor_id": "ak:did_core:webvh:z6mkfixturesubject",
             "verification_method": "did:webvh:z6mkfixturesubject:example.com#key-1",
             "executor_id": "ak:did_core:webvh:z6mkfixtureexecutor",
-            "executor_proof_key": "did:webvh:z6mkfixtureexecutor:example.com#key-1",
-            "resource": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+            "executor_proof_key_kid": "did:webvh:z6mkfixtureexecutor:example.com#key-1",
+            "resource_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
             "action": "ak.member.compensate.leave",
             "deadline": "2026-08-30T08:00:00.000Z"
           },
@@ -4047,8 +4045,6 @@
           "admission_id": "membership-admission-1",
           "join_event_id": "ak:event:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "join_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "membership_incarnation": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-          "accepted_frontier_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
           "accepted_at": "2026-08-30T01:00:00.000Z",
           "issuer_id": "ak:did_core:webvh:z6mkfixtureissuer",
           "signature": {
@@ -4092,6 +4088,7 @@
       "name": "membership_compensation_submission_evidence_missing_terminal_rejected",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MembershipCompensationSubmissionEvidence",
       "expect_valid": false,
+      "first_expected_error": "contains:'terminal_certificate' is a required property",
       "instance_from": "membership_compensation_submission_evidence_valid",
       "mutations": [
         {
@@ -4104,6 +4101,7 @@
       "name": "membership_compensation_submission_evidence_unknown_member_rejected",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MembershipCompensationSubmissionEvidence",
       "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
       "instance_from": "membership_compensation_submission_evidence_valid",
       "mutations": [
         {
@@ -4128,6 +4126,7 @@
       "name": "membership_compensation_carrier_selected_but_missing_rejected",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MembershipCompensationCarrierPresence",
       "expect_valid": false,
+      "first_expected_error": "contains:'membership_compensation_evidence' is a required property",
       "instance": {
         "event": {
           "authorization_ref": "ak:membership_compensation_delegation:sha256:1111111111111111111111111111111111111111111111111111111111111111"
@@ -4140,7 +4139,7 @@
       "expect_valid": true,
       "instance": {
         "event": {
-          "authorization_ref": "ak:authorization:ordinary"
+          "authorization_ref": "did:webvh:z6mkfixtureauthorizer:example.com#key-1"
         }
       }
     },
@@ -4148,9 +4147,10 @@
       "name": "membership_compensation_carrier_ordinary_authorization_with_evidence_rejected",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MembershipCompensationCarrierPresence",
       "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under",
       "instance": {
         "event": {
-          "authorization_ref": "ak:authorization:ordinary"
+          "authorization_ref": "did:webvh:z6mkfixtureauthorizer:example.com#key-1"
         },
         "membership_compensation_evidence": {}
       }

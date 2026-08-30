@@ -2019,21 +2019,19 @@
     },
     "MembershipCompensationDelegationCore": {
       "type": "object",
-      "description": "Digest-free canonical core signed by the actual author of the accepted join. The registered evaluator additionally checks the closed leave/remove action branch against join authorship; JSON Schema cannot compare join_actor_id and subject_id values.",
+      "description": "Digest-free canonical core signed by the actual author of the accepted join. The exact join_event_id is the membership incarnation identifier and must still be the current membership head when compensation writes. The registered evaluator additionally checks the closed leave/remove action branch against join authorship; JSON Schema cannot compare join_actor_id and subject_id values.",
       "required": [
         "authority",
         "admission_id",
         "join_event_id",
         "join_event_digest",
         "membership_cell_id",
-        "membership_incarnation",
-        "membership_head_at_acceptance",
         "subject_id",
         "join_actor_id",
         "verification_method",
         "executor_id",
-        "executor_proof_key",
-        "resource",
+        "executor_proof_key_kid",
+        "resource_id",
         "action",
         "deadline"
       ],
@@ -2042,7 +2040,14 @@
           "const": "ak.authority.membership_compensation.v1"
         },
         "admission_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+          "allOf": [
+            {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "join_event_id": {
           "$ref": "#/$defs/EventId"
@@ -2051,13 +2056,14 @@
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "membership_cell_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
-        },
-        "membership_incarnation": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
-        },
-        "membership_head_at_acceptance": {
-          "$ref": "#/$defs/EventId"
+          "allOf": [
+            {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "subject_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -2078,10 +2084,10 @@
         "executor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "executor_proof_key": {
+        "executor_proof_key_kid": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "resource": {
+        "resource_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "action": {
@@ -2131,31 +2137,30 @@
     },
     "MembershipJoinAcceptedProof": {
       "type": "object",
-      "description": "Destination-signed proof that the exact join and membership incarnation were accepted at the named frontier.",
+      "description": "Destination-signed proof that the exact join Event was accepted. The proof does not mint a second membership-incarnation or frontier identifier; join_event_id is the existing canonical incarnation reference and receivers compare it with the current membership head.",
       "required": [
         "admission_id",
         "join_event_id",
         "join_event_digest",
-        "membership_incarnation",
-        "accepted_frontier_digest",
         "accepted_at",
         "issuer_id",
         "signature"
       ],
       "properties": {
         "admission_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+          "allOf": [
+            {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "join_event_id": {
           "$ref": "#/$defs/EventId"
         },
         "join_event_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
-        },
-        "membership_incarnation": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
-        },
-        "accepted_frontier_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "accepted_at": {
@@ -2188,7 +2193,14 @@
           "const": "ak.membership_compensation.terminal_certificate.v1"
         },
         "admission_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+          "allOf": [
+            {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "delegation_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
@@ -2233,7 +2245,14 @@
           "const": "ak.membership_compensation.single_use_cas.v1"
         },
         "admission_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+          "allOf": [
+            {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         },
         "delegation_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-29.13",
+  "version": "2026-08-30.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-29T21:42:00+08:00",
+  "generated_at": "2026-08-30T09:45:15+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -598,7 +598,7 @@
       "required_constraints": [],
       "required_evaluator_checks": [
         "membership_compensation_delegation_exact",
-        "membership_incarnation_is_original_j1",
+        "accepted_join_event_is_current_membership_head",
         "destination_single_use_cas"
       ],
       "target_event_kinds": [
@@ -615,7 +615,7 @@
       "required_constraints": [],
       "required_evaluator_checks": [
         "membership_compensation_delegation_exact",
-        "membership_incarnation_is_original_j1",
+        "accepted_join_event_is_current_membership_head",
         "destination_single_use_cas"
       ],
       "target_event_kinds": [

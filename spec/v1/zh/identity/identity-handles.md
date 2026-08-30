@@ -334,7 +334,7 @@ contact request / invite / member-add 不再把 `resolve_handle(intent="contact_
 
 解析结果 MAY 携带 `member_delivery_binding`，其中 `recipient_id`、`binding_source`、`service_acceptance_ref`、`policy_event_ref` 和 `delivery_modes` 可直接用于构造 `ak.member.state{membership="join"}.delivery_binding`。Handle claim schema 不允许顶层 `recipient_id`、`service_acceptance_ref` 或 `policy_event_ref` 快捷字段；这些 delivery binding 字段必须只从 `member_delivery_binding.*` 读取。
 
-`member_delivery_binding.binding_source` 的合法取值是 `explicit` / `invite` / `join_policy` / `organization_policy` / `realm_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
+`member_delivery_binding.binding_source` 的合法取值是 `explicit` / `join_policy` / `organization_policy` / `realm_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
 
 该 hint 是 builder 输入；reducer 仍 MUST 按 [`governance/member-delivery-binding.md`](../governance/member-delivery-binding.md) 独立验证 Realm policy、claim issuer、服务背书和条件必填字段。
 
@@ -381,7 +381,7 @@ Handle 按 holder 披露意图分两类：
 | `subject_id` | `DidCoreId` | MUST | 被寻址主体的稳定 principal `did_core_id`；最终物化为 `payload.actor_id` / cell subject。 |
 | `handle` | canonical handle | MUST | `<localpart>:<domain>`，`<localpart>` 已完成登记版本 RFC 8265 profile preparation。`acct:` / 显示形态 / 裸 host 一律拒绝。 |
 | `handle_aliases[]` | `acct:` URI 数组 | MAY | 仅互通别名；不参与权威比对、缓存键或 `delivery_binding` 物化。 |
-| `member_delivery_binding` | object | MUST | 与 [`handle-claim.schema.json#/properties/member_delivery_binding`](../../artifacts/schemas/handle-claim.schema.json) 同形，`binding_source` ∈ `explicit` / `invite` / `join_policy` / `organization_policy` / `realm_policy`；MUST NOT 为 `did_document_default`。 |
+| `member_delivery_binding` | object | MUST | 与 [`handle-claim.schema.json#/properties/member_delivery_binding`](../../artifacts/schemas/handle-claim.schema.json) 同形，`binding_source` ∈ `explicit` / `join_policy` / `organization_policy` / `realm_policy`；MUST NOT 为 `did_document_default`。 |
 | `issuer_id` | `DidCoreId` | MUST | 实际签发该 candidate 的稳定 service `did_core_id`（Directory / Principal Server / Organization service）。 |
 | `audience` | string | MUST | 目标 Realm ID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。 |
 | `issued_at` | timestamp | MUST | RFC 3339 `Z` 形式；issuer 签发该 candidate 的时刻。MUST ≤ `expires_at`；与 `expires_at` 一起界定 candidate 的有效窗口并阻止 MITM 把 `issued_at` 改写以扩大重放窗口。 |

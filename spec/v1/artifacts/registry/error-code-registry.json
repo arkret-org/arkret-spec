@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-30.1",
-  "generated_at": "2026-08-30T09:00:00+08:00",
+  "version": "2026-08-30.2",
+  "generated_at": "2026-08-30T18:00:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2322,7 +2322,7 @@
       "code": "membership_compensation_conflict",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "A compensation delegation/action/executor/admission/incarnation binding is wrong, already consumed or conflicts with the current membership provenance. Newer incarnations are never removed; absent or superseded destinations return their registered signed no-write outcomes.",
+      "description": "A compensation delegation/action/executor/admission/join binding is wrong, already consumed, absent, or conflicts with the current membership provenance. The operation performs no write on conflict and never removes a newer join Event.",
       "type_uri": "https://arkret.org/problems/membership_compensation_conflict",
       "title": "Membership compensation conflict"
     }

@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-29.5",
-  "generated_at": "2026-08-29T22:30:00+08:00",
+  "version": "2026-08-30.1",
+  "generated_at": "2026-08-30T18:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4367,13 +4367,12 @@
       },
       "single_use_contract": [
         "actual_join_authoring_signer_signs_delegation_core",
-        "exact_admission_and_membership_incarnation",
+        "exact_admission_and_join_event",
         "executor_did_and_proof_key_exact",
         "old_j1_provenance_only",
-        "already_absent_and_superseded_are_signed_no_write",
+        "already_absent_and_superseded_are_conflict_no_write",
         "terminal_certificate_excluded_from_event_digest",
-        "federation_forwards_transport_evidence_unchanged",
-        "old_realm_group_only"
+        "federation_forwards_transport_evidence_unchanged"
       ],
       "feature_discovery": {
         "required": [

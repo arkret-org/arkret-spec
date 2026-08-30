@@ -106,7 +106,6 @@
           "type": "string",
           "enum": [
             "explicit",
-            "invite",
             "join_policy",
             "organization_policy",
             "realm_policy"

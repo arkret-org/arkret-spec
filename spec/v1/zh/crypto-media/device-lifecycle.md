@@ -986,7 +986,7 @@ frontier/Commit facts。takeover必须签 predecessor、current epoch与相同 e
 
 注册唯一 authority source `ak.authority.membership_compensation.v1`。补偿 delegation由实际 accepted join
 Event的authoring proof signer产生；其无签名、无自身digest、无`delegation_id`的closed core逐字绑定
-admission/join identity、member Event ID/digest、membership cell/incarnation与J1 provenance、subject、真实
+admission/join identity、member Event ID/digest、membership cell与J1 provenance、subject、真实
 `actor_id/executed_by?/authorization_ref?/verification_method`分支、executor service DID+proof key、resource、
 deadline及唯一action。先从exact RFC8785/JCS core计算stable `delegation_digest`，再机械派生外层
 `delegation_id=ak:membership_compensation_delegation:sha256:<lowercase_hex>`；ID后缀必须逐字等于该digest，
@@ -996,13 +996,13 @@ action是closed XOR：self join仅 `ak.member.compensate.leave`，delegated/admi
 `ak.member.compensate.remove`；未知action fail closed。executor author fresh标准 `ak.member.state`减权 Event，
 固定原join actor，`executed_by=executor`，`authorization_ref`精确引用delegation。terminal certificate仅作
 critical submission evidence，不进入被授权Event digest。destination authority以
-`(admission_id,delegation_digest)`做single-use CAS；current provenance仍是J1时最多一次写入，already absent或
-J2/new incarnation分别返回destination-signed `already_absent|superseded`且零写，绝不得删除后来重新加入者。
+`(admission_id,delegation_digest)`做single-use CAS；current membership head仍是J1时最多一次写入，already absent或
+已被J2/new join supersede时返回 `membership_compensation_conflict` 且零写，绝不得删除后来重新加入者。
 
 失败分支固定为：claim前拒绝零烧；claim后/member acceptance前只revoke原claim；member accepted/Add前执行
 membership compensation；Add已接受后先执行同一membership compensation，再由eligible committer执行标准MLS
 Remove。Remove绑定旧group/generation/leaf/commit，新generation上只能no-op。deadline触发operation failure，
-但cleanup authority持续到signed terminal outcome。重复、跨admission、executor/proof key错配或deadline前滥用
+但cleanup authority持续到成功消费或确定性 conflict。重复、跨admission、executor/proof key错配或deadline前滥用
 都必须拒绝。success/repair terminal不得生成compensation terminal certificate。
 
 ## 10. Verification Strands

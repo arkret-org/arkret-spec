@@ -5642,7 +5642,6 @@
           "enum": [
             "explicit",
             "did_document_default",
-            "invite",
             "join_policy",
             "organization_policy",
             "realm_policy"
@@ -5679,7 +5678,7 @@
         },
         "service_acceptance_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the recipient service's prior service_acceptance / endorsement Event. Required when binding_source = explicit, invite, or organization_policy; reducer MUST verify the referenced Event is signed by recipient_id and its scope covers this Realm. Producers MUST NOT fabricate this ref for realm bootstrap; bootstrap without real service evidence must use another binding_source with its own evidence or remain unroutable."
+          "description": "Reference to the recipient service's prior service_acceptance / endorsement Event. Required when binding_source = explicit or organization_policy; reducer MUST verify the referenced Event is signed by recipient_id and its scope covers this Realm. Producers MUST NOT fabricate this ref for realm bootstrap; bootstrap without real service evidence must use another binding_source with its own evidence or remain unroutable."
         },
         "holder_proof_ref": {
           "$ref": "#/$defs/event_ref",
@@ -5765,23 +5764,6 @@
           "then": {
             "required": [
               "policy_event_ref"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "binding_source": {
-                "const": "invite"
-              }
-            },
-            "required": [
-              "binding_source"
-            ]
-          },
-          "then": {
-            "required": [
-              "service_acceptance_ref"
             ]
           }
         }
@@ -9651,7 +9633,6 @@
             "enum": [
               "explicit",
               "did_document_default",
-              "invite",
               "join_policy",
               "organization_policy",
               "realm_policy"

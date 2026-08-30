@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 381,
+  "audited_occurrence_count": 383,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1127,6 +1127,18 @@
         "commitment"
       ],
       "reason": "DID methods may return history commitments, verification proofs, and witness attestations."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "key": "membership_compensation_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Carries the closed delegation signature, accepted-join attestation, terminal certificate and destination-bound single-use commitment required to validate one compensation submission."
     },
     {
       "file": "service-operation-dtos.schema.json",

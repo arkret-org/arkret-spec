@@ -1045,7 +1045,7 @@ submission 必须引用同一定义，不得复制 shape。
   cascade 与非 membership Event 都不得夹带。
 - carrier 不进入 Event envelope、Event ID、Event digest 或 producer proof transcript。Event 自身必须以
   `authorization_ref`、`actor_id`、`executed_by`、`realm_id` 与 `payload.actor_id` 绑定 delegation；receiver
-  还必须重验 actual join author、accepted join/admission、membership incarnation、original J1 provenance、
+  还必须重验 actual join author、accepted join/admission、exact current join Event、original J1 provenance、
   leave/remove action、executor DID/proof key、terminal certificate 与 destination single-use CAS。任一语义
   mismatch、签名错误、过期或已消费都返回 `membership_compensation_conflict`，并零写入。
 - self receiver 首次接受 compensation Event 时，MUST 在同一事务保存 accepted canonical carrier bytes、
@@ -1056,8 +1056,8 @@ submission 必须引用同一定义，不得复制 shape。
   exact carrier 的重放返回首次 outcome；同一 Event 更换 carrier 不属于 Event witness disagreement，但 MUST
   以 `membership_compensation_conflict` 拒绝。相同 HTTP idempotency key 更换完整请求 bytes 仍按
   `duplicate_conflict` 处理。
-- destination 已 absent 或 exact old incarnation 已 superseded 时，只返回 profile 登记的 signed no-write
-  outcome；不得删除更新的 incarnation。真正缺少 typed dependency 时才使用 `dependency_missing`，不得把
+- destination 已 absent 或原 join Event 已被后继 membership Event supersede 时，返回
+  `membership_compensation_conflict` 且零写入；不得删除更新的 membership。真正缺少 typed dependency 时才使用 `dependency_missing`，不得把
   确定性 binding conflict 伪装成待补依赖。
 
 #### 3.1.3 重复提交与 digest-preimage 冲突（normative）
@@ -1089,7 +1089,7 @@ submission 必须引用同一定义，不得复制 shape。
 
 - 请求 MUST 使用 [`federation.md` §3](./federation.md) 的 service-to-service authentication，绑定 Source/Destination service DID、Source/Destination trust domain、`Content-Digest` 与 `Idempotency-Key`（若有），并校验 Realm policy / service binding 中的 `federation_peer` 角色。接收方 MUST 从已验证的 exact canonical body bytes 内部计算 request digest。
 - `events[]` MUST 属于单一 Realm，最多 500 项，且 Control Event MUST 位于 DataEvent 之前。每个 `EventFederationSubmission` MUST 携带原 Event及其 in-envelope origin admission proof；receiver 不接收 device/PCR/Agent signer sidecar。proof bundles 不进入 Event canonical bytes。
-- compensation 分支 MUST 在同一 `EventFederationSubmission.membership_compensation_evidence` 中传递 self 路径 accepted canonical carrier bytes；完整存在性、持久化、重放与错误合同见 [§3.1.2.2](#3122-membership-compensation-carriernormative)。receiver MUST 重验 delegation、author、join、admission、incarnation、J1、action、executor、terminal certificate 与 destination single-use CAS；不得丢弃、重签、改名或降级为 grant。
+- compensation 分支 MUST 在同一 `EventFederationSubmission.membership_compensation_evidence` 中传递 self 路径 accepted canonical carrier bytes；完整存在性、持久化、重放与错误合同见 [§3.1.2.2](#3122-membership-compensation-carriernormative)。receiver MUST 重验 delegation、author、join、admission、exact current join Event、J1、action、executor、terminal certificate 与 destination single-use CAS；不得丢弃、重签、改名或降级为 grant。
 - 普通在线投递 MUST 省略 `authorization_lease`，且 `ingress_receipts[]` 为空。显式离线/延迟投递 MUST 同时携带 `AuthorizationLease` 与至少一个 lease-bound `IngressReceipt`。接收端 MUST 独立验证 current admission、可选离线证据、receipt threshold、receipt policy 与 proof bundle closure。
 - 普通批次缺依赖时，HTTP 响应 MUST 为 `200 status=partial`，对应项的 `reason_code` MUST 是 `dependency_missing`，且至少一个 typed missing set 非空。注册的原子 Realm founding unit 缺依赖时 MUST 零写入，并返回 HTTP 409 `dependency_missing`；标准 `RFC 9457 Problem Details extension members` MUST 是 `EventsDependencyMissingProblem`。
 - 收到任何响应后再次 submit MUST 使用新的 `Idempotency-Key`；只有未收到响应的逐字节 transport retry 才复用原 key。
