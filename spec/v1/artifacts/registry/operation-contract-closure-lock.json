@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-30.20",
+  "version": "2026-08-30.21",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -560,11 +560,11 @@
     },
     {
       "operation_id": "ak.self.authz.grants.read.effective.v1",
-      "sha256": "sha256:5f13958dcc38e9f2046cb4da3bb22fdfe2e466c351c10583d167047aa92a8df2"
+      "sha256": "sha256:30e31859f182d94332e65045bb0ba0b6bc93a99a6434e2ad8dad8deaeea572cf"
     },
     {
       "operation_id": "ak.self.authz.invites.read.list.v1",
-      "sha256": "sha256:9c7fe54f245b47a70de39f3122159a4baf053cca54e9a54705d31b0059a9661f"
+      "sha256": "sha256:3c673853028584a599d600913132c21558b673c0d0f64ae6ab45eae5753b41c6"
     },
     {
       "operation_id": "ak.self.authz.read.check.v1",
@@ -604,7 +604,7 @@
     },
     {
       "operation_id": "ak.self.circle.member.resource.delete.v1",
-      "sha256": "sha256:6e1e8b927de1587a4223b39717f1c40474b555e2f40c3fc3caa17a592acf6bcf"
+      "sha256": "sha256:82398b1afe7a9674123acf9a46b79a7bf9bff1faa6d7fb3e46b2108537102123"
     },
     {
       "operation_id": "ak.self.circle.read.list.v1",
