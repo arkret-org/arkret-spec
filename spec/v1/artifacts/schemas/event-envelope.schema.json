@@ -4405,7 +4405,7 @@
     "membership_compensation_delegation_ref": {
       "type": "string",
       "pattern": "^ak:membership_compensation_delegation:sha256:[0-9a-f]{64}$",
-      "description": "Content-addressed accepted-at membership compensation delegation. It is valid only for ak.member.state leave/remove submitted with the matching closed membership_compensation_evidence sidecar and registered single-use evaluator."
+      "description": "Content-addressed accepted-at membership compensation delegation. It is valid only for ak.member.state leave/remove submitted with the matching closed Event submission transport-only membership_compensation_evidence carrier and registered single-use evaluator. This carrier is not an ak:sidecar: Agent Sidecar object and has no participant semantics."
     },
     "seal_ref": {
       "type": "string",

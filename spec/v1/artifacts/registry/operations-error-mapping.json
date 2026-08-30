@@ -715,11 +715,12 @@
         "seal_ref_stale",
         "realm_frozen",
         "quarantine",
+        "membership_compensation_conflict",
         "peer_stale",
         "delivery_binding_stale",
         "delivery_binding_handed_over"
       ],
-      "description": "Federated Event submission uses only registered Event kinds. Direct Conversations have one scope-derived MLS group and ordinary same-group Commit repair; no dedicated repair carrier or candidate-fanout error exists."
+      "description": "Federated Event submission uses only registered Event kinds. membership_compensation_conflict rejects an invalid, changed, expired or consumed compensation carrier without writing or deleting a newer membership incarnation. Direct Conversations have one scope-derived MLS group and ordinary same-group Commit repair; no dedicated repair carrier or candidate-fanout error exists."
     },
     {
       "operation_id": "ak.peer.events.read.frontier.v1",
@@ -1615,10 +1616,11 @@
         "seal_ref_unknown",
         "realm_frozen",
         "quarantine",
+        "membership_compensation_conflict",
         "device_revocation_pending",
         "device_revoked"
       ],
-      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these registered codes. Direct Conversations have one scope-derived MLS group and do not submit group-generation activation candidates."
+      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these registered codes. membership_compensation_conflict rejects an invalid, changed, expired or consumed compensation carrier without writing or deleting a newer membership incarnation. Direct Conversations have one scope-derived MLS group and do not submit group-generation activation candidates."
     },
     {
       "operation_id": "ak.self.events.read.delivery_status.v1",

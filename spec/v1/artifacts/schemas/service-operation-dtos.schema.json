@@ -2017,9 +2017,305 @@
         }
       }
     },
+    "MembershipCompensationDelegationCore": {
+      "type": "object",
+      "description": "Digest-free canonical core signed by the actual author of the accepted join. The registered evaluator additionally checks the closed leave/remove action branch against join authorship; JSON Schema cannot compare join_actor_id and subject_id values.",
+      "required": [
+        "authority",
+        "admission_id",
+        "join_event_id",
+        "join_event_digest",
+        "membership_cell_id",
+        "membership_incarnation",
+        "membership_head_at_acceptance",
+        "subject_id",
+        "join_actor_id",
+        "verification_method",
+        "executor_id",
+        "executor_proof_key",
+        "resource",
+        "action",
+        "deadline"
+      ],
+      "properties": {
+        "authority": {
+          "const": "ak.authority.membership_compensation.v1"
+        },
+        "admission_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        },
+        "join_event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "join_event_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "membership_cell_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        },
+        "membership_incarnation": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "membership_head_at_acceptance": {
+          "$ref": "#/$defs/EventId"
+        },
+        "subject_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "join_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "executed_by": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "authorization_ref": {
+          "$ref": "./event-envelope.schema.json#/properties/authorization_ref",
+          "description": "The exact authorization reference on the accepted join. It is present if and only if executed_by is present."
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "executor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "executor_proof_key": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "resource": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "action": {
+          "enum": [
+            "ak.member.compensate.leave",
+            "ak.member.compensate.remove"
+          ]
+        },
+        "deadline": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "dependentRequired": {
+        "executed_by": [
+          "authorization_ref"
+        ],
+        "authorization_ref": [
+          "executed_by"
+        ]
+      },
+      "additionalProperties": false
+    },
+    "MembershipCompensationExecutorDelegation": {
+      "type": "object",
+      "description": "Content-addressed executor delegation. delegation_digest is SHA-256(canonical_json(core)); delegation_id carries the same digest in the registered typed reference form. signature is made by the actual join author over the registered delegation transcript.",
+      "required": [
+        "delegation_id",
+        "core",
+        "delegation_digest",
+        "signature"
+      ],
+      "properties": {
+        "delegation_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref"
+        },
+        "core": {
+          "$ref": "#/$defs/MembershipCompensationDelegationCore"
+        },
+        "delegation_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MembershipJoinAcceptedProof": {
+      "type": "object",
+      "description": "Destination-signed proof that the exact join and membership incarnation were accepted at the named frontier.",
+      "required": [
+        "admission_id",
+        "join_event_id",
+        "join_event_digest",
+        "membership_incarnation",
+        "accepted_frontier_digest",
+        "accepted_at",
+        "issuer_id",
+        "signature"
+      ],
+      "properties": {
+        "admission_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        },
+        "join_event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "join_event_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "membership_incarnation": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "accepted_frontier_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MembershipCompensationTerminalCertificate": {
+      "type": "object",
+      "description": "Issuer-signed terminal result proving that the registered join operation stopped after membership acceptance or after its MLS Add and therefore may execute its one compensation transition.",
+      "required": [
+        "domain",
+        "admission_id",
+        "delegation_digest",
+        "operation_id",
+        "terminal_state",
+        "certified_at",
+        "issuer_id",
+        "signature"
+      ],
+      "properties": {
+        "domain": {
+          "const": "ak.membership_compensation.terminal_certificate.v1"
+        },
+        "admission_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        },
+        "delegation_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "operation_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+        },
+        "terminal_state": {
+          "enum": [
+            "failed_after_membership_acceptance",
+            "failed_after_mls_add"
+          ]
+        },
+        "certified_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MembershipCompensationCasToken": {
+      "type": "object",
+      "description": "Destination-bound single-use CAS token for the exact admission and delegation. A successful compensation consumes it atomically with the membership transition; another destination or a later membership incarnation cannot use it.",
+      "required": [
+        "domain",
+        "admission_id",
+        "delegation_digest",
+        "expected_state",
+        "destination_id",
+        "issued_at",
+        "expires_at",
+        "issuer_id",
+        "signature"
+      ],
+      "properties": {
+        "domain": {
+          "const": "ak.membership_compensation.single_use_cas.v1"
+        },
+        "admission_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        },
+        "delegation_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "expected_state": {
+          "const": "unused"
+        },
+        "destination_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MembershipCompensationSubmissionEvidence": {
+      "type": "object",
+      "description": "Closed transport-only evidence for one ak.member.state compensation leave/remove. It is excluded from Event canonical bytes and digest, persisted with the accepted submission, forwarded byte-identically, and independently revalidated by every receiver.",
+      "required": [
+        "delegation",
+        "join_accepted_proof",
+        "terminal_certificate",
+        "single_use_cas_token"
+      ],
+      "properties": {
+        "delegation": {
+          "$ref": "#/$defs/MembershipCompensationExecutorDelegation"
+        },
+        "join_accepted_proof": {
+          "$ref": "#/$defs/MembershipJoinAcceptedProof"
+        },
+        "terminal_certificate": {
+          "$ref": "#/$defs/MembershipCompensationTerminalCertificate"
+        },
+        "single_use_cas_token": {
+          "$ref": "#/$defs/MembershipCompensationCasToken"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MembershipCompensationCarrierPresence": {
+      "description": "Closed XOR for Event submission wrappers: a membership-compensation delegation reference requires exactly one matching evidence carrier, and every other authorization branch forbids it.",
+      "if": {
+        "properties": {
+          "event": {
+            "required": [
+              "authorization_ref"
+            ],
+            "properties": {
+              "authorization_ref": {
+                "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "membership_compensation_evidence"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "membership_compensation_evidence"
+          ]
+        }
+      }
+    },
     "EventFederationSubmission": {
       "type": "object",
-      "description": "Event publication transported between peers. Online federation carries an empty ingress_receipts array and no authorization_lease; explicit delayed/offline federation carries its lease and one or more lease-bound receipts. The receiving peer independently revalidates the Event, current admission, optional delayed evidence and CBA closure.",
+      "description": "Event publication transported between peers. Online federation carries an empty ingress_receipts array and no authorization_lease; explicit delayed/offline federation carries its lease and one or more lease-bound receipts. A membership-compensation Event carries the exact accepted transport-only evidence from self admission. The receiving peer independently revalidates the Event, current admission, optional delayed evidence, compensation evidence and CBA closure.",
       "required": [
         "event",
         "ingress_receipts"
@@ -2043,9 +2339,15 @@
         "control_proposal_ack": {
           "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
           "description": "Canonical external-authority receipt set for a federated Control Move. Forbidden for DataEvents."
+        },
+        "membership_compensation_evidence": {
+          "$ref": "#/$defs/MembershipCompensationSubmissionEvidence"
         }
       },
       "allOf": [
+        {
+          "$ref": "#/$defs/MembershipCompensationCarrierPresence"
+        },
         {
           "if": {
             "required": [
@@ -2075,7 +2377,7 @@
     },
     "EventInitialSubmission": {
       "type": "object",
-      "description": "Initial durable Event publication. Online submission requires only the complete signed Event and performs current-state admission atomically. authorization_lease is optional and valid only for an explicitly requested delayed/offline publication window. Lease and dependency bundles are excluded from the Event digest.",
+      "description": "Initial durable Event publication. Online submission requires the complete signed Event and performs current-state admission atomically. authorization_lease is optional and valid only for an explicitly requested delayed/offline publication window. A membership-compensation Event additionally requires its closed transport-only evidence. Lease, dependency bundles and compensation evidence are excluded from the Event digest.",
       "required": [
         "event"
       ],
@@ -2098,8 +2400,16 @@
         "control_proposal_ack": {
           "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
           "description": "Required external-authority receipt set when a Control Move is submitted to a receiver that cannot itself produce the complete current authority quorum. Forbidden for DataEvents."
+        },
+        "membership_compensation_evidence": {
+          "$ref": "#/$defs/MembershipCompensationSubmissionEvidence"
         }
       },
+      "allOf": [
+        {
+          "$ref": "#/$defs/MembershipCompensationCarrierPresence"
+        }
+      ],
       "additionalProperties": false
     },
     "EventReadRow": {
