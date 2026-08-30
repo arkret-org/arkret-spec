@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-30.19",
+  "version": "2026-08-30.20",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -680,7 +680,7 @@
     },
     {
       "operation_id": "ak.self.device_messages.command.send.v1",
-      "sha256": "sha256:6cc629701c1cc2be963c6207e9c4e5dad1cfa83eb0e9bb5d58089f3c5b7206a6"
+      "sha256": "sha256:8d5a8c4ce059776614d1739553eb94874d24da470aa480feefddd38f40b897cb"
     },
     {
       "operation_id": "ak.self.device_messages.read.list.v1",
