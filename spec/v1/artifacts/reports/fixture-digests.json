@@ -34,7 +34,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
-      "sha256": "c79ca166a7a9ece80b57a5c858a023b79c5394d7b7d62b23aaf4c641ef17a682"
+      "sha256": "e0dd64e25a92c5bcbef43532eec0813dc13af1509b903a4314cdc6af45d8d3bd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json",
@@ -394,7 +394,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "ed1fd4df070c0769bb8c8e6536c218c54eaaf5914ab8971f701243b9ad508e54"
+      "sha256": "abfd04154bbd225839b41426a4b2567f2a9d6c8a437dff2e9a2b36a1ad9137e2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

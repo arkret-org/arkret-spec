@@ -232,7 +232,7 @@
         "changed_ids": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
           "uniqueItems": true,
           "maxItems": 10000
@@ -240,7 +240,7 @@
         "left_ids": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
           },
           "uniqueItems": true,
           "maxItems": 10000

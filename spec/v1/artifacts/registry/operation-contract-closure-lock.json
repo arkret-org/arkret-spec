@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-30.14",
+  "version": "2026-08-30.15",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -456,7 +456,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:f8574bc987ca0ab169fc1efb6a90a7ca11694c853c4b560523ce30f9c44da66e"
+      "sha256": "sha256:561537d4655659bc5019f7dcfc6d7a5cabdeb8c3dfd22fb436944e4d3195ba5f"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",

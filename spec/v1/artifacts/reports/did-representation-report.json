@@ -448,26 +448,6 @@
       ]
     },
     {
-      "schema_path": "account-subscribe-frame.schema.json#/$defs/device_list_changes/properties/changed_ids",
-      "property_name": "changed_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "account-subscribe-frame.schema.json#/$defs/device_list_changes/properties/left_ids",
-      "property_name": "left_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "account-subscribe-frame.schema.json#/$defs/ordered_log_sibling_diagnostic/properties/issuer_id",
       "property_name": "issuer_id",
       "semantic_category": "responsibility_identity_material",

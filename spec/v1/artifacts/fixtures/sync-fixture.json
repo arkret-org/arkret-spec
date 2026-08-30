@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.sync.core.v1"
   },
   "profile": "ak.vector_group.sync.v1",
-  "version": "2026-07-30",
+  "version": "2026-08-31",
   "schema_validation_cases": [
     {
       "name": "device_message_envelope_with_message_id_valid",
@@ -1481,7 +1481,13 @@
         "cursor": "ak:cursor:fixture",
         "device_lists": {
           "changed_ids": [
-            "ak:did_core:webvh:z6mkfixture"
+            {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            }
           ],
           "left_ids": []
         }
